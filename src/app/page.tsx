@@ -1,7 +1,12 @@
 import Image from "next/image";
 import styles from "./page.module.css";
+import { auth } from "@/auth";
+import { SignOut } from "./components/signout-button";
+import Link from "next/link";
 
-export default function Home() {
+export default async function Home() {
+  const session = await auth();
+
   return (
     <div className={styles.page}>
       <main className={styles.main}>
@@ -89,6 +94,20 @@ export default function Home() {
           />
           Go to nextjs.org →
         </a>
+        {session ? (
+          <div>
+            <p>you are logged as</p>
+            <p>
+              <b>{session.user?.email}</b>
+            </p>
+            <SignOut />
+          </div>
+        ) : (
+          <div>
+            <p>you are not signed in</p>
+            <Link href="login">sign in</Link>
+          </div>
+        )}
       </footer>
     </div>
   );
