@@ -10,7 +10,12 @@ export default function Page() {
   return (
     <>
       <form action={dispatch}>
-        <input type="email" name="email" placeholder="Email" required />
+        <input
+          type="text"
+          name="email"
+          placeholder="Email or Username"
+          required
+        />
         <input
           type="password"
           name="password"
