@@ -8,6 +8,7 @@ import { db } from "@/db";
 import { posts, users } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
+import LinkPreviewFetcher from "@/app/lib/link-preview-fetcher";
 
 dayjs.extend(relativeTime);
 dayjs.extend(utc);
@@ -29,6 +30,7 @@ export default async function Page({
       post_id: posts.post_id,
       postdate: posts.postdate,
       text: posts.text,
+      link: posts.link,
       user_id: users.user_id,
       username: users.username,
       email: users.email,
@@ -39,5 +41,7 @@ export default async function Page({
     .where(eq(posts.post_id, id))
     .limit(1);
 
-  return <SinglePostPage post={result[0]} />;
+  const ogResult = await LinkPreviewFetcher(result[0].link); // this is fetched here so it can be processed by the server
+
+  return <SinglePostPage post={result[0]} ogResult={ogResult} />;
 }

@@ -21,6 +21,7 @@ export default async function Page() {
           content={post.text}
           poster={post.poster}
           comment_count={post.comment_count}
+          link={post.link}
         />
       ))}
     </Box>

@@ -75,6 +75,7 @@ export async function getAllPosts() {
       postdate: posts.postdate,
       poster: users.username,
       comment_count: count(comments.comment_id),
+      link: posts.link,
     })
     .from(posts)
     .innerJoin(users, eq(posts.user_id, users.user_id))
@@ -101,10 +102,14 @@ export async function insertPost(formData: FormData) {
 
   const sanitizedPostText = parsed.data.text;
 
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  const link = sanitizedPostText.match(urlRegex)?.[0] ?? null;
+
   if (postText) {
     await db.insert(posts).values({
       user_id: Number(session?.user?.user_id),
       text: sanitizedPostText,
+      link: link,
     });
 
     revalidatePath("/");

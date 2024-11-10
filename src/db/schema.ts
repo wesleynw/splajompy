@@ -3,6 +3,7 @@ import {
   serial,
   varchar,
   integer,
+  text,
   timestamp,
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
@@ -24,7 +25,8 @@ export const posts = pgTable("posts", {
     .references(() => users.user_id, {
       onDelete: "cascade",
     }),
-  text: varchar({ length: 255 }).notNull(),
+  text: text().notNull(),
+  link: text(),
   postdate: timestamp({ mode: "string" }).default(sql`CURRENT_TIMESTAMP`),
 });
 
