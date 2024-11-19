@@ -11,6 +11,6 @@ const theme = createTheme({
   cssVariables: {
     colorSchemeSelector: "class",
   },
+  palette: { background: { default: 'white' } },
 });
-
 export default theme;
