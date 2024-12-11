@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useActionState } from "react";
 import { authenticate } from "@/app/lib/actions";
 import {
   Box,
@@ -14,7 +14,6 @@ import {
 } from "@mui/material";
 import Link from "next/link";
 import theme from "@/theme";
-import { useFormState } from "react-dom";
 
 const FormContainer = styled(Box)(({ theme }) => ({
   display: "flex",
@@ -88,7 +87,7 @@ const StyledFormLabel = styled(FormLabel)(() => ({
 }));
 
 export default function LoginPage() {
-  const [errorMessage, dispatch] = useFormState(authenticate, undefined);
+  const [errorMessage, dispatch] = useActionState(authenticate, undefined);
 
   return (
     <Box

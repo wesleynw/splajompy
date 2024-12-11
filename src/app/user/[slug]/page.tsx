@@ -6,11 +6,10 @@ import { SessionProvider } from "next-auth/react";
 import { redirect } from "next/navigation";
 import { Box, Typography } from "@mui/material";
 
-export async function generateMetadata({
-  params,
-}: {
-  params: { slug: string };
+export async function generateMetadata(props: {
+  params: Promise<{ slug: string }>;
 }) {
+  const params = await props.params;
   return {
     title: `${params.slug}'s Profile`,
   };
@@ -18,8 +17,11 @@ export async function generateMetadata({
 
 export default async function Page({
   params,
-}: Readonly<{ params: { slug: string } }>) {
-  const username = String(params.slug);
+}: Readonly<{
+  params: Promise<{ slug: string }>;
+}>) {
+  const slug = (await params).slug;
+  const username = String(slug);
 
   const session = await auth();
 

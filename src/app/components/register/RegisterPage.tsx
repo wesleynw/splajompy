@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useActionState } from "react";
 import { register } from "@/app/lib/actions";
 import {
   Box,
@@ -14,7 +14,7 @@ import {
   styled,
 } from "@mui/material";
 import Link from "next/link";
-import { useFormState, useFormStatus } from "react-dom";
+import { useFormStatus } from "react-dom";
 import theme from "@/theme";
 
 const FormContainer = styled(Box)(({ theme }) => ({
@@ -89,7 +89,7 @@ const StyledFormLabel = styled(FormLabel)(() => ({
 }));
 
 export default function RegisterPage() {
-  const [errorMessage, dispatch] = useFormState(register, undefined);
+  const [errorMessage, dispatch] = useActionState(register, undefined);
 
   return (
     <Box
