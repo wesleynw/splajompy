@@ -6,11 +6,17 @@ import { TextField } from "@mui/material";
 interface TextInputProps {
   value: string;
   onChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  inputRef: React.RefObject<HTMLInputElement | null>;
 }
 
-export function TextInput({ value, onChange }: TextInputProps) {
+export function TextInput({
+  value,
+  onChange,
+  inputRef,
+}: Readonly<TextInputProps>) {
   return (
     <TextField
+      inputRef={inputRef}
       value={value}
       onChange={onChange}
       name="text"

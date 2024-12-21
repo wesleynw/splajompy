@@ -13,10 +13,16 @@ import { PostType } from "@/app/data/posts";
 import { useQueryClient } from "@tanstack/react-query";
 
 type NewPostProps = {
+  onPost: () => void;
   insertPostToCache: (post: PostType) => void;
+  inputRef: React.RefObject<HTMLInputElement | null>;
 };
 
-export default function Page({ insertPostToCache }: Readonly<NewPostProps>) {
+export default function Page({
+  onPost,
+  insertPostToCache,
+  inputRef,
+}: Readonly<NewPostProps>) {
   const ref = useRef<HTMLFormElement>(null);
   const theme = useTheme();
   const queryClient = useQueryClient();
@@ -117,69 +123,88 @@ export default function Page({ insertPostToCache }: Readonly<NewPostProps>) {
     setIsLoading(false);
 
     queryClient.invalidateQueries({ queryKey: ["feed"] });
+    onPost();
   };
 
   return (
-    <Stack
-      direction="column"
-      alignItems="center"
-      justifyContent="center"
-      component="form"
-      ref={ref}
-      onSubmit={handleSubmit}
+    <Box
       sx={{
-        borderRadius: "8px",
-        margin: "10px auto",
-        maxWidth: "600px",
-        padding: 2,
-        paddingY: 4,
-        backgroundColor: "#ffffff",
-        boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
-        ...theme.applyStyles("dark", {
-          backgroundColor: "#1c1c1c",
-          boxShadow: "0 2px 8px rgba(0, 0, 0, 0.3)",
-        }),
+        position: "absolute",
+        top: "30%",
+        left: "50%",
+        transform: "translate(-50%, -50%)",
+        width: "100%",
+        // width: 800,
+        // height: 400,
+        // bgcolor: "background.paper",
+        // border: "2px solid #000",
+        // boxShadow: 24,
+        p: 4,
       }}
-      spacing={2}
     >
       <Stack
-        direction="row"
-        alignItems="flex-start"
-        spacing={2}
-        sx={{ width: "100%" }}
-      >
-        <TextInput
-          value={textValue}
-          onChange={(e) => setTextValue(e.target.value)}
-        />
-      </Stack>
-      <ImagePreview
-        previewFile={previewFile}
-        setPreviewFile={setPreviewFile}
-        setFile={setSelectedFile}
-      />
-      <Box
+        direction="column"
+        alignItems="center"
+        justifyContent="center"
+        component="form"
+        ref={ref}
+        onSubmit={handleSubmit}
         sx={{
+          borderRadius: "8px",
+          margin: "10px auto",
           width: "100%",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          position: "relative",
-          marginTop: "16px",
+          maxWidth: "600px",
+          padding: 2,
+          paddingY: 4,
+          backgroundColor: "#ffffff",
+          boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
+          ...theme.applyStyles("dark", {
+            backgroundColor: "#1c1c1c",
+            boxShadow: "0 2px 8px rgba(0, 0, 0, 0.3)",
+          }),
         }}
+        spacing={2}
       >
-        <FileInput
-          file={selectedFile}
-          setFile={setSelectedFile}
+        <Stack
+          direction="row"
+          alignItems="flex-start"
+          spacing={2}
+          sx={{ width: "100%" }}
+        >
+          <TextInput
+            inputRef={inputRef}
+            value={textValue}
+            onChange={(e) => setTextValue(e.target.value)}
+          />
+        </Stack>
+        <ImagePreview
+          previewFile={previewFile}
           setPreviewFile={setPreviewFile}
-          setError={setError}
+          setFile={setSelectedFile}
         />
-        <SubmitPostButton
-          isLoading={isLoading}
-          disabled={!!error || (!textValue.trim() && !selectedFile)}
-        />
-      </Box>
-      {error && <p style={{ color: "red" }}>{error}</p>}{" "}
-    </Stack>
+        <Box
+          sx={{
+            width: "100%",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            position: "relative",
+            marginTop: "16px",
+          }}
+        >
+          <FileInput
+            file={selectedFile}
+            setFile={setSelectedFile}
+            setPreviewFile={setPreviewFile}
+            setError={setError}
+          />
+          <SubmitPostButton
+            isLoading={isLoading}
+            disabled={!!error || (!textValue.trim() && !selectedFile)}
+          />
+        </Box>
+        {error && <p style={{ color: "red" }}>{error}</p>}{" "}
+      </Stack>
+    </Box>
   );
 }

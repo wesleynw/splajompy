@@ -5,7 +5,6 @@ import { Session } from "next-auth";
 import { useEffect, useRef } from "react";
 import { useFeed } from "@/app/data/posts";
 import Post from "../post/Post";
-import NewPost from "../post/NewPost/NewPost";
 import StandardWrapper from "../loading/StandardWrapper";
 
 type Props = {
@@ -25,7 +24,6 @@ export default function Feed({ session, page, user_id }: Readonly<Props>) {
     // isFetchingNextPage,
     status,
     updateCachedPost,
-    insertPost,
     deletePost,
   } = useFeed(page, user_id);
 
@@ -75,7 +73,6 @@ export default function Feed({ session, page, user_id }: Readonly<Props>) {
         width: "100%",
       }}
     >
-      {page !== "profile" && <NewPost insertPostToCache={insertPost} />}
       {data.pages.map((posts) =>
         posts.map((post) => (
           <Post
