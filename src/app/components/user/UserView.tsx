@@ -8,6 +8,7 @@ import FollowButton from "../follows/FollowButton";
 import Feed from "../feed/Feed";
 import theme from "@/theme";
 import { Session } from "next-auth";
+import Bio from "./Bio";
 
 interface Props {
   session: Session;
@@ -74,10 +75,11 @@ export default function UserView({ session, user }: Readonly<Props>) {
             <FollowButton user_id={user.user_id} show_unfollow={true} />
           </Box>
           <Stack
-            direction="row"
+            direction="column"
             alignItems="left"
             justifyContent="space-between"
             marginTop={1}
+            spacing={3}
           >
             <Typography
               variant="h6"
@@ -85,13 +87,13 @@ export default function UserView({ session, user }: Readonly<Props>) {
                 fontWeight: "bold",
                 color: "#333333",
                 wordBreak: "break-all",
-                textAlign: "center",
                 marginLeft: 1,
                 ...theme.applyStyles("dark", { color: "#ffffff" }),
               }}
             >
               @{user.username}
             </Typography>
+            <Bio isOwnProfile={isOwnProfile} user={user} />
           </Stack>
         </Box>
       </Box>

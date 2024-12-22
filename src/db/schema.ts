@@ -17,6 +17,14 @@ export const users = pgTable("users", {
   username: varchar({ length: 100 }).notNull(),
 });
 
+export const bios = pgTable("bios", {
+  user_id: integer("user_id")
+    .primaryKey()
+    .notNull()
+    .references(() => users.user_id, { onDelete: "cascade" }),
+  bio: text().notNull(),
+});
+
 export type SelectUser = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 

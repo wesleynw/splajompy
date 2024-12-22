@@ -1,0 +1,27 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1734838909274,
+      "tag": "0000_last_lady_mastermind",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1734838932863,
+      "tag": "0001_fair_vargas",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1734844179209,
+      "tag": "0002_panoramic_next_avengers",
+      "breakpoints": true
+    }
+  ]
+}

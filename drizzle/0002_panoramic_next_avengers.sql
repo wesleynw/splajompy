@@ -1,0 +1,1 @@
+ALTER TABLE "bios" ADD PRIMARY KEY ("user_id");
