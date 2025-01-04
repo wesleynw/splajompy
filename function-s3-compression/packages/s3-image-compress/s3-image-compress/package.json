@@ -1,0 +1,17 @@
+{
+  "type": "module",
+  "main": "dist/s3-image-compress.js",
+  "devDependencies": {
+    "@types/aws-sdk": "^0.0.42",
+    "@types/sharp": "^0.31.1",
+    "typescript": "^5.7.2"
+  },
+  "scripts": {
+    "build": "tsc -b"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.717.0",
+    "@aws-sdk/middleware-sdk-s3": "^3.716.0",
+    "sharp": "^0.33.5"
+  }
+}

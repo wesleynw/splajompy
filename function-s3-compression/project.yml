@@ -1,0 +1,19 @@
+parameters: {}
+environment: {}
+packages:
+  - name: s3-image-compress
+    shared: false
+    environment: {}
+    parameters: {}
+    annotations: {}
+    functions:
+      - name: s3-image-compress
+        binary: false
+        main: ""
+        runtime: nodejs:18
+        web: true
+        webSecure: false
+        parameters: {}
+        environment: {}
+        annotations: {}
+        limits: {}

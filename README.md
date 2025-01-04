@@ -62,3 +62,13 @@ Since there's no development branch, and our preview environments share a develo
 4. Test
 5. Playwright will fail during PR checks because schema changes have not been made to the development database. If no other PRs are open, migrate the development DB.
 6. Migrate the main database when the PR is merged
+
+## Serverless Functions
+
+This repository contains a serverless function to compress images uploaded to a S3 instance. To deploy the function, install the DigitalOcean doctl and serverless tools, then run:
+
+```
+doctl serverless deploy function-s3-compression --remote-build
+```
+
+Note that `--remote-build` is required because the function relies on [sharp](https://sharp.pixelplumbing.com/) for image manipulation, which must be installed in an environment that matches the DigitalOcean Functions runtime.
