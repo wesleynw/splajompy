@@ -13,11 +13,10 @@ packages:
         runtime: nodejs:18
         web: true
         parameters: {}
-        environment: {
+        environment:
           SPACES_REGION: "${SPACES_REGION}"
           SPACES_BUCKET: "${SPACES_BUCKET}"
           SPACES_ACCESS_KEY: "${SPACES_ACCESS_KEY}"
           SPACES_SECRET_KEY: "${SPACES_SECRET_KEY}"
-        }
         annotations: {}
         limits: {}
