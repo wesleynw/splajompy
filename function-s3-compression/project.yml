@@ -12,8 +12,12 @@ packages:
         main: ""
         runtime: nodejs:18
         web: true
-        webSecure: false
         parameters: {}
-        environment: {}
+        environment: {
+          SPACES_REGION: "${SPACES_REGION}"
+          SPACES_BUCKET: "${SPACES_BUCKET}"
+          SPACES_ACCESS_KEY: "${SPACES_ACCESS_KEY}"
+          SPACES_SECRET_KEY: "${SPACES_SECRET_KEY}"
+        }
         annotations: {}
         limits: {}
