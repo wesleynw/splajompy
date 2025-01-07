@@ -14,14 +14,12 @@ export default function NotificationView() {
   const markReadRef = useRef(markRead);
 
   useEffect(() => {
-    console.log("use effecting");
     if (isPending || !notifications) return;
 
     const markNotificationsAsRead = async () => {
       const newRecentlyViewed = new Set(
         notifications?.filter((n) => !n.viewed).map((n) => n.notification_id)
       );
-      console.log("new recently viewed: ", newRecentlyViewed);
       setRecentlyViewed(newRecentlyViewed);
       await markReadRef.current();
     };

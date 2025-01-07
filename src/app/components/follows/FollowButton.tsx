@@ -63,8 +63,6 @@ export default function FollowButton({
     return null;
   }
 
-  console.log(theme.palette.primary);
-
   return (
     <Button
       variant="contained"

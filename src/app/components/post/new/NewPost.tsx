@@ -11,6 +11,7 @@ import { getUsername, insertImage, insertPost } from "../../../lib/actions";
 import { useSession } from "next-auth/react";
 import { PostType } from "@/app/data/posts";
 import { useQueryClient } from "@tanstack/react-query";
+import { invokeCompressionFunction } from "./ImageCompresstion";
 
 type NewPostProps = {
   onPost: () => void;
@@ -99,6 +100,7 @@ export default function Page({
         imagePath = uniqueFilename;
 
         await insertImage(post.post_id, uniqueFilename, img.width, img.height);
+        await invokeCompressionFunction(session.user.user_id, uniqueFilename);
       } catch (err) {
         console.error("Error processing file upload", err);
       }
