@@ -3,6 +3,20 @@
 import { db } from "@/db";
 import { User, users } from "@/db/schema";
 import { eq, or } from "drizzle-orm";
+import { getCurrentSession } from "../auth/session";
+
+export async function getAllUsers() {
+  const { user } = await getCurrentSession();
+  if (user === null) {
+    return [];
+  }
+
+  const results = await db
+    .select({ username: users.username, user_id: users.user_id })
+    .from(users);
+
+  return results;
+}
 
 export async function getUserByUsername(username: string) {
   const results = await db

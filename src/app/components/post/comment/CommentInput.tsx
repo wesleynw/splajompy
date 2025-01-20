@@ -4,13 +4,9 @@ import { useState } from "react";
 
 interface Props {
   onAddComment: (text: string) => void;
-  poster: string;
 }
 
-export default function CommentInput({
-  onAddComment,
-  poster,
-}: Readonly<Props>) {
+export default function CommentInput({ onAddComment }: Readonly<Props>) {
   const [comment, setComment] = useState("");
 
   const handleAddComment = () => {
@@ -25,7 +21,7 @@ export default function CommentInput({
       <TextField
         fullWidth
         variant="outlined"
-        placeholder={`Was ${poster} cooking here?`}
+        placeholder={`Add a comment...`}
         value={comment}
         onChange={(e) => setComment(e.target.value)}
         sx={{ marginBottom: 2 }}

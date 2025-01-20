@@ -25,6 +25,7 @@ import { useSinglePost } from "@/app/data/SinglePost";
 import ShareButton from "./ShareButton";
 import Linkify from "linkify-react";
 import { User } from "@/db/schema";
+import { renderMentions } from "@/app/utils/mentions";
 
 dayjs.extend(relativeTime);
 dayjs.extend(utc);
@@ -146,7 +147,9 @@ export default function SinglePagePost({ post_id, user }: Readonly<Props>) {
           },
         }}
       >
-        <Linkify options={options}>{post.text}</Linkify>
+        <Linkify options={options}>
+          {post.text ? renderMentions(post.text) : ""}
+        </Linkify>
       </Typography>
 
       {post.imageBlobUrl && post.imageWidth && post.imageHeight && (
@@ -193,7 +196,6 @@ export default function SinglePagePost({ post_id, user }: Readonly<Props>) {
 
       <Suspense fallback={<div>Loading...</div>}>
         <CommentList
-          poster={post.poster}
           poster_id={post.user_id}
           post_id={post.post_id}
           commentCount={post.comment_count}

@@ -4,10 +4,23 @@ import HomeIcon from "@mui/icons-material/Home";
 import PublicIcon from "@mui/icons-material/Public";
 import PersonIcon from "@mui/icons-material/Person";
 import NotificationsIcon from "@mui/icons-material/Notifications";
-import { BottomNavigation, BottomNavigationAction, Box } from "@mui/material";
+import {
+  BottomNavigation,
+  BottomNavigationAction,
+  Box,
+  styled,
+} from "@mui/material";
 import { usePathname, useRouter } from "next/navigation";
 import NotificationBadge from "../notifications/NotificationBadge";
 import { useUser } from "@/app/providers/UserProvider";
+
+const StyledBottomNavigationAction = styled(BottomNavigationAction)({
+  paddingTop: "15px",
+  "&.Mui-selected": {
+    color: "white",
+    filter: "drop-shadow(0 0 5px rgba(255, 255, 255, 0.45))",
+  },
+});
 
 export default function MobileNavigation() {
   const pathname = usePathname();
@@ -41,20 +54,17 @@ export default function MobileNavigation() {
       <BottomNavigation
         value={pathname}
         sx={{
-          height: is_standalone ? "80px" : "56px", // Custom height for standalone mode
-          alignItems: "flex-start", // Align items closer to the top
+          height: is_standalone ? "80px" : "56px",
+          alignItems: "flex-start",
         }}
       >
-        <BottomNavigationAction
+        <StyledBottomNavigationAction
           value="/"
           icon={<HomeIcon />}
           onClick={(event) => handleNavigation(event, "/")}
           disableRipple
-          sx={{
-            paddingTop: "15px",
-          }}
         />
-        <BottomNavigationAction
+        <StyledBottomNavigationAction
           value="/notifications"
           icon={
             <NotificationBadge>
@@ -63,27 +73,18 @@ export default function MobileNavigation() {
           }
           onClick={(event) => handleNavigation(event, "/notifications")}
           disableRipple
-          sx={{
-            paddingTop: "15px",
-          }}
         />
-        <BottomNavigationAction
+        <StyledBottomNavigationAction
           value="/all"
           icon={<PublicIcon />}
           onClick={(event) => handleNavigation(event, "/all")}
           disableRipple
-          sx={{
-            paddingTop: "15px",
-          }}
         />
-        <BottomNavigationAction
+        <StyledBottomNavigationAction
           value={`/user/${user.username}`}
           icon={<PersonIcon />}
           onClick={(event) => handleNavigation(event, `/user/${user.username}`)}
           disableRipple
-          sx={{
-            paddingTop: "15px",
-          }}
         />
       </BottomNavigation>
     </Box>

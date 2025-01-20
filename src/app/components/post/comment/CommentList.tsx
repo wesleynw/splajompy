@@ -6,7 +6,6 @@ import CommentInput from "./CommentInput";
 import Comment from "./Comment";
 
 interface CommentListProps {
-  poster: string;
   poster_id: number;
   post_id: number;
   commentCount: number;
@@ -14,7 +13,6 @@ interface CommentListProps {
 }
 
 export default function CommentList({
-  poster,
   poster_id,
   post_id,
   commentCount,
@@ -107,7 +105,7 @@ export default function CommentList({
 
   return (
     <Box>
-      <CommentInput onAddComment={addComment} poster={poster} />
+      <CommentInput onAddComment={addComment} />
       <Box sx={{ marginTop: 3 }}>{renderComments()}</Box>
     </Box>
   );

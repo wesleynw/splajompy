@@ -3,6 +3,7 @@
 import { Dialog, DialogContent, Slide } from "@mui/material";
 import { TransitionProps } from "@mui/material/transitions";
 import { forwardRef, useRef } from "react";
+import { RichTextareaHandle } from "rich-textarea";
 import NewPost from "./NewPost";
 import { User } from "@/db/schema";
 
@@ -24,7 +25,7 @@ export default function NewPostDialog({
   open,
   toggleOpen,
 }: Readonly<Props>) {
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<RichTextareaHandle>(null);
 
   return (
     <Dialog
@@ -65,7 +66,7 @@ export default function NewPostDialog({
         <NewPost
           user={user}
           onPost={toggleOpen}
-          insertPostToCache={() => console.log("a")}
+          insertPostToCache={() => console.log("a")} // TODO: why is this here?
           inputRef={inputRef}
         />
       </DialogContent>

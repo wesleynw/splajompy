@@ -9,8 +9,8 @@ export default function SubmitPostButton({
       type="submit"
       variant="contained"
       sx={{
-        borderRadius: "20px",
-        padding: "10px 20px",
+        borderRadius: "22px",
+        padding: "4px 12px",
         backgroundColor: "#4a90e2",
         color: "#ffffff",
         fontWeight: "bold",
@@ -40,7 +40,8 @@ export default function SubmitPostButton({
       )}
 
       <Typography
-        variant="subtitle2"
+        variant="subtitle1"
+        fontWeight={800}
         style={{ visibility: isLoading ? "hidden" : "visible" }}
       >
         Post

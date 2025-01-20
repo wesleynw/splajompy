@@ -34,7 +34,7 @@ export default function ShareButton() {
 
   return (
     <>
-      <IconButton onClick={handleClick}>
+      <IconButton onClick={handleClick} disableRipple>
         <IosShareIcon sx={{ width: "22px", height: "22px" }} />
       </IconButton>
       <Snackbar

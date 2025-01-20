@@ -1,10 +1,19 @@
 "use server";
 
 import { db } from "@/db";
-import { comments, follows, images, likes, posts, users } from "@/db/schema";
+import {
+  comments,
+  follows,
+  images,
+  likes,
+  notifications,
+  posts,
+  users,
+} from "@/db/schema";
 import { and, or, count, desc, eq, exists, sql } from "drizzle-orm";
 import { deleteObject } from "./s3";
 import { getCurrentSession } from "../auth/session";
+import { internalTagRegex } from "../utils/mentions";
 
 export type PostData = {
   post_id: number;
@@ -19,6 +28,33 @@ export type PostData = {
 };
 
 const FETCH_LIMIT = 10;
+
+export async function insertPost(text: string) {
+  const { user } = await getCurrentSession();
+  if (user === null) {
+    return;
+  }
+
+  const post = await db
+    .insert(posts)
+    .values({
+      user_id: Number(user.user_id),
+      text: text,
+    })
+    .returning();
+
+  for (const tag of text.matchAll(internalTagRegex)) {
+    const user_id = Number(tag[1]);
+    if (user.user_id !== user_id) {
+      await db.insert(notifications).values({
+        user_id: user_id,
+        message: `@${user.username} mentioned you in a post`,
+        link: `/post/${post[0].post_id}`,
+      });
+    }
+  }
+  return post[0];
+}
 
 export async function getAllPostsFromDb(offset: number) {
   const { user } = await getCurrentSession();
