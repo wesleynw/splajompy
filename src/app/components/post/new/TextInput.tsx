@@ -5,6 +5,7 @@ import { Stack } from "@mui/material";
 import React, { useState } from "react";
 import { RichTextarea, RichTextareaHandle } from "rich-textarea";
 import MentionDialog from "./MentionDialog";
+import WordLimitCircularProgress from "./WordLimitCircularProgress";
 
 interface TextInputProps {
   placeholder: string;
@@ -13,6 +14,7 @@ interface TextInputProps {
   inputRef?: React.RefObject<RichTextareaHandle | null>;
 }
 
+const MAX_LENGTH = 250;
 export function TextInput({
   placeholder,
   value,
@@ -21,8 +23,12 @@ export function TextInput({
 }: Readonly<TextInputProps>) {
   const [mentionDialogOpen, setMentionDialogOpen] = useState(false);
   const [mentionedUser, setMentionedUser] = useState("");
+  const [textLimit, setTextLimit] = useState(0);
 
   const handleChange = (newValue: string) => {
+    const wordCount = newValue.trim().split(/\s+/).length;
+    setTextLimit((wordCount / MAX_LENGTH) * 100);
+
     setTextValue((prev) => {
       return newValue.replace(/@\S+/g, (match) => {
         const username = match.slice(1);
@@ -38,7 +44,11 @@ export function TextInput({
   };
 
   return (
-    <Stack direction="column" sx={{ width: "100%", position: "relative" }}>
+    <Stack
+      direction="column"
+      spacing={1}
+      sx={{ width: "100%", position: "relative", alignItems: "flex-end" }}
+    >
       <RichTextarea
         className="rich-textarea"
         ref={inputRef}
@@ -59,6 +69,7 @@ export function TextInput({
           return toPreviewFormat(v);
         }}
       </RichTextarea>
+      <WordLimitCircularProgress progressPercentage={textLimit} />
 
       {mentionDialogOpen && (
         <MentionDialog
