@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 
 	"splajompy.com/api/v2/internal/db"
@@ -25,7 +26,7 @@ func (s *UserService) GetUserById(ctx context.Context, cUser models.PublicUser, 
 	}
 
 	bio, err := s.queries.GetBioByUserId(ctx, int32(userID))
-	if err != nil {
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return nil, errors.New("unable to find bio")
 	}
 
