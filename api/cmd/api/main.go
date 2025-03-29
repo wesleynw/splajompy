@@ -1,0 +1,46 @@
+package main
+
+import (
+	"context"
+	"log"
+	"net/http"
+	"os"
+
+	"github.com/jackc/pgx/v5"
+	"github.com/joho/godotenv"
+
+	"splajompy.com/api/v2/internal/db"
+	"splajompy.com/api/v2/internal/handler"
+	"splajompy.com/api/v2/internal/middleware"
+	"splajompy.com/api/v2/internal/service"
+)
+
+func main() {
+	ctx := context.Background()
+	godotenv.Load()
+
+	connString := os.Getenv("DB_CONNECTION_STRING")
+	conn, err := pgx.Connect(ctx, connString)
+	if err != nil {
+		log.Fatalf("failed to connect to database: %v", err)
+	}
+	defer conn.Close(ctx)
+
+	queries := db.New(conn)
+
+	postService := service.NewPostService(queries)
+	commentService := service.NewCommentService(queries)
+	userService := service.NewUserService(queries)
+
+	h := handler.NewHandler(*queries, postService, commentService, userService)
+
+	mux := http.NewServeMux()
+	h.RegisterRoutes(mux)
+
+	wrappedMux := middleware.Logger(mux)
+
+	log.Printf("Server starting on port %d", 8080)
+	if err := http.ListenAndServe(":8080", wrappedMux); err != nil {
+		log.Fatalf("server failed to start: %v", err)
+	}
+}
