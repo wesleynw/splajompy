@@ -17,16 +17,7 @@ struct HomeView: View {
             ScrollView {
                 if !viewModel.error.isEmpty {
                     Text(viewModel.error).padding(.top)
-                } else if viewModel.isLoading {
-                    VStack {
-                        Spacer()
-                        ProgressView()
-                            .scaleEffect(1.5)
-                            .padding()
-                        Spacer()
-                    }
                 }
-            
                 LazyVStack(spacing: 0) {
                     ForEach(viewModel.posts) {
                         post in PostView(post: post, onLikeButtonTapped: { viewModel.toggleLike(on: post) }).onAppear {
@@ -35,6 +26,11 @@ struct HomeView: View {
                             }
                         }
                     }
+                }
+                if viewModel.isLoading {
+                    ProgressView()
+                        .scaleEffect(1.5)
+                        .padding()
                 }
             }
             .refreshable {

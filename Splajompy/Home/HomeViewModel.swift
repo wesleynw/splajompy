@@ -33,12 +33,12 @@ extension HomeView {
                     }
                     offset += fetchLimit
                     error = ""
+                    isLoading = false
                 } catch {
                     print("error fetching posts: \(error.localizedDescription)")
                     self.error = error.localizedDescription
                 }
             }
-            isLoading = false
         }
         
         func refreshPosts() {
@@ -46,8 +46,8 @@ extension HomeView {
             Task { @MainActor in
                 offset = 0
                 loadMorePosts(reset: true)
+                isLoading = false
             }
-            isLoading = false
         }
         
         func toggleLike(on post: DetailedPost) {
