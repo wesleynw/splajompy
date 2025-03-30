@@ -77,59 +77,6 @@ func (q *Queries) GetBioByUserId(ctx context.Context, userID int32) (string, err
 	return text, err
 }
 
-const getCommentsByPostId = `-- name: GetCommentsByPostId :many
-SELECT
-  comments.comment_id,
-  comments.post_id,
-  comments.user_id,
-  text,
-  comments.created_at,
-  users.username,
-  users.name
-FROM comments
-JOIN users ON comments.user_id = users.user_id
-WHERE comments.post_id = $1
-ORDER BY comments.created_at DESC
-`
-
-type GetCommentsByPostIdRow struct {
-	CommentID int32
-	PostID    int32
-	UserID    int32
-	Text      string
-	CreatedAt pgtype.Timestamp
-	Username  string
-	Name      pgtype.Text
-}
-
-func (q *Queries) GetCommentsByPostId(ctx context.Context, postID int32) ([]GetCommentsByPostIdRow, error) {
-	rows, err := q.db.Query(ctx, getCommentsByPostId, postID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []GetCommentsByPostIdRow
-	for rows.Next() {
-		var i GetCommentsByPostIdRow
-		if err := rows.Scan(
-			&i.CommentID,
-			&i.PostID,
-			&i.UserID,
-			&i.Text,
-			&i.CreatedAt,
-			&i.Username,
-			&i.Name,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
 const getImagesByPostId = `-- name: GetImagesByPostId :many
 SELECT image_id, post_id, height, width, image_blob_url, display_order
 FROM images

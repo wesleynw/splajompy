@@ -21,8 +21,8 @@ struct EmptyResponse: Decodable {}
 class APIService {
     static let shared = APIService()
     
-//    let apiURL = "https://api.splajompy.com"
-    let apiURL = "http://192.168.0.37:8080"
+    let apiURL = "https://api.splajompy.com"
+//    let apiURL = "http://192.168.0.37:8080"
     
     private init() {}
     
@@ -117,11 +117,12 @@ class APIService {
         }
     }
     
-    func requestWithoutResponse(
+    func requestWithoutResponse<U: Encodable>(
         endpoint: String,
         method: String = "GET",
+        body: U? = nil as String?,
         requiresAuth: Bool = true
     ) async throws {
-        let _: EmptyResponse = try await request(endpoint: endpoint, method: method, requiresAuth: requiresAuth)
+        let _: EmptyResponse = try await request(endpoint: endpoint, method: method, body: body, requiresAuth: requiresAuth)
     }
 }

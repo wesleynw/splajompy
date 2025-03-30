@@ -91,20 +91,6 @@ SELECT *
 FROM posts
 WHERE post_id = $1;
 
--- name: GetCommentsByPostId :many
-SELECT
-  comments.comment_id,
-  comments.post_id,
-  comments.user_id,
-  text,
-  comments.created_at,
-  users.username,
-  users.name
-FROM comments
-JOIN users ON comments.user_id = users.user_id
-WHERE comments.post_id = $1
-ORDER BY comments.created_at DESC;
-
 -- name: GetImagesByPostId :many
 SELECT *
 FROM images
