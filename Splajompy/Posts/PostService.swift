@@ -27,6 +27,7 @@ struct DetailedPost: Decodable, Equatable, Identifiable {
     let Post: Post
     let User: User
     var IsLiked: Bool
+    let CommentCount: Int
     var Images: [ImageDTO]?
     
     var id: Int { Post.PostID }

@@ -18,7 +18,6 @@ struct SplajompyApp: App {
 //                    TabView {
 //                        Tab("Home", systemImage: "house") {
                             HomeView()
-                                .environmentObject(authManager)
 //                        }
 //                        Tab("Profile", systemImage: "person.circle") {
 //                            LoginView()

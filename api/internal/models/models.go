@@ -6,10 +6,11 @@ import (
 )
 
 type DetailedPost struct {
-	Post    db.Post
-	User    db.GetUserByIdRow
-	IsLiked bool
-	Images  []db.Image
+	Post         db.Post
+	User         db.GetUserByIdRow
+	IsLiked      bool
+	Images       []db.Image
+	CommentCount int
 }
 
 type DetailedComment struct {

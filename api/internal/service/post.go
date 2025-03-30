@@ -47,11 +47,17 @@ func (s *PostService) GetPostById(ctx context.Context, cUser models.PublicUser, 
 		images = []db.Image{}
 	}
 
+	commentCount, err := s.queries.GetCommentCountByPostID(ctx, post.PostID)
+	if err != nil {
+		return nil, errors.New("unable to find comment count for post")
+	}
+
 	response := models.DetailedPost{
-		Post:    post,
-		User:    user,
-		IsLiked: isLiked,
-		Images:  images,
+		Post:         post,
+		User:         user,
+		IsLiked:      isLiked,
+		Images:       images,
+		CommentCount: int(commentCount),
 	}
 
 	return &response, nil

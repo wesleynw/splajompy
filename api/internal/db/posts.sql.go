@@ -9,6 +9,19 @@ import (
 	"context"
 )
 
+const getCommentCountByPostID = `-- name: GetCommentCountByPostID :one
+SELECT COUNT(*)
+FROM comments
+WHERE post_id = $1
+`
+
+func (q *Queries) GetCommentCountByPostID(ctx context.Context, postID int32) (int64, error) {
+	row := q.db.QueryRow(ctx, getCommentCountByPostID, postID)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const getPostIdsByFollowing = `-- name: GetPostIdsByFollowing :many
 SELECT post_id
 FROM posts
