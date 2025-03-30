@@ -79,8 +79,8 @@ struct PostView: View {
                         HStack(spacing: 4) {
                             Image(systemName: "bubble.right")
                                 .font(.system(size: 16))
-//                            Text("\(post.Commentcount)")
-//                                .font(.subheadline)
+                            Text("\(post.CommentCount)")
+                                .font(.subheadline)
                         }
                         .foregroundStyle(.white)
                     }

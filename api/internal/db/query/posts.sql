@@ -17,3 +17,8 @@ WHERE posts.user_id = $1 OR EXISTS (
 ORDER BY posts.created_at DESC
 LIMIT $2
 OFFSET $3;
+
+-- name: GetCommentCountByPostID :one
+SELECT COUNT(*)
+FROM comments
+WHERE post_id = $1;

@@ -44,10 +44,9 @@ extension ProfileView {
                 } catch {
                     print("error fetching user profile: \(error.localizedDescription)")
                 }
-                
+                isLoadingProfile = false
             }
             
-            isLoadingProfile = false
         }
         
         func loadProfilePosts() {
@@ -55,15 +54,14 @@ extension ProfileView {
             
             Task { @MainActor in
                 do {
-                    let fetchedPosts: [DetailedPost] = try await APIService.shared.request(endpoint: "/user/\(userID)/posts")
-                    print("fetched posts length: \(fetchedPosts.count)")
+                    let fetchedPosts: [DetailedPost] = try await APIService.shared.request(endpoint: "/user/\(userID)/posts?limit=\(fetchLimit)&offset=\(offset)")
                     self.posts.append(contentsOf: fetchedPosts)
+                    offset += fetchLimit
                 } catch {
                     postError = error.localizedDescription
                 }
+                isLoadingPosts = false
             }
-            
-            isLoadingPosts = false
         }
     }
 }

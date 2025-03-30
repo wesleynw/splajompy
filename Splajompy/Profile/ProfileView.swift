@@ -16,6 +16,11 @@ struct ProfileView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 12) {
+                if viewModel.isLoadingProfile {
+                    ProgressView()
+                        .scaleEffect(1.5)
+                        .padding()
+                }
                 if let user = viewModel.profile {
                     VStack(alignment: .leading, spacing: 4) {
                         Text(user.Name ?? "")
@@ -36,7 +41,7 @@ struct ProfileView: View {
                             } else {
                                 Button(viewModel.profile?.IsFollowing ?? false ? "Unfollow" : "Follow") { // TODO this is bad
                                     // Toggle follow status
-//                                    viewModel.toggle()
+                                    //                                    viewModel.toggle()
                                 }
                                 .buttonStyle(.bordered)
                             }
@@ -55,18 +60,11 @@ struct ProfileView: View {
                         }
                     }
                     
-                    Rectangle()
-                        .frame(height: 3)
-                        .foregroundColor(Color.gray.opacity(0.4))
-                        .padding(.vertical, 12)
-                    
-                    // Posts section
                     VStack(spacing: 0) {
-                        if viewModel.isLoadingPosts {
+                        if viewModel.isLoadingPosts && !viewModel.isLoadingProfile {
                             ProgressView()
-                            Text("Loading posts...")
-                                .font(.subheadline)
-                                .foregroundColor(.gray)
+                                .frame(maxWidth: .infinity)
+                                .padding()
                         } else if viewModel.posts.isEmpty {
                             Text("No posts available")
                                 .font(.headline)
@@ -81,7 +79,7 @@ struct ProfileView: View {
                             .padding(.horizontal, -16) // Remove horizontal padding from posts
                         }
                     }
-                } else {
+                } else if !viewModel.isLoadingProfile {
                     Text("This user doesn't exist.")
                         .font(.title)
                         .fontWeight(.black)

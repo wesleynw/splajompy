@@ -9,20 +9,15 @@ import SwiftUI
 
 struct HomeView: View {
     @StateObject private var viewModel = ViewModel()
-
-    // TODO this should be removed after testing
-    @EnvironmentObject private var authManager: AuthManager
-
     
     var body: some View {
         NavigationStack {
             Text("Splajompy").fontWeight(.black)
-            Button(action: {
-                authManager.signOut()
-            }) {
-                Text("Sign Out")
-            }
+            
             ScrollView {
+                if !viewModel.error.isEmpty {
+                    Text(viewModel.error).padding(.top)
+                }
                 LazyVStack(spacing: 0) {
                     ForEach(viewModel.posts) {
                         post in PostView(post: post, onLikeButtonTapped: { viewModel.toggleLike(on: post) }).onAppear {
@@ -32,13 +27,15 @@ struct HomeView: View {
                         }
                     }
                 }
-            }.refreshable {
+                if viewModel.isLoading {
+                    ProgressView()
+                        .scaleEffect(1.5)
+                        .padding()
+                }
+            }
+            .refreshable {
                 viewModel.refreshPosts()
             }
         }
     }
-}
-
-#Preview {
-    HomeView()
 }
