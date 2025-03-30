@@ -19,6 +19,24 @@ func NewCommentService(queries *db.Queries) *CommentService {
 	}
 }
 
+func (s *CommentService) AddCommentToPost(ctx context.Context, cUser models.PublicUser, postID int, content string) (*db.Comment, error) {
+	_, err := s.queries.GetPostById(ctx, int32(postID))
+	if err != nil {
+		return nil, errors.New("unable to find post")
+	}
+
+	comment, err := s.queries.AddCommentToPost(ctx, db.AddCommentToPostParams{
+		PostID: int32(postID),
+		UserID: cUser.UserID,
+		Text:   content,
+	})
+	if err != nil {
+		return nil, errors.New("unable to create new comment")
+	}
+
+	return &comment, nil
+}
+
 func (s *CommentService) GetCommentsByPostId(ctx context.Context, cUser models.PublicUser, postID int) (*[]models.DetailedComment, error) {
 	dbComments, err := s.queries.GetCommentsByPostId(ctx, int32(postID))
 	if err != nil {

@@ -37,6 +37,8 @@ func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("POST /post/{id}/liked", h.AddPostLike)
 	mux.HandleFunc("DELETE /post/{id}/liked", h.RemovePostLike)
 
+	// comments
+	mux.HandleFunc("POST /post/{post_id}/comment", h.AddCommentToPostById)
 	mux.HandleFunc("POST /post/{post_id}/comment/{comment_id}/liked", h.AddCommentLike)
 	mux.HandleFunc("DELETE /post/{post_id}/comment/{comment_id}/liked", h.RemoveCommentLike)
 

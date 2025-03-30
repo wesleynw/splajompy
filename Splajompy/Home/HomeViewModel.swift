@@ -11,7 +11,6 @@ let fetchLimit = 10
 
 extension HomeView {
     class ViewModel: ObservableObject {
-        private let postService = PostService()
         @Published var posts = [DetailedPost]()
         @Published var isLoading = true
         @Published var error = ""
@@ -51,11 +50,31 @@ extension HomeView {
         }
         
         func toggleLike(on post: DetailedPost) {
-            Task {
-                @MainActor in
+            Task { @MainActor in
                 if let index = posts.firstIndex(where: { $0.Post.PostID == post.Post.PostID }) {
                     posts[index].IsLiked.toggle()
-                    await postService.toggleLike(for: post)
+                    let method = post.IsLiked ? "DELETE" : "POST"
+                            
+                    do {
+                        try await APIService.shared.requestWithoutResponse(endpoint: "/post/\(post.Post.PostID)/liked", method: method)
+                    } catch {
+                        print("Error adding like to post: \(error.localizedDescription)")
+                    }
+                }
+            }
+        }
+        
+        func addComment(on post: DetailedPost, content: String) {
+            Task { @MainActor in
+                if let index = posts.firstIndex(where: { $0.Post.PostID == post.Post.PostID }) {
+                    posts[index].CommentCount += 1
+                            
+                    do {
+                        
+                        try await APIService.shared.requestWithoutResponse(endpoint: "/post/\(post.Post.PostID)/comment", method: "POST", body: ["Text": content])
+                    } catch {
+                        print("Error adding like to post: \(error.localizedDescription)")
+                    }
                 }
             }
         }

@@ -4,9 +4,10 @@ import Foundation
 struct CommentsView: View {
     @StateObject private var viewModel: ViewModel
     @State private var newCommentText: String = ""
-    
+    @FocusState private var isTextFieldFocused: Bool
+        
     init(postId: Int) {
-        _viewModel = StateObject(wrappedValue: ViewModel(postId: postId))
+        _viewModel = StateObject(wrappedValue: ViewModel(postID: postId))
     }
     
     var body: some View {
@@ -19,15 +20,18 @@ struct CommentsView: View {
                     })
                     .listRowSeparator(.hidden)
                     .listRowInsets(EdgeInsets())
+                    .listRowBackground(Color.clear)
                 }
             }
             .listStyle(.plain)
+            .environment(\.defaultMinListRowHeight, 0)
             
             HStack {
                 TextField("Add a comment...", text: $newCommentText)
                     .padding(10)
                     .background(Color(UIColor.systemGray6))
                     .cornerRadius(20)
+                    .focused($isTextFieldFocused)
                 
                 Button(action: {
                     submitComment()
@@ -42,19 +46,23 @@ struct CommentsView: View {
             .background(Color(UIColor.systemBackground))
             .shadow(color: Color.black.opacity(0.1), radius: 2, x: 0, y: -1)
         }
+        .onTapGesture {
+            if isTextFieldFocused {
+                isTextFieldFocused = false
+            }
+        }
     }
     
     private func submitComment() {
         guard !newCommentText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
         
-        // Call viewModel to submit the comment
-        // viewModel.submitComment(text: newCommentText)
         print("Submitting comment: \(newCommentText)")
-        
-        // Clear the input field
+        viewModel.addComment(text: newCommentText)
         newCommentText = ""
+        isTextFieldFocused = false // Dismiss keyboard
     }
 }
+
 
 struct CommentRow: View {
     let comment: Comment
@@ -91,34 +99,39 @@ struct CommentRow: View {
                 
                 Spacer()
                 
-                // Menu button for comment actions (report, delete, etc.)
                 Button(action: {
-                    // Add action for comment menu
+                    // TODO: add action for comment menu
                 }) {
                     Image(systemName: "ellipsis")
                         .foregroundColor(.gray)
                 }
             }
+            .allowsHitTesting(true)
             
             Text(comment.Text)
                 .font(.body)
                 .multilineTextAlignment(.leading)
                 .fixedSize(horizontal: false, vertical: true)
+                .allowsHitTesting(false) // Prevent text selection
             
             HStack {
                 Text(formatter.localizedString(for: commentDate, relativeTo: Date()))
                     .font(.caption)
                     .foregroundColor(.gray)
+                    .allowsHitTesting(false)
                 
                 Spacer()
                 
-                // Use the LikeButton component instead of defining the button inline
                 LikeButton(isLiked: comment.IsLiked, action: toggleLike)
+                    .allowsHitTesting(true)
             }
+            .allowsHitTesting(true)
         }
         .padding(.vertical, 12)
         .padding(.horizontal, 16)
-        .background(Color.clear) // Clear background to ensure taps go to buttons, not row
+        .background(Color(UIColor.systemBackground))
+        .contentShape(Rectangle())
+        .onLongPressGesture(minimumDuration: .infinity) {}
         .overlay(
             Rectangle()
                 .stroke(Color.gray.opacity(0.2), lineWidth: 1)
@@ -137,19 +150,16 @@ struct LikeButton: View {
     let action: () -> Void
     
     var body: some View {
-        Button(action: action) {
-            HStack(spacing: 4) {
-                Image(systemName: isLiked ? "heart.fill" : "heart")
-                    .foregroundColor(isLiked ? .white : .gray)
-                    .font(.system(size: 18))
-            }
-            .contentShape(Rectangle()) // Ensures the tap area includes the entire HStack
-            .onTapGesture {
-                let impact = UIImpactFeedbackGenerator(style: .light)
-                impact.impactOccurred()
-                action()
-            }
+        Button(action: {
+            let impact = UIImpactFeedbackGenerator(style: .light)
+            impact.impactOccurred()
+            action()
+        }) {
+            Image(systemName: isLiked ? "heart.fill" : "heart")
+                .foregroundColor(isLiked ? .white : .gray)
+                .font(.system(size: 18))
+                .padding(8)
         }
-        .buttonStyle(PlainButtonStyle()) // Prevents button styling from affecting tap area
+        .buttonStyle(BorderlessButtonStyle())
     }
 }
