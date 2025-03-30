@@ -21,8 +21,8 @@ struct EmptyResponse: Decodable {}
 class APIService {
     static let shared = APIService()
     
-    let apiURL = "https://api.splajompy.com"
-//    let apiURL = "http://192.168.0.37:8080"
+//    let apiURL = "https://api.splajompy.com"
+    let apiURL = "http://192.168.0.37:8080"
     
     private init() {}
     

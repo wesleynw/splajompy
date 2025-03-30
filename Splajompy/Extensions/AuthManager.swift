@@ -6,8 +6,9 @@
 //
 import Foundation
 
-struct AuthResponse: Codable {
-    let token: String
+struct AuthResponse: Decodable {
+    let Token: String
+    let User: User
 }
 
 enum AuthError {
@@ -25,7 +26,6 @@ enum AuthError {
 
 class AuthManager: ObservableObject {
     @Published var isAuthenticated: Bool = false
-    // Don't access the shared instance directly during initialization to avoid dependency cycle
     
     init() {
         let sessionToken = KeychainHelper.standard.read(service: "session-token", account: "self")
@@ -37,9 +37,13 @@ class AuthManager: ObservableObject {
         isAuthenticated = false
     }
     
-    func signInWithPassword(identifier: String, password: String) async -> AuthError {
-        let endpoint = "/login"
+    func getCurrentUser() -> Int? {
+        let defaults = UserDefaults.standard
         
+        return defaults.integer(forKey: "CurrentUserID")
+    }
+    
+    func signInWithPassword(identifier: String, password: String) async -> AuthError {
         struct LoginCredentials: Encodable {
             let Identifier: String
             let Password: String
@@ -52,13 +56,16 @@ class AuthManager: ObservableObject {
         
         do {
             let authResponse: AuthResponse = try await APIService.shared.request(
-                endpoint: endpoint,
+                endpoint: "/login",
                 method: "POST",
                 body: credentials,
                 requiresAuth: false
             )
             
-            KeychainHelper.standard.save(authResponse.token, service: "session-token", account: "self")
+            KeychainHelper.standard.save(authResponse.Token, service: "session-token", account: "self")
+            
+            let defaults = UserDefaults.standard
+            defaults.set(authResponse.User.UserID, forKey: "CurrentUserID")
             
             await MainActor.run {
                 isAuthenticated = true

@@ -15,15 +15,20 @@ struct SplajompyApp: App {
         WindowGroup {
             Group {
                 if authManager.isAuthenticated {
-//                    TabView {
-//                        Tab("Home", systemImage: "house") {
+                    TabView {
+                        Tab("Home", systemImage: "house") {
                             HomeView()
-//                        }
-//                        Tab("Profile", systemImage: "person.circle") {
-//                            LoginView()
-//                                .environmentObject(authManager)
-//                        }
-//                    }
+                        }
+                        Tab("All", systemImage: "globe") {
+                            
+                        }
+                        if let userID = authManager.getCurrentUser() {
+                            Tab("Profile", systemImage: "person.circle") {
+                                ProfileView(userID: userID, isOwnProfile: true)
+                                    .environmentObject(authManager)
+                            }
+                        }
+                    }
                 } else {
                     LoginView()
                         .environmentObject(authManager)
