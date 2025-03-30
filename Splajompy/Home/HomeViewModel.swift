@@ -12,7 +12,7 @@ let fetchLimit = 10
 extension HomeView {
     class ViewModel: ObservableObject {
         private let postService = PostService()
-        @Published var posts = [Post]()
+        @Published var posts = [DetailedPost]()
         private var offset = 0
         
         init() {
@@ -21,27 +21,28 @@ extension HomeView {
         
         func loadMorePosts() {
             Task { @MainActor in
-                let fetchedPosts = await postService.fetchPostsByFollowing(offset: offset, limit: fetchLimit)
-                self.posts.append(contentsOf: fetchedPosts)
-                offset += fetchLimit
+                do {
+                    let fetchedPosts: [DetailedPost] = try await APIService.shared.request(endpoint: "/posts/following?limit=\(fetchLimit)&offset=\(offset)")
+                    self.posts.append(contentsOf: fetchedPosts)
+                    offset += fetchLimit
+                }
             }
         }
         
         func refreshPosts() {
             Task { @MainActor in
                 offset = 0
-                let fetchedPosts = await postService.fetchPostsByFollowing(offset: offset, limit: fetchLimit)
-                self.posts = fetchedPosts
+                self.posts = []
                 loadMorePosts()
             }
         }
         
-        func toggleLike(on post: Post) {
-            print("toggling like on post \(post.PostID)")
+        func toggleLike(on post: DetailedPost) {
+            print("toggling like on post \(post.Post.PostID)")
             Task {
                 @MainActor in
-                if let index = posts.firstIndex(where: { $0.PostID == post.PostID }) {
-                    posts[index].Liked.toggle()
+                if let index = posts.firstIndex(where: { $0.Post.PostID == post.Post.PostID }) {
+                    posts[index].IsLiked.toggle()
                     await postService.toggleLike(for: post)
                 }
             }

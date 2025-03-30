@@ -21,24 +21,49 @@ struct UserProfile: Decodable {
 extension ProfileView {
     class ViewModel: ObservableObject {
         private let userID: Int
+        private var offset = 0
         
-        var profile: UserProfile?
+        @Published var profile: UserProfile?
+        @Published var posts = [DetailedPost]()
+        @Published var postError = ""
+        @Published var isLoadingPosts = true
+        @Published var isLoadingProfile = true
         
         init(userID: Int) {
             self.userID = userID
             loadProfile()
+            loadProfilePosts()
         }
         
         func loadProfile() {
+            isLoadingProfile = true
+            
             Task { @MainActor in
                 do {
                     profile = try await APIService.shared.request(endpoint: "/user/\(userID)")
-                    
                 } catch {
-                    fatalError("error fetching user profile: \(error.localizedDescription)")
+                    print("error fetching user profile: \(error.localizedDescription)")
                 }
                 
             }
+            
+            isLoadingProfile = false
+        }
+        
+        func loadProfilePosts() {
+            isLoadingPosts = true
+            
+            Task { @MainActor in
+                do {
+                    let fetchedPosts: [DetailedPost] = try await APIService.shared.request(endpoint: "/user/\(userID)/posts")
+                    print("fetched posts length: \(fetchedPosts.count)")
+                    self.posts.append(contentsOf: fetchedPosts)
+                } catch {
+                    postError = error.localizedDescription
+                }
+            }
+            
+            isLoadingPosts = false
         }
     }
 }

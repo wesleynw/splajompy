@@ -80,6 +80,29 @@ func (s *PostService) GetPostsByUserId(ctx context.Context, currentUser models.P
 	return &posts, nil
 }
 
+func (s *PostService) GetPostsByFollowing(ctx context.Context, currentUser models.PublicUser, limit int, offset int) (*[]models.DetailedPost, error) {
+	postIds, err := s.queries.GetPostIdsByFollowing(ctx, db.GetPostIdsByFollowingParams{
+		UserID: currentUser.UserID,
+		Limit:  int32(limit),
+		Offset: int32(offset),
+	})
+	if err != nil {
+		return nil, errors.New("unable to find posts")
+	}
+
+	posts := []models.DetailedPost{}
+
+	for i := range postIds {
+		post, err := s.GetPostById(ctx, currentUser, int(postIds[i]))
+		if err != nil {
+			return nil, fmt.Errorf("unable to retrieve post %d", postIds[i])
+		}
+		posts = append(posts, *post)
+	}
+
+	return &posts, nil
+}
+
 func (s *PostService) AddLikeToPost(ctx context.Context, currentUser models.PublicUser, post_id int) error {
 	err := s.queries.AddLike(ctx, db.AddLikeParams{PostID: int32(post_id), UserID: currentUser.UserID, IsPost: true})
 	return err

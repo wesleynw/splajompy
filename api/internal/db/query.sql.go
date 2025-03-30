@@ -61,82 +61,6 @@ func (q *Queries) DeleteSession(ctx context.Context, id string) error {
 	return err
 }
 
-const getAllPostsByFollowing = `-- name: GetAllPostsByFollowing :many
-SELECT
-  posts.post_id, 
-  posts.text, 
-  posts.created_at, 
-  users.user_id, 
-  users.username, 
-  users.name, 
-  COUNT(DISTINCT comments.comment_id) AS commentCount,
-  EXISTS (
-    SELECT 1 
-    FROM likes
-    WHERE likes.post_id = posts.post_id
-      AND likes.user_id = $1
-      AND likes.comment_id IS NULL
-  ) AS liked
-FROM posts
-LEFT JOIN users ON posts.user_id = users.user_id
-LEFT JOIN comments on posts.post_id = comments.post_id
-WHERE posts.user_id = $1 OR EXISTS (
-  SELECT 1
-  FROM follows
-  WHERE follows.follower_id = $1 AND follows.following_id = posts.user_id
-)
-GROUP BY posts.post_id, users.user_id
-ORDER BY posts.created_at DESC
-LIMIT $2 
-OFFSET $3
-`
-
-type GetAllPostsByFollowingParams struct {
-	UserID int32
-	Limit  int32
-	Offset int32
-}
-
-type GetAllPostsByFollowingRow struct {
-	PostID       int32
-	Text         pgtype.Text
-	CreatedAt    pgtype.Timestamp
-	UserID       pgtype.Int4
-	Username     pgtype.Text
-	Name         pgtype.Text
-	Commentcount int64
-	Liked        bool
-}
-
-func (q *Queries) GetAllPostsByFollowing(ctx context.Context, arg GetAllPostsByFollowingParams) ([]GetAllPostsByFollowingRow, error) {
-	rows, err := q.db.Query(ctx, getAllPostsByFollowing, arg.UserID, arg.Limit, arg.Offset)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []GetAllPostsByFollowingRow
-	for rows.Next() {
-		var i GetAllPostsByFollowingRow
-		if err := rows.Scan(
-			&i.PostID,
-			&i.Text,
-			&i.CreatedAt,
-			&i.UserID,
-			&i.Username,
-			&i.Name,
-			&i.Commentcount,
-			&i.Liked,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
 const getBioByUserId = `-- name: GetBioByUserId :one
 
 SELECT text
@@ -311,41 +235,6 @@ func (q *Queries) GetPostById(ctx context.Context, postID int32) (Post, error) {
 		&i.CreatedAt,
 	)
 	return i, err
-}
-
-const getPostsIdsByUserId = `-- name: GetPostsIdsByUserId :many
-SELECT post_id
-FROM posts
-WHERE user_id = $1
-ORDER BY created_at DESC
-OFFSET $2
-LIMIT $3
-`
-
-type GetPostsIdsByUserIdParams struct {
-	UserID int32
-	Offset int32
-	Limit  int32
-}
-
-func (q *Queries) GetPostsIdsByUserId(ctx context.Context, arg GetPostsIdsByUserIdParams) ([]int32, error) {
-	rows, err := q.db.Query(ctx, getPostsIdsByUserId, arg.UserID, arg.Offset, arg.Limit)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []int32
-	for rows.Next() {
-		var post_id int32
-		if err := rows.Scan(&post_id); err != nil {
-			return nil, err
-		}
-		items = append(items, post_id)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
 }
 
 const getSessionById = `-- name: GetSessionById :one

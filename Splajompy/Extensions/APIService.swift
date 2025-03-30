@@ -21,8 +21,8 @@ struct EmptyResponse: Decodable {}
 class APIService {
     static let shared = APIService()
     
-    let apiURL = "https://api.splajompy.com"
-//    let apiURL = "http://192.168.0.37:8080"
+//    let apiURL = "https://api.splajompy.com"
+    let apiURL = "http://192.168.0.37:8080"
     
     private init() {}
     
@@ -79,7 +79,7 @@ class APIService {
             guard let httpResponse = response as? HTTPURLResponse else {
                 throw APIError.networkError(NSError(domain: "Invalid response", code: 0))
             }
-            
+                        
             // 6. Handle HTTP status codes
             switch httpResponse.statusCode {
             case 200...299:

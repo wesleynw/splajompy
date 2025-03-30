@@ -1,12 +1,10 @@
 package handler
 
 import (
-	"encoding/json"
-	"log"
 	"net/http"
 	"strconv"
 
-	"splajompy.com/api/v2/internal/db"
+	"splajompy.com/api/v2/internal/models"
 )
 
 // GET /post/{id}
@@ -76,7 +74,7 @@ func (h *Handler) GetPostsByUserId(w http.ResponseWriter, r *http.Request) {
 
 // GET /posts/following endpoint
 func (h *Handler) GetPostsByFollowing(w http.ResponseWriter, r *http.Request) {
-	_, user, err := h.validateSessionToken(r.Context(), r.Header.Get("Authorization"))
+	_, currentUser, err := h.validateSessionToken(r.Context(), r.Header.Get("Authorization"))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusUnauthorized)
 		return
@@ -97,57 +95,22 @@ func (h *Handler) GetPostsByFollowing(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// Get posts from following users
-	posts, err := h.queries.GetAllPostsByFollowing(r.Context(), db.GetAllPostsByFollowingParams{
-		UserID: user.UserID,
-		Limit:  int32(limit),
-		Offset: int32(offset),
-	})
+	posts, err := h.postService.GetPostsByFollowing(r.Context(), *currentUser, limit, offset)
 	if err != nil {
 		http.Error(w, "Error fetching posts", http.StatusInternalServerError)
 		return
 	}
 
-	// Return empty array instead of null if no posts
 	if posts == nil {
-		posts = []db.GetAllPostsByFollowingRow{}
+		posts = &[]models.DetailedPost{}
 	}
 
-	// Create response with posts and their images
-	type PostWithImages struct {
-		db.GetAllPostsByFollowingRow
-		Images []db.Image
-	}
-
-	response := make([]PostWithImages, len(posts))
-
-	// Fetch images for each post
-	for i, post := range posts {
-		// Copy post data
-		response[i].GetAllPostsByFollowingRow = post
-
-		// Get images for this post
-		images, err := h.queries.GetImagesByPostId(r.Context(), post.PostID)
-		if err != nil {
-			log.Printf("Error fetching images for post %d: %v", post.PostID, err)
-			// Continue with empty images rather than failing the whole request
-			images = []db.Image{}
-		}
-
-		if images == nil {
-			images = []db.Image{}
-		}
-
-		response[i].Images = images
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(response); err != nil {
+	if err := h.writeJSON(w, posts, http.StatusOK); err != nil {
 		http.Error(w, "Error encoding response", http.StatusInternalServerError)
 	}
 }
 
-// AddPostLike handles the POST /post/{id}/liked endpoint
+// POST /post/{id}/liked endpoint
 func (h *Handler) AddPostLike(w http.ResponseWriter, r *http.Request) {
 	// Authenticate user
 	_, user, err := h.validateSessionToken(r.Context(), r.Header.Get("Authorization"))
@@ -171,7 +134,7 @@ func (h *Handler) AddPostLike(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-// RemovePostLike handles the DELETE /post/{id}/liked endpoint
+// DELETE /post/{id}/liked endpoint
 func (h *Handler) RemovePostLike(w http.ResponseWriter, r *http.Request) {
 	// Authenticate user
 	_, user, err := h.validateSessionToken(r.Context(), r.Header.Get("Authorization"))

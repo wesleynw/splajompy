@@ -16,21 +16,23 @@ struct ImageDTO: Decodable {
     let DisplayOrder: Int
 }
 
-struct Post: Decodable, Equatable, Identifiable {
+struct Post: Decodable {
     let PostID: Int
+    let UserID: Int
     let Text: String?
     let CreatedAt: String
-    let UserID: Int
-    let Username: String
-    let Name: String?
-    let Commentcount: Int
-    var Liked: Bool
+}
+
+struct DetailedPost: Decodable, Equatable, Identifiable {
+    let Post: Post
+    let User: User
+    var IsLiked: Bool
     var Images: [ImageDTO]?
     
-    var id: Int { PostID }
+    var id: Int { Post.PostID }
     
-    static func == (lhs: Post, rhs: Post) -> Bool {
-        return lhs.PostID == rhs.PostID
+    static func == (lhs: DetailedPost, rhs: DetailedPost) -> Bool {
+        return lhs.Post.PostID == rhs.Post.PostID
     }
 }
 
@@ -44,11 +46,11 @@ class PostService {
         }
     }
     
-    func toggleLike(for post: Post) async -> Void {
-        let method = post.Liked ? "DELETE" : "POST"
+    func toggleLike(for post: DetailedPost) async -> Void {
+        let method = post.IsLiked ? "DELETE" : "POST"
                 
         do {
-            try await APIService.shared.requestWithoutResponse(endpoint: "/post/\(post.PostID)/liked", method: method)
+            try await APIService.shared.requestWithoutResponse(endpoint: "/post/\(post.Post.PostID)/liked", method: method)
         } catch {
             print("Error adding like to post: \(error.localizedDescription)")
         }

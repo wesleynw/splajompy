@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
 
 	"splajompy.com/api/v2/internal/db"
@@ -20,11 +20,11 @@ func main() {
 	godotenv.Load()
 
 	connString := os.Getenv("DB_CONNECTION_STRING")
-	conn, err := pgx.Connect(ctx, connString)
+	conn, err := pgxpool.New(ctx, connString)
 	if err != nil {
 		log.Fatalf("failed to connect to database: %v", err)
 	}
-	defer conn.Close(ctx)
+	defer conn.Close()
 
 	queries := db.New(conn)
 

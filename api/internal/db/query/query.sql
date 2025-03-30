@@ -91,43 +91,6 @@ SELECT *
 FROM posts
 WHERE post_id = $1;
 
--- name: GetPostsIdsByUserId :many
-SELECT post_id
-FROM posts
-WHERE user_id = $1
-ORDER BY created_at DESC
-OFFSET $2
-LIMIT $3;
-
--- name: GetAllPostsByFollowing :many
-SELECT
-  posts.post_id, 
-  posts.text, 
-  posts.created_at, 
-  users.user_id, 
-  users.username, 
-  users.name, 
-  COUNT(DISTINCT comments.comment_id) AS commentCount,
-  EXISTS (
-    SELECT 1 
-    FROM likes
-    WHERE likes.post_id = posts.post_id
-      AND likes.user_id = $1
-      AND likes.comment_id IS NULL
-  ) AS liked
-FROM posts
-LEFT JOIN users ON posts.user_id = users.user_id
-LEFT JOIN comments on posts.post_id = comments.post_id
-WHERE posts.user_id = $1 OR EXISTS (
-  SELECT 1
-  FROM follows
-  WHERE follows.follower_id = $1 AND follows.following_id = posts.user_id
-)
-GROUP BY posts.post_id, users.user_id
-ORDER BY posts.created_at DESC
-LIMIT $2 
-OFFSET $3;
-
 -- name: GetCommentsByPostId :many
 SELECT
   comments.comment_id,
