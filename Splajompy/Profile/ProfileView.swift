@@ -23,23 +23,11 @@ struct ProfileView: View {
                 }
                 if let user = viewModel.profile {
                     VStack(alignment: .leading, spacing: 4) {
-                        VStack(alignment: .leading, spacing: 2) {
-                            if !user.Name.isEmpty {
-                                Text(user.Name)
-                                    .font(.title2)
-                                    .fontWeight(.black)
-                                    .lineLimit(1)
-                                
-                                Text("@\(user.Username)")
-                                    .font(.subheadline)
-                                    .fontWeight(.bold)
-                                    .foregroundColor(.gray)
-                            } else {
-                                Text("@\(user.Username)")
-                                    .font(.title3)
-                                    .fontWeight(.black)
-                                    .foregroundColor(.gray)
-                            }
+                        if !user.Name.isEmpty {
+                            Text(user.Name)
+                                .font(.title2)
+                                .fontWeight(.black)
+                                .lineLimit(1)
                         }
                         
                         HStack {
@@ -92,6 +80,7 @@ struct ProfileView: View {
                 .foregroundColor(Color.gray.opacity(0.2)),
             alignment: .top
         )
+        .navigationTitle(viewModel.profile?.Username != nil ? "@" + viewModel.profile!.Username : "")
     }
 }
 

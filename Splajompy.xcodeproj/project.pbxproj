@@ -6,6 +6,25 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		18A617E72D9B2D6000B93F08 /* Preview Content.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 18A617E42D9B2D6000B93F08 /* Preview Content.xcassets */; };
+		18A617E82D9B2D6000B93F08 /* FeedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18A617D92D9B2D6000B93F08 /* FeedView.swift */; };
+		18A617E92D9B2D6000B93F08 /* FeedViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18A617DA2D9B2D6000B93F08 /* FeedViewModel.swift */; };
+		18A617EA2D9B2D6000B93F08 /* AuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18A617D62D9B2D6000B93F08 /* AuthManager.swift */; };
+		18A617EB2D9B2D6000B93F08 /* KeychainHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18A617D72D9B2D6000B93F08 /* KeychainHelper.swift */; };
+		18A617EC2D9B2D6000B93F08 /* SplajompyApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18A617E52D9B2D6000B93F08 /* SplajompyApp.swift */; };
+		18A617ED2D9B2D6000B93F08 /* ProfileViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18A617E22D9B2D6000B93F08 /* ProfileViewModel.swift */; };
+		18A617EE2D9B2D6000B93F08 /* models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18A617DC2D9B2D6000B93F08 /* models.swift */; };
+		18A617EF2D9B2D6000B93F08 /* APIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18A617D52D9B2D6000B93F08 /* APIService.swift */; };
+		18A617F02D9B2D6000B93F08 /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18A617CF2D9B2D6000B93F08 /* LoginView.swift */; };
+		18A617F12D9B2D6000B93F08 /* PostView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18A617DF2D9B2D6000B93F08 /* PostView.swift */; };
+		18A617F22D9B2D6000B93F08 /* CommentViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18A617D32D9B2D6000B93F08 /* CommentViewModel.swift */; };
+		18A617F32D9B2D6000B93F08 /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18A617E12D9B2D6000B93F08 /* ProfileView.swift */; };
+		18A617F42D9B2D6000B93F08 /* RegistrationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18A617D02D9B2D6000B93F08 /* RegistrationView.swift */; };
+		18A617F52D9B2D6000B93F08 /* CommentsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18A617D22D9B2D6000B93F08 /* CommentsView.swift */; };
+		18A617F62D9B2D6000B93F08 /* ImageCarousel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18A617DE2D9B2D6000B93F08 /* ImageCarousel.swift */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		184A63DC2D88CBA200860D6B /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -27,11 +46,40 @@
 		184A63CB2D88CBA100860D6B /* Splajompy.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Splajompy.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		184A63DB2D88CBA200860D6B /* SplajompyTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SplajompyTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		184A63E52D88CBA200860D6B /* SplajompyUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SplajompyUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		18A617CF2D9B2D6000B93F08 /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
+		18A617D02D9B2D6000B93F08 /* RegistrationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegistrationView.swift; sourceTree = "<group>"; };
+		18A617D22D9B2D6000B93F08 /* CommentsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommentsView.swift; sourceTree = "<group>"; };
+		18A617D32D9B2D6000B93F08 /* CommentViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommentViewModel.swift; sourceTree = "<group>"; };
+		18A617D52D9B2D6000B93F08 /* APIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIService.swift; sourceTree = "<group>"; };
+		18A617D62D9B2D6000B93F08 /* AuthManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthManager.swift; sourceTree = "<group>"; };
+		18A617D72D9B2D6000B93F08 /* KeychainHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainHelper.swift; sourceTree = "<group>"; };
+		18A617D92D9B2D6000B93F08 /* FeedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedView.swift; sourceTree = "<group>"; };
+		18A617DA2D9B2D6000B93F08 /* FeedViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedViewModel.swift; sourceTree = "<group>"; };
+		18A617DC2D9B2D6000B93F08 /* models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = models.swift; sourceTree = "<group>"; };
+		18A617DE2D9B2D6000B93F08 /* ImageCarousel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageCarousel.swift; sourceTree = "<group>"; };
+		18A617DF2D9B2D6000B93F08 /* PostView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostView.swift; sourceTree = "<group>"; };
+		18A617E12D9B2D6000B93F08 /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
+		18A617E22D9B2D6000B93F08 /* ProfileViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileViewModel.swift; sourceTree = "<group>"; };
+		18A617E42D9B2D6000B93F08 /* Preview Content.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Content.xcassets"; sourceTree = "<group>"; };
+		18A617E52D9B2D6000B93F08 /* SplajompyApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplajompyApp.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		181F41AC2D9B32AB00FCF763 /* Exceptions for "Splajompy" folder in "Splajompy" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 184A63CA2D88CBA000860D6B /* Splajompy */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		184A63CD2D88CBA100860D6B /* Splajompy */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				181F41AC2D9B32AB00FCF763 /* Exceptions for "Splajompy" folder in "Splajompy" target */,
+			);
 			path = Splajompy;
 			sourceTree = "<group>";
 		};
@@ -73,6 +121,7 @@
 				187F00462D95DBE800BE80DF /* Assets */,
 				184A63CD2D88CBA100860D6B /* Splajompy */,
 				184A63CC2D88CBA100860D6B /* Products */,
+				18A617E62D9B2D6000B93F08 /* Splajompy */,
 			);
 			sourceTree = "<group>";
 		};
@@ -84,6 +133,85 @@
 				184A63E52D88CBA200860D6B /* SplajompyUITests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		18A617D12D9B2D6000B93F08 /* Authentication */ = {
+			isa = PBXGroup;
+			children = (
+				18A617CF2D9B2D6000B93F08 /* LoginView.swift */,
+				18A617D02D9B2D6000B93F08 /* RegistrationView.swift */,
+			);
+			path = Authentication;
+			sourceTree = "<group>";
+		};
+		18A617D42D9B2D6000B93F08 /* Comments */ = {
+			isa = PBXGroup;
+			children = (
+				18A617D22D9B2D6000B93F08 /* CommentsView.swift */,
+				18A617D32D9B2D6000B93F08 /* CommentViewModel.swift */,
+			);
+			path = Comments;
+			sourceTree = "<group>";
+		};
+		18A617D82D9B2D6000B93F08 /* Extensions */ = {
+			isa = PBXGroup;
+			children = (
+				18A617D52D9B2D6000B93F08 /* APIService.swift */,
+				18A617D62D9B2D6000B93F08 /* AuthManager.swift */,
+				18A617D72D9B2D6000B93F08 /* KeychainHelper.swift */,
+			);
+			path = Extensions;
+			sourceTree = "<group>";
+		};
+		18A617DB2D9B2D6000B93F08 /* Feed */ = {
+			isa = PBXGroup;
+			children = (
+				18A617D92D9B2D6000B93F08 /* FeedView.swift */,
+				18A617DA2D9B2D6000B93F08 /* FeedViewModel.swift */,
+			);
+			path = Feed;
+			sourceTree = "<group>";
+		};
+		18A617DD2D9B2D6000B93F08 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				18A617DC2D9B2D6000B93F08 /* models.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		18A617E02D9B2D6000B93F08 /* Posts */ = {
+			isa = PBXGroup;
+			children = (
+				18A617DE2D9B2D6000B93F08 /* ImageCarousel.swift */,
+				18A617DF2D9B2D6000B93F08 /* PostView.swift */,
+			);
+			path = Posts;
+			sourceTree = "<group>";
+		};
+		18A617E32D9B2D6000B93F08 /* Profile */ = {
+			isa = PBXGroup;
+			children = (
+				18A617E12D9B2D6000B93F08 /* ProfileView.swift */,
+				18A617E22D9B2D6000B93F08 /* ProfileViewModel.swift */,
+			);
+			path = Profile;
+			sourceTree = "<group>";
+		};
+		18A617E62D9B2D6000B93F08 /* Splajompy */ = {
+			isa = PBXGroup;
+			children = (
+				18A617D12D9B2D6000B93F08 /* Authentication */,
+				18A617D42D9B2D6000B93F08 /* Comments */,
+				18A617D82D9B2D6000B93F08 /* Extensions */,
+				18A617DB2D9B2D6000B93F08 /* Feed */,
+				18A617DD2D9B2D6000B93F08 /* Models */,
+				18A617E02D9B2D6000B93F08 /* Posts */,
+				18A617E32D9B2D6000B93F08 /* Profile */,
+				18A617E42D9B2D6000B93F08 /* Preview Content.xcassets */,
+				18A617E52D9B2D6000B93F08 /* SplajompyApp.swift */,
+			);
+			path = Splajompy;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -201,6 +329,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				18A617E72D9B2D6000B93F08 /* Preview Content.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -225,6 +354,21 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				18A617E82D9B2D6000B93F08 /* FeedView.swift in Sources */,
+				18A617E92D9B2D6000B93F08 /* FeedViewModel.swift in Sources */,
+				18A617EA2D9B2D6000B93F08 /* AuthManager.swift in Sources */,
+				18A617EB2D9B2D6000B93F08 /* KeychainHelper.swift in Sources */,
+				18A617EC2D9B2D6000B93F08 /* SplajompyApp.swift in Sources */,
+				18A617ED2D9B2D6000B93F08 /* ProfileViewModel.swift in Sources */,
+				18A617EE2D9B2D6000B93F08 /* models.swift in Sources */,
+				18A617EF2D9B2D6000B93F08 /* APIService.swift in Sources */,
+				18A617F02D9B2D6000B93F08 /* LoginView.swift in Sources */,
+				18A617F12D9B2D6000B93F08 /* PostView.swift in Sources */,
+				18A617F22D9B2D6000B93F08 /* CommentViewModel.swift in Sources */,
+				18A617F32D9B2D6000B93F08 /* ProfileView.swift in Sources */,
+				18A617F42D9B2D6000B93F08 /* RegistrationView.swift in Sources */,
+				18A617F52D9B2D6000B93F08 /* CommentsView.swift in Sources */,
+				18A617F62D9B2D6000B93F08 /* ImageCarousel.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -380,15 +524,18 @@
 		184A63F02D88CBA200860D6B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				API_URL = "https://api.splajompy.com";
+				API_URL = "http://192.168.0.37:8080";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_ASSET_PATHS = "\"Splajompy/Preview Content\"";
+				DEVELOPMENT_ASSET_PATHS = "";
 				DEVELOPMENT_TEAM = SVQUQ3H75J;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Splajompy/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Splajompy;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.social-networking";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -419,10 +566,13 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_ASSET_PATHS = "\"Splajompy/Preview Content\"";
+				DEVELOPMENT_ASSET_PATHS = "";
 				DEVELOPMENT_TEAM = SVQUQ3H75J;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Splajompy/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Splajompy;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.social-networking";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
