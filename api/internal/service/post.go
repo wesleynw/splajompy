@@ -30,6 +30,11 @@ func (s *PostService) GetPostById(ctx context.Context, cUser models.PublicUser, 
 		return nil, errors.New("unable to find user")
 	}
 
+	if !user.Name.Valid {
+		user.Name.String = ""
+		user.Name.Valid = true
+	}
+
 	isLiked, err := s.queries.GetIsLikedByUser(ctx, db.GetIsLikedByUserParams{
 		UserID:  cUser.UserID,
 		PostID:  post.PostID,
@@ -63,6 +68,18 @@ func (s *PostService) GetPostById(ctx context.Context, cUser models.PublicUser, 
 	return &response, nil
 }
 
+func (s *PostService) GetAllPosts(ctx context.Context, currentUser models.PublicUser, limit int, offset int) (*[]models.DetailedPost, error) {
+	postIds, err := s.queries.GetAllPostIds(ctx, db.GetAllPostIdsParams{
+		Limit:  int32(limit),
+		Offset: int32(offset),
+	})
+	if err != nil {
+		return nil, errors.New("unable to find posts")
+	}
+
+	return s.getPostsByPostIDs(ctx, currentUser, postIds)
+}
+
 func (s *PostService) GetPostsByUserId(ctx context.Context, currentUser models.PublicUser, userID int, limit int, offset int) (*[]models.DetailedPost, error) {
 	postIds, err := s.queries.GetPostsIdsByUserId(ctx, db.GetPostsIdsByUserIdParams{
 		UserID: int32(userID),
@@ -73,17 +90,7 @@ func (s *PostService) GetPostsByUserId(ctx context.Context, currentUser models.P
 		return nil, errors.New("unable to find posts")
 	}
 
-	posts := []models.DetailedPost{}
-
-	for i := range postIds {
-		post, err := s.GetPostById(ctx, currentUser, int(postIds[i]))
-		if err != nil {
-			return nil, fmt.Errorf("unable to retrieve post %d", postIds[i])
-		}
-		posts = append(posts, *post)
-	}
-
-	return &posts, nil
+	return s.getPostsByPostIDs(ctx, currentUser, postIds)
 }
 
 func (s *PostService) GetPostsByFollowing(ctx context.Context, currentUser models.PublicUser, limit int, offset int) (*[]models.DetailedPost, error) {
@@ -96,12 +103,16 @@ func (s *PostService) GetPostsByFollowing(ctx context.Context, currentUser model
 		return nil, errors.New("unable to find posts")
 	}
 
+	return s.getPostsByPostIDs(ctx, currentUser, postIds)
+}
+
+func (s *PostService) getPostsByPostIDs(ctx context.Context, currentUser models.PublicUser, postIDs []int32) (*[]models.DetailedPost, error) {
 	posts := []models.DetailedPost{}
 
-	for i := range postIds {
-		post, err := s.GetPostById(ctx, currentUser, int(postIds[i]))
+	for i := range postIDs {
+		post, err := s.GetPostById(ctx, currentUser, int(postIDs[i]))
 		if err != nil {
-			return nil, fmt.Errorf("unable to retrieve post %d", postIds[i])
+			return nil, fmt.Errorf("unable to retrieve post %d", postIDs[i])
 		}
 		posts = append(posts, *post)
 	}

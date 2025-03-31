@@ -18,6 +18,13 @@ ORDER BY posts.created_at DESC
 LIMIT $2
 OFFSET $3;
 
+-- name: GetAllPostIds :many
+SELECT post_id
+FROM posts
+ORDER BY posts.created_at DESC
+LIMIT $1
+OFFSET $2;
+
 -- name: GetCommentCountByPostID :one
 SELECT COUNT(*)
 FROM comments

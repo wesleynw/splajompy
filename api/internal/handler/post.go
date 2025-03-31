@@ -72,6 +72,39 @@ func (h *Handler) GetPostsByUserId(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// GET /posts/all
+func (h *Handler) GetAllPosts(w http.ResponseWriter, r *http.Request) {
+	currentUser, err := h.getAuthenticatedUser(r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusUnauthorized)
+		return
+	}
+
+	limit := 10
+	if limitStr := r.URL.Query().Get("limit"); limitStr != "" {
+		if parsedLimit, err := strconv.Atoi(limitStr); err == nil && parsedLimit > 0 {
+			limit = parsedLimit
+		}
+	}
+
+	offset := 0
+	if offsetStr := r.URL.Query().Get("offset"); offsetStr != "" {
+		if parsedOffset, err := strconv.Atoi(offsetStr); err == nil && parsedOffset >= 0 {
+			offset = parsedOffset
+		}
+	}
+
+	posts, err := h.postService.GetAllPosts(r.Context(), *currentUser, limit, offset)
+	if err != nil {
+		http.Error(w, "Error fetching posts", http.StatusInternalServerError)
+		return
+	}
+
+	if err := h.writeJSON(w, posts, http.StatusOK); err != nil {
+		http.Error(w, "Error encoding response", http.StatusInternalServerError)
+	}
+}
+
 // GET /posts/following endpoint
 func (h *Handler) GetPostsByFollowing(w http.ResponseWriter, r *http.Request) {
 	_, currentUser, err := h.validateSessionToken(r.Context(), r.Header.Get("Authorization"))
@@ -80,7 +113,6 @@ func (h *Handler) GetPostsByFollowing(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Parse pagination parameters
 	limit := 10
 	if limitStr := r.URL.Query().Get("limit"); limitStr != "" {
 		if parsedLimit, err := strconv.Atoi(limitStr); err == nil && parsedLimit > 0 {

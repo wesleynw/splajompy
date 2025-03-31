@@ -68,6 +68,11 @@ func (s *CommentService) GetCommentsByPostId(ctx context.Context, cUser models.P
 
 		var user models.PublicUser = models.PublicUser(dbUser)
 
+		if !user.Name.Valid { // TODO: this is stupid
+			user.Name.String = ""
+			user.Name.Valid = true
+		}
+
 		detailedComment := models.DetailedComment{
 			CommentID: dbComment.CommentID,
 			PostID:    dbComment.PostID,

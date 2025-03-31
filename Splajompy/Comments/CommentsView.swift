@@ -12,6 +12,11 @@ struct CommentsView: View {
     
     var body: some View {
         VStack {
+            if viewModel.isLoading {
+                ProgressView()
+                    .scaleEffect(1.5)
+                    .padding()
+            }
             List {
                 ForEach(viewModel.comments, id: \.CommentID) { comment in
                     CommentRow(comment: comment, toggleLike: {
@@ -51,6 +56,8 @@ struct CommentsView: View {
                 isTextFieldFocused = false
             }
         }
+        .toolbar(.hidden, for: .tabBar)
+        .animation(.easeInOut, value: true)
     }
     
     private func submitComment() {
@@ -80,8 +87,8 @@ struct CommentRow: View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(alignment: .top) {
                 VStack(alignment: .leading, spacing: 2) {
-                    if let displayName = comment.User.Name {
-                        Text(displayName)
+                    if !comment.User.Name.isEmpty {
+                        Text(comment.User.Name)
                             .font(.headline)
                             .fontWeight(.bold)
                             .lineLimit(1)

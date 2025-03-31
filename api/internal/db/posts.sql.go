@@ -9,6 +9,39 @@ import (
 	"context"
 )
 
+const getAllPostIds = `-- name: GetAllPostIds :many
+SELECT post_id
+FROM posts
+ORDER BY posts.created_at DESC
+LIMIT $1
+OFFSET $2
+`
+
+type GetAllPostIdsParams struct {
+	Limit  int32
+	Offset int32
+}
+
+func (q *Queries) GetAllPostIds(ctx context.Context, arg GetAllPostIdsParams) ([]int32, error) {
+	rows, err := q.db.Query(ctx, getAllPostIds, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []int32
+	for rows.Next() {
+		var post_id int32
+		if err := rows.Scan(&post_id); err != nil {
+			return nil, err
+		}
+		items = append(items, post_id)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getCommentCountByPostID = `-- name: GetCommentCountByPostID :one
 SELECT COUNT(*)
 FROM comments

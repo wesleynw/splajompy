@@ -9,14 +9,20 @@ import Foundation
 
 let fetchLimit = 10
 
-extension HomeView {
+extension FeedView {
     class ViewModel: ObservableObject {
+        var feedType: FeedType
+        var userID: Int?
+        
         @Published var posts = [DetailedPost]()
         @Published var isLoading = true
         @Published var error = ""
+        
         private var offset = 0
         
-        init() {
+        init(feedType: FeedType, userID: Int? = nil) {
+            self.feedType = feedType
+            self.userID = userID
             loadMorePosts()
         }
         
@@ -24,7 +30,17 @@ extension HomeView {
             isLoading = true
             Task { @MainActor in
                 do {
-                    let fetchedPosts: [DetailedPost] = try await APIService.shared.request(endpoint: "/posts/following?limit=\(fetchLimit)&offset=\(offset)")
+                    let urlBase = switch feedType {
+                    case .Home:
+                        "/posts/following"
+                    case .All:
+                        "/posts/all"
+                    case .Profile:
+                        "/user/\(self.userID!)/posts"
+                    }
+                    
+                    let fetchedPosts: [DetailedPost] = try await APIService.shared.request(endpoint: "\(urlBase)?limit=\(fetchLimit)&offset=\(offset)")
+                    print("fetched posts length: ", fetchedPosts.count)
                     if reset {
                         self.posts = fetchedPosts
                     } else {

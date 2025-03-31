@@ -7,7 +7,6 @@ import (
 	"strconv"
 
 	"splajompy.com/api/v2/internal/db"
-	"splajompy.com/api/v2/internal/models"
 	"splajompy.com/api/v2/internal/service"
 )
 
@@ -44,14 +43,10 @@ func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
 
 	mux.HandleFunc("GET /user/{id}", h.GetUserById)
 	mux.HandleFunc("GET /posts/following", h.GetPostsByFollowing)
+	mux.HandleFunc("GET /posts/all", h.GetAllPosts)
 
 	// comments
 	mux.HandleFunc("GET /post/{id}/comments", h.GetCommentsByPost)
-}
-
-func (h *Handler) getAuthenticatedUser(r *http.Request) (*models.PublicUser, error) {
-	_, user, err := h.validateSessionToken(r.Context(), r.Header.Get("Authorization"))
-	return user, err
 }
 
 func (h *Handler) writeJSON(w http.ResponseWriter, data interface{}, statusCode int) error {
