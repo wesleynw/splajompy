@@ -14,19 +14,30 @@ struct SplajompyApp: App {
     var body: some Scene {
         WindowGroup {
             Group {
+                Text("Splajompy").fontWeight(.black)
+                
                 if authManager.isAuthenticated {
                     TabView {
-                        Tab("Home", systemImage: "house") {
-                            HomeView()
+                        NavigationStack {
+                            FeedView(feedType: .Home)
                         }
-                        Tab("All", systemImage: "globe") {
-                            
+                        .tabItem {
+                            Label("Home", systemImage: "house")
                         }
+                        
+                        NavigationStack {
+                            FeedView(feedType: .All)
+                        }
+                        .tabItem {
+                            Label("All", systemImage: "globe")
+                        }
+                        
                         if let userID = authManager.getCurrentUser() {
-                            Tab("Profile", systemImage: "person.circle") {
-                                ProfileView(userID: userID, isOwnProfile: true)
-                                    .environmentObject(authManager)
-                            }
+                            ProfileView(userID: userID, isOwnProfile: true)
+                                .environmentObject(authManager)
+                                .tabItem {
+                                    Label("Profile", systemImage: "person.circle")
+                                }
                         }
                     }
                 } else {

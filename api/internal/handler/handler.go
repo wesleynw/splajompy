@@ -43,6 +43,7 @@ func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
 
 	mux.HandleFunc("GET /user/{id}", h.GetUserById)
 	mux.HandleFunc("GET /posts/following", h.GetPostsByFollowing)
+	mux.HandleFunc("GET /posts/all", h.GetAllPosts)
 
 	// comments
 	mux.HandleFunc("GET /post/{id}/comments", h.GetCommentsByPost)

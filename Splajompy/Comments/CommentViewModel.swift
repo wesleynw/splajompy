@@ -12,6 +12,7 @@ extension CommentsView {
         private let postID: Int
         
         @Published var comments = [Comment]()
+        @Published var isLoading = true
         
         init(postID: Int) {
             self.postID = postID
@@ -20,11 +21,13 @@ extension CommentsView {
         
         func loadComments() {
             Task { @MainActor in
+                isLoading = true
                 do {
                     comments = try await APIService.shared.request(endpoint: "/post/\(postID)/comments", method: "GET")
                 } catch {
                     print("error fetching comments: \(error.localizedDescription)")
                 }
+                isLoading = false
             }
         }
         

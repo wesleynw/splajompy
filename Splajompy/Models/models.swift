@@ -10,7 +10,7 @@ struct User: Decodable {
     let Email: String
     let Username: String
     let CreatedAt: String
-    let Name: String?
+    let Name: String
 }
 
 struct Comment: Decodable {

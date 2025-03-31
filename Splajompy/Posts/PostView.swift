@@ -13,7 +13,7 @@ struct PostView: View {
     
     let formatter = RelativeDateTimeFormatter()
     
-    var onLikeButtonTapped: () -> Void = { fatalError("Unimplemented: PostView.onDeleteButtonTapped") }
+    var onLikeButtonTapped: () -> Void = { print("Unimplemented: PostView.onDeleteButtonTapped") }
     
     private var postDate: Date {
         let formatter = ISO8601DateFormatter()
@@ -28,8 +28,8 @@ struct PostView: View {
                     ProfileView(userID: post.User.UserID, isOwnProfile: false)
                 } label: {
                     VStack(alignment: .leading, spacing: 2) {
-                        if let displayName = post.User.Name {
-                            Text(displayName)
+                        if !post.User.Name.isEmpty {
+                            Text(post.User.Name)
                                 .font(.title2)
                                 .fontWeight(.black)
                                 .lineLimit(1)
@@ -51,7 +51,7 @@ struct PostView: View {
                 Spacer()
                 
                 // TODO
-                Image(systemName: "ellipsis")
+                // Image(systemName: "ellipsis")
             }
             
             if let postText = post.Post.Text {
@@ -77,10 +77,10 @@ struct PostView: View {
                         CommentsView(postId: post.Post.PostID)
                     } label: {
                         HStack(spacing: 4) {
-                            Image(systemName: "bubble.right")
-                                .font(.system(size: 16))
                             Text("\(post.CommentCount)")
                                 .font(.subheadline)
+                            Image(systemName: "bubble.right")
+                                .font(.system(size: 20))
                         }
                         .foregroundStyle(.white)
                     }
@@ -92,7 +92,7 @@ struct PostView: View {
                     }) {
                         HStack(spacing: 4) {
                             Image(systemName: post.IsLiked ? "heart.fill" : "heart")
-                                .font(.system(size: 16))
+                                .font(.system(size: 20))
                         }
                         .foregroundColor(post.IsLiked ? .white : .primary)
                     }

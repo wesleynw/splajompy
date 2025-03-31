@@ -23,16 +23,26 @@ struct ProfileView: View {
                 }
                 if let user = viewModel.profile {
                     VStack(alignment: .leading, spacing: 4) {
-                        Text(user.Name ?? "")
-                            .font(.title)
-                            .fontWeight(.black)
+                        VStack(alignment: .leading, spacing: 2) {
+                            if !user.Name.isEmpty {
+                                Text(user.Name)
+                                    .font(.title2)
+                                    .fontWeight(.black)
+                                    .lineLimit(1)
+                                
+                                Text("@\(user.Username)")
+                                    .font(.subheadline)
+                                    .fontWeight(.bold)
+                                    .foregroundColor(.gray)
+                            } else {
+                                Text("@\(user.Username)")
+                                    .font(.title3)
+                                    .fontWeight(.black)
+                                    .foregroundColor(.gray)
+                            }
+                        }
                         
                         HStack {
-                            Text("@\(user.Username)")
-                                .font(user.Name != nil ? .body : .title3)
-                                .fontWeight(.black)
-                                .foregroundColor(user.Name != nil ? Color.gray.opacity(0.6) : .primary)
-                            
                             Spacer()
                             
                             if isOwnProfile {
@@ -41,7 +51,7 @@ struct ProfileView: View {
                             } else {
                                 Button(viewModel.profile?.IsFollowing ?? false ? "Unfollow" : "Follow") { // TODO this is bad
                                     // Toggle follow status
-                                    //                                    viewModel.toggle()
+                                    // viewModel.toggle()
                                 }
                                 .buttonStyle(.bordered)
                             }
@@ -53,31 +63,16 @@ struct ProfileView: View {
                                 .foregroundColor(Color.gray.opacity(0.4))
                         }
                         
-                        if let bio = user.Bio, !bio.isEmpty {
-                            Text(bio)
+                        if !user.Bio.isEmpty {
+                            Text(user.Bio)
                                 .padding(.vertical, 10)
                                 .fixedSize(horizontal: false, vertical: true)
                         }
                     }
                     
-                    VStack(spacing: 0) {
-                        if viewModel.isLoadingPosts && !viewModel.isLoadingProfile {
-                            ProgressView()
-                                .frame(maxWidth: .infinity)
-                                .padding()
-                        } else if viewModel.posts.isEmpty {
-                            Text("No posts available")
-                                .font(.headline)
-                                .foregroundColor(.gray)
-                                .padding()
-                        } else {
-                            LazyVStack(spacing: 0) {
-                                ForEach(viewModel.posts) { post in
-                                    PostView(post: post)
-                                }
-                            }
+                    VStack {
+                        FeedView(feedType: .Profile, userID: self.userID)
                             .padding(.horizontal, -16) // Remove horizontal padding from posts
-                        }
                     }
                 } else if !viewModel.isLoadingProfile {
                     Text("This user doesn't exist.")
