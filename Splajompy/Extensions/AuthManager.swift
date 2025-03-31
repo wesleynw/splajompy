@@ -26,6 +26,7 @@ enum AuthError {
 
 class AuthManager: ObservableObject {
     @Published var isAuthenticated: Bool = false
+    @Published var isLoading: Bool = false;
     
     init() {
         let sessionToken = KeychainHelper.standard.read(service: "session-token", account: "self")
@@ -34,7 +35,10 @@ class AuthManager: ObservableObject {
     
     func signOut() {
         KeychainHelper.standard.delete(service: "session-token", account: "self")
-        isAuthenticated = false
+        
+        Task { @MainActor in
+            isAuthenticated = false
+        }
     }
     
     func getCurrentUser() -> Int? {
@@ -44,6 +48,9 @@ class AuthManager: ObservableObject {
     }
     
     func signInWithPassword(identifier: String, password: String) async -> AuthError {
+        await MainActor.run {
+            isLoading = true
+        }
         struct LoginCredentials: Encodable {
             let Identifier: String
             let Password: String
@@ -67,13 +74,18 @@ class AuthManager: ObservableObject {
             let defaults = UserDefaults.standard
             defaults.set(authResponse.User.UserID, forKey: "CurrentUserID")
             
+            
             await MainActor.run {
                 isAuthenticated = true
+                isLoading = false
             }
             
             return .None
             
         } catch let apiError as APIError {
+            await MainActor.run {
+                isLoading = false
+            }
             switch apiError {
             case .invalidURL:
                 return .InvalidUrl
@@ -89,6 +101,9 @@ class AuthManager: ObservableObject {
                 return .GeneralFailure
             }
         } catch {
+            await MainActor.run {
+                isLoading = false
+            }
             return .GeneralFailure
         }
     }

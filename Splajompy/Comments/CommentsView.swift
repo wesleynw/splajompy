@@ -16,6 +16,14 @@ struct CommentsView: View {
                 ProgressView()
                     .scaleEffect(1.5)
                     .padding()
+            } else if viewModel.comments.isEmpty {
+                VStack(spacing: 16) {
+                    Spacer()
+                    Text("No comments")
+                        .font(.title3)
+                        .foregroundColor(.gray)
+                    Spacer()
+                }
             }
             List {
                 ForEach(viewModel.comments, id: \.CommentID) { comment in
