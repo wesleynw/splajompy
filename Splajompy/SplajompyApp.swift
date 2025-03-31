@@ -33,11 +33,13 @@ struct SplajompyApp: App {
                         }
                         
                         if let userID = authManager.getCurrentUser() {
-                            ProfileView(userID: userID, isOwnProfile: true)
-                                .environmentObject(authManager)
-                                .tabItem {
-                                    Label("Profile", systemImage: "person.circle")
-                                }
+                            NavigationStack {
+                                ProfileView(userID: userID, isOwnProfile: true)
+                                    .environmentObject(authManager)
+                            }
+                            .tabItem {
+                                Label("Profile", systemImage: "person.circle")
+                            }
                         }
                     }
                 } else {

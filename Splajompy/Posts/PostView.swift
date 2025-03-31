@@ -10,6 +10,7 @@ import Foundation
 
 struct PostView: View {
     let post: DetailedPost
+    var showAuthor: Bool = true
     
     let formatter = RelativeDateTimeFormatter()
     
@@ -23,35 +24,37 @@ struct PostView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            HStack(alignment: .top) {
-                NavigationLink {
-                    ProfileView(userID: post.User.UserID, isOwnProfile: false)
-                } label: {
-                    VStack(alignment: .leading, spacing: 2) {
-                        if !post.User.Name.isEmpty {
-                            Text(post.User.Name)
-                                .font(.title2)
-                                .fontWeight(.black)
-                                .lineLimit(1)
-                            
-                            Text("@\(post.User.Username)")
-                                .font(.subheadline)
-                                .fontWeight(.bold)
-                                .foregroundColor(.gray)
-                        } else {
-                            Text("@\(post.User.Username)")
-                                .font(.title3)
-                                .fontWeight(.black)
-                                .foregroundColor(.gray)
+            if showAuthor {
+                HStack(alignment: .top) {
+                    NavigationLink {
+                        ProfileView(userID: post.User.UserID, isOwnProfile: false)
+                    } label: {
+                        VStack(alignment: .leading, spacing: 2) {
+                            if !post.User.Name.isEmpty {
+                                Text(post.User.Name)
+                                    .font(.title2)
+                                    .fontWeight(.black)
+                                    .lineLimit(1)
+                                
+                                Text("@\(post.User.Username)")
+                                    .font(.subheadline)
+                                    .fontWeight(.bold)
+                                    .foregroundColor(.gray)
+                            } else {
+                                Text("@\(post.User.Username)")
+                                    .font(.title3)
+                                    .fontWeight(.black)
+                                    .foregroundColor(.gray)
+                            }
                         }
                     }
+                    .foregroundColor(.primary)
+                    
+                    Spacer()
+                    
+                    // TODO
+                    // Image(systemName: "ellipsis")
                 }
-                .foregroundColor(.primary)
-                
-                Spacer()
-                
-                // TODO
-                // Image(systemName: "ellipsis")
             }
             
             if let postText = post.Post.Text {

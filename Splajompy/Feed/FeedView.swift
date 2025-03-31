@@ -26,49 +26,7 @@ struct FeedView: View {
     
     var body: some View {
         ScrollView {
-            // Main content
-            VStack {
-                if viewModel.isLoading && viewModel.posts.isEmpty {
-                    ProgressView()
-                        .scaleEffect(1.5)
-                        .padding()
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 100)
-                } else if viewModel.posts.isEmpty && !viewModel.error.isEmpty {
-                    Text("Error: \(viewModel.error)")
-                        .foregroundColor(.red)
-                        .padding()
-                        .frame(maxWidth: .infinity)
-                        .frame(minHeight: 100)
-                } else if viewModel.posts.isEmpty {
-                    Text("No posts yet")
-                        .foregroundColor(.gray)
-                        .padding()
-                        .frame(maxWidth: .infinity)
-                        .frame(minHeight: 100)
-                } else {
-                    LazyVStack(spacing: 0) {
-                        ForEach(viewModel.posts, id: \.Post.PostID) { post in
-                            PostView(post: post, onLikeButtonTapped: {
-                                viewModel.toggleLike(on: post)
-                            })
-                            .onAppear {
-                                if post == viewModel.posts.last {
-                                    viewModel.loadMorePosts()
-                                }
-                            }
-                            .id("post-\(post.Post.PostID)")
-                        }
-                        
-                        if viewModel.isLoading && !viewModel.posts.isEmpty {
-                            ProgressView()
-                                .scaleEffect(1.2)
-                                .padding()
-                                .id("loading-indicator")
-                        }
-                    }
-                }
-            }
+            feedContent
         }
         .background(Color(UIColor.systemBackground))
         .onAppear {
@@ -78,6 +36,70 @@ struct FeedView: View {
         }
         .refreshable {
             viewModel.refreshPosts()
+        }
+    }
+    
+    private var feedContent: some View {
+        VStack {
+            if viewModel.isLoading && viewModel.posts.isEmpty {
+                loadingPlaceholder
+            } else if !viewModel.error.isEmpty && viewModel.posts.isEmpty {
+                errorMessage
+            } else if viewModel.posts.isEmpty {
+                emptyMessage
+            } else {
+                postsList
+            }
+        }
+    }
+    
+    private var loadingPlaceholder: some View {
+        ProgressView()
+            .scaleEffect(1.5)
+            .padding()
+            .frame(maxWidth: .infinity)
+    }
+    
+    private var errorMessage: some View {
+        Text("Error: \(viewModel.error)")
+            .foregroundColor(.red)
+            .padding()
+            .frame(maxWidth: .infinity, minHeight: 100)
+    }
+    
+    private var emptyMessage: some View {
+        Text("No posts yet")
+            .foregroundColor(.gray)
+            .padding()
+            .frame(maxWidth: .infinity, minHeight: 100)
+    }
+    
+    private var postsList: some View {
+        LazyVStack(spacing: 0) {
+            postsContent
+            
+            if viewModel.isLoading && !viewModel.posts.isEmpty {
+                ProgressView()
+                    .scaleEffect(1.2)
+                    .padding()
+                    .id("loading-indicator")
+            }
+        }
+    }
+    
+    private var postsContent: some View {
+        ForEach(viewModel.posts) { post in
+            PostView(
+                post: post,
+                showAuthor: feedType != .Profile,
+                onLikeButtonTapped: { viewModel.toggleLike(on: post) }
+            )
+            .id("post-\(feedType)_\(post.Post.PostID)")
+            .onAppear {
+                if post == viewModel.posts.last {
+                    viewModel.loadMorePosts()
+                }
+            }
         }
     }
 }
