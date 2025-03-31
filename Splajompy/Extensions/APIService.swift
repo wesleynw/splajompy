@@ -21,10 +21,16 @@ struct EmptyResponse: Decodable {}
 class APIService {
     static let shared = APIService()
     
-    let apiURL = "https://api.splajompy.com"
-//    let apiURL = "http://192.168.0.37:8080"
+    let apiURL: String
     
-    private init() {}
+    private init() {
+        if let apiUrl = Bundle.main.object(forInfoDictionaryKey: "API_URL") as? String {
+            self.apiURL = apiUrl
+        } else {
+            print("unable to find API key")
+            self.apiURL = "https://api.splajompy.com" // default
+        }
+    }
     
     /// Makes an API request with optional authentication
     /// - Parameters:
@@ -79,17 +85,18 @@ class APIService {
             guard let httpResponse = response as? HTTPURLResponse else {
                 throw APIError.networkError(NSError(domain: "Invalid response", code: 0))
             }
-                        
+            
             // 6. Handle HTTP status codes
             switch httpResponse.statusCode {
             case 200...299:
                 break // Success
             case 401:
-                if requiresAuth {
-                    // Only sign out if we attempted authentication
-                    // Use notification center instead of direct reference to avoid circular dependency
-                    NotificationCenter.default.post(name: Notification.Name("AuthenticationFailure"), object: nil)
-                }
+                AuthManager().signOut()
+//                if requiresAuth {
+//                    // Only sign out if we attempted authentication
+//                    // Use notification center instead of direct reference to avoid circular dependency
+//                    NotificationCenter.default.post(name: Notification.Name("AuthenticationFailure"), object: nil)
+//                }
                 throw APIError.unauthorized
             default:
                 throw APIError.serverError(httpResponse.statusCode)
@@ -103,7 +110,6 @@ class APIService {
                 }
             }
             
-            // 7. Decode response
             do {
                 let decoder = JSONDecoder()
                 return try decoder.decode(T.self, from: data)

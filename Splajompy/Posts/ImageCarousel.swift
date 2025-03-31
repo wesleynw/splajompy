@@ -10,7 +10,7 @@ struct ImageCarousel: View {
     
     var body: some View {
         GeometryReader { geometry in
-            VStack(spacing: 12) { 
+            VStack(spacing: 12) {
                 TabView(selection: $currentIndex) {
                     ForEach(0..<imageUrls.count, id: \.self) { index in
                         if let url = URL(string: "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/" + imageUrls[index]) {
@@ -39,16 +39,18 @@ struct ImageCarousel: View {
                 .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
                 .frame(width: geometry.size.width, height: geometry.size.width)
                 
-                HStack(spacing: 8) {
-                    ForEach(0..<imageUrls.count, id: \.self) { index in
-                        Circle()
-                            .fill(currentIndex == index ?
-                                  (colorScheme == .dark ? Color.white : Color.black) :
-                                  (colorScheme == .dark ? Color.white.opacity(0.5) : Color.black.opacity(0.5)))
-                            .frame(width: 8, height: 8)
+                if imageUrls.count > 1 {
+                    HStack(spacing: 8) {
+                        ForEach(0..<imageUrls.count, id: \.self) { index in
+                            Circle()
+                                .fill(currentIndex == index ?
+                                      (colorScheme == .dark ? Color.white : Color.black) :
+                                        (colorScheme == .dark ? Color.white.opacity(0.5) : Color.black.opacity(0.5)))
+                                .frame(width: 8, height: 8)
+                        }
                     }
+                    .padding(.top, 4)
                 }
-                .padding(.top, 4)
             }
         }
         .aspectRatio(1, contentMode: .fit)

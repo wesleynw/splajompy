@@ -14,12 +14,11 @@ struct SplajompyApp: App {
     var body: some Scene {
         WindowGroup {
             Group {
-                Text("Splajompy").fontWeight(.black)
-                
                 if authManager.isAuthenticated {
                     TabView {
                         NavigationStack {
                             FeedView(feedType: .Home)
+                                .navigationTitle("Splajompy")
                         }
                         .tabItem {
                             Label("Home", systemImage: "house")
@@ -27,6 +26,7 @@ struct SplajompyApp: App {
                         
                         NavigationStack {
                             FeedView(feedType: .All)
+                                .navigationTitle("All")
                         }
                         .tabItem {
                             Label("All", systemImage: "globe")
