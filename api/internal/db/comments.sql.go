@@ -18,9 +18,9 @@ RETURNING comment_id, post_id, user_id, text, created_at
 `
 
 type AddCommentToPostParams struct {
-	PostID int32
-	UserID int32
-	Text   string
+	PostID int32  `json:"postId"`
+	UserID int32  `json:"userId"`
+	Text   string `json:"text"`
 }
 
 func (q *Queries) AddCommentToPost(ctx context.Context, arg AddCommentToPostParams) (Comment, error) {
@@ -52,13 +52,13 @@ ORDER BY comments.created_at DESC
 `
 
 type GetCommentsByPostIdRow struct {
-	CommentID int32
-	PostID    int32
-	UserID    int32
-	Text      string
-	CreatedAt pgtype.Timestamp
-	Username  string
-	Name      pgtype.Text
+	CommentID int32            `json:"commentId"`
+	PostID    int32            `json:"postId"`
+	UserID    int32            `json:"userId"`
+	Text      string           `json:"text"`
+	CreatedAt pgtype.Timestamp `json:"createdAt"`
+	Username  string           `json:"username"`
+	Name      pgtype.Text      `json:"name"`
 }
 
 func (q *Queries) GetCommentsByPostId(ctx context.Context, postID int32) ([]GetCommentsByPostIdRow, error) {

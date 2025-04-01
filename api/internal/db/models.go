@@ -9,59 +9,59 @@ import (
 )
 
 type Bio struct {
-	ID     int32
-	UserID int32
-	Text   string
+	ID     int32  `json:"id"`
+	UserID int32  `json:"userId"`
+	Text   string `json:"text"`
 }
 
 type Comment struct {
-	CommentID int32
-	PostID    int32
-	UserID    int32
-	Text      string
-	CreatedAt pgtype.Timestamp
+	CommentID int32            `json:"commentId"`
+	PostID    int32            `json:"postId"`
+	UserID    int32            `json:"userId"`
+	Text      string           `json:"text"`
+	CreatedAt pgtype.Timestamp `json:"createdAt"`
 }
 
 type Follow struct {
-	FollowerID  int32
-	FollowingID int32
-	CreatedAt   pgtype.Timestamp
+	FollowerID  int32            `json:"followerId"`
+	FollowingID int32            `json:"followingId"`
+	CreatedAt   pgtype.Timestamp `json:"createdAt"`
 }
 
 type Image struct {
-	ImageID      int32
-	PostID       int32
-	Height       int32
-	Width        int32
-	ImageBlobUrl string
-	DisplayOrder int32
+	ImageID      int32  `json:"imageId"`
+	PostID       int32  `json:"postId"`
+	Height       int32  `json:"height"`
+	Width        int32  `json:"width"`
+	ImageBlobUrl string `json:"imageBlobUrl"`
+	DisplayOrder int32  `json:"displayOrder"`
 }
 
 type Like struct {
-	PostID    int32
-	CommentID pgtype.Int4
-	UserID    int32
-	IsPost    bool
+	PostID    int32       `json:"postId"`
+	CommentID pgtype.Int4 `json:"commentId"`
+	UserID    int32       `json:"userId"`
+	IsPost    bool        `json:"isPost"`
 }
 
 type Post struct {
-	PostID    int32
-	UserID    int32
-	Text      pgtype.Text
-	CreatedAt pgtype.Timestamp
+	PostID    int32            `json:"postId"`
+	UserID    int32            `json:"userId"`
+	Text      pgtype.Text      `json:"text"`
+	CreatedAt pgtype.Timestamp `json:"createdAt"`
 }
 
 type Session struct {
-	ID        string
-	UserID    int32
-	ExpiresAt pgtype.Timestamp
+	ID        string           `json:"id"`
+	UserID    int32            `json:"userId"`
+	ExpiresAt pgtype.Timestamp `json:"expiresAt"`
 }
 
 type User struct {
-	UserID    int32
-	Email     string
-	Password  string
-	Username  string
-	CreatedAt pgtype.Timestamp
-	Name      pgtype.Text
+	UserID    int32            `json:"userId"`
+	Email     string           `json:"email"`
+	Password  string           `json:"password"`
+	Username  string           `json:"username"`
+	CreatedAt pgtype.Timestamp `json:"createdAt"`
+	Name      pgtype.Text      `json:"name"`
 }

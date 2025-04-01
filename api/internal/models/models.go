@@ -6,32 +6,32 @@ import (
 )
 
 type DetailedPost struct {
-	Post         db.Post
-	User         db.GetUserByIdRow
-	IsLiked      bool
-	Images       []db.Image
-	CommentCount int
+	Post         db.Post           `json:"post"`
+	User         db.GetUserByIdRow `json:"user"`
+	IsLiked      bool              `json:"isLiked"`
+	Images       []db.Image        `json:"images"`
+	CommentCount int               `json:"commentCount"`
 }
 
 type DetailedComment struct {
-	CommentID int32
-	PostID    int32
-	UserID    int32
-	Text      string
-	CreatedAt pgtype.Timestamp
-	User      PublicUser
-	IsLiked   bool
+	CommentID int32            `json:"commentId"`
+	PostID    int32            `json:"postId"`
+	UserID    int32            `json:"userId"`
+	Text      string           `json:"text"`
+	CreatedAt pgtype.Timestamp `json:"createdAt"`
+	User      PublicUser       `json:"user"`
+	IsLiked   bool             `json:"isLiked"`
 }
 
 type PublicUser = db.GetUserByIdentifierRow
 
 type DetailedUser struct {
-	UserID      int32
-	Email       string
-	Username    string
-	CreatedAt   pgtype.Timestamp
-	Name        string
-	Bio         string
-	IsFollower  bool
-	IsFollowing bool
+	UserID      int32            `json:"userId"`
+	Email       string           `json:"email"`
+	Username    string           `json:"username"`
+	CreatedAt   pgtype.Timestamp `json:"createdAt"`
+	Name        string           `json:"name"`
+	Bio         string           `json:"bio"`
+	IsFollower  bool             `json:"isFollower"`
+	IsFollowing bool             `json:"isFollowing"`
 }

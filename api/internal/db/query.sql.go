@@ -18,10 +18,10 @@ VALUES ($1, $2, $3, $4)
 `
 
 type AddLikeParams struct {
-	PostID    int32
-	CommentID pgtype.Int4
-	UserID    int32
-	IsPost    bool
+	PostID    int32       `json:"postId"`
+	CommentID pgtype.Int4 `json:"commentId"`
+	UserID    int32       `json:"userId"`
+	IsPost    bool        `json:"isPost"`
 }
 
 // LIKES
@@ -41,9 +41,9 @@ VALUES ($1, $2, $3)
 `
 
 type CreateSessionParams struct {
-	ID        string
-	UserID    int32
-	ExpiresAt pgtype.Timestamp
+	ID        string           `json:"id"`
+	UserID    int32            `json:"userId"`
+	ExpiresAt pgtype.Timestamp `json:"expiresAt"`
 }
 
 func (q *Queries) CreateSession(ctx context.Context, arg CreateSessionParams) error {
@@ -126,10 +126,10 @@ SELECT EXISTS (
 `
 
 type GetIsLikedByUserParams struct {
-	UserID    int32
-	PostID    int32
-	CommentID pgtype.Int4
-	Column4   bool
+	UserID    int32       `json:"userId"`
+	PostID    int32       `json:"postId"`
+	CommentID pgtype.Int4 `json:"commentId"`
+	Column4   bool        `json:"column4"`
 }
 
 func (q *Queries) GetIsLikedByUser(ctx context.Context, arg GetIsLikedByUserParams) (bool, error) {
@@ -155,8 +155,8 @@ SELECT EXISTS (
 `
 
 type GetIsPostLikedByUserParams struct {
-	UserID int32
-	PostID int32
+	UserID int32 `json:"userId"`
+	PostID int32 `json:"postId"`
 }
 
 func (q *Queries) GetIsPostLikedByUser(ctx context.Context, arg GetIsPostLikedByUserParams) (bool, error) {
@@ -205,11 +205,11 @@ LIMIT 1
 `
 
 type GetUserByIdRow struct {
-	UserID    int32
-	Email     string
-	Username  string
-	CreatedAt pgtype.Timestamp
-	Name      pgtype.Text
+	UserID    int32            `json:"userId"`
+	Email     string           `json:"email"`
+	Username  string           `json:"username"`
+	CreatedAt pgtype.Timestamp `json:"createdAt"`
+	Name      pgtype.Text      `json:"name"`
 }
 
 func (q *Queries) GetUserById(ctx context.Context, userID int32) (GetUserByIdRow, error) {
@@ -233,11 +233,11 @@ LIMIT 1
 `
 
 type GetUserByIdentifierRow struct {
-	UserID    int32
-	Email     string
-	Username  string
-	CreatedAt pgtype.Timestamp
-	Name      pgtype.Text
+	UserID    int32            `json:"userId"`
+	Email     string           `json:"email"`
+	Username  string           `json:"username"`
+	CreatedAt pgtype.Timestamp `json:"createdAt"`
+	Name      pgtype.Text      `json:"name"`
 }
 
 func (q *Queries) GetUserByIdentifier(ctx context.Context, email string) (GetUserByIdentifierRow, error) {
@@ -305,10 +305,10 @@ AND ($3 = TRUE OR comment_id = $4)
 `
 
 type RemoveLikeParams struct {
-	PostID    int32
-	UserID    int32
-	IsPost    bool
-	CommentID pgtype.Int4
+	PostID    int32       `json:"postId"`
+	UserID    int32       `json:"userId"`
+	IsPost    bool        `json:"isPost"`
+	CommentID pgtype.Int4 `json:"commentId"`
 }
 
 // DELETE FROM likes
