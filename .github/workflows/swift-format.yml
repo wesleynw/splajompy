@@ -1,0 +1,30 @@
+name: Swift Format
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  swift-format:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install swift-format
+        run: |
+          git clone https://github.com/apple/swift-format.git
+          cd swift-format
+          swift build -c release
+          echo "$(pwd)/.build/release" >> $GITHUB_PATH
+
+      - name: Run swift-format lint
+        run: |
+          swift-format lint --recursive ./Sources ./Tests
+
+      # Optional: Run swift-format in format mode with --dry-run to show what would change
+      # Useful to see the differences without actually changing files
+      # - name: Run swift-format format --dry-run
+      #   run: |
+      #     swift-format format --recursive --dry-run ./Sources ./Tests
