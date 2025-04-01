@@ -17,7 +17,7 @@ jobs:
 
       - name: Run swift-format lint
         run: |
-          swift-format lint --recursive ./Sources ./Tests
+          swift-format lint --recursive ./Splajompy
 
       # Optional: Run swift-format in format mode with --dry-run to show what would change
       # Useful to see the differences without actually changing files
