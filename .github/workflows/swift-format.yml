@@ -2,9 +2,9 @@ name: Swift Format
 
 on:
   push:
-    branches: [main, master]
+    branches: [main]
   pull_request:
-    branches: [main, master]
+    branches: [main]
 
 jobs:
   swift-format:
@@ -13,11 +13,7 @@ jobs:
       - uses: actions/checkout@v3
 
       - name: Install swift-format
-        run: |
-          git clone https://github.com/apple/swift-format.git
-          cd swift-format
-          swift build -c release
-          echo "$(pwd)/.build/release" >> $GITHUB_PATH
+        run: brew install swift-format
 
       - name: Run swift-format lint
         run: |
