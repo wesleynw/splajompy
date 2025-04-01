@@ -5,13 +5,13 @@ on:
   pull_request:
     branches: [main]
 jobs:
-  lint:
-  runs-on: macos-15
-  steps:
-    - uses: actions/checkout@v4
-    - name: Lint
-      run: |
-        xcrun swift-format lint . \
-          --parallel \
-          --recursive \
-          --strict
+  swift-format:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Lint
+        run: |
+          xcrun swift-format lint . \
+            --parallel \
+            --recursive \
+            --strict
