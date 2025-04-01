@@ -8,20 +8,20 @@
 import SwiftUI
 
 enum FeedType {
-  case Home
-  case All
-  case Profile
+  case home
+  case all
+  case profile
 }
 
 struct FeedView: View {
   var feedType: FeedType
-  var userID: Int?
+  var userId: Int?
   @StateObject private var viewModel: ViewModel
 
-  init(feedType: FeedType, userID: Int? = nil) {
+  init(feedType: FeedType, userId: Int? = nil) {
     self.feedType = feedType
-    self.userID = userID
-    _viewModel = StateObject(wrappedValue: ViewModel(feedType: feedType, userID: userID))
+    self.userId = userId
+    _viewModel = StateObject(wrappedValue: ViewModel(feedType: feedType, userId: userId))
   }
 
   var body: some View {
@@ -91,10 +91,10 @@ struct FeedView: View {
     ForEach(viewModel.posts) { post in
       PostView(
         post: post,
-        showAuthor: feedType != .Profile,
+        showAuthor: feedType != .profile,
         onLikeButtonTapped: { viewModel.toggleLike(on: post) }
       )
-      .id("post-\(feedType)_\(post.Post.PostID)")
+      .id("post-\(feedType)_\(post.post.postId)")
       .onAppear {
         if post == viewModel.posts.last {
           viewModel.loadMorePosts()

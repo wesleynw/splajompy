@@ -6,49 +6,49 @@
 //
 
 struct User: Decodable {
-  let UserID: Int
-  let Email: String
-  let Username: String
-  let CreatedAt: String
-  let Name: String
+  let userId: Int
+  let email: String
+  let username: String
+  let createdAt: String
+  let name: String
 }
 
 struct Comment: Decodable {
-  let CommentID: Int
-  let PostID: Int
-  let UserID: Int
-  let Text: String
-  let CreatedAt: String
-  let User: User
-  var IsLiked: Bool
+  let commentId: Int
+  let postId: Int
+  let userId: Int
+  let text: String
+  let createdAt: String
+  let user: User
+  var isLiked: Bool
 }
 
 struct ImageDTO: Decodable {
-  let ImageID: Int
-  let PostID: Int
-  let Height: Int
-  let Width: Int
-  let ImageBlobUrl: String
-  let DisplayOrder: Int
+  let imageId: Int
+  let postId: Int
+  let height: Int
+  let width: Int
+  let imageBlobUrl: String
+  let displayOrder: Int
 }
 
 struct Post: Decodable {
-  let PostID: Int
-  let UserID: Int
-  let Text: String?
-  let CreatedAt: String
+  let postId: Int
+  let userId: Int
+  let text: String?
+  let createdAt: String
 }
 
 struct DetailedPost: Decodable, Equatable, Identifiable {
-  let Post: Post
-  let User: User
-  var IsLiked: Bool
-  var CommentCount: Int
-  var Images: [ImageDTO]?
+  let post: Post
+  let user: User
+  var isLiked: Bool
+  var commentCount: Int
+  var images: [ImageDTO]?
 
-  var id: Int { Post.PostID }
+  var id: Int { post.postId }
 
   static func == (lhs: DetailedPost, rhs: DetailedPost) -> Bool {
-    return lhs.Post.PostID == rhs.Post.PostID
+    return lhs.post.postId == rhs.post.postId
   }
 }

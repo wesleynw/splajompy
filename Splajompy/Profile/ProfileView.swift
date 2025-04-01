@@ -4,13 +4,13 @@ struct ProfileView: View {
   @StateObject private var viewModel: ViewModel
   @EnvironmentObject private var authManager: AuthManager
 
-  let userID: Int
+  let userId: Int
   let isOwnProfile: Bool
 
-  init(userID: Int, isOwnProfile: Bool) {
-    self.userID = userID
+  init(userId: Int, isOwnProfile: Bool) {
+    self.userId = userId
     self.isOwnProfile = isOwnProfile
-    _viewModel = StateObject(wrappedValue: ViewModel(userID: userID))
+    _viewModel = StateObject(wrappedValue: ViewModel(userId: userId))
   }
 
   var body: some View {
@@ -23,8 +23,8 @@ struct ProfileView: View {
         }
         if let user = viewModel.profile {
           VStack(alignment: .leading, spacing: 4) {
-            if !user.Name.isEmpty {
-              Text(user.Name)
+            if !user.name.isEmpty {
+              Text(user.name)
                 .font(.title2)
                 .fontWeight(.black)
                 .lineLimit(1)
@@ -37,7 +37,8 @@ struct ProfileView: View {
                 Button("Sign Out") { authManager.signOut() }
                   .buttonStyle(.bordered)
               } else {
-                Button(viewModel.profile?.IsFollowing ?? false ? "Unfollow" : "Follow") {  // TODO this is bad
+                // TODO this is bad
+                Button(viewModel.profile?.isFollowing ?? false ? "Unfollow" : "Follow") {
                   // Toggle follow status
                   // viewModel.toggle()
                 }
@@ -45,21 +46,21 @@ struct ProfileView: View {
               }
             }
 
-            if user.IsFollower {
+            if user.isFollower {
               Text("Follows You")
                 .fontWeight(.bold)
                 .foregroundColor(Color.gray.opacity(0.4))
             }
 
-            if !user.Bio.isEmpty {
-              Text(user.Bio)
+            if !user.bio.isEmpty {
+              Text(user.bio)
                 .padding(.vertical, 10)
                 .fixedSize(horizontal: false, vertical: true)
             }
           }
 
           VStack {
-            FeedView(feedType: .Profile, userID: self.userID)
+            FeedView(feedType: .profile, userId: self.userId)
               .padding(.horizontal, -16)  // Remove horizontal padding from posts
           }
         } else if !viewModel.isLoadingProfile {
@@ -80,12 +81,12 @@ struct ProfileView: View {
         .foregroundColor(Color.gray.opacity(0.2)),
       alignment: .top
     )
-    .navigationTitle(viewModel.profile?.Username != nil ? "@" + viewModel.profile!.Username : "")
+    .navigationTitle(viewModel.profile?.username != nil ? "@" + viewModel.profile!.username : "")
   }
 }
 
 struct ProfileView_Previews: PreviewProvider {
   static var previews: some View {
-    ProfileView(userID: 1, isOwnProfile: false)
+    ProfileView(userId: 1, isOwnProfile: false)
   }
 }

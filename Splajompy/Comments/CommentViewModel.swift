@@ -9,13 +9,13 @@ import Foundation
 
 extension CommentsView {
   class ViewModel: ObservableObject {
-    private let postID: Int
+    private let postId: Int
 
     @Published var comments = [Comment]()
     @Published var isLoading = true
 
-    init(postID: Int) {
-      self.postID = postID
+    init(postId: Int) {
+      self.postId = postId
       loadComments()
     }
 
@@ -24,7 +24,7 @@ extension CommentsView {
         isLoading = true
         do {
           comments = try await APIService.shared.request(
-            endpoint: "/post/\(postID)/comments", method: "GET")
+            endpoint: "/post/\(postId)/comments", method: "GET")
         } catch {
           print("error fetching comments: \(error.localizedDescription)")
         }
@@ -35,16 +35,16 @@ extension CommentsView {
     func toggleLike(for comment: Comment) {
       Task {
         @MainActor in
-        let method = comment.IsLiked ? "DELETE" : "POST"
+        let method = comment.isLiked ? "DELETE" : "POST"
 
         do {
           try await APIService.shared.requestWithoutResponse(
-            endpoint: "/post/\(comment.PostID)/comment/\(comment.CommentID)/liked", method: method)
+            endpoint: "/post/\(comment.postId)/comment/\(comment.commentId)/liked", method: method)
         } catch {
           print("error adding like to post: \(error.localizedDescription)")
         }
-        if let index = comments.firstIndex(where: { $0.CommentID == comment.CommentID }) {
-          comments[index].IsLiked.toggle()
+        if let index = comments.firstIndex(where: { $0.commentId == comment.commentId }) {
+          comments[index].isLiked.toggle()
         }
         // TODO: update parent viewModel with comment count
       }
@@ -54,7 +54,7 @@ extension CommentsView {
       Task { @MainActor in
         do {
           let newComment: Comment = try await APIService.shared.request(
-            endpoint: "/post/\(postID)/comment", method: "POST", body: ["Text": text])
+            endpoint: "/post/\(postId)/comment", method: "POST", body: ["Text": text])
           comments.append(newComment)
           // TODO: update comment count in parent VM
         } catch {

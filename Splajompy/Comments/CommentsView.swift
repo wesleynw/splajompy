@@ -7,7 +7,7 @@ struct CommentsView: View {
   @FocusState private var isTextFieldFocused: Bool
 
   init(postId: Int) {
-    _viewModel = StateObject(wrappedValue: ViewModel(postID: postId))
+    _viewModel = StateObject(wrappedValue: ViewModel(postId: postId))
   }
 
   var body: some View {
@@ -26,12 +26,12 @@ struct CommentsView: View {
         }
       }
       List {
-        ForEach(viewModel.comments, id: \.CommentID) { comment in
+        ForEach(viewModel.comments, id: \.commentId) { comment in
           CommentRow(
             comment: comment,
             toggleLike: {
               viewModel.toggleLike(for: comment)
-              print("liking comment with ID: \(comment.CommentID)")
+              print("liking comment with ID: \(comment.commentId)")
             }
           )
           .listRowSeparator(.hidden)
@@ -90,24 +90,24 @@ struct CommentRow: View {
   private var commentDate: Date {
     let dateFormatter = ISO8601DateFormatter()
     dateFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-    return dateFormatter.date(from: comment.CreatedAt) ?? Date()
+    return dateFormatter.date(from: comment.createdAt) ?? Date()
   }
 
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
       HStack(alignment: .top) {
         VStack(alignment: .leading, spacing: 2) {
-          if !comment.User.Name.isEmpty {
-            Text(comment.User.Name)
+          if !comment.user.name.isEmpty {
+            Text(comment.user.name)
               .font(.headline)
               .fontWeight(.bold)
               .lineLimit(1)
 
-            Text("@\(comment.User.Username)")
+            Text("@\(comment.user.username)")
               .font(.subheadline)
               .foregroundColor(.gray)
           } else {
-            Text("@\(comment.User.Username)")
+            Text("@\(comment.user.username)")
               .font(.headline)
               .fontWeight(.bold)
               .foregroundColor(.gray)
@@ -125,7 +125,7 @@ struct CommentRow: View {
       }
       .allowsHitTesting(true)
 
-      Text(comment.Text)
+      Text(comment.text)
         .font(.body)
         .multilineTextAlignment(.leading)
         .fixedSize(horizontal: false, vertical: true)
@@ -139,7 +139,7 @@ struct CommentRow: View {
 
         Spacer()
 
-        LikeButton(isLiked: comment.IsLiked, action: toggleLike)
+        LikeButton(isLiked: comment.isLiked, action: toggleLike)
           .allowsHitTesting(true)
       }
       .allowsHitTesting(true)

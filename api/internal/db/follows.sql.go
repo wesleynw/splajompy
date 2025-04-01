@@ -18,8 +18,8 @@ SELECT EXISTS (
 `
 
 type GetIsUserFollowingUserParams struct {
-	FollowerID  int32
-	FollowingID int32
+	FollowerID  int32 `json:"followerId"`
+	FollowingID int32 `json:"followingId"`
 }
 
 func (q *Queries) GetIsUserFollowingUser(ctx context.Context, arg GetIsUserFollowingUserParams) (bool, error) {

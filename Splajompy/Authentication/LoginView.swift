@@ -148,14 +148,14 @@ struct LoginView: View {
       if isUsingPassword {
         let authError = await authManager.signInWithPassword(
           identifier: identifier, password: password)
-        if authError == .None {
+        if authError == .none {
           print("Authentication successful!")
         } else {
           await MainActor.run {
             switch authError {
-            case .IncorrectPassword:
+            case .incorrectPassword:
               errorMessage = "Wrong password"
-            case .AccountNonexistent:
+            case .accountNonexistent:
               errorMessage = "Account doesn't exist"
             default:
               errorMessage = "Authentication error: \(authError)"

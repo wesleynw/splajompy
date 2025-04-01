@@ -19,7 +19,7 @@ struct PostView: View {
   private var postDate: Date {
     let formatter = ISO8601DateFormatter()
     formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-    return formatter.date(from: post.Post.CreatedAt) ?? Date()
+    return formatter.date(from: post.post.createdAt) ?? Date()
   }
 
   var body: some View {
@@ -27,21 +27,21 @@ struct PostView: View {
       if showAuthor {
         HStack(alignment: .top) {
           NavigationLink {
-            ProfileView(userID: post.User.UserID, isOwnProfile: false)
+            ProfileView(userId: post.user.userId, isOwnProfile: false)
           } label: {
             VStack(alignment: .leading, spacing: 2) {
-              if !post.User.Name.isEmpty {
-                Text(post.User.Name)
+              if !post.user.name.isEmpty {
+                Text(post.user.name)
                   .font(.title2)
                   .fontWeight(.black)
                   .lineLimit(1)
 
-                Text("@\(post.User.Username)")
+                Text("@\(post.user.username)")
                   .font(.subheadline)
                   .fontWeight(.bold)
                   .foregroundColor(.gray)
               } else {
-                Text("@\(post.User.Username)")
+                Text("@\(post.user.username)")
                   .font(.title3)
                   .fontWeight(.black)
                   .foregroundColor(.gray)
@@ -57,14 +57,14 @@ struct PostView: View {
         }
       }
 
-      if let postText = post.Post.Text {
+      if let postText = post.post.text {
         Text(postText)
           .font(.body)
           .multilineTextAlignment(.leading)
       }
 
-      if let images = post.Images, !images.isEmpty {
-        ImageCarousel(imageUrls: images.map { $0.ImageBlobUrl })
+      if let images = post.images, !images.isEmpty {
+        ImageCarousel(imageUrls: images.map { $0.imageBlobUrl })
       }
 
       HStack {
@@ -76,10 +76,10 @@ struct PostView: View {
 
         HStack(spacing: 16) {
           NavigationLink {
-            CommentsView(postId: post.Post.PostID)
+            CommentsView(postId: post.post.postId)
           } label: {
             HStack(spacing: 4) {
-              Text("\(post.CommentCount)")
+              Text("\(post.commentCount)")
                 .font(.subheadline)
               Image(systemName: "bubble.right")
                 .font(.system(size: 20))
@@ -93,10 +93,10 @@ struct PostView: View {
             onLikeButtonTapped()
           }) {
             HStack(spacing: 4) {
-              Image(systemName: post.IsLiked ? "heart.fill" : "heart")
+              Image(systemName: post.isLiked ? "heart.fill" : "heart")
                 .font(.system(size: 20))
             }
-            .foregroundColor(post.IsLiked ? .white : .primary)
+            .foregroundColor(post.isLiked ? .white : .primary)
           }
         }
       }

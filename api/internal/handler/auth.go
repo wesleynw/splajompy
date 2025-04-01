@@ -109,8 +109,8 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response := struct {
-		Token string
-		User  models.PublicUser
+		Token string            `json:"token"`
+		User  models.PublicUser `json:"user"`
 	}{
 		Token: sessionID,
 		User:  publicUser,

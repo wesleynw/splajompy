@@ -12,7 +12,7 @@ let fetchLimit = 10
 extension FeedView {
   class ViewModel: ObservableObject {
     var feedType: FeedType
-    var userID: Int?
+    var userId: Int?
 
     @Published var posts = [DetailedPost]()
     @Published var isLoading = true
@@ -20,9 +20,9 @@ extension FeedView {
 
     private var offset = 0
 
-    init(feedType: FeedType, userID: Int? = nil) {
+    init(feedType: FeedType, userId: Int? = nil) {
       self.feedType = feedType
-      self.userID = userID
+      self.userId = userId
       loadMorePosts()
     }
 
@@ -32,12 +32,12 @@ extension FeedView {
         do {
           let urlBase =
             switch feedType {
-            case .Home:
+            case .home:
               "/posts/following"
-            case .All:
+            case .all:
               "/posts/all"
-            case .Profile:
-              "/user/\(self.userID!)/posts"
+            case .profile:
+              "/user/\(self.userId!)/posts"
             }
 
           let fetchedPosts: [DetailedPost] = try await APIService.shared.request(
@@ -69,13 +69,13 @@ extension FeedView {
 
     func toggleLike(on post: DetailedPost) {
       Task { @MainActor in
-        if let index = posts.firstIndex(where: { $0.Post.PostID == post.Post.PostID }) {
-          posts[index].IsLiked.toggle()
-          let method = post.IsLiked ? "DELETE" : "POST"
+        if let index = posts.firstIndex(where: { $0.post.postId == post.post.postId }) {
+          posts[index].isLiked.toggle()
+          let method = post.isLiked ? "DELETE" : "POST"
 
           do {
             try await APIService.shared.requestWithoutResponse(
-              endpoint: "/post/\(post.Post.PostID)/liked", method: method)
+              endpoint: "/post/\(post.post.postId)/liked", method: method)
           } catch {
             print("Error adding like to post: \(error.localizedDescription)")
           }
@@ -85,13 +85,13 @@ extension FeedView {
 
     func addComment(on post: DetailedPost, content: String) {
       Task { @MainActor in
-        if let index = posts.firstIndex(where: { $0.Post.PostID == post.Post.PostID }) {
-          posts[index].CommentCount += 1
+        if let index = posts.firstIndex(where: { $0.post.postId == post.post.postId }) {
+          posts[index].commentCount += 1
 
           do {
 
             try await APIService.shared.requestWithoutResponse(
-              endpoint: "/post/\(post.Post.PostID)/comment", method: "POST", body: ["Text": content]
+              endpoint: "/post/\(post.post.postId)/comment", method: "POST", body: ["Text": content]
             )
           } catch {
             print("Error adding like to post: \(error.localizedDescription)")

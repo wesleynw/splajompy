@@ -8,19 +8,19 @@
 import Foundation
 
 struct UserProfile: Decodable {
-  let UserID: Int
-  let Email: String
-  let Username: String
-  let CreatedAt: String
-  let Name: String
-  let Bio: String
-  let IsFollower: Bool
-  let IsFollowing: Bool
+  let userId: Int
+  let email: String
+  let username: String
+  let createdAt: String
+  let name: String
+  let bio: String
+  let isFollower: Bool
+  let isFollowing: Bool
 }
 
 extension ProfileView {
   class ViewModel: ObservableObject {
-    private let userID: Int
+    private let userId: Int
     private var offset = 0
 
     @Published var profile: UserProfile?
@@ -28,8 +28,8 @@ extension ProfileView {
     @Published var postError = ""
     @Published var isLoadingProfile = true
 
-    init(userID: Int) {
-      self.userID = userID
+    init(userId: Int) {
+      self.userId = userId
       loadProfile()
     }
 
@@ -38,7 +38,7 @@ extension ProfileView {
 
       Task { @MainActor in
         do {
-          profile = try await APIService.shared.request(endpoint: "/user/\(userID)")
+          profile = try await APIService.shared.request(endpoint: "/user/\(userId)")
         } catch {
           print("error fetching user profile: \(error.localizedDescription)")
         }

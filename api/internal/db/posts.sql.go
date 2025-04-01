@@ -18,8 +18,8 @@ OFFSET $2
 `
 
 type GetAllPostIdsParams struct {
-	Limit  int32
-	Offset int32
+	Limit  int32 `json:"limit"`
+	Offset int32 `json:"offset"`
 }
 
 func (q *Queries) GetAllPostIds(ctx context.Context, arg GetAllPostIdsParams) ([]int32, error) {
@@ -69,9 +69,9 @@ OFFSET $3
 `
 
 type GetPostIdsByFollowingParams struct {
-	UserID int32
-	Limit  int32
-	Offset int32
+	UserID int32 `json:"userId"`
+	Limit  int32 `json:"limit"`
+	Offset int32 `json:"offset"`
 }
 
 func (q *Queries) GetPostIdsByFollowing(ctx context.Context, arg GetPostIdsByFollowingParams) ([]int32, error) {
@@ -104,9 +104,9 @@ LIMIT $3
 `
 
 type GetPostsIdsByUserIdParams struct {
-	UserID int32
-	Offset int32
-	Limit  int32
+	UserID int32 `json:"userId"`
+	Offset int32 `json:"offset"`
+	Limit  int32 `json:"limit"`
 }
 
 func (q *Queries) GetPostsIdsByUserId(ctx context.Context, arg GetPostsIdsByUserIdParams) ([]int32, error) {

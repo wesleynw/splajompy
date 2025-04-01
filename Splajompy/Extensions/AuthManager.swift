@@ -7,21 +7,21 @@
 import Foundation
 
 struct AuthResponse: Decodable {
-  let Token: String
-  let User: User
+  let token: String
+  let user: User
 }
 
 enum AuthError {
-  case None
-  case InvalidUrl
-  case SerializationError
-  case NetworkError
-  case InvalidResponse
-  case DecodingError
-  case IncorrectPassword
-  case AccountNonexistent
-  case GeneralFailure
-  case NoToken
+  case none
+  case invalidURL
+  case serializationError
+  case networkError
+  case invalidResponse
+  case decodingError
+  case incorrectPassword
+  case accountNonexistent
+  case generalFailure
+  case noToken
 }
 
 class AuthManager: ObservableObject {
@@ -52,13 +52,13 @@ class AuthManager: ObservableObject {
       isLoading = true
     }
     struct LoginCredentials: Encodable {
-      let Identifier: String
-      let Password: String
+      let identifier: String
+      let password: String
     }
 
     let credentials = LoginCredentials(
-      Identifier: identifier,
-      Password: password
+      identifier: identifier,
+      password: password
     )
 
     do {
@@ -69,17 +69,17 @@ class AuthManager: ObservableObject {
         requiresAuth: false
       )
 
-      KeychainHelper.standard.save(authResponse.Token, service: "session-token", account: "self")
+      KeychainHelper.standard.save(authResponse.token, service: "session-token", account: "self")
 
       let defaults = UserDefaults.standard
-      defaults.set(authResponse.User.UserID, forKey: "CurrentUserID")
+      defaults.set(authResponse.user.userId, forKey: "CurrentUserID")
 
       await MainActor.run {
         isAuthenticated = true
         isLoading = false
       }
 
-      return .None
+      return .none
 
     } catch let apiError as APIError {
       await MainActor.run {
@@ -87,23 +87,23 @@ class AuthManager: ObservableObject {
       }
       switch apiError {
       case .invalidURL:
-        return .InvalidUrl
+        return .invalidURL
       case .decodingError:
-        return .DecodingError
+        return .decodingError
       case .unauthorized:
-        return .IncorrectPassword
+        return .incorrectPassword
       case .serverError(404):
-        return .AccountNonexistent
+        return .accountNonexistent
       case .noToken:
-        return .NoToken
+        return .noToken
       case .networkError, .noData, .serverError:
-        return .GeneralFailure
+        return .generalFailure
       }
     } catch {
       await MainActor.run {
         isLoading = false
       }
-      return .GeneralFailure
+      return .generalFailure
     }
   }
 }

@@ -17,7 +17,7 @@ struct SplajompyApp: App {
         if authManager.isAuthenticated {
           TabView {
             NavigationStack {
-              FeedView(feedType: .Home)
+              FeedView(feedType: .home)
                 .navigationTitle("Splajompy")
             }
             .tabItem {
@@ -25,16 +25,16 @@ struct SplajompyApp: App {
             }
 
             NavigationStack {
-              FeedView(feedType: .All)
+              FeedView(feedType: .all)
                 .navigationTitle("All")
             }
             .tabItem {
               Label("All", systemImage: "globe")
             }
 
-            if let userID = authManager.getCurrentUser() {
+            if let userId = authManager.getCurrentUser() {
               NavigationStack {
-                ProfileView(userID: userID, isOwnProfile: true)
+                ProfileView(userId: userId, isOwnProfile: true)
                   .environmentObject(authManager)
               }
               .tabItem {
