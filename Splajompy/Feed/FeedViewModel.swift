@@ -42,7 +42,6 @@ extension FeedView {
 
           let fetchedPosts: [DetailedPost] = try await APIService.shared.request(
             endpoint: "\(urlBase)?limit=\(fetchLimit)&offset=\(offset)")
-          print("fetched posts length: ", fetchedPosts.count)
           if reset {
             self.posts = fetchedPosts
           } else {

@@ -29,3 +29,8 @@ OFFSET $2;
 SELECT COUNT(*)
 FROM comments
 WHERE post_id = $1;
+
+-- name: InsertPost :one
+INSERT into posts (user_id, text)
+VALUES ($1, $2)
+RETURNING *;

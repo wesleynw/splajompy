@@ -7,20 +7,38 @@
 
 import SwiftUI
 
-enum FeedType {
+public enum FeedType {
   case home
   case all
   case profile
 }
 
-struct FeedView: View {
+struct FeedView<Header: View>: View {
   var feedType: FeedType
   var userId: Int?
+
+  // this is a hack to insert something at the top of a scroll view so we don't have nested scrollviews
+  let header: Header
+
   @StateObject private var viewModel: ViewModel
 
-  init(feedType: FeedType, userId: Int? = nil) {
+  init(feedType: FeedType, userId: Int? = nil) where Header == EmptyView {
     self.feedType = feedType
     self.userId = userId
+    self.header = EmptyView()
+    _viewModel = StateObject(
+      wrappedValue: ViewModel(feedType: feedType, userId: userId)
+    )
+  }
+
+  init(
+    feedType: FeedType,
+    userId: Int? = nil,
+    @ViewBuilder header: () -> Header
+  ) {
+    self.feedType = feedType
+    self.userId = userId
+    self.header = header()
     _viewModel = StateObject(
       wrappedValue: ViewModel(feedType: feedType, userId: userId)
     )
@@ -28,18 +46,20 @@ struct FeedView: View {
 
   var body: some View {
     NavigationStack {
-      //      ScrollView {
-      feedContent
-        //      }
-        .background(Color(UIColor.systemBackground))
-        .onAppear {
-          if viewModel.posts.isEmpty && !viewModel.isLoading {
-            viewModel.refreshPosts()
+      ScrollView {
+        header
+        feedContent
+          .background(Color(UIColor.systemBackground))
+          .onAppear {
+            if viewModel.posts.isEmpty && !viewModel.isLoading {
+              viewModel.refreshPosts()
+            }
           }
-        }
-        .refreshable {
-          viewModel.refreshPosts()
-        }
+
+      }
+      .refreshable {
+        viewModel.refreshPosts()
+      }
     }
   }
 

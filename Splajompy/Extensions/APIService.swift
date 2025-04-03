@@ -50,7 +50,7 @@ class APIService {
       throw APIError.invalidURL
     }
 
-    print("making request to: ", url)
+    print("REQUEST -- \(method): \(url)")
 
     // 2. Create request
     var request = URLRequest(url: url)

@@ -17,67 +17,71 @@ struct ProfileView: View {
 
   var body: some View {
     NavigationStack {
-      ScrollView {
-        VStack(alignment: .leading, spacing: 12) {
-          if viewModel.isLoadingProfile {
-            ProgressView()
-              .scaleEffect(1.5)
-              .padding()
-          }
-          if let user = viewModel.profile {
-            VStack(alignment: .leading, spacing: 4) {
-              if !user.name.isEmpty {
-                Text(user.name)
-                  .font(.title2)
-                  .fontWeight(.black)
-                  .lineLimit(1)
-              }
-
-              HStack {
-                Spacer()
-
-                if isOwnProfile {
-                  Button("Sign Out") { authManager.signOut() }
-                    .buttonStyle(.bordered)
-                } else {
-                  // TODO this is bad
-                  Button(
-                    viewModel.profile?.isFollowing ?? false
-                      ? "Unfollow" : "Follow"
-                  ) {
-                    // Toggle follow status
-                    // viewModel.toggle()
-                  }
-                  .buttonStyle(.bordered)
-                }
-              }
-
-              if user.isFollower {
-                Text("Follows You")
-                  .fontWeight(.bold)
-                  .foregroundColor(Color.gray.opacity(0.4))
-              }
-
-              if !user.bio.isEmpty {
-                Text(user.bio)
-                  .padding(.vertical, 10)
-                  .fixedSize(horizontal: false, vertical: true)
-              }
-            }
-            FeedView(feedType: .profile, userId: self.userId)
-              .padding(.horizontal, -16)
-          } else if !viewModel.isLoadingProfile {
-            Text("This user doesn't exist.")
-              .font(.title)
-              .fontWeight(.black)
-              .frame(maxWidth: .infinity, alignment: .center)
-              .padding(.top, 40)
-          }
+      VStack(alignment: .leading, spacing: 12) {
+        if viewModel.isLoadingProfile {
+          ProgressView()
+            .scaleEffect(1.5)
+            .padding()
         }
-        .padding(.top, 16)
-        .padding(.horizontal, 16)
+        if let user = viewModel.profile {
+
+          FeedView(feedType: .profile, userId: self.userId) {
+            profileHeader(user: user)
+          }
+          .padding(.horizontal, -16)
+        } else if !viewModel.isLoadingProfile {
+          Text("This user doesn't exist.")
+            .font(.title)
+            .fontWeight(.black)
+            .frame(maxWidth: .infinity, alignment: .center)
+            .padding(.top, 40)
+        }
       }
-      .navigationTitle("@" + self.username)
+      .padding(.top, 16)
+      .padding(.horizontal, 16)
+    }
+    .navigationTitle("@" + self.username)
+  }
+
+  private func profileHeader(user: UserProfile) -> some View {
+    VStack(alignment: .leading, spacing: 4) {
+      if !user.name.isEmpty {
+        Text(user.name)
+          .font(.title2)
+          .fontWeight(.black)
+          .lineLimit(1)
+      }
+
+      HStack {
+        Spacer()
+
+        if isOwnProfile {
+          Button("Sign Out") { authManager.signOut() }
+            .buttonStyle(.bordered)
+        } else {
+          // TODO this is bad
+          Button(
+            viewModel.profile?.isFollowing ?? false
+              ? "Unfollow" : "Follow"
+          ) {
+            // Toggle follow status
+            // viewModel.toggle()
+          }
+          .buttonStyle(.bordered)
+        }
+      }
+
+      if user.isFollower {
+        Text("Follows You")
+          .fontWeight(.bold)
+          .foregroundColor(Color.gray.opacity(0.4))
+      }
+
+      if !user.bio.isEmpty {
+        Text(user.bio)
+          .padding(.vertical, 10)
+          .fixedSize(horizontal: false, vertical: true)
+      }
     }
   }
 }
