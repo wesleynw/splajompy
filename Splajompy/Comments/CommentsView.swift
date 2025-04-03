@@ -5,42 +5,83 @@ struct CommentsView: View {
   @StateObject private var viewModel: ViewModel
   @State private var newCommentText: String = ""
   @FocusState private var isTextFieldFocused: Bool
+  @Environment(\.presentationMode) var presentationMode
 
   init(postId: Int) {
     _viewModel = StateObject(wrappedValue: ViewModel(postId: postId))
   }
 
   var body: some View {
-    VStack {
-      if viewModel.isLoading {
-        ProgressView()
-          .scaleEffect(1.5)
-          .padding()
-      } else if viewModel.comments.isEmpty {
-        VStack(spacing: 16) {
+    VStack(spacing: 0) {
+      ZStack {
+        VStack(spacing: 8) {
+          Rectangle()
+            .fill(Color.gray.opacity(0.4))
+            .frame(width: 40, height: 5)
+            .cornerRadius(2.5)
+            .padding(.top, 8)
+
+          Text("Comments")
+            .font(.headline)
+            .fontWeight(.bold)
+            .padding(.bottom, 16)
+        }
+
+        HStack {
           Spacer()
-          Text("No comments")
-            .font(.title3)
-            .foregroundColor(.gray)
-          Spacer()
+          Button(action: {
+            let generator = UIImpactFeedbackGenerator(style: .medium)
+            generator.impactOccurred()
+            presentationMode.wrappedValue.dismiss()
+          }) {
+            Image(systemName: "xmark.circle.fill")
+              .font(.system(size: 24))
+              .foregroundColor(Color.gray.opacity(0.7))
+          }
+          .padding(.top, 8)
+          .padding(.trailing, 16)
         }
       }
-      List {
-        ForEach(viewModel.comments, id: \.commentId) { comment in
-          CommentRow(
-            comment: comment,
-            toggleLike: {
-              viewModel.toggleLike(for: comment)
-              print("liking comment with ID: \(comment.commentId)")
-            }
-          )
-          .listRowSeparator(.hidden)
-          .listRowInsets(EdgeInsets())
-          .listRowBackground(Color.clear)
+      .frame(maxWidth: .infinity)
+      .background(Color(UIColor.systemBackground))
+      .contentShape(Rectangle())
+
+      Rectangle()
+        .fill(Color.gray.opacity(0.2))
+        .frame(height: 1)
+
+      ZStack {
+        if viewModel.isLoading {
+          ProgressView()
+            .scaleEffect(1.5)
+            .padding()
+        } else if viewModel.comments.isEmpty {
+          VStack(spacing: 16) {
+            Spacer()
+            Text("No comments")
+              .font(.title3)
+              .foregroundColor(.gray)
+            Spacer()
+          }
         }
+
+        List {
+          ForEach(viewModel.comments, id: \.commentId) { comment in
+            CommentRow(
+              comment: comment,
+              toggleLike: {
+                viewModel.toggleLike(for: comment)
+                print("liking comment with ID: \(comment.commentId)")
+              }
+            )
+            .listRowSeparator(.hidden)
+            .listRowInsets(EdgeInsets())
+            .listRowBackground(Color.clear)
+          }
+        }
+        .listStyle(.plain)
+        .environment(\.defaultMinListRowHeight, 0)
       }
-      .listStyle(.plain)
-      .environment(\.defaultMinListRowHeight, 0)
 
       HStack {
         TextField("Add a comment...", text: $newCommentText)
@@ -67,7 +108,6 @@ struct CommentsView: View {
         isTextFieldFocused = false
       }
     }
-    .toolbar(.hidden, for: .tabBar)
     .animation(.easeInOut, value: true)
   }
 
@@ -77,7 +117,7 @@ struct CommentsView: View {
     print("Submitting comment: \(newCommentText)")
     viewModel.addComment(text: newCommentText)
     newCommentText = ""
-    isTextFieldFocused = false  // Dismiss keyboard
+    isTextFieldFocused = false  // dismiss keyboard
   }
 }
 
@@ -129,7 +169,7 @@ struct CommentRow: View {
         .font(.body)
         .multilineTextAlignment(.leading)
         .fixedSize(horizontal: false, vertical: true)
-        .allowsHitTesting(false)  // Prevent text selection
+        .allowsHitTesting(false)
 
       HStack {
         Text(formatter.localizedString(for: commentDate, relativeTo: Date()))

@@ -66,7 +66,7 @@ func (s *CommentService) GetCommentsByPostId(ctx context.Context, cUser models.P
 			return nil, errors.New("unable to retrive user associated with comment")
 		}
 
-		var user models.PublicUser = models.PublicUser(dbUser)
+		var user = models.PublicUser(dbUser)
 
 		if !user.Name.Valid { // TODO: this is stupid
 			user.Name.String = ""

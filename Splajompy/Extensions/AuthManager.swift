@@ -41,10 +41,22 @@ class AuthManager: ObservableObject {
     }
   }
 
-  func getCurrentUser() -> Int? {
+  func getCurrentUser() -> (userId: Int, username: String) {
     let defaults = UserDefaults.standard
 
-    return defaults.integer(forKey: "CurrentUserID")
+    let userId = defaults.integer(forKey: "CurrentUserID")
+
+    guard let username = defaults.string(forKey: "CurrentUserUsername") else {
+      signOut()
+      return (0, "")
+    }
+
+    if userId == 0 {
+      signOut()
+      return (0, "")
+    }
+
+    return (userId, username)
   }
 
   func signInWithPassword(identifier: String, password: String) async -> AuthError {
@@ -73,6 +85,7 @@ class AuthManager: ObservableObject {
 
       let defaults = UserDefaults.standard
       defaults.set(authResponse.user.userId, forKey: "CurrentUserID")
+      defaults.set(authResponse.user.username, forKey: "CurrentUserUsername")
 
       await MainActor.run {
         isAuthenticated = true

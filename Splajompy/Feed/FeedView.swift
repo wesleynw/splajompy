@@ -21,21 +21,25 @@ struct FeedView: View {
   init(feedType: FeedType, userId: Int? = nil) {
     self.feedType = feedType
     self.userId = userId
-    _viewModel = StateObject(wrappedValue: ViewModel(feedType: feedType, userId: userId))
+    _viewModel = StateObject(
+      wrappedValue: ViewModel(feedType: feedType, userId: userId)
+    )
   }
 
   var body: some View {
-    ScrollView {
+    NavigationStack {
+      //      ScrollView {
       feedContent
-    }
-    .background(Color(UIColor.systemBackground))
-    .onAppear {
-      if viewModel.posts.isEmpty && !viewModel.isLoading {
-        viewModel.refreshPosts()
-      }
-    }
-    .refreshable {
-      viewModel.refreshPosts()
+        //      }
+        .background(Color(UIColor.systemBackground))
+        .onAppear {
+          if viewModel.posts.isEmpty && !viewModel.isLoading {
+            viewModel.refreshPosts()
+          }
+        }
+        .refreshable {
+          viewModel.refreshPosts()
+        }
     }
   }
 

@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		18A617E72D9B2D6000B93F08 /* Preview Content.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 18A617E42D9B2D6000B93F08 /* Preview Content.xcassets */; };
 		18A617E82D9B2D6000B93F08 /* FeedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18A617D92D9B2D6000B93F08 /* FeedView.swift */; };
 		18A617E92D9B2D6000B93F08 /* FeedViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18A617DA2D9B2D6000B93F08 /* FeedViewModel.swift */; };
 		18A617EA2D9B2D6000B93F08 /* AuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18A617D62D9B2D6000B93F08 /* AuthManager.swift */; };
@@ -18,11 +17,6 @@
 		18A617EF2D9B2D6000B93F08 /* APIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18A617D52D9B2D6000B93F08 /* APIService.swift */; };
 		18A617F02D9B2D6000B93F08 /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18A617CF2D9B2D6000B93F08 /* LoginView.swift */; };
 		18A617F12D9B2D6000B93F08 /* PostView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18A617DF2D9B2D6000B93F08 /* PostView.swift */; };
-		18A617F22D9B2D6000B93F08 /* CommentViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18A617D32D9B2D6000B93F08 /* CommentViewModel.swift */; };
-		18A617F32D9B2D6000B93F08 /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18A617E12D9B2D6000B93F08 /* ProfileView.swift */; };
-		18A617F42D9B2D6000B93F08 /* RegistrationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18A617D02D9B2D6000B93F08 /* RegistrationView.swift */; };
-		18A617F52D9B2D6000B93F08 /* CommentsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18A617D22D9B2D6000B93F08 /* CommentsView.swift */; };
-		18A617F62D9B2D6000B93F08 /* ImageCarousel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18A617DE2D9B2D6000B93F08 /* ImageCarousel.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -68,7 +62,19 @@
 		181F41AC2D9B32AB00FCF763 /* Exceptions for "Splajompy" folder in "Splajompy" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				Authentication/LoginView.swift,
+				Configuration/Debug.xcconfig,
+				Configuration/Release.xcconfig,
+				Extensions/APIService.swift,
+				Extensions/AuthManager.swift,
+				Extensions/KeychainHelper.swift,
+				Feed/FeedView.swift,
+				Feed/FeedViewModel.swift,
 				Info.plist,
+				Models/models.swift,
+				Posts/PostView.swift,
+				Profile/ProfileViewModel.swift,
+				SplajompyApp.swift,
 			);
 			target = 184A63CA2D88CBA000860D6B /* Splajompy */;
 		};
@@ -288,7 +294,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1620;
-				LastUpgradeCheck = 1620;
+				LastUpgradeCheck = 1630;
 				TargetAttributes = {
 					184A63CA2D88CBA000860D6B = {
 						CreatedOnToolsVersion = 16.2;
@@ -329,7 +335,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				18A617E72D9B2D6000B93F08 /* Preview Content.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -364,11 +369,6 @@
 				18A617EF2D9B2D6000B93F08 /* APIService.swift in Sources */,
 				18A617F02D9B2D6000B93F08 /* LoginView.swift in Sources */,
 				18A617F12D9B2D6000B93F08 /* PostView.swift in Sources */,
-				18A617F22D9B2D6000B93F08 /* CommentViewModel.swift in Sources */,
-				18A617F32D9B2D6000B93F08 /* ProfileView.swift in Sources */,
-				18A617F42D9B2D6000B93F08 /* RegistrationView.swift in Sources */,
-				18A617F52D9B2D6000B93F08 /* CommentsView.swift in Sources */,
-				18A617F62D9B2D6000B93F08 /* ImageCarousel.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -535,6 +535,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Splajompy/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Splajompy;
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.social-networking";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -546,7 +547,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = splajompy.com.Splajompy;
+				PRODUCT_BUNDLE_IDENTIFIER = splajompy.com.Splajompy.devW;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
@@ -572,6 +573,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Splajompy/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Splajompy;
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.social-networking";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
