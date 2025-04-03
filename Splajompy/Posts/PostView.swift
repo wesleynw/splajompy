@@ -1,20 +1,13 @@
-//
-//  PostView.swift
-//  Splajompy
-//
-//  Created by Wesley Weisenberger on 3/25/25.
-//
-
 import Foundation
 import SwiftUI
 
 struct PostView: View {
   let post: DetailedPost
   var showAuthor: Bool = true
-
   let formatter = RelativeDateTimeFormatter()
-
   var onLikeButtonTapped: () -> Void = { print("Unimplemented: PostView.onDeleteButtonTapped") }
+
+  @State private var isShowingComments = false
 
   private var postDate: Date {
     let formatter = ISO8601DateFormatter()
@@ -27,7 +20,7 @@ struct PostView: View {
       if showAuthor {
         HStack(alignment: .top) {
           NavigationLink {
-            ProfileView(userId: post.user.userId, isOwnProfile: false)
+            ProfileView(userId: post.user.userId, username: post.user.username, isOwnProfile: false)
           } label: {
             VStack(alignment: .leading, spacing: 2) {
               if !post.user.name.isEmpty {
@@ -35,7 +28,6 @@ struct PostView: View {
                   .font(.title2)
                   .fontWeight(.black)
                   .lineLimit(1)
-
                 Text("@\(post.user.username)")
                   .font(.subheadline)
                   .fontWeight(.bold)
@@ -49,35 +41,33 @@ struct PostView: View {
             }
           }
           .foregroundColor(.primary)
-
           Spacer()
-
           // TODO
           // Image(systemName: "ellipsis")
         }
       }
-
       if let postText = post.post.text {
         Text(postText)
           .font(.body)
           .multilineTextAlignment(.leading)
       }
-
       if let images = post.images, !images.isEmpty {
         ImageCarousel(imageUrls: images.map { $0.imageBlobUrl })
       }
-
       HStack {
         Text(formatter.localizedString(for: postDate, relativeTo: Date()))
           .font(.caption)
           .foregroundColor(.gray)
-
         Spacer()
-
         HStack(spacing: 16) {
-          NavigationLink {
-            CommentsView(postId: post.post.postId)
-          } label: {
+          // Replace NavigationLink with Button
+          Button(action: {
+            // Add haptic feedback
+            let impact = UIImpactFeedbackGenerator(style: .light)
+            impact.impactOccurred()
+            // Show comment sheet
+            isShowingComments = true
+          }) {
             HStack(spacing: 4) {
               Text("\(post.commentCount)")
                 .font(.subheadline)
@@ -114,5 +104,8 @@ struct PostView: View {
           }
         )
     )
+    .sheet(isPresented: $isShowingComments) {
+      CommentsView(postId: post.post.postId)
+    }
   }
 }

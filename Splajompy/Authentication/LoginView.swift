@@ -154,7 +154,7 @@ struct LoginView: View {
           await MainActor.run {
             switch authError {
             case .incorrectPassword:
-              errorMessage = "Wrong password"
+              errorMessage = "Incorrect password"
             case .accountNonexistent:
               errorMessage = "Account doesn't exist"
             default:
