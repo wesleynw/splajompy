@@ -17,7 +17,10 @@ import (
 
 func main() {
 	ctx := context.Background()
-	godotenv.Load()
+	err := godotenv.Load()
+	if err != nil {
+		print("no .env present")
+	}
 
 	connString := os.Getenv("DB_CONNECTION_STRING")
 	conn, err := pgxpool.New(ctx, connString)

@@ -50,7 +50,7 @@ func (h *Handler) validateSessionToken(ctx context.Context, authHeader string) (
 		return nil, nil, err
 	}
 
-	var user models.PublicUser = models.PublicUser(dbUser)
+	var user = models.PublicUser(dbUser)
 
 	return &session, &user, nil
 }
@@ -100,7 +100,7 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var publicUser models.PublicUser = models.PublicUser{
+	var publicUser = models.PublicUser{
 		UserID:    user.UserID,
 		Username:  user.Username,
 		Email:     user.Email,
