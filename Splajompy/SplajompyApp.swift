@@ -20,18 +20,16 @@ struct SplajompyApp: App {
           TabView {
             Tab("Home", systemImage: "house") {
               NavigationStack {
-                ScrollView {
-                  FeedView(feedType: .home)
-                    .toolbar {
-                      Button(
-                        "Post",
-                        systemImage: "plus",
-                        action: { isShowingNewPostView = true }
-                      )
-                      .labelStyle(.iconOnly)
-                    }
-                }
-                .navigationTitle("Splajompy")
+                FeedView(feedType: .home)
+                  .toolbar {
+                    Button(
+                      "Post",
+                      systemImage: "plus",
+                      action: { isShowingNewPostView = true }
+                    )
+                    .labelStyle(.iconOnly)
+                  }
+                  .navigationTitle("Splajompy")
               }
             }
 
@@ -45,10 +43,8 @@ struct SplajompyApp: App {
 
             Tab("All", systemImage: "globe") {
               NavigationStack {
-                ScrollView {
-                  FeedView(feedType: .all)
-                    .navigationTitle("All")
-                }
+                FeedView(feedType: .all)
+                  .navigationTitle("All")
               }
             }
 
@@ -61,8 +57,8 @@ struct SplajompyApp: App {
             }
           }
           .sheet(isPresented: $isShowingNewPostView) {
-            NewPostView(onPost: { print("Post submitted") })
-            //              .interactiveDismissDisabled()
+            NewPostView(dismiss: { isShowingNewPostView = false })
+              .interactiveDismissDisabled()
           }
         } else {
           LoginView()

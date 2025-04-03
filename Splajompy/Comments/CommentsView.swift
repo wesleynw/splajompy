@@ -96,7 +96,9 @@ struct CommentsView: View {
           Image(systemName: "paperplane.fill")
             .foregroundColor(.blue)
         }
-        .disabled(newCommentText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+        .disabled(
+          newCommentText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        )
       }
       .padding(.horizontal)
       .padding(.vertical, 8)
@@ -112,7 +114,9 @@ struct CommentsView: View {
   }
 
   private func submitComment() {
-    guard !newCommentText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
+    guard
+      !newCommentText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    else { return }
 
     print("Submitting comment: \(newCommentText)")
     viewModel.addComment(text: newCommentText)
@@ -129,7 +133,9 @@ struct CommentRow: View {
 
   private var commentDate: Date {
     let dateFormatter = ISO8601DateFormatter()
-    dateFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+    dateFormatter.formatOptions = [
+      .withInternetDateTime, .withFractionalSeconds,
+    ]
     return dateFormatter.date(from: comment.createdAt) ?? Date()
   }
 
@@ -156,12 +162,12 @@ struct CommentRow: View {
 
         Spacer()
 
-        Button(action: {
-          // TODO: add action for comment menu
-        }) {
-          Image(systemName: "ellipsis")
-            .foregroundColor(.gray)
-        }
+        //        Button(action: {
+        //          // TODO: add action for comment menu
+        //        }) {
+        //          Image(systemName: "ellipsis")
+        //            .foregroundColor(.gray)
+        //        }
       }
       .allowsHitTesting(true)
 
@@ -199,6 +205,7 @@ struct CommentRow: View {
           }
         )
     )
+
   }
 }
 
@@ -213,10 +220,9 @@ struct LikeButton: View {
       action()
     }) {
       Image(systemName: isLiked ? "heart.fill" : "heart")
-        .foregroundColor(isLiked ? .white : .gray)
         .font(.system(size: 18))
         .padding(8)
     }
-    .buttonStyle(BorderlessButtonStyle())
+    .buttonStyle(.plain)
   }
 }

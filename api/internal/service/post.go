@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/jackc/pgx/v5/pgtype"
 	"splajompy.com/api/v2/internal/db"
 	"splajompy.com/api/v2/internal/models"
 )
@@ -17,6 +18,15 @@ func NewPostService(queries *db.Queries) *PostService {
 	return &PostService{
 		queries: queries,
 	}
+}
+
+func (s *PostService) NewPost(ctx context.Context, currentUser models.PublicUser, text string) error {
+	_, err := s.queries.InsertPost(ctx, db.InsertPostParams{
+		UserID: currentUser.UserID,
+		Text:   pgtype.Text{String: text, Valid: true},
+	})
+
+	return err
 }
 
 func (s *PostService) GetPostById(ctx context.Context, cUser models.PublicUser, postID int) (*models.DetailedPost, error) {

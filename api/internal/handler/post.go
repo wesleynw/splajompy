@@ -1,11 +1,40 @@
 package handler
 
 import (
+	"encoding/json"
 	"net/http"
 	"strconv"
 
 	"splajompy.com/api/v2/internal/models"
 )
+
+// POST /post/new
+func (h *Handler) NewPost(w http.ResponseWriter, r *http.Request) {
+	currentUser, err := h.getAuthenticatedUser(r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusUnauthorized)
+	}
+
+	var requestBody struct {
+		Text string `json:"text"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&requestBody); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if len(requestBody.Text) == 0 {
+		http.Error(w, "no body", http.StatusBadRequest)
+		return
+	}
+
+	err = h.postService.NewPost(r.Context(), *currentUser, requestBody.Text)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
 
 // GET /post/{id}
 func (h *Handler) GetPostById(w http.ResponseWriter, r *http.Request) {

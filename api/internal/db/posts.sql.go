@@ -7,6 +7,8 @@ package db
 
 import (
 	"context"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const getAllPostIds = `-- name: GetAllPostIds :many
@@ -127,4 +129,27 @@ func (q *Queries) GetPostsIdsByUserId(ctx context.Context, arg GetPostsIdsByUser
 		return nil, err
 	}
 	return items, nil
+}
+
+const insertPost = `-- name: InsertPost :one
+INSERT into posts (user_id, text)
+VALUES ($1, $2)
+RETURNING post_id, user_id, text, created_at
+`
+
+type InsertPostParams struct {
+	UserID int32       `json:"userId"`
+	Text   pgtype.Text `json:"text"`
+}
+
+func (q *Queries) InsertPost(ctx context.Context, arg InsertPostParams) (Post, error) {
+	row := q.db.QueryRow(ctx, insertPost, arg.UserID, arg.Text)
+	var i Post
+	err := row.Scan(
+		&i.PostID,
+		&i.UserID,
+		&i.Text,
+		&i.CreatedAt,
+	)
+	return i, err
 }

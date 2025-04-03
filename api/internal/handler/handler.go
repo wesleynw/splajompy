@@ -29,6 +29,7 @@ func NewHandler(queries db.Queries, postService *service.PostService, commentSer
 func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("POST /login", h.Login)
 
+	mux.HandleFunc("POST /post/new", h.NewPost)
 	mux.HandleFunc("GET /post/{id}", h.GetPostById)
 	mux.HandleFunc("GET /user/{id}/posts", h.GetPostsByUserId)
 

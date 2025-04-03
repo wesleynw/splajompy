@@ -60,13 +60,10 @@ struct PostView: View {
           .foregroundColor(.gray)
         Spacer()
         HStack(spacing: 16) {
-          // Replace NavigationLink with Button
           Button(action: {
-            // Add haptic feedback
+            isShowingComments = true
             let impact = UIImpactFeedbackGenerator(style: .light)
             impact.impactOccurred()
-            // Show comment sheet
-            isShowingComments = true
           }) {
             HStack(spacing: 4) {
               Text("\(post.commentCount)")
@@ -74,8 +71,8 @@ struct PostView: View {
               Image(systemName: "bubble.right")
                 .font(.system(size: 20))
             }
-            .foregroundStyle(.white)
           }
+          .buttonStyle(.plain)
 
           Button(action: {
             let impact = UIImpactFeedbackGenerator(style: .light)
@@ -86,8 +83,8 @@ struct PostView: View {
               Image(systemName: post.isLiked ? "heart.fill" : "heart")
                 .font(.system(size: 20))
             }
-            .foregroundColor(post.isLiked ? .white : .primary)
           }
+          .buttonStyle(.plain)
         }
       }
     }
@@ -107,5 +104,106 @@ struct PostView: View {
     .sheet(isPresented: $isShowingComments) {
       CommentsView(postId: post.post.postId)
     }
+  }
+}
+
+#Preview {
+  let post = Post(
+    postId: 123,
+    userId: 456,
+    text:
+      "This is a sample post with some interesting content. Check out these amazing images I captured during my recent trip!",
+    createdAt: "2025-04-01T12:30:45.123Z"
+  )
+
+  let user = User(
+    userId: 456,
+    email: "john.doe@example.com",
+    username: "johndoe",
+    createdAt: "2025-01-15T10:20:30.000Z",
+    name: "John Doe"
+  )
+
+  let images = [
+    ImageDTO(
+      imageId: 789,
+      postId: 123,
+      height: 800,
+      width: 1200,
+      imageBlobUrl: "https://example.com/image1",
+      displayOrder: 0
+    ),
+    ImageDTO(
+      imageId: 790,
+      postId: 123,
+      height: 800,
+      width: 1200,
+      imageBlobUrl: "https://example.com/image2",
+      displayOrder: 1
+    ),
+  ]
+
+  let detailedPost = DetailedPost(
+    post: post,
+    user: user,
+    isLiked: false,
+    commentCount: 5,
+    images: images
+  )
+
+  // Mock components needed for preview
+  struct ImageCarousel: View {
+    let imageUrls: [String]
+
+    var body: some View {
+      ScrollView(.horizontal, showsIndicators: false) {
+        HStack(spacing: 8) {
+          ForEach(imageUrls, id: \.self) { url in
+            RoundedRectangle(cornerRadius: 8)
+              .fill(Color.gray.opacity(0.3))
+              .frame(width: 200, height: 150)
+              .overlay(
+                Text("Image")
+                  .foregroundColor(.gray)
+              )
+          }
+        }
+      }
+    }
+  }
+
+  struct ProfileView: View {
+    let userId: Int
+    let username: String
+    let isOwnProfile: Bool
+
+    var body: some View {
+      Text("Profile for @\(username)")
+    }
+  }
+
+  struct CommentsView: View {
+    let postId: Int
+
+    var body: some View {
+      Text("Comments for post \(postId)")
+    }
+  }
+
+  // UIKit mock for preview
+  class UIImpactFeedbackGenerator {
+    enum FeedbackStyle {
+      case light
+    }
+
+    init(style: FeedbackStyle) {}
+
+    func impactOccurred() {
+      // Placeholder for haptic feedback
+    }
+  }
+
+  return NavigationView {
+    PostView(post: detailedPost)
   }
 }
