@@ -3,7 +3,9 @@ package handler
 import (
 	"encoding/json"
 	"net/http"
+	"path/filepath"
 	"strconv"
+	"strings"
 
 	"splajompy.com/api/v2/internal/models"
 )
@@ -29,7 +31,37 @@ func (h *Handler) NewPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.postService.NewPost(r.Context(), *currentUser, requestBody.Text)
+	if err = r.ParseMultipartForm(2 * 1024 * 1024); err != nil { // 2mb max
+		http.Error(w, "Image too large. Max size is 2MB", http.StatusBadRequest)
+	}
+
+	file, fileHeader, err := r.FormFile("image")
+	if err != nil {
+		http.Error(w, "Error retrieving the file", http.StatusBadRequest)
+		return
+	}
+	defer file.Close()
+
+	if fileHeader.Size > 2*1024*1024 {
+		http.Error(w, "File size exceeds 2MB limit,", http.StatusBadRequest)
+		return
+	}
+
+	fileType := fileHeader.Header.Get("Content-Type")
+	if !strings.HasPrefix(fileType, "image/") {
+		http.Error(w, "File type not allowed. Only images are accepted.", http.StatusBadRequest)
+		return
+	}
+
+	fileExt := filepath.Ext(fileHeader.Filename)
+
+	buffer := make([]byte, fileHeader.Size)
+	if _, err := file.Read(buffer); err != nil {
+		http.Error(w, "Error reading file.", http.StatusInternalServerError)
+		return
+	}
+
+	err = h.postService.NewPost(r.Context(), *currentUser, requestBody.Text, &buffer, &fileType, &fileExt)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

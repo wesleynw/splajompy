@@ -15,14 +15,27 @@ struct CreatePostRequest: Encodable {
 
 enum PhotoState {
   case loading(PhotosPickerItem)
-  case loaded(UIImage)
+  case success(UIImage)
   case failed
+  case empty
 }
 
 extension NewPostView {
   class ViewModel: ObservableObject {
     @Published var isLoading = false
     @Published var errorDisplay: String?
+
+    @Published var imageSelection: PhotosPickerItem? = nil {
+      didSet {
+        if let imageSelection = imageSelection {
+          photoState = .loading(imageSelection)
+          _ = loadTransferable(from: imageSelection)
+        } else {
+          photoState = .empty
+        }
+      }
+    }
+    @Published var photoState: PhotoState?
 
     private let dismiss: () -> Void
 
@@ -54,5 +67,32 @@ extension NewPostView {
         }
       }
     }
+
+    private func loadTransferable(from imageSelection: PhotosPickerItem)
+      -> Progress
+    {
+      return imageSelection.loadTransferable(type: Data.self) { result in
+        DispatchQueue.main.async {
+          guard imageSelection == self.imageSelection else {
+            print("Failed to get the selected item.")
+            return
+          }
+
+          switch result {
+          case .success(let imageData?):
+            if let uiImage = UIImage(data: imageData) {
+              self.photoState = .success(uiImage)
+            } else {
+              self.photoState = .failed
+            }
+          case .success(nil):
+            self.photoState = .empty
+          case .failure(_):
+            self.photoState = .failed
+          }
+        }
+      }
+    }
+
   }
 }

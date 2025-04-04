@@ -57,6 +57,31 @@ struct NewPostView: View {
           }
         }
 
+        PhotosPicker(selection: $viewModel.imageSelection, matching: .images) {
+          Image(systemName: "photo.badge.plus")
+        }
+
+        if let photoState = viewModel.photoState {
+          switch photoState {
+            case .loading:
+              ProgressView()
+                .padding()
+            case .success(let image):
+              Image(uiImage: image)
+                .resizable()
+                .scaledToFit()
+                .frame(maxHeight: 300)
+                .cornerRadius(8)
+                .padding()
+            case .failed:
+              Text("Failed to load image")
+                .foregroundColor(.red)
+                .padding()
+          case .empty:
+            Text("no image")
+          }
+        }
+
         if let errorText = viewModel.errorDisplay {
           Text(errorText)
             .foregroundColor(.red)
