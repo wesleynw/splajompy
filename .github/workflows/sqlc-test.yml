@@ -13,3 +13,4 @@ jobs:
         with:
           sqlc-version: "1.28.0"
       - run: sqlc diff
+        working-directory: "api/internal/db"
