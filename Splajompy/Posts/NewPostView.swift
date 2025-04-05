@@ -12,9 +12,10 @@ struct NewPostView: View {
   var dismiss: () -> Void
   @StateObject private var viewModel: ViewModel
 
-  init(dismiss: @escaping () -> Void) {
+  init(dismiss: @escaping () -> Void, onPostCreated: @escaping () -> Void = {}) {
     self.dismiss = dismiss
-    _viewModel = StateObject(wrappedValue: ViewModel(dismiss: dismiss))
+    _viewModel = StateObject(
+      wrappedValue: ViewModel(dismiss: dismiss, onPostCreated: onPostCreated))
   }
 
   @State private var text: String = ""
@@ -63,20 +64,20 @@ struct NewPostView: View {
 
         if let photoState = viewModel.photoState {
           switch photoState {
-            case .loading:
-              ProgressView()
-                .padding()
-            case .success(let image):
-              Image(uiImage: image)
-                .resizable()
-                .scaledToFit()
-                .frame(maxHeight: 300)
-                .cornerRadius(8)
-                .padding()
-            case .failed:
-              Text("Failed to load image")
-                .foregroundColor(.red)
-                .padding()
+          case .loading:
+            ProgressView()
+              .padding()
+          case .success(let image):
+            Image(uiImage: image)
+              .resizable()
+              .scaledToFit()
+              .frame(maxHeight: 300)
+              .cornerRadius(8)
+              .padding()
+          case .failed:
+            Text("Failed to load image")
+              .foregroundColor(.red)
+              .padding()
           case .empty:
             Text("no image")
           }

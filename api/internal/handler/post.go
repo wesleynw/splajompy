@@ -50,7 +50,11 @@ func (h *Handler) NewPost(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Error retrieving the file", http.StatusBadRequest)
 			return
 		}
-		defer file.Close()
+		defer func() {
+			if err := file.Close(); err != nil {
+				http.Error(w, "Error closing file: "+err.Error(), http.StatusInternalServerError)
+			}
+		}()
 
 		if fileHeader.Size > 2*1024*1024 {
 			http.Error(w, "File size exceeds 2MB limit,", http.StatusBadRequest)

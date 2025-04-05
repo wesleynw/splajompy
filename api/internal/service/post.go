@@ -52,13 +52,16 @@ func (s *PostService) NewPost(ctx context.Context, currentUser models.PublicUser
 			return errors.New("error uploading image")
 		}
 
-		s.queries.InsertImage(ctx, db.InsertImageParams{
+		_, err = s.queries.InsertImage(ctx, db.InsertImageParams{
 			PostID:       post.PostID,
 			Height:       1000,
 			Width:        1000,
 			ImageBlobUrl: s3Key,
 			DisplayOrder: 0,
 		})
+		if err != nil {
+			return errors.New("unable to insert image")
+		}
 	}
 
 	return err
