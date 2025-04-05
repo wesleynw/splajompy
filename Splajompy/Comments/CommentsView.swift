@@ -143,8 +143,8 @@ struct CommentRow: View {
     VStack(alignment: .leading, spacing: 12) {
       HStack(alignment: .top) {
         VStack(alignment: .leading, spacing: 2) {
-          if !comment.user.name.isEmpty {
-            Text(comment.user.name)
+          if let displayName = comment.user.name, !displayName.isEmpty {
+            Text(displayName)
               .font(.headline)
               .fontWeight(.bold)
               .lineLimit(1)

@@ -40,11 +40,6 @@ func (s *PostService) GetPostById(ctx context.Context, cUser models.PublicUser, 
 		return nil, errors.New("unable to find user")
 	}
 
-	if !user.Name.Valid {
-		user.Name.String = ""
-		user.Name.Valid = true
-	}
-
 	isLiked, err := s.queries.GetIsLikedByUser(ctx, db.GetIsLikedByUserParams{
 		UserID:  cUser.UserID,
 		PostID:  post.PostID,
