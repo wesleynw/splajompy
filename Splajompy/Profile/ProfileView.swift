@@ -83,6 +83,7 @@ struct ProfileView: View {
           .fixedSize(horizontal: false, vertical: true)
       }
     }
+    .padding()
   }
 }
 

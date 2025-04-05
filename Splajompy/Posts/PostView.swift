@@ -23,8 +23,8 @@ struct PostView: View {
             ProfileView(userId: post.user.userId, username: post.user.username, isOwnProfile: false)
           } label: {
             VStack(alignment: .leading, spacing: 2) {
-              if !post.user.name.isEmpty {
-                Text(post.user.name)
+              if let displayName = post.user.name, !displayName.isEmpty {
+                Text(displayName)
                   .font(.title2)
                   .fontWeight(.black)
                   .lineLimit(1)
