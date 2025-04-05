@@ -38,7 +38,7 @@ func (s *PostService) NewPost(ctx context.Context, currentUser models.PublicUser
 	if imageBuffer != nil && fileType != nil && fileExt != nil {
 		environment := os.Getenv("ENVIRONMENT")
 
-		s3Key := fmt.Sprintf("%s/posts/%d/%s.%s", environment, currentUser.UserID, uuid.New(), *fileExt)
+		s3Key := fmt.Sprintf("%s/posts/%d/%s%s", environment, currentUser.UserID, uuid.New(), *fileExt)
 
 		_, err := s.s3Client.PutObject(ctx, &s3.PutObjectInput{
 			Bucket:      aws.String("splajompy-bucket"),
