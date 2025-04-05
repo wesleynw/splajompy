@@ -49,7 +49,7 @@ CREATE TABLE follows (
 );
 
 CREATE TABLE likes (
-    post_id INT,
+    post_id INT NOT NULL,
     comment_id INT,
     user_id INT NOT NULL,
     is_post BOOLEAN NOT NULL DEFAULT true,
