@@ -27,8 +27,8 @@ extension FeedView {
     }
 
     func loadMorePosts(reset: Bool = false) {
-      isLoading = true
       Task { @MainActor in
+        isLoading = true
         do {
           let urlBase =
             switch feedType {
@@ -58,11 +58,9 @@ extension FeedView {
     }
 
     func refreshPosts() {
-      isLoading = true
       Task { @MainActor in
         offset = 0
         loadMorePosts(reset: true)
-        isLoading = false
       }
     }
 

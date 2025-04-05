@@ -31,7 +31,12 @@ func main() {
 
 	queries := db.New(conn)
 
-	postService := service.NewPostService(queries)
+	s3Client, err := service.NewS3Client()
+	if err != nil {
+		log.Fatalf("failed to initialize s3 client: %v", err)
+	}
+
+	postService := service.NewPostService(queries, s3Client)
 	commentService := service.NewCommentService(queries)
 	userService := service.NewUserService(queries)
 

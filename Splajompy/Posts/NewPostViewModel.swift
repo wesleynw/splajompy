@@ -15,8 +15,9 @@ struct CreatePostRequest: Encodable {
 
 enum PhotoState {
   case loading(PhotosPickerItem)
-  case loaded(UIImage)
+  case success(UIImage)
   case failed
+  case empty
 }
 
 extension NewPostView {
@@ -24,10 +25,24 @@ extension NewPostView {
     @Published var isLoading = false
     @Published var errorDisplay: String?
 
-    private let dismiss: () -> Void
+    @Published var imageSelection: PhotosPickerItem? = nil {
+      didSet {
+        if let imageSelection = imageSelection {
+          photoState = .loading(imageSelection)
+          _ = loadTransferable(from: imageSelection)
+        } else {
+          photoState = .empty
+        }
+      }
+    }
+    @Published var photoState: PhotoState?
 
-    init(dismiss: @escaping () -> Void) {
+    private let dismiss: () -> Void
+    private let onPostCreated: () -> Void
+
+    init(dismiss: @escaping () -> Void, onPostCreated: @escaping () -> Void) {
       self.dismiss = dismiss
+      self.onPostCreated = onPostCreated
     }
 
     func submitPost(text: String) {
@@ -40,13 +55,20 @@ extension NewPostView {
 
         isLoading = true
         do {
-          try await APIService.shared.requestWithoutResponse(
-            endpoint: "/post/new",
-            method: "POST",
-            body: ["text": text]
-          )
+          if case .success(let image) = photoState {
+            try await APIService.shared.uploadImageWithoutResponse(
+              endpoint: "/post/new", image: image, body: ["text": text])
+          } else {
+            try await APIService.shared.requestWithoutResponse(
+              endpoint: "/post/new",
+              method: "POST",
+              body: ["text": text]
+            )
+          }
+
           errorDisplay = ""
           isLoading = false
+          onPostCreated()
           dismiss()
         } catch {
           errorDisplay = "There was an error: \(error.localizedDescription)."
@@ -54,5 +76,32 @@ extension NewPostView {
         }
       }
     }
+
+    private func loadTransferable(from imageSelection: PhotosPickerItem)
+      -> Progress
+    {
+      return imageSelection.loadTransferable(type: Data.self) { result in
+        DispatchQueue.main.async {
+          guard imageSelection == self.imageSelection else {
+            print("Failed to get the selected item.")
+            return
+          }
+
+          switch result {
+          case .success(let imageData?):
+            if let uiImage = UIImage(data: imageData) {
+              self.photoState = .success(uiImage)
+            } else {
+              self.photoState = .failed
+            }
+          case .success(nil):
+            self.photoState = .empty
+          case .failure(_):
+            self.photoState = .failed
+          }
+        }
+      }
+    }
+
   }
 }

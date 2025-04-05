@@ -1,30 +1,68 @@
 package service
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
+	"log"
+	"os"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/aws/aws-sdk-go-v2/service/s3/types"
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 	"splajompy.com/api/v2/internal/db"
 	"splajompy.com/api/v2/internal/models"
 )
 
 type PostService struct {
-	queries *db.Queries
+	queries  *db.Queries
+	s3Client *s3.Client
 }
 
-func NewPostService(queries *db.Queries) *PostService {
+func NewPostService(queries *db.Queries, s3Client *s3.Client) *PostService {
 	return &PostService{
-		queries: queries,
+		queries:  queries,
+		s3Client: s3Client,
 	}
 }
 
-func (s *PostService) NewPost(ctx context.Context, currentUser models.PublicUser, text string) error {
-	_, err := s.queries.InsertPost(ctx, db.InsertPostParams{
+func (s *PostService) NewPost(ctx context.Context, currentUser models.PublicUser, text string, imageBuffer *[]byte, fileType *string, fileExt *string) error {
+	post, err := s.queries.InsertPost(ctx, db.InsertPostParams{
 		UserID: currentUser.UserID,
 		Text:   pgtype.Text{String: text, Valid: true},
 	})
+
+	if imageBuffer != nil && fileType != nil && fileExt != nil {
+		environment := os.Getenv("ENVIRONMENT")
+
+		s3Key := fmt.Sprintf("%s/posts/%d/%s%s", environment, currentUser.UserID, uuid.New(), *fileExt)
+
+		_, err := s.s3Client.PutObject(ctx, &s3.PutObjectInput{
+			Bucket:      aws.String("splajompy-bucket"),
+			Key:         &s3Key,
+			Body:        bytes.NewReader(*imageBuffer),
+			ContentType: aws.String(*fileExt),
+			ACL:         types.ObjectCannedACLPublicRead,
+		})
+		if err != nil {
+			log.Printf("error uploading to s3: %v", err)
+			return errors.New("error uploading image")
+		}
+
+		_, err = s.queries.InsertImage(ctx, db.InsertImageParams{
+			PostID:       post.PostID,
+			Height:       1000,
+			Width:        1000,
+			ImageBlobUrl: s3Key,
+			DisplayOrder: 0,
+		})
+		if err != nil {
+			return errors.New("unable to insert image")
+		}
+	}
 
 	return err
 }

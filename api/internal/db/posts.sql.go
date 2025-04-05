@@ -131,8 +131,42 @@ func (q *Queries) GetPostsIdsByUserId(ctx context.Context, arg GetPostsIdsByUser
 	return items, nil
 }
 
+const insertImage = `-- name: InsertImage :one
+INSERT INTO images (post_id, height, width, image_blob_url, display_order)
+VALUES ($1, $2, $3, $4, $5)
+RETURNING image_id, post_id, height, width, image_blob_url, display_order
+`
+
+type InsertImageParams struct {
+	PostID       int32  `json:"postId"`
+	Height       int32  `json:"height"`
+	Width        int32  `json:"width"`
+	ImageBlobUrl string `json:"imageBlobUrl"`
+	DisplayOrder int32  `json:"displayOrder"`
+}
+
+func (q *Queries) InsertImage(ctx context.Context, arg InsertImageParams) (Image, error) {
+	row := q.db.QueryRow(ctx, insertImage,
+		arg.PostID,
+		arg.Height,
+		arg.Width,
+		arg.ImageBlobUrl,
+		arg.DisplayOrder,
+	)
+	var i Image
+	err := row.Scan(
+		&i.ImageID,
+		&i.PostID,
+		&i.Height,
+		&i.Width,
+		&i.ImageBlobUrl,
+		&i.DisplayOrder,
+	)
+	return i, err
+}
+
 const insertPost = `-- name: InsertPost :one
-INSERT into posts (user_id, text)
+INSERT INTO posts (user_id, text)
 VALUES ($1, $2)
 RETURNING post_id, user_id, text, created_at
 `

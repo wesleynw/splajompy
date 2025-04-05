@@ -31,6 +31,11 @@ FROM comments
 WHERE post_id = $1;
 
 -- name: InsertPost :one
-INSERT into posts (user_id, text)
+INSERT INTO posts (user_id, text)
 VALUES ($1, $2)
+RETURNING *;
+
+-- name: InsertImage :one
+INSERT INTO images (post_id, height, width, image_blob_url, display_order)
+VALUES ($1, $2, $3, $4, $5)
 RETURNING *;

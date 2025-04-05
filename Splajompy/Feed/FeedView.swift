@@ -21,6 +21,7 @@ struct FeedView<Header: View>: View {
   let header: Header
 
   @StateObject private var viewModel: ViewModel
+  @EnvironmentObject var feedRefreshManager: FeedRefreshManager
 
   init(feedType: FeedType, userId: Int? = nil) where Header == EmptyView {
     self.feedType = feedType
@@ -60,18 +61,22 @@ struct FeedView<Header: View>: View {
       .refreshable {
         viewModel.refreshPosts()
       }
+      .onReceive(feedRefreshManager.$refreshTrigger) { _ in
+        viewModel.refreshPosts()
+      }
     }
   }
 
   private var feedContent: some View {
     VStack {
-      if viewModel.isLoading && viewModel.posts.isEmpty {
-        loadingPlaceholder
-      } else if !viewModel.error.isEmpty && viewModel.posts.isEmpty {
+      if !viewModel.error.isEmpty && viewModel.posts.isEmpty {
         errorMessage
       } else if viewModel.posts.isEmpty {
         emptyMessage
       } else {
+        if viewModel.isLoading {
+          loadingPlaceholder
+        }
         postsList
       }
     }
