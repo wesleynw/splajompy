@@ -53,11 +53,16 @@ extension NewPostView {
 
         isLoading = true
         do {
-          try await APIService.shared.requestWithoutResponse(
-            endpoint: "/post/new",
-            method: "POST",
-            body: ["text": text]
-          )
+          if case .success(let image) = photoState {
+            try await APIService.shared.uploadImageWithoutResponse(endpoint: "/post/new", image: image, body: ["text": text])
+          } else {
+            try await APIService.shared.requestWithoutResponse(
+              endpoint: "/post/new",
+              method: "POST",
+              body: ["text": text]
+            )
+          }
+          
           errorDisplay = ""
           isLoading = false
           dismiss()
