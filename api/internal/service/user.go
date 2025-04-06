@@ -53,3 +53,27 @@ func (s *UserService) GetUserById(ctx context.Context, cUser models.PublicUser, 
 
 	return &user, nil
 }
+
+func (s *UserService) FollowUser(ctx context.Context, currentUser models.PublicUser, userId int) error {
+	_, err := s.queries.GetUserById(ctx, int32(userId))
+	if err != nil {
+		return errors.New("unable to find user")
+	}
+
+	return s.queries.InsertFollow(ctx, db.InsertFollowParams{
+		FollowerID:  currentUser.UserID,
+		FollowingID: int32(userId),
+	})
+}
+
+func (s *UserService) UnfollowUser(ctx context.Context, currentUser models.PublicUser, userId int) error {
+	_, err := s.queries.GetUserById(ctx, int32(userId))
+	if err != nil {
+		return errors.New("unable to find user")
+	}
+
+	return s.queries.DeleteFollow(ctx, db.DeleteFollowParams{
+		FollowerID:  currentUser.UserID,
+		FollowingID: int32(userId),
+	})
+}

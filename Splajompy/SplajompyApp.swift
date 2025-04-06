@@ -52,12 +52,19 @@ struct SplajompyApp: App {
             }
 
             Tab("Profile", systemImage: "person.circle") {
-              ProfileView(
-                userId: userId,
-                username: username,
-                isOwnProfile: true
-              )
-              .environmentObject(feedRefreshManager)
+              NavigationStack {
+                ProfileView(
+                  userId: userId,
+                  username: username,
+                  isOwnProfile: true
+                )
+                .environmentObject(feedRefreshManager)
+                .toolbar {
+                  NavigationLink(destination: SettingsView().environmentObject(authManager)) {
+                    Image(systemName: "gearshape")
+                  }
+                }
+              }
             }
           }
           .sheet(isPresented: $isShowingNewPostView) {

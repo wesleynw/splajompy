@@ -53,6 +53,7 @@ extension FeedView {
         } catch {
           print("error fetching posts: \(error.localizedDescription)")
           self.error = error.localizedDescription
+          isLoading = false
         }
       }
     }
@@ -86,7 +87,6 @@ extension FeedView {
           posts[index].commentCount += 1
 
           do {
-
             try await APIService.shared.requestWithoutResponse(
               endpoint: "/post/\(post.post.postId)/comment", method: "POST", body: ["Text": content]
             )

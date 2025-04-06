@@ -8,6 +8,7 @@ struct PostView: View {
   var onLikeButtonTapped: () -> Void = { print("Unimplemented: PostView.onDeleteButtonTapped") }
 
   @State private var isShowingComments = false
+  @EnvironmentObject private var feedRefreshManager: FeedRefreshManager
 
   private var postDate: Date {
     let formatter = ISO8601DateFormatter()
@@ -21,6 +22,7 @@ struct PostView: View {
         HStack(alignment: .top) {
           NavigationLink {
             ProfileView(userId: post.user.userId, username: post.user.username, isOwnProfile: false)
+              .environmentObject(feedRefreshManager)
           } label: {
             VStack(alignment: .leading, spacing: 2) {
               if let displayName = post.user.name, !displayName.isEmpty {

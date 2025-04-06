@@ -9,6 +9,21 @@ import (
 	"context"
 )
 
+const deleteFollow = `-- name: DeleteFollow :exec
+DELETE FROM follows
+WHERE following_id = $1 AND follower_id = $2
+`
+
+type DeleteFollowParams struct {
+	FollowingID int32 `json:"followingId"`
+	FollowerID  int32 `json:"followerId"`
+}
+
+func (q *Queries) DeleteFollow(ctx context.Context, arg DeleteFollowParams) error {
+	_, err := q.db.Exec(ctx, deleteFollow, arg.FollowingID, arg.FollowerID)
+	return err
+}
+
 const getIsUserFollowingUser = `-- name: GetIsUserFollowingUser :one
 SELECT EXISTS (
   SELECT 1
@@ -27,4 +42,19 @@ func (q *Queries) GetIsUserFollowingUser(ctx context.Context, arg GetIsUserFollo
 	var exists bool
 	err := row.Scan(&exists)
 	return exists, err
+}
+
+const insertFollow = `-- name: InsertFollow :exec
+INSERT INTO follows (follower_id, following_id)
+VALUES ($1, $2)
+`
+
+type InsertFollowParams struct {
+	FollowerID  int32 `json:"followerId"`
+	FollowingID int32 `json:"followingId"`
+}
+
+func (q *Queries) InsertFollow(ctx context.Context, arg InsertFollowParams) error {
+	_, err := q.db.Exec(ctx, insertFollow, arg.FollowerID, arg.FollowingID)
+	return err
 }
