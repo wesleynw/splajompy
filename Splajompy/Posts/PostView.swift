@@ -49,9 +49,11 @@ struct PostView: View {
         }
       }
       if let postText = post.post.text {
-        Text(postText)
-          .font(.body)
-          .multilineTextAlignment(.leading)
+        //        Text(postText)
+        //          .font(.body)
+        //          .multilineTextAlignment(.leading)
+        PostTextView(text: postText)
+          .environmentObject(feedRefreshManager)
       }
       if let images = post.images, !images.isEmpty {
         ImageCarousel(imageUrls: images.map { $0.imageBlobUrl })

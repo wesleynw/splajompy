@@ -47,28 +47,28 @@ struct FeedView<Header: View>: View {
 
   var body: some View {
     NavigationStack {
-        ScrollView {
-          header
-          feedContent
-            .background(Color(UIColor.systemBackground))
-            .onAppear {
-              if viewModel.posts.isEmpty && !viewModel.isLoading {
-                viewModel.refreshPosts()
-              }
-            }
-            
-            .onReceive(feedRefreshManager.$refreshTrigger) { _ in
+      ScrollView {
+        header
+        feedContent
+          .background(Color(UIColor.systemBackground))
+          .onAppear {
+            if viewModel.posts.isEmpty && !viewModel.isLoading {
               viewModel.refreshPosts()
             }
-        }
-        .refreshable {
-          viewModel.refreshPosts()
-        }
+          }
+
+          .onReceive(feedRefreshManager.$refreshTrigger) { _ in
+            viewModel.refreshPosts()
+          }
+      }
+      .refreshable {
+        viewModel.refreshPosts()
+      }
     }
   }
 
   private var feedContent: some View {
-    VStack {  // TODO: consolidate this logic into something more meaningful
+    VStack {
       if !viewModel.error.isEmpty && viewModel.posts.isEmpty
         && !viewModel.isLoading
       {
@@ -76,11 +76,11 @@ struct FeedView<Header: View>: View {
       } else if viewModel.posts.isEmpty && !viewModel.isLoading {
         emptyMessage
       } else {
+        if !viewModel.posts.isEmpty {
+          postsList
+        }
         if viewModel.isLoading {
           loadingPlaceholder
-        }
-        if !viewModel.posts.isEmpty {
-            postsList
         }
       }
     }
@@ -100,7 +100,6 @@ struct FeedView<Header: View>: View {
     VStack {
       Spacer()
       Image(systemName: "arrow.clockwise")
-        //        .symbolEffect(.rotate, value: animateRefreshIcon)
         .imageScale(.large)
         .onTapGesture {
           viewModel.refreshPosts()
@@ -123,29 +122,18 @@ struct FeedView<Header: View>: View {
 
   private var postsList: some View {
     LazyVStack(spacing: 0) {
-      postsContent
-
-      //      if viewModel.isLoading && !viewModel.posts.isEmpty {
-      //        ProgressView()
-      //          .scaleEffect(1.2)
-      //          .padding()
-      //          .id("loading-indicator")
-      //      }
-    }
-  }
-
-  private var postsContent: some View {
-    ForEach(viewModel.posts) { post in
-      PostView(
-        post: post,
-        showAuthor: feedType != .profile,
-        onLikeButtonTapped: { viewModel.toggleLike(on: post) }
-      )
-      .environmentObject(feedRefreshManager)
-      .id("post-\(feedType)_\(post.post.postId)")
-      .onAppear {
-        if post == viewModel.posts.last {
-          viewModel.loadMorePosts()
+      ForEach(viewModel.posts) { post in
+        PostView(
+          post: post,
+          showAuthor: feedType != .profile,
+          onLikeButtonTapped: { viewModel.toggleLike(on: post) }
+        )
+        .environmentObject(feedRefreshManager)
+        .id("post-\(feedType)_\(post.post.postId)")
+        .onAppear {
+          if post == viewModel.posts.last && !viewModel.isLoading {
+            viewModel.loadMorePosts()
+          }
         }
       }
     }

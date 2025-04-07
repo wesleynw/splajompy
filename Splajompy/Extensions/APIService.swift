@@ -28,6 +28,7 @@ class APIService {
   private init() {
     if let apiUrl = Bundle.main.object(forInfoDictionaryKey: "API_URL") as? String {
       self.apiURL = apiUrl
+      print("api url: \(apiUrl)")
     } else {
       print("unable to find API key")
       self.apiURL = "https://api.splajompy.com"  // default

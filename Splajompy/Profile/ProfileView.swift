@@ -37,7 +37,7 @@ struct ProfileView: View {
           .padding(.top, 40)
       }
     }
-//    .padding(.top, 16)
+    //    .padding(.top, 16)
     .padding(.horizontal, 16)
     .navigationTitle("@" + self.username)
   }
