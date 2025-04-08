@@ -20,7 +20,7 @@ enum APIError: Error {
 
 struct EmptyResponse: Decodable {}
 
-class APIService {
+@MainActor class APIService {
   @MainActor static let shared = APIService()
 
   let apiURL: String
