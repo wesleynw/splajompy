@@ -50,39 +50,32 @@ struct FeedView<Header: View>: View {
     NavigationStack {
       ScrollView {
         header
-        feedContent
-          .background(Color(UIColor.systemBackground))
-          .onAppear {
-            if viewModel.posts.isEmpty && !viewModel.isLoading {
-              viewModel.refreshPosts()
-            }
-          }
 
-          .onReceive(feedRefreshManager.$refreshTrigger) { _ in
-            viewModel.refreshPosts()
+        if !viewModel.error.isEmpty && viewModel.posts.isEmpty
+          && !viewModel.isLoading
+        {
+          errorMessage
+        } else if viewModel.posts.isEmpty && !viewModel.isLoading {
+          emptyMessage
+        } else {
+          if !viewModel.posts.isEmpty {
+            postsList
           }
+          if viewModel.isLoading {
+            loadingPlaceholder
+          }
+        }
+      }
+      .onAppear {
+        if viewModel.posts.isEmpty && !viewModel.isLoading {
+          viewModel.refreshPosts()
+        }
+      }
+      .onReceive(feedRefreshManager.$refreshTrigger) { _ in
+        viewModel.refreshPosts()
       }
       .refreshable {
         viewModel.refreshPosts()
-      }
-    }
-  }
-
-  private var feedContent: some View {
-    VStack {
-      if !viewModel.error.isEmpty && viewModel.posts.isEmpty
-        && !viewModel.isLoading
-      {
-        errorMessage
-      } else if viewModel.posts.isEmpty && !viewModel.isLoading {
-        emptyMessage
-      } else {
-        if !viewModel.posts.isEmpty {
-          postsList
-        }
-        if viewModel.isLoading {
-          loadingPlaceholder
-        }
       }
     }
   }
@@ -133,10 +126,13 @@ struct FeedView<Header: View>: View {
         .environmentObject(authManager)
         .id("post-\(feedType)_\(post.post.postId)")
         .onAppear {
-          if post == viewModel.posts.last && !viewModel.isLoading && viewModel.hasMorePosts {
+          if post == viewModel.posts.last && !viewModel.isLoading
+            && viewModel.hasMorePosts
+          {
             viewModel.loadMorePosts()
           }
         }
+        .geometryGroup()
       }
     }
   }
