@@ -8,7 +8,7 @@ struct ImageCarousel: View {
 
   var body: some View {
     GeometryReader { geometry in
-      VStack(spacing: 12) {
+      VStack(spacing: 8) {
         TabView(selection: $currentIndex) {
           ForEach(0..<imageUrls.count, id: \.self) { index in
             if let url = URL(
@@ -20,31 +20,21 @@ struct ImageCarousel: View {
                   ProgressView()
                     .frame(width: geometry.size.width, height: geometry.size.width)
                 case .success(let image):
-                  GeometryReader { imageGeometry in
-                    image
-                      .resizable()
-                      .scaledToFit()
-                      .frame(width: geometry.size.width)
-                      .frame(maxHeight: geometry.size.width)
-                      .background(
-                        GeometryReader { imageReader in
-                          Color.clear
-                            .onAppear {
-                              let aspectRatio = imageReader.size.width / imageReader.size.height
-                              imageAspectRatios[index] = aspectRatio
-                            }
+                  image
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: geometry.size.width)
+                    .background(
+                      GeometryReader { imageReader in
+                        Color.clear.onAppear {
+                          let aspectRatio = imageReader.size.width / imageReader.size.height
+                          imageAspectRatios[index] = aspectRatio
                         }
-                      )
-                      .position(x: imageGeometry.size.width / 2, y: imageGeometry.size.height / 2)
-                  }
+                      })
                 case .failure:
                   Color.gray.opacity(0.3)
                     .frame(width: geometry.size.width, height: geometry.size.width * 0.75)
-                    .overlay(
-                      Image(systemName: "photo")
-                        .font(.largeTitle)
-                        .foregroundColor(.gray)
-                    )
+                    .overlay(Image(systemName: "photo").font(.largeTitle).foregroundColor(.gray))
                 @unknown default:
                   EmptyView()
                 }
@@ -54,11 +44,11 @@ struct ImageCarousel: View {
           }
         }
         .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
-        .frame(width: geometry.size.width)
-        .frame(height: carouselHeight(for: geometry))
+        .frame(width: geometry.size.width, height: carouselHeight(for: geometry))
+        .clipped()
 
         if imageUrls.count > 1 {
-          HStack(spacing: 8) {
+          HStack(spacing: 6) {
             ForEach(0..<imageUrls.count, id: \.self) { index in
               Circle()
                 .fill(
@@ -66,10 +56,9 @@ struct ImageCarousel: View {
                     ? (colorScheme == .dark ? Color.white : Color.black)
                     : (colorScheme == .dark ? Color.white.opacity(0.5) : Color.black.opacity(0.5))
                 )
-                .frame(width: 8, height: 8)
+                .frame(width: 6, height: 6)
             }
           }
-          .padding(.top, 4)
         }
       }
     }
@@ -81,12 +70,6 @@ struct ImageCarousel: View {
       return geometry.size.width * 0.75  // default 4:3 aspect ratio
     }
 
-    let calculatedHeight = geometry.size.width / aspectRatio
-
-    let maxHeight = geometry.size.width * 1.5
-
-    let minHeight = geometry.size.width * 0.5
-
-    return min(max(calculatedHeight, minHeight), maxHeight)
+    return geometry.size.width / aspectRatio
   }
 }

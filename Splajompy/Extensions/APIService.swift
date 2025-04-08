@@ -21,13 +21,14 @@ enum APIError: Error {
 struct EmptyResponse: Decodable {}
 
 class APIService {
-  static let shared = APIService()
+  @MainActor static let shared = APIService()
 
   let apiURL: String
 
   private init() {
     if let apiUrl = Bundle.main.object(forInfoDictionaryKey: "API_URL") as? String {
       self.apiURL = apiUrl
+      print("api url: \(apiUrl)")
     } else {
       print("unable to find API key")
       self.apiURL = "https://api.splajompy.com"  // default
@@ -41,6 +42,7 @@ class APIService {
   ///   - body: Optional request body as encodable object
   ///   - requiresAuth: Whether to attach authentication token (default: true)
   /// - Returns: Decoded response of type T
+  @MainActor
   func request<T: Decodable, U: Encodable>(
     endpoint: String,
     method: String = "GET",
@@ -94,12 +96,9 @@ class APIService {
       case 200...299:
         break  // Success
       case 401:
-        AuthManager().signOut()
-        //                if requiresAuth {
-        //                    // Only sign out if we attempted authentication
-        //                    // Use notification center instead of direct reference to avoid circular dependency
-        //                    NotificationCenter.default.post(name: Notification.Name("AuthenticationFailure"), object: nil)
-        //                }
+        Task {
+          AuthManager().signOut()
+        }
         throw APIError.unauthorized
       default:
         throw APIError.serverError(httpResponse.statusCode)
@@ -150,6 +149,7 @@ extension APIService {
   ///   - body: Optional request body as encodable object
   ///   - requiresAuth: Whether to attach authentication token (default: true)
   /// - Returns: Decoded response of type T
+  @MainActor
   func uploadImage<T: Decodable, U: Encodable>(
     endpoint: String,
     image: UIImage,
@@ -249,7 +249,9 @@ extension APIService {
       case 200...299:
         break  // Success
       case 401:
-        AuthManager().signOut()
+        Task {
+          AuthManager().signOut()
+        }
         throw APIError.unauthorized
       default:
         throw APIError.serverError(httpResponse.statusCode)
@@ -287,6 +289,7 @@ extension APIService {
   ///   - parameters: Additional form parameters to include
   ///   - body: Optional request body as encodable object
   ///   - requiresAuth: Whether to attach authentication token (default: true)
+  @MainActor
   func uploadImageWithoutResponse<U: Encodable>(
     endpoint: String,
     image: UIImage,

@@ -22,6 +22,7 @@ struct FeedView<Header: View>: View {
 
   @StateObject private var viewModel: ViewModel
   @EnvironmentObject var feedRefreshManager: FeedRefreshManager
+  @EnvironmentObject var authManager: AuthManager
 
   init(feedType: FeedType, userId: Int? = nil) where Header == EmptyView {
     self.feedType = feedType
@@ -57,11 +58,11 @@ struct FeedView<Header: View>: View {
             }
           }
 
+          .onReceive(feedRefreshManager.$refreshTrigger) { _ in
+            viewModel.refreshPosts()
+          }
       }
       .refreshable {
-        viewModel.refreshPosts()
-      }
-      .onReceive(feedRefreshManager.$refreshTrigger) { _ in
         viewModel.refreshPosts()
       }
     }
@@ -69,31 +70,48 @@ struct FeedView<Header: View>: View {
 
   private var feedContent: some View {
     VStack {
-      if !viewModel.error.isEmpty && viewModel.posts.isEmpty {
+      if !viewModel.error.isEmpty && viewModel.posts.isEmpty
+        && !viewModel.isLoading
+      {
         errorMessage
-      } else if viewModel.posts.isEmpty {
+      } else if viewModel.posts.isEmpty && !viewModel.isLoading {
         emptyMessage
       } else {
+        if !viewModel.posts.isEmpty {
+          postsList
+        }
         if viewModel.isLoading {
           loadingPlaceholder
         }
-        postsList
       }
     }
   }
 
   private var loadingPlaceholder: some View {
-    ProgressView()
-      .scaleEffect(1.5)
-      .padding()
-      .frame(maxWidth: .infinity)
+    VStack {
+      ProgressView()
+        .scaleEffect(1.5)
+        .padding()
+        .frame(maxWidth: .infinity)
+      Spacer()
+    }
   }
 
   private var errorMessage: some View {
-    Text("Error: \(viewModel.error)")
-      .foregroundColor(.red)
-      .padding()
-      .frame(maxWidth: .infinity, minHeight: 100)
+    VStack {
+      Spacer()
+      Image(systemName: "arrow.clockwise")
+        .imageScale(.large)
+        .onTapGesture {
+          viewModel.refreshPosts()
+        }
+        .padding()
+      Text("There was an error.")
+        .font(.title2).fontWeight(.bold)
+      Text(viewModel.error)
+        .foregroundColor(.red)
+      Spacer()
+    }
   }
 
   private var emptyMessage: some View {
@@ -105,28 +123,19 @@ struct FeedView<Header: View>: View {
 
   private var postsList: some View {
     LazyVStack(spacing: 0) {
-      postsContent
-
-      if viewModel.isLoading && !viewModel.posts.isEmpty {
-        ProgressView()
-          .scaleEffect(1.2)
-          .padding()
-          .id("loading-indicator")
-      }
-    }
-  }
-
-  private var postsContent: some View {
-    ForEach(viewModel.posts) { post in
-      PostView(
-        post: post,
-        showAuthor: feedType != .profile,
-        onLikeButtonTapped: { viewModel.toggleLike(on: post) }
-      )
-      .id("post-\(feedType)_\(post.post.postId)")
-      .onAppear {
-        if post == viewModel.posts.last {
-          viewModel.loadMorePosts()
+      ForEach(viewModel.posts) { post in
+        PostView(
+          post: post,
+          showAuthor: feedType != .profile,
+          onLikeButtonTapped: { viewModel.toggleLike(on: post) }
+        )
+        .environmentObject(feedRefreshManager)
+        .environmentObject(authManager)
+        .id("post-\(feedType)_\(post.post.postId)")
+        .onAppear {
+          if post == viewModel.posts.last && !viewModel.isLoading && viewModel.hasMorePosts {
+            viewModel.loadMorePosts()
+          }
         }
       }
     }

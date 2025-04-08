@@ -15,11 +15,11 @@ struct UserProfile: Decodable {
   let name: String
   let bio: String
   let isFollower: Bool
-  let isFollowing: Bool
+  var isFollowing: Bool
 }
 
 extension ProfileView {
-  class ViewModel: ObservableObject {
+  @MainActor class ViewModel: ObservableObject {
     private let userId: Int
     private var offset = 0
 
@@ -27,6 +27,7 @@ extension ProfileView {
     @Published var posts = [DetailedPost]()
     @Published var postError = ""
     @Published var isLoadingProfile = true
+    @Published var isLoadingFollowButton = false
 
     init(userId: Int) {
       self.userId = userId
@@ -34,17 +35,36 @@ extension ProfileView {
     }
 
     func loadProfile() {
-      isLoadingProfile = true
-
-      Task { @MainActor in
+      Task {
+        isLoadingProfile = true
         do {
-          profile = try await APIService.shared.request(endpoint: "/user/\(userId)")
+          profile = try await APIService.shared.request(
+            endpoint: "/user/\(userId)"
+          )
         } catch {
           print("error fetching user profile: \(error.localizedDescription)")
         }
         isLoadingProfile = false
       }
+    }
 
+    func toggleFollowing() {
+      if let profile = self.profile {
+        Task {
+          isLoadingFollowButton = true
+          let method = profile.isFollowing ? "DELETE" : "POST"
+          do {
+            try await APIService.shared.requestWithoutResponse(
+              endpoint: "/follow/\(userId)",
+              method: method
+            )
+          } catch {
+            print("error toggling following status: \(error.localizedDescription)")
+          }
+          isLoadingFollowButton = false
+          self.profile?.isFollowing.toggle()
+        }
+      }
     }
   }
 }

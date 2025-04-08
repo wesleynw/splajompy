@@ -15,7 +15,8 @@ struct NewPostView: View {
   init(dismiss: @escaping () -> Void, onPostCreated: @escaping () -> Void = {}) {
     self.dismiss = dismiss
     _viewModel = StateObject(
-      wrappedValue: ViewModel(dismiss: dismiss, onPostCreated: onPostCreated))
+      wrappedValue: ViewModel(dismiss: dismiss, onPostCreated: onPostCreated)
+    )
   }
 
   @State private var text: String = ""

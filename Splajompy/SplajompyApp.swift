@@ -22,7 +22,6 @@ struct SplajompyApp: App {
             Tab("Home", systemImage: "house") {
               NavigationStack {
                 FeedView(feedType: .home)
-                  .environmentObject(feedRefreshManager)
                   .toolbar {
                     Button(
                       "Post",
@@ -39,25 +38,31 @@ struct SplajompyApp: App {
               NavigationStack {
                 Text("Notifications")
                   .font(.title3)
-                  .navigationTitle("Notifications")
+                  .navigationTitle("Work in progress.")
               }
             }
 
             Tab("All", systemImage: "globe") {
               NavigationStack {
                 FeedView(feedType: .all)
-                  .environmentObject(feedRefreshManager)
                   .navigationTitle("All")
               }
             }
 
             Tab("Profile", systemImage: "person.circle") {
-              ProfileView(
-                userId: userId,
-                username: username,
-                isOwnProfile: true
-              )
-              .environmentObject(feedRefreshManager)
+              NavigationStack {
+                ProfileView(
+                  userId: userId,
+                  username: username
+                )
+                .toolbar {
+                  NavigationLink(
+                    destination: SettingsView().environmentObject(authManager)
+                  ) {
+                    Image(systemName: "gearshape")
+                  }
+                }
+              }
             }
           }
           .sheet(isPresented: $isShowingNewPostView) {
@@ -67,10 +72,13 @@ struct SplajompyApp: App {
             )
             .interactiveDismissDisabled()
           }
+          .environmentObject(feedRefreshManager)
+          .environmentObject(authManager)
         } else {
           LoginView()
             .environmentObject(authManager)
         }
+
       }
     }
   }

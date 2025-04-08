@@ -5,9 +5,13 @@ struct PostView: View {
   let post: DetailedPost
   var showAuthor: Bool = true
   let formatter = RelativeDateTimeFormatter()
-  var onLikeButtonTapped: () -> Void = { print("Unimplemented: PostView.onDeleteButtonTapped") }
+  var onLikeButtonTapped: () -> Void = {
+    print("Unimplemented: PostView.onDeleteButtonTapped")
+  }
 
   @State private var isShowingComments = false
+  @EnvironmentObject private var feedRefreshManager: FeedRefreshManager
+  @EnvironmentObject private var authManager: AuthManager
 
   private var postDate: Date {
     let formatter = ISO8601DateFormatter()
@@ -20,7 +24,9 @@ struct PostView: View {
       if showAuthor {
         HStack(alignment: .top) {
           NavigationLink {
-            ProfileView(userId: post.user.userId, username: post.user.username, isOwnProfile: false)
+            ProfileView(userId: post.user.userId, username: post.user.username)
+              .environmentObject(feedRefreshManager)
+              .environmentObject(authManager)
           } label: {
             VStack(alignment: .leading, spacing: 2) {
               if let displayName = post.user.name, !displayName.isEmpty {
@@ -47,9 +53,8 @@ struct PostView: View {
         }
       }
       if let postText = post.post.text {
-        Text(postText)
-          .font(.body)
-          .multilineTextAlignment(.leading)
+        PostTextView(text: postText)
+          .environmentObject(feedRefreshManager)
       }
       if let images = post.images, !images.isEmpty {
         ImageCarousel(imageUrls: images.map { $0.imageBlobUrl })

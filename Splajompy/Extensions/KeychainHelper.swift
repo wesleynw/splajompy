@@ -9,7 +9,7 @@ import Foundation
 
 final class KeychainHelper {
 
-  static let standard = KeychainHelper()
+  @MainActor static let standard = KeychainHelper()
   private init() {}
 
   func save(_ data: Data, service: String, account: String) {

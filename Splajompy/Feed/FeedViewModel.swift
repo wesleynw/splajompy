@@ -10,25 +10,41 @@ import Foundation
 let fetchLimit = 10
 
 extension FeedView {
-  class ViewModel: ObservableObject {
+  @MainActor class ViewModel: ObservableObject {
     var feedType: FeedType
     var userId: Int?
 
     @Published var posts = [DetailedPost]()
     @Published var isLoading = true
+    @Published var hasMorePosts = true
     @Published var error = ""
+
+    private var isLoadingMore = false
 
     private var offset = 0
 
     init(feedType: FeedType, userId: Int? = nil) {
       self.feedType = feedType
       self.userId = userId
-      loadMorePosts()
+      Task { @MainActor in
+        loadMorePosts()
+      }
     }
 
+    private var loadMoreTask: Task<Void, Never>? = nil
+
     func loadMorePosts(reset: Bool = false) {
-      Task { @MainActor in
-        isLoading = true
+      guard !isLoadingMore else { return }
+      guard reset || hasMorePosts else { return }
+
+      isLoadingMore = true
+      isLoading = true
+
+      if reset {
+        offset = 0
+      }
+
+      Task {
         do {
           let urlBase =
             switch feedType {
@@ -40,39 +56,49 @@ extension FeedView {
               "/user/\(self.userId!)/posts"
             }
 
-          let fetchedPosts: [DetailedPost] = try await APIService.shared.request(
-            endpoint: "\(urlBase)?limit=\(fetchLimit)&offset=\(offset)")
+          let fetchedPosts: [DetailedPost] = try await APIService.shared
+            .request(
+              endpoint: "\(urlBase)?limit=\(fetchLimit)&offset=\(offset)"
+            )
+
           if reset {
             self.posts = fetchedPosts
           } else {
             self.posts.append(contentsOf: fetchedPosts)
           }
+
+          hasMorePosts = fetchedPosts.count >= fetchLimit
           offset += fetchLimit
           error = ""
-          isLoading = false
         } catch {
-          print("error fetching posts: \(error.localizedDescription)")
+          print("Error fetching posts: \(error.localizedDescription)")
           self.error = error.localizedDescription
         }
+        isLoading = false
+        isLoadingMore = false
       }
     }
 
     func refreshPosts() {
-      Task { @MainActor in
+      Task {
         offset = 0
         loadMorePosts(reset: true)
       }
     }
 
     func toggleLike(on post: DetailedPost) {
-      Task { @MainActor in
-        if let index = posts.firstIndex(where: { $0.post.postId == post.post.postId }) {
+      Task {
+        if let index = posts.firstIndex(where: {
+          $0.post.postId == post.post.postId
+        }) {
           posts[index].isLiked.toggle()
           let method = post.isLiked ? "DELETE" : "POST"
 
           do {
             try await APIService.shared.requestWithoutResponse(
-              endpoint: "/post/\(post.post.postId)/liked", method: method)
+              endpoint: "/post/\(post.post.postId)/liked",
+              method: method
+            )
           } catch {
             print("Error adding like to post: \(error.localizedDescription)")
           }
@@ -81,14 +107,17 @@ extension FeedView {
     }
 
     func addComment(on post: DetailedPost, content: String) {
-      Task { @MainActor in
-        if let index = posts.firstIndex(where: { $0.post.postId == post.post.postId }) {
+      Task {
+        if let index = posts.firstIndex(where: {
+          $0.post.postId == post.post.postId
+        }) {
           posts[index].commentCount += 1
 
           do {
-
             try await APIService.shared.requestWithoutResponse(
-              endpoint: "/post/\(post.post.postId)/comment", method: "POST", body: ["Text": content]
+              endpoint: "/post/\(post.post.postId)/comment",
+              method: "POST",
+              body: ["Text": content]
             )
           } catch {
             print("Error adding like to post: \(error.localizedDescription)")
