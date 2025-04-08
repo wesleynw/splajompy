@@ -23,6 +23,7 @@ struct SplajompyApp: App {
               NavigationStack {
                 FeedView(feedType: .home)
                   .environmentObject(feedRefreshManager)
+                  .environmentObject(authManager)
                   .toolbar {
                     Button(
                       "Post",
@@ -47,6 +48,7 @@ struct SplajompyApp: App {
               NavigationStack {
                 FeedView(feedType: .all)
                   .environmentObject(feedRefreshManager)
+                  .environmentObject(authManager)
                   .navigationTitle("All")
               }
             }
@@ -55,12 +57,14 @@ struct SplajompyApp: App {
               NavigationStack {
                 ProfileView(
                   userId: userId,
-                  username: username,
-                  isOwnProfile: true
+                  username: username
                 )
                 .environmentObject(feedRefreshManager)
+                .environmentObject(authManager)
                 .toolbar {
-                  NavigationLink(destination: SettingsView().environmentObject(authManager)) {
+                  NavigationLink(
+                    destination: SettingsView().environmentObject(authManager)
+                  ) {
                     Image(systemName: "gearshape")
                   }
                 }

@@ -9,6 +9,7 @@ struct PostView: View {
 
   @State private var isShowingComments = false
   @EnvironmentObject private var feedRefreshManager: FeedRefreshManager
+  @EnvironmentObject private var authManager: AuthManager
 
   private var postDate: Date {
     let formatter = ISO8601DateFormatter()
@@ -21,8 +22,9 @@ struct PostView: View {
       if showAuthor {
         HStack(alignment: .top) {
           NavigationLink {
-            ProfileView(userId: post.user.userId, username: post.user.username, isOwnProfile: false)
+            ProfileView(userId: post.user.userId, username: post.user.username)
               .environmentObject(feedRefreshManager)
+              .environmentObject(authManager)
           } label: {
             VStack(alignment: .leading, spacing: 2) {
               if let displayName = post.user.name, !displayName.isEmpty {

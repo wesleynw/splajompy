@@ -26,8 +26,7 @@ struct PostTextView: View {
       NavigationLink(
         destination: ProfileView(
           userId: id,
-          username: username,
-          isOwnProfile: false
+          username: username
         )
         .environmentObject(feedRefreshManager)
       ) {

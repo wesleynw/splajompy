@@ -7,12 +7,14 @@ struct ProfileView: View {
 
   let username: String
   let userId: Int
-  let isOwnProfile: Bool
 
-  init(userId: Int, username: String, isOwnProfile: Bool) {
+  private var isOwnProfile: Bool {
+    authManager.getCurrentUser().userId == userId
+  }
+
+  init(userId: Int, username: String) {
     self.userId = userId
     self.username = username
-    self.isOwnProfile = isOwnProfile
     _viewModel = StateObject(wrappedValue: ViewModel(userId: userId))
   }
 
@@ -37,7 +39,6 @@ struct ProfileView: View {
           .padding(.top, 40)
       }
     }
-    //    .padding(.top, 16)
     .padding(.horizontal, 16)
     .navigationTitle("@" + self.username)
   }
@@ -83,6 +84,6 @@ struct ProfileView: View {
 
 struct ProfileView_Previews: PreviewProvider {
   static var previews: some View {
-    ProfileView(userId: 1, username: "wesley", isOwnProfile: false)
+    ProfileView(userId: 1, username: "wesley")
   }
 }

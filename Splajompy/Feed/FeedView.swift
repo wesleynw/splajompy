@@ -22,6 +22,7 @@ struct FeedView<Header: View>: View {
 
   @StateObject private var viewModel: ViewModel
   @EnvironmentObject var feedRefreshManager: FeedRefreshManager
+  @EnvironmentObject var authManager: AuthManager
 
   init(feedType: FeedType, userId: Int? = nil) where Header == EmptyView {
     self.feedType = feedType
@@ -129,9 +130,10 @@ struct FeedView<Header: View>: View {
           onLikeButtonTapped: { viewModel.toggleLike(on: post) }
         )
         .environmentObject(feedRefreshManager)
+        .environmentObject(authManager)
         .id("post-\(feedType)_\(post.post.postId)")
         .onAppear {
-          if post == viewModel.posts.last && !viewModel.isLoading {
+          if post == viewModel.posts.last && !viewModel.isLoading && viewModel.hasMorePosts {
             viewModel.loadMorePosts()
           }
         }
