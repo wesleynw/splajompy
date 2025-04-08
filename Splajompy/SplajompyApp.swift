@@ -22,8 +22,6 @@ struct SplajompyApp: App {
             Tab("Home", systemImage: "house") {
               NavigationStack {
                 FeedView(feedType: .home)
-                  .environmentObject(feedRefreshManager)
-                  .environmentObject(authManager)
                   .toolbar {
                     Button(
                       "Post",
@@ -40,15 +38,13 @@ struct SplajompyApp: App {
               NavigationStack {
                 Text("Notifications")
                   .font(.title3)
-                  .navigationTitle("Notifications")
+                  .navigationTitle("Work in progress.")
               }
             }
 
             Tab("All", systemImage: "globe") {
               NavigationStack {
                 FeedView(feedType: .all)
-                  .environmentObject(feedRefreshManager)
-                  .environmentObject(authManager)
                   .navigationTitle("All")
               }
             }
@@ -59,8 +55,6 @@ struct SplajompyApp: App {
                   userId: userId,
                   username: username
                 )
-                .environmentObject(feedRefreshManager)
-                .environmentObject(authManager)
                 .toolbar {
                   NavigationLink(
                     destination: SettingsView().environmentObject(authManager)
@@ -78,10 +72,13 @@ struct SplajompyApp: App {
             )
             .interactiveDismissDisabled()
           }
+          .environmentObject(feedRefreshManager)
+          .environmentObject(authManager)
         } else {
           LoginView()
             .environmentObject(authManager)
         }
+
       }
     }
   }

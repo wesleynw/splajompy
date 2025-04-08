@@ -21,7 +21,7 @@ enum PhotoState {
 }
 
 extension NewPostView {
-  class ViewModel: ObservableObject {
+  @MainActor class ViewModel: ObservableObject {
     @Published var isLoading = false
     @Published var errorDisplay: String?
 
@@ -46,7 +46,7 @@ extension NewPostView {
     }
 
     func submitPost(text: String) {
-      Task { @MainActor in
+      Task {
         if text.count > 5000 {
           errorDisplay =
             "This post is \(5000 - text.count) characters too long."

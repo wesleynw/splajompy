@@ -8,7 +8,7 @@
 import Foundation
 
 extension CommentsView {
-  class ViewModel: ObservableObject {
+  @MainActor class ViewModel: ObservableObject {
     private let postId: Int
 
     @Published var comments = [Comment]()
@@ -20,7 +20,7 @@ extension CommentsView {
     }
 
     func loadComments() {
-      Task { @MainActor in
+      Task {
         isLoading = true
         do {
           comments = try await APIService.shared.request(
@@ -34,7 +34,6 @@ extension CommentsView {
 
     func toggleLike(for comment: Comment) {
       Task {
-        @MainActor in
         let method = comment.isLiked ? "DELETE" : "POST"
 
         do {
@@ -51,7 +50,7 @@ extension CommentsView {
     }
 
     func addComment(text: String) {
-      Task { @MainActor in
+      Task {
         do {
           let newComment: Comment = try await APIService.shared.request(
             endpoint: "/post/\(postId)/comment", method: "POST", body: ["Text": text])

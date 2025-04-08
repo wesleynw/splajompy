@@ -24,7 +24,7 @@ enum AuthError {
   case noToken
 }
 
-class AuthManager: ObservableObject {
+@MainActor class AuthManager: ObservableObject {
   @Published var isAuthenticated: Bool = false
   @Published var isLoading: Bool = false
 

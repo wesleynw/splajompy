@@ -10,7 +10,7 @@ import Foundation
 let fetchLimit = 10
 
 extension FeedView {
-  class ViewModel: ObservableObject {
+  @MainActor class ViewModel: ObservableObject {
     var feedType: FeedType
     var userId: Int?
 
@@ -26,7 +26,9 @@ extension FeedView {
     init(feedType: FeedType, userId: Int? = nil) {
       self.feedType = feedType
       self.userId = userId
-      loadMorePosts()
+      Task { @MainActor in
+        loadMorePosts()
+      }
     }
 
     private var loadMoreTask: Task<Void, Never>? = nil
@@ -42,7 +44,7 @@ extension FeedView {
         offset = 0
       }
 
-      Task { @MainActor in
+      Task {
         do {
           let urlBase =
             switch feedType {
@@ -54,8 +56,10 @@ extension FeedView {
               "/user/\(self.userId!)/posts"
             }
 
-          let fetchedPosts: [DetailedPost] = try await APIService.shared.request(
-            endpoint: "\(urlBase)?limit=\(fetchLimit)&offset=\(offset)")
+          let fetchedPosts: [DetailedPost] = try await APIService.shared
+            .request(
+              endpoint: "\(urlBase)?limit=\(fetchLimit)&offset=\(offset)"
+            )
 
           if reset {
             self.posts = fetchedPosts
@@ -76,14 +80,14 @@ extension FeedView {
     }
 
     func refreshPosts() {
-      Task { @MainActor in
+      Task {
         offset = 0
         loadMorePosts(reset: true)
       }
     }
 
     func toggleLike(on post: DetailedPost) {
-      Task { @MainActor in
+      Task {
         if let index = posts.firstIndex(where: {
           $0.post.postId == post.post.postId
         }) {
@@ -103,7 +107,7 @@ extension FeedView {
     }
 
     func addComment(on post: DetailedPost, content: String) {
-      Task { @MainActor in
+      Task {
         if let index = posts.firstIndex(where: {
           $0.post.postId == post.post.postId
         }) {

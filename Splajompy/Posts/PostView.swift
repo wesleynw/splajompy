@@ -5,7 +5,9 @@ struct PostView: View {
   let post: DetailedPost
   var showAuthor: Bool = true
   let formatter = RelativeDateTimeFormatter()
-  var onLikeButtonTapped: () -> Void = { print("Unimplemented: PostView.onDeleteButtonTapped") }
+  var onLikeButtonTapped: () -> Void = {
+    print("Unimplemented: PostView.onDeleteButtonTapped")
+  }
 
   @State private var isShowingComments = false
   @EnvironmentObject private var feedRefreshManager: FeedRefreshManager
@@ -51,9 +53,6 @@ struct PostView: View {
         }
       }
       if let postText = post.post.text {
-        //        Text(postText)
-        //          .font(.body)
-        //          .multilineTextAlignment(.leading)
         PostTextView(text: postText)
           .environmentObject(feedRefreshManager)
       }

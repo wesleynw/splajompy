@@ -19,7 +19,7 @@ struct UserProfile: Decodable {
 }
 
 extension ProfileView {
-  class ViewModel: ObservableObject {
+  @MainActor class ViewModel: ObservableObject {
     private let userId: Int
     private var offset = 0
 
@@ -35,7 +35,7 @@ extension ProfileView {
     }
 
     func loadProfile() {
-      Task { @MainActor in
+      Task {
         isLoadingProfile = true
         do {
           profile = try await APIService.shared.request(
@@ -50,7 +50,7 @@ extension ProfileView {
 
     func toggleFollowing() {
       if let profile = self.profile {
-        Task { @MainActor in
+        Task {
           isLoadingFollowButton = true
           let method = profile.isFollowing ? "DELETE" : "POST"
           do {
