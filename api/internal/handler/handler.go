@@ -11,18 +11,20 @@ import (
 )
 
 type Handler struct {
-	queries        *db.Queries
-	postService    *service.PostService
-	commentService *service.CommentService
-	userService    *service.UserService
+	queries               *db.Queries
+	postService           *service.PostService
+	commentService        *service.CommentService
+	userService           *service.UserService
+	notifificationService *service.NotificationService
 }
 
-func NewHandler(queries db.Queries, postService *service.PostService, commentService *service.CommentService, userService *service.UserService) *Handler {
+func NewHandler(queries db.Queries, postService *service.PostService, commentService *service.CommentService, userService *service.UserService, notificationService *service.NotificationService) *Handler {
 	return &Handler{
-		queries:        &queries,
-		postService:    postService,
-		commentService: commentService,
-		userService:    userService,
+		queries:               &queries,
+		postService:           postService,
+		commentService:        commentService,
+		userService:           userService,
+		notifificationService: notificationService,
 	}
 }
 
@@ -40,6 +42,12 @@ func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
 	// likes
 	mux.HandleFunc("POST /post/{id}/liked", h.AddPostLike)
 	mux.HandleFunc("DELETE /post/{id}/liked", h.RemovePostLike)
+
+	// notifications
+	mux.HandleFunc("GET /notifications", h.GetAllNotificationByUserId)
+	mux.HandleFunc("POST /notifications/markRead", h.MarkAllNotificationsAsRead)
+	mux.HandleFunc("POST /notifications/{id}/markRead", h.MarkNotificationAsReadById)
+	mux.HandleFunc("GET /notifications/hasUnread", h.HasUnreadNotifications)
 
 	// comments
 	mux.HandleFunc("POST /post/{post_id}/comment", h.AddCommentToPostById)

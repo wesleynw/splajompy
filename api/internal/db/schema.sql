@@ -67,3 +67,17 @@ CREATE TABLE images (
     image_blob_url TEXT NOT NULL,
     display_order INT NOT NULL DEFAULT 0
 );
+
+CREATE TABLE notifications (
+    notification_id SERIAL PRIMARY KEY NOT NULL,
+    user_id INT NOT NULL,
+    post_id INT NULL,
+    comment_id INT NULL,
+    message TEXT NOT NULL,
+    link TEXT NULL,
+    viewed BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    FOREIGN KEY (post_id) REFERENCES posts(post_id) ON DELETE CASCADE,
+    FOREIGN KEY (comment_id) REFERENCES comments(comment_id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+);

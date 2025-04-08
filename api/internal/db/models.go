@@ -44,6 +44,17 @@ type Like struct {
 	IsPost    bool        `json:"isPost"`
 }
 
+type Notification struct {
+	NotificationID int32            `json:"notificationId"`
+	UserID         int32            `json:"userId"`
+	PostID         pgtype.Int4      `json:"postId"`
+	CommentID      pgtype.Int4      `json:"commentId"`
+	Message        string           `json:"message"`
+	Link           pgtype.Text      `json:"link"`
+	Viewed         bool             `json:"viewed"`
+	CreatedAt      pgtype.Timestamp `json:"createdAt"`
+}
+
 type Post struct {
 	PostID    int32            `json:"postId"`
 	UserID    int32            `json:"userId"`

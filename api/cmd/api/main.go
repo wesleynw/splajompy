@@ -39,8 +39,9 @@ func main() {
 	postService := service.NewPostService(queries, s3Client)
 	commentService := service.NewCommentService(queries)
 	userService := service.NewUserService(queries)
+	notificationService := service.NewNotificationService(queries)
 
-	h := handler.NewHandler(*queries, postService, commentService, userService)
+	h := handler.NewHandler(*queries, postService, commentService, userService, notificationService)
 
 	mux := http.NewServeMux()
 	h.RegisterRoutes(mux)
