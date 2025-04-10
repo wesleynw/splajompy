@@ -7,12 +7,6 @@
 
 import SwiftUI
 
-public enum FeedType {
-  case home
-  case all
-  case profile
-}
-
 struct FeedView<Header: View>: View {
   var feedType: FeedType
   var userId: Int?

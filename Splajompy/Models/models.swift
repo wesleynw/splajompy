@@ -13,16 +13,6 @@ struct User: Decodable {
   let name: String?
 }
 
-struct Comment: Decodable {
-  let commentId: Int
-  let postId: Int
-  let userId: Int
-  let text: String
-  let createdAt: String
-  let user: User
-  var isLiked: Bool
-}
-
 struct ImageDTO: Decodable {
   let imageId: Int
   let postId: Int

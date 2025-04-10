@@ -1,10 +1,3 @@
-//
-//  ViewModel-PostView.swift
-//  Splajompy
-//
-//  Created by Wesley Weisenberger on 3/25/25.
-//
-
 import Foundation
 
 extension CommentsView {
@@ -22,28 +15,42 @@ extension CommentsView {
     func loadComments() {
       Task {
         isLoading = true
-        do {
-          comments = try await oldAPIService.shared.request(
-            endpoint: "/post/\(postId)/comments", method: "GET")
-        } catch {
-          print("error fetching comments: \(error.localizedDescription)")
+
+        let result = await CommentService.getComments(postId: postId)
+
+        switch result {
+        case .success(let fetchedComments):
+          comments = fetchedComments
+        case .failure(let error):
+          print("Error fetching comments: \(error.localizedDescription)")
         }
+
         isLoading = false
       }
     }
 
     func toggleLike(for comment: Comment) {
       Task {
-        let method = comment.isLiked ? "DELETE" : "POST"
-
-        do {
-          try await oldAPIService.shared.requestWithoutResponse(
-            endpoint: "/post/\(comment.postId)/comment/\(comment.commentId)/liked", method: method)
-        } catch {
-          print("error adding like to post: \(error.localizedDescription)")
-        }
-        if let index = comments.firstIndex(where: { $0.commentId == comment.commentId }) {
+        // Optimistic update
+        if let index = comments.firstIndex(where: {
+          $0.commentId == comment.commentId
+        }) {
           comments[index].isLiked.toggle()
+
+          let result = await CommentService.toggleLike(
+            postId: comment.postId,
+            commentId: comment.commentId,
+            isLiked: comment.isLiked
+          )
+
+          if case .failure(let error) = result {
+            print("Error toggling like: \(error.localizedDescription)")
+            if let index = comments.firstIndex(where: {
+              $0.commentId == comment.commentId
+            }) {
+              comments[index].isLiked.toggle()
+            }
+          }
         }
         // TODO: update parent viewModel with comment count
       }
@@ -51,13 +58,14 @@ extension CommentsView {
 
     func addComment(text: String) {
       Task {
-        do {
-          let newComment: Comment = try await oldAPIService.shared.request(
-            endpoint: "/post/\(postId)/comment", method: "POST", body: ["Text": text])
+        let result = await CommentService.addComment(postId: postId, text: text)
+
+        switch result {
+        case .success(let newComment):
           comments.append(newComment)
-          // TODO: update comment count in parent VM
-        } catch {
-          print("Error adding like to post: \(error.localizedDescription)")
+        // TODO: update comment count in parent VM
+        case .failure(let error):
+          print("Error adding comment: \(error.localizedDescription)")
         }
       }
     }

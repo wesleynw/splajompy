@@ -21,7 +21,7 @@ struct NotificationService {
       URLQueryItem(name: "limit", value: "\(limit)"),
     ]
 
-    return await APIService2.performRequest(
+    return await APIService.performRequest(
       endpoint: "notifications",
       queryItems: queryItems
     )
