@@ -23,7 +23,7 @@ extension CommentsView {
       Task {
         isLoading = true
         do {
-          comments = try await APIService.shared.request(
+          comments = try await oldAPIService.shared.request(
             endpoint: "/post/\(postId)/comments", method: "GET")
         } catch {
           print("error fetching comments: \(error.localizedDescription)")
@@ -37,7 +37,7 @@ extension CommentsView {
         let method = comment.isLiked ? "DELETE" : "POST"
 
         do {
-          try await APIService.shared.requestWithoutResponse(
+          try await oldAPIService.shared.requestWithoutResponse(
             endpoint: "/post/\(comment.postId)/comment/\(comment.commentId)/liked", method: method)
         } catch {
           print("error adding like to post: \(error.localizedDescription)")
@@ -52,7 +52,7 @@ extension CommentsView {
     func addComment(text: String) {
       Task {
         do {
-          let newComment: Comment = try await APIService.shared.request(
+          let newComment: Comment = try await oldAPIService.shared.request(
             endpoint: "/post/\(postId)/comment", method: "POST", body: ["Text": text])
           comments.append(newComment)
           // TODO: update comment count in parent VM

@@ -1,5 +1,5 @@
 //
-//  APIService.swift
+//  oldAPIService.swift
 //  Splajompy
 //
 //  Created by Wesley Weisenberger on 3/24/25.
@@ -20,8 +20,8 @@ enum APIError: Error {
 
 struct EmptyResponse: Decodable {}
 
-@MainActor class APIService {
-  @MainActor static let shared = APIService()
+@MainActor class oldAPIService {
+  @MainActor static let shared = oldAPIService()
 
   let apiURL: String
 
@@ -136,7 +136,7 @@ struct EmptyResponse: Decodable {}
   }
 }
 
-extension APIService {
+extension oldAPIService {
   /// Uploads an image using multipart form data
   /// - Parameters:
   ///   - endpoint: The endpoint path

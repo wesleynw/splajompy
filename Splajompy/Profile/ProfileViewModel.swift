@@ -38,7 +38,7 @@ extension ProfileView {
       Task {
         isLoadingProfile = true
         do {
-          profile = try await APIService.shared.request(
+          profile = try await oldAPIService.shared.request(
             endpoint: "/user/\(userId)"
           )
         } catch {
@@ -54,7 +54,7 @@ extension ProfileView {
           isLoadingFollowButton = true
           let method = profile.isFollowing ? "DELETE" : "POST"
           do {
-            try await APIService.shared.requestWithoutResponse(
+            try await oldAPIService.shared.requestWithoutResponse(
               endpoint: "/follow/\(userId)",
               method: method
             )

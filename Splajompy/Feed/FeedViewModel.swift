@@ -56,7 +56,7 @@ extension FeedView {
               "/user/\(self.userId!)/posts"
             }
 
-          let fetchedPosts: [DetailedPost] = try await APIService.shared
+          let fetchedPosts: [DetailedPost] = try await oldAPIService.shared
             .request(
               endpoint: "\(urlBase)?limit=\(fetchLimit)&offset=\(offset)"
             )
@@ -95,7 +95,7 @@ extension FeedView {
           let method = post.isLiked ? "DELETE" : "POST"
 
           do {
-            try await APIService.shared.requestWithoutResponse(
+            try await oldAPIService.shared.requestWithoutResponse(
               endpoint: "/post/\(post.post.postId)/liked",
               method: method
             )
@@ -114,7 +114,7 @@ extension FeedView {
           posts[index].commentCount += 1
 
           do {
-            try await APIService.shared.requestWithoutResponse(
+            try await oldAPIService.shared.requestWithoutResponse(
               endpoint: "/post/\(post.post.postId)/comment",
               method: "POST",
               body: ["Text": content]

@@ -24,13 +24,39 @@ enum AuthError {
   case noToken
 }
 
-@MainActor class AuthManager: ObservableObject {
+class AuthManager: ObservableObject, @unchecked Sendable {
   @Published var isAuthenticated: Bool = false
   @Published var isLoading: Bool = false
 
+  static let shared = AuthManager()
+
   init() {
-    let sessionToken = KeychainHelper.standard.read(service: "session-token", account: "self")
+    let sessionToken = KeychainHelper.standard.read(
+      service: "session-token",
+      account: "self"
+    )
     isAuthenticated = sessionToken != nil
+  }
+
+  func getAuthToken() -> String? {
+    guard
+      let tokenData = KeychainHelper.standard.read(
+        service: "session-token",
+        account: "self"
+      )
+    else {
+      return nil
+    }
+
+    guard let tokenString = String(data: tokenData, encoding: .utf8) else {
+      return nil
+    }
+    
+    let token = tokenString.trimmingCharacters(in: CharacterSet(charactersIn: "\""))
+
+    print("auth token: \(token)")
+
+    return token
   }
 
   func signOut() {
@@ -59,7 +85,9 @@ enum AuthError {
     return (userId, username)
   }
 
-  func signInWithPassword(identifier: String, password: String) async -> AuthError {
+  func signInWithPassword(identifier: String, password: String) async
+    -> AuthError
+  {
     await MainActor.run {
       isLoading = true
     }
@@ -74,14 +102,18 @@ enum AuthError {
     )
 
     do {
-      let authResponse: AuthResponse = try await APIService.shared.request(
+      let authResponse: AuthResponse = try await oldAPIService.shared.request(
         endpoint: "/login",
         method: "POST",
         body: credentials,
         requiresAuth: false
       )
 
-      KeychainHelper.standard.save(authResponse.token, service: "session-token", account: "self")
+      KeychainHelper.standard.save(
+        authResponse.token,
+        service: "session-token",
+        account: "self"
+      )
 
       let defaults = UserDefaults.standard
       defaults.set(authResponse.user.userId, forKey: "CurrentUserID")

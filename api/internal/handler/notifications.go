@@ -10,6 +10,7 @@ func (h *Handler) GetAllNotificationByUserId(w http.ResponseWriter, r *http.Requ
 	currentUser, err := h.getAuthenticatedUser(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusUnauthorized)
+		return
 	}
 
 	offset := 0
@@ -41,6 +42,7 @@ func (h *Handler) MarkAllNotificationsAsRead(w http.ResponseWriter, r *http.Requ
 	currentUser, err := h.getAuthenticatedUser(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusUnauthorized)
+		return
 	}
 
 	err = h.notifificationService.MarkAllNotificationsAsReadForUserId(r.Context(), *currentUser)
@@ -54,6 +56,7 @@ func (h *Handler) MarkNotificationAsReadById(w http.ResponseWriter, r *http.Requ
 	currentUser, err := h.getAuthenticatedUser(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusUnauthorized)
+		return
 	}
 
 	id, err := h.GetIntPathParam(r, "id")
@@ -73,6 +76,7 @@ func (h *Handler) HasUnreadNotifications(w http.ResponseWriter, r *http.Request)
 	currentUser, err := h.getAuthenticatedUser(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusUnauthorized)
+		return
 	}
 
 	hasNotifications, err := h.notifificationService.UserHasUnreadNotifications(r.Context(), *currentUser)

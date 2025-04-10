@@ -13,7 +13,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
-	"splajompy.com/api/v2/internal/db"
+	db "splajompy.com/api/v2/internal/db/generated"
 	"splajompy.com/api/v2/internal/models"
 )
 

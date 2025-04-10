@@ -4,5 +4,13 @@
 <dict>
 	<key>API_URL</key>
 	<string>$(API_URL)</string>
+	<key>UILaunchScreen</key>
+	<dict>
+		<key>UILaunchScreen</key>
+		<dict>
+			<key>UIImageName</key>
+			<string>S_Logo</string>
+		</dict>
+	</dict>
 </dict>
 </plist>

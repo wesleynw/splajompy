@@ -12,7 +12,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 	"golang.org/x/crypto/bcrypt"
-	"splajompy.com/api/v2/internal/db"
+	db "splajompy.com/api/v2/internal/db/generated"
 	"splajompy.com/api/v2/internal/models"
 )
 

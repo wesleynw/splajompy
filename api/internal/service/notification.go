@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	"splajompy.com/api/v2/internal/db"
+	db "splajompy.com/api/v2/internal/db/generated"
 	"splajompy.com/api/v2/internal/models"
 )
 
