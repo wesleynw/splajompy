@@ -7,13 +7,25 @@ struct Notification: Identifiable, Codable {
   let commentId: Int?
   let message: String
   let link: String?
-  let viewed: Bool
+  var viewed: Bool
   let createdAt: String
   var id: Int { notificationId }
 }
 
-struct NotificationService {
-  static func getAllNotifications(offset: Int, limit: Int) async -> APIResult<
+protocol NotificationServiceProtocol: Sendable {
+  func getAllNotifications(offset: Int, limit: Int) async -> APIResult<
+    [Notification]
+  >
+  
+  func markNotificationAsRead(notificationId: Int) async -> APIResult<EmptyResponse>
+  
+  func markAllNotificationsAsRead() async -> APIResult<EmptyResponse>
+  
+  func hasUnreadNotifications() async -> APIResult<Bool>
+}
+
+struct NotificationService: NotificationServiceProtocol {
+  func getAllNotifications(offset: Int, limit: Int) async -> APIResult<
     [Notification]
   > {
     let queryItems = [
@@ -25,5 +37,17 @@ struct NotificationService {
       endpoint: "notifications",
       queryItems: queryItems
     )
+  }
+  
+  func markNotificationAsRead(notificationId: Int) async -> APIResult<EmptyResponse> {
+    return await APIService.performRequest(endpoint: "notifications/\(notificationId)/markRead", method: "POST")
+  }
+  
+  func markAllNotificationsAsRead() async -> APIResult<EmptyResponse>{
+    await APIService.performRequest(endpoint: "notifications/markRead", method: "POST")
+  }
+  
+  func hasUnreadNotifications() async -> APIResult<Bool> {
+    return await APIService.performRequest(endpoint: "notifications/hasUnread")
   }
 }

@@ -13,10 +13,10 @@ extension NotificationsView {
     @Published var state: NotificationState = .idle
     private var offset = 0
     private let limit = 10
-    private var service: NotificationService
+    private var service: NotificationServiceProtocol
 
-    init() {
-      self.service = NotificationService()
+    init(service: NotificationServiceProtocol = NotificationService()) {
+      self.service = service
     }
 
     func loadMoreNotifications() async {
@@ -37,7 +37,7 @@ extension NotificationsView {
 
       state = .loading
 
-      let result = await NotificationService.getAllNotifications(
+      let result = await service.getAllNotifications(
         offset: offset,
         limit: limit
       )
@@ -53,6 +53,44 @@ extension NotificationsView {
         offset += notifications.count
       case .failure(let error):
         state = .failed(error)
+      }
+    }
+    
+    func markNotificationAsRead(for notification: Notification) {
+      guard case .loaded(var notifications) = state else {
+        return
+      }
+      
+      if let index = notifications.firstIndex(where: { $0.notificationId == notification.notificationId}) {
+        notifications[index].viewed = true
+        
+        state = .loaded(notifications)
+      }
+      
+      Task {
+        await service.markNotificationAsRead(notificationId: notification.notificationId)
+      }
+    }
+    
+    func markAllNotificationsAsRead() {
+      print("b")
+      guard case .loaded(var notifications) = state else {
+        return
+      }
+      
+      print("c")
+
+      
+      for i in 0..<notifications.count {
+        notifications[i].viewed = true
+      }
+      
+      state = .loaded(notifications)
+      print("d")
+
+      
+      Task {
+        await service.markAllNotificationsAsRead()
       }
     }
 

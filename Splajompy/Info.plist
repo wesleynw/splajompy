@@ -6,11 +6,12 @@
 	<string>$(API_URL)</string>
 	<key>UILaunchScreen</key>
 	<dict>
-		<key>UILaunchScreen</key>
-		<dict>
-			<key>UIImageName</key>
-			<string>S_Logo</string>
-		</dict>
+		<key>UIColorName</key>
+		<string></string>
+		<key>UIImageName</key>
+		<string>Logo_vectorized</string>
+		<key>UIImageRespectsSafeAreaInsets</key>
+		<true/>
 	</dict>
 </dict>
 </plist>

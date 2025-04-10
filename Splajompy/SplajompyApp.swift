@@ -35,10 +35,7 @@ struct SplajompyApp: App {
             }
 
             Tab("Notifications", systemImage: "bell") {
-              NavigationStack {
-                NotificationsView()
-                  .navigationTitle("Notifications")
-              }
+              NotificationsView()
             }
 
             Tab("All", systemImage: "globe") {
