@@ -98,14 +98,14 @@ class AuthManager: ObservableObject, @unchecked Sendable {
     do {
       // Convert credentials to JSON data
       let jsonData = try JSONEncoder().encode(credentials)
-      
+
       // Use the new APIService
       let result: APIResult<AuthResponse> = await APIService.performRequest(
         endpoint: "login",
         method: "POST",
         body: jsonData
       )
-      
+
       // Handle the result
       switch result {
       case .success(let authResponse):
@@ -125,12 +125,12 @@ class AuthManager: ObservableObject, @unchecked Sendable {
         }
 
         return .none
-        
+
       case .failure(let error):
         await MainActor.run {
           isLoading = false
         }
-        
+
         if error is URLError {
           return .invalidURL
         } else if error is DecodingError {

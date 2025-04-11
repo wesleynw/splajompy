@@ -55,13 +55,19 @@ public struct APIService {
       let decoder = JSONDecoder()
       decoder.dateDecodingStrategy = .iso8601
 
+      print("data: \(data)")
+
       do {
         let decodedData = try decoder.decode(T.self, from: data)
+
         return .success(decodedData)
       } catch {
+        print("error: \(error)")
+        print("asdf")
         return .failure(error)
       }
     } catch {
+      print("fdsa")
       return .failure(error)
     }
   }

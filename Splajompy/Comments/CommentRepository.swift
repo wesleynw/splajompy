@@ -8,7 +8,7 @@ struct Comment: Identifiable, Decodable {
   let createdAt: String
   let user: User
   var isLiked: Bool
-  
+
   var id: Int { commentId }
 }
 
@@ -38,8 +38,7 @@ struct CommentService {
     }
   }
 
-  static func addComment(postId: Int, text: String) async -> APIResult<Comment>
-  {
+  static func addComment(postId: Int, text: String) async -> APIResult<Comment> {
     do {
       let bodyData: [String: String] = ["Text": text]
       let jsonData = try JSONEncoder().encode(bodyData)

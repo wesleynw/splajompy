@@ -1,10 +1,3 @@
-//
-//  ContentView.swift
-//  Splajompy
-//
-//  Created by Wesley Weisenberger on 3/17/25.
-//
-
 import SwiftUI
 
 struct FeedView<Header: View>: View {

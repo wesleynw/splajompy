@@ -28,6 +28,10 @@ func (s *NotificationService) GetNotificationsByUserId(ctx context.Context, user
 		return nil, errors.New("unable to retrieve notifications")
 	}
 
+	if notifications == nil {
+		return &[]db.Notification{}, nil
+	}
+
 	return &notifications, nil
 }
 

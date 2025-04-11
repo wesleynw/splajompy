@@ -10,6 +10,7 @@ enum NotificationState {
 extension NotificationsView {
   @MainActor class ViewModel: ObservableObject {
     @Published var canLoadMore: Bool = true
+    @Published var isLoadingMore: Bool = false
     @Published var state: NotificationState = .idle
     private var offset = 0
     private let limit = 10
@@ -19,23 +20,13 @@ extension NotificationsView {
       self.service = service
     }
 
-    func loadMoreNotifications() async {
-      guard case .loaded = state, canLoadMore else { return }
-
-      if case .loaded(let notifications) = state {
-        offset = notifications.count
-      }
-
-      await loadNotifications(reset: false)
-    }
-
     func loadNotifications(reset: Bool = false) async {
       if reset {
+        state = .loading
         offset = 0
-        state = .idle
+      } else {
+        isLoadingMore = true
       }
-
-      state = .loading
 
       let result = await service.getAllNotifications(
         offset: offset,
@@ -51,44 +42,45 @@ extension NotificationsView {
         }
         canLoadMore = notifications.count >= limit
         offset += notifications.count
+        isLoadingMore = false
       case .failure(let error):
         state = .failed(error)
       }
     }
-    
+
     func markNotificationAsRead(for notification: Notification) {
       guard case .loaded(var notifications) = state else {
         return
       }
-      
-      if let index = notifications.firstIndex(where: { $0.notificationId == notification.notificationId}) {
+
+      if let index = notifications.firstIndex(where: {
+        $0.notificationId == notification.notificationId
+      }) {
         notifications[index].viewed = true
-        
+
         state = .loaded(notifications)
       }
-      
+
       Task {
         await service.markNotificationAsRead(notificationId: notification.notificationId)
       }
     }
-    
+
     func markAllNotificationsAsRead() {
       print("b")
       guard case .loaded(var notifications) = state else {
         return
       }
-      
+
       print("c")
 
-      
       for i in 0..<notifications.count {
         notifications[i].viewed = true
       }
-      
+
       state = .loaded(notifications)
       print("d")
 
-      
       Task {
         await service.markAllNotificationsAsRead()
       }

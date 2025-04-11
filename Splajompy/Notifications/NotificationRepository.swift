@@ -1,9 +1,9 @@
 import Foundation
 
-struct Notification: Identifiable, Codable {
+struct Notification: Identifiable, Decodable {
   let notificationId: Int
   let userId: Int
-  let postId: Int
+  let postId: Int?
   let commentId: Int?
   let message: String
   let link: String?
@@ -16,11 +16,11 @@ protocol NotificationServiceProtocol: Sendable {
   func getAllNotifications(offset: Int, limit: Int) async -> APIResult<
     [Notification]
   >
-  
+
   func markNotificationAsRead(notificationId: Int) async -> APIResult<EmptyResponse>
-  
+
   func markAllNotificationsAsRead() async -> APIResult<EmptyResponse>
-  
+
   func hasUnreadNotifications() async -> APIResult<Bool>
 }
 
@@ -38,15 +38,16 @@ struct NotificationService: NotificationServiceProtocol {
       queryItems: queryItems
     )
   }
-  
+
   func markNotificationAsRead(notificationId: Int) async -> APIResult<EmptyResponse> {
-    return await APIService.performRequest(endpoint: "notifications/\(notificationId)/markRead", method: "POST")
+    return await APIService.performRequest(
+      endpoint: "notifications/\(notificationId)/markRead", method: "POST")
   }
-  
-  func markAllNotificationsAsRead() async -> APIResult<EmptyResponse>{
+
+  func markAllNotificationsAsRead() async -> APIResult<EmptyResponse> {
     await APIService.performRequest(endpoint: "notifications/markRead", method: "POST")
   }
-  
+
   func hasUnreadNotifications() async -> APIResult<Bool> {
     return await APIService.performRequest(endpoint: "notifications/hasUnread")
   }

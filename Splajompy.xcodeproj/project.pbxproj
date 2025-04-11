@@ -16,6 +16,7 @@
 		18A617EE2D9B2D6000B93F08 /* models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18A617DC2D9B2D6000B93F08 /* models.swift */; };
 		18A617F02D9B2D6000B93F08 /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18A617CF2D9B2D6000B93F08 /* LoginView.swift */; };
 		18A617F12D9B2D6000B93F08 /* PostView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18A617DF2D9B2D6000B93F08 /* PostView.swift */; };
+		18B2F2EA2DA88B6E002FD373 /* Launch Screen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 18B2F2E92DA88B6E002FD373 /* Launch Screen.storyboard */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -55,6 +56,7 @@
 		18A617E22D9B2D6000B93F08 /* ProfileViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileViewModel.swift; sourceTree = "<group>"; };
 		18A617E42D9B2D6000B93F08 /* Preview Content.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Content.xcassets"; sourceTree = "<group>"; };
 		18A617E52D9B2D6000B93F08 /* SplajompyApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplajompyApp.swift; sourceTree = "<group>"; };
+		18B2F2E92DA88B6E002FD373 /* Launch Screen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = "Launch Screen.storyboard"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -122,6 +124,7 @@
 		184A63C22D88CBA000860D6B = {
 			isa = PBXGroup;
 			children = (
+				18B2F2E92DA88B6E002FD373 /* Launch Screen.storyboard */,
 				187F00462D95DBE800BE80DF /* Assets */,
 				184A63CD2D88CBA100860D6B /* Splajompy */,
 				184A63CC2D88CBA100860D6B /* Products */,
@@ -333,6 +336,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				18B2F2EA2DA88B6E002FD373 /* Launch Screen.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -537,6 +541,7 @@
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.social-networking";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchStoryboardName = "Launch Screen.storyboard";
 				INFOPLIST_KEY_UIStatusBarStyle = "";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
@@ -578,6 +583,7 @@
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.social-networking";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchStoryboardName = "Launch Screen.storyboard";
 				INFOPLIST_KEY_UIStatusBarStyle = "";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
