@@ -18,7 +18,7 @@ struct LoginView: View {
   var body: some View {
     ScrollView {
       VStack(spacing: 6) {
-        Image(colorScheme == .dark ? "S_transparent_white" : "S_transparent_black")
+        Image("Logo")
           .resizable()
           .scaledToFit()
           .frame(width: 100, height: 100)

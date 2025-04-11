@@ -7,9 +7,9 @@
 
 import Foundation
 
-final class KeychainHelper {
+final class KeychainHelper: @unchecked Sendable {
 
-  @MainActor static let standard = KeychainHelper()
+  static let standard = KeychainHelper()
   private init() {}
 
   func save(_ data: Data, service: String, account: String) {

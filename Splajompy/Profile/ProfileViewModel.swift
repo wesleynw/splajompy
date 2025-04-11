@@ -1,22 +1,4 @@
-//
-//  ProfileViewModel.swift
-//  Splajompy
-//
-//  Created by Wesley Weisenberger on 3/29/25.
-//
-
 import Foundation
-
-struct UserProfile: Decodable {
-  let userId: Int
-  let email: String
-  let username: String
-  let createdAt: String
-  let name: String
-  let bio: String
-  let isFollower: Bool
-  var isFollowing: Bool
-}
 
 extension ProfileView {
   @MainActor class ViewModel: ObservableObject {
@@ -37,33 +19,40 @@ extension ProfileView {
     func loadProfile() {
       Task {
         isLoadingProfile = true
-        do {
-          profile = try await APIService.shared.request(
-            endpoint: "/user/\(userId)"
-          )
-        } catch {
-          print("error fetching user profile: \(error.localizedDescription)")
+
+        let result = await ProfileService.getUserProfile(userId: userId)
+
+        switch result {
+        case .success(let userProfile):
+          profile = userProfile
+        case .failure(let error):
+          print("Error fetching user profile: \(error.localizedDescription)")
         }
+
         isLoadingProfile = false
       }
     }
 
     func toggleFollowing() {
-      if let profile = self.profile {
-        Task {
-          isLoadingFollowButton = true
-          let method = profile.isFollowing ? "DELETE" : "POST"
-          do {
-            try await APIService.shared.requestWithoutResponse(
-              endpoint: "/follow/\(userId)",
-              method: method
-            )
-          } catch {
-            print("error toggling following status: \(error.localizedDescription)")
-          }
-          isLoadingFollowButton = false
+      guard let profile = self.profile else { return }
+
+      Task {
+        isLoadingFollowButton = true
+
+        // Optimistic update
+        self.profile?.isFollowing.toggle()
+
+        let result = await ProfileService.toggleFollowing(
+          userId: userId,
+          isFollowing: !profile.isFollowing
+        )
+
+        if case .failure(let error) = result {
+          print("Error toggling following status: \(error.localizedDescription)")
           self.profile?.isFollowing.toggle()
         }
+
+        isLoadingFollowButton = false
       }
     }
   }

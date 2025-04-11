@@ -1,9 +1,3 @@
-//
-//  Authentication.swift
-//  Splajompy
-//
-//  Created by Wesley Weisenberger on 3/17/25.
-//
 import Foundation
 
 struct AuthResponse: Decodable {
@@ -24,13 +18,39 @@ enum AuthError {
   case noToken
 }
 
-@MainActor class AuthManager: ObservableObject {
+class AuthManager: ObservableObject, @unchecked Sendable {
   @Published var isAuthenticated: Bool = false
   @Published var isLoading: Bool = false
 
+  static let shared = AuthManager()
+
   init() {
-    let sessionToken = KeychainHelper.standard.read(service: "session-token", account: "self")
+    let sessionToken = KeychainHelper.standard.read(
+      service: "session-token",
+      account: "self"
+    )
     isAuthenticated = sessionToken != nil
+  }
+
+  func getAuthToken() -> String? {
+    guard
+      let tokenData = KeychainHelper.standard.read(
+        service: "session-token",
+        account: "self"
+      )
+    else {
+      return nil
+    }
+
+    guard let tokenString = String(data: tokenData, encoding: .utf8) else {
+      return nil
+    }
+
+    let token = tokenString.trimmingCharacters(
+      in: CharacterSet(charactersIn: "\"")
+    )
+
+    return token
   }
 
   func signOut() {
@@ -59,7 +79,9 @@ enum AuthError {
     return (userId, username)
   }
 
-  func signInWithPassword(identifier: String, password: String) async -> AuthError {
+  func signInWithPassword(identifier: String, password: String) async
+    -> AuthError
+  {
     await MainActor.run {
       isLoading = true
     }
@@ -74,49 +96,62 @@ enum AuthError {
     )
 
     do {
-      let authResponse: AuthResponse = try await APIService.shared.request(
-        endpoint: "/login",
+      // Convert credentials to JSON data
+      let jsonData = try JSONEncoder().encode(credentials)
+
+      // Use the new APIService
+      let result: APIResult<AuthResponse> = await APIService.performRequest(
+        endpoint: "login",
         method: "POST",
-        body: credentials,
-        requiresAuth: false
+        body: jsonData
       )
 
-      KeychainHelper.standard.save(authResponse.token, service: "session-token", account: "self")
+      // Handle the result
+      switch result {
+      case .success(let authResponse):
+        KeychainHelper.standard.save(
+          authResponse.token,
+          service: "session-token",
+          account: "self"
+        )
 
-      let defaults = UserDefaults.standard
-      defaults.set(authResponse.user.userId, forKey: "CurrentUserID")
-      defaults.set(authResponse.user.username, forKey: "CurrentUserUsername")
+        let defaults = UserDefaults.standard
+        defaults.set(authResponse.user.userId, forKey: "CurrentUserID")
+        defaults.set(authResponse.user.username, forKey: "CurrentUserUsername")
 
-      await MainActor.run {
-        isAuthenticated = true
-        isLoading = false
-      }
+        await MainActor.run {
+          isAuthenticated = true
+          isLoading = false
+        }
 
-      return .none
+        return .none
 
-    } catch let apiError as APIError {
-      await MainActor.run {
-        isLoading = false
-      }
-      switch apiError {
-      case .invalidURL:
-        return .invalidURL
-      case .decodingError:
-        return .decodingError
-      case .unauthorized:
-        return .incorrectPassword
-      case .serverError(404):
-        return .accountNonexistent
-      case .noToken:
-        return .noToken
-      case .networkError, .noData, .serverError:
-        return .generalFailure
+      case .failure(let error):
+        await MainActor.run {
+          isLoading = false
+        }
+
+        if error is URLError {
+          return .invalidURL
+        } else if error is DecodingError {
+          return .decodingError
+        } else if let httpResponse = error as? HTTPURLResponse {
+          if httpResponse.statusCode == 401 {
+            return .incorrectPassword
+          } else if httpResponse.statusCode == 404 {
+            return .accountNonexistent
+          } else {
+            return .generalFailure
+          }
+        } else {
+          return .generalFailure
+        }
       }
     } catch {
       await MainActor.run {
         isLoading = false
       }
-      return .generalFailure
+      return .serializationError
     }
   }
 }

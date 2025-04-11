@@ -1,17 +1,6 @@
-//
-//  NewPostViewModel.swift
-//  Splajompy
-//
-//  Created by Wesley Weisenberger on 4/2/25.
-//
-
+import Foundation
 import PhotosUI
 import SwiftUI
-
-struct CreatePostRequest: Encodable {
-  let content: String
-  let imageIds: [String]
-}
 
 enum PhotoState {
   case loading(PhotosPickerItem)
@@ -47,39 +36,39 @@ extension NewPostView {
 
     func submitPost(text: String) {
       Task {
-        if text.count > 5000 {
-          errorDisplay =
-            "This post is \(5000 - text.count) characters too long."
+        // Validate the post text
+        let validation = PostCreationService.validatePostText(text: text)
+        if !validation.isValid {
+          errorDisplay = validation.errorMessage
           return
         }
 
         isLoading = true
-        do {
-          if case .success(let image) = photoState {
-            try await APIService.shared.uploadImageWithoutResponse(
-              endpoint: "/post/new", image: image, body: ["text": text])
-          } else {
-            try await APIService.shared.requestWithoutResponse(
-              endpoint: "/post/new",
-              method: "POST",
-              body: ["text": text]
-            )
-          }
 
+        let result: APIResult<Void>
+
+        //                if case .success(let image) = photoState {
+        //                  print("todo")
+        //                  result = .failure(new Error("not implemented"))
+        ////                    result = await PostCreationService.createPostWithImage(text: text, image: image)
+        //                } else {
+        result = await PostCreationService.createPost(text: text)
+        //                }
+
+        switch result {
+        case .success:
           errorDisplay = ""
           isLoading = false
           onPostCreated()
           dismiss()
-        } catch {
+        case .failure(let error):
           errorDisplay = "There was an error: \(error.localizedDescription)."
           isLoading = false
         }
       }
     }
 
-    private func loadTransferable(from imageSelection: PhotosPickerItem)
-      -> Progress
-    {
+    private func loadTransferable(from imageSelection: PhotosPickerItem) -> Progress {
       return imageSelection.loadTransferable(type: Data.self) { result in
         DispatchQueue.main.async {
           guard imageSelection == self.imageSelection else {
@@ -102,6 +91,5 @@ extension NewPostView {
         }
       }
     }
-
   }
 }

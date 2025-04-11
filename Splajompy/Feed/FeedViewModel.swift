@@ -1,13 +1,4 @@
-//
-//  HomeViewModel.swift
-//  Splajompy
-//
-//  Created by Wesley Weisenberger on 3/24/25.
-//
-
 import Foundation
-
-let fetchLimit = 10
 
 extension FeedView {
   @MainActor class ViewModel: ObservableObject {
@@ -20,8 +11,8 @@ extension FeedView {
     @Published var error = ""
 
     private var isLoadingMore = false
-
     private var offset = 0
+    private let fetchLimit = 10
 
     init(feedType: FeedType, userId: Int? = nil) {
       self.feedType = feedType
@@ -30,8 +21,6 @@ extension FeedView {
         loadMorePosts()
       }
     }
-
-    private var loadMoreTask: Task<Void, Never>? = nil
 
     func loadMorePosts(reset: Bool = false) {
       guard !isLoadingMore else { return }
@@ -45,22 +34,15 @@ extension FeedView {
       }
 
       Task {
-        do {
-          let urlBase =
-            switch feedType {
-            case .home:
-              "/posts/following"
-            case .all:
-              "/posts/all"
-            case .profile:
-              "/user/\(self.userId!)/posts"
-            }
+        let result = await FeedService.getFeedPosts(
+          feedType: feedType,
+          userId: userId,
+          offset: offset,
+          limit: fetchLimit
+        )
 
-          let fetchedPosts: [DetailedPost] = try await APIService.shared
-            .request(
-              endpoint: "\(urlBase)?limit=\(fetchLimit)&offset=\(offset)"
-            )
-
+        switch result {
+        case .success(let fetchedPosts):
           if reset {
             self.posts = fetchedPosts
           } else {
@@ -70,10 +52,10 @@ extension FeedView {
           hasMorePosts = fetchedPosts.count >= fetchLimit
           offset += fetchLimit
           error = ""
-        } catch {
-          print("Error fetching posts: \(error.localizedDescription)")
-          self.error = error.localizedDescription
+        case .failure(let fetchError):
+          error = fetchError.localizedDescription
         }
+
         isLoading = false
         isLoadingMore = false
       }
@@ -91,16 +73,21 @@ extension FeedView {
         if let index = posts.firstIndex(where: {
           $0.post.postId == post.post.postId
         }) {
+          // Optimistic update
           posts[index].isLiked.toggle()
-          let method = post.isLiked ? "DELETE" : "POST"
 
-          do {
-            try await APIService.shared.requestWithoutResponse(
-              endpoint: "/post/\(post.post.postId)/liked",
-              method: method
-            )
-          } catch {
-            print("Error adding like to post: \(error.localizedDescription)")
+          let result = await FeedService.toggleLike(
+            postId: post.post.postId,
+            isLiked: post.isLiked
+          )
+
+          if case .failure(let error) = result {
+            print("Error toggling like: \(error.localizedDescription)")
+            if let index = posts.firstIndex(where: {
+              $0.post.postId == post.post.postId
+            }) {
+              posts[index].isLiked.toggle()
+            }
           }
         }
       }
@@ -111,16 +98,21 @@ extension FeedView {
         if let index = posts.firstIndex(where: {
           $0.post.postId == post.post.postId
         }) {
+          // Optimistic update
           posts[index].commentCount += 1
 
-          do {
-            try await APIService.shared.requestWithoutResponse(
-              endpoint: "/post/\(post.post.postId)/comment",
-              method: "POST",
-              body: ["Text": content]
-            )
-          } catch {
-            print("Error adding like to post: \(error.localizedDescription)")
+          let result = await FeedService.addComment(
+            postId: post.post.postId,
+            content: content
+          )
+
+          if case .failure(let error) = result {
+            print("Error adding comment: \(error.localizedDescription)")
+            if let index = posts.firstIndex(where: {
+              $0.post.postId == post.post.postId
+            }) {
+              posts[index].commentCount -= 1
+            }
           }
         }
       }

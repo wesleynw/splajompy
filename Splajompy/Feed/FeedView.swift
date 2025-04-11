@@ -1,17 +1,4 @@
-//
-//  ContentView.swift
-//  Splajompy
-//
-//  Created by Wesley Weisenberger on 3/17/25.
-//
-
 import SwiftUI
-
-public enum FeedType {
-  case home
-  case all
-  case profile
-}
 
 struct FeedView<Header: View>: View {
   var feedType: FeedType

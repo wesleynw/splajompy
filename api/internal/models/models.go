@@ -2,7 +2,7 @@ package models
 
 import (
 	"github.com/jackc/pgx/v5/pgtype"
-	"splajompy.com/api/v2/internal/db"
+	db "splajompy.com/api/v2/internal/db/generated"
 )
 
 type DetailedPost struct {

@@ -9,7 +9,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
 
-	"splajompy.com/api/v2/internal/db"
+	db "splajompy.com/api/v2/internal/db/generated"
 	"splajompy.com/api/v2/internal/handler"
 	"splajompy.com/api/v2/internal/middleware"
 	"splajompy.com/api/v2/internal/service"
@@ -39,8 +39,9 @@ func main() {
 	postService := service.NewPostService(queries, s3Client)
 	commentService := service.NewCommentService(queries)
 	userService := service.NewUserService(queries)
+	notificationService := service.NewNotificationService(queries)
 
-	h := handler.NewHandler(*queries, postService, commentService, userService)
+	h := handler.NewHandler(*queries, postService, commentService, userService, notificationService)
 
 	mux := http.NewServeMux()
 	h.RegisterRoutes(mux)

@@ -33,9 +33,8 @@ struct ProfileView: View {
         .padding(.horizontal, -16)
       } else if !viewModel.isLoadingProfile {
         Text("This user doesn't exist.")
-          .font(.title)
-          .fontWeight(.black)
-          .frame(maxWidth: .infinity, alignment: .center)
+          .font(.title3)
+          .fontWeight(.bold)
           .padding(.top, 40)
       }
     }

@@ -53,7 +53,7 @@ struct PostView: View {
         }
       }
       if let postText = post.post.text {
-        PostTextView(text: postText)
+        ContentTextView(text: postText)
           .environmentObject(feedRefreshManager)
       }
       if let images = post.images, !images.isEmpty {
