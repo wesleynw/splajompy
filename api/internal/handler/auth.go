@@ -28,7 +28,7 @@ func (h *Handler) validateSessionToken(ctx context.Context, authHeader string) (
 	if len(parts) != 2 {
 		return nil, nil, errors.New("invalid authorization format")
 	}
-	token := strings.TrimSpace(parts[1])
+	token := strings.ReplaceAll(strings.TrimSpace(parts[1]), `\/`, `/`)
 
 	session, err := h.queries.GetSessionById(ctx, token)
 	if err != nil {

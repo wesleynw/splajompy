@@ -8,6 +8,9 @@ struct CredentialedLoginView: View {
   @Binding var identifier: String
   @State private var password = ""
 
+  @State var showError: Bool = false
+  @State var errorMessage: String = ""
+
   @FocusState private var isFocused: Bool
 
   @EnvironmentObject private var authManager: AuthManager
@@ -30,6 +33,7 @@ struct CredentialedLoginView: View {
             .autocapitalization(.none)
             .autocorrectionDisabled()
             .focused($isFocused)
+            .onAppear { isFocused = true }
             .padding(.bottom, 10)
           TextField("Password", text: $password)
             .padding(12)
@@ -41,16 +45,26 @@ struct CredentialedLoginView: View {
                 )
             )
             .cornerRadius(8)
-            .textContentType(.username)
+            .textContentType(.password)
             .autocapitalization(.none)
             .autocorrectionDisabled()
-            .focused($isFocused)
         }
         .padding(.bottom, 10)
 
         Spacer()
 
-        Button(action: { print("sign in") }
+        Button(action: {
+          Task {
+            let (success, err) = await authManager.signInWithPassword(
+              identifier: identifier,
+              password: password
+            )
+            if !success {
+              errorMessage = err
+              showError = true
+            }
+          }
+        }
         ) {
           ZStack {
             HStack {
@@ -120,6 +134,13 @@ struct CredentialedLoginView: View {
           }
         }
       }
+      .alert(isPresented: $showError) {
+        Alert(
+          title: Text("Sign In Failed"),
+          message: Text("Try again with a different Username or Email."),
+          dismissButton: .default(Text("OK"))
+        )
+      }
     }
   }
 }
@@ -127,7 +148,7 @@ struct CredentialedLoginView: View {
 #Preview {
   @Previewable @State var isPresenting = true
   @Previewable @State var identifier = "wesleynw@pm.me"
-  
+
   CredentialedLoginView(isPresenting: $isPresenting, identifier: $identifier)
     .environmentObject(AuthManager())
 }

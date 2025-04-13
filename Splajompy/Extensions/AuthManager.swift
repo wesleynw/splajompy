@@ -146,7 +146,6 @@ class AuthManager: ObservableObject, @unchecked Sendable {
       isLoading = false
 
       return true
-
     case .error:
       isLoading = false
       return false
@@ -154,11 +153,10 @@ class AuthManager: ObservableObject, @unchecked Sendable {
   }
 
   func signInWithPassword(identifier: String, password: String) async
-    -> AuthError
+    -> (success: Bool, error: String)
   {
-    await MainActor.run {
-      isLoading = true
-    }
+    isLoading = true
+
     struct LoginCredentials: Encodable {
       let identifier: String
       let password: String
@@ -169,60 +167,38 @@ class AuthManager: ObservableObject, @unchecked Sendable {
       password: password
     )
 
+    let jsonData: Data
     do {
-      let jsonData = try JSONEncoder().encode(credentials)
+      jsonData = try JSONEncoder().encode(credentials)
+    } catch {
+      return (false, error.localizedDescription)
+    }
 
-      let result: AsyncResult<AuthResponse> = await APIService.performRequest(
-        endpoint: "login",
-        method: "POST",
-        body: jsonData
+    let result: AsyncResult<AuthResponse> = await APIService.performRequest(
+      endpoint: "login",
+      method: "POST",
+      body: jsonData
+    )
+
+    switch result {
+    case .success(let authResponse):
+      KeychainHelper.standard.save(
+        authResponse.token,
+        service: "session-token",
+        account: "self"
       )
 
-      switch result {
-      case .success(let authResponse):
-        KeychainHelper.standard.save(
-          authResponse.token,
-          service: "session-token",
-          account: "self"
-        )
+      let defaults = UserDefaults.standard
+      defaults.set(authResponse.user.userId, forKey: "CurrentUserID")
+      defaults.set(authResponse.user.username, forKey: "CurrentUserUsername")
 
-        let defaults = UserDefaults.standard
-        defaults.set(authResponse.user.userId, forKey: "CurrentUserID")
-        defaults.set(authResponse.user.username, forKey: "CurrentUserUsername")
+      isAuthenticated = true
+      isLoading = false
 
-        await MainActor.run {
-          isAuthenticated = true
-          isLoading = false
-        }
-
-        return .none
-
-      case .error(let error):
-        await MainActor.run {
-          isLoading = false
-        }
-
-        if error is URLError {
-          return .invalidURL
-        } else if error is DecodingError {
-          return .decodingError
-        } else if let httpResponse = error as? HTTPURLResponse {
-          if httpResponse.statusCode == 401 {
-            return .incorrectPassword
-          } else if httpResponse.statusCode == 404 {
-            return .accountNonexistent
-          } else {
-            return .generalFailure
-          }
-        } else {
-          return .generalFailure
-        }
-      }
-    } catch {
-      await MainActor.run {
-        isLoading = false
-      }
-      return .serializationError
+      return (true, "")
+    case .error(let error):
+      isLoading = false
+      return (false, error.localizedDescription)
     }
   }
 }
