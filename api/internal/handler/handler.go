@@ -16,20 +16,29 @@ type Handler struct {
 	commentService        *service.CommentService
 	userService           *service.UserService
 	notifificationService *service.NotificationService
+	authService           *service.AuthService
 }
 
-func NewHandler(queries db.Queries, postService *service.PostService, commentService *service.CommentService, userService *service.UserService, notificationService *service.NotificationService) *Handler {
+func NewHandler(queries db.Queries,
+	postService *service.PostService,
+	commentService *service.CommentService,
+	userService *service.UserService,
+	notificationService *service.NotificationService,
+	authService *service.AuthService) *Handler {
 	return &Handler{
 		queries:               &queries,
 		postService:           postService,
 		commentService:        commentService,
 		userService:           userService,
 		notifificationService: notificationService,
+		authService:           authService,
 	}
 }
 
 func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
+	// mux.HandleFunc("POST /register", h.reg)
 	mux.HandleFunc("POST /login", h.Login)
+	mux.HandleFunc("POST /otc/generate", h.GenerateOTC)
 
 	mux.HandleFunc("POST /post/new", h.NewPost)
 	mux.HandleFunc("GET /post/{id}", h.GetPostById)

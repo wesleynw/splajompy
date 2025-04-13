@@ -8,12 +8,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgtype"
-	"golang.org/x/crypto/bcrypt"
 	db "splajompy.com/api/v2/internal/db/generated"
 	"splajompy.com/api/v2/internal/models"
+	"splajompy.com/api/v2/internal/service"
+	"splajompy.com/api/v2/internal/utilities"
 )
 
 func (h *Handler) getAuthenticatedUser(r *http.Request) (*models.PublicUser, error) {
@@ -55,68 +53,159 @@ func (h *Handler) validateSessionToken(ctx context.Context, authHeader string) (
 	return &session, &user, nil
 }
 
-type Credentials struct {
+type LoginRequest struct {
 	Identifier string `json:"identifier"`
 	Password   string `json:"password"`
 }
 
-// POST /login endpoint
 func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
-	var creds Credentials
-	if err := json.NewDecoder(r.Body).Decode(&creds); err != nil {
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
+	var request LoginRequest
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		utilities.RespondWithError(w, http.StatusBadRequest, "Invalid request body")
 		return
 	}
 
-	user, err := h.queries.GetUserWithPasswordByIdentifier(r.Context(), creds.Identifier)
+	var validationErrors []map[string]string
+
+	if request.Identifier == "" {
+		validationErrors = append(validationErrors, map[string]string{
+			"field":   "email",
+			"message": "Username or password is required",
+		})
+	}
+
+	if request.Password == "" {
+		validationErrors = append(validationErrors, map[string]string{
+			"field":   "password",
+			"message": "Password is required",
+		})
+	}
+
+	if len(validationErrors) > 0 {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"errors": validationErrors,
+		})
+		return
+	}
+
+	response, err := h.authService.LoginWithCredentials(r.Context(), (*service.Credentials)(&request))
 	if err != nil {
-		if err == pgx.ErrNoRows {
-			http.Error(w, "User not found", http.StatusNotFound)
-		} else {
-			http.Error(w, "Error fetching user", http.StatusInternalServerError)
+		switch err {
+		case service.ErrUserNotFound:
+			validationErrors = append(validationErrors, map[string]string{
+				"field":   "identifier",
+				"message": "This user doesn't exist",
+			})
+		case service.ErrInvalidPassword:
+			validationErrors = append(validationErrors, map[string]string{
+				"field":   "password",
+				"message": "Incorrect password",
+			})
+		default:
+			utilities.RespondWithError(w, http.StatusInternalServerError, "Something went wrong")
 		}
+	}
+
+	if len(validationErrors) > 0 {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"errors": validationErrors,
+		})
 		return
 	}
 
-	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(creds.Password)); err != nil {
-		http.Error(w, "Incorrect password", http.StatusUnauthorized)
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(response)
+}
+
+func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
+	var request service.RegisterRequest
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		utilities.RespondWithError(w, http.StatusBadRequest, "Invalid request body")
+	}
+
+	var validationErrors []map[string]string
+
+	if request.Email == "" {
+		validationErrors = append(validationErrors, map[string]string{
+			"field":   "email",
+			"message": "Email is required",
+		})
+	}
+
+	if request.Username == "" {
+		validationErrors = append(validationErrors, map[string]string{
+			"field":   "username",
+			"message": "Username is required",
+		})
+	}
+
+	if request.Password == "" {
+		validationErrors = append(validationErrors, map[string]string{
+			"field":   "password",
+			"message": "Password is required",
+		})
+	}
+
+	if len(validationErrors) > 0 {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"errors": validationErrors,
+		})
 		return
 	}
 
-	sessionID := uuid.NewString()
-	expiresAt := time.Now().Add(time.Hour * 24 * 90) // 90 days
-
-	var expiresAtPg pgtype.Timestamp
-	expiresAtPg.Time = expiresAt
-	expiresAtPg.Valid = true
-
-	err = h.queries.CreateSession(r.Context(), db.CreateSessionParams{
-		ID:        sessionID,
-		UserID:    user.UserID,
-		ExpiresAt: expiresAtPg,
-	})
+	response, err := h.authService.Register(r.Context(), request)
 	if err != nil {
-		http.Error(w, "Failed to create session", http.StatusInternalServerError)
+		switch err {
+		case service.ErrEmailTaken:
+			validationErrors = append(validationErrors, map[string]string{
+				"field":   "email",
+				"message": "This email address is already taken",
+			})
+		case service.ErrUsernameTaken:
+			validationErrors = append(validationErrors, map[string]string{
+				"field":   "username",
+				"message": "This username is already taken",
+			})
+		default:
+			utilities.RespondWithError(w, http.StatusInternalServerError, "Error during registration")
+			return
+		}
+	}
+
+	if len(validationErrors) > 0 {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusConflict)
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"errors": validationErrors,
+		})
 		return
 	}
 
-	var publicUser = models.PublicUser{
-		UserID:    user.UserID,
-		Username:  user.Username,
-		Email:     user.Email,
-		Name:      user.Name,
-		CreatedAt: user.CreatedAt,
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(response)
+}
+
+type OTCRequest struct {
+	Identifier string `json:"identifier"`
+}
+
+func (h *Handler) GenerateOTC(w http.ResponseWriter, r *http.Request) {
+	var request OTCRequest
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		utilities.RespondWithError(w, http.StatusBadRequest, "Invalid request body")
+		return
 	}
 
-	response := struct {
-		Token string            `json:"token"`
-		User  models.PublicUser `json:"user"`
-	}{
-		Token: sessionID,
-		User:  publicUser,
-	}
-
-	if err := h.writeJSON(w, response, http.StatusOK); err != nil {
-		http.Error(w, "error encoding response", http.StatusInternalServerError)
+	err := h.authService.ProcessOTC(r.Context(), request.Identifier)
+	if err != nil {
+		utilities.RespondWithError(w, http.StatusInternalServerError, "Something went wrong")
 	}
 }

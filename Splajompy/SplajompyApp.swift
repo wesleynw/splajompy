@@ -71,7 +71,7 @@ struct SplajompyApp: App {
           .environmentObject(feedRefreshManager)
           .environmentObject(authManager)
         } else {
-          LoginView()
+          SplashScreenView()
             .environmentObject(authManager)
         }
 

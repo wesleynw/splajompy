@@ -8,6 +8,7 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
+	"github.com/resend/resend-go/v2"
 
 	db "splajompy.com/api/v2/internal/db/generated"
 	"splajompy.com/api/v2/internal/handler"
@@ -31,6 +32,9 @@ func main() {
 
 	queries := db.New(conn)
 
+	resentApiKey := os.Getenv("RESEND_API_KEY")
+	resentClient := resend.NewClient(resentApiKey)
+
 	s3Client, err := service.NewS3Client()
 	if err != nil {
 		log.Fatalf("failed to initialize s3 client: %v", err)
@@ -40,8 +44,9 @@ func main() {
 	commentService := service.NewCommentService(queries)
 	userService := service.NewUserService(queries)
 	notificationService := service.NewNotificationService(queries)
+	authmanager := service.NewAuthService(queries, resentClient)
 
-	h := handler.NewHandler(*queries, postService, commentService, userService, notificationService)
+	h := handler.NewHandler(*queries, postService, commentService, userService, notificationService, authmanager)
 
 	mux := http.NewServeMux()
 	h.RegisterRoutes(mux)

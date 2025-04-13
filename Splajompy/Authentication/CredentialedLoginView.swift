@@ -1,16 +1,16 @@
 import SwiftUI
 
-struct LoginView: View {
+struct CredentialedLoginView: View {
+  let feedbackGenerator = UIImpactFeedbackGenerator(style: .medium)
   @Binding var isPresenting: Bool
   @Environment(\.dismiss) var dismiss
 
   @State private var identifier = ""
+  @State private var password = ""
+
   @FocusState private var isFocused: Bool
 
   @EnvironmentObject private var authManager: AuthManager
-  
-  @State private var path = NavigationPath()
-
 
   var body: some View {
     NavigationStack {
@@ -20,7 +20,25 @@ struct LoginView: View {
             .padding(12)
             .background(
               RoundedRectangle(cornerRadius: 8)
-                .stroke(isFocused ? Color.primary : Color.gray.opacity(0.75), lineWidth: 2)
+                .stroke(
+                  isFocused ? Color.primary : Color.gray.opacity(0.75),
+                  lineWidth: 2
+                )
+            )
+            .cornerRadius(8)
+            .textContentType(.username)
+            .autocapitalization(.none)
+            .autocorrectionDisabled()
+            .focused($isFocused)
+            .padding(.bottom, 10)
+          TextField("Password", text: $password)
+            .padding(12)
+            .background(
+              RoundedRectangle(cornerRadius: 8)
+                .stroke(
+                  isFocused ? Color.primary : Color.gray.opacity(0.75),
+                  lineWidth: 2
+                )
             )
             .cornerRadius(8)
             .textContentType(.username)
@@ -29,9 +47,9 @@ struct LoginView: View {
             .focused($isFocused)
         }
         .padding(.bottom, 10)
-        
+
         Spacer()
-        
+
         Button(action: { print("sign in") }
         ) {
           ZStack {
@@ -39,11 +57,13 @@ struct LoginView: View {
               Spacer()
               Text("Continue")
                 .font(.system(size: 16, weight: .bold))
-                .foregroundColor(identifier.isEmpty ? Color.white.opacity(0.4) : Color.white)
+                .foregroundColor(
+                  identifier.isEmpty ? Color.white.opacity(0.4) : Color.white
+                )
                 .padding()
               Spacer()
             }
-            
+
             if authManager.isLoading {
               HStack {
                 Spacer()
@@ -60,13 +80,13 @@ struct LoginView: View {
         }
         .disabled(authManager.isLoading || identifier.isEmpty)
         .padding(.bottom, 8)
-        
-        NavigationLink {
-          CredentialedLoginView(isPresenting: $isPresenting)
+
+        Button {
+          dismiss()
         } label: {
           HStack {
             Spacer()
-            Text("Log in with password")
+            Text("Log in with email")
               .font(.system(size: 16, weight: .bold))
               .padding()
             Spacer()
@@ -83,13 +103,13 @@ struct LoginView: View {
       }
       .padding(.horizontal, 24)
       .padding(.vertical, 32)
-//      .navigationBarTitleDisplayMode(.inline)
       .navigationTitle("Sign In")
+      .navigationBarBackButtonHidden()
       .toolbar {
         ToolbarItem(placement: .topBarTrailing) {
           Button(action: {
+            feedbackGenerator.impactOccurred()
             isPresenting = false
-//            dismiss()
           }) {
             Image(systemName: "xmark")
               .font(.system(size: 15, weight: .bold))
@@ -101,28 +121,20 @@ struct LoginView: View {
         }
       }
     }
-    //    .navigationViewStyle(StackNavigationViewStyle())
-    //    .alert(isPresented: $showError) {
-    //      Alert(
-    //        title: Text("Sign In Failed"),
-    //        message: Text(errorMessage),
-    //        dismissButton: .default(Text("OK"))
-    //      )
-    //    }
   }
 }
 
 #Preview {
   @Previewable @State var isPresenting = true
-  
-  return LoginView(isPresenting: $isPresenting)
+
+  return CredentialedLoginView(isPresenting: $isPresenting)
     .environmentObject(AuthManager())
 }
 
 #Preview("Dark Mode") {
   @Previewable @State var isPresenting = true
 
-  return LoginView(isPresenting: $isPresenting)
+  CredentialedLoginView(isPresenting: $isPresenting)
     .environmentObject(AuthManager())
     .preferredColorScheme(.dark)
 }
