@@ -5,14 +5,11 @@ import (
 	"html/template"
 )
 
-// VerificationEmailData holds the data needed for the template
 type VerificationEmailData struct {
 	Code string
 }
 
-// GenerateVerificationEmail creates an HTML email with the verification code
 func GenerateVerificationEmail(code string) (string, error) {
-	// Define the HTML template
 	tmpl := `
 <!DOCTYPE html>
 <html>
@@ -34,13 +31,11 @@ func GenerateVerificationEmail(code string) (string, error) {
 </html>
 `
 
-	// Parse the template
 	t, err := template.New("verification").Parse(tmpl)
 	if err != nil {
 		return "", err
 	}
 
-	// Execute the template with the provided code
 	data := VerificationEmailData{
 		Code: code,
 	}
@@ -52,22 +47,3 @@ func GenerateVerificationEmail(code string) (string, error) {
 
 	return buf.String(), nil
 }
-
-// Usage example:
-// func main() {
-//     code, _ := GenerateOTCCode() // Your code generation function
-//     htmlEmail, err := GenerateVerificationEmail(code)
-//     if err != nil {
-//         log.Fatal(err)
-//     }
-//
-//     // Use with email service like Resend:
-//     // client := resend.NewClient("re_123456789")
-//     // params := &resend.SendEmailRequest{
-//     //     From:    "verification@yourdomain.com",
-//     //     To:      []string{"user@example.com"},
-//     //     Subject: "Your Verification Code",
-//     //     HTML:    htmlEmail,
-//     // }
-//     // resp, err := client.Emails.Send(context.Background(), params)
-// }

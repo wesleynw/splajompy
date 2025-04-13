@@ -36,12 +36,12 @@ func NewHandler(queries db.Queries,
 }
 
 func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
-	// mux.HandleFunc("POST /register", h.reg)
+	// mux.HandleFunc("POST /register", h.register)
 	mux.HandleFunc("POST /login", h.Login)
 	mux.HandleFunc("POST /otc/generate", h.GenerateOTC)
 	mux.HandleFunc("POST /otc/verify", h.VerifyOTC)
 
-	mux.HandleFunc("POST /post/new", h.NewPost)
+	mux.HandleFunc("POST /post/new", h.CreateNewPost)
 	mux.HandleFunc("GET /post/{id}", h.GetPostById)
 	mux.HandleFunc("GET /user/{id}/posts", h.GetPostsByUserId)
 

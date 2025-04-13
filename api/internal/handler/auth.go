@@ -65,28 +65,8 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var validationErrors []map[string]string
-
-	if request.Identifier == "" {
-		validationErrors = append(validationErrors, map[string]string{
-			"field":   "email",
-			"message": "Username or password is required",
-		})
-	}
-
-	if request.Password == "" {
-		validationErrors = append(validationErrors, map[string]string{
-			"field":   "password",
-			"message": "Password is required",
-		})
-	}
-
-	if len(validationErrors) > 0 {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(map[string]interface{}{
-			"errors": validationErrors,
-		})
+	if request.Identifier == "" || request.Password == "" {
+		utilities.RespondWithMessage(w, http.StatusBadRequest, "Validation error") // TODO: more comprehensive validation errors
 		return
 	}
 
@@ -94,103 +74,50 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		switch err {
 		case service.ErrUserNotFound:
-			validationErrors = append(validationErrors, map[string]string{
-				"field":   "identifier",
-				"message": "This user doesn't exist",
-			})
+			utilities.RespondWithMessage(w, http.StatusBadRequest, "This user doesn't exist")
 		case service.ErrInvalidPassword:
-			validationErrors = append(validationErrors, map[string]string{
-				"field":   "password",
-				"message": "Incorrect password",
-			})
+			utilities.RespondWithMessage(w, http.StatusBadRequest, "Incorrect password")
 		default:
 			utilities.RespondWithMessage(w, http.StatusInternalServerError, "Something went wrong")
 		}
-	}
-
-	if len(validationErrors) > 0 {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(map[string]interface{}{
-			"errors": validationErrors,
-		})
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(response)
+	utilities.HandleSuccess(w, response)
+}
+
+type RegisterRequest struct {
+	Email    string `json:"email"`
+	Username string `json:"username"`
+	Password string `json:"password"`
 }
 
 func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
-	var request service.RegisterRequest
+	var request RegisterRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		utilities.RespondWithMessage(w, http.StatusBadRequest, "Invalid request body")
-	}
-
-	var validationErrors []map[string]string
-
-	if request.Email == "" {
-		validationErrors = append(validationErrors, map[string]string{
-			"field":   "email",
-			"message": "Email is required",
-		})
-	}
-
-	if request.Username == "" {
-		validationErrors = append(validationErrors, map[string]string{
-			"field":   "username",
-			"message": "Username is required",
-		})
-	}
-
-	if request.Password == "" {
-		validationErrors = append(validationErrors, map[string]string{
-			"field":   "password",
-			"message": "Password is required",
-		})
-	}
-
-	if len(validationErrors) > 0 {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(map[string]interface{}{
-			"errors": validationErrors,
-		})
 		return
 	}
 
-	response, err := h.authService.Register(r.Context(), request)
+	if request.Email == "" || request.Username == "" || request.Password == "" {
+		utilities.RespondWithMessage(w, http.StatusBadRequest, "Validation error") // TODO: more comprehensive validation errors
+		return
+	}
+
+	response, err := h.authService.Register(r.Context(), request.Email, request.Username, request.Password)
 	if err != nil {
 		switch err {
 		case service.ErrEmailTaken:
-			validationErrors = append(validationErrors, map[string]string{
-				"field":   "email",
-				"message": "This email address is already taken",
-			})
+			utilities.RespondWithMessage(w, http.StatusBadRequest, "An account already exists with this email")
 		case service.ErrUsernameTaken:
-			validationErrors = append(validationErrors, map[string]string{
-				"field":   "username",
-				"message": "This username is already taken",
-			})
+			utilities.RespondWithMessage(w, http.StatusBadRequest, "An account already exists with this username")
 		default:
-			utilities.RespondWithMessage(w, http.StatusInternalServerError, "Error during registration")
-			return
+			utilities.RespondWithMessage(w, http.StatusInternalServerError, "Something went wrong")
 		}
-	}
-
-	if len(validationErrors) > 0 {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusConflict)
-		json.NewEncoder(w).Encode(map[string]interface{}{
-			"errors": validationErrors,
-		})
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(response)
+	utilities.HandleSuccess(w, response)
 }
 
 type GenerateOtcRequest struct {

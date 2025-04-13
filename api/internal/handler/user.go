@@ -2,65 +2,71 @@ package handler
 
 import (
 	"net/http"
+
+	"splajompy.com/api/v2/internal/utilities"
 )
 
-// GET /user/{id}
 func (h *Handler) GetUserById(w http.ResponseWriter, r *http.Request) {
 	currentUser, err := h.getAuthenticatedUser(r)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusUnauthorized)
+		utilities.HandleError(w, http.StatusUnauthorized, "Unauthorized")
 		return
 	}
 
 	id, err := h.GetIntPathParam(r, "id")
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		utilities.HandleError(w, http.StatusBadRequest, "Missing ID parameter")
 		return
 	}
 
 	user, err := h.userService.GetUserById(r.Context(), *currentUser, id)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusNotFound)
+		utilities.HandleError(w, http.StatusNotFound, "This user doesn't exist")
+		return
 	}
 
-	if err := h.writeJSON(w, user, http.StatusOK); err != nil {
-		http.Error(w, "error encoding response", http.StatusInternalServerError)
-	}
+	utilities.HandleSuccess(w, user)
 }
 
-// POST /follow/{user_id}
 func (h *Handler) FollowUser(w http.ResponseWriter, r *http.Request) {
 	currentUser, err := h.getAuthenticatedUser(r)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusUnauthorized)
+		utilities.HandleError(w, http.StatusUnauthorized, "Unauthorized")
 		return
 	}
 
 	userId, err := h.GetIntPathParam(r, "user_id")
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		utilities.HandleError(w, http.StatusBadRequest, "Missing ID parameter")
+		return
 	}
 
 	err = h.userService.FollowUser(r.Context(), *currentUser, userId)
 	if err != nil {
-		http.Error(w, "Unable to follow user", http.StatusInternalServerError)
+		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
 	}
+
+	utilities.HandleEmptySuccess(w)
 }
 
 func (h *Handler) UnfollowUser(w http.ResponseWriter, r *http.Request) {
 	currentUser, err := h.getAuthenticatedUser(r)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusUnauthorized)
+		utilities.HandleError(w, http.StatusUnauthorized, "Unauthorized")
 		return
 	}
 
 	userId, err := h.GetIntPathParam(r, "user_id")
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		utilities.HandleError(w, http.StatusBadRequest, "Missing ID parameter")
+		return
 	}
 
 	err = h.userService.UnfollowUser(r.Context(), *currentUser, userId)
 	if err != nil {
-		http.Error(w, "Unable to unfollow user", http.StatusInternalServerError)
+		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
+		return
 	}
+
+	utilities.HandleEmptySuccess(w)
 }

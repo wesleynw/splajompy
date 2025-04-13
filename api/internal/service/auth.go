@@ -49,8 +49,8 @@ type RegisterRequest struct {
 	Password string `json:"password"`
 }
 
-func (s *AuthService) Register(ctx context.Context, request RegisterRequest) (*RegisterResponse, error) {
-	existingUsername, err := s.queries.GetIsUsernameInUse(ctx, request.Username)
+func (s *AuthService) Register(ctx context.Context, email string, username string, password string) (*RegisterResponse, error) {
+	existingUsername, err := s.queries.GetIsUsernameInUse(ctx, username)
 	if err != nil {
 		return nil, errors.New("unable to create user")
 	}
@@ -58,7 +58,7 @@ func (s *AuthService) Register(ctx context.Context, request RegisterRequest) (*R
 		return nil, ErrUsernameTaken
 	}
 
-	existingEmail, err := s.queries.GetIsEmailInUse(ctx, request.Email)
+	existingEmail, err := s.queries.GetIsEmailInUse(ctx, email)
 	if err != nil {
 		return nil, errors.New("unable to create user")
 	}
@@ -66,14 +66,14 @@ func (s *AuthService) Register(ctx context.Context, request RegisterRequest) (*R
 		return nil, ErrEmailTaken
 	}
 
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(request.Password), 10)
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), 10)
 	if err != nil {
 		return nil, err
 	}
 
 	user, err := s.queries.CreateUser(ctx, db.CreateUserParams{
-		Email:    request.Email,
-		Username: request.Username,
+		Email:    email,
+		Username: username,
 		Password: string(hashedPassword),
 	})
 	if err != nil {
@@ -135,11 +135,6 @@ func (s *AuthService) VerifyOTCCode(ctx context.Context, identifier string, code
 	if err != nil {
 		return nil, err
 	}
-
-	var now = time.Now().UTC()
-	var expity = dbCode.ExpiresAt.Time
-
-	fmt.Println("%s, %s", now, expity)
 
 	if dbCode.ExpiresAt.Time.Before(time.Now().UTC()) {
 		return nil, errors.New("code expired")
