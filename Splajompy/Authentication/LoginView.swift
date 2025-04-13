@@ -5,12 +5,12 @@ struct LoginView: View {
   @Environment(\.dismiss) var dismiss
 
   @State private var identifier = ""
+  @State private var hasRequestedCode: Bool = false
+  @State private var showError: Bool = false
+
   @FocusState private var isFocused: Bool
 
   @EnvironmentObject private var authManager: AuthManager
-  
-  @State private var path = NavigationPath()
-
 
   var body: some View {
     NavigationStack {
@@ -20,7 +20,10 @@ struct LoginView: View {
             .padding(12)
             .background(
               RoundedRectangle(cornerRadius: 8)
-                .stroke(isFocused ? Color.primary : Color.gray.opacity(0.75), lineWidth: 2)
+                .stroke(
+                  isFocused ? Color.primary : Color.gray.opacity(0.75),
+                  lineWidth: 2
+                )
             )
             .cornerRadius(8)
             .textContentType(.username)
@@ -29,21 +32,33 @@ struct LoginView: View {
             .focused($isFocused)
         }
         .padding(.bottom, 10)
-        
+        .onAppear { isFocused = true }
+
         Spacer()
-        
-        Button(action: { print("sign in") }
+
+        Button(action: {
+          Task {
+            let success = await authManager.requestOneTimeCode(for: identifier)
+            if success {
+              hasRequestedCode = true
+            } else {
+              showError = true
+            }
+          }
+        }
         ) {
           ZStack {
             HStack {
               Spacer()
               Text("Continue")
                 .font(.system(size: 16, weight: .bold))
-                .foregroundColor(identifier.isEmpty ? Color.white.opacity(0.4) : Color.white)
+                .foregroundColor(
+                  identifier.isEmpty ? Color.white.opacity(0.4) : Color.white
+                )
                 .padding()
               Spacer()
             }
-            
+
             if authManager.isLoading {
               HStack {
                 Spacer()
@@ -60,9 +75,9 @@ struct LoginView: View {
         }
         .disabled(authManager.isLoading || identifier.isEmpty)
         .padding(.bottom, 8)
-        
+
         NavigationLink {
-          CredentialedLoginView(isPresenting: $isPresenting)
+          CredentialedLoginView(isPresenting: $isPresenting, identifier: $identifier)
         } label: {
           HStack {
             Spacer()
@@ -83,13 +98,11 @@ struct LoginView: View {
       }
       .padding(.horizontal, 24)
       .padding(.vertical, 32)
-//      .navigationBarTitleDisplayMode(.inline)
       .navigationTitle("Sign In")
       .toolbar {
         ToolbarItem(placement: .topBarTrailing) {
           Button(action: {
             isPresenting = false
-//            dismiss()
           }) {
             Image(systemName: "xmark")
               .font(.system(size: 15, weight: .bold))
@@ -100,21 +113,24 @@ struct LoginView: View {
           }
         }
       }
+      .navigationDestination(isPresented: $hasRequestedCode) {
+        OneTimeCodeView(identifier: identifier, isPresenting: $isPresenting)
+          .environmentObject(authManager)
+      }
     }
-    //    .navigationViewStyle(StackNavigationViewStyle())
-    //    .alert(isPresented: $showError) {
-    //      Alert(
-    //        title: Text("Sign In Failed"),
-    //        message: Text(errorMessage),
-    //        dismissButton: .default(Text("OK"))
-    //      )
-    //    }
+    .alert(isPresented: $showError) {
+      Alert(
+        title: Text("Sign In Failed"),
+        message: Text("Try again with a different Username or Email."),
+        dismissButton: .default(Text("OK"))
+      )
+    }
   }
 }
 
 #Preview {
   @Previewable @State var isPresenting = true
-  
+
   return LoginView(isPresenting: $isPresenting)
     .environmentObject(AuthManager())
 }

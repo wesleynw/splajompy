@@ -2,9 +2,11 @@ import SwiftUI
 
 struct OneTimeCodeView: View {
   let feedbackGenerator = UIImpactFeedbackGenerator(style: .medium)
+  var identifier: String
   @Binding var isPresenting: Bool
   @Environment(\.dismiss) var dismiss
   @FocusState private var isFocused: Bool
+  @State private var showError: Bool = false
 
   @State private var oneTimeCode: String = ""
   @EnvironmentObject private var authManager: AuthManager
@@ -26,10 +28,19 @@ struct OneTimeCodeView: View {
         .autocorrectionDisabled()
         .focused($isFocused)
         .textContentType(.oneTimeCode)
+        .keyboardType(.numberPad)
+        .onAppear { isFocused = true }
       
       Spacer()
       
-      Button(action: { print("sign in") }
+      Button(action: {
+        Task {
+          let success = await authManager.verifyOneTimeCode(for: identifier, code: oneTimeCode)
+          if !success {
+            showError = true
+          }
+        }
+      }
       ) {
         ZStack {
           HStack {
@@ -77,14 +88,21 @@ struct OneTimeCodeView: View {
         }
       }
     }
+    .alert(isPresented: $showError) {
+      Alert(
+        title: Text("Sign In Failed"),
+        message: Text("Incorrect code."),
+        dismissButton: .default(Text("OK"))
+      )
+    }
   }
 }
 
 #Preview {
   @Previewable @State var isPresenting = true
 
-  return NavigationStack {
-    OneTimeCodeView(isPresenting: $isPresenting)
+  NavigationStack {
+    OneTimeCodeView(identifier: "wesleynw", isPresenting: $isPresenting)
       .environmentObject(AuthManager())
   }
 }
@@ -92,8 +110,8 @@ struct OneTimeCodeView: View {
 #Preview("Dark Mode") {
   @Previewable @State var isPresenting = true
 
-  return NavigationStack {
-    OneTimeCodeView(isPresenting: $isPresenting)
+  NavigationStack {
+    OneTimeCodeView(identifier: "wesleynw", isPresenting: $isPresenting)
       .environmentObject(AuthManager())
   }
   .preferredColorScheme(.dark)

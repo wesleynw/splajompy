@@ -5,7 +5,7 @@ struct CredentialedLoginView: View {
   @Binding var isPresenting: Bool
   @Environment(\.dismiss) var dismiss
 
-  @State private var identifier = ""
+  @Binding var identifier: String
   @State private var password = ""
 
   @FocusState private var isFocused: Bool
@@ -126,15 +126,17 @@ struct CredentialedLoginView: View {
 
 #Preview {
   @Previewable @State var isPresenting = true
-
-  return CredentialedLoginView(isPresenting: $isPresenting)
+  @Previewable @State var identifier = "wesleynw@pm.me"
+  
+  CredentialedLoginView(isPresenting: $isPresenting, identifier: $identifier)
     .environmentObject(AuthManager())
 }
 
 #Preview("Dark Mode") {
   @Previewable @State var isPresenting = true
+  @Previewable @State var identifier = "wesleynw@pm.me"
 
-  CredentialedLoginView(isPresenting: $isPresenting)
+  CredentialedLoginView(isPresenting: $isPresenting, identifier: $identifier)
     .environmentObject(AuthManager())
     .preferredColorScheme(.dark)
 }

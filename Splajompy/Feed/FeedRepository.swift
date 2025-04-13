@@ -14,7 +14,7 @@ struct FeedService {
     userId: Int? = nil,
     offset: Int,
     limit: Int
-  ) async -> APIResult<[DetailedPost]> {
+  ) async -> AsyncResult<[DetailedPost]> {
     let urlBase: String
     switch feedType {
     case .home:
@@ -23,7 +23,7 @@ struct FeedService {
       urlBase = "posts/all"
     case .profile:
       guard let userId = userId else {
-        return .failure(URLError(.badURL))
+        return .error(URLError(.badURL))
       }
       urlBase = "user/\(userId)/posts"
     }
@@ -39,42 +39,33 @@ struct FeedService {
     )
   }
 
-  static func toggleLike(postId: Int, isLiked: Bool) async -> APIResult<Void> {
+  static func toggleLike(postId: Int, isLiked: Bool) async -> AsyncResult<
+    EmptyResponse
+  > {
     let method = isLiked ? "DELETE" : "POST"
 
-    let result: APIResult<EmptyResponse> = await APIService.performRequest(
+    return await APIService.performRequest(
       endpoint: "post/\(postId)/liked",
       method: method
     )
-
-    switch result {
-    case .success:
-      return .success(())
-    case .failure(let error):
-      return .failure(error)
-    }
   }
 
-  static func addComment(postId: Int, content: String) async -> APIResult<Void> {
+  static func addComment(postId: Int, content: String) async -> AsyncResult<
+    EmptyResponse
+  > {
     let bodyData: [String: String] = ["Text": content]
 
+    let jsonData: Data
     do {
-      let jsonData = try JSONEncoder().encode(bodyData)
-
-      let result: APIResult<EmptyResponse> = await APIService.performRequest(
-        endpoint: "post/\(postId)/comment",
-        method: "POST",
-        body: jsonData
-      )
-
-      switch result {
-      case .success:
-        return .success(())
-      case .failure(let error):
-        return .failure(error)
-      }
+      jsonData = try JSONEncoder().encode(bodyData)
     } catch {
-      return .failure(error)
+      return .error(error)
     }
+
+    return await APIService.performRequest(
+      endpoint: "post/\(postId)/comment",
+      method: "POST",
+      body: jsonData
+    )
   }
 }

@@ -12,26 +12,19 @@ struct UserProfile: Decodable {
 }
 
 struct ProfileService {
-  static func getUserProfile(userId: Int) async -> APIResult<UserProfile> {
+  static func getUserProfile(userId: Int) async -> AsyncResult<UserProfile> {
     return await APIService.performRequest(
       endpoint: "user/\(userId)",
       method: "GET"
     )
   }
 
-  static func toggleFollowing(userId: Int, isFollowing: Bool) async -> APIResult<Void> {
+  static func toggleFollowing(userId: Int, isFollowing: Bool) async -> AsyncResult<EmptyResponse> {
     let method = isFollowing ? "DELETE" : "POST"
 
-    let result: APIResult<EmptyResponse> = await APIService.performRequest(
+    return await APIService.performRequest(
       endpoint: "follow/\(userId)",
       method: method
     )
-
-    switch result {
-    case .success:
-      return .success(())
-    case .failure(let error):
-      return .failure(error)
-    }
   }
 }

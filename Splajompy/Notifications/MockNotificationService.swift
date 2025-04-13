@@ -45,7 +45,7 @@ class MockNotificationService: @unchecked Sendable, NotificationServiceProtocol 
     }
   }
 
-  func getAllNotifications(offset: Int, limit: Int) async -> APIResult<[Notification]> {
+  func getAllNotifications(offset: Int, limit: Int) async -> AsyncResult<[Notification]> {
     callHistory.append((offset, limit))
 
     switch behavior {
@@ -53,18 +53,18 @@ class MockNotificationService: @unchecked Sendable, NotificationServiceProtocol 
       return .success(Array(notifications.dropFirst(offset).prefix(limit)))
 
     case .failure(let error):
-      return .failure(error)
+      return .error(error)
 
     case .delayed(let notifications, let delay):
       try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
       return .success(Array(notifications.dropFirst(offset).prefix(limit)))
 
     default:
-      return .failure(MockError("Unexpected behavior set for getAllNotifications"))
+      return .error(MockError("Unexpected behavior set for getAllNotifications"))
     }
   }
 
-  func markNotificationAsRead(notificationId: Int) async -> APIResult<EmptyResponse> {
+  func markNotificationAsRead(notificationId: Int) async -> AsyncResult<EmptyResponse> {
     markedAsReadIds.append(notificationId)
 
     switch behavior {
@@ -72,7 +72,7 @@ class MockNotificationService: @unchecked Sendable, NotificationServiceProtocol 
       return .success(EmptyResponse())
 
     case .markReadFailure(let error):
-      return .failure(error)
+      return .error(error)
 
     case .delayed(_, let delay):
       try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
@@ -83,7 +83,7 @@ class MockNotificationService: @unchecked Sendable, NotificationServiceProtocol 
     }
   }
 
-  func markAllNotificationsAsRead() async -> APIResult<EmptyResponse> {
+  func markAllNotificationsAsRead() async -> AsyncResult<EmptyResponse> {
     markedAllAsReadCalls += 1
 
     switch behavior {
@@ -91,7 +91,7 @@ class MockNotificationService: @unchecked Sendable, NotificationServiceProtocol 
       return .success(EmptyResponse())
 
     case .markReadFailure(let error):
-      return .failure(error)
+      return .error(error)
 
     case .delayed(_, let delay):
       try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
@@ -102,7 +102,7 @@ class MockNotificationService: @unchecked Sendable, NotificationServiceProtocol 
     }
   }
 
-  func hasUnreadNotifications() async -> APIResult<Bool> {
+  func hasUnreadNotifications() async -> AsyncResult<Bool> {
     hasUnreadCalls += 1
 
     switch behavior {
@@ -110,7 +110,7 @@ class MockNotificationService: @unchecked Sendable, NotificationServiceProtocol 
       return .success(hasUnread)
 
     case .failure(let error):
-      return .failure(error)
+      return .error(error)
 
     case .delayed(_, let delay):
       try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))

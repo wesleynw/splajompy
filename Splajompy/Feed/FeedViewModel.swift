@@ -52,7 +52,7 @@ extension FeedView {
           hasMorePosts = fetchedPosts.count >= fetchLimit
           offset += fetchLimit
           error = ""
-        case .failure(let fetchError):
+        case .error(let fetchError):
           error = fetchError.localizedDescription
         }
 
@@ -81,7 +81,7 @@ extension FeedView {
             isLiked: post.isLiked
           )
 
-          if case .failure(let error) = result {
+          if case .error(let error) = result {
             print("Error toggling like: \(error.localizedDescription)")
             if let index = posts.firstIndex(where: {
               $0.post.postId == post.post.postId
@@ -106,7 +106,7 @@ extension FeedView {
             content: content
           )
 
-          if case .failure(let error) = result {
+          if case .error(let error) = result {
             print("Error adding comment: \(error.localizedDescription)")
             if let index = posts.firstIndex(where: {
               $0.post.postId == post.post.postId

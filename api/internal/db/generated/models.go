@@ -76,3 +76,10 @@ type User struct {
 	CreatedAt pgtype.Timestamp `json:"createdAt"`
 	Name      pgtype.Text      `json:"name"`
 }
+
+type VerificationCode struct {
+	ID        int32            `json:"id"`
+	Code      string           `json:"code"`
+	UserID    int32            `json:"userId"`
+	ExpiresAt pgtype.Timestamp `json:"expiresAt"`
+}

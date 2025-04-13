@@ -22,10 +22,35 @@ type ErrorResponse struct {
 	Message string `json:"message"`
 }
 
-func RespondWithError(w http.ResponseWriter, status int, message string) {
+func RespondWithMessage(w http.ResponseWriter, status int, message string) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 	json.NewEncoder(w).Encode(ErrorResponse{
 		Message: message,
 	})
+}
+
+func HandleError(w http.ResponseWriter, statusCode int, message string) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(statusCode)
+	response := models.APIResponse{
+		Success: false,
+		Error:   message,
+	}
+	json.NewEncoder(w).Encode(response)
+}
+
+func HandleSuccess[T any](w http.ResponseWriter, data T) {
+	w.Header().Set("Content-Type", "application/json")
+	response := models.APIResponse{
+		Success: true,
+		Data:    data,
+	}
+	json.NewEncoder(w).Encode(response)
+}
+
+func HandleEmptySuccess(w http.ResponseWriter) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]bool{"success": true})
 }

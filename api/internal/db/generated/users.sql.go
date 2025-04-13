@@ -53,6 +53,24 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 	return i, err
 }
 
+const createVerificationCode = `-- name: CreateVerificationCode :exec
+INSERT INTO "verificationCodes" (code, user_id, expires_at)
+VALUES ($1, $2, $3)
+ON CONFLICT (user_id) DO UPDATE
+SET code = $1, expires_at = $3
+`
+
+type CreateVerificationCodeParams struct {
+	Code      string           `json:"code"`
+	UserID    int32            `json:"userId"`
+	ExpiresAt pgtype.Timestamp `json:"expiresAt"`
+}
+
+func (q *Queries) CreateVerificationCode(ctx context.Context, arg CreateVerificationCodeParams) error {
+	_, err := q.db.Exec(ctx, createVerificationCode, arg.Code, arg.UserID, arg.ExpiresAt)
+	return err
+}
+
 const deleteSession = `-- name: DeleteSession :exec
 DELETE FROM sessions
 WHERE id = $1
@@ -214,6 +232,30 @@ func (q *Queries) GetUserWithPasswordByIdentifier(ctx context.Context, email str
 		&i.Username,
 		&i.CreatedAt,
 		&i.Name,
+	)
+	return i, err
+}
+
+const getVerificationCode = `-- name: GetVerificationCode :one
+SELECT id, code, user_id, expires_at
+FROM "verificationCodes"
+WHERE user_id = $1 and code = $2
+LIMIT 1
+`
+
+type GetVerificationCodeParams struct {
+	UserID int32  `json:"userId"`
+	Code   string `json:"code"`
+}
+
+func (q *Queries) GetVerificationCode(ctx context.Context, arg GetVerificationCodeParams) (VerificationCode, error) {
+	row := q.db.QueryRow(ctx, getVerificationCode, arg.UserID, arg.Code)
+	var i VerificationCode
+	err := row.Scan(
+		&i.ID,
+		&i.Code,
+		&i.UserID,
+		&i.ExpiresAt,
 	)
 	return i, err
 }

@@ -18,6 +18,7 @@ enum AuthError {
   case noToken
 }
 
+@MainActor
 class AuthManager: ObservableObject, @unchecked Sendable {
   @Published var isAuthenticated: Bool = false
   @Published var isLoading: Bool = false
@@ -79,6 +80,79 @@ class AuthManager: ObservableObject, @unchecked Sendable {
     return (userId, username)
   }
 
+  func requestOneTimeCode(for identifier: String) async -> Bool {
+    isLoading = true
+
+    struct Body: Encodable {
+      let identifier: String
+    }
+
+    guard let jsonData = try? JSONEncoder().encode(Body(identifier: identifier))
+    else {
+      return false
+    }
+
+    let result: AsyncResult<EmptyResponse> = await APIService.performRequest(
+      endpoint: "otc/generate",
+      method: "POST",
+      body: jsonData
+    )
+
+    isLoading = false
+
+    switch result {
+    case .success:
+      return true
+    default:
+      return false
+    }
+  }
+
+  func verifyOneTimeCode(for identifier: String, code: String) async -> Bool {
+    isLoading = true
+
+    struct body: Encodable {
+      let identifier: String
+      let code: String
+    }
+
+    guard
+      let jsonData = try? JSONEncoder().encode(
+        body(identifier: identifier, code: code)
+      )
+    else {
+      return false
+    }
+
+    let result: AsyncResult<AuthResponse> = await APIService.performRequest(
+      endpoint: "otc/verify",
+      method: "POST",
+      body: jsonData
+    )
+
+    switch result {
+    case .success(let authResponse):
+      KeychainHelper.standard.save(
+        authResponse.token,
+        service: "session-token",
+        account: "self"
+      )
+
+      let defaults = UserDefaults.standard
+      defaults.set(authResponse.user.userId, forKey: "CurrentUserID")
+      defaults.set(authResponse.user.username, forKey: "CurrentUserUsername")
+
+      isAuthenticated = true
+      isLoading = false
+
+      return true
+
+    case .error:
+      isLoading = false
+      return false
+    }
+  }
+
   func signInWithPassword(identifier: String, password: String) async
     -> AuthError
   {
@@ -96,17 +170,14 @@ class AuthManager: ObservableObject, @unchecked Sendable {
     )
 
     do {
-      // Convert credentials to JSON data
       let jsonData = try JSONEncoder().encode(credentials)
 
-      // Use the new APIService
-      let result: APIResult<AuthResponse> = await APIService.performRequest(
+      let result: AsyncResult<AuthResponse> = await APIService.performRequest(
         endpoint: "login",
         method: "POST",
         body: jsonData
       )
 
-      // Handle the result
       switch result {
       case .success(let authResponse):
         KeychainHelper.standard.save(
@@ -126,7 +197,7 @@ class AuthManager: ObservableObject, @unchecked Sendable {
 
         return .none
 
-      case .failure(let error):
+      case .error(let error):
         await MainActor.run {
           isLoading = false
         }

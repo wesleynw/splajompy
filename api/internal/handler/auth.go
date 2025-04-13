@@ -61,7 +61,7 @@ type LoginRequest struct {
 func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	var request LoginRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		utilities.RespondWithError(w, http.StatusBadRequest, "Invalid request body")
+		utilities.RespondWithMessage(w, http.StatusBadRequest, "Invalid request body")
 		return
 	}
 
@@ -104,7 +104,7 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 				"message": "Incorrect password",
 			})
 		default:
-			utilities.RespondWithError(w, http.StatusInternalServerError, "Something went wrong")
+			utilities.RespondWithMessage(w, http.StatusInternalServerError, "Something went wrong")
 		}
 	}
 
@@ -125,7 +125,7 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 	var request service.RegisterRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		utilities.RespondWithError(w, http.StatusBadRequest, "Invalid request body")
+		utilities.RespondWithMessage(w, http.StatusBadRequest, "Invalid request body")
 	}
 
 	var validationErrors []map[string]string
@@ -174,7 +174,7 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 				"message": "This username is already taken",
 			})
 		default:
-			utilities.RespondWithError(w, http.StatusInternalServerError, "Error during registration")
+			utilities.RespondWithMessage(w, http.StatusInternalServerError, "Error during registration")
 			return
 		}
 	}
@@ -193,19 +193,43 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(response)
 }
 
-type OTCRequest struct {
+type GenerateOtcRequest struct {
 	Identifier string `json:"identifier"`
 }
 
 func (h *Handler) GenerateOTC(w http.ResponseWriter, r *http.Request) {
-	var request OTCRequest
+	var request GenerateOtcRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		utilities.RespondWithError(w, http.StatusBadRequest, "Invalid request body")
+		utilities.HandleError(w, http.StatusBadRequest, "Invalid request body")
 		return
 	}
 
 	err := h.authService.ProcessOTC(r.Context(), request.Identifier)
 	if err != nil {
-		utilities.RespondWithError(w, http.StatusInternalServerError, "Something went wrong")
+		utilities.HandleError(w, http.StatusBadRequest, "Unable to generate code")
+		return
 	}
+
+	utilities.HandleEmptySuccess(w)
+}
+
+type VerifyOtcRequest struct {
+	Code       string `json:"code"`
+	Identifier string `json:"identifier"`
+}
+
+func (h *Handler) VerifyOTC(w http.ResponseWriter, r *http.Request) {
+	var request VerifyOtcRequest
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		utilities.HandleError(w, http.StatusBadRequest, "Invalid request body")
+		return
+	}
+
+	response, err := h.authService.VerifyOTCCode(r.Context(), request.Identifier, request.Code)
+	if err != nil {
+		utilities.HandleError(w, http.StatusBadRequest, "Unable to verify code")
+		return
+	}
+
+	utilities.HandleSuccess(w, response)
 }

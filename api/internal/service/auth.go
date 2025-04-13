@@ -122,6 +122,40 @@ func (s *AuthService) LoginWithCredentials(ctx context.Context, credentials *Cre
 	}, nil
 }
 
+func (s *AuthService) VerifyOTCCode(ctx context.Context, identifier string, code string) (*LoginResponse, error) {
+	user, err := s.queries.GetUserByIdentifier(ctx, identifier)
+	if err != nil {
+		return nil, err
+	}
+
+	dbCode, err := s.queries.GetVerificationCode(ctx, db.GetVerificationCodeParams{
+		UserID: user.UserID,
+		Code:   code,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	var now = time.Now().UTC()
+	var expity = dbCode.ExpiresAt.Time
+
+	fmt.Println("%s, %s", now, expity)
+
+	if dbCode.ExpiresAt.Time.Before(time.Now().UTC()) {
+		return nil, errors.New("code expired")
+	}
+
+	token, err := s.createSessionToken(ctx, int(user.UserID))
+	if err != nil {
+		return nil, ErrGeneral
+	}
+
+	return &LoginResponse{
+		Token: token,
+		User:  user,
+	}, nil
+}
+
 func (s *AuthService) ProcessOTC(ctx context.Context, identifier string) error {
 	user, err := s.queries.GetUserByIdentifier(ctx, identifier)
 	if err != nil {
@@ -129,6 +163,15 @@ func (s *AuthService) ProcessOTC(ctx context.Context, identifier string) error {
 	}
 
 	code, err := s.GenerateOTCCode()
+	if err != nil {
+		return err
+	}
+
+	err = s.queries.CreateVerificationCode(ctx, db.CreateVerificationCodeParams{
+		Code:      code,
+		UserID:    user.UserID,
+		ExpiresAt: pgtype.Timestamp{Time: time.Now().UTC().Add(time.Minute * 10), Valid: true},
+	})
 	if err != nil {
 		return err
 	}

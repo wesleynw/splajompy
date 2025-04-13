@@ -59,3 +59,15 @@ WHERE id = $1;
 SELECT *
 FROM sessions
 WHERE id = $1;
+
+-- name: CreateVerificationCode :exec
+INSERT INTO "verificationCodes" (code, user_id, expires_at)
+VALUES ($1, $2, $3)
+ON CONFLICT (user_id) DO UPDATE
+SET code = $1, expires_at = $3;
+
+-- name: GetVerificationCode :one
+SELECT *
+FROM "verificationCodes"
+WHERE user_id = $1 and code = $2
+LIMIT 1;

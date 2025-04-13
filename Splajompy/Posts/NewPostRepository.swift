@@ -7,25 +7,19 @@ struct CreatePostRequest: Encodable {
 }
 
 struct PostCreationService {
-  static func createPost(text: String) async -> APIResult<Void> {
+  static func createPost(text: String) async -> AsyncResult<EmptyResponse> {
     do {
       let bodyData: [String: String] = ["text": text]
       let jsonData = try JSONEncoder().encode(bodyData)
 
-      let result: APIResult<EmptyResponse> = await APIService.performRequest(
+      return await APIService.performRequest(
         endpoint: "post/new",
         method: "POST",
         body: jsonData
       )
 
-      switch result {
-      case .success:
-        return .success(())
-      case .failure(let error):
-        return .failure(error)
-      }
     } catch {
-      return .failure(error)
+      return .error(error)
     }
   }
 
@@ -51,7 +45,9 @@ struct PostCreationService {
   //        }
   //    }
 
-  static func validatePostText(text: String) -> (isValid: Bool, errorMessage: String?) {
+  static func validatePostText(text: String) -> (
+    isValid: Bool, errorMessage: String?
+  ) {
     if text.count > 5000 {
       return (false, "This post is \(text.count - 5000) characters too long.")
     }

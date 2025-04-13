@@ -81,3 +81,10 @@ CREATE TABLE notifications (
     FOREIGN KEY (comment_id) REFERENCES comments(comment_id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
+
+CREATE TABLE "verificationCodes" ( -- TODO: rename this to fit the casing of other tables
+    id SERIAL PRIMARY KEY NOT NULL,
+    code TEXT NOT NULL,
+    user_id INT UNIQUE NOT NULL,
+    expires_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL
+)
