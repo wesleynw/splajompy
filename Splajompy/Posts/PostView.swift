@@ -70,11 +70,16 @@ struct PostView: View {
             let impact = UIImpactFeedbackGenerator(style: .light)
             impact.impactOccurred()
           }) {
-            HStack(spacing: 4) {
-              Text("\(post.commentCount)")
-                .font(.subheadline)
-              Image(systemName: "bubble.right")
-                .font(.system(size: 20))
+            ZStack {
+              Image(systemName: "bubble.middle.bottom")
+                .font(.system(size: 25))
+                .fontWeight(.light)
+
+              if post.commentCount > 0 {
+                Text(post.commentCount > 9 ? "9+" : "\(post.commentCount)")
+                  .font(.subheadline)
+                  .padding(.bottom, 4)
+              }
             }
           }
           .buttonStyle(.plain)
@@ -86,7 +91,8 @@ struct PostView: View {
           }) {
             HStack(spacing: 4) {
               Image(systemName: post.isLiked ? "heart.fill" : "heart")
-                .font(.system(size: 20))
+                .font(.system(size: 26))
+                .fontWeight(.light)
             }
           }
           .buttonStyle(.plain)
@@ -117,7 +123,7 @@ struct PostView: View {
     postId: 123,
     userId: 456,
     text:
-      "This is a sample post with some interesting content. Check out these amazing images I captured during my recent trip!",
+      "This is a sample post with some interesting content. Check out these amazing images I captured during my recent trip! also here's a link: https://google.com, another link: splajompy.com",
     createdAt: "2025-04-01T12:30:45.123Z"
   )
 
@@ -152,11 +158,10 @@ struct PostView: View {
     post: post,
     user: user,
     isLiked: false,
-    commentCount: 5,
+    commentCount: 0,
     images: images
   )
 
-  // Mock components needed for preview
   struct ImageCarousel: View {
     let imageUrls: [String]
 
@@ -195,7 +200,6 @@ struct PostView: View {
     }
   }
 
-  // UIKit mock for preview
   class UIImpactFeedbackGenerator {
     enum FeedbackStyle {
       case light
@@ -208,7 +212,12 @@ struct PostView: View {
     }
   }
 
+  let feedRefreshManager = FeedRefreshManager()
+  let authManager = AuthManager()
+
   return NavigationView {
     PostView(post: detailedPost)
+      .environmentObject(feedRefreshManager)
+      .environmentObject(authManager)
   }
 }

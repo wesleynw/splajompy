@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"encoding/json"
 	"errors"
 	"net/http"
 	"strconv"
@@ -16,22 +15,32 @@ type Handler struct {
 	commentService        *service.CommentService
 	userService           *service.UserService
 	notifificationService *service.NotificationService
+	authService           *service.AuthService
 }
 
-func NewHandler(queries db.Queries, postService *service.PostService, commentService *service.CommentService, userService *service.UserService, notificationService *service.NotificationService) *Handler {
+func NewHandler(queries db.Queries,
+	postService *service.PostService,
+	commentService *service.CommentService,
+	userService *service.UserService,
+	notificationService *service.NotificationService,
+	authService *service.AuthService) *Handler {
 	return &Handler{
 		queries:               &queries,
 		postService:           postService,
 		commentService:        commentService,
 		userService:           userService,
 		notifificationService: notificationService,
+		authService:           authService,
 	}
 }
 
 func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
+	mux.HandleFunc("POST /register", h.Register)
 	mux.HandleFunc("POST /login", h.Login)
+	mux.HandleFunc("POST /otc/generate", h.GenerateOTC)
+	mux.HandleFunc("POST /otc/verify", h.VerifyOTC)
 
-	mux.HandleFunc("POST /post/new", h.NewPost)
+	mux.HandleFunc("POST /post/new", h.CreateNewPost)
 	mux.HandleFunc("GET /post/{id}", h.GetPostById)
 	mux.HandleFunc("GET /user/{id}/posts", h.GetPostsByUserId)
 
@@ -60,12 +69,6 @@ func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
 
 	// comments
 	mux.HandleFunc("GET /post/{id}/comments", h.GetCommentsByPost)
-}
-
-func (h *Handler) writeJSON(w http.ResponseWriter, data interface{}, statusCode int) error {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(statusCode)
-	return json.NewEncoder(w).Encode(data)
 }
 
 func (h *Handler) GetIntPathParam(r *http.Request, paramName string) (int, error) {

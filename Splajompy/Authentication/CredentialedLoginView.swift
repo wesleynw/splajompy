@@ -1,14 +1,18 @@
 import SwiftUI
 
-struct LoginView: View {
+struct CredentialedLoginView: View {
+  let feedbackGenerator = UIImpactFeedbackGenerator(style: .medium)
   @Binding var isPresenting: Bool
   @Environment(\.dismiss) var dismiss
 
-  @State private var identifier = ""
-  @State private var hasRequestedCode: Bool = false
-  @State private var showError: Bool = false
+  @Binding var identifier: String
+  @State private var password = ""
+
+  @State var showError: Bool = false
+  @State var errorMessage: String = ""
 
   @FocusState private var isIdentifierFieldFocused: Bool
+  @FocusState private var isPasswordFieldFocused: Bool
 
   @EnvironmentObject private var authManager: AuthManager
 
@@ -31,6 +35,22 @@ struct LoginView: View {
             .autocorrectionDisabled()
             .focused($isIdentifierFieldFocused)
             .onAppear { isIdentifierFieldFocused = true }
+            .padding(.bottom, 10)
+
+          SecureField("Password", text: $password)
+            .padding(12)
+            .background(
+              RoundedRectangle(cornerRadius: 8)
+                .stroke(
+                  isPasswordFieldFocused ? Color.primary : Color.gray.opacity(0.75),
+                  lineWidth: 2
+                )
+            )
+            .cornerRadius(8)
+            .textContentType(.password)
+            .autocapitalization(.none)
+            .autocorrectionDisabled()
+            .focused($isPasswordFieldFocused)
         }
         .padding(.bottom, 10)
 
@@ -38,10 +58,12 @@ struct LoginView: View {
 
         Button(action: {
           Task {
-            let success = await authManager.requestOneTimeCode(for: identifier)
-            if success {
-              hasRequestedCode = true
-            } else {
+            let (success, err) = await authManager.signInWithPassword(
+              identifier: identifier,
+              password: password
+            )
+            if !success {
+              errorMessage = err
               showError = true
             }
           }
@@ -76,12 +98,12 @@ struct LoginView: View {
         .disabled(authManager.isLoading || identifier.isEmpty)
         .padding(.bottom, 8)
 
-        NavigationLink {
-          CredentialedLoginView(isPresenting: $isPresenting, identifier: $identifier)
+        Button {
+          dismiss()
         } label: {
           HStack {
             Spacer()
-            Text("Log in with password")
+            Text("Log in with email")
               .font(.system(size: 16, weight: .bold))
               .padding()
             Spacer()
@@ -99,9 +121,11 @@ struct LoginView: View {
       .padding(.horizontal, 24)
       .padding(.vertical, 32)
       .navigationTitle("Sign In")
+      .navigationBarBackButtonHidden()
       .toolbar {
         ToolbarItem(placement: .topBarTrailing) {
           Button(action: {
+            feedbackGenerator.impactOccurred()
             isPresenting = false
           }) {
             Image(systemName: "xmark")
@@ -113,32 +137,30 @@ struct LoginView: View {
           }
         }
       }
-      .navigationDestination(isPresented: $hasRequestedCode) {
-        OneTimeCodeView(identifier: identifier, isPresenting: $isPresenting)
-          .environmentObject(authManager)
+      .alert(isPresented: $showError) {
+        Alert(
+          title: Text("Sign In Failed"),
+          message: Text("Try again with a different Username or Email."),
+          dismissButton: .default(Text("OK"))
+        )
       }
-    }
-    .alert(isPresented: $showError) {
-      Alert(
-        title: Text("Sign In Failed"),
-        message: Text("Try again with a different Username or Email."),
-        dismissButton: .default(Text("OK"))
-      )
     }
   }
 }
 
 #Preview {
   @Previewable @State var isPresenting = true
+  @Previewable @State var identifier = "wesleynw@pm.me"
 
-  return LoginView(isPresenting: $isPresenting)
+  CredentialedLoginView(isPresenting: $isPresenting, identifier: $identifier)
     .environmentObject(AuthManager())
 }
 
 #Preview("Dark Mode") {
   @Previewable @State var isPresenting = true
+  @Previewable @State var identifier = "wesleynw@pm.me"
 
-  return LoginView(isPresenting: $isPresenting)
+  CredentialedLoginView(isPresenting: $isPresenting, identifier: $identifier)
     .environmentObject(AuthManager())
     .preferredColorScheme(.dark)
 }

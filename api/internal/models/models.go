@@ -5,6 +5,12 @@ import (
 	db "splajompy.com/api/v2/internal/db/generated"
 )
 
+type APIResponse struct {
+	Success bool        `json:"success"`
+	Data    interface{} `json:"data,omitempty"`
+	Error   string      `json:"error,omitempty"`
+}
+
 type DetailedPost struct {
 	Post         db.Post           `json:"post"`
 	User         db.GetUserByIdRow `json:"user"`

@@ -18,6 +18,7 @@ enum AuthError {
   case noToken
 }
 
+@MainActor
 class AuthManager: ObservableObject, @unchecked Sendable {
   @Published var isAuthenticated: Bool = false
   @Published var isLoading: Bool = false
@@ -79,12 +80,83 @@ class AuthManager: ObservableObject, @unchecked Sendable {
     return (userId, username)
   }
 
-  func signInWithPassword(identifier: String, password: String) async
-    -> AuthError
-  {
-    await MainActor.run {
-      isLoading = true
+  func requestOneTimeCode(for identifier: String) async -> Bool {
+    isLoading = true
+
+    struct Body: Encodable {
+      let identifier: String
     }
+
+    guard let jsonData = try? JSONEncoder().encode(Body(identifier: identifier))
+    else {
+      return false
+    }
+
+    let result: AsyncResult<EmptyResponse> = await APIService.performRequest(
+      endpoint: "otc/generate",
+      method: "POST",
+      body: jsonData
+    )
+
+    isLoading = false
+
+    switch result {
+    case .success:
+      return true
+    default:
+      return false
+    }
+  }
+
+  func verifyOneTimeCode(for identifier: String, code: String) async -> Bool {
+    isLoading = true
+
+    struct Body: Encodable {
+      let identifier: String
+      let code: String
+    }
+
+    guard
+      let jsonData = try? JSONEncoder().encode(
+        Body(identifier: identifier, code: code)
+      )
+    else {
+      return false
+    }
+
+    let result: AsyncResult<AuthResponse> = await APIService.performRequest(
+      endpoint: "otc/verify",
+      method: "POST",
+      body: jsonData
+    )
+
+    switch result {
+    case .success(let authResponse):
+      KeychainHelper.standard.save(
+        authResponse.token,
+        service: "session-token",
+        account: "self"
+      )
+
+      let defaults = UserDefaults.standard
+      defaults.set(authResponse.user.userId, forKey: "CurrentUserID")
+      defaults.set(authResponse.user.username, forKey: "CurrentUserUsername")
+
+      isAuthenticated = true
+      isLoading = false
+
+      return true
+    case .error:
+      isLoading = false
+      return false
+    }
+  }
+
+  func signInWithPassword(identifier: String, password: String) async
+    -> (success: Bool, error: String)
+  {
+    isLoading = true
+
     struct LoginCredentials: Encodable {
       let identifier: String
       let password: String
@@ -95,63 +167,81 @@ class AuthManager: ObservableObject, @unchecked Sendable {
       password: password
     )
 
+    let jsonData: Data
     do {
-      // Convert credentials to JSON data
-      let jsonData = try JSONEncoder().encode(credentials)
+      jsonData = try JSONEncoder().encode(credentials)
+    } catch {
+      return (false, error.localizedDescription)
+    }
 
-      // Use the new APIService
-      let result: APIResult<AuthResponse> = await APIService.performRequest(
-        endpoint: "login",
-        method: "POST",
-        body: jsonData
+    let result: AsyncResult<AuthResponse> = await APIService.performRequest(
+      endpoint: "login",
+      method: "POST",
+      body: jsonData
+    )
+
+    switch result {
+    case .success(let authResponse):
+      KeychainHelper.standard.save(
+        authResponse.token,
+        service: "session-token",
+        account: "self"
       )
 
-      // Handle the result
-      switch result {
-      case .success(let authResponse):
-        KeychainHelper.standard.save(
-          authResponse.token,
-          service: "session-token",
-          account: "self"
-        )
+      let defaults = UserDefaults.standard
+      defaults.set(authResponse.user.userId, forKey: "CurrentUserID")
+      defaults.set(authResponse.user.username, forKey: "CurrentUserUsername")
 
-        let defaults = UserDefaults.standard
-        defaults.set(authResponse.user.userId, forKey: "CurrentUserID")
-        defaults.set(authResponse.user.username, forKey: "CurrentUserUsername")
+      isAuthenticated = true
+      isLoading = false
 
-        await MainActor.run {
-          isAuthenticated = true
-          isLoading = false
-        }
+      return (true, "")
+    case .error(let error):
+      isLoading = false
+      return (false, error.localizedDescription)
+    }
+  }
 
-        return .none
+  func register(username: String, email: String, password: String) async
+    -> (success: Bool, error: String)
+  {
+    isLoading = true
 
-      case .failure(let error):
-        await MainActor.run {
-          isLoading = false
-        }
+    guard
+      let requestBody = try? JSONSerialization.data(withJSONObject: [
+        "username": username,
+        "email": email,
+        "password": password,
+      ])
+    else {
+      return (false, "Failed to serialize JSON")
+    }
 
-        if error is URLError {
-          return .invalidURL
-        } else if error is DecodingError {
-          return .decodingError
-        } else if let httpResponse = error as? HTTPURLResponse {
-          if httpResponse.statusCode == 401 {
-            return .incorrectPassword
-          } else if httpResponse.statusCode == 404 {
-            return .accountNonexistent
-          } else {
-            return .generalFailure
-          }
-        } else {
-          return .generalFailure
-        }
-      }
-    } catch {
-      await MainActor.run {
-        isLoading = false
-      }
-      return .serializationError
+    let result: AsyncResult<AuthResponse> = await APIService.performRequest(
+      endpoint: "register",
+      method: "POST",
+      body: requestBody
+    )
+
+    switch result {
+    case .success(let authResponse):
+      KeychainHelper.standard.save(
+        authResponse.token,
+        service: "session-token",
+        account: "self"
+      )
+
+      let defaults = UserDefaults.standard
+      defaults.set(authResponse.user.userId, forKey: "CurrentUserID")
+      defaults.set(authResponse.user.username, forKey: "CurrentUserUsername")
+
+      isAuthenticated = true
+      isLoading = false
+
+      return (true, "")
+    case .error(let error):
+      isLoading = false
+      return (false, error.localizedDescription)
     }
   }
 }

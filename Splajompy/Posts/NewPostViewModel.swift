@@ -45,7 +45,7 @@ extension NewPostView {
 
         isLoading = true
 
-        let result: APIResult<Void>
+        let result: AsyncResult<EmptyResponse>
 
         //                if case .success(let image) = photoState {
         //                  print("todo")
@@ -61,7 +61,7 @@ extension NewPostView {
           isLoading = false
           onPostCreated()
           dismiss()
-        case .failure(let error):
+        case .error(let error):
           errorDisplay = "There was an error: \(error.localizedDescription)."
           isLoading = false
         }

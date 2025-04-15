@@ -12,44 +12,47 @@ struct Comment: Identifiable, Decodable {
   var id: Int { commentId }
 }
 
-struct CommentService {
-  static func getComments(postId: Int) async -> APIResult<[Comment]> {
+protocol CommentServiceProtocol: Sendable {
+  func getComments(postId: Int) async -> AsyncResult<[Comment]>
+
+  func toggleLike(postId: Int, commentId: Int, isLiked: Bool) async
+    -> AsyncResult<EmptyResponse>
+
+  func addComment(postId: Int, text: String) async -> AsyncResult<Comment>
+}
+
+struct CommentService: CommentServiceProtocol {
+  func getComments(postId: Int) async -> AsyncResult<[Comment]> {
     return await APIService.performRequest(
       endpoint: "post/\(postId)/comments",
       method: "GET"
     )
   }
 
-  static func toggleLike(postId: Int, commentId: Int, isLiked: Bool) async
-    -> APIResult<Void>
+  func toggleLike(postId: Int, commentId: Int, isLiked: Bool) async
+    -> AsyncResult<EmptyResponse>
   {
     let method = isLiked ? "DELETE" : "POST"
 
-    let result: APIResult<EmptyResponse> = await APIService.performRequest(
+    return await APIService.performRequest(
       endpoint: "post/\(postId)/comment/\(commentId)/liked",
       method: method
     )
-
-    switch result {
-    case .success:
-      return .success(())
-    case .failure(let error):
-      return .failure(error)
-    }
   }
 
-  static func addComment(postId: Int, text: String) async -> APIResult<Comment> {
+  func addComment(postId: Int, text: String) async -> AsyncResult<Comment> {
+    let bodyData: [String: String] = ["Text": text]
+    let jsonData: Data
     do {
-      let bodyData: [String: String] = ["Text": text]
-      let jsonData = try JSONEncoder().encode(bodyData)
-
-      return await APIService.performRequest(
-        endpoint: "post/\(postId)/comment",
-        method: "POST",
-        body: jsonData
-      )
+      jsonData = try JSONEncoder().encode(bodyData)
     } catch {
-      return .failure(error)
+      return .error(error)
     }
+
+    return await APIService.performRequest(
+      endpoint: "post/\(postId)/comment",
+      method: "POST",
+      body: jsonData
+    )
   }
 }

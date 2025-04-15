@@ -13,19 +13,19 @@ struct Notification: Identifiable, Decodable {
 }
 
 protocol NotificationServiceProtocol: Sendable {
-  func getAllNotifications(offset: Int, limit: Int) async -> APIResult<
+  func getAllNotifications(offset: Int, limit: Int) async -> AsyncResult<
     [Notification]
   >
 
-  func markNotificationAsRead(notificationId: Int) async -> APIResult<EmptyResponse>
+  func markNotificationAsRead(notificationId: Int) async -> AsyncResult<EmptyResponse>
 
-  func markAllNotificationsAsRead() async -> APIResult<EmptyResponse>
+  func markAllNotificationsAsRead() async -> AsyncResult<EmptyResponse>
 
-  func hasUnreadNotifications() async -> APIResult<Bool>
+  func hasUnreadNotifications() async -> AsyncResult<Bool>
 }
 
 struct NotificationService: NotificationServiceProtocol {
-  func getAllNotifications(offset: Int, limit: Int) async -> APIResult<
+  func getAllNotifications(offset: Int, limit: Int) async -> AsyncResult<
     [Notification]
   > {
     let queryItems = [
@@ -39,16 +39,16 @@ struct NotificationService: NotificationServiceProtocol {
     )
   }
 
-  func markNotificationAsRead(notificationId: Int) async -> APIResult<EmptyResponse> {
+  func markNotificationAsRead(notificationId: Int) async -> AsyncResult<EmptyResponse> {
     return await APIService.performRequest(
       endpoint: "notifications/\(notificationId)/markRead", method: "POST")
   }
 
-  func markAllNotificationsAsRead() async -> APIResult<EmptyResponse> {
+  func markAllNotificationsAsRead() async -> AsyncResult<EmptyResponse> {
     await APIService.performRequest(endpoint: "notifications/markRead", method: "POST")
   }
 
-  func hasUnreadNotifications() async -> APIResult<Bool> {
+  func hasUnreadNotifications() async -> AsyncResult<Bool> {
     return await APIService.performRequest(endpoint: "notifications/hasUnread")
   }
 }

@@ -8,12 +8,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgtype"
-	"golang.org/x/crypto/bcrypt"
 	db "splajompy.com/api/v2/internal/db/generated"
 	"splajompy.com/api/v2/internal/models"
+	"splajompy.com/api/v2/internal/service"
+	"splajompy.com/api/v2/internal/utilities"
 )
 
 func (h *Handler) getAuthenticatedUser(r *http.Request) (*models.PublicUser, error) {
@@ -30,7 +28,7 @@ func (h *Handler) validateSessionToken(ctx context.Context, authHeader string) (
 	if len(parts) != 2 {
 		return nil, nil, errors.New("invalid authorization format")
 	}
-	token := strings.TrimSpace(parts[1])
+	token := strings.ReplaceAll(strings.TrimSpace(parts[1]), `\/`, `/`)
 
 	session, err := h.queries.GetSessionById(ctx, token)
 	if err != nil {
@@ -55,68 +53,110 @@ func (h *Handler) validateSessionToken(ctx context.Context, authHeader string) (
 	return &session, &user, nil
 }
 
-type Credentials struct {
+type LoginRequest struct {
 	Identifier string `json:"identifier"`
 	Password   string `json:"password"`
 }
 
-// POST /login endpoint
 func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
-	var creds Credentials
-	if err := json.NewDecoder(r.Body).Decode(&creds); err != nil {
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
+	var request LoginRequest
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		utilities.HandleError(w, http.StatusBadRequest, "Invalid request body")
 		return
 	}
 
-	user, err := h.queries.GetUserWithPasswordByIdentifier(r.Context(), creds.Identifier)
+	if request.Identifier == "" || request.Password == "" {
+		utilities.HandleError(w, http.StatusBadRequest, "Validation error") // TODO: more comprehensive validation errors
+		return
+	}
+
+	response, err := h.authService.LoginWithCredentials(r.Context(), (*service.Credentials)(&request))
 	if err != nil {
-		if err == pgx.ErrNoRows {
-			http.Error(w, "User not found", http.StatusNotFound)
-		} else {
-			http.Error(w, "Error fetching user", http.StatusInternalServerError)
+		switch err {
+		case service.ErrUserNotFound:
+			utilities.HandleError(w, http.StatusBadRequest, "This user doesn't exist")
+		case service.ErrInvalidPassword:
+			utilities.HandleError(w, http.StatusBadRequest, "Incorrect password")
+		default:
+			utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
 		}
 		return
 	}
 
-	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(creds.Password)); err != nil {
-		http.Error(w, "Incorrect password", http.StatusUnauthorized)
+	utilities.HandleSuccess(w, response)
+}
+
+type RegisterRequest struct {
+	Email    string `json:"email"`
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
+
+func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
+	var request RegisterRequest
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		utilities.HandleError(w, http.StatusBadRequest, "Invalid request body")
 		return
 	}
 
-	sessionID := uuid.NewString()
-	expiresAt := time.Now().Add(time.Hour * 24 * 90) // 90 days
+	if request.Email == "" || request.Username == "" || request.Password == "" {
+		utilities.HandleError(w, http.StatusBadRequest, "Validation error") // TODO: more comprehensive validation errors
+		return
+	}
 
-	var expiresAtPg pgtype.Timestamp
-	expiresAtPg.Time = expiresAt
-	expiresAtPg.Valid = true
-
-	err = h.queries.CreateSession(r.Context(), db.CreateSessionParams{
-		ID:        sessionID,
-		UserID:    user.UserID,
-		ExpiresAt: expiresAtPg,
-	})
+	response, err := h.authService.Register(r.Context(), request.Email, request.Username, request.Password)
 	if err != nil {
-		http.Error(w, "Failed to create session", http.StatusInternalServerError)
+		switch err {
+		case service.ErrEmailTaken:
+			utilities.HandleError(w, http.StatusBadRequest, "An account already exists with this email")
+		case service.ErrUsernameTaken:
+			utilities.HandleError(w, http.StatusBadRequest, "An account already exists with this username")
+		default:
+			utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
+		}
 		return
 	}
 
-	var publicUser = models.PublicUser{
-		UserID:    user.UserID,
-		Username:  user.Username,
-		Email:     user.Email,
-		Name:      user.Name,
-		CreatedAt: user.CreatedAt,
+	utilities.HandleSuccess(w, response)
+}
+
+type GenerateOtcRequest struct {
+	Identifier string `json:"identifier"`
+}
+
+func (h *Handler) GenerateOTC(w http.ResponseWriter, r *http.Request) {
+	var request GenerateOtcRequest
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		utilities.HandleError(w, http.StatusBadRequest, "Invalid request body")
+		return
 	}
 
-	response := struct {
-		Token string            `json:"token"`
-		User  models.PublicUser `json:"user"`
-	}{
-		Token: sessionID,
-		User:  publicUser,
+	err := h.authService.ProcessOTC(r.Context(), request.Identifier)
+	if err != nil {
+		utilities.HandleError(w, http.StatusBadRequest, "Unable to generate code")
+		return
 	}
 
-	if err := h.writeJSON(w, response, http.StatusOK); err != nil {
-		http.Error(w, "error encoding response", http.StatusInternalServerError)
+	utilities.HandleEmptySuccess(w)
+}
+
+type VerifyOtcRequest struct {
+	Code       string `json:"code"`
+	Identifier string `json:"identifier"`
+}
+
+func (h *Handler) VerifyOTC(w http.ResponseWriter, r *http.Request) {
+	var request VerifyOtcRequest
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		utilities.HandleError(w, http.StatusBadRequest, "Invalid request body")
+		return
 	}
+
+	response, err := h.authService.VerifyOTCCode(r.Context(), request.Identifier, request.Code)
+	if err != nil {
+		utilities.HandleError(w, http.StatusBadRequest, "Unable to verify code")
+		return
+	}
+
+	utilities.HandleSuccess(w, response)
 }

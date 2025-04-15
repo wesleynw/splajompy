@@ -43,7 +43,7 @@ extension NotificationsView {
         canLoadMore = notifications.count >= limit
         offset += notifications.count
         isLoadingMore = false
-      case .failure(let error):
+      case .error(let error):
         state = .failed(error)
       }
     }

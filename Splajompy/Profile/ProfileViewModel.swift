@@ -25,7 +25,7 @@ extension ProfileView {
         switch result {
         case .success(let userProfile):
           profile = userProfile
-        case .failure(let error):
+        case .error(let error):
           print("Error fetching user profile: \(error.localizedDescription)")
         }
 
@@ -47,7 +47,7 @@ extension ProfileView {
           isFollowing: !profile.isFollowing
         )
 
-        if case .failure(let error) = result {
+        if case .error(let error) = result {
           print("Error toggling following status: \(error.localizedDescription)")
           self.profile?.isFollowing.toggle()
         }

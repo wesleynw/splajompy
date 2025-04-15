@@ -1,8 +1,24 @@
 import Foundation
 
-public enum APIResult<T: Sendable>: Sendable {
+public struct EmptyResponse: Decodable & Sendable {}
+
+public struct RequestResponse<T: Decodable & Sendable>: Decodable, Sendable {
+  let success: Bool
+  let data: T?
+  let error: String?
+}
+
+public enum AsyncResult<T: Decodable & Sendable>: Sendable {
   case success(T)
-  case failure(Error)
+  case error(Error)
+}
+
+public struct APIErrorMessage: Error, LocalizedError {
+  let message: String
+
+  public var errorDescription: String? {
+    return message
+  }
 }
 
 public struct APIService {
@@ -10,7 +26,7 @@ public struct APIService {
     Bundle.main.object(forInfoDictionaryKey: "API_URL") as? String
     ?? "http://api.splajompy.com"
 
-  static func createRequest(
+  @MainActor static func createRequest(
     for url: URL,
     method: String = "GET",
     body: Data? = nil
@@ -35,19 +51,20 @@ public struct APIService {
     method: String = "GET",
     queryItems: [URLQueryItem]? = nil,
     body: Data? = nil
-  ) async -> APIResult<T> {
+  ) async -> AsyncResult<T> {
     guard var urlComponents = URLComponents(string: "\(baseUrl)/\(endpoint)")
     else {
-      return .failure(URLError(.badURL))
+      return .error(URLError(.badURL))
     }
 
     urlComponents.queryItems = queryItems
 
     guard let url = urlComponents.url else {
-      return .failure(URLError(.badURL))
+      return .error(URLError(.badURL))
     }
 
-    let request = createRequest(for: url, method: method, body: body)
+    print("REQUEST: \(url)")
+    let request = await createRequest(for: url, method: method, body: body)
 
     do {
       let (data, _) = try await URLSession.shared.data(for: request)
@@ -55,22 +72,34 @@ public struct APIService {
       let decoder = JSONDecoder()
       decoder.dateDecodingStrategy = .iso8601
 
-      print("data: \(data)")
-
       do {
-        let decodedData = try decoder.decode(T.self, from: data)
+        let decodedResponse = try decoder.decode(
+          RequestResponse<T>.self,
+          from: data
+        )
+        if decodedResponse.success {
+          if T.self == EmptyResponse.self {
+            return .success(EmptyResponse() as! T)
+          }
 
-        return .success(decodedData)
+          guard let responseData = decodedResponse.data else {
+            return .error(
+              APIErrorMessage(message: "API returned success but no data")
+            )
+          }
+
+          return .success(responseData)
+        }
+        return .error(
+          APIErrorMessage(message: decodedResponse.error ?? "Unknown API error")
+        )
       } catch {
-        print("error: \(error)")
-        print("asdf")
-        return .failure(error)
+        print("API response decoding error: \(error)")
+        return .error(error)
       }
     } catch {
-      print("fdsa")
-      return .failure(error)
+      print("API call error: \(error)")
+      return .error(error)
     }
   }
 }
-
-struct EmptyResponse: Decodable {}

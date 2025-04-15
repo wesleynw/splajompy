@@ -12,7 +12,6 @@ import (
 )
 
 const addLike = `-- name: AddLike :exec
-
 INSERT INTO likes (post_id, comment_id, user_id, is_post)
 VALUES ($1, $2, $3, $4)
 `
@@ -24,7 +23,6 @@ type AddLikeParams struct {
 	IsPost    bool        `json:"isPost"`
 }
 
-// LIKES
 func (q *Queries) AddLike(ctx context.Context, arg AddLikeParams) error {
 	_, err := q.db.Exec(ctx, addLike,
 		arg.PostID,
@@ -33,48 +31,6 @@ func (q *Queries) AddLike(ctx context.Context, arg AddLikeParams) error {
 		arg.IsPost,
 	)
 	return err
-}
-
-const createSession = `-- name: CreateSession :exec
-INSERT INTO sessions (id, user_id, expires_at)
-VALUES ($1, $2, $3)
-`
-
-type CreateSessionParams struct {
-	ID        string           `json:"id"`
-	UserID    int32            `json:"userId"`
-	ExpiresAt pgtype.Timestamp `json:"expiresAt"`
-}
-
-func (q *Queries) CreateSession(ctx context.Context, arg CreateSessionParams) error {
-	_, err := q.db.Exec(ctx, createSession, arg.ID, arg.UserID, arg.ExpiresAt)
-	return err
-}
-
-const deleteSession = `-- name: DeleteSession :exec
-DELETE FROM sessions
-WHERE id = $1
-`
-
-func (q *Queries) DeleteSession(ctx context.Context, id string) error {
-	_, err := q.db.Exec(ctx, deleteSession, id)
-	return err
-}
-
-const getBioByUserId = `-- name: GetBioByUserId :one
-
-SELECT text
-FROM bios
-WHERE user_id = $1
-LIMIT 1
-`
-
-// BIOS
-func (q *Queries) GetBioByUserId(ctx context.Context, userID int32) (string, error) {
-	row := q.db.QueryRow(ctx, getBioByUserId, userID)
-	var text string
-	err := row.Scan(&text)
-	return text, err
 }
 
 const getImagesByPostId = `-- name: GetImagesByPostId :many
@@ -180,117 +136,6 @@ func (q *Queries) GetPostById(ctx context.Context, postID int32) (Post, error) {
 		&i.UserID,
 		&i.Text,
 		&i.CreatedAt,
-	)
-	return i, err
-}
-
-const getSessionById = `-- name: GetSessionById :one
-SELECT id, user_id, expires_at
-FROM sessions
-WHERE id = $1
-`
-
-func (q *Queries) GetSessionById(ctx context.Context, id string) (Session, error) {
-	row := q.db.QueryRow(ctx, getSessionById, id)
-	var i Session
-	err := row.Scan(&i.ID, &i.UserID, &i.ExpiresAt)
-	return i, err
-}
-
-const getUserById = `-- name: GetUserById :one
-SELECT user_id, email, username, created_at, name
-FROM users
-WHERE user_id = $1
-LIMIT 1
-`
-
-type GetUserByIdRow struct {
-	UserID    int32            `json:"userId"`
-	Email     string           `json:"email"`
-	Username  string           `json:"username"`
-	CreatedAt pgtype.Timestamp `json:"createdAt"`
-	Name      pgtype.Text      `json:"name"`
-}
-
-func (q *Queries) GetUserById(ctx context.Context, userID int32) (GetUserByIdRow, error) {
-	row := q.db.QueryRow(ctx, getUserById, userID)
-	var i GetUserByIdRow
-	err := row.Scan(
-		&i.UserID,
-		&i.Email,
-		&i.Username,
-		&i.CreatedAt,
-		&i.Name,
-	)
-	return i, err
-}
-
-const getUserByIdentifier = `-- name: GetUserByIdentifier :one
-SELECT user_id, email, username, created_at, name
-FROM users
-WHERE email = $1 OR username = $1
-LIMIT 1
-`
-
-type GetUserByIdentifierRow struct {
-	UserID    int32            `json:"userId"`
-	Email     string           `json:"email"`
-	Username  string           `json:"username"`
-	CreatedAt pgtype.Timestamp `json:"createdAt"`
-	Name      pgtype.Text      `json:"name"`
-}
-
-func (q *Queries) GetUserByIdentifier(ctx context.Context, email string) (GetUserByIdentifierRow, error) {
-	row := q.db.QueryRow(ctx, getUserByIdentifier, email)
-	var i GetUserByIdentifierRow
-	err := row.Scan(
-		&i.UserID,
-		&i.Email,
-		&i.Username,
-		&i.CreatedAt,
-		&i.Name,
-	)
-	return i, err
-}
-
-const getUserWithPasswordById = `-- name: GetUserWithPasswordById :one
-SELECT user_id, email, password, username, created_at, name
-FROM users
-WHERE user_id = $1
-LIMIT 1
-`
-
-func (q *Queries) GetUserWithPasswordById(ctx context.Context, userID int32) (User, error) {
-	row := q.db.QueryRow(ctx, getUserWithPasswordById, userID)
-	var i User
-	err := row.Scan(
-		&i.UserID,
-		&i.Email,
-		&i.Password,
-		&i.Username,
-		&i.CreatedAt,
-		&i.Name,
-	)
-	return i, err
-}
-
-const getUserWithPasswordByIdentifier = `-- name: GetUserWithPasswordByIdentifier :one
-SELECT user_id, email, password, username, created_at, name
-FROM users
-WHERE email = $1 OR username = $1
-LIMIT 1
-`
-
-func (q *Queries) GetUserWithPasswordByIdentifier(ctx context.Context, email string) (User, error) {
-	row := q.db.QueryRow(ctx, getUserWithPasswordByIdentifier, email)
-	var i User
-	err := row.Scan(
-		&i.UserID,
-		&i.Email,
-		&i.Password,
-		&i.Username,
-		&i.CreatedAt,
-		&i.Name,
 	)
 	return i, err
 }
