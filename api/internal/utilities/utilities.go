@@ -29,7 +29,10 @@ func HandleError(w http.ResponseWriter, statusCode int, message string) {
 		Success: false,
 		Error:   message,
 	}
-	json.NewEncoder(w).Encode(response)
+	err := json.NewEncoder(w).Encode(response)
+	if err != nil {
+		http.Error(w, "Error encoding response", http.StatusInternalServerError)
+	}
 }
 
 func HandleSuccess[T any](w http.ResponseWriter, data T) {
@@ -38,11 +41,17 @@ func HandleSuccess[T any](w http.ResponseWriter, data T) {
 		Success: true,
 		Data:    data,
 	}
-	json.NewEncoder(w).Encode(response)
+	err := json.NewEncoder(w).Encode(response)
+	if err != nil {
+		http.Error(w, "Error encoding response", http.StatusInternalServerError)
+	}
 }
 
 func HandleEmptySuccess(w http.ResponseWriter) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]bool{"success": true})
+	err := json.NewEncoder(w).Encode(map[string]bool{"success": true})
+	if err != nil {
+		http.Error(w, "Error encoding response", http.StatusInternalServerError)
+	}
 }

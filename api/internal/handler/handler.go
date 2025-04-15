@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"encoding/json"
 	"errors"
 	"net/http"
 	"strconv"
@@ -70,12 +69,6 @@ func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
 
 	// comments
 	mux.HandleFunc("GET /post/{id}/comments", h.GetCommentsByPost)
-}
-
-func (h *Handler) writeJSON(w http.ResponseWriter, data interface{}, statusCode int) error {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(statusCode)
-	return json.NewEncoder(w).Encode(data)
 }
 
 func (h *Handler) GetIntPathParam(r *http.Request, paramName string) (int, error) {

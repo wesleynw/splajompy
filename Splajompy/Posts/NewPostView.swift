@@ -58,10 +58,10 @@ struct NewPostView: View {
               .allowsHitTesting(false)
           }
         }
-// hide this until i get s3 presigned url working instead of this spaghetti
-//        PhotosPicker(selection: $viewModel.imageSelection, matching: .images) {
-//          Image(systemName: "photo.badge.plus")
-//        }
+        // hide this until i get s3 presigned url working instead of this spaghetti
+        //        PhotosPicker(selection: $viewModel.imageSelection, matching: .images) {
+        //          Image(systemName: "photo.badge.plus")
+        //        }
 
         if let photoState = viewModel.photoState {
           switch photoState {

@@ -30,9 +30,9 @@ struct OneTimeCodeView: View {
         .textContentType(.oneTimeCode)
         .keyboardType(.numberPad)
         .onAppear { isFocused = true }
-      
+
       Spacer()
-      
+
       Button(action: {
         Task {
           let success = await authManager.verifyOneTimeCode(for: identifier, code: oneTimeCode)
@@ -54,14 +54,14 @@ struct OneTimeCodeView: View {
             Spacer()
           }
 
-//          if authManager.isLoading {
-//            HStack {
-//              Spacer()
-//              ProgressView()
-//                .progressViewStyle(CircularProgressViewStyle(tint: .white))
-//                .padding(.trailing, 16)
-//            }
-//          }
+          //          if authManager.isLoading {
+          //            HStack {
+          //              Spacer()
+          //              ProgressView()
+          //                .progressViewStyle(CircularProgressViewStyle(tint: .white))
+          //                .padding(.trailing, 16)
+          //            }
+          //          }
         }
         .background(
           oneTimeCode.isEmpty ? Color.gray.opacity(0.3) : Color.accentColor

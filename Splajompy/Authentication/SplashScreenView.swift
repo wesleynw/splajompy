@@ -80,7 +80,7 @@ struct SplashScreenView: View {
           .padding(.bottom, 16)
 
         Spacer()
-        
+
         HStack(spacing: 16) {
           Button {
             isLoginViewPresenting = true

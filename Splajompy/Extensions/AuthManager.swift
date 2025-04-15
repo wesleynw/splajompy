@@ -111,14 +111,14 @@ class AuthManager: ObservableObject, @unchecked Sendable {
   func verifyOneTimeCode(for identifier: String, code: String) async -> Bool {
     isLoading = true
 
-    struct body: Encodable {
+    struct Body: Encodable {
       let identifier: String
       let code: String
     }
 
     guard
       let jsonData = try? JSONEncoder().encode(
-        body(identifier: identifier, code: code)
+        Body(identifier: identifier, code: code)
       )
     else {
       return false

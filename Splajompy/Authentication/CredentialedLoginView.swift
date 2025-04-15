@@ -11,7 +11,8 @@ struct CredentialedLoginView: View {
   @State var showError: Bool = false
   @State var errorMessage: String = ""
 
-  @FocusState private var isFocused: Bool
+  @FocusState private var isIdentifierFieldFocused: Bool
+  @FocusState private var isPasswordFieldFocused: Bool
 
   @EnvironmentObject private var authManager: AuthManager
 
@@ -24,7 +25,7 @@ struct CredentialedLoginView: View {
             .background(
               RoundedRectangle(cornerRadius: 8)
                 .stroke(
-                  isFocused ? Color.primary : Color.gray.opacity(0.75),
+                  isIdentifierFieldFocused ? Color.primary : Color.gray.opacity(0.75),
                   lineWidth: 2
                 )
             )
@@ -32,15 +33,16 @@ struct CredentialedLoginView: View {
             .textContentType(.username)
             .autocapitalization(.none)
             .autocorrectionDisabled()
-            .focused($isFocused)
-            .onAppear { isFocused = true }
+            .focused($isIdentifierFieldFocused)
+            .onAppear { isIdentifierFieldFocused = true }
             .padding(.bottom, 10)
+
           SecureField("Password", text: $password)
             .padding(12)
             .background(
               RoundedRectangle(cornerRadius: 8)
                 .stroke(
-                  isFocused ? Color.primary : Color.gray.opacity(0.75),
+                  isPasswordFieldFocused ? Color.primary : Color.gray.opacity(0.75),
                   lineWidth: 2
                 )
             )
@@ -48,6 +50,7 @@ struct CredentialedLoginView: View {
             .textContentType(.password)
             .autocapitalization(.none)
             .autocorrectionDisabled()
+            .focused($isPasswordFieldFocused)
         }
         .padding(.bottom, 10)
 
