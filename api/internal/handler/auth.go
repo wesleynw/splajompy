@@ -61,12 +61,12 @@ type LoginRequest struct {
 func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	var request LoginRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		utilities.RespondWithMessage(w, http.StatusBadRequest, "Invalid request body")
+		utilities.HandleError(w, http.StatusBadRequest, "Invalid request body")
 		return
 	}
 
 	if request.Identifier == "" || request.Password == "" {
-		utilities.RespondWithMessage(w, http.StatusBadRequest, "Validation error") // TODO: more comprehensive validation errors
+		utilities.HandleError(w, http.StatusBadRequest, "Validation error") // TODO: more comprehensive validation errors
 		return
 	}
 
@@ -74,11 +74,11 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		switch err {
 		case service.ErrUserNotFound:
-			utilities.RespondWithMessage(w, http.StatusBadRequest, "This user doesn't exist")
+			utilities.HandleError(w, http.StatusBadRequest, "This user doesn't exist")
 		case service.ErrInvalidPassword:
-			utilities.RespondWithMessage(w, http.StatusBadRequest, "Incorrect password")
+			utilities.HandleError(w, http.StatusBadRequest, "Incorrect password")
 		default:
-			utilities.RespondWithMessage(w, http.StatusInternalServerError, "Something went wrong")
+			utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
 		}
 		return
 	}
@@ -95,12 +95,12 @@ type RegisterRequest struct {
 func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 	var request RegisterRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		utilities.RespondWithMessage(w, http.StatusBadRequest, "Invalid request body")
+		utilities.HandleError(w, http.StatusBadRequest, "Invalid request body")
 		return
 	}
 
 	if request.Email == "" || request.Username == "" || request.Password == "" {
-		utilities.RespondWithMessage(w, http.StatusBadRequest, "Validation error") // TODO: more comprehensive validation errors
+		utilities.HandleError(w, http.StatusBadRequest, "Validation error") // TODO: more comprehensive validation errors
 		return
 	}
 
@@ -108,11 +108,11 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		switch err {
 		case service.ErrEmailTaken:
-			utilities.RespondWithMessage(w, http.StatusBadRequest, "An account already exists with this email")
+			utilities.HandleError(w, http.StatusBadRequest, "An account already exists with this email")
 		case service.ErrUsernameTaken:
-			utilities.RespondWithMessage(w, http.StatusBadRequest, "An account already exists with this username")
+			utilities.HandleError(w, http.StatusBadRequest, "An account already exists with this username")
 		default:
-			utilities.RespondWithMessage(w, http.StatusInternalServerError, "Something went wrong")
+			utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
 		}
 		return
 	}

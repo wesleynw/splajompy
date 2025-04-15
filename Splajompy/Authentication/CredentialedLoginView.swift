@@ -35,7 +35,7 @@ struct CredentialedLoginView: View {
             .focused($isFocused)
             .onAppear { isFocused = true }
             .padding(.bottom, 10)
-          TextField("Password", text: $password)
+          SecureField("Password", text: $password)
             .padding(12)
             .background(
               RoundedRectangle(cornerRadius: 8)

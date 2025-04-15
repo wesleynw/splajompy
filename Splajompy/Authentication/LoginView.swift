@@ -8,7 +8,7 @@ struct LoginView: View {
   @State private var hasRequestedCode: Bool = false
   @State private var showError: Bool = false
 
-  @FocusState private var isFocused: Bool
+  @FocusState private var isIdentifierFieldFocused: Bool
 
   @EnvironmentObject private var authManager: AuthManager
 
@@ -21,7 +21,7 @@ struct LoginView: View {
             .background(
               RoundedRectangle(cornerRadius: 8)
                 .stroke(
-                  isFocused ? Color.primary : Color.gray.opacity(0.75),
+                  isIdentifierFieldFocused ? Color.primary : Color.gray.opacity(0.75),
                   lineWidth: 2
                 )
             )
@@ -29,10 +29,10 @@ struct LoginView: View {
             .textContentType(.username)
             .autocapitalization(.none)
             .autocorrectionDisabled()
-            .focused($isFocused)
+            .focused($isIdentifierFieldFocused)
+            .onAppear { isIdentifierFieldFocused = true }
         }
         .padding(.bottom, 10)
-        .onAppear { isFocused = true }
 
         Spacer()
 

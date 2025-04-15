@@ -125,7 +125,7 @@ struct SplashScreenView: View {
       LoginView(isPresenting: $isLoginViewPresenting)
     }
     .fullScreenCover(isPresented: $isRegisterViewPresenting) {
-      RegisterView()
+      RegisterView(isPresenting: $isRegisterViewPresenting)
     }
     .environmentObject(authManager)
     .preferredColorScheme(.dark)

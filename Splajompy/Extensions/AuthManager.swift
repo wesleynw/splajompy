@@ -201,4 +201,47 @@ class AuthManager: ObservableObject, @unchecked Sendable {
       return (false, error.localizedDescription)
     }
   }
+
+  func register(username: String, email: String, password: String) async
+    -> (success: Bool, error: String)
+  {
+    isLoading = true
+
+    guard
+      let requestBody = try? JSONSerialization.data(withJSONObject: [
+        "username": username,
+        "email": email,
+        "password": password,
+      ])
+    else {
+      return (false, "Failed to serialize JSON")
+    }
+
+    let result: AsyncResult<AuthResponse> = await APIService.performRequest(
+      endpoint: "register",
+      method: "POST",
+      body: requestBody
+    )
+
+    switch result {
+    case .success(let authResponse):
+      KeychainHelper.standard.save(
+        authResponse.token,
+        service: "session-token",
+        account: "self"
+      )
+
+      let defaults = UserDefaults.standard
+      defaults.set(authResponse.user.userId, forKey: "CurrentUserID")
+      defaults.set(authResponse.user.username, forKey: "CurrentUserUsername")
+
+      isAuthenticated = true
+      isLoading = false
+
+      return (true, "")
+    case .error(let error):
+      isLoading = false
+      return (false, error.localizedDescription)
+    }
+  }
 }

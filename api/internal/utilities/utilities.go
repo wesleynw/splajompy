@@ -22,14 +22,6 @@ type ErrorResponse struct {
 	Message string `json:"message"`
 }
 
-func RespondWithMessage(w http.ResponseWriter, status int, message string) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(status)
-	json.NewEncoder(w).Encode(ErrorResponse{
-		Message: message,
-	})
-}
-
 func HandleError(w http.ResponseWriter, statusCode int, message string) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(statusCode)

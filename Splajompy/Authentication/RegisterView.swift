@@ -1,95 +1,145 @@
 import SwiftUI
 
 struct RegisterView: View {
+  let feedbackGenerator = UIImpactFeedbackGenerator(style: .medium)
+  @Binding var isPresenting: Bool
   @Environment(\.dismiss) var dismiss
 
-  @State private var username = ""
-  @State private var email = ""
+  @State private var email: String = ""
+  @State private var username: String = ""
   @State private var password = ""
 
   @State private var usernameError: String = ""
   @State private var emailError: String = ""
   @State private var passwordError: String = ""
-  @State private var isFormValid: Bool = false
-  @State private var showError: Bool = false
-  @State private var errorMessage: String = ""
+
+  @FocusState private var isUsernameFieldFocused: Bool
+  @FocusState private var isEmailFieldFocused: Bool
+  @FocusState private var isPasswordFieldFocused: Bool
+
+  @State var errorMessage: String = ""
 
   @EnvironmentObject private var authManager: AuthManager
-  @Environment(\.colorScheme) var colorScheme
 
   var body: some View {
-    NavigationView {
-      VStack(spacing: 6) {
-        Image("Logo")
-          .resizable()
-          .scaledToFit()
-          .frame(width: 100, height: 100)
-          .shadow(color: .white.opacity(0.4), radius: 15, x: 0, y: 0)
-          .padding(.bottom, 28)
-
-        Text("Create account")
-          .font(.system(size: 24, weight: .black))
-          .frame(maxWidth: .infinity, alignment: .leading)
-          .padding(.bottom, 20)
-
+    NavigationStack {
+      VStack {
         VStack(alignment: .leading, spacing: 5) {
           TextField("Username", text: $username)
-            .padding()
-            .background(Color(.systemGray6))
+            .padding(12)
+            .background(
+              RoundedRectangle(cornerRadius: 8)
+                .stroke(
+                  isUsernameFieldFocused
+                    ? Color.primary : Color.gray.opacity(0.75),
+                  lineWidth: 2
+                )
+            )
             .cornerRadius(8)
             .textContentType(.username)
             .autocapitalization(.none)
             .autocorrectionDisabled()
-            .onChange(of: username) { oldValue, newValue in
-              validateForm()
+            .padding(.bottom, 10)
+            .focused($isUsernameFieldFocused)
+            .onAppear {
+              isUsernameFieldFocused = true
+            }
+            .onChange(of: username) {
+              if isUsernameFieldFocused { usernameError = "" }
+            }
+            .onSubmit {
+              _ = validateUsername()
             }
 
           if !usernameError.isEmpty {
             Text(usernameError)
-              .font(.caption)
-              .foregroundColor(.red)
-              .padding(.leading, 4)
+              .font(.subheadline)
+              .foregroundColor(.red.opacity(0.9))
+              .padding(.bottom, 8)
+              .transition(.opacity)
           }
-        }
-        .padding(.bottom, 10)
 
-        VStack(alignment: .leading, spacing: 5) {
           TextField("Email", text: $email)
-            .padding()
-            .background(Color(.systemGray6))
+            .padding(12)
+            .background(
+              RoundedRectangle(cornerRadius: 8)
+                .stroke(
+                  isEmailFieldFocused
+                    ? Color.primary : Color.gray.opacity(0.75),
+                  lineWidth: 2
+                )
+            )
             .cornerRadius(8)
             .textContentType(.emailAddress)
-            .keyboardType(.emailAddress)
             .autocapitalization(.none)
             .autocorrectionDisabled()
-            .onChange(of: email) { oldValue, newValue in
-              validateForm()
+            .padding(.bottom, 10)
+            .focused($isEmailFieldFocused)
+            .onChange(of: email) {
+              if isEmailFieldFocused { emailError = "" }
+            }
+            .onSubmit {
+              _ = validateEmail()
             }
 
           if !emailError.isEmpty {
             Text(emailError)
-              .font(.caption)
-              .foregroundColor(.red)
-              .padding(.leading, 4)
+              .font(.subheadline)
+              .foregroundColor(.red.opacity(0.9))
+              .padding(.bottom, 8)
+              .transition(.opacity)
           }
-        }
-        .padding(.bottom, 10)
 
-        VStack(alignment: .leading, spacing: 5) {
           SecureField("Password", text: $password)
-            .padding()
-            .background(Color(.systemGray6))
+            .padding(12)
+            .background(
+              RoundedRectangle(cornerRadius: 8)
+                .stroke(
+                  isPasswordFieldFocused
+                    ? Color.primary : Color.gray.opacity(0.75),
+                  lineWidth: 2
+                )
+            )
             .cornerRadius(8)
-            .textContentType(.newPassword)
-            .onChange(of: password) { oldValue, newValue in
-              validateForm()
+            .textContentType(.password)
+            .autocapitalization(.none)
+            .autocorrectionDisabled()
+            .focused($isPasswordFieldFocused)
+            .onChange(of: password) {
+              if isPasswordFieldFocused { passwordError = "" }
+            }
+            .onSubmit {
+              _ = validatePassword()
             }
 
           if !passwordError.isEmpty {
             Text(passwordError)
-              .font(.caption)
-              .foregroundColor(.red)
-              .padding(.leading, 4)
+              .font(.subheadline)
+              .foregroundColor(.red.opacity(0.9))
+              .padding(.bottom, 8)
+              .transition(.opacity)
+          }
+
+          if !errorMessage.isEmpty {
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
+              Image(systemName: "exclamationmark.triangle.fill")
+                .foregroundColor(.white)
+
+              Text(
+                errorMessage.isEmpty
+                  ? "An unknown error occurred." : errorMessage
+              )
+              .font(.callout)
+              .foregroundColor(.white)
+              .multilineTextAlignment(.leading)
+            }
+            .padding()
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(Color.red.opacity(0.9))
+            .cornerRadius(10)
+            .padding(.top, 20)
+            .transition(.move(edge: .top).combined(with: .opacity))
+            .animation(.easeInOut(duration: 0.3), value: errorMessage.isEmpty)
           }
         }
         .padding(.bottom, 10)
@@ -97,16 +147,31 @@ struct RegisterView: View {
         Spacer()
 
         Button(action: {
-          if validateFormOnSubmit() {
-            register()
+          if validateForm() {
+            Task {
+              let (success, err) = await authManager.register(
+                username: username,
+                email: email,
+                password: password
+              )
+              if !success {
+                withAnimation {
+                  errorMessage = err
+                }
+              }
+            }
           }
-        }) {
+        }
+        ) {
           ZStack {
             HStack {
               Spacer()
-              Text("Register")
+              Text("Continue")
                 .font(.system(size: 16, weight: .bold))
-                .foregroundColor(.white)
+                .foregroundColor(
+                  (username.isEmpty || email.isEmpty || password.isEmpty)
+                    ? Color.white.opacity(0.4) : Color.white
+                )
                 .padding()
               Spacer()
             }
@@ -120,142 +185,113 @@ struct RegisterView: View {
               }
             }
           }
-          .background(isFormValid ? Color.accentColor : Color.gray.opacity(0.3))
-          .cornerRadius(8)
+          .background(
+            (username.isEmpty || email.isEmpty || password.isEmpty)
+              ? Color.gray.opacity(0.3) : Color.accentColor
+          )
+          .cornerRadius(10)
         }
-        .disabled(authManager.isLoading || !isFormValid)
-        .padding(.bottom, 16)
+        .disabled(
+          authManager.isLoading || username.isEmpty || email.isEmpty
+            || password.isEmpty
+        )
+        .padding(.bottom, 8)
       }
       .padding(.horizontal, 24)
       .padding(.vertical, 32)
-      .navigationBarTitleDisplayMode(.inline)
+      .navigationTitle("Register")
+      .navigationBarBackButtonHidden()
       .toolbar {
-        ToolbarItem(placement: .navigationBarTrailing) {
+        ToolbarItem(placement: .topBarTrailing) {
           Button(action: {
-            dismiss()
+            feedbackGenerator.impactOccurred()
+            isPresenting = false
           }) {
             Image(systemName: "xmark")
-              .font(.system(size: 16, weight: .bold))
-              .foregroundColor(.primary)
+              .font(.system(size: 15, weight: .bold))
+              .foregroundColor(.primary.opacity(0.5))
               .padding(8)
               .background(Color(.systemGray6))
               .clipShape(Circle())
           }
         }
       }
-    }
-    .navigationViewStyle(StackNavigationViewStyle())
-    .alert(isPresented: $showError) {
-      Alert(
-        title: Text("Registration Failed"),
-        message: Text(errorMessage),
-        dismissButton: .default(Text("OK"))
-      )
+      .animation(.easeInOut(duration: 0.2), value: usernameError)
+      .animation(.easeInOut(duration: 0.2), value: emailError)
+      .animation(.easeInOut(duration: 0.2), value: passwordError)
     }
   }
 
-  func register() {
-    Task {
-      let result = await authManager.register(
-        username: username,
-        email: email,
-        password: password
-      )
-
-      await MainActor.run {
-        switch result {
-        case .success:
-          print("Registration successful!")
-
-        case .usernameError(let message):
-          usernameError = message
-          showError = true
-          errorMessage = message
-
-        case .emailError(let message):
-          emailError = message
-          showError = true
-          errorMessage = message
-
-        case .passwordError(let message):
-          passwordError = message
-          showError = true
-          errorMessage = message
-
-        case .generalError(let message):
-          showError = true
-          errorMessage = message
-        }
-      }
+  private func validateUsername() -> Bool {
+    if username.isEmpty {
+      usernameError = "Username cannot be empty"
+      return false
     }
-  }
 
-  private func validateForm() {
+    if username.count < 3 {
+      usernameError = "Username must be at least 3 characters"
+      return false
+    }
+
     usernameError = ""
-    emailError = ""
-    passwordError = ""
-
-    if !username.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-      && !email.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-      && !password.isEmpty
-    {
-      isFormValid = true
-    } else {
-      isFormValid = false
-    }
+    return true
   }
 
-  private func validateFormOnSubmit() -> Bool {
-    var isValid = true
-
-    if username.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-      usernameError = "Username is required"
-      isValid = false
+  private func validateEmail() -> Bool {
+    if email.isEmpty {
+      emailError = "Email cannot be empty"
+      return false
     }
 
-    if email.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-      emailError = "Email is required"
-      isValid = false
-    } else if !isValidEmail(email) {
-      emailError = "Please enter a valid email"
-      isValid = false
-    }
-
-    if password.isEmpty {
-      passwordError = "Password is required"
-      isValid = false
-    }
-
-    return isValid
-  }
-
-  func isValidEmail(_ email: String) -> Bool {
     let emailRegEx = "[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,64}"
     let emailPred = NSPredicate(format: "SELF MATCHES %@", emailRegEx)
-    return emailPred.evaluate(with: email)
+    if !emailPred.evaluate(with: email) {
+      emailError = "Please enter a valid email address"
+      return false
+    }
+
+    emailError = ""
+    return true
   }
+
+  private func validatePassword() -> Bool {
+    if password.isEmpty {
+      passwordError = "Password cannot be empty"
+      return false
+    }
+
+    if password.count < 8 {
+      passwordError = "Password must be at least 8 characters"
+      return false
+    }
+
+    passwordError = ""
+    return true
+  }
+
+  private func validateForm() -> Bool {
+    let isUsernameValid = validateUsername()
+    let isEmailValid = validateEmail()
+    let isPasswordValid = validatePassword()
+
+    return isUsernameValid && isEmailValid && isPasswordValid
+  }
+
 }
 
 #Preview {
-  RegisterView()
+  @Previewable @State var isPresenting = true
+  @Previewable @State var identifier = "wesleynw@pm.me"
+
+  CredentialedLoginView(isPresenting: $isPresenting, identifier: $identifier)
     .environmentObject(AuthManager())
 }
 
-// This extension is kept the same as in the original code
-extension AuthManager {
-  enum RegistrationResult {
-    case success
-    case usernameError(String)
-    case emailError(String)
-    case passwordError(String)
-    case generalError(String)
-  }
+#Preview("Dark Mode") {
+  @Previewable @State var isPresenting = true
+  @Previewable @State var identifier = "wesleynw@pm.me"
 
-  func register(username: String, email: String, password: String) async
-    -> RegistrationResult
-  {
-    // Implement your registration logic here
-    // This is a placeholder implementation
-    return .success
-  }
+  CredentialedLoginView(isPresenting: $isPresenting, identifier: $identifier)
+    .environmentObject(AuthManager())
+    .preferredColorScheme(.dark)
 }
