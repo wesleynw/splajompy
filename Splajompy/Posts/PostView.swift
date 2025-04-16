@@ -47,7 +47,7 @@ struct PostView: View {
             }
           }
           .foregroundColor(.primary)
-          Spacer()
+          //          Spacer()
           // TODO
           // Image(systemName: "ellipsis")
         }
@@ -57,7 +57,7 @@ struct PostView: View {
           .environmentObject(feedRefreshManager)
       }
       if let images = post.images, !images.isEmpty {
-        ImageCarousel(imageUrls: images.map { $0.imageBlobUrl })
+        ImageGallery(imageUrls: images.map { $0.imageBlobUrl })
       }
       HStack {
         Text(formatter.localizedString(for: postDate, relativeTo: Date()))
