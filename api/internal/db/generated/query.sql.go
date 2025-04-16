@@ -37,6 +37,7 @@ const getImagesByPostId = `-- name: GetImagesByPostId :many
 SELECT image_id, post_id, height, width, image_blob_url, display_order
 FROM images
 WHERE images.post_id = $1
+ORDER BY display_order ASC
 `
 
 func (q *Queries) GetImagesByPostId(ctx context.Context, postID int32) ([]Image, error) {
