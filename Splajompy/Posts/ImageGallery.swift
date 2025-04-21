@@ -233,63 +233,6 @@ struct FullscreenImagePager: View {
   }
 }
 
-struct ZoomableView<Content: View>: View {
-  let content: Content
-  @State private var scale: CGFloat = 1.0
-  @State private var lastScale: CGFloat = 1.0
-  @State private var offset = CGPoint.zero
-  @State private var lastOffset = CGPoint.zero
-
-  init(@ViewBuilder content: () -> Content) {
-    self.content = content()
-  }
-
-  var body: some View {
-    GeometryReader { geometry in
-      ZStack {
-        content
-          .scaleEffect(scale)
-          .offset(x: offset.x, y: offset.y)
-          .gesture(
-            MagnificationGesture()
-              .onChanged { value in
-                scale = lastScale * value.magnitude
-              }
-              .onEnded { _ in
-                lastScale = scale
-                scale = min(max(scale, 1.0), 4.0)  // Limit zoom range
-              }
-          )
-          .gesture(
-            DragGesture()
-              .onChanged { value in
-                offset = CGPoint(
-                  x: lastOffset.x + value.translation.width,
-                  y: lastOffset.y + value.translation.height
-                )
-              }
-              .onEnded { _ in
-                lastOffset = offset
-              }
-          )
-          .onTapGesture(count: 2) {
-            withAnimation(.spring()) {
-              if scale > 1.1 {
-                scale = 1.0
-                offset = .zero
-              } else {
-                scale = 2.0
-              }
-              lastScale = scale
-              lastOffset = offset
-            }
-          }
-      }
-      .frame(width: geometry.size.width, height: geometry.size.height)
-    }
-  }
-}
-
 #Preview("Fullscreen Images") {
   let imageUrls = [
     "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/development/posts/1/9278fc8a-401b-4145-83bb-ef05d4d52632.jpeg",
