@@ -6,7 +6,7 @@ on:
     branches: [main]
 jobs:
   swift-format:
-    runs-on: macos-15
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
       - name: Lint

@@ -53,7 +53,7 @@ func main() {
 
 	wrappedMux := middleware.Logger(mux)
 
-	log.Printf("Server starting on port %d", 8080)
+	log.Printf("Server starting on port %d\n", 8080)
 	if err := http.ListenAndServe(":8080", wrappedMux); err != nil {
 		log.Fatalf("server failed to start: %v", err)
 	}

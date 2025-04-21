@@ -95,6 +95,10 @@ func (s *PostService) GetPostById(ctx context.Context, cUser models.PublicUser, 
 		images = []db.Image{}
 	}
 
+	for i := range images {
+		images[i].ImageBlobUrl = "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/" + images[i].ImageBlobUrl
+	}
+
 	commentCount, err := s.queries.GetCommentCountByPostID(ctx, post.PostID)
 	if err != nil {
 		return nil, errors.New("unable to find comment count for post")

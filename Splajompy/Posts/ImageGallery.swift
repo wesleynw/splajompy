@@ -1,3 +1,4 @@
+import Kingfisher
 import SwiftUI
 
 struct ImageGallery: View {
@@ -6,48 +7,16 @@ struct ImageGallery: View {
   @State private var selectedImageIndex: Int? = nil
   @Environment(\.colorScheme) var colorScheme
 
-  var baseURL = "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/"
-
   var body: some View {
     GeometryReader { geometry in
       if imageUrls.isEmpty {
         EmptyView()
       } else if imageUrls.count == 1 {
-        if let url = URL(string: baseURL + imageUrls[0]) {
-          AsyncImage(url: url) { phase in
-            switch phase {
-            case .empty:
-              ProgressView()
-                .frame(
-                  width: geometry.size.width,
-                  height: geometry.size.width * 0.75
-                )
-            case .success(let image):
-              image
-                .resizable()
-                .scaledToFit()
-                .cornerRadius(10)
-                .frame(width: geometry.size.width)
-                .onTapGesture {
-                  selectedImageIndex = 0
-                }
-            case .failure:
-              Color.gray.opacity(0.3)
-                .frame(
-                  width: geometry.size.width,
-                  height: geometry.size.width * 0.75
-                )
-                .cornerRadius(12)
-                .overlay(
-                  Image(systemName: "photo").font(.largeTitle).foregroundColor(
-                    .gray
-                  )
-                )
-            @unknown default:
-              EmptyView()
-            }
-          }
-        }
+        imageCell(
+          index: 0,
+          width: geometry.size.width,
+          height: geometry.size.height
+        )
       } else if imageUrls.count == 2 {
         HStack(spacing: 4) {
           imageCell(
@@ -156,7 +125,7 @@ struct ImageGallery: View {
           if let index = selectedImageIndex {
             return ImageItem(
               id: index,
-              url: URL(string: baseURL + imageUrls[index])!
+              url: URL(string: imageUrls[index])!
             )
           }
           return nil
@@ -165,7 +134,7 @@ struct ImageGallery: View {
       )
     ) { imageItem in
       FullscreenImagePager(
-        imageUrls: imageUrls.map { baseURL + $0 },
+        imageUrls: imageUrls,
         initialIndex: imageItem.id,
         onDismiss: { selectedImageIndex = nil }
       )
@@ -182,42 +151,24 @@ struct ImageGallery: View {
     topTrailing: CGFloat = 6
   ) -> some View {
     Group {
-      if let url = URL(string: baseURL + imageUrls[index]) {
-        AsyncImage(url: url) { phase in
-          switch phase {
-          case .empty:
-            ProgressView()
-              .frame(width: width, height: height)
-          case .success(let image):
-            image
-              .resizable()
-              .aspectRatio(contentMode: .fill)
-              .frame(width: width, height: height)
-              .clipped()
-              .clipShape(
-                .rect(
-                  topLeadingRadius: topLeading,
-                  bottomLeadingRadius: bottomLeading,
-                  bottomTrailingRadius: bottomTrailing,
-                  topTrailingRadius: topTrailing
-                )
-              )
-              .contentShape(Rectangle())
-          case .failure:
-            Color.gray.opacity(0.3)
-              .frame(width: width, height: height)
-              .cornerRadius(6)
-              .overlay(
-                Image(systemName: "photo").font(.title3).foregroundColor(.gray)
-              )
-          @unknown default:
-            EmptyView()
-              .frame(width: width, height: height)
+      if let url = URL(string: imageUrls[index]) {
+        KFImage(url)
+          .resizable()
+          .aspectRatio(contentMode: .fill)
+          .frame(width: width, height: height)
+          .clipped()
+          .clipShape(
+            .rect(
+              topLeadingRadius: topLeading,
+              bottomLeadingRadius: bottomLeading,
+              bottomTrailingRadius: bottomTrailing,
+              topTrailingRadius: topTrailing
+            )
+          )
+          .contentShape(Rectangle())
+          .onTapGesture {
+            selectedImageIndex = index
           }
-        }
-        .onTapGesture {
-          selectedImageIndex = index
-        }
       }
     }
   }
@@ -241,39 +192,19 @@ struct FullscreenImagePager: View {
 
   var body: some View {
     ZStack {
-      //      Color.black.edgesIgnoringSafeArea(.all)
-
       TabView(selection: $currentIndex) {
-        ForEach(0..<imageUrls.count, id: \.self) { index in
-          if let url = URL(string: imageUrls[index]) {
-            AsyncImage(url: url) { phase in
-              switch phase {
-              case .empty:
-                ProgressView()
-                  .foregroundColor(.white)
-              case .success(let image):
-                ZoomableScrollView {
-                  image
-                    .resizable()
-                    .scaledToFit()
-                    .edgesIgnoringSafeArea(.all)
-                }
-              case .failure:
-                VStack {
-                  Image(systemName: "exclamationmark.triangle")
-                    .font(.largeTitle)
-                  Text("Failed to load image")
-                }
-                .foregroundColor(.white)
-              @unknown default:
-                EmptyView()
-              }
-            }
-            .tag(index)
+        ForEach(Array(imageUrls.enumerated()), id: \.1) { index, url in
+          if let url = URL(string: url) {
+            KFImage(url)
+              .resizable()
+              .scaledToFit()
+              .tag(index)
+              .zoomable(minZoomScale: 1, doubleTapZoomScale: 2)
           }
         }
       }
       .tabViewStyle(PageTabViewStyle())
+      .indexViewStyle(PageIndexViewStyle(backgroundDisplayMode: .always))
 
       VStack {
         HStack {
@@ -302,63 +233,6 @@ struct FullscreenImagePager: View {
   }
 }
 
-struct ZoomableScrollView<Content: View>: View {
-  let content: Content
-
-  @State private var currentScale: CGFloat = 1.0
-  @State private var previousScale: CGFloat = 1.0
-  @State private var isAnimating: Bool = false
-
-  init(@ViewBuilder content: () -> Content) {
-    self.content = content()
-  }
-
-  var body: some View {
-    GeometryReader { geometry in
-      ScrollView([.horizontal, .vertical], showsIndicators: false) {
-        content
-          .frame(width: geometry.size.width, height: geometry.size.height)
-          .scaleEffect(currentScale)
-          .animation(
-            isAnimating ? .spring(response: 0.3, dampingFraction: 0.7) : .none,
-            value: currentScale
-          )
-          .gesture(
-            MagnificationGesture()
-              .onChanged { value in
-                isAnimating = false
-                let delta = value / previousScale
-                previousScale = value
-
-                currentScale = currentScale * delta
-              }
-              .onEnded { _ in
-                previousScale = 1.0
-                isAnimating = true
-
-                // Bounce back if beyond limits
-                if currentScale < 1.0 {
-                  currentScale = 1.0
-                } else if currentScale > 4.0 {
-                  currentScale = 4.0
-                }
-              }
-          )
-          .onTapGesture(count: 2) {
-            isAnimating = true
-            if currentScale > 1.0 {
-              currentScale = 1.0
-            } else {
-              currentScale = min(3.0, max(1.0, currentScale * 2.0))
-            }
-          }
-      }
-      .frame(width: geometry.size.width, height: geometry.size.height)
-      .background(Color.clear)
-    }
-  }
-}
-
 #Preview("Fullscreen Images") {
   let imageUrls = [
     "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/development/posts/1/9278fc8a-401b-4145-83bb-ef05d4d52632.jpeg",
@@ -366,12 +240,16 @@ struct ZoomableScrollView<Content: View>: View {
     "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/development/posts/1/9278fc8a-401b-4145-83bb-ef05d4d52632.jpeg",
   ]
 
-  FullscreenImagePager(imageUrls: imageUrls, initialIndex: 0, onDismiss: { print("dismiss") })
+  FullscreenImagePager(
+    imageUrls: imageUrls,
+    initialIndex: 0,
+    onDismiss: { print("dismiss") }
+  )
 }
 
 #Preview("Single Image") {
   let imageUrls = [
-    "development/posts/1/9278fc8a-401b-4145-83bb-ef05d4d52632.jpeg"
+    "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/development/posts/1/9278fc8a-401b-4145-83bb-ef05d4d52632.jpeg"
   ]
 
   Rectangle().frame(height: 10)
@@ -381,8 +259,8 @@ struct ZoomableScrollView<Content: View>: View {
 
 #Preview("2 Images") {
   let imageUrls = [
-    "development/posts/1/9278fc8a-401b-4145-83bb-ef05d4d52632.jpeg",
-    "development/posts/1/9278fc8a-401b-4145-83bb-ef05d4d52632.jpeg",
+    "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/development/posts/1/9278fc8a-401b-4145-83bb-ef05d4d52632.jpeg",
+    "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/development/posts/1/9278fc8a-401b-4145-83bb-ef05d4d52632.jpeg",
   ]
 
   Rectangle().frame(height: 10)
@@ -392,9 +270,9 @@ struct ZoomableScrollView<Content: View>: View {
 
 #Preview("3 Images") {
   let imageUrls = [
-    "development/posts/1/9278fc8a-401b-4145-83bb-ef05d4d52632.jpeg",
-    "development/posts/1/9278fc8a-401b-4145-83bb-ef05d4d52632.jpeg",
-    "development/posts/1/9278fc8a-401b-4145-83bb-ef05d4d52632.jpeg",
+    "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/development/posts/1/9278fc8a-401b-4145-83bb-ef05d4d52632.jpeg",
+    "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/development/posts/1/9278fc8a-401b-4145-83bb-ef05d4d52632.jpeg",
+    "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/development/posts/1/9278fc8a-401b-4145-83bb-ef05d4d52632.jpeg",
   ]
 
   Rectangle().frame(height: 10)
@@ -404,10 +282,10 @@ struct ZoomableScrollView<Content: View>: View {
 
 #Preview("4 Images") {
   let imageUrls = [
-    "development/posts/1/9278fc8a-401b-4145-83bb-ef05d4d52632.jpeg",
-    "development/posts/1/9278fc8a-401b-4145-83bb-ef05d4d52632.jpeg",
-    "development/posts/1/9278fc8a-401b-4145-83bb-ef05d4d52632.jpeg",
-    "development/posts/1/9278fc8a-401b-4145-83bb-ef05d4d52632.jpeg",
+    "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/development/posts/1/9278fc8a-401b-4145-83bb-ef05d4d52632.jpeg",
+    "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/development/posts/1/9278fc8a-401b-4145-83bb-ef05d4d52632.jpeg",
+    "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/development/posts/1/9278fc8a-401b-4145-83bb-ef05d4d52632.jpeg",
+    "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/development/posts/1/9278fc8a-401b-4145-83bb-ef05d4d52632.jpeg",
   ]
 
   Rectangle().frame(height: 10)
@@ -417,11 +295,21 @@ struct ZoomableScrollView<Content: View>: View {
 
 #Preview("5 Images") {
   let imageUrls = [
-    "development/posts/1/9278fc8a-401b-4145-83bb-ef05d4d52632.jpeg",
-    "development/posts/1/9278fc8a-401b-4145-83bb-ef05d4d52632.jpeg",
-    "development/posts/1/9278fc8a-401b-4145-83bb-ef05d4d52632.jpeg",
-    "development/posts/1/9278fc8a-401b-4145-83bb-ef05d4d52632.jpeg",
-    "development/posts/1/9278fc8a-401b-4145-83bb-ef05d4d52632.jpeg",
+    "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/development/posts/1/9278fc8a-401b-4145-83bb-ef05d4d52632.jpeg",
+    "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/development/posts/1/9278fc8a-401b-4145-83bb-ef05d4d52632.jpeg",
+    "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/development/posts/1/9278fc8a-401b-4145-83bb-ef05d4d52632.jpeg",
+    "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/development/posts/1/9278fc8a-401b-4145-83bb-ef05d4d52632.jpeg",
+    "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/development/posts/1/9278fc8a-401b-4145-83bb-ef05d4d52632.jpeg",
+  ]
+
+  Rectangle().frame(height: 10)
+  ImageGallery(imageUrls: imageUrls)
+  Rectangle().frame(height: 10)
+}
+
+#Preview("Wide Image") {
+  let imageUrls = [
+    "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/development/posts/6/59041497-5dfa-4a8d-b87d-7745bb59f953.jpg"
   ]
 
   Rectangle().frame(height: 10)
