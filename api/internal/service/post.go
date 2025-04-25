@@ -1,12 +1,13 @@
 package service
 
 import (
-	"bytes"
 	"context"
 	"errors"
 	"fmt"
 	"log"
 	"os"
+	"strings"
+	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
@@ -29,42 +30,74 @@ func NewPostService(queries *db.Queries, s3Client *s3.Client) *PostService {
 	}
 }
 
-func (s *PostService) NewPost(ctx context.Context, currentUser models.PublicUser, text string, imageBuffer *[]byte, fileType *string, fileExt *string) error {
+func (s *PostService) NewPost(ctx context.Context, currentUser models.PublicUser, text string, imageKeymap map[int]string) error {
 	post, err := s.queries.InsertPost(ctx, db.InsertPostParams{
 		UserID: currentUser.UserID,
 		Text:   pgtype.Text{String: text, Valid: true},
 	})
+	if err != nil {
+		return errors.New("unable to create post")
+	}
 
-	if imageBuffer != nil && fileType != nil && fileExt != nil {
-		environment := os.Getenv("ENVIRONMENT")
+	environment := os.Getenv("ENVIRONMENT")
 
-		s3Key := fmt.Sprintf("%s/posts/%d/%s%s", environment, currentUser.UserID, uuid.New(), *fileExt)
+	for displayOrder, s3key := range imageKeymap {
+		filename := (s3key)[strings.LastIndex(s3key, "/"):]
+		newKey := fmt.Sprintf("%s/posts/%d/%d%s", environment, currentUser.UserID, post.PostID, filename)
 
-		_, err := s.s3Client.PutObject(ctx, &s3.PutObjectInput{
-			Bucket:      aws.String("splajompy-bucket"),
-			Key:         &s3Key,
-			Body:        bytes.NewReader(*imageBuffer),
-			ContentType: aws.String(*fileExt),
-			ACL:         types.ObjectCannedACLPublicRead,
+		_, err := s.s3Client.CopyObject(ctx, &s3.CopyObjectInput{
+			Bucket:     aws.String("splajompy-bucket"),
+			CopySource: aws.String("splajompy-bucket/" + s3key),
+			Key:        aws.String(newKey),
+			ACL:        types.ObjectCannedACLPublicRead,
 		})
 		if err != nil {
-			log.Printf("error uploading to s3: %v", err)
-			return errors.New("error uploading image")
+			print("error: ", err)
+			return errors.New("unable to create post")
+		}
+
+		_, err = s.s3Client.DeleteObject(ctx, &s3.DeleteObjectInput{
+			Bucket: aws.String("splajompy-bucket"),
+			Key:    &s3key,
+		})
+		if err != nil {
+			return errors.New("unable to create post")
 		}
 
 		_, err = s.queries.InsertImage(ctx, db.InsertImageParams{
 			PostID:       post.PostID,
-			Height:       1000,
-			Width:        1000,
-			ImageBlobUrl: s3Key,
-			DisplayOrder: 0,
+			Height:       500,
+			Width:        500,
+			ImageBlobUrl: newKey,
+			DisplayOrder: int32(displayOrder),
 		})
 		if err != nil {
-			return errors.New("unable to insert image")
+			return errors.New("unable to create post")
 		}
 	}
 
-	return err
+	return nil
+}
+
+func (s *PostService) NewPresignedStagingUrl(ctx context.Context, currentUser models.PublicUser, extension *string, folder *string) (string, string, error) {
+	environment := os.Getenv("ENVIRONMENT")
+	presignClient := s3.NewPresignClient(s.s3Client)
+
+	s3Key := fmt.Sprintf("%s/posts/staging/%d/%s/%s.%s", environment, currentUser.UserID, *folder, uuid.New(), *extension)
+
+	req, err := presignClient.PresignPutObject(ctx, &s3.PutObjectInput{
+		Bucket:      aws.String("splajompy-bucket"),
+		Key:         aws.String(s3Key),
+		ContentType: extension,
+		ACL:         types.ObjectCannedACLPublicRead,
+	}, func(opts *s3.PresignOptions) {
+		opts.Expires = time.Minute * 5
+	})
+	if err != nil {
+		log.Printf("Couldn't get a presigned request to put. Here's why: %v\n", err)
+	}
+
+	return s3Key, req.URL, nil
 }
 
 func (s *PostService) GetPostById(ctx context.Context, cUser models.PublicUser, postID int) (*models.DetailedPost, error) {

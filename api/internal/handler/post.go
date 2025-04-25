@@ -17,7 +17,8 @@ func (h *Handler) CreateNewPost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var requestBody struct {
-		Text string `json:"text"`
+		Text        string         `json:"text"`
+		ImageKeymap map[int]string `json:"imageKeymap"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&requestBody); err != nil {
@@ -25,11 +26,41 @@ func (h *Handler) CreateNewPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.postService.NewPost(r.Context(), *currentUser, requestBody.Text, nil, nil, nil)
+	err = h.postService.NewPost(r.Context(), *currentUser, requestBody.Text, requestBody.ImageKeymap)
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
 		return
 	}
+
+	utilities.HandleEmptySuccess(w)
+}
+
+func (h *Handler) GetPresignedUrl(w http.ResponseWriter, r *http.Request) {
+	currentUser, err := h.getAuthenticatedUser(r)
+	if err != nil {
+		utilities.HandleError(w, http.StatusUnauthorized, "Unauthorized")
+		return
+	}
+
+	extension := r.URL.Query().Get("extension")
+	if extension == "" {
+		utilities.HandleError(w, http.StatusBadRequest, "Bad request format")
+		return
+	}
+
+	folder := r.URL.Query().Get("folder")
+	if extension == "" {
+		utilities.HandleError(w, http.StatusBadRequest, "Bad request format")
+		return
+	}
+
+	key, url, err := h.postService.NewPresignedStagingUrl(r.Context(), *currentUser, &extension, &folder)
+	if err != nil {
+		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
+		return
+	}
+
+	utilities.HandleSuccess(w, map[string]string{"key": key, "url": url})
 }
 
 func (h *Handler) GetPostById(w http.ResponseWriter, r *http.Request) {

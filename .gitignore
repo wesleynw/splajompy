@@ -34,7 +34,7 @@ xcuserdata/
 *.xccheckout
 *.xcscmblueprint
 *.xcuserstate
-*.xcworkspace
+# *.xcworkspace
 
 ## App packaging
 *.ipa

@@ -24,7 +24,7 @@ struct ImageGallery: View {
             width: (geometry.size.width - 4) / 2,
             height: geometry.size.height,
             bottomTrailing: 0,
-            topTrailing: 0,
+            topTrailing: 0
           )
 
           imageCell(
@@ -42,7 +42,7 @@ struct ImageGallery: View {
             width: (geometry.size.width - 4) / 2,
             height: geometry.size.height,
             bottomTrailing: 0,
-            topTrailing: 0,
+            topTrailing: 0
           )
 
           VStack(spacing: 4) {
