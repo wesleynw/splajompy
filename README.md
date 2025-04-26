@@ -2,6 +2,8 @@
 
 ## Starting the API
 
+From the api subdirectory, run:
+
 > `go run cmd/api/main.go`
 
 ## Generating [SQLC](https://docs.sqlc.dev/en/stable/tutorials/getting-started-postgresql.html) code

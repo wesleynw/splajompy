@@ -44,6 +44,7 @@ func (h *Handler) FollowUser(w http.ResponseWriter, r *http.Request) {
 	err = h.userService.FollowUser(r.Context(), *currentUser, userId)
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
+		return
 	}
 
 	utilities.HandleEmptySuccess(w)

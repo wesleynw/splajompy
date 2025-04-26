@@ -13,10 +13,13 @@ extension FeedView {
     private var isLoadingMore = false
     private var offset = 0
     private let fetchLimit = 10
+    private var service: PostServiceProtocol
 
-    init(feedType: FeedType, userId: Int? = nil) {
+    // dependency injection so we can eventually provide a mock service here for posts and previews
+    init(feedType: FeedType, userId: Int? = nil, service: PostServiceProtocol = PostService()) {
       self.feedType = feedType
       self.userId = userId
+      self.service = service
       Task { @MainActor in
         loadMorePosts()
       }
@@ -34,7 +37,7 @@ extension FeedView {
       }
 
       Task {
-        let result = await FeedService.getFeedPosts(
+        let result = await service.getPostsForFeed(
           feedType: feedType,
           userId: userId,
           offset: offset,
@@ -76,7 +79,7 @@ extension FeedView {
           // Optimistic update
           posts[index].isLiked.toggle()
 
-          let result = await FeedService.toggleLike(
+          let result = await service.toggleLike(
             postId: post.post.postId,
             isLiked: post.isLiked
           )
@@ -101,7 +104,7 @@ extension FeedView {
           // Optimistic update
           posts[index].commentCount += 1
 
-          let result = await FeedService.addComment(
+          let result = await service.addComment(
             postId: post.post.postId,
             content: content
           )

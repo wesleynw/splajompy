@@ -4,6 +4,7 @@ import SwiftUI
 struct PostView: View {
   let post: DetailedPost
   var showAuthor: Bool = true
+  var isStandalone: Bool = false
   let formatter = RelativeDateTimeFormatter()
   var onLikeButtonTapped: () -> Void = {
     print("Unimplemented: PostView.onDeleteButtonTapped")
@@ -20,13 +21,31 @@ struct PostView: View {
   }
 
   var body: some View {
+    Group {
+      if !isStandalone {
+        NavigationLink {
+          StandalonePostView(postId: post.id)
+        } label: {
+          postContent
+        }
+        .buttonStyle(.plain)
+      } else {
+        postContent
+      }
+    }
+  }
+
+  private var postContent: some View {
     VStack(alignment: .leading, spacing: 12) {
       if showAuthor {
         HStack(alignment: .top) {
           NavigationLink {
-            ProfileView(userId: post.user.userId, username: post.user.username)
-              .environmentObject(feedRefreshManager)
-              .environmentObject(authManager)
+            ProfileView(
+              userId: post.user.userId,
+              username: post.user.username
+            )
+            .environmentObject(feedRefreshManager)
+            .environmentObject(authManager)
           } label: {
             VStack(alignment: .leading, spacing: 2) {
               if let displayName = post.user.name, !displayName.isEmpty {
@@ -47,9 +66,6 @@ struct PostView: View {
             }
           }
           .foregroundColor(.primary)
-          //          Spacer()
-          // TODO
-          // Image(systemName: "ellipsis")
         }
       }
       if let postText = post.post.text {
@@ -65,24 +81,26 @@ struct PostView: View {
           .foregroundColor(.gray)
         Spacer()
         HStack(spacing: 16) {
-          Button(action: {
-            isShowingComments = true
-            let impact = UIImpactFeedbackGenerator(style: .light)
-            impact.impactOccurred()
-          }) {
-            ZStack {
-              Image(systemName: "bubble.middle.bottom")
-                .font(.system(size: 25))
-                .fontWeight(.light)
+          if !isStandalone {
+            Button(action: {
+              isShowingComments = true
+              let impact = UIImpactFeedbackGenerator(style: .light)
+              impact.impactOccurred()
+            }) {
+              ZStack {
+                Image(systemName: "bubble.middle.bottom")
+                  .font(.system(size: 25))
+                  .fontWeight(.light)
 
-              if post.commentCount > 0 {
-                Text(post.commentCount > 9 ? "9+" : "\(post.commentCount)")
-                  .font(.subheadline)
-                  .padding(.bottom, 4)
+                if post.commentCount > 0 {
+                  Text(post.commentCount > 9 ? "9+" : "\(post.commentCount)")
+                    .font(.subheadline)
+                    .padding(.bottom, 4)
+                }
               }
             }
+            .buttonStyle(.plain)
           }
-          .buttonStyle(.plain)
 
           Button(action: {
             let impact = UIImpactFeedbackGenerator(style: .light)
@@ -123,14 +141,14 @@ struct PostView: View {
     postId: 123,
     userId: 456,
     text:
-      "This is a sample post with some interesting content. Check out these amazing images I captured during my recent trip! also here's a link: https://google.com, another link: splajompy.com",
+      "This is a sample post with some text content. also here's a link: https://google.com, another link: splajompy.com",
     createdAt: "2025-04-01T12:30:45.123Z"
   )
 
   let user = User(
     userId: 456,
-    email: "john.doe@example.com",
-    username: "johndoe",
+    email: "wesleynw@pm.me",
+    username: "wesleynw",
     createdAt: "2025-01-15T10:20:30.000Z",
     name: "John Doe"
   )
@@ -141,7 +159,8 @@ struct PostView: View {
       postId: 123,
       height: 800,
       width: 1200,
-      imageBlobUrl: "https://example.com/image1",
+      imageBlobUrl:
+        "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/development/posts/1/9278fc8a-401b-4145-83bb-ef05d4d52632.jpeg",
       displayOrder: 0
     ),
     ImageDTO(
@@ -149,7 +168,8 @@ struct PostView: View {
       postId: 123,
       height: 800,
       width: 1200,
-      imageBlobUrl: "https://example.com/image2",
+      imageBlobUrl:
+        "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/development/posts/1/9278fc8a-401b-4145-83bb-ef05d4d52632.jpeg",
       displayOrder: 1
     ),
   ]
@@ -162,61 +182,67 @@ struct PostView: View {
     images: images
   )
 
-  struct ImageCarousel: View {
-    let imageUrls: [String]
-
-    var body: some View {
-      ScrollView(.horizontal, showsIndicators: false) {
-        HStack(spacing: 8) {
-          ForEach(imageUrls, id: \.self) { url in
-            RoundedRectangle(cornerRadius: 8)
-              .fill(Color.gray.opacity(0.3))
-              .frame(width: 200, height: 150)
-              .overlay(
-                Text("Image")
-                  .foregroundColor(.gray)
-              )
-          }
-        }
-      }
-    }
-  }
-
-  struct ProfileView: View {
-    let userId: Int
-    let username: String
-    let isOwnProfile: Bool
-
-    var body: some View {
-      Text("Profile for @\(username)")
-    }
-  }
-
-  struct CommentsView: View {
-    let postId: Int
-
-    var body: some View {
-      Text("Comments for post \(postId)")
-    }
-  }
-
-  class UIImpactFeedbackGenerator {
-    enum FeedbackStyle {
-      case light
-    }
-
-    init(style: FeedbackStyle) {}
-
-    func impactOccurred() {
-      // Placeholder for haptic feedback
-    }
-  }
-
   let feedRefreshManager = FeedRefreshManager()
   let authManager = AuthManager()
 
   return NavigationView {
     PostView(post: detailedPost)
+      .environmentObject(feedRefreshManager)
+      .environmentObject(authManager)
+  }
+}
+
+#Preview("Standalone") {
+  let post = Post(
+    postId: 123,
+    userId: 456,
+    text:
+      "This is a sample post with some text content. also here's a link: https://google.com, another link: splajompy.com",
+    createdAt: "2025-04-01T12:30:45.123Z"
+  )
+
+  let user = User(
+    userId: 456,
+    email: "wesleynw@pm.me",
+    username: "wesleynw",
+    createdAt: "2025-01-15T10:20:30.000Z",
+    name: "John Doe"
+  )
+
+  let images = [
+    ImageDTO(
+      imageId: 789,
+      postId: 123,
+      height: 800,
+      width: 1200,
+      imageBlobUrl:
+        "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/development/posts/1/9278fc8a-401b-4145-83bb-ef05d4d52632.jpeg",
+      displayOrder: 0
+    ),
+    ImageDTO(
+      imageId: 790,
+      postId: 123,
+      height: 800,
+      width: 1200,
+      imageBlobUrl:
+        "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/development/posts/1/9278fc8a-401b-4145-83bb-ef05d4d52632.jpeg",
+      displayOrder: 1
+    ),
+  ]
+
+  let detailedPost = DetailedPost(
+    post: post,
+    user: user,
+    isLiked: false,
+    commentCount: 0,
+    images: images
+  )
+
+  let feedRefreshManager = FeedRefreshManager()
+  let authManager = AuthManager()
+
+  return NavigationView {
+    PostView(post: detailedPost, isStandalone: true)
       .environmentObject(feedRefreshManager)
       .environmentObject(authManager)
   }

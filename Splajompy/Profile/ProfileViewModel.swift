@@ -39,17 +39,16 @@ extension ProfileView {
       Task {
         isLoadingFollowButton = true
 
-        // Optimistic update
-        self.profile?.isFollowing.toggle()
-
         let result = await ProfileService.toggleFollowing(
           userId: userId,
-          isFollowing: !profile.isFollowing
+          isFollowing: profile.isFollowing
         )
 
         if case .error(let error) = result {
           print("Error toggling following status: \(error.localizedDescription)")
+        } else {
           self.profile?.isFollowing.toggle()
+
         }
 
         isLoadingFollowButton = false

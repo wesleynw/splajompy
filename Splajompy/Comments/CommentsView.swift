@@ -2,85 +2,87 @@ import Foundation
 import SwiftUI
 
 struct CommentsView: View {
+  var isShowingInSheet: Bool
   @StateObject private var viewModel: ViewModel
   @State private var newCommentText: String = ""
   @FocusState private var isTextFieldFocused: Bool
   @Environment(\.presentationMode) var presentationMode
 
-  init(postId: Int) {
+  init(postId: Int, isShowingInSheet: Bool = true) {
     _viewModel = StateObject(wrappedValue: ViewModel(postId: postId))
+    self.isShowingInSheet = isShowingInSheet
   }
 
   var body: some View {
     VStack(spacing: 0) {
-      ZStack {
-        VStack(spacing: 8) {
-          Rectangle()
-            .fill(Color.gray.opacity(0.4))
-            .frame(width: 40, height: 5)
-            .cornerRadius(2.5)
-            .padding(.top, 8)
+      if isShowingInSheet {
+        ZStack {
+          VStack(spacing: 8) {
+            Rectangle()
+              .fill(Color.gray.opacity(0.4))
+              .frame(width: 40, height: 5)
+              .cornerRadius(2.5)
+              .padding(.top, 8)
 
-          Text("Comments")
-            .font(.headline)
-            .fontWeight(.bold)
-            .padding(.bottom, 16)
-        }
-
-        HStack {
-          Spacer()
-          Button(action: {
-            let generator = UIImpactFeedbackGenerator(style: .medium)
-            generator.impactOccurred()
-            presentationMode.wrappedValue.dismiss()
-          }) {
-            Image(systemName: "xmark.circle.fill")
-              .font(.system(size: 24))
-              .foregroundColor(Color.gray.opacity(0.7))
+            Text("Comments")
+              .font(.headline)
+              .fontWeight(.bold)
+              .padding(.bottom, 16)
           }
-          .padding(.top, 8)
-          .padding(.trailing, 16)
+
+          HStack {
+            Spacer()
+            Button(action: {
+              let generator = UIImpactFeedbackGenerator(style: .medium)
+              generator.impactOccurred()
+              presentationMode.wrappedValue.dismiss()
+            }) {
+              Image(systemName: "xmark.circle.fill")
+                .font(.system(size: 24))
+                .foregroundColor(Color.gray.opacity(0.7))
+            }
+            .padding(.top, 8)
+            .padding(.trailing, 16)
+          }
+        }
+        .frame(maxWidth: .infinity)
+        .background(Color(UIColor.systemBackground))
+        .contentShape(Rectangle())
+
+        Rectangle()
+          .fill(Color.gray.opacity(0.2))
+          .frame(height: 1)
+      }
+
+      if viewModel.isLoading {
+        ProgressView()
+          .scaleEffect(1.5)
+          .padding()
+      } else if viewModel.comments.isEmpty {
+        VStack(spacing: 16) {
+          Spacer()
+          Text("No comments")
+            .font(.title3)
+            .foregroundColor(.gray)
+          Spacer()
+        }
+      } else {
+        ForEach(viewModel.comments, id: \.commentId) { comment in
+          CommentRow(
+            comment: comment,
+            toggleLike: {
+              viewModel.toggleLike(for: comment)
+              print("liking comment with ID: \(comment.commentId)")
+            }
+          )
+          .listRowSeparator(.hidden)
+          .listRowInsets(EdgeInsets())
+          .listRowBackground(Color.clear)
         }
       }
-      .frame(maxWidth: .infinity)
-      .background(Color(UIColor.systemBackground))
-      .contentShape(Rectangle())
 
-      Rectangle()
-        .fill(Color.gray.opacity(0.2))
-        .frame(height: 1)
-
-      ZStack {
-        if viewModel.isLoading {
-          ProgressView()
-            .scaleEffect(1.5)
-            .padding()
-        } else if viewModel.comments.isEmpty {
-          VStack(spacing: 16) {
-            Spacer()
-            Text("No comments")
-              .font(.title3)
-              .foregroundColor(.gray)
-            Spacer()
-          }
-        }
-
-        List {
-          ForEach(viewModel.comments, id: \.commentId) { comment in
-            CommentRow(
-              comment: comment,
-              toggleLike: {
-                viewModel.toggleLike(for: comment)
-                print("liking comment with ID: \(comment.commentId)")
-              }
-            )
-            .listRowSeparator(.hidden)
-            .listRowInsets(EdgeInsets())
-            .listRowBackground(Color.clear)
-          }
-        }
-        .listStyle(.plain)
-        .environment(\.defaultMinListRowHeight, 0)
+      if isShowingInSheet {
+        Spacer()
       }
 
       HStack {

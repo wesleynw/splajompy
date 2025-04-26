@@ -35,25 +35,25 @@ struct ContentTextView: View {
         view(for: parts[index])
       }
     }
-    .navigationDestination(  // TODO: move this outside of lazy container
-      isPresented: Binding<Bool>(
-        get: { selectedUserId != nil && selectedUsername != nil },
-        set: {
-          if !$0 {
-            selectedUserId = nil
-            selectedUsername = nil
-          }
-        }
-      )
-    ) {
-      if let userId = selectedUserId, let username = selectedUsername {
-        ProfileView(
-          userId: userId,
-          username: username
-        )
-        .environmentObject(feedRefreshManager)
-      }
-    }
+    //    .navigationDestination(  // TODO: move this outside of lazy container
+    //      isPresented: Binding<Bool>(
+    //        get: { selectedUserId != nil && selectedUsername != nil },
+    //        set: {
+    //          if !$0 {
+    //            selectedUserId = nil
+    //            selectedUsername = nil
+    //          }
+    //        }
+    //      )
+    //    ) {
+    //      if let userId = selectedUserId, let username = selectedUsername {
+    //        ProfileView(
+    //          userId: userId,
+    //          username: username
+    //        )
+    //        .environmentObject(feedRefreshManager)
+    //      }
+    //    }
   }
 
   static func parseText(_ input: String) -> [TextPart] {
