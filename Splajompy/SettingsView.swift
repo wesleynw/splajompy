@@ -10,7 +10,9 @@ struct SettingsView: View {
         Label("Sign Out", systemImage: "rectangle.portrait.and.arrow.right")
       }
       .listStyle(.plain)
-      .confirmationDialog("Are you sure you'd like to sign out?", isPresented: $isShowingSignoutConfirm) {
+      .confirmationDialog(
+        "Are you sure you'd like to sign out?", isPresented: $isShowingSignoutConfirm
+      ) {
         Button("Sign Out", role: .destructive) { authManager.signOut() }
         Button("Cancel", role: .cancel) {}
       }

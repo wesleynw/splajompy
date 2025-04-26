@@ -22,7 +22,7 @@ extension NotificationsView {
 
     func loadNotifications(reset: Bool = false) async {
       if reset {
-        state = .loading
+        //        state = .loading
         offset = 0
       } else {
         isLoadingMore = true
@@ -67,19 +67,15 @@ extension NotificationsView {
     }
 
     func markAllNotificationsAsRead() {
-      print("b")
       guard case .loaded(var notifications) = state else {
         return
       }
-
-      print("c")
 
       for i in 0..<notifications.count {
         notifications[i].viewed = true
       }
 
       state = .loaded(notifications)
-      print("d")
 
       Task {
         await service.markAllNotificationsAsRead()

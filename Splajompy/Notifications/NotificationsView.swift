@@ -11,46 +11,51 @@ struct NotificationsView: View {
   var body: some View {
     NavigationStack {
       ZStack {
-        switch viewModel.state {
-        case .idle:
-          Color.clear
+        ScrollView {
+          switch viewModel.state {
+          case .idle:
+            Color.clear
 
-        case .loaded(let notifications):
-          if notifications.isEmpty {
-            Text("No notifications.")
-              .font(.title3)
-              .fontWeight(.bold)
-          } else {
-            NotificationsList(
-              viewModel: viewModel,
-              notifications: notifications
-            )
-            .environmentObject(feedRefreshManager)
-          }
-
-        case .loading:
-          ProgressView()
-
-        case .failed(let error):
-          VStack {
-            Text("Something went wrong")
-              .font(.title3)
-              .fontWeight(.bold)
-              .padding()
-            Text(error.localizedDescription)
-              .font(.caption)
-              .fontWeight(.bold)
-              .foregroundColor(.red)
-            Image(systemName: "arrow.clockwise")
-              .imageScale(.large)
-              .onTapGesture {
-                Task { @MainActor in
-                  await viewModel.loadNotifications(reset: true)
+          case .loaded(let notifications):
+            if notifications.isEmpty {
+              Text("No notifications.")
+                .font(.title3)
+                .fontWeight(.bold)
+                .padding(.top, 40)
+            } else {
+              NotificationsList(
+                viewModel: viewModel,
+                notifications: notifications
+              )
+              .environmentObject(feedRefreshManager)
+            }
+          case .loading:
+            ProgressView()
+              .padding(.top, 40)
+          case .failed(let error):
+            VStack {
+              Text("Something went wrong")
+                .font(.title3)
+                .fontWeight(.bold)
+                .padding()
+              Text(error.localizedDescription)
+                .font(.caption)
+                .fontWeight(.bold)
+                .foregroundColor(.red)
+              Image(systemName: "arrow.clockwise")
+                .imageScale(.large)
+                .onTapGesture {
+                  Task { @MainActor in
+                    await viewModel.loadNotifications(reset: true)
+                  }
                 }
-              }
-              .padding()
+                .padding()
+            }
           }
         }
+        .refreshable(action: {
+          Task { await viewModel.loadNotifications(reset: true) }
+        })
       }
       .task {
         await viewModel.loadNotifications()
@@ -78,7 +83,7 @@ struct NotificationsList: View {
   }
 
   var body: some View {
-    List {
+    LazyVStack {
       ForEach(notifications) { notification in
         NotificationRow(notification: notification)
           .swipeActions(edge: .leading) {
@@ -107,10 +112,9 @@ struct NotificationsList: View {
           .padding([.top, .bottom])
       }
     }
-    .listStyle(.plain)
-    .refreshable(action: {
-      Task { await viewModel.loadNotifications(reset: true) }
-    })
+    .padding()
+    //    .listStyle(.plain)
+
   }
 }
 

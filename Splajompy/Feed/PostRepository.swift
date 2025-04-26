@@ -8,11 +8,12 @@ enum FeedType {
 
 protocol PostServiceProtocol: Sendable {
   func getPostById(postId: Int) async -> AsyncResult<DetailedPost>
-  
-  func getPostsForFeed(feedType: FeedType, userId: Int?, offset: Int, limit: Int) async -> AsyncResult<[DetailedPost]>
-  
+
+  func getPostsForFeed(feedType: FeedType, userId: Int?, offset: Int, limit: Int) async
+    -> AsyncResult<[DetailedPost]>
+
   func toggleLike(postId: Int, isLiked: Bool) async -> AsyncResult<EmptyResponse>
-  
+
   func addComment(postId: Int, content: String) async -> AsyncResult<
     EmptyResponse
   >
@@ -20,7 +21,7 @@ protocol PostServiceProtocol: Sendable {
 
 struct PostService: PostServiceProtocol {
   private let fetchLimit = 10
-  
+
   func getPostById(postId: Int) async -> AsyncResult<DetailedPost> {
     return await APIService.performRequest(endpoint: "post/\(postId)")
   }

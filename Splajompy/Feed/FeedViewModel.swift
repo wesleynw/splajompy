@@ -14,7 +14,7 @@ extension FeedView {
     private var offset = 0
     private let fetchLimit = 10
     private var service: PostServiceProtocol
-    
+
     // dependency injection so we can eventually provide a mock service here for posts and previews
     init(feedType: FeedType, userId: Int? = nil, service: PostServiceProtocol = PostService()) {
       self.feedType = feedType
