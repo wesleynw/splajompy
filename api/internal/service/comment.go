@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/jackc/pgx/v5/pgtype"
 	db "splajompy.com/api/v2/internal/db/generated"
@@ -19,19 +20,29 @@ func NewCommentService(queries *db.Queries) *CommentService {
 	}
 }
 
-func (s *CommentService) AddCommentToPost(ctx context.Context, cUser models.PublicUser, postID int, content string) (*db.Comment, error) {
-	_, err := s.queries.GetPostById(ctx, int32(postID))
+func (s *CommentService) AddCommentToPost(ctx context.Context, currentUser models.PublicUser, postId int, content string) (*db.Comment, error) {
+	post, err := s.queries.GetPostById(ctx, int32(postId))
 	if err != nil {
 		return nil, errors.New("unable to find post")
 	}
 
 	comment, err := s.queries.AddCommentToPost(ctx, db.AddCommentToPostParams{
-		PostID: int32(postID),
-		UserID: cUser.UserID,
+		PostID: int32(postId),
+		UserID: currentUser.UserID,
 		Text:   content,
 	})
 	if err != nil {
 		return nil, errors.New("unable to create new comment")
+	}
+
+	err = s.queries.InsertNotification(ctx, db.InsertNotificationParams{
+		UserID:    post.UserID,
+		PostID:    pgtype.Int4{Int32: int32(postId), Valid: true},
+		CommentID: pgtype.Int4{Int32: int32(comment.CommentID), Valid: true},
+		Message:   fmt.Sprintf("%s commented on your post.", currentUser.Username),
+	})
+	if err != nil {
+		return nil, errors.New("unable to create a new comment")
 	}
 
 	return &comment, nil

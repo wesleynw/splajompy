@@ -202,6 +202,21 @@ func (s *PostService) getPostsByPostIDs(ctx context.Context, currentUser models.
 
 func (s *PostService) AddLikeToPost(ctx context.Context, currentUser models.PublicUser, post_id int) error {
 	err := s.queries.AddLike(ctx, db.AddLikeParams{PostID: int32(post_id), UserID: currentUser.UserID, IsPost: true})
+	if err != nil {
+		return err
+	}
+
+	post, err := s.queries.GetPostById(ctx, int32(post_id))
+	if err != nil {
+		return err
+	}
+
+	err = s.queries.InsertNotification(ctx, db.InsertNotificationParams{
+		UserID:  post.UserID,
+		PostID:  pgtype.Int4{Int32: int32(post_id), Valid: true},
+		Message: fmt.Sprintf("%s liked your post.", currentUser.Username),
+	})
+
 	return err
 }
 

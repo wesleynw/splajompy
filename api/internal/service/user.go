@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 
 	db "splajompy.com/api/v2/internal/db/generated"
 	"splajompy.com/api/v2/internal/models"
@@ -55,15 +56,25 @@ func (s *UserService) GetUserById(ctx context.Context, cUser models.PublicUser, 
 }
 
 func (s *UserService) FollowUser(ctx context.Context, currentUser models.PublicUser, userId int) error {
-	_, err := s.queries.GetUserById(ctx, int32(userId))
+	user, err := s.queries.GetUserById(ctx, int32(userId))
 	if err != nil {
 		return errors.New("unable to find user")
 	}
 
-	return s.queries.InsertFollow(ctx, db.InsertFollowParams{
+	err = s.queries.InsertFollow(ctx, db.InsertFollowParams{
 		FollowerID:  currentUser.UserID,
 		FollowingID: int32(userId),
 	})
+	if err != nil {
+		return err
+	}
+
+	err = s.queries.InsertNotification(ctx, db.InsertNotificationParams{
+		UserID:  user.UserID,
+		Message: fmt.Sprintf("%s started following you.", currentUser.Username),
+	})
+
+	return err
 }
 
 func (s *UserService) UnfollowUser(ctx context.Context, currentUser models.PublicUser, userId int) error {
