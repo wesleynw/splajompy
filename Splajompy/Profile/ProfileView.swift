@@ -43,7 +43,7 @@ struct ProfileView: View {
   }
 
   private func profileHeader(user: UserProfile) -> some View {
-    VStack {
+    VStack(alignment: .leading) {
       if !user.name.isEmpty {
         Text(user.name)
           .font(.title2)
@@ -54,7 +54,6 @@ struct ProfileView: View {
       if !user.bio.isEmpty {
         Text(user.bio)
           .padding(.vertical, 10)
-          .fixedSize(horizontal: false, vertical: true)
       }
 
       if let isFollowing = viewModel.profile?.isFollowing, !isOwnProfile {
@@ -89,8 +88,8 @@ struct ProfileView: View {
           .foregroundColor(Color.gray.opacity(0.4))
       }
     }
+    .frame(maxWidth: .infinity)
     .padding()
-    .frame(maxWidth: .infinity, alignment: .leading)
   }
 }
 
