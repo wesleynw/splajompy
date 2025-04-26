@@ -6,10 +6,26 @@ enum FeedType {
   case profile
 }
 
-struct FeedService {
-  private let fetchLimit = 10
+protocol PostServiceProtocol: Sendable {
+  func getPostById(postId: Int) async -> AsyncResult<DetailedPost>
+  
+  func getPostsForFeed(feedType: FeedType, userId: Int?, offset: Int, limit: Int) async -> AsyncResult<[DetailedPost]>
+  
+  func toggleLike(postId: Int, isLiked: Bool) async -> AsyncResult<EmptyResponse>
+  
+  func addComment(postId: Int, content: String) async -> AsyncResult<
+    EmptyResponse
+  >
+}
 
-  static func getFeedPosts(
+struct PostService: PostServiceProtocol {
+  private let fetchLimit = 10
+  
+  func getPostById(postId: Int) async -> AsyncResult<DetailedPost> {
+    return await APIService.performRequest(endpoint: "post/\(postId)")
+  }
+
+  func getPostsForFeed(
     feedType: FeedType,
     userId: Int? = nil,
     offset: Int,
@@ -39,7 +55,7 @@ struct FeedService {
     )
   }
 
-  static func toggleLike(postId: Int, isLiked: Bool) async -> AsyncResult<
+  func toggleLike(postId: Int, isLiked: Bool) async -> AsyncResult<
     EmptyResponse
   > {
     let method = isLiked ? "DELETE" : "POST"
@@ -50,7 +66,7 @@ struct FeedService {
     )
   }
 
-  static func addComment(postId: Int, content: String) async -> AsyncResult<
+  func addComment(postId: Int, content: String) async -> AsyncResult<
     EmptyResponse
   > {
     let bodyData: [String: String] = ["Text": content]
