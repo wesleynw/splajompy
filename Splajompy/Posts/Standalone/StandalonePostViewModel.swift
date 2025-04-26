@@ -16,7 +16,7 @@ extension StandalonePostView {
 
     init(
       postId: Int,
-      postService: PostServiceProtocol = PostService(),
+      postService: PostServiceProtocol = PostService()
     ) {
       self.postId = postId
       self.postService = postService
