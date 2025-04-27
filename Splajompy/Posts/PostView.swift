@@ -7,7 +7,7 @@ struct PostView: View {
   var isStandalone: Bool = false
   let formatter = RelativeDateTimeFormatter()
   var onLikeButtonTapped: () -> Void = {
-    print("Unimplemented: PostView.onDeleteButtonTapped")
+    print("Unimplemented: PostView.onLikeButtonTapped")
   }
 
   @State private var isShowingComments = false

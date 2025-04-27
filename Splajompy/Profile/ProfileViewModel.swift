@@ -5,14 +5,17 @@ extension ProfileView {
     private let userId: Int
     private var offset = 0
 
+    private var profileService: ProfileServiceProtocol
+
     @Published var profile: UserProfile?
     @Published var posts = [DetailedPost]()
     @Published var postError = ""
     @Published var isLoadingProfile = true
     @Published var isLoadingFollowButton = false
 
-    init(userId: Int) {
+    init(userId: Int, profileService: ProfileServiceProtocol = ProfileService()) {
       self.userId = userId
+      self.profileService = profileService
       loadProfile()
     }
 
@@ -20,7 +23,7 @@ extension ProfileView {
       Task {
         isLoadingProfile = true
 
-        let result = await ProfileService.getUserProfile(userId: userId)
+        let result = await profileService.getProfile(userId: userId)
 
         switch result {
         case .success(let userProfile):
@@ -33,13 +36,26 @@ extension ProfileView {
       }
     }
 
+    func updateProfile(name: String, bio: String) {
+      Task {
+        let result = await profileService.updateProfile(name: name, bio: bio)
+        switch result {
+        case .success(_):
+          profile?.name = name
+          profile?.bio = bio
+        case .error(_):
+          break
+        }
+      }
+    }
+
     func toggleFollowing() {
       guard let profile = self.profile else { return }
 
       Task {
         isLoadingFollowButton = true
 
-        let result = await ProfileService.toggleFollowing(
+        let result = await profileService.toggleFollowing(
           userId: userId,
           isFollowing: profile.isFollowing
         )

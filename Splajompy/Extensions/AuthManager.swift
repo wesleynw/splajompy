@@ -19,7 +19,7 @@ enum AuthError {
 }
 
 @MainActor
-class AuthManager: ObservableObject, @unchecked Sendable {
+class AuthManager: ObservableObject, Sendable {
   @Published var isAuthenticated: Bool = false
   @Published var isLoading: Bool = false
 

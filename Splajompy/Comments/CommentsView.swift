@@ -14,7 +14,7 @@ struct CommentsView: View {
   }
 
   var body: some View {
-    VStack(spacing: 0) {
+    VStack(alignment: .leading, spacing: 0) {
       if isShowingInSheet {
         ZStack {
           VStack(spacing: 8) {
@@ -52,6 +52,13 @@ struct CommentsView: View {
         Rectangle()
           .fill(Color.gray.opacity(0.2))
           .frame(height: 1)
+      } else {
+        Divider()
+
+        Text("Comments")
+          .fontWeight(.bold)
+          .font(.title3)
+          .padding()
       }
 
       if viewModel.isLoading {
@@ -67,17 +74,19 @@ struct CommentsView: View {
           Spacer()
         }
       } else {
-        ForEach(viewModel.comments, id: \.commentId) { comment in
-          CommentRow(
-            comment: comment,
-            toggleLike: {
-              viewModel.toggleLike(for: comment)
-              print("liking comment with ID: \(comment.commentId)")
-            }
-          )
-          .listRowSeparator(.hidden)
-          .listRowInsets(EdgeInsets())
-          .listRowBackground(Color.clear)
+        ScrollView {
+          ForEach(viewModel.comments, id: \.commentId) { comment in
+            CommentRow(
+              comment: comment,
+              toggleLike: {
+                viewModel.toggleLike(for: comment)
+                print("liking comment with ID: \(comment.commentId)")
+              }
+            )
+            .listRowSeparator(.hidden)
+            .listRowInsets(EdgeInsets())
+            .listRowBackground(Color.clear)
+          }
         }
       }
 
@@ -164,20 +173,10 @@ struct CommentRow: View {
 
         Spacer()
 
-        //        Button(action: {
-        //          // TODO: add action for comment menu
-        //        }) {
-        //          Image(systemName: "ellipsis")
-        //            .foregroundColor(.gray)
-        //        }
       }
       .allowsHitTesting(true)
 
-      Text(comment.text)
-        .font(.body)
-        .multilineTextAlignment(.leading)
-        .fixedSize(horizontal: false, vertical: true)
-        .allowsHitTesting(false)
+      ContentTextView(text: comment.text)
 
       HStack {
         Text(formatter.localizedString(for: commentDate, relativeTo: Date()))

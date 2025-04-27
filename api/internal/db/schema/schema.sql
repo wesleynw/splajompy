@@ -11,7 +11,7 @@ CREATE TABLE bios (
     id SERIAL PRIMARY KEY NOT NULL,
     user_id INT NOT NULL,
     text TEXT NOT NULL,
-    FOREIGN KEY (user_id) REFERENCES useres(user_id) ON DELETE CASCADE
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
 
 CREATE TABLE posts (

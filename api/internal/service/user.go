@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"github.com/jackc/pgx/v5/pgtype"
 
 	db "splajompy.com/api/v2/internal/db/generated"
 	"splajompy.com/api/v2/internal/models"
@@ -87,4 +88,30 @@ func (s *UserService) UnfollowUser(ctx context.Context, currentUser models.Publi
 		FollowerID:  currentUser.UserID,
 		FollowingID: int32(userId),
 	})
+}
+
+func (s *UserService) UpdateProfile(ctx context.Context, userId int, name *string, bio *string) error {
+	_, err := s.queries.GetUserById(ctx, int32(userId))
+	if err != nil {
+		return errors.New("unable to find user")
+	}
+
+	if name != nil {
+		err = s.queries.UpdateUserName(ctx, db.UpdateUserNameParams{UserID: int32(userId), Name: pgtype.Text{String: *name, Valid: true}})
+		if err != nil {
+			return errors.New("unable to update user name")
+		}
+	}
+
+	if bio != nil {
+		err := s.queries.UpdateUserBio(ctx, db.UpdateUserBioParams{
+			UserID: int32(userId),
+			Text:   *bio,
+		})
+		if err != nil {
+			return errors.New("unable to update user bio")
+		}
+	}
+
+	return nil
 }

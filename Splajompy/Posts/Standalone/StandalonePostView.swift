@@ -24,7 +24,11 @@ struct StandalonePostView: View {
         ProgressView()
       case .loaded(let detailedPost):
         VStack {
-          PostView(post: detailedPost, isStandalone: true)
+          PostView(
+            post: detailedPost,
+            isStandalone: true,
+            onLikeButtonTapped: { viewModel.toggleLike() }
+          )
           CommentsView(postId: postId, isShowingInSheet: false)
         }
       case .failed(let error):

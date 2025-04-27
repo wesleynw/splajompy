@@ -259,3 +259,36 @@ func (q *Queries) GetVerificationCode(ctx context.Context, arg GetVerificationCo
 	)
 	return i, err
 }
+
+const updateUserBio = `-- name: UpdateUserBio :exec
+INSERT INTO bios (user_id, text)
+VALUES ($1, $2)
+ON CONFLICT (user_id)
+DO UPDATE SET text = $2
+`
+
+type UpdateUserBioParams struct {
+	UserID int32  `json:"userId"`
+	Text   string `json:"text"`
+}
+
+func (q *Queries) UpdateUserBio(ctx context.Context, arg UpdateUserBioParams) error {
+	_, err := q.db.Exec(ctx, updateUserBio, arg.UserID, arg.Text)
+	return err
+}
+
+const updateUserName = `-- name: UpdateUserName :exec
+UPDATE users
+SET name = $2
+WHERE user_id = $1
+`
+
+type UpdateUserNameParams struct {
+	UserID int32       `json:"userId"`
+	Name   pgtype.Text `json:"name"`
+}
+
+func (q *Queries) UpdateUserName(ctx context.Context, arg UpdateUserNameParams) error {
+	_, err := q.db.Exec(ctx, updateUserName, arg.UserID, arg.Name)
+	return err
+}

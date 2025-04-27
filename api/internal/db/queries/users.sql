@@ -71,3 +71,14 @@ SELECT *
 FROM "verificationCodes"
 WHERE user_id = $1 and code = $2
 LIMIT 1;
+
+-- name: UpdateUserName :exec
+UPDATE users
+SET name = $2
+WHERE user_id = $1;
+
+-- name: UpdateUserBio :exec
+INSERT INTO bios (user_id, text)
+VALUES ($1, $2)
+ON CONFLICT (user_id)
+DO UPDATE SET text = $2;

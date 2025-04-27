@@ -34,5 +34,26 @@ extension StandalonePostView {
       }
     }
 
+    func toggleLike() {
+      Task {
+        guard case .loaded(let detailedPost) = post else { return }
+
+        var updatedPost = detailedPost
+        updatedPost.isLiked.toggle()
+        post = .loaded(updatedPost)
+
+        let result = await postService.toggleLike(
+          postId: detailedPost.id,
+          isLiked: !updatedPost.isLiked
+        )
+
+        if case .error(let error) = result {
+          print("Error toggling like: \(error.localizedDescription)")
+          updatedPost.isLiked.toggle()
+          post = .loaded(updatedPost)
+        }
+      }
+    }
+
   }
 }

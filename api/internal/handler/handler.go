@@ -49,6 +49,8 @@ func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("POST /follow/{user_id}", h.FollowUser)
 	mux.HandleFunc("DELETE /follow/{user_id}", h.UnfollowUser)
 
+	mux.HandleFunc("POST /user/profile", h.UpdateProfile)
+
 	// likes
 	mux.HandleFunc("POST /post/{id}/liked", h.AddPostLike)
 	mux.HandleFunc("DELETE /post/{id}/liked", h.RemovePostLike)
