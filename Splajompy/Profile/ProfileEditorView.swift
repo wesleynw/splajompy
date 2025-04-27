@@ -72,7 +72,7 @@ struct ProfileEditorView: View {
 
           Text("\(bio.count)/400")
             .font(.subheadline)
-            .foregroundStyle(bio.count > 25 ? Color.red.opacity(0.7) : Color.primary.opacity(0.7))
+            .foregroundStyle(bio.count > 400 ? Color.red.opacity(0.7) : Color.primary.opacity(0.7))
         }
 
         Divider()
