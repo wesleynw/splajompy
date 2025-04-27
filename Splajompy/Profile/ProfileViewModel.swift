@@ -36,6 +36,19 @@ extension ProfileView {
         isLoadingProfile = false
       }
     }
+    
+    func updateProfile(name: String, bio: String) {
+      Task {
+        let result = await profileService.updateProfile(name: name, bio: bio)
+        switch result {
+        case .success(_):
+          profile?.name = name
+          profile?.bio = bio
+        case .error(_):
+          break
+        }
+      }
+    }
 
     func toggleFollowing() {
       guard let profile = self.profile else { return }

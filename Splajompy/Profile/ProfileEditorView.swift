@@ -26,23 +26,32 @@ struct ProfileEditorView: View {
         Spacer()
 
         Button {
-//          name = nameCopy
-//          bio = bioCopy
+          viewModel.updateProfile(name: name, bio: bio)
+          dismiss()
         } label: {
 
           Text("Save")
             .bold()
         }
+        .disabled(name.count > 25 || bio.count > 400)
       }
       .padding()
 
       Divider()
 
       VStack(alignment: .leading) {
-        Text("Display Name")
-          .font(.subheadline)
-          .fontWeight(.bold)
-          .foregroundStyle(.primary.opacity(0.7))
+        HStack {
+          Text("Display Name")
+            .font(.subheadline)
+            .fontWeight(.bold)
+            .foregroundStyle(.primary.opacity(0.7))
+          
+          Spacer()
+          
+          Text("\(name.count)/25")
+            .font(.subheadline)
+            .foregroundStyle(name.count > 25 ? Color.red.opacity(0.7) : Color.primary.opacity(0.7))
+        }
 
         Divider()
 
@@ -51,11 +60,20 @@ struct ProfileEditorView: View {
           .onAppear {
             isFocused = true
           }
+          .frame(maxHeight: 100)
 
-        Text("Bio")
-          .font(.subheadline)
-          .fontWeight(.bold)
-          .foregroundStyle(.primary.opacity(0.7))
+        HStack {
+          Text("Bio")
+            .font(.subheadline)
+            .fontWeight(.bold)
+            .foregroundStyle(.primary.opacity(0.7))
+          
+          Spacer()
+          
+          Text("\(bio.count)/400")
+            .font(.subheadline)
+            .foregroundStyle(bio.count > 25 ? Color.red.opacity(0.7) : Color.primary.opacity(0.7))
+        }
 
         Divider()
 

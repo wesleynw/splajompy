@@ -5,14 +5,21 @@ struct UserProfile: Decodable {
   let email: String
   let username: String
   let createdAt: String
-  let name: String
-  let bio: String
+  var name: String
+  var bio: String
   let isFollower: Bool
   var isFollowing: Bool
 }
 
+struct UpdateProfileRequest: Encodable {
+  let name: String
+  let bio: String
+}
+
 protocol ProfileServiceProtocol: Sendable {
   func getProfile(userId: Int) async -> AsyncResult<UserProfile>
+  
+  func updateProfile(name: String, bio: String) async -> AsyncResult<EmptyResponse>
 
   func toggleFollowing(userId: Int, isFollowing: Bool) async -> AsyncResult<
     EmptyResponse
@@ -25,6 +32,18 @@ struct ProfileService: ProfileServiceProtocol {
       endpoint: "user/\(userId)",
       method: "GET"
     )
+  }
+  
+  func updateProfile(name: String, bio: String) async -> AsyncResult<EmptyResponse> {
+    let request = UpdateProfileRequest(name: name, bio: bio)
+    let requestData: Data
+    do {
+      requestData = try JSONEncoder().encode(request)
+    } catch {
+      return .error(error)
+    }
+    
+    return await APIService.performRequest(endpoint: "user/profile", method: "POST", body: requestData)
   }
 
   func toggleFollowing(userId: Int, isFollowing: Bool) async -> AsyncResult<
@@ -75,6 +94,12 @@ struct MockProfileService: ProfileServiceProtocol {
     } else {
       return .error(APIErrorMessage(message: "User not found"))
     }
+  }
+  
+  func updateProfile(name: String, bio: String) async -> AsyncResult<EmptyResponse> {
+    try? await Task.sleep(nanoseconds: 500_000_000)
+    
+    return .success(EmptyResponse()) // TODO
   }
 
   func toggleFollowing(userId: Int, isFollowing: Bool) async -> AsyncResult<
