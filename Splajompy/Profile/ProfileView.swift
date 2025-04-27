@@ -1,12 +1,14 @@
 import SwiftUI
 
 struct ProfileView: View {
-  @StateObject private var viewModel: ViewModel
-  @EnvironmentObject private var authManager: AuthManager
-  @EnvironmentObject private var feedRefreshManager: FeedRefreshManager
-
   let username: String
   let userId: Int
+
+  @State private var isShowingProfileEditor: Bool = false
+  @StateObject private var viewModel: ViewModel
+
+  @EnvironmentObject private var authManager: AuthManager
+  @EnvironmentObject private var feedRefreshManager: FeedRefreshManager
 
   private var isOwnProfile: Bool {
     authManager.getCurrentUser().userId == userId
@@ -16,6 +18,12 @@ struct ProfileView: View {
     self.userId = userId
     self.username = username
     _viewModel = StateObject(wrappedValue: ViewModel(userId: userId))
+  }
+
+  init(userId: Int, username: String, viewModel: ViewModel) {
+    self.userId = userId
+    self.username = username
+    _viewModel = StateObject(wrappedValue: viewModel)
   }
 
   var body: some View {
@@ -37,6 +45,9 @@ struct ProfileView: View {
           .fontWeight(.bold)
           .padding(.top, 40)
       }
+    }
+    .sheet(isPresented: $isShowingProfileEditor) {
+      ProfileEditorView(viewModel: viewModel)
     }
     .padding(.horizontal, 16)
     .navigationTitle("@" + self.username)
@@ -81,6 +92,12 @@ struct ProfileView: View {
           }
           .buttonStyle(.borderedProminent)
         }
+      } else if isOwnProfile {
+        Button(action: { isShowingProfileEditor = true }) {
+          Text("Edit Profile")
+            .frame(maxWidth: .infinity)
+        }
+        .buttonStyle(.bordered)
       }
       if user.isFollower && !isOwnProfile {
         Text("Follows You")
@@ -88,13 +105,21 @@ struct ProfileView: View {
           .foregroundColor(Color.gray.opacity(0.4))
       }
     }
-    .frame(maxWidth: .infinity)
+    .frame(maxWidth: .infinity, alignment: .leading)
     .padding()
   }
 }
 
-struct ProfileView_Previews: PreviewProvider {
-  static var previews: some View {
-    ProfileView(userId: 1, username: "wesley")
-  }
+#Preview {
+  let mockViewModel = ProfileView.ViewModel(
+    userId: 1,
+    profileService: MockProfileService()
+  )
+
+  let feedRefreshManager = FeedRefreshManager()
+  let authManager = AuthManager()
+
+  ProfileView(userId: 1, username: "wesley", viewModel: mockViewModel)
+    .environmentObject(feedRefreshManager)
+    .environmentObject(authManager)
 }

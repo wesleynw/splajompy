@@ -1,9 +1,12 @@
 import Foundation
 
+
 extension ProfileView {
   @MainActor class ViewModel: ObservableObject {
     private let userId: Int
     private var offset = 0
+    
+    private var profileService: ProfileServiceProtocol
 
     @Published var profile: UserProfile?
     @Published var posts = [DetailedPost]()
@@ -11,8 +14,9 @@ extension ProfileView {
     @Published var isLoadingProfile = true
     @Published var isLoadingFollowButton = false
 
-    init(userId: Int) {
+    init(userId: Int, profileService: ProfileServiceProtocol = ProfileService()) {
       self.userId = userId
+      self.profileService = profileService
       loadProfile()
     }
 
@@ -20,7 +24,7 @@ extension ProfileView {
       Task {
         isLoadingProfile = true
 
-        let result = await ProfileService.getUserProfile(userId: userId)
+        let result = await profileService.getProfile(userId: userId)
 
         switch result {
         case .success(let userProfile):
@@ -39,7 +43,7 @@ extension ProfileView {
       Task {
         isLoadingFollowButton = true
 
-        let result = await ProfileService.toggleFollowing(
+        let result = await profileService.toggleFollowing(
           userId: userId,
           isFollowing: profile.isFollowing
         )

@@ -164,12 +164,6 @@ struct CommentRow: View {
 
         Spacer()
 
-        //        Button(action: {
-        //          // TODO: add action for comment menu
-        //        }) {
-        //          Image(systemName: "ellipsis")
-        //            .foregroundColor(.gray)
-        //        }
       }
       .allowsHitTesting(true)
 

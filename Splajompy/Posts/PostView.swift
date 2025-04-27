@@ -131,7 +131,9 @@ struct PostView: View {
         )
     )
     .sheet(isPresented: $isShowingComments) {
-      CommentsView(postId: post.post.postId)
+      ScrollView {
+        CommentsView(postId: post.post.postId)
+      }
     }
   }
 }
