@@ -1,11 +1,10 @@
 import Foundation
 
-
 extension ProfileView {
   @MainActor class ViewModel: ObservableObject {
     private let userId: Int
     private var offset = 0
-    
+
     private var profileService: ProfileServiceProtocol
 
     @Published var profile: UserProfile?
@@ -36,7 +35,7 @@ extension ProfileView {
         isLoadingProfile = false
       }
     }
-    
+
     func updateProfile(name: String, bio: String) {
       Task {
         let result = await profileService.updateProfile(name: name, bio: bio)

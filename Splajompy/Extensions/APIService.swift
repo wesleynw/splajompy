@@ -63,7 +63,7 @@ public struct APIService {
       return .error(URLError(.badURL))
     }
 
-    print("REQUEST: \(url)")
+    print("REQUEST: \(method) \(url)")
     let request = await createRequest(for: url, method: method, body: body)
 
     do {

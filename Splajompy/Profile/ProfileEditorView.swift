@@ -2,7 +2,7 @@ import SwiftUI
 
 struct ProfileEditorView: View {
   @StateObject var viewModel: ProfileView.ViewModel
-  
+
   @State private var name: String = ""
   @State private var bio: String = ""
 
@@ -45,9 +45,9 @@ struct ProfileEditorView: View {
             .font(.subheadline)
             .fontWeight(.bold)
             .foregroundStyle(.primary.opacity(0.7))
-          
+
           Spacer()
-          
+
           Text("\(name.count)/25")
             .font(.subheadline)
             .foregroundStyle(name.count > 25 ? Color.red.opacity(0.7) : Color.primary.opacity(0.7))
@@ -67,9 +67,9 @@ struct ProfileEditorView: View {
             .font(.subheadline)
             .fontWeight(.bold)
             .foregroundStyle(.primary.opacity(0.7))
-          
+
           Spacer()
-          
+
           Text("\(bio.count)/400")
             .font(.subheadline)
             .foregroundStyle(bio.count > 25 ? Color.red.opacity(0.7) : Color.primary.opacity(0.7))
@@ -89,7 +89,8 @@ struct ProfileEditorView: View {
 }
 
 #Preview {
-  @Previewable @StateObject var viewModel = ProfileView.ViewModel(userId: 1, profileService: MockProfileService())
+  @Previewable @StateObject var viewModel = ProfileView.ViewModel(
+    userId: 1, profileService: MockProfileService())
 
   ProfileEditorView(viewModel: viewModel)
 }

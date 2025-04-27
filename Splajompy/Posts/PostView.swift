@@ -7,7 +7,7 @@ struct PostView: View {
   var isStandalone: Bool = false
   let formatter = RelativeDateTimeFormatter()
   var onLikeButtonTapped: () -> Void = {
-    print("Unimplemented: PostView.onDeleteButtonTapped")
+    print("Unimplemented: PostView.onLikeButtonTapped")
   }
 
   @State private var isShowingComments = false
@@ -131,9 +131,7 @@ struct PostView: View {
         )
     )
     .sheet(isPresented: $isShowingComments) {
-      ScrollView {
-        CommentsView(postId: post.post.postId)
-      }
+      CommentsView(postId: post.post.postId)
     }
   }
 }

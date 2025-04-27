@@ -18,7 +18,7 @@ struct UpdateProfileRequest: Encodable {
 
 protocol ProfileServiceProtocol: Sendable {
   func getProfile(userId: Int) async -> AsyncResult<UserProfile>
-  
+
   func updateProfile(name: String, bio: String) async -> AsyncResult<EmptyResponse>
 
   func toggleFollowing(userId: Int, isFollowing: Bool) async -> AsyncResult<
@@ -33,7 +33,7 @@ struct ProfileService: ProfileServiceProtocol {
       method: "GET"
     )
   }
-  
+
   func updateProfile(name: String, bio: String) async -> AsyncResult<EmptyResponse> {
     let request = UpdateProfileRequest(name: name, bio: bio)
     let requestData: Data
@@ -42,8 +42,9 @@ struct ProfileService: ProfileServiceProtocol {
     } catch {
       return .error(error)
     }
-    
-    return await APIService.performRequest(endpoint: "user/profile", method: "POST", body: requestData)
+
+    return await APIService.performRequest(
+      endpoint: "user/profile", method: "POST", body: requestData)
   }
 
   func toggleFollowing(userId: Int, isFollowing: Bool) async -> AsyncResult<
@@ -58,7 +59,7 @@ struct ProfileService: ProfileServiceProtocol {
   }
 }
 
-final class MockUserStore: @unchecked Sendable { // unchecked ok here because it's just a mock
+final class MockUserStore: @unchecked Sendable {  // unchecked ok here because it's just a mock
   var users: [Int: UserProfile] = [
     1: UserProfile(
       userId: 1,
@@ -95,11 +96,11 @@ struct MockProfileService: ProfileServiceProtocol {
       return .error(APIErrorMessage(message: "User not found"))
     }
   }
-  
+
   func updateProfile(name: String, bio: String) async -> AsyncResult<EmptyResponse> {
     try? await Task.sleep(nanoseconds: 500_000_000)
-    
-    return .success(EmptyResponse()) // TODO
+
+    return .success(EmptyResponse())  // TODO
   }
 
   func toggleFollowing(userId: Int, isFollowing: Bool) async -> AsyncResult<
