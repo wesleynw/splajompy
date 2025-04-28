@@ -13,8 +13,13 @@ struct CommentsView: View {
     self.isShowingInSheet = isShowingInSheet
   }
 
+  init(postId: Int, isShowingInSheet: Bool = true, viewModel: ViewModel) {
+    self.isShowingInSheet = isShowingInSheet
+    _viewModel = StateObject(wrappedValue: viewModel)
+  }
+
   var body: some View {
-    VStack(alignment: .leading, spacing: 0) {
+    VStack(spacing: 0) {
       if isShowingInSheet {
         ZStack {
           VStack(spacing: 8) {
@@ -53,8 +58,6 @@ struct CommentsView: View {
           .fill(Color.gray.opacity(0.2))
           .frame(height: 1)
       } else {
-        Divider()
-
         Text("Comments")
           .fontWeight(.bold)
           .font(.title3)
@@ -226,4 +229,28 @@ struct LikeButton: View {
     }
     .buttonStyle(.plain)
   }
+}
+
+#Preview {
+  let mockViewModel = CommentsView.ViewModel(postId: 1, service: MockCommentService())
+
+  CommentsView(postId: 1, isShowingInSheet: true, viewModel: mockViewModel)
+}
+
+#Preview("Loading") {
+  let mockViewModel = CommentsView.ViewModel(postId: 1, service: MockCommentService_Loading())
+
+  CommentsView(postId: 1, isShowingInSheet: true, viewModel: mockViewModel)
+}
+
+#Preview("No Comments") {
+  let mockViewModel = CommentsView.ViewModel(postId: 1, service: MockCommentService_Empty())
+
+  CommentsView(postId: 1, isShowingInSheet: true, viewModel: mockViewModel)
+}
+
+#Preview("Error") {
+  let mockViewModel = CommentsView.ViewModel(postId: 1, service: MockCommentService_Error())
+
+  CommentsView(postId: 1, isShowingInSheet: true, viewModel: mockViewModel)
 }
