@@ -20,18 +20,15 @@ struct SplajompyApp: App {
           let (userId, username) = authManager.getCurrentUser()
           TabView {
             Tab("Home", systemImage: "house") {
-              NavigationStack {
-                FeedView(feedType: .home)
-                  .toolbar {
-                    Button(
-                      "Post",
-                      systemImage: "plus",
-                      action: { isShowingNewPostView = true }
-                    )
-                    .labelStyle(.iconOnly)
-                  }
-                  .navigationTitle("Splajompy")
-              }
+              FeedView(feedType: .home)
+                .toolbar {
+                  Button(
+                    "Post",
+                    systemImage: "plus",
+                    action: { isShowingNewPostView = true }
+                  )
+                  .labelStyle(.iconOnly)
+                }
             }
 
             Tab("Notifications", systemImage: "bell") {
