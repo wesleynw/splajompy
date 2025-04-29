@@ -1,34 +1,17 @@
-//
-//  SplajompyApp.swift
-//  Splajompy
-//
-//  Created by Wesley Weisenberger on 3/17/25.
-//
-
 import SwiftUI
 
 @main
 struct SplajompyApp: App {
   @StateObject private var authManager = AuthManager()
   @StateObject private var feedRefreshManager = FeedRefreshManager()
-  @State private var isShowingNewPostView = false
 
   var body: some Scene {
     WindowGroup {
       Group {
         if authManager.isAuthenticated {
-          let (userId, username) = authManager.getCurrentUser()
           TabView {
             Tab("Home", systemImage: "house") {
-              FeedView(feedType: .home)
-                .toolbar {
-                  Button(
-                    "Post",
-                    systemImage: "plus",
-                    action: { isShowingNewPostView = true }
-                  )
-                  .labelStyle(.iconOnly)
-                }
+              FeedContainerView(feedType: .home, title: "Splajompy")
             }
 
             Tab("Notifications", systemImage: "bell") {
@@ -36,43 +19,20 @@ struct SplajompyApp: App {
             }
 
             Tab("All", systemImage: "globe") {
-              NavigationStack {
-                FeedView(feedType: .all)
-                  .navigationTitle("All")
-              }
+              FeedContainerView(feedType: .all, title: "Splajompy")
             }
 
             Tab("Profile", systemImage: "person.circle") {
-              NavigationStack {
-                ProfileView(
-                  userId: userId,
-                  username: username
-                )
-                .toolbar {
-                  NavigationLink(
-                    destination: SettingsView().environmentObject(authManager)
-                  ) {
-                    Image(systemName: "gearshape")
-                  }
-                }
-              }
+              CurrentProfileView()
             }
           }
-          .sheet(isPresented: $isShowingNewPostView) {
-            NewPostView(
-              dismiss: { isShowingNewPostView = false },
-              onPostCreated: { feedRefreshManager.triggerRefresh() }
-            )
-            .interactiveDismissDisabled()
-          }
-          .environmentObject(feedRefreshManager)
-          .environmentObject(authManager)
         } else {
           SplashScreenView()
-            .environmentObject(authManager)
         }
-
       }
+      .environmentObject(feedRefreshManager)
+      .environmentObject(authManager)
     }
   }
+
 }

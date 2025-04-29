@@ -68,12 +68,10 @@ struct PostView: View {
           .foregroundColor(.primary)
         }
       }
-
       if let postText = post.post.text {
         ContentTextView(text: postText)
           .environmentObject(feedRefreshManager)
       }
-
       if let images = post.images, !images.isEmpty {
         ImageGallery(imageUrls: images.map { $0.imageBlobUrl })
       }
