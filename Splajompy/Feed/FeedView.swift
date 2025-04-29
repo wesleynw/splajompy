@@ -34,36 +34,34 @@ struct FeedView<Header: View>: View {
   }
 
   var body: some View {
-    NavigationStack {
-      ScrollView {
-        header
+    ScrollView {
+      header
 
-        if !viewModel.error.isEmpty && viewModel.posts.isEmpty
-          && !viewModel.isLoading
-        {
-          errorMessage
-        } else if viewModel.posts.isEmpty && !viewModel.isLoading {
-          emptyMessage
-        } else {
-          if !viewModel.posts.isEmpty {
-            postsList
-          }
-          if viewModel.isLoading {
-            loadingPlaceholder
-          }
+      if !viewModel.error.isEmpty && viewModel.posts.isEmpty
+        && !viewModel.isLoading
+      {
+        errorMessage
+      } else if viewModel.posts.isEmpty && !viewModel.isLoading {
+        emptyMessage
+      } else {
+        if !viewModel.posts.isEmpty {
+          postsList
+        }
+        if viewModel.isLoading {
+          loadingPlaceholder
         }
       }
-      .onAppear {
-        if viewModel.posts.isEmpty && !viewModel.isLoading {
-          viewModel.refreshPosts()
-        }
-      }
-      .onReceive(feedRefreshManager.$refreshTrigger) { _ in
+    }
+    .onAppear {
+      if viewModel.posts.isEmpty && !viewModel.isLoading {
         viewModel.refreshPosts()
       }
-      .refreshable {
-        viewModel.refreshPosts()
-      }
+    }
+    .onReceive(feedRefreshManager.$refreshTrigger) { _ in
+      viewModel.refreshPosts()
+    }
+    .refreshable {
+      viewModel.refreshPosts()
     }
   }
 
