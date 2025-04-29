@@ -10,7 +10,7 @@ struct FeedView<Header: View>: View {
 
   // this is a hack to insert something at the top of a scroll view so we don't have nested scrollviews
   let header: Header
-  
+
   @State var path = NavigationPath()
 
   @StateObject private var viewModel: ViewModel
@@ -85,7 +85,7 @@ struct FeedView<Header: View>: View {
       }
     }
   }
-  
+
   private func parseDeepLink(_ url: URL) -> Route? {
     guard url.scheme == "splajompy" else { return nil }
 

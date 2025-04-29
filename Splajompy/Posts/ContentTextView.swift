@@ -12,8 +12,6 @@ struct ContentTextView: View {
       .lineLimit(nil)
   }
 
-  
-
   static func processText(_ input: String) -> String {
     let pattern = #"\{tag:(\d+):([^\}]+)\}"#
     let regex = try! NSRegularExpression(pattern: pattern)
