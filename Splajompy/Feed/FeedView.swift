@@ -1,17 +1,11 @@
 import SwiftUI
 
-enum Route: Hashable {
-  case profile(id: String, username: String)
-}
-
 struct FeedView<Header: View>: View {
   var feedType: FeedType
   var userId: Int?
 
   // this is a hack to insert something at the top of a scroll view so we don't have nested scrollviews
   let header: Header
-
-  @State var path = NavigationPath()
 
   @StateObject private var viewModel: ViewModel
   @EnvironmentObject var feedRefreshManager: FeedRefreshManager
@@ -40,7 +34,7 @@ struct FeedView<Header: View>: View {
   }
 
   var body: some View {
-    NavigationStack(path: $path) {
+    NavigationStack {
       ScrollView {
         header
 
@@ -70,44 +64,6 @@ struct FeedView<Header: View>: View {
       .refreshable {
         viewModel.refreshPosts()
       }
-      .navigationTitle(feedType == .home ? "Splajompy" : "All")
-      .navigationDestination(for: Route.self) { route in
-        switch route {
-        case .profile(let id, let username):
-          ProfileView(userId: Int(id)!, username: username)
-        }
-      }
-      .onOpenURL { url in
-        print("on open url: \(url)")
-        if let route = parseDeepLink(url) {
-          path.append(route)
-        }
-      }
-    }
-  }
-
-  private func parseDeepLink(_ url: URL) -> Route? {
-    guard url.scheme == "splajompy" else { return nil }
-
-    switch url.host {
-    case "user":
-      guard
-        let components = URLComponents(
-          url: url,
-          resolvingAgainstBaseURL: false
-        ),
-        let idParam = components.queryItems?.first(where: { $0.name == "id" })?
-          .value,
-        let usernameParam = components.queryItems?.first(where: {
-          $0.name == "username"
-        })?.value
-      else {
-        return nil
-      }
-      return .profile(id: idParam, username: usernameParam)
-
-    default:
-      return nil
     }
   }
 

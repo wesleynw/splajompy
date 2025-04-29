@@ -4,19 +4,6 @@
 <dict>
 	<key>API_URL</key>
 	<string>$(API_URL)</string>
-	<key>CFBundleURLTypes</key>
-	<array>
-		<dict>
-			<key>CFBundleTypeRole</key>
-			<string>Editor</string>
-			<key>CFBundleURLName</key>
-			<string>com.splajompy.splajompy.com</string>
-			<key>CFBundleURLSchemes</key>
-			<array>
-				<string>splajompy</string>
-			</array>
-		</dict>
-	</array>
 	<key>UILaunchScreen</key>
 	<dict/>
 </dict>
