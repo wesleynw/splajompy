@@ -125,6 +125,10 @@ struct CommentsView: View {
       }
     }
     .animation(.easeInOut, value: true)
+    .onOpenURL { url in
+      print("on open url in comments: \(url)")
+      presentationMode.wrappedValue.dismiss()
+    }
   }
 
   private func submitComment() {
