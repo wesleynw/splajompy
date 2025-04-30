@@ -83,7 +83,6 @@ struct CommentsView: View {
               comment: comment,
               toggleLike: {
                 viewModel.toggleLike(for: comment)
-                print("liking comment with ID: \(comment.commentId)")
               }
             )
             .listRowSeparator(.hidden)
@@ -125,6 +124,9 @@ struct CommentsView: View {
       }
     }
     .animation(.easeInOut, value: true)
+    .onOpenURL { url in
+      presentationMode.wrappedValue.dismiss()
+    }
   }
 
   private func submitComment() {
@@ -132,7 +134,6 @@ struct CommentsView: View {
       !newCommentText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     else { return }
 
-    print("Submitting comment: \(newCommentText)")
     viewModel.addComment(text: newCommentText)
     newCommentText = ""
     isTextFieldFocused = false  // dismiss keyboard
