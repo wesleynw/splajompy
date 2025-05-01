@@ -16,6 +16,7 @@ struct NewPostView: View {
   }
 
   @State private var text: String = ""
+  @State private var facets: [Facet] = []
 
   var body: some View {
     VStack(spacing: 0) {
@@ -47,15 +48,9 @@ struct NewPostView: View {
       VStack(spacing: 15) {
         ZStack(alignment: .topLeading) {
           MentionTextEditor(
-            text: $text
+            text: $text,
+            facets: $facets
           )
-//          if text.isEmpty {
-//            Text("What's on your mind?")
-//              .foregroundColor(.gray.opacity(0.8))
-//              .padding(.horizontal, 5)
-//              .padding(.top, 8)
-//              .allowsHitTesting(false)
-//          }
         }
 
         ScrollView(.horizontal, showsIndicators: false) {

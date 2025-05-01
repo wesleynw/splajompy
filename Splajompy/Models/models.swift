@@ -42,3 +42,14 @@ struct DetailedPost: Decodable, Equatable, Identifiable {
     return lhs.post.postId == rhs.post.postId
   }
 }
+
+struct Facet: Codable {
+  let type: String
+  let index: ClosedRange<Int>
+  let userId: Int
+
+  enum CodingKeys: String, CodingKey {
+    case type, index
+    case userId = "user_id"
+  }
+}
