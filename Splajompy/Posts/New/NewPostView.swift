@@ -15,7 +15,7 @@ struct NewPostView: View {
     )
   }
 
-  @State private var text: String = "[testlink](https.google.com)"
+  @State private var text: String = ""
 
   var body: some View {
     VStack(spacing: 0) {
@@ -37,7 +37,7 @@ struct NewPostView: View {
           }
         }
         .disabled(
-          isPostButtonDisabled || viewModel.attributedText.string.count > 1000
+          isPostButtonDisabled || text.count > 1000
         )
       }
       .padding()
@@ -47,17 +47,15 @@ struct NewPostView: View {
       VStack(spacing: 15) {
         ZStack(alignment: .topLeading) {
           MentionTextEditor(
-            text: $viewModel.attributedText,
-            mentionValidator: viewModel.isValidUsername,
-            onTextChange: viewModel.textDidChange
+            text: $text
           )
-          if viewModel.attributedText.string.isEmpty {
-            Text("What's on your mind?")
-              .foregroundColor(.gray.opacity(0.8))
-              .padding(.horizontal, 5)
-              .padding(.top, 8)
-              .allowsHitTesting(false)
-          }
+//          if text.isEmpty {
+//            Text("What's on your mind?")
+//              .foregroundColor(.gray.opacity(0.8))
+//              .padding(.horizontal, 5)
+//              .padding(.top, 8)
+//              .allowsHitTesting(false)
+//          }
         }
 
         ScrollView(.horizontal, showsIndicators: false) {
@@ -116,9 +114,9 @@ struct NewPostView: View {
 
           Spacer()
 
-          Text("\(viewModel.attributedText.string.count)/1000")
+          Text("\(text.count)/1000")
             .foregroundStyle(
-              viewModel.attributedText.string.count > 1000
+              text.count > 1000
                 ? Color.red.opacity(0.7) : Color.primary.opacity(0.5)
             )
         }

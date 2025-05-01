@@ -59,7 +59,7 @@ func (s *UserService) GetUserById(ctx context.Context, cUser models.PublicUser, 
 
 func (s *UserService) GetUserByUsernamePrefix(ctx context.Context, prefix string) (*[]models.PublicUser, error) {
 	users, err := s.queries.GetUsernameLike(ctx, db.GetUsernameLikeParams{
-		Username: "%" + prefix,
+		Username: prefix + "%",
 		Limit:    10,
 	})
 	if err != nil {
