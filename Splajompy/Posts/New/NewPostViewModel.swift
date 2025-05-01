@@ -11,8 +11,20 @@ enum PhotoState {
 
 extension NewPostView {
   @MainActor class ViewModel: ObservableObject {
+    @Published var attributedText = NSAttributedString(string: "")
+
     @Published var isLoading = false
     @Published var errorDisplay: String?
+    
+    @Published var validUsernames = ["john", "jane", "alex", "taylor"]
+    
+    func isValidUsername(_ username: String) -> Bool {
+        return validUsernames.contains(username.lowercased())
+    }
+    
+    func textDidChange(_ newText: NSAttributedString) {
+        self.attributedText = newText
+    }
 
     @Published var selectedImages = [Image]()
     // TODO: find a way to do this without resetting the entire array of selected images

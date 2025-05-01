@@ -18,6 +18,8 @@ struct UpdateProfileRequest: Encodable {
 
 protocol ProfileServiceProtocol: Sendable {
   func getProfile(userId: Int) async -> AsyncResult<UserProfile>
+  
+  func getUserFromUsernamePrefix(prefix: String) async -> AsyncResult<[User]>
 
   func updateProfile(name: String, bio: String) async -> AsyncResult<EmptyResponse>
 
@@ -32,6 +34,10 @@ struct ProfileService: ProfileServiceProtocol {
       endpoint: "user/\(userId)",
       method: "GET"
     )
+  }
+  
+  func getUserFromUsernamePrefix(prefix: String) async -> AsyncResult<[User]> {
+    return await APIService.performRequest(endpoint: "")
   }
 
   func updateProfile(name: String, bio: String) async -> AsyncResult<EmptyResponse> {
