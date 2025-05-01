@@ -236,6 +236,45 @@ func (q *Queries) GetUserWithPasswordByIdentifier(ctx context.Context, email str
 	return i, err
 }
 
+const getUsernameLike = `-- name: GetUsernameLike :many
+SELECT user_id, email, password, username, created_at, name
+FROM users
+WHERE username LIKE $1
+LIMIT $2
+`
+
+type GetUsernameLikeParams struct {
+	Username string `json:"username"`
+	Limit    int32  `json:"limit"`
+}
+
+func (q *Queries) GetUsernameLike(ctx context.Context, arg GetUsernameLikeParams) ([]User, error) {
+	rows, err := q.db.Query(ctx, getUsernameLike, arg.Username, arg.Limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []User
+	for rows.Next() {
+		var i User
+		if err := rows.Scan(
+			&i.UserID,
+			&i.Email,
+			&i.Password,
+			&i.Username,
+			&i.CreatedAt,
+			&i.Name,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getVerificationCode = `-- name: GetVerificationCode :one
 SELECT id, code, user_id, expires_at
 FROM "verificationCodes"

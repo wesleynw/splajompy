@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/jackc/pgx/v5/pgtype"
+	"splajompy.com/api/v2/internal/utilities"
 
 	db "splajompy.com/api/v2/internal/db/generated"
 	"splajompy.com/api/v2/internal/models"
@@ -54,6 +55,23 @@ func (s *UserService) GetUserById(ctx context.Context, cUser models.PublicUser, 
 	}
 
 	return &user, nil
+}
+
+func (s *UserService) GetUserByUsernamePrefix(ctx context.Context, prefix string) (*[]models.PublicUser, error) {
+	users, err := s.queries.GetUsernameLike(ctx, db.GetUsernameLikeParams{
+		Username: "%" + prefix,
+		Limit:    10,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	publicUsers := make([]models.PublicUser, 0)
+	for i := range users {
+		publicUsers = append(publicUsers, *utilities.MapUserToPublicUser(&users[i]))
+	}
+
+	return &publicUsers, nil
 }
 
 func (s *UserService) FollowUser(ctx context.Context, currentUser models.PublicUser, userId int) error {

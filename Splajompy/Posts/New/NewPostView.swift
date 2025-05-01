@@ -15,7 +15,7 @@ struct NewPostView: View {
     )
   }
 
-  @State private var text: String = ""
+  @State private var text: String = "[testlink](https.google.com)"
 
   var body: some View {
     VStack(spacing: 0) {

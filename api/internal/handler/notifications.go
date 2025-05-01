@@ -29,7 +29,7 @@ func (h *Handler) GetAllNotificationByUserId(w http.ResponseWriter, r *http.Requ
 		}
 	}
 
-	notifications, err := h.notifificationService.GetNotificationsByUserId(r.Context(), *currentUser, offset, limit)
+	notifications, err := h.notificationService.GetNotificationsByUserId(r.Context(), *currentUser, offset, limit)
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
 		return
@@ -46,7 +46,7 @@ func (h *Handler) MarkAllNotificationsAsRead(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	err = h.notifificationService.MarkAllNotificationsAsReadForUserId(r.Context(), *currentUser)
+	err = h.notificationService.MarkAllNotificationsAsReadForUserId(r.Context(), *currentUser)
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
 		return
@@ -69,7 +69,7 @@ func (h *Handler) MarkNotificationAsReadById(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	err = h.notifificationService.MarkNotificationAsReadById(r.Context(), *currentUser, id)
+	err = h.notificationService.MarkNotificationAsReadById(r.Context(), *currentUser, id)
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
 		return
@@ -86,7 +86,7 @@ func (h *Handler) HasUnreadNotifications(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	hasNotifications, err := h.notifificationService.UserHasUnreadNotifications(r.Context(), *currentUser)
+	hasNotifications, err := h.notificationService.UserHasUnreadNotifications(r.Context(), *currentUser)
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
 		return

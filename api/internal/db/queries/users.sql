@@ -41,6 +41,12 @@ FROM users
 WHERE email = $1 OR username = $1
 LIMIT 1;
 
+-- name: GetUsernameLike :many
+SELECT *
+FROM users
+WHERE username LIKE $1
+LIMIT $2;
+
 -- name: GetBioByUserId :one
 SELECT text
 FROM bios
