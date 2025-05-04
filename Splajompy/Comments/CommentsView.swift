@@ -180,7 +180,7 @@ struct CommentRow: View {
       }
       .allowsHitTesting(true)
 
-      ContentTextView(text: comment.text)
+      ContentTextView(text: comment.text, facets: [])
 
       HStack {
         Text(formatter.localizedString(for: commentDate, relativeTo: Date()))

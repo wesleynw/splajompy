@@ -69,7 +69,7 @@ struct PostView: View {
         }
       }
       if let postText = post.post.text {
-        ContentTextView(text: postText)
+        ContentTextView(text: postText, facets: post.post.facets ?? [])
           .environmentObject(feedRefreshManager)
       }
       if let images = post.images, !images.isEmpty {

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/jackc/pgx/v5"
 	"log"
 	"os"
 	"regexp"
@@ -98,6 +99,9 @@ func generateFacets(ctx context.Context, s *db.Queries, text string) ([]db2.Face
 		username := text[start+1 : end]
 		user, err := s.GetUserByUsername(ctx, username)
 		if err != nil {
+			if errors.Is(err, pgx.ErrNoRows) {
+				continue
+			}
 			return nil, err
 		}
 		facets = append(facets, db2.Facet{

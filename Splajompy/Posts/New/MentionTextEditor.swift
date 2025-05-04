@@ -25,7 +25,7 @@ struct MentionTextEditor: View {
         )
 
         if viewModel.plainText.isEmpty {
-          Text("Type @ to mention someone...")
+          Text("What's on your mind?")
             .foregroundColor(Color(.placeholderText))
             .padding(8)
             .allowsHitTesting(false)

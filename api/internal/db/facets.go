@@ -1,10 +1,10 @@
 package db
 
 type Facet struct {
-	Type       string
-	UserId     int
-	IndexStart int
-	IndexEnd   int
+	Type       string `json:"type"`
+	UserId     int    `json:"userId"`
+	IndexStart int    `json:"indexStart"`
+	IndexEnd   int    `json:"indexEnd"`
 }
 
 type Facets []Facet
