@@ -31,7 +31,7 @@ struct Facet: Decodable {
 
 // For sane string replacement when inserting mentions, sort facets such that facets that occur at the end of the post text are processed first.
 extension Facet: Comparable {
-  static func <(lhs: Facet, rhs: Facet) -> Bool {
+  static func < (lhs: Facet, rhs: Facet) -> Bool {
     return lhs.indexStart > rhs.indexStart
   }
 }

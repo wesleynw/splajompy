@@ -14,17 +14,18 @@ struct ContentTextView: View {
 
   static func processText(_ input: String, facets: [Facet]) -> String {
     var output = input
-    
+
     for facet in facets.sorted() {
-      let startIndex = input.index(input.startIndex, offsetBy: facet.indexStart) // this is dumb
+      let startIndex = input.index(input.startIndex, offsetBy: facet.indexStart)  // this is dumb
       let incrementedStartIndex = input.index(after: startIndex)
       let endIndex = input.index(input.startIndex, offsetBy: facet.indexEnd)
       let username = input[incrementedStartIndex...endIndex]
-      
-      output.replaceSubrange(startIndex...endIndex, with: "**[@\(username)](splajompy://user?id=\(facet.userId)&username=\(username))**")
+
+      output.replaceSubrange(
+        startIndex...endIndex,
+        with: "**[@\(username)](splajompy://user?id=\(facet.userId)&username=\(username))**")
     }
-    
-    
+
     let pattern = #"\{tag:(\d+):([^\}]+)\}"#
     let regex = try! NSRegularExpression(pattern: pattern)
     let range = NSRange(output.startIndex..., in: output)

@@ -11,7 +11,7 @@ struct AttributedTextEditor: UIViewRepresentable {
     let textView = UITextView()
     textView.delegate = context.coordinator
     textView.font = UIFont.preferredFont(forTextStyle: .body)
-//    textView.textColor = .label
+    //    textView.textColor = .label
     textView.isScrollEnabled = true
     textView.isEditable = true
     textView.isUserInteractionEnabled = true
@@ -25,11 +25,11 @@ struct AttributedTextEditor: UIViewRepresentable {
         value: UIFont.preferredFont(forTextStyle: .body),
         range: fullRange
       )
-//      mutableText.addAttribute(
-//        .foregroundColor,
-//        value: UIColor.label,
-//        range: fullRange
-//      )
+      //      mutableText.addAttribute(
+      //        .foregroundColor,
+      //        value: UIColor.label,
+      //        range: fullRange
+      //      )
       textView.attributedText = mutableText
     } else {
       textView.attributedText = text
