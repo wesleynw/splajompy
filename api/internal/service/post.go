@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"regexp"
+	db2 "splajompy.com/api/v2/internal/db"
 	"strings"
 	"time"
 
@@ -31,9 +33,15 @@ func NewPostService(queries *db.Queries, s3Client *s3.Client) *PostService {
 }
 
 func (s *PostService) NewPost(ctx context.Context, currentUser models.PublicUser, text string, imageKeymap map[int]string) error {
+	facets, err := generateFacets(ctx, s.queries, text)
+	if err != nil {
+		return err
+	}
+
 	post, err := s.queries.InsertPost(ctx, db.InsertPostParams{
 		UserID: currentUser.UserID,
 		Text:   pgtype.Text{String: text, Valid: true},
+		Facets: facets,
 	})
 	if err != nil {
 		return errors.New("unable to create post")
@@ -77,6 +85,30 @@ func (s *PostService) NewPost(ctx context.Context, currentUser models.PublicUser
 	}
 
 	return nil
+}
+
+func generateFacets(ctx context.Context, s *db.Queries, text string) ([]db2.Facet, error) {
+	re := regexp.MustCompile(`@(\w+)`)
+	matches := re.FindAllStringSubmatchIndex(text, -1)
+
+	var facets []db2.Facet
+
+	for _, match := range matches {
+		start, end := match[0], match[1]
+		username := text[start+1 : end]
+		user, err := s.GetUserByUsername(ctx, username)
+		if err != nil {
+			return nil, err
+		}
+		facets = append(facets, db2.Facet{
+			Type:       "mention",
+			UserId:     int(user.UserID),
+			IndexStart: start,
+			IndexEnd:   end,
+		})
+	}
+
+	return facets, nil
 }
 
 func (s *PostService) NewPresignedStagingUrl(ctx context.Context, currentUser models.PublicUser, extension *string, folder *string) (string, string, error) {

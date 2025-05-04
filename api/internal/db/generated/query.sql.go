@@ -44,7 +44,7 @@ func (q *Queries) GetImagesByPostId(ctx context.Context, postID int32) ([]Image,
 }
 
 const getPostById = `-- name: GetPostById :one
-SELECT post_id, user_id, text, created_at
+SELECT post_id, user_id, text, created_at, facets
 FROM posts
 WHERE post_id = $1
 `
@@ -57,6 +57,7 @@ func (q *Queries) GetPostById(ctx context.Context, postID int32) (Post, error) {
 		&i.UserID,
 		&i.Text,
 		&i.CreatedAt,
+		&i.Facets,
 	)
 	return i, err
 }

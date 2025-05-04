@@ -10,3 +10,10 @@ sql:
         sql_package: "pgx/v5"
         emit_json_tags: true
         json_tags_case_style: "camel"
+        overrides:
+          - column: "posts.facets"
+            "go_type": {
+               import: "splajompy.com/api/v2/internal/db",
+               package: "db",
+               type: "Facets"
+            }

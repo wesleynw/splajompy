@@ -194,6 +194,34 @@ func (q *Queries) GetUserByIdentifier(ctx context.Context, email string) (GetUse
 	return i, err
 }
 
+const getUserByUsername = `-- name: GetUserByUsername :one
+SELECT user_id, email, username, created_at, name
+FROM users
+WHERE username = $1
+LIMIT 1
+`
+
+type GetUserByUsernameRow struct {
+	UserID    int32            `json:"userId"`
+	Email     string           `json:"email"`
+	Username  string           `json:"username"`
+	CreatedAt pgtype.Timestamp `json:"createdAt"`
+	Name      pgtype.Text      `json:"name"`
+}
+
+func (q *Queries) GetUserByUsername(ctx context.Context, username string) (GetUserByUsernameRow, error) {
+	row := q.db.QueryRow(ctx, getUserByUsername, username)
+	var i GetUserByUsernameRow
+	err := row.Scan(
+		&i.UserID,
+		&i.Email,
+		&i.Username,
+		&i.CreatedAt,
+		&i.Name,
+	)
+	return i, err
+}
+
 const getUserWithPasswordById = `-- name: GetUserWithPasswordById :one
 SELECT user_id, email, password, username, created_at, name
 FROM users

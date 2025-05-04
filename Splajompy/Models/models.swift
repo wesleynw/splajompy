@@ -22,11 +22,19 @@ struct ImageDTO: Decodable {
   let displayOrder: Int
 }
 
+struct Facet: Decodable {
+  let type: String
+  let UserId: String
+  let IndexStart: Int
+  let IndexEnd: Int
+}
+
 struct Post: Decodable {
   let postId: Int
   let userId: Int
   let text: String?
   let createdAt: String
+  let facets: [Facet]?
 }
 
 struct DetailedPost: Decodable, Equatable, Identifiable {
@@ -40,16 +48,5 @@ struct DetailedPost: Decodable, Equatable, Identifiable {
 
   static func == (lhs: DetailedPost, rhs: DetailedPost) -> Bool {
     return lhs.post.postId == rhs.post.postId
-  }
-}
-
-struct Facet: Codable {
-  let type: String
-  let index: ClosedRange<Int>
-  let userId: Int
-
-  enum CodingKeys: String, CodingKey {
-    case type, index
-    case userId = "user_id"
   }
 }

@@ -35,6 +35,12 @@ FROM users
 WHERE user_id = $1
 LIMIT 1;
 
+-- name: GetUserByUsername :one
+SELECT user_id, email, username, created_at, name
+FROM users
+WHERE username = $1
+LIMIT 1;
+
 -- name: GetUserByIdentifier :one
 SELECT user_id, email, username, created_at, name
 FROM users
