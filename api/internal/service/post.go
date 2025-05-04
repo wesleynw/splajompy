@@ -106,7 +106,7 @@ func (s *PostService) GetPostById(ctx context.Context, cUser models.PublicUser, 
 		return nil, errors.New("unable to find post")
 	}
 
-	user, err := s.queries.GetUserById(ctx, int32(post.UserID))
+	user, err := s.queries.GetUserById(ctx, post.UserID)
 	if err != nil {
 		return nil, errors.New("unable to find user")
 	}
@@ -187,7 +187,7 @@ func (s *PostService) GetPostsByFollowing(ctx context.Context, currentUser model
 }
 
 func (s *PostService) getPostsByPostIDs(ctx context.Context, currentUser models.PublicUser, postIDs []int32) (*[]models.DetailedPost, error) {
-	posts := []models.DetailedPost{}
+	var posts []models.DetailedPost
 
 	for i := range postIDs {
 		post, err := s.GetPostById(ctx, currentUser, int(postIDs[i]))
@@ -200,29 +200,29 @@ func (s *PostService) getPostsByPostIDs(ctx context.Context, currentUser models.
 	return &posts, nil
 }
 
-func (s *PostService) AddLikeToPost(ctx context.Context, currentUser models.PublicUser, post_id int) error {
-	err := s.queries.AddLike(ctx, db.AddLikeParams{PostID: int32(post_id), UserID: currentUser.UserID, IsPost: true})
+func (s *PostService) AddLikeToPost(ctx context.Context, currentUser models.PublicUser, postId int) error {
+	err := s.queries.AddLike(ctx, db.AddLikeParams{PostID: int32(postId), UserID: currentUser.UserID, IsPost: true})
 	if err != nil {
 		return err
 	}
 
-	post, err := s.queries.GetPostById(ctx, int32(post_id))
+	post, err := s.queries.GetPostById(ctx, int32(postId))
 	if err != nil {
 		return err
 	}
 
 	err = s.queries.InsertNotification(ctx, db.InsertNotificationParams{
 		UserID:  post.UserID,
-		PostID:  pgtype.Int4{Int32: int32(post_id), Valid: true},
+		PostID:  pgtype.Int4{Int32: int32(postId), Valid: true},
 		Message: fmt.Sprintf("%s liked your post.", currentUser.Username),
 	})
 
 	return err
 }
 
-func (s *PostService) RemoveLikeFromPost(ctx context.Context, currentUser models.PublicUser, post_id int) error {
+func (s *PostService) RemoveLikeFromPost(ctx context.Context, currentUser models.PublicUser, postId int) error {
 	err := s.queries.RemoveLike(ctx, db.RemoveLikeParams{
-		PostID: int32(post_id),
+		PostID: int32(postId),
 		UserID: currentUser.UserID,
 		IsPost: true})
 	return err

@@ -32,11 +32,9 @@ extension NewPostView {
       }
     }
 
-    private let dismiss: () -> Void
     private let onPostCreated: () -> Void
 
-    init(dismiss: @escaping () -> Void, onPostCreated: @escaping () -> Void) {
-      self.dismiss = dismiss
+    init(onPostCreated: @escaping () -> Void) {
       self.onPostCreated = onPostCreated
     }
 
@@ -64,7 +62,6 @@ extension NewPostView {
           errorDisplay = ""
           isLoading = false
           onPostCreated()
-          dismiss()
         case .error(let error):
           errorDisplay = "There was an error: \(error.localizedDescription)."
           isLoading = false
