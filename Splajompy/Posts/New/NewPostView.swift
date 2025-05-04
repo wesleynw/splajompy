@@ -47,7 +47,7 @@ struct NewPostView: View {
 
       VStack(spacing: 15) {
         MentionTextEditor(
-          text: $text,
+          text: $text
         )
 
         ScrollView(.horizontal, showsIndicators: false) {
