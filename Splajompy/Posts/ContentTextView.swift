@@ -19,10 +19,10 @@ struct ContentTextView: View {
       let startIndex = input.index(input.startIndex, offsetBy: facet.indexStart)  // this is dumb
       let incrementedStartIndex = input.index(after: startIndex)
       let endIndex = input.index(input.startIndex, offsetBy: facet.indexEnd)
-      let username = input[incrementedStartIndex...endIndex]
+      let username = input[incrementedStartIndex..<endIndex]
 
       output.replaceSubrange(
-        startIndex...endIndex,
+        startIndex..<endIndex,
         with: "**[@\(username)](splajompy://user?id=\(facet.userId)&username=\(username))**")
     }
 

@@ -31,7 +31,7 @@ struct MentionTextEditor: View {
             .allowsHitTesting(false)
         }
       }
-      .border(Color.gray.opacity(0.3))
+//      .border(Color.gray.opacity(0.3))
 
       if viewModel.isShowingSuggestions {
         suggestionView

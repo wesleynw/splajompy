@@ -19,12 +19,6 @@ struct ProfileEditorView: View {
 
         Spacer()
 
-        Text("Profile")
-          .font(.title3)
-          .fontWeight(.bold)
-
-        Spacer()
-
         Button {
           viewModel.updateProfile(name: name, bio: bio)
           dismiss()
