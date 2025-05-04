@@ -17,7 +17,7 @@ struct AttributedTextEditor: UIViewRepresentable {
     textView.autocorrectionType = .no
     textView.typingAttributes = [
       .font: UIFont.preferredFont(forTextStyle: .body),
-      .foregroundColor: UIColor.label
+      .foregroundColor: UIColor.label,
     ]
     textView.attributedText = text
     return textView
@@ -27,13 +27,13 @@ struct AttributedTextEditor: UIViewRepresentable {
     if !uiView.attributedText.isEqual(to: text) {
       let wasUpdatingFromViewModel = context.coordinator.isUpdatingFromViewModel
       context.coordinator.isUpdatingFromViewModel = true
-      
+
       // Ensure typing attributes are set to default
       uiView.typingAttributes = [
         .font: UIFont.preferredFont(forTextStyle: .body),
-        .foregroundColor: UIColor.label
+        .foregroundColor: UIColor.label,
       ]
-      
+
       uiView.attributedText = text
 
       if wasUpdatingFromViewModel && cursorPosition <= text.length {
@@ -63,10 +63,10 @@ struct AttributedTextEditor: UIViewRepresentable {
           // Reset typing attributes to default
           textView.typingAttributes = [
             .font: UIFont.preferredFont(forTextStyle: .body),
-            .foregroundColor: UIColor.label
+            .foregroundColor: UIColor.label,
           ]
         }
-        
+
         parent.text = attributedText
         parent.onTextChange?(attributedText)
       }
