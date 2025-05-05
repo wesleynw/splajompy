@@ -96,17 +96,9 @@ extension MentionTextEditor {
         offsetBy: cursorPosition - 1
       )
 
-      if attributedText.string[textIndex] == " " {
-        let previousTextIndex = attributedText.string.index(before: textIndex)
-        if previousTextIndex >= attributedText.string.startIndex {
-          let possibleMentionRange = attributedText.string[..<previousTextIndex]
-          if let atSymbolIndex = possibleMentionRange.lastIndex(of: "@") {
-            let mentionText = attributedText.string[atSymbolIndex..<textIndex]
-            if mentionText.count > 1 && !mentionText.contains(" ") {
-              return
-            }
-          }
-        }
+      if attributedText.string[textIndex] == " " || attributedText.string[textIndex] == "\n" {
+        clearMentionState()
+        return
       }
 
       if let wordStart = attributedText.string[..<textIndex].lastIndex(where: {

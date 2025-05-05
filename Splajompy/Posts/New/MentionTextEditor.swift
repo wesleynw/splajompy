@@ -4,6 +4,7 @@ import UIKit
 struct MentionTextEditor: View {
   @Binding var text: NSAttributedString
   @StateObject private var viewModel: MentionViewModel
+  @FocusState private var isFocused: Bool
 
   init(text: Binding<NSAttributedString>) {
     self._text = text
@@ -11,30 +12,36 @@ struct MentionTextEditor: View {
   }
 
   var body: some View {
-    VStack(alignment: .leading, spacing: 0) {
-      ZStack(alignment: .topLeading) {
-        AttributedTextEditor(
-          text: $text,
-          cursorPosition: $viewModel.cursorPosition,
-          onTextChange: { newText in
-            viewModel.processTextChange(newText)
-          },
-          onCursorPositionChange: { position in
-            viewModel.updateCursorPosition(position)
+    ScrollView {
+      VStack(alignment: .leading, spacing: 0) {
+        ZStack(alignment: .topLeading) {
+          AttributedTextEditor(
+            text: $text,
+            cursorPosition: $viewModel.cursorPosition,
+            onTextChange: { newText in
+              viewModel.processTextChange(newText)
+            },
+            onCursorPositionChange: { position in
+              viewModel.updateCursorPosition(position)
+            }
+          )
+          .focused($isFocused)
+          .fixedSize(horizontal: false, vertical: true)
+          if text.string.isEmpty {
+            Text("What's on your mind?")
+              .foregroundColor(Color(.placeholderText))
+              .padding(8)
+              .allowsHitTesting(false)
           }
-        )
-        .fixedSize(horizontal: false, vertical: true)
-        if text.string.isEmpty {
-          Text("What's on your mind?")
-            .foregroundColor(Color(.placeholderText))
-            .padding(8)
-            .allowsHitTesting(false)
         }
+        if viewModel.isShowingSuggestions {
+          suggestionView
+        }
+        Spacer()
       }
-      if viewModel.isShowingSuggestions {
-        suggestionView
-      }
-      Spacer()
+    }
+    .onAppear {
+      isFocused = true
     }
     .onChange(of: text) { oldValue, newValue in
       viewModel.updateAttributedText(newValue)
