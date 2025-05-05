@@ -13,10 +13,6 @@ extension MentionTextEditor {
     private var mentionPrefix: String = ""
     private let mentionPattern = "@([a-zA-Z0-9_]+)"
 
-    var plainText: String {
-      attributedText.string
-    }
-
     func updateAttributedText(_ text: NSAttributedString) {
       attributedText = text
       checkForMentionAtCursor()
@@ -91,59 +87,60 @@ extension MentionTextEditor {
     }
 
     private func checkForMentionAtCursor() {
-      guard cursorPosition > 0, cursorPosition <= plainText.count else {
-        clearMentionState()
+      guard cursorPosition > 0, cursorPosition <= attributedText.string.count else {
         return
       }
 
-      let textIndex = plainText.index(
-        plainText.startIndex,
+      let textIndex = attributedText.string.index(
+        attributedText.string.startIndex,
         offsetBy: cursorPosition - 1
       )
 
-      if plainText[textIndex] == " " {
-        let previousTextIndex = plainText.index(before: textIndex)
-        if previousTextIndex >= plainText.startIndex {
-          let possibleMentionRange = plainText[..<previousTextIndex]
+      if attributedText.string[textIndex] == " " {
+        let previousTextIndex = attributedText.string.index(before: textIndex)
+        if previousTextIndex >= attributedText.string.startIndex {
+          let possibleMentionRange = attributedText.string[..<previousTextIndex]
           if let atSymbolIndex = possibleMentionRange.lastIndex(of: "@") {
-            let mentionText = plainText[atSymbolIndex..<textIndex]
+            let mentionText = attributedText.string[atSymbolIndex..<textIndex]
             if mentionText.count > 1 && !mentionText.contains(" ") {
-              clearMentionState()
               return
             }
           }
         }
       }
 
-      if let wordStart = plainText[..<textIndex].lastIndex(where: {
+      if let wordStart = attributedText.string[..<textIndex].lastIndex(where: {
         $0 == "@" || $0 == " "
       }) {
         let potentialMentionStart =
-          plainText[wordStart] == "@"
-          ? wordStart : plainText.index(after: wordStart)
+          attributedText.string[wordStart] == "@"
+          ? wordStart : attributedText.string.index(after: wordStart)
 
-        if plainText[potentialMentionStart] == "@" {
-          if plainText[textIndex] == " " && textIndex > potentialMentionStart {
-            let mentionText = plainText[potentialMentionStart..<textIndex]
+        if attributedText.string[potentialMentionStart] == "@" {
+          if attributedText.string[textIndex] == " " && textIndex > potentialMentionStart {
+            let mentionText = attributedText.string[potentialMentionStart..<textIndex]
             if mentionText.count > 1 {
-              clearMentionState()
               return
             }
           }
 
           let distanceFromMention =
-            plainText.distance(from: potentialMentionStart, to: textIndex) + 1
+            attributedText.string.distance(from: potentialMentionStart, to: textIndex) + 1
 
           if distanceFromMention <= 20 {
             mentionStartIndex = potentialMentionStart
-            let searchRange = plainText[
-              potentialMentionStart..<plainText.index(
-                plainText.startIndex,
+            let searchRange = attributedText.string[
+              potentialMentionStart..<attributedText.string.index(
+                attributedText.string.startIndex,
                 offsetBy: cursorPosition
               )
             ]
-            mentionPrefix = String(searchRange.dropFirst())
-            fetchSuggestions(prefix: mentionPrefix)
+            let newPrefix = String(searchRange.dropFirst())
+
+            if newPrefix != mentionPrefix {
+              mentionPrefix = newPrefix
+              fetchSuggestions(prefix: mentionPrefix)
+            }
             return
           }
         }
@@ -168,12 +165,16 @@ extension MentionTextEditor {
         case .success(let users):
           await MainActor.run {
             self.mentionSuggestions = users
-            self.isShowingSuggestions = true
+            if prefix.isEmpty {
+              self.isShowingSuggestions = false
+            }
           }
         case .error:
           await MainActor.run {
             self.mentionSuggestions = []
-            self.isShowingSuggestions = true
+            if prefix.isEmpty {
+              self.isShowingSuggestions = false
+            }
           }
         }
       }
@@ -182,7 +183,7 @@ extension MentionTextEditor {
     func insertMention(_ user: User) {
       guard let startIndex = mentionStartIndex else { return }
 
-      var newText = plainText
+      var newText = attributedText.string
       let currentIndex = newText.index(
         newText.startIndex,
         offsetBy: cursorPosition
@@ -223,9 +224,6 @@ extension MentionTextEditor {
         + replacement.count
 
       clearMentionState()
-
-      isShowingSuggestions = false
-      mentionSuggestions = []
     }
   }
 }
