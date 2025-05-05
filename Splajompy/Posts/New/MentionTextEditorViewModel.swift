@@ -101,15 +101,12 @@ extension MentionTextEditor {
         offsetBy: cursorPosition - 1
       )
 
-      // Check if we're immediately after a completed mention (space after @username)
       if plainText[textIndex] == " " {
-        // Check if the character before the space is part of a mention
         let previousTextIndex = plainText.index(before: textIndex)
         if previousTextIndex >= plainText.startIndex {
           let possibleMentionRange = plainText[..<previousTextIndex]
           if let atSymbolIndex = possibleMentionRange.lastIndex(of: "@") {
             let mentionText = plainText[atSymbolIndex..<textIndex]
-            // If this looks like a complete mention (@username), don't show suggestions
             if mentionText.count > 1 && !mentionText.contains(" ") {
               clearMentionState()
               return
@@ -126,7 +123,6 @@ extension MentionTextEditor {
           ? wordStart : plainText.index(after: wordStart)
 
         if plainText[potentialMentionStart] == "@" {
-          // Don't trigger for completed mentions with a space after them
           if plainText[textIndex] == " " && textIndex > potentialMentionStart {
             let mentionText = plainText[potentialMentionStart..<textIndex]
             if mentionText.count > 1 {
@@ -164,7 +160,6 @@ extension MentionTextEditor {
     }
 
     func fetchSuggestions(prefix: String) {
-      // Always show suggestions when typing a mention, even if empty
       self.isShowingSuggestions = true
 
       Task {
@@ -173,13 +168,11 @@ extension MentionTextEditor {
         case .success(let users):
           await MainActor.run {
             self.mentionSuggestions = users
-            // Keep showing suggestions even when the list is empty
             self.isShowingSuggestions = true
           }
         case .error:
           await MainActor.run {
             self.mentionSuggestions = []
-            // Keep showing suggestions even on error
             self.isShowingSuggestions = true
           }
         }
@@ -229,10 +222,8 @@ extension MentionTextEditor {
         newText.distance(from: newText.startIndex, to: startIndex)
         + replacement.count
 
-      // Clear state before checkForMentionAtCursor to avoid showing suggestions after insertion
       clearMentionState()
 
-      // Explicitly ensure UI updates by setting isShowingSuggestions to false again
       isShowingSuggestions = false
       mentionSuggestions = []
     }
