@@ -4,6 +4,7 @@ import UIKit
 struct MentionTextEditor: View {
   @Binding var text: NSAttributedString
   @StateObject private var viewModel: MentionViewModel
+  @FocusState private var isFocused: Bool
 
   init(text: Binding<NSAttributedString>) {
     self._text = text
@@ -11,30 +12,36 @@ struct MentionTextEditor: View {
   }
 
   var body: some View {
-    VStack(alignment: .leading, spacing: 0) {
-      ZStack(alignment: .topLeading) {
-        AttributedTextEditor(
-          text: $text,
-          cursorPosition: $viewModel.cursorPosition,
-          onTextChange: { newText in
-            viewModel.processTextChange(newText)
-          },
-          onCursorPositionChange: { position in
-            viewModel.updateCursorPosition(position)
+    ScrollView {
+      VStack(alignment: .leading, spacing: 0) {
+        ZStack(alignment: .topLeading) {
+          AttributedTextEditor(
+            text: $text,
+            cursorPosition: $viewModel.cursorPosition,
+            onTextChange: { newText in
+              viewModel.processTextChange(newText)
+            },
+            onCursorPositionChange: { position in
+              viewModel.updateCursorPosition(position)
+            }
+          )
+          .focused($isFocused)
+          .fixedSize(horizontal: false, vertical: true)
+          if text.string.isEmpty {
+            Text("What's on your mind?")
+              .foregroundColor(Color(.placeholderText))
+              .padding(8)
+              .allowsHitTesting(false)
           }
-        )
-        .fixedSize(horizontal: false, vertical: true)
-        if viewModel.plainText.isEmpty {
-          Text("What's on your mind?")
-            .foregroundColor(Color(.placeholderText))
-            .padding(8)
-            .allowsHitTesting(false)
         }
+        if viewModel.isShowingSuggestions {
+          suggestionView
+        }
+        Spacer()
       }
-      if viewModel.isShowingSuggestions {
-        suggestionView
-      }
-      Spacer()
+    }
+    .onAppear {
+      isFocused = true
     }
     .onChange(of: text) { oldValue, newValue in
       viewModel.updateAttributedText(newValue)
@@ -44,7 +51,10 @@ struct MentionTextEditor: View {
   private var suggestionView: some View {
     VStack(spacing: 0) {
       if viewModel.mentionSuggestions.isEmpty {
-        suggestionEmptyRow
+        Text("No users found")
+          .foregroundColor(.gray)
+          .frame(height: 44)
+          .frame(maxWidth: .infinity, alignment: .center)
       } else {
         ForEach(viewModel.mentionSuggestions.prefix(5), id: \.userId) { user in
           suggestionRow(for: user)
@@ -60,24 +70,13 @@ struct MentionTextEditor: View {
         .stroke(Color.gray.opacity(0.4), lineWidth: 1)
     )
     .cornerRadius(8)
-  }
-
-  private var suggestionEmptyRow: some View {
-    HStack {
-      Text("No users found")
-        .foregroundColor(.secondary)
-    }
-    .padding(.vertical, 12)
-    .padding(.horizontal, 12)
-    .frame(height: 44)
-    .frame(maxWidth: .infinity, alignment: .leading)
+    .opacity(viewModel.isShowingSuggestions ? 1 : 0)
   }
 
   private func calculateHeight() -> CGFloat {
     let rowHeight: CGFloat = 44
     let count =
-      viewModel.mentionSuggestions.isEmpty
-      ? 1 : min(viewModel.mentionSuggestions.count, 5)
+      viewModel.mentionSuggestions.isEmpty ? 1 : min(viewModel.mentionSuggestions.count, 5)
     return CGFloat(count) * rowHeight
   }
 
