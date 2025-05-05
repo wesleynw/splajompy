@@ -194,6 +194,34 @@ func (q *Queries) GetUserByIdentifier(ctx context.Context, email string) (GetUse
 	return i, err
 }
 
+const getUserByUsername = `-- name: GetUserByUsername :one
+SELECT user_id, email, username, created_at, name
+FROM users
+WHERE username = $1
+LIMIT 1
+`
+
+type GetUserByUsernameRow struct {
+	UserID    int32            `json:"userId"`
+	Email     string           `json:"email"`
+	Username  string           `json:"username"`
+	CreatedAt pgtype.Timestamp `json:"createdAt"`
+	Name      pgtype.Text      `json:"name"`
+}
+
+func (q *Queries) GetUserByUsername(ctx context.Context, username string) (GetUserByUsernameRow, error) {
+	row := q.db.QueryRow(ctx, getUserByUsername, username)
+	var i GetUserByUsernameRow
+	err := row.Scan(
+		&i.UserID,
+		&i.Email,
+		&i.Username,
+		&i.CreatedAt,
+		&i.Name,
+	)
+	return i, err
+}
+
 const getUserWithPasswordById = `-- name: GetUserWithPasswordById :one
 SELECT user_id, email, password, username, created_at, name
 FROM users
@@ -234,6 +262,45 @@ func (q *Queries) GetUserWithPasswordByIdentifier(ctx context.Context, email str
 		&i.Name,
 	)
 	return i, err
+}
+
+const getUsernameLike = `-- name: GetUsernameLike :many
+SELECT user_id, email, password, username, created_at, name
+FROM users
+WHERE username LIKE $1
+LIMIT $2
+`
+
+type GetUsernameLikeParams struct {
+	Username string `json:"username"`
+	Limit    int32  `json:"limit"`
+}
+
+func (q *Queries) GetUsernameLike(ctx context.Context, arg GetUsernameLikeParams) ([]User, error) {
+	rows, err := q.db.Query(ctx, getUsernameLike, arg.Username, arg.Limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []User
+	for rows.Next() {
+		var i User
+		if err := rows.Scan(
+			&i.UserID,
+			&i.Email,
+			&i.Password,
+			&i.Username,
+			&i.CreatedAt,
+			&i.Name,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const getVerificationCode = `-- name: GetVerificationCode :one

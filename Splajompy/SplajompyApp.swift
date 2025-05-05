@@ -19,7 +19,7 @@ struct SplajompyApp: App {
             }
 
             Tab("All", systemImage: "globe") {
-              FeedContainerView(feedType: .all, title: "Splajompy")
+              FeedContainerView(feedType: .all, title: "All")
             }
 
             Tab("Profile", systemImage: "person.circle") {

@@ -2,19 +2,20 @@ import PhotosUI
 import SwiftUI
 
 struct NewPostView: View {
-  var dismiss: () -> Void
-  @StateObject private var viewModel: ViewModel
 
+  @State private var text = NSAttributedString(string: "")
+  @State private var facets: [Facet] = []
+
+  @StateObject private var viewModel: ViewModel
   @FocusState private var isFocused: Bool
 
-  init(dismiss: @escaping () -> Void, onPostCreated: @escaping () -> Void = {}) {
-    self.dismiss = dismiss
+  @Environment(\.dismiss) private var dismiss
+
+  init(onPostCreated: @escaping () -> Void = {}) {
     _viewModel = StateObject(
-      wrappedValue: ViewModel(dismiss: dismiss, onPostCreated: onPostCreated)
+      wrappedValue: ViewModel(onPostCreated: onPostCreated)
     )
   }
-
-  @State private var text: String = ""
 
   var body: some View {
     VStack(spacing: 0) {
@@ -26,7 +27,8 @@ struct NewPostView: View {
         Spacer()
 
         Button {
-          viewModel.submitPost(text: text)
+          viewModel.submitPost(text: String(text.string))
+          dismiss()
         } label: {
           if viewModel.isLoading {
             ProgressView()
@@ -35,28 +37,18 @@ struct NewPostView: View {
               .bold()
           }
         }
-        .disabled(isPostButtonDisabled)
+        .disabled(
+          isPostButtonDisabled || text.string.count > 1000
+        )
       }
       .padding()
 
       Divider()
 
       VStack(spacing: 15) {
-        ZStack(alignment: .topLeading) {
-          TextEditor(text: $text)
-            .background(Color.gray)
-            .focused($isFocused)
-            .onAppear {
-              isFocused = true
-            }
-          if text.isEmpty {
-            Text("What's on your mind?")
-              .foregroundColor(.gray.opacity(0.8))
-              .padding(.horizontal, 5)
-              .padding(.top, 8)
-              .allowsHitTesting(false)
-          }
-        }
+        MentionTextEditor(
+          text: $text
+        )
 
         ScrollView(.horizontal, showsIndicators: false) {
           HStack(spacing: 12) {
@@ -99,13 +91,26 @@ struct NewPostView: View {
           .padding(.horizontal)
         }
 
-        PhotosPicker(
-          selection: $viewModel.selectedItems,
-          maxSelectionCount: 10,
-          selectionBehavior: .ordered,
-          matching: .images
-        ) {
-          Image(systemName: "photo.badge.plus")
+        Divider()
+
+        HStack {
+          PhotosPicker(
+            selection: $viewModel.selectedItems,
+            maxSelectionCount: 10,
+            selectionBehavior: .ordered,
+            matching: .images
+          ) {
+            Image(systemName: "photo.badge.plus")
+              .padding(.leading)
+          }
+
+          Spacer()
+
+          Text("\(text.string.count)/1000")
+            .foregroundStyle(
+              text.string.count > 1000
+                ? Color.red.opacity(0.7) : Color.primary.opacity(0.5)
+            )
         }
 
         if let errorText = viewModel.errorDisplay {
@@ -119,7 +124,7 @@ struct NewPostView: View {
   }
 
   private var isPostButtonDisabled: Bool {
-    (text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    (text.string.isEmpty
       && viewModel.selectedImages.count == 0)
       || viewModel.isLoading
   }
@@ -127,6 +132,6 @@ struct NewPostView: View {
 
 struct NewPostView_Previews: PreviewProvider {
   static var previews: some View {
-    NewPostView(dismiss: { print("posted!!!! xd") })
+    NewPostView()
   }
 }

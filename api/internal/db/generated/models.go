@@ -6,6 +6,7 @@ package db
 
 import (
 	"github.com/jackc/pgx/v5/pgtype"
+	db "splajompy.com/api/v2/internal/db"
 )
 
 type Bio struct {
@@ -60,6 +61,7 @@ type Post struct {
 	UserID    int32            `json:"userId"`
 	Text      pgtype.Text      `json:"text"`
 	CreatedAt pgtype.Timestamp `json:"createdAt"`
+	Facets    db.Facets        `json:"facets"`
 }
 
 type Session struct {

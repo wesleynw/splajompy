@@ -19,6 +19,7 @@ CREATE TABLE posts (
     user_id INTEGER NOT NULL,
     text TEXT,
     created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    facets JSON,
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
 

@@ -22,11 +22,26 @@ struct ImageDTO: Decodable {
   let displayOrder: Int
 }
 
+struct Facet: Decodable {
+  let type: String
+  let userId: Int
+  let indexStart: Int
+  let indexEnd: Int
+}
+
+// For sane string replacement when inserting mentions, sort facets such that facets that occur at the end of the post text are processed first.
+extension Facet: Comparable {
+  static func < (lhs: Facet, rhs: Facet) -> Bool {
+    return lhs.indexStart > rhs.indexStart
+  }
+}
+
 struct Post: Decodable {
   let postId: Int
   let userId: Int
   let text: String?
   let createdAt: String
+  let facets: [Facet]?
 }
 
 struct DetailedPost: Decodable, Equatable, Identifiable {

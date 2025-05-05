@@ -10,12 +10,12 @@ import (
 )
 
 type Handler struct {
-	queries               *db.Queries
-	postService           *service.PostService
-	commentService        *service.CommentService
-	userService           *service.UserService
-	notifificationService *service.NotificationService
-	authService           *service.AuthService
+	queries             *db.Queries
+	postService         *service.PostService
+	commentService      *service.CommentService
+	userService         *service.UserService
+	notificationService *service.NotificationService
+	authService         *service.AuthService
 }
 
 func NewHandler(queries db.Queries,
@@ -25,12 +25,12 @@ func NewHandler(queries db.Queries,
 	notificationService *service.NotificationService,
 	authService *service.AuthService) *Handler {
 	return &Handler{
-		queries:               &queries,
-		postService:           postService,
-		commentService:        commentService,
-		userService:           userService,
-		notifificationService: notificationService,
-		authService:           authService,
+		queries:             &queries,
+		postService:         postService,
+		commentService:      commentService,
+		userService:         userService,
+		notificationService: notificationService,
+		authService:         authService,
 	}
 }
 
@@ -70,6 +70,8 @@ func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /posts/following", h.GetPostsByFollowing)
 	mux.HandleFunc("GET /posts/all", h.GetAllPosts)
 
+	mux.HandleFunc("GET /users/search", h.SearchUsers)
+
 	// comments
 	mux.HandleFunc("GET /post/{id}/comments", h.GetCommentsByPost)
 }
@@ -77,7 +79,7 @@ func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
 func (h *Handler) GetIntPathParam(r *http.Request, paramName string) (int, error) {
 	paramString := r.PathValue(paramName)
 	if paramString == "" {
-		return 0, errors.New("missing url paramter")
+		return 0, errors.New("missing url parameter")
 	}
 	param, err := strconv.Atoi(paramString)
 	if err != nil {

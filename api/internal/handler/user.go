@@ -3,7 +3,6 @@ package handler
 import (
 	"encoding/json"
 	"net/http"
-
 	"splajompy.com/api/v2/internal/utilities"
 )
 
@@ -27,6 +26,28 @@ func (h *Handler) GetUserById(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utilities.HandleSuccess(w, user)
+}
+
+func (h *Handler) SearchUsers(w http.ResponseWriter, r *http.Request) {
+	_, err := h.getAuthenticatedUser(r)
+	if err != nil {
+		utilities.HandleError(w, http.StatusUnauthorized, "Unauthorized")
+		return
+	}
+
+	prefix := r.URL.Query().Get("prefix")
+	if prefix == "" {
+		utilities.HandleError(w, http.StatusBadRequest, "Missing prefix")
+		return
+	}
+
+	users, err := h.userService.GetUserByUsernamePrefix(r.Context(), prefix)
+	if err != nil {
+		utilities.HandleError(w, http.StatusNotFound, "This user doesn't exist")
+		return
+	}
+
+	utilities.HandleSuccess(w, users)
 }
 
 func (h *Handler) FollowUser(w http.ResponseWriter, r *http.Request) {

@@ -133,7 +133,7 @@ struct NotificationRow: View {
   var body: some View {
     HStack {
       VStack(alignment: .leading, spacing: 4) {
-        ContentTextView(text: notification.message)
+        ContentTextView(text: notification.message, facets: [])
           .environmentObject(feedRefreshManager)
 
         Text(

@@ -49,6 +49,7 @@ struct ProfileView: View {
     .sheet(isPresented: $isShowingProfileEditor) {
       ProfileEditorView(viewModel: viewModel)
     }
+    .interactiveDismissDisabled()
     .padding(.horizontal, 16)
     .navigationTitle("@" + self.username)
   }

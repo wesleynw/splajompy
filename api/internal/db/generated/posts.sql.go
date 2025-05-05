@@ -9,6 +9,7 @@ import (
 	"context"
 
 	"github.com/jackc/pgx/v5/pgtype"
+	db "splajompy.com/api/v2/internal/db"
 )
 
 const getAllPostIds = `-- name: GetAllPostIds :many
@@ -166,24 +167,26 @@ func (q *Queries) InsertImage(ctx context.Context, arg InsertImageParams) (Image
 }
 
 const insertPost = `-- name: InsertPost :one
-INSERT INTO posts (user_id, text)
-VALUES ($1, $2)
-RETURNING post_id, user_id, text, created_at
+INSERT INTO posts (user_id, text, facets)
+VALUES ($1, $2, $3)
+RETURNING post_id, user_id, text, created_at, facets
 `
 
 type InsertPostParams struct {
 	UserID int32       `json:"userId"`
 	Text   pgtype.Text `json:"text"`
+	Facets db.Facets   `json:"facets"`
 }
 
 func (q *Queries) InsertPost(ctx context.Context, arg InsertPostParams) (Post, error) {
-	row := q.db.QueryRow(ctx, insertPost, arg.UserID, arg.Text)
+	row := q.db.QueryRow(ctx, insertPost, arg.UserID, arg.Text, arg.Facets)
 	var i Post
 	err := row.Scan(
 		&i.PostID,
 		&i.UserID,
 		&i.Text,
 		&i.CreatedAt,
+		&i.Facets,
 	)
 	return i, err
 }

@@ -69,7 +69,7 @@ struct PostView: View {
         }
       }
       if let postText = post.post.text {
-        ContentTextView(text: postText)
+        ContentTextView(text: postText, facets: post.post.facets ?? [])
           .environmentObject(feedRefreshManager)
       }
       if let images = post.images, !images.isEmpty {
@@ -142,7 +142,7 @@ struct PostView: View {
     userId: 456,
     text:
       "This is a sample post with some text content. also here's a link: https://google.com, another link: splajompy.com",
-    createdAt: "2025-04-01T12:30:45.123Z"
+    createdAt: "2025-04-01T12:30:45.123Z", facets: nil
   )
 
   let user = User(
@@ -185,7 +185,7 @@ struct PostView: View {
   let feedRefreshManager = FeedRefreshManager()
   let authManager = AuthManager()
 
-  return NavigationView {
+  NavigationView {
     PostView(post: detailedPost)
       .environmentObject(feedRefreshManager)
       .environmentObject(authManager)
@@ -198,7 +198,8 @@ struct PostView: View {
     userId: 456,
     text:
       "This is a sample post with some text content. also here's a link: https://google.com, another link: splajompy.com",
-    createdAt: "2025-04-01T12:30:45.123Z"
+    createdAt: "2025-04-01T12:30:45.123Z",
+    facets: nil
   )
 
   let user = User(
@@ -241,7 +242,7 @@ struct PostView: View {
   let feedRefreshManager = FeedRefreshManager()
   let authManager = AuthManager()
 
-  return NavigationView {
+  NavigationView {
     PostView(post: detailedPost, isStandalone: true)
       .environmentObject(feedRefreshManager)
       .environmentObject(authManager)

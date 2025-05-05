@@ -19,7 +19,11 @@ struct UpdateProfileRequest: Encodable {
 protocol ProfileServiceProtocol: Sendable {
   func getProfile(userId: Int) async -> AsyncResult<UserProfile>
 
-  func updateProfile(name: String, bio: String) async -> AsyncResult<EmptyResponse>
+  func getUserFromUsernamePrefix(prefix: String) async -> AsyncResult<[User]>
+
+  func updateProfile(name: String, bio: String) async -> AsyncResult<
+    EmptyResponse
+  >
 
   func toggleFollowing(userId: Int, isFollowing: Bool) async -> AsyncResult<
     EmptyResponse
@@ -34,7 +38,18 @@ struct ProfileService: ProfileServiceProtocol {
     )
   }
 
-  func updateProfile(name: String, bio: String) async -> AsyncResult<EmptyResponse> {
+  func getUserFromUsernamePrefix(prefix: String) async -> AsyncResult<[User]> {
+    let queryItems = [URLQueryItem(name: "prefix", value: "\(prefix)")]
+
+    return await APIService.performRequest(
+      endpoint: "users/search",
+      queryItems: queryItems
+    )
+  }
+
+  func updateProfile(name: String, bio: String) async -> AsyncResult<
+    EmptyResponse
+  > {
     let request = UpdateProfileRequest(name: name, bio: bio)
     let requestData: Data
     do {
@@ -44,7 +59,10 @@ struct ProfileService: ProfileServiceProtocol {
     }
 
     return await APIService.performRequest(
-      endpoint: "user/profile", method: "POST", body: requestData)
+      endpoint: "user/profile",
+      method: "POST",
+      body: requestData
+    )
   }
 
   func toggleFollowing(userId: Int, isFollowing: Bool) async -> AsyncResult<
@@ -96,8 +114,28 @@ struct MockProfileService: ProfileServiceProtocol {
       return .error(APIErrorMessage(message: "User not found"))
     }
   }
+  func getUserFromUsernamePrefix(prefix: String) async -> AsyncResult<[User]> {
+    return .success([
+      User(
+        userId: 1,
+        email: "jane.smith@example.com",
+        username: prefix + "_janesmith",
+        createdAt: "2024-01-15T14:23:45Z",
+        name: "Jane Smith"
+      ),
+      User(
+        userId: 2,
+        email: "david.wilson@example.com",
+        username: prefix + "davewilson",
+        createdAt: "2024-02-21T09:17:32Z",
+        name: "David Wilson"
+      ),
+    ])
+  }
 
-  func updateProfile(name: String, bio: String) async -> AsyncResult<EmptyResponse> {
+  func updateProfile(name: String, bio: String) async -> AsyncResult<
+    EmptyResponse
+  > {
     try? await Task.sleep(nanoseconds: 500_000_000)
 
     return .success(EmptyResponse())  // TODO

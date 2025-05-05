@@ -35,7 +35,6 @@ struct FeedContainerView: View {
     }
     .sheet(isPresented: $isShowingNewPostView) {
       NewPostView(
-        dismiss: { isShowingNewPostView = false },
         onPostCreated: { feedRefreshManager.triggerRefresh() }
       )
       .interactiveDismissDisabled()
