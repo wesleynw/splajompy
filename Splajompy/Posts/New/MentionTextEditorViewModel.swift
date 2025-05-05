@@ -3,7 +3,6 @@ import SwiftUI
 extension MentionTextEditor {
   @MainActor
   class MentionViewModel: ObservableObject {
-    @Published var plainText: String = ""
     @Published var attributedText: NSAttributedString = NSAttributedString("")
     @Published var cursorPosition: Int = 0
     @Published var mentionSuggestions: [User] = []
@@ -13,11 +12,14 @@ extension MentionTextEditor {
     private var mentionStartIndex: String.Index?
     private var mentionPrefix: String = ""
     private let mentionPattern = "@([a-zA-Z0-9_]+)"
-    private var recognizedUsernames: Set<String> = []
+
+    var plainText: String {
+      attributedText.string
+    }
 
     func updateAttributedText(_ text: NSAttributedString) {
       attributedText = text
-      plainText = text.string
+      checkForMentionAtCursor()
     }
 
     func updateCursorPosition(_ position: Int) {
@@ -26,25 +28,22 @@ extension MentionTextEditor {
     }
 
     func processTextChange(_ newText: NSAttributedString) {
-      // Create new attributed text with default styling
       let mutableText = NSMutableAttributedString(string: newText.string)
       let fullRange = NSRange(location: 0, length: newText.string.count)
+
+      // Apply base styling
       mutableText.addAttribute(
         .font, value: UIFont.preferredFont(forTextStyle: .body), range: fullRange)
       mutableText.addAttribute(.foregroundColor, value: UIColor.label, range: fullRange)
 
-      // Extract all mentions and update recognized usernames
+      // Highlight mentions
       let mentions = extractMentions(from: newText.string)
-      recognizedUsernames = Set(mentions.map { $0.username })
-
-      // Highlight all mentions in the text
       for mention in mentions {
         let range = NSRange(location: mention.range.location, length: mention.range.length)
         mutableText.addAttribute(.foregroundColor, value: UIColor.systemBlue, range: range)
       }
 
       attributedText = mutableText
-      plainText = newText.string
       checkForMentionAtCursor()
     }
 
@@ -132,17 +131,14 @@ extension MentionTextEditor {
       let replacement = "@\(user.username) "
       newText.replaceSubrange(replaceRange, with: replacement)
 
-      // Add username to recognized set
-      recognizedUsernames.insert(user.username)
-
-      // Create new attributed text with default styling
+      // Create new attributed text with styling
       let mutableAttributedText = NSMutableAttributedString(string: newText)
       let fullRange = NSRange(location: 0, length: newText.count)
       mutableAttributedText.addAttribute(
         .font, value: UIFont.preferredFont(forTextStyle: .body), range: fullRange)
       mutableAttributedText.addAttribute(.foregroundColor, value: UIColor.label, range: fullRange)
 
-      // Apply mention styling to all mentions
+      // Apply mention styling
       let mentions = extractMentions(from: newText)
       for mention in mentions {
         let range = NSRange(location: mention.range.location, length: mention.range.length)
@@ -151,49 +147,10 @@ extension MentionTextEditor {
       }
 
       attributedText = mutableAttributedText
-      plainText = newText
       cursorPosition =
         newText.distance(from: newText.startIndex, to: startIndex) + replacement.count
 
       clearMentionState()
-    }
-
-    private func createBaseAttributedText(from text: String) -> NSMutableAttributedString {
-      let mutableText = NSMutableAttributedString(string: text)
-      let fullRange = NSRange(location: 0, length: text.count)
-      mutableText.addAttribute(
-        .font, value: UIFont.preferredFont(forTextStyle: .body), range: fullRange)
-      mutableText.addAttribute(.foregroundColor, value: UIColor.label, range: fullRange)
-      return mutableText
-    }
-
-    private func applyMentionStyling(
-      to attributedText: NSMutableAttributedString, start: Int, length: Int
-    ) {
-      let range = NSRange(location: start, length: length)
-      attributedText.addAttribute(.foregroundColor, value: UIColor.systemBlue, range: range)
-      attributedText.addAttribute(
-        .font, value: UIFont.preferredFont(forTextStyle: .body), range: range)
-    }
-
-    func applyMentionHighlighting() {
-      let mutableAttributedText = createBaseAttributedText(from: plainText)
-
-      do {
-        let regex = try NSRegularExpression(pattern: mentionPattern)
-        let nsString = plainText as NSString
-        let matches = regex.matches(
-          in: plainText, range: NSRange(location: 0, length: nsString.length))
-
-        for match in matches {
-          applyMentionStyling(
-            to: mutableAttributedText, start: match.range.location, length: match.range.length)
-        }
-
-        attributedText = mutableAttributedText
-      } catch {
-        print("Error creating regex: \(error)")
-      }
     }
   }
 }
