@@ -11,15 +11,20 @@ struct AttributedTextEditor: UIViewRepresentable {
     let textView = UITextView()
     textView.delegate = context.coordinator
     textView.font = UIFont.preferredFont(forTextStyle: .body)
-    textView.isScrollEnabled = true
     textView.isEditable = true
     textView.isUserInteractionEnabled = true
     textView.autocorrectionType = .no
+    textView.backgroundColor = .clear
     textView.typingAttributes = [
       .font: UIFont.preferredFont(forTextStyle: .body),
       .foregroundColor: UIColor.label,
     ]
     textView.attributedText = text
+
+    // Add this to make it grow with content
+    textView.isScrollEnabled = false
+    textView.setContentHuggingPriority(.required, for: .vertical)
+
     return textView
   }
 
@@ -27,19 +32,14 @@ struct AttributedTextEditor: UIViewRepresentable {
     if !uiView.attributedText.isEqual(to: text) {
       let wasUpdatingFromViewModel = context.coordinator.isUpdatingFromViewModel
       context.coordinator.isUpdatingFromViewModel = true
-
-      // Ensure typing attributes are set to default
       uiView.typingAttributes = [
         .font: UIFont.preferredFont(forTextStyle: .body),
         .foregroundColor: UIColor.label,
       ]
-
       uiView.attributedText = text
-
       if wasUpdatingFromViewModel && cursorPosition <= text.length {
         uiView.selectedRange = NSRange(location: cursorPosition, length: 0)
       }
-
       context.coordinator.isUpdatingFromViewModel = false
     }
   }

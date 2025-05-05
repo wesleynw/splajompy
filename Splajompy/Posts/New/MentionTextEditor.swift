@@ -11,7 +11,7 @@ struct MentionTextEditor: View {
   }
 
   var body: some View {
-    VStack {
+    VStack(alignment: .leading, spacing: 0) {
       ZStack(alignment: .topLeading) {
         AttributedTextEditor(
           text: $text,
@@ -23,7 +23,7 @@ struct MentionTextEditor: View {
             viewModel.updateCursorPosition(position)
           }
         )
-
+        .fixedSize(horizontal: false, vertical: true)
         if viewModel.plainText.isEmpty {
           Text("What's on your mind?")
             .foregroundColor(Color(.placeholderText))
@@ -31,11 +31,10 @@ struct MentionTextEditor: View {
             .allowsHitTesting(false)
         }
       }
-      //      .border(Color.gray.opacity(0.3))
-
       if viewModel.isShowingSuggestions {
         suggestionView
       }
+      Spacer()
     }
     .onChange(of: text) { oldValue, newValue in
       viewModel.updateAttributedText(newValue)
@@ -43,31 +42,54 @@ struct MentionTextEditor: View {
   }
 
   private var suggestionView: some View {
-    ScrollView {
-      LazyVStack(alignment: .leading, spacing: 8) {
-        ForEach(viewModel.mentionSuggestions, id: \.userId) { user in
+    VStack(spacing: 0) {
+      if viewModel.mentionSuggestions.isEmpty {
+        suggestionEmptyRow
+      } else {
+        ForEach(viewModel.mentionSuggestions.prefix(5), id: \.userId) { user in
           suggestionRow(for: user)
+          if user.userId != viewModel.mentionSuggestions.prefix(5).last?.userId {
+            Divider().opacity(0.4)
+          }
         }
       }
-      .padding(8)
     }
-    .frame(height: min(CGFloat(viewModel.mentionSuggestions.count * 44), 180))
-    .background(Color(.secondarySystemBackground))
+    .frame(height: calculateHeight())
+    .overlay(
+      RoundedRectangle(cornerRadius: 8)
+        .stroke(Color.gray.opacity(0.4), lineWidth: 1)
+    )
     .cornerRadius(8)
+  }
+
+  private var suggestionEmptyRow: some View {
+    HStack {
+      Text("No users found")
+        .foregroundColor(.secondary)
+    }
+    .padding(.vertical, 12)
+    .padding(.horizontal, 12)
+    .frame(height: 44)
+    .frame(maxWidth: .infinity, alignment: .leading)
+  }
+
+  private func calculateHeight() -> CGFloat {
+    let rowHeight: CGFloat = 44
+    let count =
+      viewModel.mentionSuggestions.isEmpty
+      ? 1 : min(viewModel.mentionSuggestions.count, 5)
+    return CGFloat(count) * rowHeight
   }
 
   private func suggestionRow(for user: User) -> some View {
     HStack {
       Text("@\(user.username)")
         .fontWeight(.medium)
-      Text("• \(user.name ?? user.username)")
-        .foregroundColor(.secondary)
     }
-    .padding(.vertical, 6)
-    .padding(.horizontal, 10)
+    .padding(.horizontal, 12)
+    .frame(height: 44)
     .frame(maxWidth: .infinity, alignment: .leading)
-    .background(Color(.systemBackground))
-    .cornerRadius(4)
+    .contentShape(Rectangle())
     .onTapGesture {
       viewModel.insertMention(user)
       text = viewModel.attributedText
