@@ -25,8 +25,9 @@ struct MentionTextEditor: View {
               viewModel.updateCursorPosition(position)
             }
           )
+          .frame(minHeight: 200)
+          .frame(maxWidth: .infinity) 
           .focused($isFocused)
-          .fixedSize(horizontal: false, vertical: true)
           if text.string.isEmpty {
             Text("What's on your mind?")
               .foregroundColor(Color(.placeholderText))

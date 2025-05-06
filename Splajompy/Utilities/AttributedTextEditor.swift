@@ -21,10 +21,13 @@ struct AttributedTextEditor: UIViewRepresentable {
     ]
     textView.attributedText = text
 
-    // Add this to make it grow with content
     textView.isScrollEnabled = false
-    textView.setContentHuggingPriority(.required, for: .vertical)
-
+    textView.translatesAutoresizingMaskIntoConstraints = false
+    textView.setContentHuggingPriority(.defaultLow, for: .horizontal)
+    textView.setContentCompressionResistancePriority(
+      .defaultLow,
+      for: .horizontal
+    )
     return textView
   }
 
