@@ -10,7 +10,7 @@ struct ProfileView: View {
 
   @EnvironmentObject private var authManager: AuthManager
   @EnvironmentObject private var feedRefreshManager: FeedRefreshManager
-  
+
   private var isCurrentProfile: Bool {
     authManager.getCurrentUser().userId == userId
   }

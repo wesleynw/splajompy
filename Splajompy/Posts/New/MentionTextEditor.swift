@@ -12,7 +12,7 @@ struct MentionTextEditor: View {
   }
 
   var body: some View {
-    ScrollView {
+    ScrollView(.vertical) {
       VStack(alignment: .leading, spacing: 0) {
         ZStack(alignment: .topLeading) {
           AttributedTextEditor(
@@ -26,7 +26,7 @@ struct MentionTextEditor: View {
             }
           )
           .frame(minHeight: 200)
-          .frame(maxWidth: .infinity) 
+          .frame(maxWidth: .infinity)
           .focused($isFocused)
           if text.string.isEmpty {
             Text("What's on your mind?")
