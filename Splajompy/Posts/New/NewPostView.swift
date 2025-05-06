@@ -27,8 +27,9 @@ struct NewPostView: View {
         Spacer()
 
         Button {
-          viewModel.submitPost(text: String(text.string))
-          dismiss()
+          viewModel.submitPost(text: String(text.string)) {
+            dismiss()
+          }
         } label: {
           if viewModel.isLoading {
             ProgressView()

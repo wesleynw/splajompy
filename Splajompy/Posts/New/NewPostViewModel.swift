@@ -42,7 +42,7 @@ extension NewPostView {
       selectedItems.remove(at: index)
     }
 
-    func submitPost(text: String) {
+    func submitPost(text: String, dismiss: @escaping () -> Void) {
       Task {
         let validation = PostCreationService.validatePostText(text: text)
         if !validation.isValid {
@@ -62,6 +62,7 @@ extension NewPostView {
           errorDisplay = ""
           isLoading = false
           onPostCreated()
+          dismiss()
         case .error(let error):
           errorDisplay = "There was an error: \(error.localizedDescription)."
           isLoading = false
