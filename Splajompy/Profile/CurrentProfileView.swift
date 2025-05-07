@@ -12,7 +12,8 @@ struct CurrentProfileView: View {
     NavigationStack(path: $path) {
       ProfileView(
         userId: userId,
-        username: username
+        username: username,
+        isOwnProfile: true
       )
       .navigationDestination(for: Route.self) { route in
         switch route {

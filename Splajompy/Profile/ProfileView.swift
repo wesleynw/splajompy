@@ -3,6 +3,7 @@ import SwiftUI
 struct ProfileView: View {
   let username: String
   let userId: Int
+  let isOwnProfile: Bool
 
   @State private var isShowingProfileEditor: Bool = false
   @StateObject private var viewModel: ViewModel
@@ -10,19 +11,26 @@ struct ProfileView: View {
   @EnvironmentObject private var authManager: AuthManager
   @EnvironmentObject private var feedRefreshManager: FeedRefreshManager
 
-  private var isOwnProfile: Bool {
+  private var isCurrentProfile: Bool {
     authManager.getCurrentUser().userId == userId
   }
 
-  init(userId: Int, username: String) {
+  init(userId: Int, username: String, isOwnProfile: Bool = false) {
     self.userId = userId
     self.username = username
+    self.isOwnProfile = isOwnProfile
     _viewModel = StateObject(wrappedValue: ViewModel(userId: userId))
   }
 
-  init(userId: Int, username: String, viewModel: ViewModel) {
+  init(
+    userId: Int,
+    username: String,
+    isOwnProfile: Bool = false,
+    viewModel: ViewModel
+  ) {
     self.userId = userId
     self.username = username
+    self.isOwnProfile = isOwnProfile
     _viewModel = StateObject(wrappedValue: viewModel)
   }
 
@@ -68,7 +76,7 @@ struct ProfileView: View {
           .padding(.vertical, 10)
       }
 
-      if let isFollowing = viewModel.profile?.isFollowing, !isOwnProfile {
+      if let isFollowing = viewModel.profile?.isFollowing, !isOwnProfile, !isCurrentProfile {
         // this is unnecessarily verbose because you can't apply conditional styling to buttons i guess??
         if isFollowing {
           Button(action: viewModel.toggleFollowing) {

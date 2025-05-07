@@ -5,6 +5,7 @@ struct MentionTextEditor: View {
   @Binding var text: NSAttributedString
   @StateObject private var viewModel: MentionViewModel
   @FocusState private var isFocused: Bool
+  @State private var textViewHeight: CGFloat = 0
 
   init(text: Binding<NSAttributedString>) {
     self._text = text
@@ -12,11 +13,12 @@ struct MentionTextEditor: View {
   }
 
   var body: some View {
-    ScrollView {
+    ScrollView(.vertical) {
       VStack(alignment: .leading, spacing: 0) {
         ZStack(alignment: .topLeading) {
           AttributedTextEditor(
             text: $text,
+            height: $textViewHeight,
             cursorPosition: $viewModel.cursorPosition,
             onTextChange: { newText in
               viewModel.processTextChange(newText)
@@ -25,20 +27,23 @@ struct MentionTextEditor: View {
               viewModel.updateCursorPosition(position)
             }
           )
+          .frame(height: textViewHeight)
+          .frame(maxWidth: .infinity)
           .focused($isFocused)
-          .fixedSize(horizontal: false, vertical: true)
+
           if text.string.isEmpty {
             Text("What's on your mind?")
               .foregroundColor(Color(.placeholderText))
               .padding(8)
-              .allowsHitTesting(false)
           }
         }
+
         if viewModel.isShowingSuggestions {
           suggestionView
         }
-        Spacer()
       }
+      .padding(.horizontal)
+      .frame(maxWidth: .infinity)
     }
     .onAppear {
       isFocused = true
@@ -65,6 +70,7 @@ struct MentionTextEditor: View {
       }
     }
     .frame(height: calculateHeight())
+    .frame(maxWidth: .infinity)
     .overlay(
       RoundedRectangle(cornerRadius: 8)
         .stroke(Color.gray.opacity(0.4), lineWidth: 1)
