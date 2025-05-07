@@ -3,6 +3,7 @@ import UIKit
 
 struct AttributedTextEditor: UIViewRepresentable {
   @Binding var text: NSAttributedString
+  @Binding var height: CGFloat
   @Binding var cursorPosition: Int
   var onTextChange: ((NSAttributedString) -> Void)?
   var onCursorPositionChange: ((Int) -> Void)?
@@ -20,14 +21,19 @@ struct AttributedTextEditor: UIViewRepresentable {
       .foregroundColor: UIColor.label,
     ]
     textView.attributedText = text
-
     textView.isScrollEnabled = false
-    textView.translatesAutoresizingMaskIntoConstraints = false
-    textView.setContentHuggingPriority(.defaultLow, for: .horizontal)
-    textView.setContentCompressionResistancePriority(
-      .defaultLow,
-      for: .horizontal
-    )
+    textView.textContainerInset = UIEdgeInsets(top: 8, left: 0, bottom: 8, right: 0)
+    textView.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+    textView.textContainer.lineFragmentPadding = 0
+
+    // Calculate initial height
+    DispatchQueue.main.async {
+      let availableWidth = UIScreen.main.bounds.width - 32  // Accounting for horizontal padding
+      let newSize = textView.sizeThatFits(
+        CGSize(width: availableWidth, height: CGFloat.greatestFiniteMagnitude))
+      height = newSize.height
+    }
+
     return textView
   }
 
@@ -45,6 +51,17 @@ struct AttributedTextEditor: UIViewRepresentable {
       }
       context.coordinator.isUpdatingFromViewModel = false
     }
+
+    // Update height based on content
+    DispatchQueue.main.async {
+      let availableWidth =
+        uiView.bounds.width > 0 ? uiView.bounds.width : UIScreen.main.bounds.width - 32
+      let newSize = uiView.sizeThatFits(
+        CGSize(width: availableWidth, height: CGFloat.greatestFiniteMagnitude))
+      if height != newSize.height {
+        height = newSize.height
+      }
+    }
   }
 
   func makeCoordinator() -> Coordinator {
@@ -61,15 +78,12 @@ struct AttributedTextEditor: UIViewRepresentable {
 
     func textViewDidChange(_ textView: UITextView) {
       if let attributedText = textView.attributedText {
-        // Check if the last character is a space
         if let lastChar = textView.text.last, lastChar == " " {
-          // Reset typing attributes to default
           textView.typingAttributes = [
             .font: UIFont.preferredFont(forTextStyle: .body),
             .foregroundColor: UIColor.label,
           ]
         }
-
         parent.text = attributedText
         parent.onTextChange?(attributedText)
       }
@@ -77,6 +91,17 @@ struct AttributedTextEditor: UIViewRepresentable {
       let cursorPosition = textView.selectedRange.location
       parent.cursorPosition = cursorPosition
       parent.onCursorPositionChange?(cursorPosition)
+
+      // Update height after text changes
+      DispatchQueue.main.async {
+        let availableWidth =
+          textView.bounds.width > 0 ? textView.bounds.width : UIScreen.main.bounds.width - 32
+        let newSize = textView.sizeThatFits(
+          CGSize(width: availableWidth, height: CGFloat.greatestFiniteMagnitude))
+        if self.parent.height != newSize.height {
+          self.parent.height = newSize.height
+        }
+      }
     }
 
     func textViewDidChangeSelection(_ textView: UITextView) {
@@ -84,6 +109,18 @@ struct AttributedTextEditor: UIViewRepresentable {
         let cursorPosition = textView.selectedRange.location
         parent.cursorPosition = cursorPosition
         parent.onCursorPositionChange?(cursorPosition)
+      }
+    }
+
+    // Ensure layout updates when text view bounds change
+    func textViewDidLayoutSubviews(_ textView: UITextView) {
+      DispatchQueue.main.async {
+        let availableWidth = textView.bounds.width
+        let newSize = textView.sizeThatFits(
+          CGSize(width: availableWidth, height: CGFloat.greatestFiniteMagnitude))
+        if self.parent.height != newSize.height {
+          self.parent.height = newSize.height
+        }
       }
     }
   }
