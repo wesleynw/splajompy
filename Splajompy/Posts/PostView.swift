@@ -48,20 +48,30 @@ struct PostView: View {
             .environmentObject(authManager)
           } label: {
             VStack(alignment: .leading, spacing: 2) {
-              if let displayName = post.user.name, !displayName.isEmpty {
-                Text(displayName)
-                  .font(.title2)
-                  .fontWeight(.black)
-                  .lineLimit(1)
-                Text("@\(post.user.username)")
-                  .font(.subheadline)
-                  .fontWeight(.bold)
-                  .foregroundColor(.gray)
+
+              if post.user.username == "ads" {
+                HStack {
+                  Image(systemName: "medal")
+                  Text("Sponsored")
+                    .font(.subheadline)
+                    .fontWeight(.semibold)
+                }
               } else {
-                Text("@\(post.user.username)")
-                  .font(.title3)
-                  .fontWeight(.black)
-                  .foregroundColor(.gray)
+                if let displayName = post.user.name, !displayName.isEmpty {
+                  Text(displayName)
+                    .font(.title2)
+                    .fontWeight(.black)
+                    .lineLimit(1)
+                  Text("@\(post.user.username)")
+                    .font(.subheadline)
+                    .fontWeight(.bold)
+                    .foregroundColor(.gray)
+                } else {
+                  Text("@\(post.user.username)")
+                    .font(.title3)
+                    .fontWeight(.black)
+                    .foregroundColor(.gray)
+                }
               }
             }
           }
