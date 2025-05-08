@@ -12,11 +12,7 @@ struct ImageGallery: View {
       if imageUrls.isEmpty {
         EmptyView()
       } else if imageUrls.count == 1 {
-        imageCell(
-          index: 0,
-          width: geometry.size.width,
-          height: geometry.size.height
-        )
+        singleImageCell()
       } else if imageUrls.count == 2 {
         HStack(spacing: 4) {
           imageCell(
@@ -169,6 +165,20 @@ struct ImageGallery: View {
           .onTapGesture {
             selectedImageIndex = index
           }
+      }
+    }
+  }
+
+  private func singleImageCell() -> some View {
+    Group {
+      if let url = URL(string: imageUrls[0]) {
+        KFImage(url)
+          .resizable()
+          .aspectRatio(contentMode: .fit)
+          .frame(maxHeight: 600)
+          .frame(minHeight: 100)
+          .frame(minWidth: 100)
+          .frame(maxWidth: .infinity)
       }
     }
   }
