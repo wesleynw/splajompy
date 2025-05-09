@@ -8,12 +8,35 @@ struct ImageGallery: View {
   @Environment(\.colorScheme) var colorScheme
 
   var body: some View {
-    GeometryReader { geometry in
+    Group {
       if imageUrls.isEmpty {
         EmptyView()
       } else if imageUrls.count == 1 {
         singleImageCell()
-      } else if imageUrls.count == 2 {
+      } else {
+        multipleImagesLayout()
+      }
+    }
+    .fullScreenCover(
+      item: Binding<ImageItem?>(
+        get: {
+          guard let index = selectedImageIndex, index < imageUrls.count else { return nil }
+          return ImageItem(id: index, url: URL(string: imageUrls[index])!)
+        },
+        set: { selectedImageIndex = $0?.id }
+      )
+    ) { imageItem in
+      FullscreenImagePager(
+        imageUrls: imageUrls,
+        initialIndex: imageItem.id,
+        onDismiss: { selectedImageIndex = nil }
+      )
+    }
+  }
+
+  private func multipleImagesLayout() -> some View {
+    GeometryReader { geometry in
+      if imageUrls.count == 2 {
         HStack(spacing: 4) {
           imageCell(
             index: 0,
@@ -73,7 +96,7 @@ struct ImageGallery: View {
               topTrailing: 0
             )
             imageCell(
-              index: 2,
+              index: 1,
               width: (geometry.size.width - 4) / 2,
               height: (geometry.size.height - 4) / 2,
               topLeading: 0,
@@ -83,7 +106,7 @@ struct ImageGallery: View {
           }
           HStack(spacing: 4) {
             imageCell(
-              index: 1,
+              index: 2,
               width: (geometry.size.width - 4) / 2,
               height: (geometry.size.height - 4) / 2,
               topLeading: 0,
@@ -101,7 +124,11 @@ struct ImageGallery: View {
               )
               if imageUrls.count > 4 {
                 Color.black.opacity(0.6)
-                  .cornerRadius(6)
+                  .clipShape(
+                    .rect(
+                      bottomTrailingRadius: 6
+                    )
+                  )
                 Text("+\(imageUrls.count - 4)")
                   .font(.system(size: 22, weight: .bold))
                   .foregroundColor(.white)
@@ -115,26 +142,6 @@ struct ImageGallery: View {
       }
     }
     .aspectRatio(contentMode: .fit)
-    .fullScreenCover(
-      item: Binding<ImageItem?>(
-        get: {
-          if let index = selectedImageIndex {
-            return ImageItem(
-              id: index,
-              url: URL(string: imageUrls[index])!
-            )
-          }
-          return nil
-        },
-        set: { selectedImageIndex = $0?.id }
-      )
-    ) { imageItem in
-      FullscreenImagePager(
-        imageUrls: imageUrls,
-        initialIndex: imageItem.id,
-        onDismiss: { selectedImageIndex = nil }
-      )
-    }
   }
 
   private func imageCell(
@@ -147,7 +154,7 @@ struct ImageGallery: View {
     topTrailing: CGFloat = 6
   ) -> some View {
     Group {
-      if let url = URL(string: imageUrls[index]) {
+      if index < imageUrls.count, let url = URL(string: imageUrls[index]) {
         KFImage(url)
           .resizable()
           .aspectRatio(contentMode: .fill)
@@ -175,10 +182,12 @@ struct ImageGallery: View {
         KFImage(url)
           .resizable()
           .aspectRatio(contentMode: .fit)
-          .frame(maxHeight: 600)
-          .frame(minHeight: 100)
-          .frame(minWidth: 100)
-          .frame(maxWidth: .infinity)
+          .clipShape(.rect(cornerRadius: 6))
+          .onTapGesture {
+            selectedImageIndex = 0
+          }
+      } else {
+        Color.clear
       }
     }
   }
