@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 77;
+	objectVersion = 63;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -521,6 +521,7 @@
 				};
 			};
 			buildConfigurationList = 184A63C62D88CBA000860D6B /* Build configuration list for PBXProject "Splajompy" */;
+			compatibilityVersion = "Xcode 15.3";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -532,7 +533,6 @@
 			packageReferences = (
 				18E435E52DB28FF5003A0999 /* XCRemoteSwiftPackageReference "Kingfisher" */,
 			);
-			preferredProjectObjectVersion = 77;
 			productRefGroup = 184A63CC2D88CBA100860D6B /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
