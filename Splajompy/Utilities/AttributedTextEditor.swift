@@ -89,14 +89,6 @@ struct AttributedTextEditor: UIViewRepresentable {
           parent.onTextChange?(attributedText)
         }
 
-        //        if let selectedRange = textView.selectedTextRange {
-        //          let cursorPosition = textView.offset(from: textView.beginningOfDocument, to: selectedRange.end)
-        //          let positionRange = NSRange(location: 0, length: cursorPosition)
-        //          let stringOffset = Range(positionRange, in: textView.text!)!
-        //
-        //          print("index: ", stringOffset.debugDescription)
-        //        }
-
         if let position = textView.position(
           from: textView.beginningOfDocument,
           offset: textView.selectedRange.location
