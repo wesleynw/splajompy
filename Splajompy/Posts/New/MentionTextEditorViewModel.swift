@@ -117,7 +117,7 @@ extension MentionTextEditor {
           }
 
           let distanceFromMention =
-            attributedText.string.distance(from: potentialMentionStart, to: textIndex) + 1
+            attributedText.string.utf8.distance(from: potentialMentionStart, to: textIndex) + 1
 
           if distanceFromMention <= 20 {
             mentionStartIndex = potentialMentionStart
@@ -176,7 +176,7 @@ extension MentionTextEditor {
       guard let startIndex = mentionStartIndex else { return }
 
       var newText = attributedText.string
-      let currentIndex = newText.index(
+      let currentIndex = newText.utf8.index(
         newText.startIndex,
         offsetBy: cursorPosition
       )
@@ -212,7 +212,7 @@ extension MentionTextEditor {
 
       attributedText = mutableAttributedText
       cursorPosition =
-        newText.distance(from: newText.startIndex, to: startIndex)
+        newText.distance(from: newText.utf8.startIndex, to: startIndex)
         + replacement.count
 
       clearMentionState()

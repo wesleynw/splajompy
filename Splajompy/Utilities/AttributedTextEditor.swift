@@ -77,20 +77,39 @@ struct AttributedTextEditor: UIViewRepresentable {
     }
 
     func textViewDidChange(_ textView: UITextView) {
-      if let attributedText = textView.attributedText {
-        if let lastChar = textView.text.last, lastChar == " " {
-          textView.typingAttributes = [
-            .font: UIFont.preferredFont(forTextStyle: .body),
-            .foregroundColor: UIColor.label,
-          ]
+      if !isUpdatingFromViewModel {
+        if let attributedText = textView.attributedText {
+          if let lastChar = textView.text.last, lastChar == " " {
+            textView.typingAttributes = [
+              .font: UIFont.preferredFont(forTextStyle: .body),
+              .foregroundColor: UIColor.label,
+            ]
+          }
+          parent.text = attributedText
+          parent.onTextChange?(attributedText)
         }
-        parent.text = attributedText
-        parent.onTextChange?(attributedText)
-      }
 
-      let cursorPosition = textView.selectedRange.location
-      parent.cursorPosition = cursorPosition
-      parent.onCursorPositionChange?(cursorPosition)
+        //        if let selectedRange = textView.selectedTextRange {
+        //          let cursorPosition = textView.offset(from: textView.beginningOfDocument, to: selectedRange.end)
+        //          let positionRange = NSRange(location: 0, length: cursorPosition)
+        //          let stringOffset = Range(positionRange, in: textView.text!)!
+        //
+        //          print("index: ", stringOffset.debugDescription)
+        //        }
+
+        if let position = textView.position(
+          from: textView.beginningOfDocument,
+          offset: textView.selectedRange.location
+        ) {
+          let cursorPosition = textView.offset(
+            from: textView.beginningOfDocument,
+            to: position
+          )
+
+          parent.cursorPosition = cursorPosition
+          parent.onCursorPositionChange?(cursorPosition)
+        }
+      }
 
       // Update height after text changes
       DispatchQueue.main.async {
