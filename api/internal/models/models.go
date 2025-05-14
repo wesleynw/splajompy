@@ -11,12 +11,19 @@ type APIResponse struct {
 	Error   string      `json:"error,omitempty"`
 }
 
+type RelevantLike struct {
+	Username string `json:"username"`
+	UserID   int32  `json:"userId"`
+}
+
 type DetailedPost struct {
-	Post         db.Post           `json:"post"`
-	User         db.GetUserByIdRow `json:"user"`
-	IsLiked      bool              `json:"isLiked"`
-	Images       []db.Image        `json:"images"`
-	CommentCount int               `json:"commentCount"`
+	Post          db.Post           `json:"post"`
+	User          db.GetUserByIdRow `json:"user"`
+	IsLiked       bool              `json:"isLiked"`
+	Images        []db.Image        `json:"images"`
+	CommentCount  int               `json:"commentCount"`
+	RelevantLikes []RelevantLike    `json:"relevantLikes"`
+	HasOtherLikes bool              `json:"hasOtherLikes"`
 }
 
 type DetailedComment struct {
