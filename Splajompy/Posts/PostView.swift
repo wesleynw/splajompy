@@ -74,11 +74,12 @@ struct PostView: View {
                 }
               }
             }
+            .backgroundStyle(.red)
           }
           .foregroundColor(.primary)
         }
       }
-      if let postText = post.post.text {
+      if let postText = post.post.text, postText.count > 0 {
         ContentTextView(text: postText, facets: post.post.facets ?? [])
           .environmentObject(feedRefreshManager)
       }

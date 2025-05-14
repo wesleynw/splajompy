@@ -7,6 +7,7 @@ struct FeedView<Header: View>: View {
   // this is a hack to insert something at the top of a scroll view so we don't have nested scrollviews
   let header: Header
 
+  //  @State private var activeFilters: Set<FilterOption> = []
   @StateObject private var viewModel: ViewModel
   @EnvironmentObject var feedRefreshManager: FeedRefreshManager
   @EnvironmentObject var authManager: AuthManager
@@ -25,6 +26,7 @@ struct FeedView<Header: View>: View {
     userId: Int? = nil,
     @ViewBuilder header: () -> Header
   ) {
+    print("new feedivew type:", feedType)
     self.feedType = feedType
     self.userId = userId
     self.header = header()
@@ -34,7 +36,7 @@ struct FeedView<Header: View>: View {
   }
 
   var body: some View {
-    ScrollView {
+    VStack {
       header
 
       if !viewModel.error.isEmpty && viewModel.posts.isEmpty
