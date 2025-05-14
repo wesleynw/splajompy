@@ -87,46 +87,53 @@ extension MentionTextEditor {
     }
 
     private func checkForMentionAtCursor() {
-      guard cursorPosition > 0, cursorPosition <= attributedText.string.count else {
+      let text = attributedText.string
+
+      guard cursorPosition > 0, cursorPosition <= text.utf16.count else {
         return
       }
 
-      let textIndex = attributedText.string.index(
-        attributedText.string.startIndex,
-        offsetBy: cursorPosition - 1
-      )
+      let cursorIndex =
+        text.index(
+          text.startIndex,
+          offsetBy: cursorPosition,
+          limitedBy: text.endIndex
+        ) ?? text.endIndex
 
-      if attributedText.string[textIndex] == " " || attributedText.string[textIndex] == "\n" {
+      if cursorPosition == 0
+        || (cursorIndex < text.endIndex
+          && (text[cursorIndex] == " " || text[cursorIndex] == "\n"))
+      {
         clearMentionState()
         return
       }
 
-      if let wordStart = attributedText.string[..<textIndex].lastIndex(where: {
+      if let wordStart = text[..<cursorIndex].lastIndex(where: {
         $0 == "@" || $0 == " "
       }) {
         let potentialMentionStart =
-          attributedText.string[wordStart] == "@"
-          ? wordStart : attributedText.string.index(after: wordStart)
+          text[wordStart] == "@" ? wordStart : text.index(after: wordStart)
 
-        if attributedText.string[potentialMentionStart] == "@" {
-          if attributedText.string[textIndex] == " " && textIndex > potentialMentionStart {
-            let mentionText = attributedText.string[potentialMentionStart..<textIndex]
+        if potentialMentionStart < text.endIndex
+          && text[potentialMentionStart] == "@"
+        {
+          if cursorIndex < text.endIndex && text[cursorIndex] == " "
+            && potentialMentionStart < cursorIndex
+          {
+            let mentionRange = potentialMentionStart..<cursorIndex
+            let mentionText = text[mentionRange]
             if mentionText.count > 1 {
               return
             }
           }
 
-          let distanceFromMention =
-            attributedText.string.utf8.distance(from: potentialMentionStart, to: textIndex) + 1
-
+          let distanceFromMention = text.distance(
+            from: potentialMentionStart,
+            to: cursorIndex
+          )
           if distanceFromMention <= 20 {
             mentionStartIndex = potentialMentionStart
-            let searchRange = attributedText.string[
-              potentialMentionStart..<attributedText.string.index(
-                attributedText.string.startIndex,
-                offsetBy: cursorPosition
-              )
-            ]
+            let searchRange = text[potentialMentionStart..<cursorIndex]
             let newPrefix = String(searchRange.dropFirst())
 
             if newPrefix != mentionPrefix {
@@ -175,17 +182,24 @@ extension MentionTextEditor {
     func insertMention(_ user: User) {
       guard let startIndex = mentionStartIndex else { return }
 
-      var newText = attributedText.string
-      let currentIndex = newText.utf8.index(
-        newText.startIndex,
-        offsetBy: cursorPosition
-      )
-      let replaceRange = startIndex..<currentIndex
+      let text = attributedText.string
+
+      let cursorIndex =
+        text.index(
+          text.startIndex,
+          offsetBy: cursorPosition,
+          limitedBy: text.endIndex
+        ) ?? text.endIndex
+
+      let replaceRange = startIndex..<cursorIndex
+
       let replacement = "@\(user.username) "
+
+      var newText = text
       newText.replaceSubrange(replaceRange, with: replacement)
 
       let mutableAttributedText = NSMutableAttributedString(string: newText)
-      let fullRange = NSRange(location: 0, length: newText.count)
+      let fullRange = NSRange(location: 0, length: newText.utf16.count)
       mutableAttributedText.addAttribute(
         .font,
         value: UIFont.preferredFont(forTextStyle: .body),
@@ -199,21 +213,19 @@ extension MentionTextEditor {
 
       let mentions = extractMentions(from: newText)
       for mention in mentions {
-        let range = NSRange(
-          location: mention.range.location,
-          length: mention.range.length
-        )
         mutableAttributedText.addAttribute(
           .foregroundColor,
           value: UIColor.systemBlue,
-          range: range
+          range: mention.range
         )
       }
 
       attributedText = mutableAttributedText
-      cursorPosition =
-        newText.distance(from: newText.utf8.startIndex, to: startIndex)
-        + replacement.count
+
+      let newCursorPosition =
+        text.distance(from: text.startIndex, to: startIndex)
+        + replacement.utf16.count
+      cursorPosition = newCursorPosition
 
       clearMentionState()
     }
