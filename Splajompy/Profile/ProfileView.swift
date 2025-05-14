@@ -36,22 +36,24 @@ struct ProfileView: View {
 
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
-      if viewModel.isLoadingProfile {
-        ProgressView()
-          .scaleEffect(1.5)
-          .padding()
-      }
-      if let user = viewModel.profile {
-        FeedView(feedType: .profile, userId: self.userId) {
-          profileHeader(user: user)
+      ScrollView {
+        if viewModel.isLoadingProfile {
+          ProgressView()
+            .scaleEffect(1.5)
+            .padding()
         }
-        .environmentObject(feedRefreshManager)
-        .padding(.horizontal, -16)
-      } else if !viewModel.isLoadingProfile {
-        Text("This user doesn't exist.")
-          .font(.title3)
-          .fontWeight(.bold)
-          .padding(.top, 40)
+        if let user = viewModel.profile {
+          FeedView(feedType: .profile, userId: self.userId) {
+            profileHeader(user: user)
+          }
+          .environmentObject(feedRefreshManager)
+          .padding(.horizontal, -16)
+        } else if !viewModel.isLoadingProfile {
+          Text("This user doesn't exist.")
+            .font(.title3)
+            .fontWeight(.bold)
+            .padding(.top, 40)
+        }
       }
     }
     .sheet(isPresented: $isShowingProfileEditor) {
