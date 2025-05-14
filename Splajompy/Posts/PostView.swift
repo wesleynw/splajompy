@@ -190,7 +190,9 @@ struct PostView: View {
     user: user,
     isLiked: false,
     commentCount: 0,
-    images: images
+    images: images,
+    relevantLikes: [],
+    hasOtherLikes: false
   )
 
   let feedRefreshManager = FeedRefreshManager()
@@ -247,7 +249,9 @@ struct PostView: View {
     user: user,
     isLiked: false,
     commentCount: 0,
-    images: images
+    images: images,
+    relevantLikes: [],
+    hasOtherLikes: false
   )
 
   let feedRefreshManager = FeedRefreshManager()
