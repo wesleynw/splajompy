@@ -53,12 +53,10 @@ struct ContentTextView: View {
     let regex = try! NSRegularExpression(pattern: pattern)
     let range = NSRange(output.startIndex..., in: output)
 
-    let a = regex.stringByReplacingMatches(
+    return regex.stringByReplacingMatches(
       in: output,
       range: range,
       withTemplate: "[\\@$2](splajompy://user?id=$1&username=$2)"
     )
-
-    return a
   }
 }
