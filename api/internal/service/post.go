@@ -205,7 +205,7 @@ func (s *PostService) GetPostsByFollowing(ctx context.Context, currentUser model
 }
 
 func (s *PostService) getPostsByPostIDs(ctx context.Context, currentUser models.PublicUser, postIDs []int32) (*[]models.DetailedPost, error) {
-	var posts []models.DetailedPost
+	var posts = make([]models.DetailedPost, 0)
 
 	for i := range postIDs {
 		post, err := s.GetPostById(ctx, currentUser, int(postIDs[i]))

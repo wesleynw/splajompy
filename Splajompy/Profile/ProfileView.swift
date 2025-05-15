@@ -55,6 +55,9 @@ struct ProfileView: View {
             .padding(.top, 40)
         }
       }
+      .refreshable {
+        viewModel.loadProfile()
+      }
     }
     .sheet(isPresented: $isShowingProfileEditor) {
       ProfileEditorView(viewModel: viewModel)
