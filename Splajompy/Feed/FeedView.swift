@@ -26,7 +26,6 @@ struct FeedView<Header: View>: View {
     userId: Int? = nil,
     @ViewBuilder header: () -> Header
   ) {
-    print("new feedivew type:", feedType)
     self.feedType = feedType
     self.userId = userId
     self.header = header()
@@ -107,7 +106,8 @@ struct FeedView<Header: View>: View {
         PostView(
           post: post,
           showAuthor: feedType != .profile,
-          onLikeButtonTapped: { viewModel.toggleLike(on: post) }
+          onLikeButtonTapped: { viewModel.toggleLike(on: post) },
+          onPostDeleted: { viewModel.deletePost(on: post) }
         )
         .environmentObject(feedRefreshManager)
         .environmentObject(authManager)

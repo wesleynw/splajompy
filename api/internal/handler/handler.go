@@ -35,15 +35,18 @@ func NewHandler(queries db.Queries,
 }
 
 func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
+	// auth
 	mux.HandleFunc("POST /register", h.Register)
 	mux.HandleFunc("POST /login", h.Login)
 	mux.HandleFunc("POST /otc/generate", h.GenerateOTC)
 	mux.HandleFunc("POST /otc/verify", h.VerifyOTC)
 
+	// posts
 	mux.HandleFunc("GET /post/presignedUrl", h.GetPresignedUrl)
 	mux.HandleFunc("POST /post/new", h.CreateNewPost)
 	mux.HandleFunc("GET /post/{id}", h.GetPostById)
 	mux.HandleFunc("GET /user/{id}/posts", h.GetPostsByUserId)
+	mux.HandleFunc("DELETE /post/{id}", h.DeletePostById)
 
 	// follow
 	mux.HandleFunc("POST /follow/{user_id}", h.FollowUser)

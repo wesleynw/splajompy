@@ -12,6 +12,16 @@ import (
 	db "splajompy.com/api/v2/internal/db"
 )
 
+const deletePost = `-- name: DeletePost :exec
+DELETE FROM posts
+WHERE post_id = $1
+`
+
+func (q *Queries) DeletePost(ctx context.Context, postID int32) error {
+	_, err := q.db.Exec(ctx, deletePost, postID)
+	return err
+}
+
 const getAllPostIds = `-- name: GetAllPostIds :many
 SELECT post_id
 FROM posts
@@ -56,6 +66,25 @@ func (q *Queries) GetCommentCountByPostID(ctx context.Context, postID int32) (in
 	var count int64
 	err := row.Scan(&count)
 	return count, err
+}
+
+const getPostById = `-- name: GetPostById :one
+SELECT post_id, user_id, text, created_at, facets
+FROM posts
+WHERE post_id = $1
+`
+
+func (q *Queries) GetPostById(ctx context.Context, postID int32) (Post, error) {
+	row := q.db.QueryRow(ctx, getPostById, postID)
+	var i Post
+	err := row.Scan(
+		&i.PostID,
+		&i.UserID,
+		&i.Text,
+		&i.CreatedAt,
+		&i.Facets,
+	)
+	return i, err
 }
 
 const getPostIdsByFollowing = `-- name: GetPostIdsByFollowing :many

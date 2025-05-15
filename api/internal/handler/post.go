@@ -85,6 +85,28 @@ func (h *Handler) GetPostById(w http.ResponseWriter, r *http.Request) {
 	utilities.HandleSuccess(w, post)
 }
 
+func (h *Handler) DeletePostById(w http.ResponseWriter, r *http.Request) {
+	currentUser, err := h.getAuthenticatedUser(r)
+	if err != nil {
+		utilities.HandleError(w, http.StatusUnauthorized, "Unauthorized")
+		return
+	}
+
+	id, err := h.GetIntPathParam(r, "id")
+	if err != nil {
+		utilities.HandleError(w, http.StatusBadRequest, "Missing ID parameter")
+		return
+	}
+
+	err = h.postService.DeletePost(r.Context(), *currentUser, id)
+	if err != nil {
+		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
+		return
+	}
+
+	utilities.HandleEmptySuccess(w)
+}
+
 func (h *Handler) GetPostsByUserId(w http.ResponseWriter, r *http.Request) {
 	currentUser, err := h.getAuthenticatedUser(r)
 	if err != nil {

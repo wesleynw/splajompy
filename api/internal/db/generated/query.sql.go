@@ -42,22 +42,3 @@ func (q *Queries) GetImagesByPostId(ctx context.Context, postID int32) ([]Image,
 	}
 	return items, nil
 }
-
-const getPostById = `-- name: GetPostById :one
-SELECT post_id, user_id, text, created_at, facets
-FROM posts
-WHERE post_id = $1
-`
-
-func (q *Queries) GetPostById(ctx context.Context, postID int32) (Post, error) {
-	row := q.db.QueryRow(ctx, getPostById, postID)
-	var i Post
-	err := row.Scan(
-		&i.PostID,
-		&i.UserID,
-		&i.Text,
-		&i.CreatedAt,
-		&i.Facets,
-	)
-	return i, err
-}

@@ -56,6 +56,7 @@ struct ProfileView: View {
         }
       }
       .refreshable {
+        feedRefreshManager.triggerRefresh()
         viewModel.loadProfile()
       }
     }

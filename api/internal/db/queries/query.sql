@@ -1,7 +1,4 @@
--- name: GetPostById :one
-SELECT *
-FROM posts
-WHERE post_id = $1;
+
 
 -- name: GetImagesByPostId :many
 SELECT *

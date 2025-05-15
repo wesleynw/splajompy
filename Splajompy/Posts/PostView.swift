@@ -9,8 +9,12 @@ struct PostView: View {
   var onLikeButtonTapped: () -> Void = {
     print("Unimplemented: PostView.onLikeButtonTapped")
   }
+  var onPostDeleted: () -> Void = {
+    print("Unimplemented: PostView.onPostDeleted")
+  }
 
   @State private var isShowingComments = false
+  @State private var isShowingPostMenu = false
   @EnvironmentObject private var feedRefreshManager: FeedRefreshManager
   @EnvironmentObject private var authManager: AuthManager
 
@@ -92,6 +96,19 @@ struct PostView: View {
           .foregroundColor(.gray)
         Spacer()
         HStack(spacing: 16) {
+          if authManager.getCurrentUser().userId == post.user.userId {
+            Button(action: {
+              isShowingPostMenu = true
+              let impact = UIImpactFeedbackGenerator(style: .light)
+              impact.impactOccurred()
+            }) {
+              Image(systemName: "ellipsis")
+                .font(.system(size: 25))
+                .fontWeight(.light)
+            }
+            .buttonStyle(.plain)
+          }
+
           if !isStandalone {
             Button(action: {
               isShowingComments = true
@@ -146,6 +163,28 @@ struct PostView: View {
     .sheet(isPresented: $isShowingComments) {
       CommentsView(postId: post.post.postId)
     }
+    .sheet(isPresented: $isShowingPostMenu) {
+      VStack(spacing: 16) {
+        VStack(spacing: 0) {
+          Button(action: { onPostDeleted() }) {
+            HStack {
+              Image(systemName: "trash")
+              Text("Delete")
+              Spacer()
+            }
+            .foregroundColor(.red)
+            .padding()
+          }
+          .background(Color(UIColor.secondarySystemGroupedBackground))
+          .cornerRadius(8)
+        }
+        .padding(.horizontal)
+
+        Spacer()
+      }
+      .presentationDetents([.medium])
+      .presentationDragIndicator(.visible)
+    }
   }
 }
 
@@ -155,7 +194,8 @@ struct PostView: View {
     userId: 456,
     text:
       "This is a sample post with some text content. also here's a link: https://google.com, another link: splajompy.com",
-    createdAt: "2025-04-01T12:30:45.123Z", facets: nil
+    createdAt: "2025-04-01T12:30:45.123Z",
+    facets: nil
   )
 
   let user = User(

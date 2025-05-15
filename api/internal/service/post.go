@@ -246,6 +246,19 @@ func (s *PostService) RemoveLikeFromPost(ctx context.Context, currentUser models
 	return err
 }
 
+func (s *PostService) DeletePost(ctx context.Context, currentUser models.PublicUser, postId int) error {
+	post, err := s.queries.GetPostById(ctx, int32(postId))
+	if err != nil {
+		return err
+	}
+
+	if post.UserID != currentUser.UserID {
+		return errors.New("unable to delete post")
+	}
+
+	return s.queries.DeletePost(ctx, int32(postId))
+}
+
 func generateFacets(ctx context.Context, s *db.Queries, text string) ([]db2.Facet, error) {
 	re := regexp.MustCompile(`@(\w+)`)
 	matches := re.FindAllStringSubmatchIndex(text, -1)
