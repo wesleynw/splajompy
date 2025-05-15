@@ -286,9 +286,11 @@ func getRelevantLikes(ctx context.Context, s *db.Queries, currentUser models.Pub
 		return seededRandom(postId+int(likes[i].UserID)) < seededRandom(postId+int(likes[i].UserID))
 	})
 
-	mappedLikes := make([]models.RelevantLike, len(likes))
-	userIDs := make([]int32, len(likes))
-	for i, like := range likes {
+	count := min(len(likes), 2)
+
+	mappedLikes := make([]models.RelevantLike, count)
+	userIDs := make([]int32, count)
+	for i, like := range likes[:count] {
 		mappedLikes[i] = models.RelevantLike{
 			Username: like.Username,
 			UserID:   like.UserID,

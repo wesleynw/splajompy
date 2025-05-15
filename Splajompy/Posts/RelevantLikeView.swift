@@ -1,63 +1,64 @@
 import SwiftUI
 
-struct OtherLikesView: View {
-    let relevantLikes: [RelevantLike]
-    let hasOtherLikes: Bool
-    
-    var body: some View {
-        if relevantLikes.isEmpty && !hasOtherLikes {
-            EmptyView()
-        } else {
-            HStack(spacing: 0) {
-                Text("Liked by ")
-              ForEach(Array(relevantLikes.enumerated()), id: \.element.userId) { index, like in
-                    if index == 0 {
-                        userMention(like)
-                    } else if index == 1 {
-                        if relevantLikes.count == 2 && hasOtherLikes {
-                            Text(", ")
-                            userMention(like)
-                        } else {
-                            Text(" and ")
-                            userMention(like)
-                        }
-                    } else {
-                        Text(", ")
-                        userMention(like)
-                    }
-                }
-                
-                if hasOtherLikes {
-                    if relevantLikes.isEmpty {
-                        Text(" others")
-                    } else if relevantLikes.count == 1 {
-                        Text(" and others")
-                    } else {
-                        Text(", and others")
-                    }
-                }
-            }
-            .onTapGesture {
-                // Prevent tap propagation
-            }
-        }
+struct RelevantLikeView: View {
+  let relevantLikes: [RelevantLike]
+  let hasOtherLikes: Bool
+
+  var body: some View {
+    if relevantLikes.isEmpty && !hasOtherLikes {
+      EmptyView()
+    } else {
+      likesText
+        .font(.footnote)
+        .fontWeight(.semibold)
     }
-    
-    private func userMention(_ like: RelevantLike) -> some View {
-        Text(
-            .init(
-                "**[@\(like.username)](splajompy://user?id=\(like.userId)&username=\(like.username))**"
-            )
-        )
+  }
+
+  private var likesText: some View {
+    Text(.init(buildLikesString()))
+  }
+
+  private func buildLikesString() -> String {
+    let prefix = "Liked by "
+
+    if relevantLikes.isEmpty {
+      return prefix + "others"
     }
+
+    var components = [String]()
+
+    for (index, like) in relevantLikes.enumerated() {
+      let username =
+        "**[@\(like.username)](splajompy://user?id=\(like.userId)&username=\(like.username))**"
+
+      if index == 0 {
+        components.append(username)
+      } else if index == 1 && relevantLikes.count == 2 && hasOtherLikes {
+        components.append(", " + username)
+      } else if index == 1 {
+        components.append(" and " + username)
+      } else {
+        components.append(", " + username)
+      }
+    }
+
+    let result = prefix + components.joined()
+
+    if hasOtherLikes {
+      return result
+        + (relevantLikes.count == 1 ? " and others" : ", and others")
+    }
+
+    return result
+  }
 }
 
 #Preview {
-    OtherLikesView(
-        relevantLikes: [
-            RelevantLike(username: "user1", userId: 1),
-            RelevantLike(username: "user2", userId: 2),
-        ],
-        hasOtherLikes: true
-    )
+  RelevantLikeView(
+    relevantLikes: [
+      RelevantLike(username: "user1", userId: 1),
+      RelevantLike(username: "user2", userId: 2),
+    ],
+    hasOtherLikes: true
+  )
 }
