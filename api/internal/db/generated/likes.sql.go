@@ -89,6 +89,69 @@ func (q *Queries) GetIsPostLikedByUser(ctx context.Context, arg GetIsPostLikedBy
 	return exists, err
 }
 
+const getPostLikesFromFollowers = `-- name: GetPostLikesFromFollowers :many
+SELECT users.username, users.user_id
+FROM likes
+INNER JOIN users ON likes.user_id = users.user_id
+WHERE post_id = $1 AND comment_id IS NULL AND
+    EXISTS (
+        SELECT 1
+        FROM follows
+        WHERE follower_id = $2 AND following_id = likes.user_id
+    )
+`
+
+type GetPostLikesFromFollowersParams struct {
+	PostID     int32 `json:"postId"`
+	FollowerID int32 `json:"followerId"`
+}
+
+type GetPostLikesFromFollowersRow struct {
+	Username string `json:"username"`
+	UserID   int32  `json:"userId"`
+}
+
+func (q *Queries) GetPostLikesFromFollowers(ctx context.Context, arg GetPostLikesFromFollowersParams) ([]GetPostLikesFromFollowersRow, error) {
+	rows, err := q.db.Query(ctx, getPostLikesFromFollowers, arg.PostID, arg.FollowerID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetPostLikesFromFollowersRow
+	for rows.Next() {
+		var i GetPostLikesFromFollowersRow
+		if err := rows.Scan(&i.Username, &i.UserID); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const hasLikesFromOthers = `-- name: HasLikesFromOthers :one
+SELECT EXISTS (
+    SELECT 1
+    FROM likes
+    WHERE post_id = $1 AND comment_id IS NULL AND
+        user_id NOT IN (SELECT unnest FROM unnest($2::int[]))
+)
+`
+
+type HasLikesFromOthersParams struct {
+	PostID  int32   `json:"postId"`
+	Column2 []int32 `json:"column2"`
+}
+
+func (q *Queries) HasLikesFromOthers(ctx context.Context, arg HasLikesFromOthersParams) (bool, error) {
+	row := q.db.QueryRow(ctx, hasLikesFromOthers, arg.PostID, arg.Column2)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
+}
+
 const removeLike = `-- name: RemoveLike :exec
 
 DELETE FROM likes

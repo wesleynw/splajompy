@@ -51,7 +51,7 @@ CREATE TABLE follows (
 
 CREATE TABLE likes (
     post_id INT NOT NULL,
-    comment_id INT,
+    comment_id INT NULL,
     user_id INT NOT NULL,
     is_post BOOLEAN NOT NULL DEFAULT true,
     FOREIGN KEY (post_id) REFERENCES posts(post_id) ON DELETE CASCADE,

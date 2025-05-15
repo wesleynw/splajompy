@@ -6,8 +6,10 @@ import (
 	"fmt"
 	"github.com/jackc/pgx/v5"
 	"log"
+	"math"
 	"os"
 	"regexp"
+	"sort"
 	db2 "splajompy.com/api/v2/internal/db"
 	"strings"
 	"time"
@@ -88,33 +90,6 @@ func (s *PostService) NewPost(ctx context.Context, currentUser models.PublicUser
 	return nil
 }
 
-func generateFacets(ctx context.Context, s *db.Queries, text string) ([]db2.Facet, error) {
-	re := regexp.MustCompile(`@(\w+)`)
-	matches := re.FindAllStringSubmatchIndex(text, -1)
-
-	var facets []db2.Facet
-
-	for _, match := range matches {
-		start, end := match[0], match[1]
-		username := text[start+1 : end]
-		user, err := s.GetUserByUsername(ctx, username)
-		if err != nil {
-			if errors.Is(err, pgx.ErrNoRows) {
-				continue
-			}
-			return nil, err
-		}
-		facets = append(facets, db2.Facet{
-			Type:       "mention",
-			UserId:     int(user.UserID),
-			IndexStart: start,
-			IndexEnd:   end,
-		})
-	}
-
-	return facets, nil
-}
-
 func (s *PostService) NewPresignedStagingUrl(ctx context.Context, currentUser models.PublicUser, extension *string, folder *string) (string, string, error) {
 	environment := os.Getenv("ENVIRONMENT")
 	presignClient := s3.NewPresignClient(s.s3Client)
@@ -173,12 +148,19 @@ func (s *PostService) GetPostById(ctx context.Context, cUser models.PublicUser, 
 		return nil, errors.New("unable to find comment count for post")
 	}
 
+	relevantLikes, hasOtherLikes, err := getRelevantLikes(ctx, s.queries, cUser, postID)
+	if err != nil {
+		return nil, errors.New("unable to find relevant likes")
+	}
+
 	response := models.DetailedPost{
-		Post:         post,
-		User:         user,
-		IsLiked:      isLiked,
-		Images:       images,
-		CommentCount: int(commentCount),
+		Post:          post,
+		User:          user,
+		IsLiked:       isLiked,
+		Images:        images,
+		CommentCount:  int(commentCount),
+		RelevantLikes: relevantLikes,
+		HasOtherLikes: hasOtherLikes,
 	}
 
 	return &response, nil
@@ -262,4 +244,72 @@ func (s *PostService) RemoveLikeFromPost(ctx context.Context, currentUser models
 		UserID: currentUser.UserID,
 		IsPost: true})
 	return err
+}
+
+func generateFacets(ctx context.Context, s *db.Queries, text string) ([]db2.Facet, error) {
+	re := regexp.MustCompile(`@(\w+)`)
+	matches := re.FindAllStringSubmatchIndex(text, -1)
+
+	var facets []db2.Facet
+
+	for _, match := range matches {
+		start, end := match[0], match[1]
+		username := text[start+1 : end]
+		user, err := s.GetUserByUsername(ctx, username)
+		if err != nil {
+			if errors.Is(err, pgx.ErrNoRows) {
+				continue
+			}
+			return nil, err
+		}
+		facets = append(facets, db2.Facet{
+			Type:       "mention",
+			UserId:     int(user.UserID),
+			IndexStart: start,
+			IndexEnd:   end,
+		})
+	}
+
+	return facets, nil
+}
+
+func getRelevantLikes(ctx context.Context, s *db.Queries, currentUser models.PublicUser, postId int) ([]models.RelevantLike, bool, error) {
+	likes, err := s.GetPostLikesFromFollowers(ctx, db.GetPostLikesFromFollowersParams{
+		PostID:     int32(postId),
+		FollowerID: currentUser.UserID,
+	})
+	if err != nil {
+		return nil, false, err
+	}
+
+	sort.SliceStable(likes, func(i, j int) bool {
+		return seededRandom(postId+int(likes[i].UserID)) < seededRandom(postId+int(likes[i].UserID))
+	})
+
+	count := min(len(likes), 2)
+
+	mappedLikes := make([]models.RelevantLike, count)
+	userIDs := make([]int32, count)
+	for i, like := range likes[:count] {
+		mappedLikes[i] = models.RelevantLike{
+			Username: like.Username,
+			UserID:   like.UserID,
+		}
+		userIDs[i] = like.UserID
+	}
+
+	hasOtherLikes, err := s.HasLikesFromOthers(ctx, db.HasLikesFromOthersParams{
+		PostID:  int32(postId),
+		Column2: userIDs,
+	})
+	if err != nil {
+		return nil, false, err
+	}
+
+	return mappedLikes, hasOtherLikes, nil
+}
+
+func seededRandom(seed int) float64 {
+	var x = math.Sin(float64(seed)) * 1000
+	return x - math.Floor(x)
 }

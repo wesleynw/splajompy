@@ -127,6 +127,8 @@ struct PostView: View {
           .buttonStyle(.plain)
         }
       }
+
+      RelevantLikeView(relevantLikes: post.relevantLikes, hasOtherLikes: post.hasOtherLikes)
     }
     .padding(.vertical)
     .padding(.horizontal, 16)
@@ -190,7 +192,9 @@ struct PostView: View {
     user: user,
     isLiked: false,
     commentCount: 0,
-    images: images
+    images: images,
+    relevantLikes: [],
+    hasOtherLikes: false
   )
 
   let feedRefreshManager = FeedRefreshManager()
@@ -247,7 +251,9 @@ struct PostView: View {
     user: user,
     isLiked: false,
     commentCount: 0,
-    images: images
+    images: images,
+    relevantLikes: [],
+    hasOtherLikes: false
   )
 
   let feedRefreshManager = FeedRefreshManager()

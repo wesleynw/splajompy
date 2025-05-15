@@ -36,3 +36,22 @@ SELECT EXISTS (
     END
   )
 );
+
+-- name: GetPostLikesFromFollowers :many
+SELECT users.username, users.user_id
+FROM likes
+INNER JOIN users ON likes.user_id = users.user_id
+WHERE post_id = $1 AND comment_id IS NULL AND
+    EXISTS (
+        SELECT 1
+        FROM follows
+        WHERE follower_id = $2 AND following_id = likes.user_id
+    );
+
+-- name: HasLikesFromOthers :one
+SELECT EXISTS (
+    SELECT 1
+    FROM likes
+    WHERE post_id = $1 AND comment_id IS NULL AND
+        user_id NOT IN (SELECT * FROM unnest($2::int[]))
+);

@@ -44,12 +44,19 @@ struct Post: Decodable {
   let facets: [Facet]?
 }
 
+struct RelevantLike: Decodable {
+  let username: String
+  let userId: Int
+}
+
 struct DetailedPost: Decodable, Equatable, Identifiable {
   let post: Post
   let user: User
   var isLiked: Bool
   var commentCount: Int
   var images: [ImageDTO]?
+  let relevantLikes: [RelevantLike]
+  let hasOtherLikes: Bool
 
   var id: Int { post.postId }
 
