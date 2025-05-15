@@ -44,9 +44,9 @@ func main() {
 	commentService := service.NewCommentService(queries)
 	userService := service.NewUserService(queries)
 	notificationService := service.NewNotificationService(queries)
-	authmanager := service.NewAuthService(queries, resentClient)
+	authManager := service.NewAuthService(queries, resentClient)
 
-	h := handler.NewHandler(*queries, postService, commentService, userService, notificationService, authmanager)
+	h := handler.NewHandler(*queries, postService, commentService, userService, notificationService, authManager)
 
 	mux := http.NewServeMux()
 	h.RegisterRoutes(mux)

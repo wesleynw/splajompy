@@ -17,7 +17,7 @@ protocol PostServiceProtocol: Sendable {
   func addComment(postId: Int, content: String) async -> AsyncResult<
     EmptyResponse
   >
-  
+
   func deletePost(postId: Int) async -> AsyncResult<EmptyResponse>
 }
 
@@ -87,7 +87,7 @@ struct PostService: PostServiceProtocol {
       body: jsonData
     )
   }
-  
+
   func deletePost(postId: Int) async -> AsyncResult<EmptyResponse> {
     return await APIService.performRequest(endpoint: "post/\(postId)", method: "DELETE")
   }

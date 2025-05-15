@@ -145,7 +145,10 @@ struct PostView: View {
         }
       }
 
-      RelevantLikeView(relevantLikes: post.relevantLikes, hasOtherLikes: post.hasOtherLikes)
+      RelevantLikeView(
+        relevantLikes: post.relevantLikes,
+        hasOtherLikes: post.hasOtherLikes
+      )
     }
     .padding(.vertical)
     .padding(.horizontal, 16)
@@ -164,23 +167,11 @@ struct PostView: View {
       CommentsView(postId: post.post.postId)
     }
     .sheet(isPresented: $isShowingPostMenu) {
-      VStack(spacing: 16) {
-        VStack(spacing: 0) {
-          Button(action: { onPostDeleted() }) {
-            HStack {
-              Image(systemName: "trash")
-              Text("Delete")
-              Spacer()
-            }
+      List {
+        Button(action: { onPostDeleted() }) {
+          Label("Delete", systemImage: "trash")
             .foregroundColor(.red)
-            .padding()
-          }
-          .background(Color(UIColor.secondarySystemGroupedBackground))
-          .cornerRadius(8)
         }
-        .padding(.horizontal)
-
-        Spacer()
       }
       .presentationDetents([.medium])
       .presentationDragIndicator(.visible)

@@ -23,16 +23,10 @@ struct CommentsView: View {
       if isShowingInSheet {
         ZStack {
           VStack(spacing: 8) {
-            Rectangle()
-              .fill(Color.gray.opacity(0.4))
-              .frame(width: 40, height: 5)
-              .cornerRadius(2.5)
-              .padding(.top, 8)
-
             Text("Comments")
               .font(.headline)
               .fontWeight(.bold)
-              .padding(.bottom, 16)
+              .padding()
           }
 
           HStack {
@@ -127,6 +121,7 @@ struct CommentsView: View {
     .onOpenURL { url in
       presentationMode.wrappedValue.dismiss()
     }
+    .presentationDragIndicator(.visible)
   }
 
   private func submitComment() {
