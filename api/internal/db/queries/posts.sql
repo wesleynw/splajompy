@@ -48,3 +48,9 @@ WHERE post_id = $1;
 INSERT INTO images (post_id, height, width, image_blob_url, display_order)
 VALUES ($1, $2, $3, $4, $5)
 RETURNING *;
+
+-- name: GetImagesByPostId :many
+SELECT *
+FROM images
+WHERE images.post_id = $1
+ORDER BY display_order ASC;

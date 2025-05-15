@@ -153,7 +153,6 @@ func (q *Queries) HasLikesFromOthers(ctx context.Context, arg HasLikesFromOthers
 }
 
 const removeLike = `-- name: RemoveLike :exec
-
 DELETE FROM likes
 WHERE post_id = $1
 AND user_id = $2
@@ -168,11 +167,6 @@ type RemoveLikeParams struct {
 	CommentID pgtype.Int4 `json:"commentId"`
 }
 
-// DELETE FROM likes
-// WHERE post_id = $1
-//
-//	AND user_id = $2
-//	AND ($4 = FALSE AND comment_id = $3);
 func (q *Queries) RemoveLike(ctx context.Context, arg RemoveLikeParams) error {
 	_, err := q.db.Exec(ctx, removeLike,
 		arg.PostID,
