@@ -127,7 +127,7 @@ struct PostView: View {
           .buttonStyle(.plain)
         }
       }
-      
+
       RelevantLikeView(relevantLikes: post.relevantLikes, hasOtherLikes: post.hasOtherLikes)
     }
     .padding(.vertical)
