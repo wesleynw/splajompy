@@ -5,33 +5,26 @@ import (
 	"errors"
 	"fmt"
 	"github.com/jackc/pgx/v5"
-	"log"
+	"github.com/jackc/pgx/v5/pgtype"
 	"math"
 	"os"
 	"regexp"
 	"sort"
 	db2 "splajompy.com/api/v2/internal/db"
 	"splajompy.com/api/v2/internal/db/generated"
-	"strings"
-	"time"
-
-	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/service/s3"
-	"github.com/aws/aws-sdk-go-v2/service/s3/types"
-	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5/pgtype"
 	"splajompy.com/api/v2/internal/models"
+	"splajompy.com/api/v2/internal/repositories"
 )
 
 type PostService struct {
-	querier  db.Querier
-	s3Client *s3.Client
+	querier    db.Querier
+	bucketRepo repositories.BucketRepository
 }
 
-func NewPostService(querier db.Querier, s3Client *s3.Client) *PostService {
+func NewPostService(querier db.Querier, bucketRepo repositories.BucketRepository) *PostService {
 	return &PostService{
-		querier:  querier,
-		s3Client: s3Client,
+		querier:    querier,
+		bucketRepo: bucketRepo,
 	}
 }
 
@@ -53,24 +46,19 @@ func (s *PostService) NewPost(ctx context.Context, currentUser models.PublicUser
 	environment := os.Getenv("ENVIRONMENT")
 
 	for displayOrder, s3key := range imageKeymap {
-		filename := (s3key)[strings.LastIndex(s3key, "/"):]
-		newKey := fmt.Sprintf("%s/posts/%d/%d%s", environment, currentUser.UserID, post.PostID, filename)
+		destinationKey := repositories.GetDestinationKey(
+			environment,
+			currentUser.UserID,
+			post.PostID,
+			s3key,
+		)
 
-		_, err := s.s3Client.CopyObject(ctx, &s3.CopyObjectInput{
-			Bucket:     aws.String("splajompy-bucket"),
-			CopySource: aws.String("splajompy-bucket/" + s3key),
-			Key:        aws.String(newKey),
-			ACL:        types.ObjectCannedACLPublicRead,
-		})
+		err := s.bucketRepo.CopyObject(ctx, s3key, destinationKey)
 		if err != nil {
-			print("error: ", err)
 			return errors.New("unable to create post")
 		}
 
-		_, err = s.s3Client.DeleteObject(ctx, &s3.DeleteObjectInput{
-			Bucket: aws.String("splajompy-bucket"),
-			Key:    &s3key,
-		})
+		err = s.bucketRepo.DeleteObject(ctx, s3key)
 		if err != nil {
 			return errors.New("unable to create post")
 		}
@@ -79,7 +67,7 @@ func (s *PostService) NewPost(ctx context.Context, currentUser models.PublicUser
 			PostID:       post.PostID,
 			Height:       500,
 			Width:        500,
-			ImageBlobUrl: newKey,
+			ImageBlobUrl: destinationKey,
 			DisplayOrder: int32(displayOrder),
 		})
 		if err != nil {
@@ -91,24 +79,7 @@ func (s *PostService) NewPost(ctx context.Context, currentUser models.PublicUser
 }
 
 func (s *PostService) NewPresignedStagingUrl(ctx context.Context, currentUser models.PublicUser, extension *string, folder *string) (string, string, error) {
-	environment := os.Getenv("ENVIRONMENT")
-	presignClient := s3.NewPresignClient(s.s3Client)
-
-	s3Key := fmt.Sprintf("%s/posts/staging/%d/%s/%s.%s", environment, currentUser.UserID, *folder, uuid.New(), *extension)
-
-	req, err := presignClient.PresignPutObject(ctx, &s3.PutObjectInput{
-		Bucket:      aws.String("splajompy-bucket"),
-		Key:         aws.String(s3Key),
-		ContentType: extension,
-		ACL:         types.ObjectCannedACLPublicRead,
-	}, func(opts *s3.PresignOptions) {
-		opts.Expires = time.Minute * 5
-	})
-	if err != nil {
-		log.Printf("Couldn't get a presigned request to put. Here's why: %v\n", err)
-	}
-
-	return s3Key, req.URL, nil
+	return s.bucketRepo.GeneratePresignedURL(ctx, currentUser.UserID, extension, folder)
 }
 
 func (s *PostService) GetPostById(ctx context.Context, cUser models.PublicUser, postID int) (*models.DetailedPost, error) {
@@ -140,7 +111,7 @@ func (s *PostService) GetPostById(ctx context.Context, cUser models.PublicUser, 
 	}
 
 	for i := range images {
-		images[i].ImageBlobUrl = "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/" + images[i].ImageBlobUrl
+		images[i].ImageBlobUrl = s.bucketRepo.GetObjectURL(images[i].ImageBlobUrl)
 	}
 
 	commentCount, err := s.querier.GetCommentCountByPostID(ctx, post.PostID)

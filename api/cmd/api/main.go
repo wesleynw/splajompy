@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"splajompy.com/api/v2/internal/repositories"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
@@ -40,7 +41,9 @@ func main() {
 		log.Fatalf("failed to initialize s3 client: %v", err)
 	}
 
-	postService := service.NewPostService(queries, s3Client)
+	bucketRepository := repositories.NewS3BucketRepository(s3Client)
+
+	postService := service.NewPostService(queries, bucketRepository)
 	commentService := service.NewCommentService(queries)
 	userService := service.NewUserService(queries)
 	notificationService := service.NewNotificationService(queries)
