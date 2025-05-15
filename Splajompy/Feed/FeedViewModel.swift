@@ -120,5 +120,15 @@ extension FeedView {
         }
       }
     }
+
+    func deletePost(on post: DetailedPost) {
+      Task {
+        if let index = posts.firstIndex(where: { $0.post.postId == post.post.postId }) {
+          posts.remove(at: index)
+
+          let _ = await service.deletePost(postId: post.post.postId)
+        }
+      }
+    }
   }
 }

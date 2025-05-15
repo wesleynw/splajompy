@@ -12,6 +12,16 @@ import (
 	db "splajompy.com/api/v2/internal/db"
 )
 
+const deletePost = `-- name: DeletePost :exec
+DELETE FROM posts
+WHERE post_id = $1
+`
+
+func (q *Queries) DeletePost(ctx context.Context, postID int32) error {
+	_, err := q.db.Exec(ctx, deletePost, postID)
+	return err
+}
+
 const getAllPostIds = `-- name: GetAllPostIds :many
 SELECT post_id
 FROM posts
@@ -56,6 +66,59 @@ func (q *Queries) GetCommentCountByPostID(ctx context.Context, postID int32) (in
 	var count int64
 	err := row.Scan(&count)
 	return count, err
+}
+
+const getImagesByPostId = `-- name: GetImagesByPostId :many
+SELECT image_id, post_id, height, width, image_blob_url, display_order
+FROM images
+WHERE images.post_id = $1
+ORDER BY display_order ASC
+`
+
+func (q *Queries) GetImagesByPostId(ctx context.Context, postID int32) ([]Image, error) {
+	rows, err := q.db.Query(ctx, getImagesByPostId, postID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Image
+	for rows.Next() {
+		var i Image
+		if err := rows.Scan(
+			&i.ImageID,
+			&i.PostID,
+			&i.Height,
+			&i.Width,
+			&i.ImageBlobUrl,
+			&i.DisplayOrder,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getPostById = `-- name: GetPostById :one
+SELECT post_id, user_id, text, created_at, facets
+FROM posts
+WHERE post_id = $1
+`
+
+func (q *Queries) GetPostById(ctx context.Context, postID int32) (Post, error) {
+	row := q.db.QueryRow(ctx, getPostById, postID)
+	var i Post
+	err := row.Scan(
+		&i.PostID,
+		&i.UserID,
+		&i.Text,
+		&i.CreatedAt,
+		&i.Facets,
+	)
+	return i, err
 }
 
 const getPostIdsByFollowing = `-- name: GetPostIdsByFollowing :many

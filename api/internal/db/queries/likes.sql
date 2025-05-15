@@ -2,11 +2,6 @@
 INSERT INTO likes (post_id, comment_id, user_id, is_post)
 VALUES ($1, $2, $3, $4);
 
--- DELETE FROM likes
--- WHERE post_id = $1 
---   AND user_id = $2
---   AND ($4 = FALSE AND comment_id = $3);
-
 -- name: RemoveLike :exec
 DELETE FROM likes
 WHERE post_id = $1

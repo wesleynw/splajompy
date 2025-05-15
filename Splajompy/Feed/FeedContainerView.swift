@@ -5,36 +5,32 @@ struct FeedContainerView: View {
   @State private var path = NavigationPath()
   @State private var isShowingNewPostView = false
   @EnvironmentObject private var feedRefreshManager: FeedRefreshManager
+
+  init() {
+    let savedState = UserDefaults.standard.data(forKey: "feedFilterState")
+    if let savedState = savedState,
+      let decodedState = try? JSONDecoder().decode(
+        FilterState.self,
+        from: savedState
+      )
+    {
+      _filterState = State(initialValue: decodedState)
+    }
+  }
+
+  private func saveFilterState(_ state: FilterState) {
+    if let encoded = try? JSONEncoder().encode(state) {
+      UserDefaults.standard.set(encoded, forKey: "feedFilterState")
+    }
+  }
+
   var body: some View {
     NavigationStack(path: $path) {
       ScrollView {
-        //        HStack {
-        //          Image("Full_Logo")
-        //            .resizable()
-        //            .scaledToFit()
-        //            .containerRelativeFrame(.horizontal) { size, axes in
-        //              size * 0.5
-        //            }
-        //
-        //          Spacer()
-        //        }
-        //        .padding()
-
-        HStack {
-          DrilldownFilter(filterState: $filterState)
-            .padding(0)
-
-          Spacer()
-        }
-        .padding(0)
         FeedView(feedType: filterState.mode == .all ? .all : .home)
           .id(filterState.mode)  // Force view refresh
           .navigationBarTitleDisplayMode(.inline)
           .toolbar {
-            //            ToolbarItem(placement: .navigationBarLeading) {
-            //              Spacer()
-            //            }
-
             ToolbarItem(placement: .navigationBarLeading) {
               Image("Full_Logo")
                 .resizable()
@@ -42,10 +38,59 @@ struct FeedContainerView: View {
                 .frame(height: 30)
             }
 
+            ToolbarItem(placement: .principal) {
+              Menu {
+                Button {
+                  withAnimation(.snappy) {
+                    filterState.mode = .all
+                    saveFilterState(filterState)
+                  }
+                } label: {
+                  HStack {
+                    Text("All")
+                    if filterState.mode == .all {
+                      Image(systemName: "checkmark")
+                    }
+                  }
+                }
+
+                Button {
+                  withAnimation(.snappy) {
+                    filterState.mode = .following
+                    saveFilterState(filterState)
+                  }
+                } label: {
+                  HStack {
+                    Text("Following")
+                    if filterState.mode == .following {
+                      Image(systemName: "checkmark")
+                    }
+                  }
+                }
+              } label: {
+                HStack {
+                  Text(filterState.mode == .all ? "All" : "Following")
+                  Image(systemName: "chevron.down")
+                    .font(.caption)
+                }
+                .fontWeight(.semibold)
+                .foregroundColor(.primary)
+                .padding(.vertical, 5)
+                .padding(.horizontal, 10)
+                .background(
+                  RoundedRectangle(cornerRadius: 8)
+                    .strokeBorder(Color.primary.opacity(0.2), lineWidth: 1)
+                    .background(Color.clear)
+                )
+              }
+              .menuStyle(BorderlessButtonMenuStyle())
+            }
+
             ToolbarItem(placement: .navigationBarTrailing) {
               Button(action: { isShowingNewPostView = true }) {
                 Image(systemName: "plus")
               }
+              .buttonStyle(.plain)
             }
           }
           .navigationDestination(for: Route.self) { route in

@@ -8,8 +8,13 @@ struct ContentTextView: View {
   }
 
   var body: some View {
-    Text(try! AttributedString(markdown: processedText))
-      .lineLimit(nil)
+    Text(
+      try! AttributedString(
+        markdown: processedText,
+        options: AttributedString.MarkdownParsingOptions(
+          interpretedSyntax: .inlineOnlyPreservingWhitespace)
+      )
+    )
   }
 
   static func processText(_ input: String, facets: [Facet]) -> String {
@@ -21,8 +26,14 @@ struct ContentTextView: View {
         facet.indexStart < facet.indexEnd
       else { continue }
 
-      let utf8Start = input.utf8.index(input.utf8.startIndex, offsetBy: facet.indexStart)
-      let utf8End = input.utf8.index(input.utf8.startIndex, offsetBy: facet.indexEnd)
+      let utf8Start = input.utf8.index(
+        input.utf8.startIndex,
+        offsetBy: facet.indexStart
+      )
+      let utf8End = input.utf8.index(
+        input.utf8.startIndex,
+        offsetBy: facet.indexEnd
+      )
 
       guard let startIndex = utf8Start.samePosition(in: input),
         let endIndex = utf8End.samePosition(in: input)
@@ -33,7 +44,8 @@ struct ContentTextView: View {
 
       output.replaceSubrange(
         startIndex..<endIndex,
-        with: " **[@\(username)](splajompy://user?id=\(facet.userId)&username=\(username))**"
+        with:
+          " **[@\(username)](splajompy://user?id=\(facet.userId)&username=\(username))**"
       )
     }
 

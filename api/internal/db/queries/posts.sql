@@ -30,12 +30,27 @@ SELECT COUNT(*)
 FROM comments
 WHERE post_id = $1;
 
+-- name: GetPostById :one
+SELECT *
+FROM posts
+WHERE post_id = $1;
+
 -- name: InsertPost :one
 INSERT INTO posts (user_id, text, facets)
 VALUES ($1, $2, $3)
 RETURNING *;
 
+-- name: DeletePost :exec
+DELETE FROM posts
+WHERE post_id = $1;
+
 -- name: InsertImage :one
 INSERT INTO images (post_id, height, width, image_blob_url, display_order)
 VALUES ($1, $2, $3, $4, $5)
 RETURNING *;
+
+-- name: GetImagesByPostId :many
+SELECT *
+FROM images
+WHERE images.post_id = $1
+ORDER BY display_order ASC;

@@ -4,10 +4,6 @@ struct FeedView<Header: View>: View {
   var feedType: FeedType
   var userId: Int?
 
-  // this is a hack to insert something at the top of a scroll view so we don't have nested scrollviews
-  let header: Header
-
-  //  @State private var activeFilters: Set<FilterOption> = []
   @StateObject private var viewModel: ViewModel
   @EnvironmentObject var feedRefreshManager: FeedRefreshManager
   @EnvironmentObject var authManager: AuthManager
@@ -15,21 +11,6 @@ struct FeedView<Header: View>: View {
   init(feedType: FeedType, userId: Int? = nil) where Header == EmptyView {
     self.feedType = feedType
     self.userId = userId
-    self.header = EmptyView()
-    _viewModel = StateObject(
-      wrappedValue: ViewModel(feedType: feedType, userId: userId)
-    )
-  }
-
-  init(
-    feedType: FeedType,
-    userId: Int? = nil,
-    @ViewBuilder header: () -> Header
-  ) {
-    print("new feedivew type:", feedType)
-    self.feedType = feedType
-    self.userId = userId
-    self.header = header()
     _viewModel = StateObject(
       wrappedValue: ViewModel(feedType: feedType, userId: userId)
     )
@@ -37,8 +18,6 @@ struct FeedView<Header: View>: View {
 
   var body: some View {
     VStack {
-      header
-
       if !viewModel.error.isEmpty && viewModel.posts.isEmpty
         && !viewModel.isLoading
       {
@@ -60,9 +39,6 @@ struct FeedView<Header: View>: View {
       }
     }
     .onReceive(feedRefreshManager.$refreshTrigger) { _ in
-      viewModel.refreshPosts()
-    }
-    .refreshable {
       viewModel.refreshPosts()
     }
   }
@@ -107,7 +83,8 @@ struct FeedView<Header: View>: View {
         PostView(
           post: post,
           showAuthor: feedType != .profile,
-          onLikeButtonTapped: { viewModel.toggleLike(on: post) }
+          onLikeButtonTapped: { viewModel.toggleLike(on: post) },
+          onPostDeleted: { viewModel.deletePost(on: post) }
         )
         .environmentObject(feedRefreshManager)
         .environmentObject(authManager)

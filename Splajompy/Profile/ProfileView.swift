@@ -35,35 +35,31 @@ struct ProfileView: View {
   }
 
   var body: some View {
-    VStack(alignment: .leading, spacing: 12) {
-      ScrollView {
-        if viewModel.isLoadingProfile {
-          ProgressView()
-            .scaleEffect(1.5)
-            .padding()
-        }
-        if let user = viewModel.profile {
-          FeedView(feedType: .profile, userId: self.userId) {
-            profileHeader(user: user)
-          }
+    ScrollView {
+      if viewModel.isLoadingProfile {
+        ProgressView()
+          .scaleEffect(1.5)
+          .padding()
+      } else if let user = viewModel.profile {
+        profileHeader(user: user)
+        FeedView(feedType: .profile, userId: self.userId)
           .environmentObject(feedRefreshManager)
-          .padding(.horizontal, -16)
-        } else if !viewModel.isLoadingProfile {
-          Text("This user doesn't exist.")
-            .font(.title3)
-            .fontWeight(.bold)
-            .padding(.top, 40)
-        }
+          .environmentObject(authManager)
+      } else if !viewModel.isLoadingProfile {
+        Text("This user doesn't exist.")
+          .font(.title3)
+          .fontWeight(.bold)
+          .padding(.top, 40)
       }
-      .refreshable {
-        viewModel.loadProfile()
-      }
+    }
+    .refreshable {
+      feedRefreshManager.triggerRefresh()
+      viewModel.loadProfile()
     }
     .sheet(isPresented: $isShowingProfileEditor) {
       ProfileEditorView(viewModel: viewModel)
+        .interactiveDismissDisabled()
     }
-    .interactiveDismissDisabled()
-    .padding(.horizontal, 16)
     .navigationTitle("@" + self.username)
   }
 
@@ -81,7 +77,9 @@ struct ProfileView: View {
           .padding(.vertical, 10)
       }
 
-      if let isFollowing = viewModel.profile?.isFollowing, !isOwnProfile, !isCurrentProfile {
+      if let isFollowing = viewModel.profile?.isFollowing, !isOwnProfile,
+        !isCurrentProfile
+      {
         // this is unnecessarily verbose because you can't apply conditional styling to buttons i guess??
         if isFollowing {
           Button(action: viewModel.toggleFollowing) {
