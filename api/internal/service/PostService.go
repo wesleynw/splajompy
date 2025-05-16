@@ -5,40 +5,41 @@ import (
 	"errors"
 	"fmt"
 	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgtype"
 	"math"
 	"os"
 	"regexp"
 	"sort"
-	db2 "splajompy.com/api/v2/internal/db"
-	"splajompy.com/api/v2/internal/db/generated"
+	"splajompy.com/api/v2/internal/db"
+	"splajompy.com/api/v2/internal/db/queries"
 	"splajompy.com/api/v2/internal/models"
 	"splajompy.com/api/v2/internal/repositories"
 )
 
 type PostService struct {
-	querier    db.Querier
-	bucketRepo repositories.BucketRepository
+	postRepository         repositories.PostRepository
+	userRepository         repositories.UserRepository
+	likeRepository         repositories.LikeRepository
+	notificationRepository repositories.NotificationRepository
+	bucketRepository       repositories.BucketRepository
 }
 
-func NewPostService(querier db.Querier, bucketRepo repositories.BucketRepository) *PostService {
+func NewPostService(postRepository repositories.PostRepository, userRepository repositories.UserRepository, likeRepository repositories.LikeRepository, notificationRepository repositories.NotificationRepository, bucketRepo repositories.BucketRepository) *PostService {
 	return &PostService{
-		querier:    querier,
-		bucketRepo: bucketRepo,
+		postRepository:         postRepository,
+		userRepository:         userRepository,
+		likeRepository:         likeRepository,
+		notificationRepository: notificationRepository,
+		bucketRepository:       bucketRepo,
 	}
 }
 
 func (s *PostService) NewPost(ctx context.Context, currentUser models.PublicUser, text string, imageKeymap map[int]string) error {
-	facets, err := generateFacets(ctx, s.querier, text)
+	facets, err := s.generateFacets(ctx, text)
 	if err != nil {
 		return err
 	}
 
-	post, err := s.querier.InsertPost(ctx, db.InsertPostParams{
-		UserID: currentUser.UserID,
-		Text:   pgtype.Text{String: text, Valid: true},
-		Facets: facets,
-	})
+	post, err := s.postRepository.InsertPost(ctx, int(currentUser.UserID), text, facets)
 	if err != nil {
 		return errors.New("unable to create post")
 	}
@@ -53,23 +54,17 @@ func (s *PostService) NewPost(ctx context.Context, currentUser models.PublicUser
 			s3key,
 		)
 
-		err := s.bucketRepo.CopyObject(ctx, s3key, destinationKey)
+		err := s.bucketRepository.CopyObject(ctx, s3key, destinationKey)
 		if err != nil {
 			return errors.New("unable to create post")
 		}
 
-		err = s.bucketRepo.DeleteObject(ctx, s3key)
+		err = s.bucketRepository.DeleteObject(ctx, s3key)
 		if err != nil {
 			return errors.New("unable to create post")
 		}
 
-		_, err = s.querier.InsertImage(ctx, db.InsertImageParams{
-			PostID:       post.PostID,
-			Height:       500,
-			Width:        500,
-			ImageBlobUrl: destinationKey,
-			DisplayOrder: int32(displayOrder),
-		})
+		_, err = s.postRepository.InsertImage(ctx, int(post.PostID), 500, 500, destinationKey, int(int32(displayOrder)))
 		if err != nil {
 			return errors.New("unable to create post")
 		}
@@ -79,47 +74,46 @@ func (s *PostService) NewPost(ctx context.Context, currentUser models.PublicUser
 }
 
 func (s *PostService) NewPresignedStagingUrl(ctx context.Context, currentUser models.PublicUser, extension *string, folder *string) (string, string, error) {
-	return s.bucketRepo.GeneratePresignedURL(ctx, currentUser.UserID, extension, folder)
+	return s.bucketRepository.GeneratePresignedURL(ctx, currentUser.UserID, extension, folder)
 }
 
 func (s *PostService) GetPostById(ctx context.Context, cUser models.PublicUser, postID int) (*models.DetailedPost, error) {
-	post, err := s.querier.GetPostById(ctx, int32(postID))
+	post, err := s.postRepository.GetPostById(ctx, postID)
 	if err != nil {
 		return nil, errors.New("unable to find post")
 	}
 
-	user, err := s.querier.GetUserById(ctx, post.UserID)
+	user, err := s.userRepository.GetUserById(ctx, int(post.UserID))
 	if err != nil {
 		return nil, errors.New("unable to find user")
 	}
 
-	isLiked, err := s.querier.GetIsLikedByUser(ctx, db.GetIsLikedByUserParams{
-		UserID:  cUser.UserID,
-		PostID:  post.PostID,
-		Column4: true,
-	})
+	isLiked, err := s.postRepository.IsPostLikedByUserId(ctx,
+		int(cUser.UserID),
+		int(post.PostID),
+	)
 	if err != nil {
 		return nil, errors.New("unable to find likes")
 	}
 
-	images, err := s.querier.GetImagesByPostId(ctx, post.PostID)
+	images, err := s.postRepository.GetImagesForPost(ctx, int(post.PostID))
 	if err != nil {
 		return nil, errors.New("unable to find images for post")
 	}
 	if images == nil {
-		images = []db.Image{}
+		images = []queries.Image{}
 	}
 
 	for i := range images {
-		images[i].ImageBlobUrl = s.bucketRepo.GetObjectURL(images[i].ImageBlobUrl)
+		images[i].ImageBlobUrl = s.bucketRepository.GetObjectURL(images[i].ImageBlobUrl)
 	}
 
-	commentCount, err := s.querier.GetCommentCountByPostID(ctx, post.PostID)
+	commentCount, err := s.postRepository.GetCommentCountForPost(ctx, int(post.PostID))
 	if err != nil {
 		return nil, errors.New("unable to find comment count for post")
 	}
 
-	relevantLikes, hasOtherLikes, err := getRelevantLikes(ctx, s.querier, cUser, postID)
+	relevantLikes, hasOtherLikes, err := s.getRelevantLikes(ctx, cUser, postID)
 	if err != nil {
 		return nil, errors.New("unable to find relevant likes")
 	}
@@ -129,7 +123,7 @@ func (s *PostService) GetPostById(ctx context.Context, cUser models.PublicUser, 
 		User:          user,
 		IsLiked:       isLiked,
 		Images:        images,
-		CommentCount:  int(commentCount),
+		CommentCount:  commentCount,
 		RelevantLikes: relevantLikes,
 		HasOtherLikes: hasOtherLikes,
 	}
@@ -138,10 +132,7 @@ func (s *PostService) GetPostById(ctx context.Context, cUser models.PublicUser, 
 }
 
 func (s *PostService) GetAllPosts(ctx context.Context, currentUser models.PublicUser, limit int, offset int) (*[]models.DetailedPost, error) {
-	postIds, err := s.querier.GetAllPostIds(ctx, db.GetAllPostIdsParams{
-		Limit:  int32(limit),
-		Offset: int32(offset),
-	})
+	postIds, err := s.postRepository.GetAllPostIds(ctx, limit, offset)
 	if err != nil {
 		return nil, errors.New("unable to find posts")
 	}
@@ -150,11 +141,7 @@ func (s *PostService) GetAllPosts(ctx context.Context, currentUser models.Public
 }
 
 func (s *PostService) GetPostsByUserId(ctx context.Context, currentUser models.PublicUser, userID int, limit int, offset int) (*[]models.DetailedPost, error) {
-	postIds, err := s.querier.GetPostsIdsByUserId(ctx, db.GetPostsIdsByUserIdParams{
-		UserID: int32(userID),
-		Offset: int32(offset),
-		Limit:  int32(limit),
-	})
+	postIds, err := s.postRepository.GetPostIdsForUser(ctx, userID, limit, offset)
 	if err != nil {
 		return nil, errors.New("unable to find posts")
 	}
@@ -163,11 +150,8 @@ func (s *PostService) GetPostsByUserId(ctx context.Context, currentUser models.P
 }
 
 func (s *PostService) GetPostsByFollowing(ctx context.Context, currentUser models.PublicUser, limit int, offset int) (*[]models.DetailedPost, error) {
-	postIds, err := s.querier.GetPostIdsByFollowing(ctx, db.GetPostIdsByFollowingParams{
-		UserID: currentUser.UserID,
-		Limit:  int32(limit),
-		Offset: int32(offset),
-	})
+	postIds, err := s.postRepository.GetPostIdsForFollowing(ctx, int(currentUser.UserID),
+		limit, offset)
 	if err != nil {
 		return nil, errors.New("unable to find posts")
 	}
@@ -190,35 +174,28 @@ func (s *PostService) getPostsByPostIDs(ctx context.Context, currentUser models.
 }
 
 func (s *PostService) AddLikeToPost(ctx context.Context, currentUser models.PublicUser, postId int) error {
-	err := s.querier.AddLike(ctx, db.AddLikeParams{PostID: int32(postId), UserID: currentUser.UserID, IsPost: true})
+	err := s.likeRepository.AddLike(ctx, postId, int(currentUser.UserID), true)
 	if err != nil {
 		return err
 	}
 
-	post, err := s.querier.GetPostById(ctx, int32(postId))
+	post, err := s.postRepository.GetPostById(ctx, postId)
 	if err != nil {
 		return err
 	}
 
-	err = s.querier.InsertNotification(ctx, db.InsertNotificationParams{
-		UserID:  post.UserID,
-		PostID:  pgtype.Int4{Int32: int32(postId), Valid: true},
-		Message: fmt.Sprintf("%s liked your post.", currentUser.Username),
-	})
+	err = s.notificationRepository.InsertNotification(ctx, int(post.UserID), &postId, fmt.Sprintf("%s liked your post.", currentUser.Username))
 
 	return err
 }
 
 func (s *PostService) RemoveLikeFromPost(ctx context.Context, currentUser models.PublicUser, postId int) error {
-	err := s.querier.RemoveLike(ctx, db.RemoveLikeParams{
-		PostID: int32(postId),
-		UserID: currentUser.UserID,
-		IsPost: true})
+	err := s.likeRepository.RemoveLike(ctx, postId, int(currentUser.UserID), true)
 	return err
 }
 
 func (s *PostService) DeletePost(ctx context.Context, currentUser models.PublicUser, postId int) error {
-	post, err := s.querier.GetPostById(ctx, int32(postId))
+	post, err := s.postRepository.GetPostById(ctx, postId)
 	if err != nil {
 		return err
 	}
@@ -227,26 +204,26 @@ func (s *PostService) DeletePost(ctx context.Context, currentUser models.PublicU
 		return errors.New("unable to delete post")
 	}
 
-	return s.querier.DeletePost(ctx, int32(postId))
+	return s.postRepository.DeletePost(ctx, postId)
 }
 
-func generateFacets(ctx context.Context, s db.Querier, text string) ([]db2.Facet, error) {
+func (s *PostService) generateFacets(ctx context.Context, text string) (db.Facets, error) {
 	re := regexp.MustCompile(`@(\w+)`)
 	matches := re.FindAllStringSubmatchIndex(text, -1)
 
-	var facets []db2.Facet
+	var facets db.Facets
 
 	for _, match := range matches {
 		start, end := match[0], match[1]
 		username := text[start+1 : end]
-		user, err := s.GetUserByUsername(ctx, username)
+		user, err := s.userRepository.GetUserByUsername(ctx, username)
 		if err != nil {
 			if errors.Is(err, pgx.ErrNoRows) {
 				continue
 			}
 			return nil, err
 		}
-		facets = append(facets, db2.Facet{
+		facets = append(facets, db.Facet{
 			Type:       "mention",
 			UserId:     int(user.UserID),
 			IndexStart: start,
@@ -257,11 +234,8 @@ func generateFacets(ctx context.Context, s db.Querier, text string) ([]db2.Facet
 	return facets, nil
 }
 
-func getRelevantLikes(ctx context.Context, s db.Querier, currentUser models.PublicUser, postId int) ([]models.RelevantLike, bool, error) {
-	likes, err := s.GetPostLikesFromFollowers(ctx, db.GetPostLikesFromFollowersParams{
-		PostID:     int32(postId),
-		FollowerID: currentUser.UserID,
-	})
+func (s *PostService) getRelevantLikes(ctx context.Context, currentUser models.PublicUser, postId int) ([]models.RelevantLike, bool, error) {
+	likes, err := s.likeRepository.GetPostLikesFromFollowers(ctx, postId, int(currentUser.UserID))
 	if err != nil {
 		return nil, false, err
 	}
@@ -282,10 +256,7 @@ func getRelevantLikes(ctx context.Context, s db.Querier, currentUser models.Publ
 		userIDs[i] = like.UserID
 	}
 
-	hasOtherLikes, err := s.HasLikesFromOthers(ctx, db.HasLikesFromOthersParams{
-		PostID:  int32(postId),
-		Column2: userIDs,
-	})
+	hasOtherLikes, err := s.likeRepository.HasLikesFromOthers(ctx, postId, userIDs)
 	if err != nil {
 		return nil, false, err
 	}
