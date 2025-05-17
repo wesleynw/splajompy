@@ -7,26 +7,24 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
+	"splajompy.com/api/v2/internal/repositories"
 	"time"
 
-	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/resend/resend-go/v2"
 	"golang.org/x/crypto/bcrypt"
-	db "splajompy.com/api/v2/internal/db/generated"
 	"splajompy.com/api/v2/internal/models"
 	"splajompy.com/api/v2/internal/templates"
-	"splajompy.com/api/v2/internal/utilities"
 )
 
 type AuthService struct {
-	queries      *db.Queries
-	resendClient *resend.Client
+	userRepository repositories.UserRepository
+	resendClient   *resend.Client
 }
 
-func NewAuthService(queries *db.Queries, resendClient *resend.Client) *AuthService {
+func NewAuthService(userRepository repositories.UserRepository, resendClient *resend.Client) *AuthService {
 	return &AuthService{
-		queries:      queries,
-		resendClient: resendClient,
+		userRepository: userRepository,
+		resendClient:   resendClient,
 	}
 }
 
@@ -45,7 +43,7 @@ type RegisterRequest struct {
 }
 
 func (s *AuthService) Register(ctx context.Context, email string, username string, password string) (*AuthResponse, error) {
-	existingUsername, err := s.queries.GetIsUsernameInUse(ctx, username)
+	existingUsername, err := s.userRepository.GetIsUsernameInUse(ctx, username)
 	if err != nil {
 		return nil, errors.New("unable to create user")
 	}
@@ -53,7 +51,7 @@ func (s *AuthService) Register(ctx context.Context, email string, username strin
 		return nil, ErrUsernameTaken
 	}
 
-	existingEmail, err := s.queries.GetIsEmailInUse(ctx, email)
+	existingEmail, err := s.userRepository.GetIsEmailInUse(ctx, email)
 	if err != nil {
 		return nil, errors.New("unable to create user")
 	}
@@ -66,11 +64,7 @@ func (s *AuthService) Register(ctx context.Context, email string, username strin
 		return nil, err
 	}
 
-	user, err := s.queries.CreateUser(ctx, db.CreateUserParams{
-		Email:    email,
-		Username: username,
-		Password: string(hashedPassword),
-	})
+	user, err := s.userRepository.CreateUser(ctx, username, email, string(hashedPassword))
 	if err != nil {
 		return nil, err
 	}
@@ -82,7 +76,7 @@ func (s *AuthService) Register(ctx context.Context, email string, username strin
 
 	return &AuthResponse{
 		Token: sessionId,
-		User:  *utilities.MapUserToPublicUser(&user),
+		User:  user,
 	}, nil
 }
 
@@ -97,13 +91,18 @@ type AuthResponse struct {
 }
 
 func (s *AuthService) LoginWithCredentials(ctx context.Context, credentials *Credentials) (*AuthResponse, error) {
-	user, err := s.queries.GetUserWithPasswordByIdentifier(ctx, credentials.Identifier)
+	password, err := s.userRepository.GetUserPasswordByIdentifier(ctx, credentials.Identifier)
 	if err != nil {
 		return nil, ErrUserNotFound
 	}
 
-	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(credentials.Password)); err != nil {
+	if err := bcrypt.CompareHashAndPassword([]byte(password), []byte(credentials.Password)); err != nil {
 		return nil, ErrInvalidPassword
+	}
+
+	user, err := s.userRepository.GetUserByIdentifier(ctx, credentials.Identifier)
+	if err != nil {
+		return nil, ErrUserNotFound
 	}
 
 	token, err := s.createSessionToken(ctx, int(user.UserID))
@@ -113,20 +112,17 @@ func (s *AuthService) LoginWithCredentials(ctx context.Context, credentials *Cre
 
 	return &AuthResponse{
 		Token: token,
-		User:  *utilities.MapUserToPublicUser(&user),
+		User:  user,
 	}, nil
 }
 
 func (s *AuthService) VerifyOTCCode(ctx context.Context, identifier string, code string) (*AuthResponse, error) {
-	user, err := s.queries.GetUserByIdentifier(ctx, identifier)
+	user, err := s.userRepository.GetUserByIdentifier(ctx, identifier)
 	if err != nil {
 		return nil, err
 	}
 
-	dbCode, err := s.queries.GetVerificationCode(ctx, db.GetVerificationCodeParams{
-		UserID: user.UserID,
-		Code:   code,
-	})
+	dbCode, err := s.userRepository.GetVerificationCode(ctx, int(user.UserID), code)
 	if err != nil {
 		return nil, err
 	}
@@ -147,7 +143,7 @@ func (s *AuthService) VerifyOTCCode(ctx context.Context, identifier string, code
 }
 
 func (s *AuthService) ProcessOTC(ctx context.Context, identifier string) error {
-	user, err := s.queries.GetUserByIdentifier(ctx, identifier)
+	user, err := s.userRepository.GetUserByIdentifier(ctx, identifier)
 	if err != nil {
 		return err
 	}
@@ -157,11 +153,7 @@ func (s *AuthService) ProcessOTC(ctx context.Context, identifier string) error {
 		return err
 	}
 
-	err = s.queries.CreateVerificationCode(ctx, db.CreateVerificationCodeParams{
-		Code:      code,
-		UserID:    user.UserID,
-		ExpiresAt: pgtype.Timestamp{Time: time.Now().UTC().Add(time.Minute * 10), Valid: true},
-	})
+	err = s.userRepository.CreateVerificationCode(ctx, int(user.UserID), code, time.Now().UTC().Add(time.Minute*10))
 	if err != nil {
 		return err
 	}
@@ -206,11 +198,8 @@ func (s *AuthService) createSessionToken(ctx context.Context, userId int) (strin
 
 	sessionId := base64.StdEncoding.EncodeToString(b)
 
-	err = s.queries.CreateSession(ctx, db.CreateSessionParams{
-		ID:        sessionId,
-		UserID:    int32(userId),
-		ExpiresAt: pgtype.Timestamp{Time: time.Now().Add(time.Hour * 24 * 90), Valid: true},
-	})
+	err = s.userRepository.CreateSession(ctx, sessionId, userId,
+		time.Now().Add(time.Hour*24*90))
 	if err != nil {
 		return "", err
 	}
