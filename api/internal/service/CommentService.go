@@ -33,19 +33,16 @@ func NewCommentService(
 
 // AddCommentToPost adds a comment to a post and creates a notification
 func (s *CommentService) AddCommentToPost(ctx context.Context, currentUser models.PublicUser, postId int, content string) (*models.DetailedComment, error) {
-	// First check if the post exists
 	post, err := s.postRepo.GetPostById(ctx, postId)
 	if err != nil {
 		return nil, errors.New("unable to find post")
 	}
 
-	// Add the comment
 	comment, err := s.commentRepo.AddCommentToPost(ctx, int(currentUser.UserID), postId, content)
 	if err != nil {
 		return nil, errors.New("unable to create new comment")
 	}
 
-	// Create notification for the post owner
 	err = s.notificationRepo.InsertNotification(
 		ctx,
 		int(post.UserID),
@@ -56,7 +53,6 @@ func (s *CommentService) AddCommentToPost(ctx context.Context, currentUser model
 		return nil, errors.New("unable to create a new comment")
 	}
 
-	// Create and return the DetailedComment
 	detailedComment := &models.DetailedComment{
 		CommentID: comment.CommentID,
 		PostID:    comment.PostID,
@@ -64,7 +60,7 @@ func (s *CommentService) AddCommentToPost(ctx context.Context, currentUser model
 		Text:      comment.Text,
 		CreatedAt: pgtype.Timestamp{Time: comment.CreatedAt.Time, Valid: true},
 		User:      currentUser,
-		IsLiked:   false, // New comments aren't liked by default
+		IsLiked:   false,
 	}
 
 	return detailedComment, nil
@@ -72,22 +68,20 @@ func (s *CommentService) AddCommentToPost(ctx context.Context, currentUser model
 
 // GetCommentsByPostId retrieves all comments for a specific post with like status
 func (s *CommentService) GetCommentsByPostId(ctx context.Context, currentUser models.PublicUser, postID int) ([]models.DetailedComment, error) {
-	// Get all comments for the post
+
 	dbComments, err := s.commentRepo.GetCommentsByPostId(ctx, postID)
 	if err != nil {
 		return nil, errors.New("unable to find comments")
 	}
 
-	// Transform the database rows into DetailedComment objects
 	comments := make([]models.DetailedComment, 0, len(dbComments))
 	for _, dbComment := range dbComments {
-		// Get user information for each comment
+
 		user, err := s.userRepo.GetUserById(ctx, int(dbComment.UserID))
 		if err != nil {
 			return nil, errors.New("unable to retrieve user associated with comment")
 		}
 
-		// Check if the comment is liked by the current user
 		isLiked, err := s.commentRepo.IsCommentLikedByUser(
 			ctx,
 			int(currentUser.UserID),
@@ -98,7 +92,6 @@ func (s *CommentService) GetCommentsByPostId(ctx context.Context, currentUser mo
 			return nil, errors.New("unable to retrieve comment liked information")
 		}
 
-		// Create a DetailedComment with all information
 		detailedComment := models.DetailedComment{
 			CommentID: dbComment.CommentID,
 			PostID:    dbComment.PostID,
