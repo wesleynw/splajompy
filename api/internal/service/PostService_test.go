@@ -23,7 +23,10 @@ func setupTest(t *testing.T) (*PostService, *fakes.FakePostRepository, *fakes.Fa
 	user, err := userRepo.CreateUser(context.Background(), "testuser", "test@example.com", "password")
 	require.NoError(t, err)
 
-	os.Setenv("ENVIRONMENT", "test")
+	err = os.Setenv("ENVIRONMENT", "test")
+	if err != nil {
+		return nil, nil, nil, nil, nil, nil, models.PublicUser{}
+	}
 
 	return svc, postRepo, userRepo, likeRepo, notificationRepo, bucketRepo, user
 }
@@ -196,12 +199,11 @@ func TestAddLikeToPost(t *testing.T) {
 	ctx := context.Background()
 
 	postOwner, err := userRepo.CreateUser(ctx, "postOwner", "postowner@splajompy.com", "password")
+	require.NoError(t, err)
 	secondUser, err := userRepo.CreateUser(ctx, "otherUser", "otheruser@splajompy.com", "password")
 	require.NoError(t, err)
 
 	post0, err := postRepo.InsertPost(ctx, int(postOwner.UserID), "Test post for liking", nil)
-	require.NoError(t, err)
-	// post1, err := postRepo.InsertPost(ctx, int(postOwner.UserID), "Test post for liking 2", nil)
 	require.NoError(t, err)
 
 	err = svc.AddLikeToPost(ctx, postOwner, int(post0.PostID))
@@ -225,9 +227,40 @@ func TestAddLikeToPost(t *testing.T) {
 
 	assert.True(t, foundPostOwner, "Post owner's like should be present")
 	assert.True(t, foundSecondUser, "Second user's like should be present")
-	//assert.Equal(t, postOwner.UserID, likes[0].UserID)
-	//assert.Equal(t, secondUser.UserID, likes[1].UserID)
-	//
-	//assert.Equal(t, post0.PostID, likes[0].PostID)
-	//assert.Equal(t, post0.PostID, likes[1].PostID)
+}
+
+func TestRemoveLikeFromPost(t *testing.T) {
+	svc, postRepo, userRepo, likeRepo, _, _, _ := setupTest(t)
+	ctx := context.Background()
+
+	postOwner, err := userRepo.CreateUser(ctx, "postOwner", "postowner@splajompy.com", "password")
+	require.NoError(t, err)
+	secondUser, err := userRepo.CreateUser(ctx, "otherUser", "otheruser@splajompy.com", "password")
+	require.NoError(t, err)
+
+	post0, err := postRepo.InsertPost(ctx, int(postOwner.UserID), "Test post for liking", nil)
+	require.NoError(t, err)
+
+	err = svc.AddLikeToPost(ctx, postOwner, int(post0.PostID))
+	assert.NoError(t, err)
+	err = svc.AddLikeToPost(ctx, secondUser, int(post0.PostID))
+	assert.NoError(t, err)
+
+	likes, err := likeRepo.GetLikesForPost(ctx, int(post0.PostID))
+	assert.NoError(t, err)
+	assert.Len(t, likes, 2)
+
+	err = svc.RemoveLikeFromPost(ctx, postOwner, int(post0.PostID))
+	assert.NoError(t, err)
+
+	likes, err = likeRepo.GetLikesForPost(ctx, int(post0.PostID))
+	assert.NoError(t, err)
+	assert.Len(t, likes, 1)
+
+	err = svc.RemoveLikeFromPost(ctx, secondUser, int(post0.PostID))
+	assert.NoError(t, err)
+
+	likes, err = likeRepo.GetLikesForPost(ctx, int(post0.PostID))
+	assert.NoError(t, err)
+	assert.Len(t, likes, 0)
 }
