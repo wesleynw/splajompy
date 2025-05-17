@@ -3,13 +3,13 @@ package utilities
 import (
 	"encoding/json"
 	"net/http"
+	"splajompy.com/api/v2/internal/db/queries"
 
-	db "splajompy.com/api/v2/internal/db/generated"
 	"splajompy.com/api/v2/internal/models"
 )
 
-func MapUserToPublicUser(user *db.User) *models.PublicUser {
-	return &models.PublicUser{
+func MapUserToPublicUser(user queries.User) models.PublicUser {
+	return models.PublicUser{
 		UserID:    user.UserID,
 		Username:  user.Username,
 		Email:     user.Email,
