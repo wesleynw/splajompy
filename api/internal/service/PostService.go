@@ -174,7 +174,7 @@ func (s *PostService) getPostsByPostIDs(ctx context.Context, currentUser models.
 }
 
 func (s *PostService) AddLikeToPost(ctx context.Context, currentUser models.PublicUser, postId int) error {
-	err := s.likeRepository.AddLike(ctx, postId, int(currentUser.UserID), true)
+	err := s.likeRepository.AddLike(ctx, int(currentUser.UserID), postId, true)
 	if err != nil {
 		return err
 	}
