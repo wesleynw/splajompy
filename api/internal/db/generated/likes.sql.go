@@ -3,7 +3,7 @@
 //   sqlc v1.29.0
 // source: likes.sql
 
-package queries
+package db
 
 import (
 	"context"

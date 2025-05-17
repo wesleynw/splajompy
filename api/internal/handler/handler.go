@@ -3,14 +3,14 @@ package handler
 import (
 	"errors"
 	"net/http"
-	"splajompy.com/api/v2/internal/db/queries"
 	"strconv"
 
+	db "splajompy.com/api/v2/internal/db/generated"
 	"splajompy.com/api/v2/internal/service"
 )
 
 type Handler struct {
-	queries             queries.Querier
+	queries             *db.Queries
 	postService         *service.PostService
 	commentService      *service.CommentService
 	userService         *service.UserService
@@ -18,14 +18,14 @@ type Handler struct {
 	authService         *service.AuthService
 }
 
-func NewHandler(queries queries.Querier,
+func NewHandler(queries db.Queries,
 	postService *service.PostService,
 	commentService *service.CommentService,
 	userService *service.UserService,
 	notificationService *service.NotificationService,
 	authService *service.AuthService) *Handler {
 	return &Handler{
-		queries:             queries,
+		queries:             &queries,
 		postService:         postService,
 		commentService:      commentService,
 		userService:         userService,
