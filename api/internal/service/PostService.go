@@ -190,7 +190,7 @@ func (s *PostService) AddLikeToPost(ctx context.Context, currentUser models.Publ
 }
 
 func (s *PostService) RemoveLikeFromPost(ctx context.Context, currentUser models.PublicUser, postId int) error {
-	err := s.likeRepository.RemoveLike(ctx, postId, int(currentUser.UserID), true)
+	err := s.likeRepository.RemoveLike(ctx, int(currentUser.UserID), postId, true)
 	return err
 }
 

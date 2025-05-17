@@ -34,7 +34,7 @@ func (r *FakeLikeRepository) AddLike(_ context.Context, userId int, postId int, 
 	return nil
 }
 
-func (r *FakeLikeRepository) RemoveLike(ctx context.Context, postId int, userId int, isPost bool) error {
+func (r *FakeLikeRepository) RemoveLike(ctx context.Context, userId int, postId int, isPost bool) error {
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
 
