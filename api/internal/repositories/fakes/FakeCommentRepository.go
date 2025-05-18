@@ -2,6 +2,7 @@ package fakes
 
 import (
 	"context"
+	"errors"
 	"github.com/jackc/pgx/v5/pgtype"
 	"splajompy.com/api/v2/internal/db/queries"
 	"sync"
@@ -47,6 +48,21 @@ func (f *FakeCommentRepository) AddCommentToPost(ctx context.Context, userId int
 
 	f.comments[postId] = append(f.comments[postId], comment)
 	return comment, nil
+}
+
+func (f *FakeCommentRepository) GetCommentById(_ context.Context, commentId int) (queries.Comment, error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+
+	for _, comments := range f.comments {
+		for _, comment := range comments {
+			if comment.CommentID == int32(commentId) {
+				return comment, nil
+			}
+		}
+	}
+
+	return queries.Comment{}, errors.New("comment not found")
 }
 
 func (f *FakeCommentRepository) GetCommentsByPostId(ctx context.Context, postId int) ([]queries.GetCommentsByPostIdRow, error) {

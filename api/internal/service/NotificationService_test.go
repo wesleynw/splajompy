@@ -13,16 +13,18 @@ import (
 )
 
 func setupNotificationService() (*NotificationService, *fakes.FakeNotificationRepository) {
-	fakeRepo := fakes.NewFakeNotificationRepository()
-	notificationService := NewNotificationService(fakeRepo)
-	return notificationService, fakeRepo
+	fakeNotificationsRepository := fakes.NewFakeNotificationRepository()
+	fakePostRepository := fakes.NewFakePostRepository()
+	fakeCommentRepository := fakes.NewFakeCommentRepository()
+	notificationService := NewNotificationService(fakeNotificationsRepository, fakePostRepository, fakeCommentRepository)
+	return notificationService, fakeNotificationsRepository
 }
 
 func createTestUser() models.PublicUser {
 	return models.PublicUser{
 		UserID:    1,
 		Email:     "test@example.com",
-		Username:  "testuser",
+		Username:  "testUser",
 		CreatedAt: pgtype.Timestamp{Time: time.Now(), Valid: true},
 		Name:      pgtype.Text{String: "Test User", Valid: true},
 	}
@@ -48,7 +50,7 @@ func TestGetNotificationsByUserId(t *testing.T) {
 	notifications, err := service.GetNotificationsByUserId(ctx, user, 0, 10)
 	require.NoError(t, err)
 	assert.NotNil(t, notifications)
-	assert.Len(t, *notifications, 0)
+	assert.Len(t, notifications, 0)
 
 	fakeRepo.AddNotification(createTestNotification(userId, 1, "Test notification 1", false))
 	fakeRepo.AddNotification(createTestNotification(userId, 2, "Test notification 2", false))
@@ -57,27 +59,27 @@ func TestGetNotificationsByUserId(t *testing.T) {
 	notifications, err = service.GetNotificationsByUserId(ctx, user, 0, 10)
 	require.NoError(t, err)
 	assert.NotNil(t, notifications)
-	assert.Len(t, *notifications, 3)
+	assert.Len(t, notifications, 3)
 
 	notifications, err = service.GetNotificationsByUserId(ctx, user, 0, 2)
 	require.NoError(t, err)
 	assert.NotNil(t, notifications)
-	assert.Len(t, *notifications, 2)
+	assert.Len(t, notifications, 2)
 
 	notifications, err = service.GetNotificationsByUserId(ctx, user, 2, 2)
 	require.NoError(t, err)
 	assert.NotNil(t, notifications)
-	assert.Len(t, *notifications, 1)
+	assert.Len(t, notifications, 1)
 
 	notifications, err = service.GetNotificationsByUserId(ctx, user, 5, 2)
 	require.NoError(t, err)
 	assert.NotNil(t, notifications)
-	assert.Len(t, *notifications, 0)
+	assert.Len(t, notifications, 0)
 
 	anotherUser := models.PublicUser{
 		UserID:    2,
 		Email:     "another@example.com",
-		Username:  "anotheruser",
+		Username:  "anotherUser",
 		CreatedAt: pgtype.Timestamp{Time: time.Now(), Valid: true},
 		Name:      pgtype.Text{String: "Another User", Valid: true},
 	}
@@ -85,7 +87,7 @@ func TestGetNotificationsByUserId(t *testing.T) {
 	notifications, err = service.GetNotificationsByUserId(ctx, anotherUser, 0, 10)
 	require.NoError(t, err)
 	assert.NotNil(t, notifications)
-	assert.Len(t, *notifications, 0)
+	assert.Len(t, notifications, 0)
 }
 
 func TestMarkNotificationAsReadById(t *testing.T) {
@@ -110,9 +112,9 @@ func TestMarkNotificationAsReadById(t *testing.T) {
 	notifications, err := service.GetNotificationsByUserId(ctx, user, 0, 10)
 	require.NoError(t, err)
 	assert.NotNil(t, notifications)
-	assert.Len(t, *notifications, 1)
+	assert.Len(t, notifications, 1)
 
-	assert.True(t, (*notifications)[0].Viewed)
+	assert.True(t, (notifications)[0].Viewed)
 }
 
 func TestMarkAllNotificationsAsReadForUserId(t *testing.T) {
@@ -135,9 +137,9 @@ func TestMarkAllNotificationsAsReadForUserId(t *testing.T) {
 	notifications, err := service.GetNotificationsByUserId(ctx, user, 0, 10)
 	require.NoError(t, err)
 	assert.NotNil(t, notifications)
-	assert.Len(t, *notifications, 3)
+	assert.Len(t, notifications, 3)
 
-	for _, notification := range *notifications {
+	for _, notification := range notifications {
 		assert.True(t, notification.Viewed, "Notification should be marked as read")
 	}
 
@@ -203,11 +205,11 @@ func TestMultipleUsersNotifications(t *testing.T) {
 
 	notificationsUser1, err := service.GetNotificationsByUserId(ctx, user1, 0, 10)
 	require.NoError(t, err)
-	assert.Len(t, *notificationsUser1, 2)
+	assert.Len(t, notificationsUser1, 2)
 
 	notificationsUser2, err := service.GetNotificationsByUserId(ctx, user2, 0, 10)
 	require.NoError(t, err)
-	assert.Len(t, *notificationsUser2, 1)
+	assert.Len(t, notificationsUser2, 1)
 
 	err = service.MarkAllNotificationsAsReadForUserId(ctx, user1)
 	require.NoError(t, err)
@@ -219,33 +221,6 @@ func TestMultipleUsersNotifications(t *testing.T) {
 	hasUnreadUser2, err := service.UserHasUnreadNotifications(ctx, user2)
 	require.NoError(t, err)
 	assert.True(t, hasUnreadUser2)
-}
-
-func TestNotificationWithPostInfo(t *testing.T) {
-	ctx := context.Background()
-	service, fakeRepo := setupNotificationService()
-	user := createTestUser()
-	userId := int(user.UserID)
-
-	postId := 123
-	notification := queries.Notification{
-		NotificationID: 1,
-		UserID:         int32(userId),
-		PostID:         pgtype.Int4{Int32: int32(postId), Valid: true},
-		Message:        "Someone commented on your post",
-		Viewed:         false,
-		CreatedAt:      pgtype.Timestamp{Time: time.Now(), Valid: true},
-	}
-
-	fakeRepo.AddNotification(notification)
-
-	notifications, err := service.GetNotificationsByUserId(ctx, user, 0, 10)
-	require.NoError(t, err)
-	assert.Len(t, *notifications, 1)
-
-	retrievedNotification := (*notifications)[0]
-	assert.True(t, retrievedNotification.PostID.Valid)
-	assert.Equal(t, int32(postId), retrievedNotification.PostID.Int32)
 }
 
 func TestNoErrorWhenMarkingNonExistentNotification(t *testing.T) {

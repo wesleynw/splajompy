@@ -8,6 +8,7 @@ import (
 
 type CommentRepository interface {
 	AddCommentToPost(ctx context.Context, userId int, postId int, content string) (queries.Comment, error)
+	GetCommentById(ctx context.Context, commentId int) (queries.Comment, error)
 	GetCommentsByPostId(ctx context.Context, postId int) ([]queries.GetCommentsByPostIdRow, error)
 	IsCommentLikedByUser(ctx context.Context, userId int, postId int, commentId int) (bool, error)
 	AddLikeToComment(ctx context.Context, userId int, postId int, commentId int) error
@@ -26,6 +27,10 @@ func (r DBCommentRepository) AddCommentToPost(ctx context.Context, userId int, p
 		UserID: int32(userId),
 		Text:   content,
 	})
+}
+
+func (r DBCommentRepository) GetCommentById(ctx context.Context, commentId int) (queries.Comment, error) {
+	return r.querier.GetCommentById(ctx, int32(commentId))
 }
 
 // GetCommentsByPostId retrieves all comments for a specific post
