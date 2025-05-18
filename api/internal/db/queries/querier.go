@@ -37,6 +37,7 @@ type Querier interface {
 	GetUserById(ctx context.Context, userID int32) (GetUserByIdRow, error)
 	GetUserByIdentifier(ctx context.Context, email string) (GetUserByIdentifierRow, error)
 	GetUserByUsername(ctx context.Context, username string) (GetUserByUsernameRow, error)
+	GetUserUnreadNotificationCount(ctx context.Context, userID int32) (int64, error)
 	GetUserWithPasswordById(ctx context.Context, userID int32) (User, error)
 	GetUserWithPasswordByIdentifier(ctx context.Context, email string) (User, error)
 	GetUsernameLike(ctx context.Context, arg GetUsernameLikeParams) ([]User, error)

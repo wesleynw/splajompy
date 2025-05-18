@@ -52,3 +52,7 @@ func (s *NotificationService) MarkAllNotificationsAsReadForUserId(ctx context.Co
 func (s *NotificationService) UserHasUnreadNotifications(ctx context.Context, user models.PublicUser) (bool, error) {
 	return s.notificationRepository.GetUserHasUnreadNotifications(ctx, int(user.UserID))
 }
+
+func (s *NotificationService) GetUserUnreadNotificationCount(ctx context.Context, user models.PublicUser) (int, error) {
+	return s.notificationRepository.GetUserUnreadNotificationCount(ctx, int(user.UserID))
+}

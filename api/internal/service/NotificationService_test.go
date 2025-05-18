@@ -257,3 +257,17 @@ func TestNoErrorWhenMarkingNonExistentNotification(t *testing.T) {
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "notification does not belong to user")
 }
+
+func TestGetUserUnreadNotificationsCount(t *testing.T) {
+	ctx := context.Background()
+	service, fakeRepo := setupNotificationService()
+	user := createTestUser()
+
+	fakeRepo.AddNotification(createTestNotification(int(user.UserID), 1, "User 1 notification 1", true))
+	fakeRepo.AddNotification(createTestNotification(int(user.UserID), 2, "User 1 notification 2", true))
+	fakeRepo.AddNotification(createTestNotification(int(user.UserID), 3, "User 2 notification 1", false))
+
+	count, err := service.GetUserUnreadNotificationCount(ctx, user)
+	require.NoError(t, err)
+	assert.Equal(t, 2, count)
+}

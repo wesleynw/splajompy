@@ -22,6 +22,8 @@ protocol NotificationServiceProtocol: Sendable {
   func markAllNotificationsAsRead() async -> AsyncResult<EmptyResponse>
 
   func hasUnreadNotifications() async -> AsyncResult<Bool>
+  
+  func getUnreadNotificationCount() async -> AsyncResult<Int>
 }
 
 struct NotificationService: NotificationServiceProtocol {
@@ -50,5 +52,9 @@ struct NotificationService: NotificationServiceProtocol {
 
   func hasUnreadNotifications() async -> AsyncResult<Bool> {
     return await APIService.performRequest(endpoint: "notifications/hasUnread")
+  }
+  
+  func getUnreadNotificationCount() async -> AsyncResult<Int> {
+    return await APIService.performRequest(endpoint: "notifications/unreadCount")
   }
 }

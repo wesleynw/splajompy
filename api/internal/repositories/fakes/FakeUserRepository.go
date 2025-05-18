@@ -132,7 +132,7 @@ func (r *FakeUserRepository) IsUserFollowingUser(ctx context.Context, followerId
 	return following[tId], nil
 }
 
-func (r *FakeUserRepository) FollowUser(ctx context.Context, followerId int, followingId int) error {
+func (r *FakeUserRepository) FollowUser(_ context.Context, followerId int, followingId int) error {
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
 

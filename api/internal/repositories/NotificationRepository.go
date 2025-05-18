@@ -13,6 +13,7 @@ type NotificationRepository interface {
 	MarkNotificationAsRead(ctx context.Context, notificationId int) error
 	MarkAllNotificationsAsReadForUser(ctx context.Context, userId int) error
 	GetUserHasUnreadNotifications(ctx context.Context, userId int) (bool, error)
+	GetUserUnreadNotificationCount(ctx context.Context, userId int) (int, error)
 }
 
 type DBNotificationRepository struct {
@@ -21,17 +22,15 @@ type DBNotificationRepository struct {
 
 // InsertNotification adds a new notification for a user
 func (r DBNotificationRepository) InsertNotification(ctx context.Context, userId int, postId *int, message string) error {
-	var postIdParam *int32
-	if postId != nil {
-		postIdInt32 := int32(*postId)
-		postIdParam = &postIdInt32
+	params := queries.InsertNotificationParams{
+		UserID:  int32(userId),
+		Message: message,
 	}
 
-	return r.querier.InsertNotification(ctx, queries.InsertNotificationParams{
-		UserID:  int32(userId),
-		PostID:  pgtype.Int4{Int32: *postIdParam, Valid: true},
-		Message: message,
-	})
+	if postId != nil {
+		params.PostID = pgtype.Int4{Int32: int32(*postId), Valid: true}
+	}
+	return r.querier.InsertNotification(ctx, params)
 }
 
 // GetNotificationsForUserId retrieves notifications for a user with pagination
@@ -61,6 +60,11 @@ func (r DBNotificationRepository) MarkAllNotificationsAsReadForUser(ctx context.
 // GetUserHasUnreadNotifications checks if a user has unread notifications
 func (r DBNotificationRepository) GetUserHasUnreadNotifications(ctx context.Context, userId int) (bool, error) {
 	return r.querier.UserHasUnreadNotifications(ctx, int32(userId))
+}
+
+func (r DBNotificationRepository) GetUserUnreadNotificationCount(ctx context.Context, userId int) (int, error) {
+	count, err := r.querier.GetUserUnreadNotificationCount(ctx, int32(userId))
+	return int(count), err
 }
 
 // NewDBNotificationRepository creates a new notification repository
