@@ -223,3 +223,22 @@ func (f *FakeNotificationRepository) GetUnreadNotificationCount(userId int) int 
 
 	return count
 }
+
+func (f *FakeNotificationRepository) GetUserUnreadNotificationCount(ctx context.Context, userId int) (int, error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+
+	userNotifications, exists := f.notifications[userId]
+	if !exists {
+		return 0, nil
+	}
+
+	count := 0
+	for _, notification := range userNotifications {
+		if notification.Viewed {
+			count++
+		}
+	}
+
+	return count, nil
+}

@@ -14,9 +14,10 @@ type UserService struct {
 	notificationRepository repositories.NotificationRepository
 }
 
-func NewUserService(userRepository repositories.UserRepository) *UserService {
+func NewUserService(userRepository repositories.UserRepository, notificationRepository repositories.NotificationRepository) *UserService {
 	return &UserService{
-		userRepository: userRepository,
+		userRepository:         userRepository,
+		notificationRepository: notificationRepository,
 	}
 }
 

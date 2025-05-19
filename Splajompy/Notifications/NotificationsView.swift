@@ -1,6 +1,8 @@
+import Kingfisher
 import SwiftUI
 
 struct NotificationsView: View {
+  @State private var path = NavigationPath()
   @StateObject private var viewModel: ViewModel
   @EnvironmentObject private var feedRefreshManager: FeedRefreshManager
 
@@ -9,7 +11,7 @@ struct NotificationsView: View {
   }
 
   var body: some View {
-    NavigationStack {
+    NavigationStack(path: $path) {
       ZStack {
         ScrollView {
           switch viewModel.state {
@@ -68,6 +70,11 @@ struct NotificationsView: View {
         }
       }
       .navigationTitle("Notifications")
+      .onOpenURL { url in
+        if let route = parseDeepLink(url) {
+          path.append(route)
+        }
+      }
     }
   }
 }
@@ -113,8 +120,6 @@ struct NotificationsList: View {
       }
     }
     .padding()
-    //    .listStyle(.plain)
-
   }
 }
 
@@ -131,33 +136,54 @@ struct NotificationRow: View {
   }
 
   var body: some View {
-    HStack {
-      VStack(alignment: .leading, spacing: 4) {
-        ContentTextView(text: notification.message, facets: [])
-          .environmentObject(feedRefreshManager)
-
-        Text(
-          formatter.localizedString(for: notificationDate, relativeTo: Date())
-        )
-        .font(.caption)
-        .foregroundColor(.gray)
+    NavigationLink {
+      if let post = notification.post {
+        StandalonePostView(postId: post.postId)
+      } else if let comment = notification.comment {
+        CommentsView(postId: comment.postId)
       }
+    } label: {
+      VStack(alignment: .leading, spacing: 8) {
+        HStack {
+          if !notification.viewed {
+            Circle()
+              .fill(Color.blue)
+              .frame(width: 10, height: 10)
+          }
 
-      Spacer()
+          VStack(alignment: .leading, spacing: 4) {
+            ContentTextView(text: notification.message, facets: [])
+              .environmentObject(feedRefreshManager)
 
-      if !notification.viewed {
-        Circle()
-          .fill(Color.blue)
-          .frame(width: 10, height: 10)
+            Text(
+              formatter.localizedString(
+                for: notificationDate,
+                relativeTo: Date()
+              )
+            )
+            .font(.caption)
+            .foregroundColor(.gray)
+          }
+
+          Spacer()
+
+          if let blobUrl = notification.imageBlob {
+            KFImage(URL(string: blobUrl))
+              .resizable()
+              .frame(width: 40, height: 40)
+              .cornerRadius(5)
+          }
+        }
+
+        if let comment = notification.comment {
+          MiniNotificationView(text: comment.text)
+        } else if let post = notification.post, let text = post.text {
+          MiniNotificationView(text: text)
+        }
       }
+      .padding(.vertical, 4)
     }
-    .padding(.vertical, 4)
-  }
-
-  private func formattedDate(_ date: Date) -> String {
-    let formatter = RelativeDateTimeFormatter()
-    formatter.unitsStyle = .full
-    return formatter.localizedString(for: date, relativeTo: Date())
+    .buttonStyle(.plain)
   }
 }
 

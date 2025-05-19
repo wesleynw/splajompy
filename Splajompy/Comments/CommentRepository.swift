@@ -6,6 +6,16 @@ struct Comment: Identifiable, Decodable {
   let userId: Int
   let text: String
   let createdAt: String
+
+  var id: Int { commentId }
+}
+
+struct DetailedComment: Identifiable, Decodable {
+  let commentId: Int
+  let postId: Int
+  let userId: Int
+  let text: String
+  let createdAt: String
   let user: User
   var isLiked: Bool
 
@@ -13,16 +23,18 @@ struct Comment: Identifiable, Decodable {
 }
 
 protocol CommentServiceProtocol: Sendable {
-  func getComments(postId: Int) async -> AsyncResult<[Comment]>
+  func getComments(postId: Int) async -> AsyncResult<[DetailedComment]>
 
   func toggleLike(postId: Int, commentId: Int, isLiked: Bool) async
     -> AsyncResult<EmptyResponse>
 
-  func addComment(postId: Int, text: String) async -> AsyncResult<Comment>
+  func addComment(postId: Int, text: String) async -> AsyncResult<
+    DetailedComment
+  >
 }
 
 struct CommentService: CommentServiceProtocol {
-  func getComments(postId: Int) async -> AsyncResult<[Comment]> {
+  func getComments(postId: Int) async -> AsyncResult<[DetailedComment]> {
     return await APIService.performRequest(
       endpoint: "post/\(postId)/comments",
       method: "GET"
@@ -40,7 +52,9 @@ struct CommentService: CommentServiceProtocol {
     )
   }
 
-  func addComment(postId: Int, text: String) async -> AsyncResult<Comment> {
+  func addComment(postId: Int, text: String) async -> AsyncResult<
+    DetailedComment
+  > {
     let bodyData: [String: String] = ["Text": text]
     let jsonData: Data
     do {

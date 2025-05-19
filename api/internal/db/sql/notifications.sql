@@ -29,6 +29,11 @@ SELECT EXISTS (
   WHERE user_id = $1 AND viewed = FALSE
 );
 
+-- name: GetUserUnreadNotificationCount :one
+SELECT COUNT(*)
+FROM notifications
+WHERE user_id = $1 AND viewed = FALSE;
+
 -- name: InsertNotification :exec
 INSERT INTO notifications (user_id, post_id, comment_id, message, link)
 VALUES ($1, $2, $3, $4, $5);

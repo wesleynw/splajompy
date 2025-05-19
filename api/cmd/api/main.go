@@ -51,8 +51,8 @@ func main() {
 
 	postService := service.NewPostService(postRepository, userRepository, likeRepository, notificationsRepository, bucketRepository)
 	commentService := service.NewCommentService(commentRepository, postRepository, notificationsRepository, userRepository)
-	userService := service.NewUserService(userRepository)
-	notificationService := service.NewNotificationService(notificationsRepository)
+	userService := service.NewUserService(userRepository, notificationsRepository)
+	notificationService := service.NewNotificationService(notificationsRepository, postRepository, commentRepository)
 	authManager := service.NewAuthService(userRepository, resentClient)
 
 	h := handler.NewHandler(q, postService, commentService, userService, notificationService, authManager)

@@ -78,6 +78,19 @@ func (q *Queries) GetNotificationsForUserId(ctx context.Context, arg GetNotifica
 	return items, nil
 }
 
+const getUserUnreadNotificationCount = `-- name: GetUserUnreadNotificationCount :one
+SELECT COUNT(*)
+FROM notifications
+WHERE user_id = $1 AND viewed = FALSE
+`
+
+func (q *Queries) GetUserUnreadNotificationCount(ctx context.Context, userID int32) (int64, error) {
+	row := q.db.QueryRow(ctx, getUserUnreadNotificationCount, userID)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const insertNotification = `-- name: InsertNotification :exec
 INSERT INTO notifications (user_id, post_id, comment_id, message, link)
 VALUES ($1, $2, $3, $4, $5)

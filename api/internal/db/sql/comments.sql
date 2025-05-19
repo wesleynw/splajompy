@@ -1,3 +1,9 @@
+-- name: GetCommentById :one
+SELECT *
+FROM comments
+WHERE comment_id = $1
+LIMIT 1;
+
 -- name: GetCommentsByPostId :many
 SELECT
   comments.comment_id,

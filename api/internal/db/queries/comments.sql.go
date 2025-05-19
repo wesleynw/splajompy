@@ -36,6 +36,26 @@ func (q *Queries) AddCommentToPost(ctx context.Context, arg AddCommentToPostPara
 	return i, err
 }
 
+const getCommentById = `-- name: GetCommentById :one
+SELECT comment_id, post_id, user_id, text, created_at
+FROM comments
+WHERE comment_id = $1
+LIMIT 1
+`
+
+func (q *Queries) GetCommentById(ctx context.Context, commentID int32) (Comment, error) {
+	row := q.db.QueryRow(ctx, getCommentById, commentID)
+	var i Comment
+	err := row.Scan(
+		&i.CommentID,
+		&i.PostID,
+		&i.UserID,
+		&i.Text,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
 const getCommentsByPostId = `-- name: GetCommentsByPostId :many
 SELECT
   comments.comment_id,

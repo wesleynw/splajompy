@@ -1,6 +1,10 @@
 import Foundation
 
 class MockNotificationService: @unchecked Sendable, NotificationServiceProtocol {
+  func getUnreadNotificationCount() async -> AsyncResult<Int> {
+    return .success(0)
+  }
+
   enum Behavior {
     case success([Notification])
     case failure(Error)
@@ -29,23 +33,45 @@ class MockNotificationService: @unchecked Sendable, NotificationServiceProtocol 
     self.behavior = behavior
   }
 
-  static func createSampleNotifications(count: Int, startingId: Int = 1) -> [Notification] {
-    return (startingId..<(startingId + count)).map { id in
-      Notification(
+  static func createSampleNotifications(count: Int, startingId: Int = 1)
+    -> [Notification]
+  {
+    var notifications: [Notification] = []
+
+    for i in startingId..<(startingId + count) {
+      let id = i
+      let message =
+        id == 1
+        ? "{tag:1:wesley}Test notification #\(id)" : "Test notification #\(id)"
+      let link = id % 2 == 0 ? "/posts/\(200 + id)" : nil
+      let commentId = id % 3 == 0 ? 300 + id : nil
+      let dateString = ISO8601DateFormatter().string(
+        from: Date().addingTimeInterval(-Double(id * 3600))
+      )
+
+      let notification = Notification(
         notificationId: id,
         userId: 100 + id,
         postId: 200 + id,
-        commentId: id % 3 == 0 ? 300 + id : nil,
-        message: "\(id == 1 ? "{tag:1:wesley}" : "")Test notification #\(id)",
-        link: id % 2 == 0 ? "/posts/\(200 + id)" : nil,
+        commentId: commentId,
+        message: message,
+        link: link,
         viewed: id % 4 == 0,
-        createdAt: ISO8601DateFormatter().string(
-          from: Date().addingTimeInterval(-Double(id * 3600)))
+        createdAt: dateString,
+        imageBlob: nil,
+        post: nil,
+        comment: nil
       )
+
+      notifications.append(notification)
     }
+
+    return notifications
   }
 
-  func getAllNotifications(offset: Int, limit: Int) async -> AsyncResult<[Notification]> {
+  func getAllNotifications(offset: Int, limit: Int) async -> AsyncResult<
+    [Notification]
+  > {
     callHistory.append((offset, limit))
 
     switch behavior {
@@ -60,11 +86,15 @@ class MockNotificationService: @unchecked Sendable, NotificationServiceProtocol 
       return .success(Array(notifications.dropFirst(offset).prefix(limit)))
 
     default:
-      return .error(MockError("Unexpected behavior set for getAllNotifications"))
+      return .error(
+        MockError("Unexpected behavior set for getAllNotifications")
+      )
     }
   }
 
-  func markNotificationAsRead(notificationId: Int) async -> AsyncResult<EmptyResponse> {
+  func markNotificationAsRead(notificationId: Int) async -> AsyncResult<
+    EmptyResponse
+  > {
     markedAsReadIds.append(notificationId)
 
     switch behavior {

@@ -36,6 +36,13 @@ type DetailedComment struct {
 	IsLiked   bool             `json:"isLiked"`
 }
 
+type DetailedNotification struct {
+	queries.Notification
+	Post      *queries.Post    `json:"post"`
+	Comment   *queries.Comment `json:"comment"`
+	ImageBlob *string          `json:"imageBlob"`
+}
+
 type PublicUser = queries.GetUserByIdentifierRow
 
 type DetailedUser struct {

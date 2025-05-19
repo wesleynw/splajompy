@@ -102,7 +102,7 @@ func (r *FakePostRepository) GetImagesForPost(ctx context.Context, postId int) (
 
 	id := int32(postId)
 	if _, exists := r.posts[id]; !exists {
-		return nil, errors.New("post not found")
+		return []queries.Image{}, nil
 	}
 
 	images := r.images[id]
