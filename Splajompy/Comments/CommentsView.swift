@@ -136,7 +136,7 @@ struct CommentsView: View {
 }
 
 struct CommentRow: View {
-  let comment: Comment
+  let comment: DetailedComment
   let toggleLike: () -> Void
 
   let formatter = RelativeDateTimeFormatter()

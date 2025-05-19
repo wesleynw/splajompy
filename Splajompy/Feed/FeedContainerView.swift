@@ -100,7 +100,6 @@ struct FeedContainerView: View {
             }
           }
           .onOpenURL { url in
-            print("on open url: \(url)")
             if let route = parseDeepLink(url) {
               path.append(route)
             }

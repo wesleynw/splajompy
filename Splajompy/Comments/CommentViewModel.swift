@@ -5,7 +5,7 @@ extension CommentsView {
     private let postId: Int
     private var service: CommentServiceProtocol
 
-    @Published var comments = [Comment]()
+    @Published var comments = [DetailedComment]()
     @Published var isLoading = true
 
     init(postId: Int, service: CommentServiceProtocol = CommentService()) {
@@ -31,7 +31,7 @@ extension CommentsView {
       }
     }
 
-    func toggleLike(for comment: Comment) {
+    func toggleLike(for comment: DetailedComment) {
       Task {
         // Optimistic update TODO: this is broken
         if let index = comments.firstIndex(where: {

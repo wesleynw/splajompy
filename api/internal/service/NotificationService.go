@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"splajompy.com/api/v2/internal/repositories"
 
@@ -54,6 +55,16 @@ func (s *NotificationService) GetNotificationsByUserId(ctx context.Context, user
 			}
 
 			detailedNotification.Comment = &comment
+		}
+
+		imageBlob, err := s.postRepository.GetImagesForPost(ctx, int(notification.PostID.Int32))
+		if err != nil && !errors.Is(err, sql.ErrNoRows) {
+			return nil, errors.New("unable to retrieve image blob")
+		}
+
+		if len(imageBlob) > 0 {
+			url := "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/" + imageBlob[0].ImageBlobUrl
+			detailedNotification.ImageBlob = &url
 		}
 
 		detailedNotifications = append(detailedNotifications, detailedNotification)

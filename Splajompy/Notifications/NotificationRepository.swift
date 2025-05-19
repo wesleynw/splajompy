@@ -9,6 +9,11 @@ struct Notification: Identifiable, Decodable {
   let link: String?
   var viewed: Bool
   let createdAt: String
+  let imageBlob: String?
+  
+  var post: Post?
+  var comment: Comment?
+  
   var id: Int { notificationId }
 }
 
