@@ -11,3 +11,6 @@ From the api subdirectory, run:
 From the root of the repository, run:
 
 > `sqlc generate -f internal/db/sqlc.yaml`
+
+## DB Migrations
+https://betterstack.com/community/guides/scaling-go/golang-migrate/

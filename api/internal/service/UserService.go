@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"splajompy.com/api/v2/internal/models"
 	"splajompy.com/api/v2/internal/repositories"
+	"splajompy.com/api/v2/internal/utilities"
 )
 
 type UserService struct {
@@ -80,9 +81,13 @@ func (s *UserService) FollowUser(ctx context.Context, currentUser models.PublicU
 		return err
 	}
 
-	err = s.notificationRepository.InsertNotification(ctx, int(user.UserID), nil, nil, fmt.Sprintf("%s started following you.", currentUser.Username))
+	text := fmt.Sprintf("@%s started following you.", currentUser.Username)
+	facets, err := utilities.GenerateFacets(ctx, s.userRepository, text)
+	if err != nil {
+		return err
+	}
 
-	return err
+	return s.notificationRepository.InsertNotification(ctx, int(user.UserID), nil, nil, &facets, text)
 }
 
 func (s *UserService) UnfollowUser(ctx context.Context, currentUser models.PublicUser, userId int) error {

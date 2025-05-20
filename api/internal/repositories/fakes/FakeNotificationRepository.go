@@ -3,6 +3,7 @@ package fakes
 import (
 	"context"
 	"github.com/jackc/pgx/v5/pgtype"
+	"splajompy.com/api/v2/internal/db"
 	"splajompy.com/api/v2/internal/db/queries"
 	"sync"
 	"time"
@@ -25,7 +26,7 @@ func NewFakeNotificationRepository() *FakeNotificationRepository {
 }
 
 // InsertNotification adds a new notification
-func (f *FakeNotificationRepository) InsertNotification(ctx context.Context, userId int, postId *int, commentId *int, message string) error {
+func (f *FakeNotificationRepository) InsertNotification(ctx context.Context, userId int, postId *int, commentId *int, facets *db.Facets, message string) error {
 	f.mu.Lock()
 	defer f.mu.Unlock()
 

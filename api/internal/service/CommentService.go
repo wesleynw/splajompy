@@ -7,6 +7,7 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	"splajompy.com/api/v2/internal/models"
 	"splajompy.com/api/v2/internal/repositories"
+	"splajompy.com/api/v2/internal/utilities"
 )
 
 type CommentService struct {
@@ -44,13 +45,19 @@ func (s *CommentService) AddCommentToPost(ctx context.Context, currentUser model
 	}
 
 	commentId := int(comment.CommentID)
+	text := fmt.Sprintf("@%s commented on your post.", currentUser.Username)
+	facets, err := utilities.GenerateFacets(ctx, s.userRepo, text)
+	if err != nil {
+		return nil, errors.New("unable to generate facets")
+	}
 
 	err = s.notificationRepo.InsertNotification(
 		ctx,
 		int(post.UserID),
 		&postId,
 		&commentId,
-		fmt.Sprintf("%s commented on your post.", currentUser.Username),
+		&facets,
+		text,
 	)
 	if err != nil {
 		return nil, errors.New("unable to create a new comment")

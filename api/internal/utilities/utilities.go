@@ -1,9 +1,15 @@
 package utilities
 
 import (
+	"context"
 	"encoding/json"
+	"errors"
+	"github.com/jackc/pgx/v5"
 	"net/http"
+	"regexp"
+	"splajompy.com/api/v2/internal/db"
 	"splajompy.com/api/v2/internal/db/queries"
+	"splajompy.com/api/v2/internal/repositories"
 
 	"splajompy.com/api/v2/internal/models"
 )
@@ -54,4 +60,31 @@ func HandleEmptySuccess(w http.ResponseWriter) {
 	if err != nil {
 		http.Error(w, "Error encoding response", http.StatusInternalServerError)
 	}
+}
+
+func GenerateFacets(ctx context.Context, userRepository repositories.UserRepository, text string) (db.Facets, error) {
+	re := regexp.MustCompile(`@(\w+)`)
+	matches := re.FindAllStringSubmatchIndex(text, -1)
+
+	var facets db.Facets
+
+	for _, match := range matches {
+		start, end := match[0], match[1]
+		username := text[start+1 : end]
+		user, err := userRepository.GetUserByUsername(ctx, username)
+		if err != nil {
+			if errors.Is(err, pgx.ErrNoRows) {
+				continue
+			}
+			return nil, err
+		}
+		facets = append(facets, db.Facet{
+			Type:       "mention",
+			UserId:     int(user.UserID),
+			IndexStart: start,
+			IndexEnd:   end,
+		})
+	}
+
+	return facets, nil
 }

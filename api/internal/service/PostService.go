@@ -4,15 +4,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/jackc/pgx/v5"
 	"math"
 	"os"
-	"regexp"
 	"sort"
-	"splajompy.com/api/v2/internal/db"
 	"splajompy.com/api/v2/internal/db/queries"
 	"splajompy.com/api/v2/internal/models"
 	"splajompy.com/api/v2/internal/repositories"
+	"splajompy.com/api/v2/internal/utilities"
 )
 
 type PostService struct {
@@ -34,7 +32,7 @@ func NewPostService(postRepository repositories.PostRepository, userRepository r
 }
 
 func (s *PostService) NewPost(ctx context.Context, currentUser models.PublicUser, text string, imageKeymap map[int]string) error {
-	facets, err := s.generateFacets(ctx, text)
+	facets, err := utilities.GenerateFacets(ctx, s.userRepository, text)
 	if err != nil {
 		return err
 	}
@@ -184,7 +182,12 @@ func (s *PostService) AddLikeToPost(ctx context.Context, currentUser models.Publ
 		return err
 	}
 
-	err = s.notificationRepository.InsertNotification(ctx, int(post.UserID), &postId, nil, fmt.Sprintf("%s liked your post.", currentUser.Username))
+	text := fmt.Sprintf("@%s liked your post", currentUser.Username)
+	facets, err := utilities.GenerateFacets(ctx, s.userRepository, text)
+	if err != nil {
+		return err
+	}
+	err = s.notificationRepository.InsertNotification(ctx, int(post.UserID), &postId, nil, &facets, text)
 
 	return err
 }
@@ -205,33 +208,6 @@ func (s *PostService) DeletePost(ctx context.Context, currentUser models.PublicU
 	}
 
 	return s.postRepository.DeletePost(ctx, postId)
-}
-
-func (s *PostService) generateFacets(ctx context.Context, text string) (db.Facets, error) {
-	re := regexp.MustCompile(`@(\w+)`)
-	matches := re.FindAllStringSubmatchIndex(text, -1)
-
-	var facets db.Facets
-
-	for _, match := range matches {
-		start, end := match[0], match[1]
-		username := text[start+1 : end]
-		user, err := s.userRepository.GetUserByUsername(ctx, username)
-		if err != nil {
-			if errors.Is(err, pgx.ErrNoRows) {
-				continue
-			}
-			return nil, err
-		}
-		facets = append(facets, db.Facet{
-			Type:       "mention",
-			UserId:     int(user.UserID),
-			IndexStart: start,
-			IndexEnd:   end,
-		})
-	}
-
-	return facets, nil
 }
 
 func (s *PostService) getRelevantLikes(ctx context.Context, currentUser models.PublicUser, postId int) ([]models.RelevantLike, bool, error) {

@@ -20,6 +20,7 @@ type Comment struct {
 	PostID    int32            `json:"postId"`
 	UserID    int32            `json:"userId"`
 	Text      string           `json:"text"`
+	Facets    []byte           `json:"facets"`
 	CreatedAt pgtype.Timestamp `json:"createdAt"`
 }
 
@@ -53,6 +54,7 @@ type Notification struct {
 	Message        string           `json:"message"`
 	Link           pgtype.Text      `json:"link"`
 	Viewed         bool             `json:"viewed"`
+	Facets         db.Facets        `json:"facets"`
 	CreatedAt      pgtype.Timestamp `json:"createdAt"`
 }
 

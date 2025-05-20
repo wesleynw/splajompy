@@ -18,3 +18,9 @@ sql:
                package: "db",
                type: "Facets"
             }
+          - column: "notifications.facets"
+            "go_type": {
+              import: "splajompy.com/api/v2/internal/db",
+              package: "db",
+              type: "Facets"
+            }
