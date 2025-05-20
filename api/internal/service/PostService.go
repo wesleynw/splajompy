@@ -184,7 +184,7 @@ func (s *PostService) AddLikeToPost(ctx context.Context, currentUser models.Publ
 		return err
 	}
 
-	err = s.notificationRepository.InsertNotification(ctx, int(post.UserID), &postId, fmt.Sprintf("%s liked your post.", currentUser.Username))
+	err = s.notificationRepository.InsertNotification(ctx, int(post.UserID), &postId, nil, fmt.Sprintf("%s liked your post.", currentUser.Username))
 
 	return err
 }

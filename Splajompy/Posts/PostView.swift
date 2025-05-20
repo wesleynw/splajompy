@@ -1,5 +1,6 @@
 import Foundation
 import SwiftUI
+import PostHog
 
 struct PostView: View {
   let post: DetailedPost
@@ -134,6 +135,7 @@ struct PostView: View {
             let impact = UIImpactFeedbackGenerator(style: .light)
             impact.impactOccurred()
             onLikeButtonTapped()
+            PostHogSDK.shared.capture("post_like")
           }) {
             HStack(spacing: 4) {
               Image(systemName: post.isLiked ? "heart.fill" : "heart")

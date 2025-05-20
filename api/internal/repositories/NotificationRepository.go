@@ -7,7 +7,7 @@ import (
 )
 
 type NotificationRepository interface {
-	InsertNotification(ctx context.Context, userId int, postId *int, message string) error
+	InsertNotification(ctx context.Context, userId int, postId *int, commentId *int, message string) error
 	GetNotificationsForUserId(ctx context.Context, userId int, offset int, limit int) ([]queries.Notification, error)
 	GetNotificationById(ctx context.Context, notificationId int) (queries.Notification, error)
 	MarkNotificationAsRead(ctx context.Context, notificationId int) error
@@ -21,7 +21,7 @@ type DBNotificationRepository struct {
 }
 
 // InsertNotification adds a new notification for a user
-func (r DBNotificationRepository) InsertNotification(ctx context.Context, userId int, postId *int, message string) error {
+func (r DBNotificationRepository) InsertNotification(ctx context.Context, userId int, postId *int, commentId *int, message string) error {
 	params := queries.InsertNotificationParams{
 		UserID:  int32(userId),
 		Message: message,
@@ -29,6 +29,9 @@ func (r DBNotificationRepository) InsertNotification(ctx context.Context, userId
 
 	if postId != nil {
 		params.PostID = pgtype.Int4{Int32: int32(*postId), Valid: true}
+	}
+	if commentId != nil {
+		params.CommentID = pgtype.Int4{Int32: int32(*commentId), Valid: true}
 	}
 	return r.querier.InsertNotification(ctx, params)
 }

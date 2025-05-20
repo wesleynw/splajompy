@@ -43,10 +43,13 @@ func (s *CommentService) AddCommentToPost(ctx context.Context, currentUser model
 		return nil, errors.New("unable to create new comment")
 	}
 
+	commentId := int(comment.CommentID)
+
 	err = s.notificationRepo.InsertNotification(
 		ctx,
 		int(post.UserID),
 		&postId,
+		&commentId,
 		fmt.Sprintf("%s commented on your post.", currentUser.Username),
 	)
 	if err != nil {

@@ -25,7 +25,7 @@ func NewFakeNotificationRepository() *FakeNotificationRepository {
 }
 
 // InsertNotification adds a new notification
-func (f *FakeNotificationRepository) InsertNotification(ctx context.Context, userId int, postId *int, message string) error {
+func (f *FakeNotificationRepository) InsertNotification(ctx context.Context, userId int, postId *int, commentId *int, message string) error {
 	f.mu.Lock()
 	defer f.mu.Unlock()
 

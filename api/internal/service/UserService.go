@@ -80,7 +80,7 @@ func (s *UserService) FollowUser(ctx context.Context, currentUser models.PublicU
 		return err
 	}
 
-	err = s.notificationRepository.InsertNotification(ctx, int(user.UserID), nil, fmt.Sprintf("%s started following you.", currentUser.Username))
+	err = s.notificationRepository.InsertNotification(ctx, int(user.UserID), nil, nil, fmt.Sprintf("%s started following you.", currentUser.Username))
 
 	return err
 }
