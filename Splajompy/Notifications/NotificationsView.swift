@@ -145,11 +145,9 @@ struct NotificationRow: View {
     } label: {
       VStack(alignment: .leading, spacing: 8) {
         HStack {
-          if !notification.viewed {
-            Circle()
-              .fill(Color.blue)
-              .frame(width: 10, height: 10)
-          }
+          Circle()
+            .fill(notification.viewed ? Color.clear : Color.blue)
+            .frame(width: 10, height: 10)
 
           VStack(alignment: .leading, spacing: 4) {
             ContentTextView(text: notification.message, facets: [])

@@ -1,4 +1,5 @@
 import Foundation
+import PostHog
 
 struct AuthResponse: Decodable {
   let token: String
@@ -145,6 +146,10 @@ class AuthManager: ObservableObject, Sendable {
       isAuthenticated = true
       isLoading = false
 
+      PostHogSDK.shared.identify(
+        String(authResponse.user.userId), userProperties: ["email": authResponse.user.email])
+      PostHogSDK.shared.capture("user_signin")
+
       return true
     case .error:
       isLoading = false
@@ -194,6 +199,10 @@ class AuthManager: ObservableObject, Sendable {
 
       isAuthenticated = true
       isLoading = false
+
+      PostHogSDK.shared.identify(
+        String(authResponse.user.userId), userProperties: ["email": authResponse.user.email])
+      PostHogSDK.shared.capture("user_signin")
 
       return (true, "")
     case .error(let error):

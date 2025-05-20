@@ -1,9 +1,17 @@
+import PostHog
 import SwiftUI
 
 @main
 struct SplajompyApp: App {
   @StateObject private var authManager = AuthManager()
   @StateObject private var feedRefreshManager = FeedRefreshManager()
+
+  init() {
+    let posthogApiKey = "phc_sSDHxTCqpjwoSDSOQiNAAgmybjEakfePBsaNHWaWy74"
+
+    let config = PostHogConfig(apiKey: posthogApiKey)
+    PostHogSDK.shared.setup(config)
+  }
 
   var body: some Scene {
     WindowGroup {
