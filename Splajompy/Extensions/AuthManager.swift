@@ -145,8 +145,9 @@ class AuthManager: ObservableObject, Sendable {
 
       isAuthenticated = true
       isLoading = false
-      
-      PostHogSDK.shared.identify(String(authResponse.user.userId), userProperties: ["email": authResponse.user.email])
+
+      PostHogSDK.shared.identify(
+        String(authResponse.user.userId), userProperties: ["email": authResponse.user.email])
       PostHogSDK.shared.capture("user_signin")
 
       return true
@@ -198,8 +199,9 @@ class AuthManager: ObservableObject, Sendable {
 
       isAuthenticated = true
       isLoading = false
-      
-      PostHogSDK.shared.identify(String(authResponse.user.userId), userProperties: ["email": authResponse.user.email])
+
+      PostHogSDK.shared.identify(
+        String(authResponse.user.userId), userProperties: ["email": authResponse.user.email])
       PostHogSDK.shared.capture("user_signin")
 
       return (true, "")

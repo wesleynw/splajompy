@@ -1,15 +1,15 @@
-import SwiftUI
 import PostHog
+import SwiftUI
 
 @main
 struct SplajompyApp: App {
   @StateObject private var authManager = AuthManager()
   @StateObject private var feedRefreshManager = FeedRefreshManager()
-  
+
   init() {
-    let POSTHOG_API_KEY = "phc_sSDHxTCqpjwoSDSOQiNAAgmybjEakfePBsaNHWaWy74"
-    
-    let config = PostHogConfig(apiKey: POSTHOG_API_KEY)
+    let posthogApiKey = "phc_sSDHxTCqpjwoSDSOQiNAAgmybjEakfePBsaNHWaWy74"
+
+    let config = PostHogConfig(apiKey: posthogApiKey)
     PostHogSDK.shared.setup(config)
   }
 

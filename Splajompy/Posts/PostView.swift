@@ -1,6 +1,6 @@
 import Foundation
-import SwiftUI
 import PostHog
+import SwiftUI
 
 struct PostView: View {
   let post: DetailedPost
