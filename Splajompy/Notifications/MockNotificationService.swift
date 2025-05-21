@@ -59,6 +59,7 @@ class MockNotificationService: @unchecked Sendable, NotificationServiceProtocol 
         viewed: id % 4 == 0,
         createdAt: dateString,
         imageBlob: nil,
+        facets: nil,
         post: nil,
         comment: nil
       )

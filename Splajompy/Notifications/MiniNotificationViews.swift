@@ -5,7 +5,7 @@ struct MiniNotificationView: View {
 
   var body: some View {
     VStack(alignment: .leading, spacing: 4) {
-      Text(text.replacingOccurrences(of: "\n", with: " "))
+      ContentTextView(text: text.replacingOccurrences(of: "\n", with: " "), facets: [])
         .font(.callout)
         .lineLimit(3)
         .foregroundColor(.secondary)

@@ -4,6 +4,7 @@ import SwiftUI
 struct CommentsView: View {
   var isShowingInSheet: Bool
   @StateObject private var viewModel: ViewModel
+  @State private var text = NSAttributedString(string: "")
   @State private var newCommentText: String = ""
   @FocusState private var isTextFieldFocused: Bool
   @Environment(\.presentationMode) var presentationMode
@@ -97,11 +98,13 @@ struct CommentsView: View {
           .cornerRadius(20)
           .focused($isTextFieldFocused)
 
+        //        MentionTextEditor(text: $text)
+        //          .focused($isTextFieldFocused)
+
         Button(action: {
           submitComment()
         }) {
-          Image(systemName: "paperplane.fill")
-            .foregroundColor(.blue)
+          Image(systemName: "chevron.up.circle")
         }
         .disabled(
           newCommentText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty

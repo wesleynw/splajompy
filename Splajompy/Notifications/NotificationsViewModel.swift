@@ -10,8 +10,7 @@ enum NotificationState {
 extension NotificationsView {
   @MainActor class ViewModel: ObservableObject {
     @Published var canLoadMore: Bool = true
-    @Published var isLoadingMore: Bool = false
-    @Published var state: NotificationState = .idle
+    @Published var state: NotificationState = .loading
     private var offset = 0
     private let limit = 10
     private var service: NotificationServiceProtocol
@@ -22,10 +21,8 @@ extension NotificationsView {
 
     func loadNotifications(reset: Bool = false) async {
       if reset {
-        //        state = .loading
+        state = .loading
         offset = 0
-      } else {
-        isLoadingMore = true
       }
 
       let result = await service.getAllNotifications(
@@ -42,7 +39,6 @@ extension NotificationsView {
         }
         canLoadMore = notifications.count >= limit
         offset += notifications.count
-        isLoadingMore = false
       case .error(let error):
         state = .failed(error)
       }
