@@ -3,11 +3,12 @@ package repositories
 import (
 	"context"
 	"github.com/jackc/pgx/v5/pgtype"
+	"splajompy.com/api/v2/internal/db"
 	"splajompy.com/api/v2/internal/db/queries"
 )
 
 type CommentRepository interface {
-	AddCommentToPost(ctx context.Context, userId int, postId int, content string) (queries.Comment, error)
+	AddCommentToPost(ctx context.Context, userId int, postId int, content string, facets db.Facets) (queries.Comment, error)
 	GetCommentById(ctx context.Context, commentId int) (queries.Comment, error)
 	GetCommentsByPostId(ctx context.Context, postId int) ([]queries.GetCommentsByPostIdRow, error)
 	IsCommentLikedByUser(ctx context.Context, userId int, postId int, commentId int) (bool, error)
@@ -21,11 +22,12 @@ type DBCommentRepository struct {
 }
 
 // AddCommentToPost adds a new comment to a post
-func (r DBCommentRepository) AddCommentToPost(ctx context.Context, userId int, postId int, content string) (queries.Comment, error) {
+func (r DBCommentRepository) AddCommentToPost(ctx context.Context, userId int, postId int, content string, facets db.Facets) (queries.Comment, error) {
 	return r.querier.AddCommentToPost(ctx, queries.AddCommentToPostParams{
 		PostID: int32(postId),
 		UserID: int32(userId),
 		Text:   content,
+		Facets: facets,
 	})
 }
 

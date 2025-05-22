@@ -39,14 +39,18 @@ func (s *CommentService) AddCommentToPost(ctx context.Context, currentUser model
 		return nil, errors.New("unable to find post")
 	}
 
-	comment, err := s.commentRepo.AddCommentToPost(ctx, int(currentUser.UserID), postId, content)
+	facets, err := utilities.GenerateFacets(ctx, s.userRepo, content)
+	if err != nil {
+		return nil, errors.New("unable to generate facets")
+	}
+	comment, err := s.commentRepo.AddCommentToPost(ctx, int(currentUser.UserID), postId, content, facets)
 	if err != nil {
 		return nil, errors.New("unable to create new comment")
 	}
 
 	commentId := int(comment.CommentID)
 	text := fmt.Sprintf("@%s commented on your post.", currentUser.Username)
-	facets, err := utilities.GenerateFacets(ctx, s.userRepo, text)
+	facets, err = utilities.GenerateFacets(ctx, s.userRepo, text)
 	if err != nil {
 		return nil, errors.New("unable to generate facets")
 	}
@@ -68,6 +72,7 @@ func (s *CommentService) AddCommentToPost(ctx context.Context, currentUser model
 		PostID:    comment.PostID,
 		UserID:    comment.UserID,
 		Text:      comment.Text,
+		Facets:    facets,
 		CreatedAt: pgtype.Timestamp{Time: comment.CreatedAt.Time, Valid: true},
 		User:      currentUser,
 		IsLiked:   false,
@@ -107,6 +112,7 @@ func (s *CommentService) GetCommentsByPostId(ctx context.Context, currentUser mo
 			PostID:    dbComment.PostID,
 			UserID:    dbComment.UserID,
 			Text:      dbComment.Text,
+			Facets:    dbComment.Facets,
 			CreatedAt: pgtype.Timestamp{Time: dbComment.CreatedAt.Time, Valid: true},
 			User:      user,
 			IsLiked:   isLiked,

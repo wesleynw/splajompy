@@ -57,6 +57,7 @@ class MockCommentService: CommentServiceProtocol, @unchecked Sendable {
       text: text,
       createdAt: currentDate,
       user: currentUser,
+      facets: [],
       isLiked: false
     )
 
@@ -105,6 +106,7 @@ class MockCommentService: CommentServiceProtocol, @unchecked Sendable {
           text: "Great post!",
           createdAt: currentDate,
           user: mockUsers[0],
+          facets: [],
           isLiked: false
         ),
         DetailedComment(
@@ -114,6 +116,7 @@ class MockCommentService: CommentServiceProtocol, @unchecked Sendable {
           text: "I totally agree with this.",
           createdAt: currentDate,
           user: mockUsers[1],
+          facets: [],
           isLiked: true
         ),
       ],
@@ -125,6 +128,7 @@ class MockCommentService: CommentServiceProtocol, @unchecked Sendable {
           text: "Interesting perspective.",
           createdAt: currentDate,
           user: mockUsers[2],
+          facets: [],
           isLiked: false
         ),
         DetailedComment(
@@ -134,6 +138,7 @@ class MockCommentService: CommentServiceProtocol, @unchecked Sendable {
           text: "Thanks for sharing this.",
           createdAt: currentDate,
           user: mockUsers[0],
+          facets: [],
           isLiked: false
         ),
       ],
@@ -162,6 +167,7 @@ class MockCommentService_Empty: CommentServiceProtocol, @unchecked Sendable {
       text: text,
       createdAt: ISO8601DateFormatter().string(from: Date()),
       user: user,
+      facets: [],
       isLiked: false
     )
 

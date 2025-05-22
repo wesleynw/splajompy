@@ -18,7 +18,9 @@ struct NotificationsView: View {
         ScrollView {
           switch viewModel.state {
           case .idle:
-            Color.clear
+            Color.clear.onAppear {
+              Task { await viewModel.loadNotifications(reset: true) }
+            }
           case .loading:
             ProgressView()
               .scaleEffect(1.5)
@@ -58,13 +60,8 @@ struct NotificationsView: View {
             }
           }
         }
-        .refreshable(action: {
-          Task { await viewModel.loadNotifications(reset: true) }
-        })
-      }
-      .onAppear {
-        Task {
-          await viewModel.loadNotifications()
+        .refreshable {
+          await viewModel.loadNotifications(reset: true)
         }
       }
       .toolbar {
