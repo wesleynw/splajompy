@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct FeedContainerView: View {
+struct HomeView: View {
   @State private var filterState = FilterState()
   @State private var path = NavigationPath()
   @State private var isShowingNewPostView = false

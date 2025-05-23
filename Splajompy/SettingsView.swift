@@ -1,4 +1,5 @@
 import SwiftUI
+import PostHog
 
 struct SettingsView: View {
   @EnvironmentObject private var authManager: AuthManager
@@ -20,7 +21,10 @@ struct SettingsView: View {
           "Are you sure you'd like to sign out?",
           isPresented: $isShowingSignoutConfirm
         ) {
-          Button("Sign Out", role: .destructive) { authManager.signOut() }
+          Button("Sign Out", role: .destructive) {
+            PostHogSDK.shared.reset()
+            authManager.signOut()
+          }
           Button("Cancel", role: .cancel) {}
         }
 

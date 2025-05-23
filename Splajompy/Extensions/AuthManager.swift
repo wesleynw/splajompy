@@ -148,7 +148,7 @@ class AuthManager: ObservableObject, Sendable {
 
       PostHogSDK.shared.identify(
         String(authResponse.user.userId), userProperties: ["email": authResponse.user.email])
-      PostHogSDK.shared.capture("user_signin")
+      PostHogSDK.shared.capture("user_signin_otc")
 
       return true
     case .error:
@@ -243,6 +243,10 @@ class AuthManager: ObservableObject, Sendable {
       let defaults = UserDefaults.standard
       defaults.set(authResponse.user.userId, forKey: "CurrentUserID")
       defaults.set(authResponse.user.username, forKey: "CurrentUserUsername")
+      
+      PostHogSDK.shared.identify(
+        String(authResponse.user.userId), userProperties: ["email": authResponse.user.email])
+      PostHogSDK.shared.capture("user_register")
 
       isAuthenticated = true
       isLoading = false
