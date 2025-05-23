@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"splajompy.com/api/v2/internal/models"
 	"splajompy.com/api/v2/internal/utilities"
 )
 
@@ -21,7 +20,7 @@ func (h *Handler) GetCommentsByPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	comments, err := h.commentService.GetCommentsByPostId(r.Context(), *currentUser, int(id))
+	comments, err := h.commentService.GetCommentsByPostId(r.Context(), *currentUser, id)
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
 		return
@@ -30,7 +29,7 @@ func (h *Handler) GetCommentsByPost(w http.ResponseWriter, r *http.Request) {
 	utilities.HandleSuccess(w, comments)
 }
 
-// POST /post/{id}/comment
+// AddCommentToPostById POST /post/{id}/comment
 func (h *Handler) AddCommentToPostById(w http.ResponseWriter, r *http.Request) {
 	currentUser, err := h.getAuthenticatedUser(r)
 	if err != nil {
@@ -38,7 +37,7 @@ func (h *Handler) AddCommentToPostById(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	post_id, err := h.GetIntPathParam(r, "post_id")
+	postId, err := h.GetIntPathParam(r, "post_id")
 	if err != nil {
 		utilities.HandleError(w, http.StatusBadRequest, "Missing parameter")
 		return
@@ -53,20 +52,10 @@ func (h *Handler) AddCommentToPostById(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	dbComment, err := h.commentService.AddCommentToPost(r.Context(), *currentUser, post_id, requestBody.Text)
+	comment, err := h.commentService.AddCommentToPost(r.Context(), *currentUser, postId, requestBody.Text)
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
 		return
-	}
-
-	comment := models.DetailedComment{
-		CommentID: dbComment.CommentID,
-		PostID:    dbComment.PostID,
-		UserID:    dbComment.UserID,
-		Text:      dbComment.Text,
-		CreatedAt: dbComment.CreatedAt,
-		User:      *currentUser,
-		IsLiked:   false,
 	}
 
 	utilities.HandleSuccess(w, comment)
@@ -79,19 +68,19 @@ func (h *Handler) AddCommentLike(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	post_id, err := h.GetIntPathParam(r, "post_id")
+	postId, err := h.GetIntPathParam(r, "post_id")
 	if err != nil {
 		utilities.HandleError(w, http.StatusBadRequest, "Missing parameter")
 		return
 	}
 
-	comment_id, err := h.GetIntPathParam(r, "comment_id")
+	commentId, err := h.GetIntPathParam(r, "comment_id")
 	if err != nil {
 		utilities.HandleError(w, http.StatusBadRequest, "Missing parameter")
 		return
 	}
 
-	err = h.commentService.AddLikeToCommentById(r.Context(), *currentUser, post_id, comment_id)
+	err = h.commentService.AddLikeToCommentById(r.Context(), *currentUser, postId, commentId)
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
 		return
@@ -100,7 +89,7 @@ func (h *Handler) AddCommentLike(w http.ResponseWriter, r *http.Request) {
 	utilities.HandleEmptySuccess(w)
 }
 
-// DELETE /post/{post_id}/comment/{comment_id}/liked
+// RemoveCommentLike DELETE /post/{post_id}/comment/{comment_id}/liked
 func (h *Handler) RemoveCommentLike(w http.ResponseWriter, r *http.Request) {
 	currentUser, err := h.getAuthenticatedUser(r)
 	if err != nil {
@@ -108,19 +97,19 @@ func (h *Handler) RemoveCommentLike(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	post_id, err := h.GetIntPathParam(r, "post_id")
+	postId, err := h.GetIntPathParam(r, "post_id")
 	if err != nil {
 		utilities.HandleError(w, http.StatusBadRequest, "Missing parameter")
 		return
 	}
 
-	comment_id, err := h.GetIntPathParam(r, "comment_id")
+	commentId, err := h.GetIntPathParam(r, "comment_id")
 	if err != nil {
 		utilities.HandleError(w, http.StatusBadRequest, "Missing parameter")
 		return
 	}
 
-	err = h.commentService.RemoveLikeFromCommentById(r.Context(), *currentUser, post_id, comment_id)
+	err = h.commentService.RemoveLikeFromCommentById(r.Context(), *currentUser, postId, commentId)
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
 		return
