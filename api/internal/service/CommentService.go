@@ -39,18 +39,18 @@ func (s *CommentService) AddCommentToPost(ctx context.Context, currentUser model
 		return nil, errors.New("unable to find post")
 	}
 
-	facets, err := utilities.GenerateFacets(ctx, s.userRepo, content)
+	commentFacets, err := utilities.GenerateFacets(ctx, s.userRepo, content)
 	if err != nil {
 		return nil, errors.New("unable to generate facets")
 	}
-	comment, err := s.commentRepo.AddCommentToPost(ctx, int(currentUser.UserID), postId, content, facets)
+	comment, err := s.commentRepo.AddCommentToPost(ctx, int(currentUser.UserID), postId, content, commentFacets)
 	if err != nil {
 		return nil, errors.New("unable to create new comment")
 	}
 
 	commentId := int(comment.CommentID)
 	text := fmt.Sprintf("@%s commented on your post.", currentUser.Username)
-	facets, err = utilities.GenerateFacets(ctx, s.userRepo, text)
+	notificationFacets, err := utilities.GenerateFacets(ctx, s.userRepo, text)
 	if err != nil {
 		return nil, errors.New("unable to generate facets")
 	}
@@ -60,7 +60,7 @@ func (s *CommentService) AddCommentToPost(ctx context.Context, currentUser model
 		int(post.UserID),
 		&postId,
 		&commentId,
-		&facets,
+		&notificationFacets,
 		text,
 	)
 	if err != nil {
@@ -72,7 +72,7 @@ func (s *CommentService) AddCommentToPost(ctx context.Context, currentUser model
 		PostID:    comment.PostID,
 		UserID:    comment.UserID,
 		Text:      comment.Text,
-		Facets:    facets,
+		Facets:    commentFacets,
 		CreatedAt: pgtype.Timestamp{Time: comment.CreatedAt.Time, Valid: true},
 		User:      currentUser,
 		IsLiked:   false,
@@ -125,12 +125,25 @@ func (s *CommentService) GetCommentsByPostId(ctx context.Context, currentUser mo
 }
 
 // AddLikeToCommentById adds a like to a comment
-func (s *CommentService) AddLikeToCommentById(ctx context.Context, currentUser models.PublicUser, postID int, commentID int) error {
-	err := s.commentRepo.AddLikeToComment(ctx, int(currentUser.UserID), postID, commentID)
+func (s *CommentService) AddLikeToCommentById(ctx context.Context, currentUser models.PublicUser, postId int, commentId int) error {
+	err := s.commentRepo.AddLikeToComment(ctx, int(currentUser.UserID), postId, commentId)
 	if err != nil {
 		return errors.New("unable to add like to comment")
 	}
-	return nil
+
+	post, err := s.postRepo.GetPostById(ctx, postId)
+	if err != nil {
+		return errors.New("unable to find post")
+	}
+
+	text := fmt.Sprintf("@%s liked your comment", currentUser.Username)
+	facets, err := utilities.GenerateFacets(ctx, s.userRepo, text)
+	if err != nil {
+		return err
+	}
+	err = s.notificationRepo.InsertNotification(ctx, int(post.UserID), &postId, &commentId, &facets, text)
+
+	return err
 }
 
 // RemoveLikeFromCommentById removes a like from a comment

@@ -1,19 +1,23 @@
 import Foundation
+import PostHog
 import SwiftUI
 
 struct CommentsView: View {
   var isShowingInSheet: Bool
+  var postId: Int
   @StateObject private var viewModel: ViewModel
   @State private var showingCommentSheet = false
   @FocusState private var isTextFieldFocused: Bool
   @Environment(\.presentationMode) var presentationMode
 
   init(postId: Int, isShowingInSheet: Bool = true) {
+    self.postId = postId
     _viewModel = StateObject(wrappedValue: ViewModel(postId: postId))
     self.isShowingInSheet = isShowingInSheet
   }
 
   init(postId: Int, isShowingInSheet: Bool = true, viewModel: ViewModel) {
+    self.postId = postId
     self.isShowingInSheet = isShowingInSheet
     _viewModel = StateObject(wrappedValue: viewModel)
   }
@@ -119,6 +123,7 @@ struct CommentsView: View {
       presentationMode.wrappedValue.dismiss()
     }
     .presentationDragIndicator(.visible)
+    .postHogScreenView("CommentsView", ["post": postId])
   }
 }
 

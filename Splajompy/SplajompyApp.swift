@@ -10,6 +10,7 @@ struct SplajompyApp: App {
     let posthogApiKey = "phc_sSDHxTCqpjwoSDSOQiNAAgmybjEakfePBsaNHWaWy74"
 
     let config = PostHogConfig(apiKey: posthogApiKey)
+    config.captureScreenViews = false
     PostHogSDK.shared.setup(config)
   }
 
@@ -19,15 +20,18 @@ struct SplajompyApp: App {
         if authManager.isAuthenticated {
           TabView {
             Tab("Home", systemImage: "house") {
-              FeedContainerView()
+              HomeView()
+                .postHogScreenView()
             }
 
             Tab("Notifications", systemImage: "bell") {
               NotificationsView()
+                .postHogScreenView()
             }
 
             Tab("Profile", systemImage: "person.circle") {
               CurrentProfileView()
+                .postHogScreenView()
             }
           }
         } else {

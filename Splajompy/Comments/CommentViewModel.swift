@@ -64,7 +64,7 @@ extension CommentsView {
 
         switch result {
         case .success(let newComment):
-          comments.append(newComment)
+          comments.insert(newComment, at: 0)
         // TODO: update comment count in parent VM
         case .error(let error):
           print("Error adding comment: \(error.localizedDescription)")

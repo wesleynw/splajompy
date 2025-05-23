@@ -223,7 +223,7 @@ func (s *PostService) getRelevantLikes(ctx context.Context, currentUser models.P
 	count := min(len(likes), 2)
 
 	mappedLikes := make([]models.RelevantLike, count)
-	userIDs := make([]int32, count)
+	userIDs := make([]int32, count+1)
 	for i, like := range likes[:count] {
 		mappedLikes[i] = models.RelevantLike{
 			Username: like.Username,
@@ -231,6 +231,9 @@ func (s *PostService) getRelevantLikes(ctx context.Context, currentUser models.P
 		}
 		userIDs[i] = like.UserID
 	}
+
+	// don't include the current user
+	userIDs[count] = currentUser.UserID
 
 	hasOtherLikes, err := s.likeRepository.HasLikesFromOthers(ctx, postId, userIDs)
 	if err != nil {
