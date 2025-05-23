@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"github.com/jackc/pgx/v5/pgtype"
+	"splajompy.com/api/v2/internal/db"
 	"splajompy.com/api/v2/internal/db/queries"
 	"sync"
 	"time"
@@ -26,7 +27,7 @@ func NewFakeCommentRepository() *FakeCommentRepository {
 	}
 }
 
-func (f *FakeCommentRepository) AddCommentToPost(ctx context.Context, userId int, postId int, content string) (queries.Comment, error) {
+func (f *FakeCommentRepository) AddCommentToPost(ctx context.Context, userId int, postId int, content string, facets db.Facets) (queries.Comment, error) {
 	f.mu.Lock()
 	defer f.mu.Unlock()
 
