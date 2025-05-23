@@ -6,15 +6,29 @@ struct MentionTextEditor: View {
   @StateObject private var viewModel: MentionViewModel
   @FocusState private var isFocused: Bool
   @State private var textViewHeight: CGFloat = 0
+  @State private var editorFrame: CGRect = .zero
+  let showSuggestionsOnTop: Bool
 
-  init(text: Binding<NSAttributedString>) {
+  init(text: Binding<NSAttributedString>, showSuggestionsOnTop: Bool = false) {
     self._text = text
     self._viewModel = StateObject(wrappedValue: MentionViewModel())
+    self.showSuggestionsOnTop = showSuggestionsOnTop
   }
 
   var body: some View {
     ScrollView(.vertical) {
       VStack(alignment: .leading, spacing: 0) {
+        if showSuggestionsOnTop {
+          Spacer()
+            .frame(
+              height: viewModel.isShowingSuggestions ? calculateHeight() + 8 : 0
+            )
+            .animation(
+              .easeInOut(duration: 0.2),
+              value: viewModel.isShowingSuggestions
+            )
+        }
+
         ZStack(alignment: .topLeading) {
           AttributedTextEditor(
             text: $text,
@@ -30,6 +44,17 @@ struct MentionTextEditor: View {
           .frame(height: textViewHeight)
           .frame(maxWidth: .infinity)
           .focused($isFocused)
+          .background(
+            GeometryReader { geometry in
+              Color.clear
+                .onAppear {
+                  editorFrame = geometry.frame(in: .global)
+                }
+                .onChange(of: geometry.frame(in: .global)) { _, newFrame in
+                  editorFrame = newFrame
+                }
+            }
+          )
 
           if text.string.isEmpty {
             Text("What's on your mind?")
@@ -38,13 +63,25 @@ struct MentionTextEditor: View {
           }
         }
 
-        if viewModel.isShowingSuggestions {
+        if !showSuggestionsOnTop && viewModel.isShowingSuggestions {
           suggestionView
         }
       }
       .padding(.horizontal)
       .frame(maxWidth: .infinity)
     }
+    .overlay(
+      Group {
+        if showSuggestionsOnTop && viewModel.isShowingSuggestions {
+          suggestionView
+            .offset(x: 16, y: editorFrame.minY - calculateHeight() - 8)
+            .animation(
+              .easeInOut(duration: 0.2),
+              value: viewModel.isShowingSuggestions
+            )
+        }
+      }
+    )
     .onAppear {
       isFocused = true
     }
@@ -71,18 +108,20 @@ struct MentionTextEditor: View {
     }
     .frame(height: calculateHeight())
     .frame(maxWidth: .infinity)
+    .background(Color(.systemBackground))
     .overlay(
       RoundedRectangle(cornerRadius: 8)
         .stroke(Color.gray.opacity(0.4), lineWidth: 1)
     )
     .cornerRadius(8)
-    .opacity(viewModel.isShowingSuggestions ? 1 : 0)
+    .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
   }
 
   private func calculateHeight() -> CGFloat {
     let rowHeight: CGFloat = 44
     let count =
-      viewModel.mentionSuggestions.isEmpty ? 1 : min(viewModel.mentionSuggestions.count, 5)
+      viewModel.mentionSuggestions.isEmpty
+      ? 1 : min(viewModel.mentionSuggestions.count, 5)
     return CGFloat(count) * rowHeight
   }
 

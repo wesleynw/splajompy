@@ -20,7 +20,7 @@ type Comment struct {
 	PostID    int32            `json:"postId"`
 	UserID    int32            `json:"userId"`
 	Text      string           `json:"text"`
-	Facets    []byte           `json:"facets"`
+	Facets    db.Facets        `json:"facets"`
 	CreatedAt pgtype.Timestamp `json:"createdAt"`
 }
 

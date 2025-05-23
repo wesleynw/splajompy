@@ -24,3 +24,9 @@ sql:
               package: "db",
               type: "Facets"
             }
+          - column: "comments.facets"
+            "go_type": {
+              import: "splajompy.com/api/v2/internal/db",
+              package: "db",
+              type: "Facets"
+            }

@@ -17,6 +17,7 @@ struct DetailedComment: Identifiable, Decodable {
   let text: String
   let createdAt: String
   let user: User
+  let facets: [Facet]?
   var isLiked: Bool
 
   var id: Int { commentId }

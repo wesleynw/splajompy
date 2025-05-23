@@ -4,8 +4,7 @@ import SwiftUI
 struct CommentsView: View {
   var isShowingInSheet: Bool
   @StateObject private var viewModel: ViewModel
-  @State private var text = NSAttributedString(string: "")
-  @State private var newCommentText: String = ""
+  @State private var showingCommentSheet = false
   @FocusState private var isTextFieldFocused: Bool
   @Environment(\.presentationMode) var presentationMode
 
@@ -29,7 +28,6 @@ struct CommentsView: View {
               .fontWeight(.bold)
               .padding()
           }
-
           HStack {
             Spacer()
             Button(action: {
@@ -91,29 +89,25 @@ struct CommentsView: View {
         Spacer()
       }
 
-      HStack {
-        TextField("Add a comment...", text: $newCommentText)
-          .padding(10)
-          .background(Color(UIColor.systemGray6))
-          .cornerRadius(20)
-          .focused($isTextFieldFocused)
+      Divider()
 
-        //        MentionTextEditor(text: $text)
-        //          .focused($isTextFieldFocused)
-
-        Button(action: {
-          submitComment()
-        }) {
-          Image(systemName: "chevron.up.circle")
+      Button(action: {
+        showingCommentSheet = true
+      }) {
+        HStack {
+          Spacer()
+          Image(systemName: "plus.circle.fill")
+            .font(.system(size: 20))
+          Text("Add a comment")
+            .fontWeight(.medium)
+          Spacer()
         }
-        .disabled(
-          newCommentText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-        )
       }
-      .padding(.horizontal)
-      .padding(.vertical, 8)
-      .background(Color(UIColor.systemBackground))
-      .shadow(color: Color.black.opacity(0.1), radius: 2, x: 0, y: -1)
+      .padding([.top, .leading, .trailing])
+      .buttonStyle(.plain)
+    }
+    .sheet(isPresented: $showingCommentSheet) {
+      AddCommentSheet(viewModel: viewModel)
     }
     .onTapGesture {
       if isTextFieldFocused {
@@ -126,15 +120,47 @@ struct CommentsView: View {
     }
     .presentationDragIndicator(.visible)
   }
+}
+
+struct AddCommentSheet: View {
+  @ObservedObject var viewModel: CommentsView.ViewModel
+  @State private var text = NSAttributedString(string: "")
+  @Environment(\.presentationMode) var presentationMode
+
+  var body: some View {
+    VStack(spacing: 12) {
+      HStack {
+        Spacer()
+        Button("Comment") {
+          submitComment()
+        }
+        .disabled(
+          text.string.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        )
+        .fontWeight(.semibold)
+        .font(.headline)
+      }
+      .padding([.top, .leading, .trailing])
+
+      MentionTextEditor(text: $text, showSuggestionsOnTop: false)
+        .frame(minHeight: 80)
+        .padding(.horizontal, 16)
+
+      Spacer()
+    }
+    .presentationDetents([.fraction(0.25), .medium])
+    .presentationDragIndicator(.visible)
+    .presentationCornerRadius(16)
+  }
 
   private func submitComment() {
-    guard
-      !newCommentText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-    else { return }
+    let commentText = text.string.trimmingCharacters(
+      in: .whitespacesAndNewlines
+    )
+    guard !commentText.isEmpty else { return }
 
-    viewModel.addComment(text: newCommentText)
-    newCommentText = ""
-    isTextFieldFocused = false  // dismiss keyboard
+    viewModel.addComment(text: commentText)
+    presentationMode.wrappedValue.dismiss()
   }
 }
 
@@ -178,7 +204,7 @@ struct CommentRow: View {
       }
       .allowsHitTesting(true)
 
-      ContentTextView(text: comment.text, facets: [])
+      ContentTextView(text: comment.text, facets: comment.facets ?? [])
 
       HStack {
         Text(formatter.localizedString(for: commentDate, relativeTo: Date()))
@@ -231,25 +257,37 @@ struct LikeButton: View {
 }
 
 #Preview {
-  let mockViewModel = CommentsView.ViewModel(postId: 1, service: MockCommentService())
+  let mockViewModel = CommentsView.ViewModel(
+    postId: 1,
+    service: MockCommentService()
+  )
 
   CommentsView(postId: 1, isShowingInSheet: true, viewModel: mockViewModel)
 }
 
 #Preview("Loading") {
-  let mockViewModel = CommentsView.ViewModel(postId: 1, service: MockCommentService_Loading())
+  let mockViewModel = CommentsView.ViewModel(
+    postId: 1,
+    service: MockCommentService_Loading()
+  )
 
   CommentsView(postId: 1, isShowingInSheet: true, viewModel: mockViewModel)
 }
 
 #Preview("No Comments") {
-  let mockViewModel = CommentsView.ViewModel(postId: 1, service: MockCommentService_Empty())
+  let mockViewModel = CommentsView.ViewModel(
+    postId: 1,
+    service: MockCommentService_Empty()
+  )
 
   CommentsView(postId: 1, isShowingInSheet: true, viewModel: mockViewModel)
 }
 
 #Preview("Error") {
-  let mockViewModel = CommentsView.ViewModel(postId: 1, service: MockCommentService_Error())
+  let mockViewModel = CommentsView.ViewModel(
+    postId: 1,
+    service: MockCommentService_Error()
+  )
 
   CommentsView(postId: 1, isShowingInSheet: true, viewModel: mockViewModel)
 }

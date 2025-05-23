@@ -9,22 +9,29 @@ import (
 	"context"
 
 	"github.com/jackc/pgx/v5/pgtype"
+	db "splajompy.com/api/v2/internal/db"
 )
 
 const addCommentToPost = `-- name: AddCommentToPost :one
-INSERT INTO comments (post_id, user_id, text)
-VALUES ($1, $2, $3)
+INSERT INTO comments (post_id, user_id, text, facets)
+VALUES ($1, $2, $3, $4)
 RETURNING comment_id, post_id, user_id, text, facets, created_at
 `
 
 type AddCommentToPostParams struct {
-	PostID int32  `json:"postId"`
-	UserID int32  `json:"userId"`
-	Text   string `json:"text"`
+	PostID int32     `json:"postId"`
+	UserID int32     `json:"userId"`
+	Text   string    `json:"text"`
+	Facets db.Facets `json:"facets"`
 }
 
 func (q *Queries) AddCommentToPost(ctx context.Context, arg AddCommentToPostParams) (Comment, error) {
-	row := q.db.QueryRow(ctx, addCommentToPost, arg.PostID, arg.UserID, arg.Text)
+	row := q.db.QueryRow(ctx, addCommentToPost,
+		arg.PostID,
+		arg.UserID,
+		arg.Text,
+		arg.Facets,
+	)
 	var i Comment
 	err := row.Scan(
 		&i.CommentID,
@@ -64,6 +71,7 @@ SELECT
   comments.post_id,
   comments.user_id,
   text,
+  facets,
   comments.created_at,
   users.username,
   users.name
@@ -78,6 +86,7 @@ type GetCommentsByPostIdRow struct {
 	PostID    int32            `json:"postId"`
 	UserID    int32            `json:"userId"`
 	Text      string           `json:"text"`
+	Facets    db.Facets        `json:"facets"`
 	CreatedAt pgtype.Timestamp `json:"createdAt"`
 	Username  string           `json:"username"`
 	Name      pgtype.Text      `json:"name"`
@@ -97,6 +106,7 @@ func (q *Queries) GetCommentsByPostId(ctx context.Context, postID int32) ([]GetC
 			&i.PostID,
 			&i.UserID,
 			&i.Text,
+			&i.Facets,
 			&i.CreatedAt,
 			&i.Username,
 			&i.Name,

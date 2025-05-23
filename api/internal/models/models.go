@@ -2,6 +2,7 @@ package models
 
 import (
 	"github.com/jackc/pgx/v5/pgtype"
+	"splajompy.com/api/v2/internal/db"
 	"splajompy.com/api/v2/internal/db/queries"
 )
 
@@ -31,6 +32,7 @@ type DetailedComment struct {
 	PostID    int32            `json:"postId"`
 	UserID    int32            `json:"userId"`
 	Text      string           `json:"text"`
+	Facets    db.Facets        `json:"facets"`
 	CreatedAt pgtype.Timestamp `json:"createdAt"`
 	User      PublicUser       `json:"user"`
 	IsLiked   bool             `json:"isLiked"`
