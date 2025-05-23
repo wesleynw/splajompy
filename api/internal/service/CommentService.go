@@ -143,7 +143,7 @@ func (s *CommentService) AddLikeToCommentById(ctx context.Context, currentUser m
 	}
 	err = s.notificationRepo.InsertNotification(ctx, int(post.UserID), &postId, &commentId, &facets, text)
 
-	return nil
+	return err
 }
 
 // RemoveLikeFromCommentById removes a like from a comment

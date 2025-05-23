@@ -1,5 +1,5 @@
-import SwiftUI
 import PostHog
+import SwiftUI
 
 struct SettingsView: View {
   @EnvironmentObject private var authManager: AuthManager

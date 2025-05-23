@@ -243,7 +243,7 @@ class AuthManager: ObservableObject, Sendable {
       let defaults = UserDefaults.standard
       defaults.set(authResponse.user.userId, forKey: "CurrentUserID")
       defaults.set(authResponse.user.username, forKey: "CurrentUserUsername")
-      
+
       PostHogSDK.shared.identify(
         String(authResponse.user.userId), userProperties: ["email": authResponse.user.email])
       PostHogSDK.shared.capture("user_register")

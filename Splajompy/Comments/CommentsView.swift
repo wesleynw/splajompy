@@ -1,6 +1,6 @@
 import Foundation
-import SwiftUI
 import PostHog
+import SwiftUI
 
 struct CommentsView: View {
   var isShowingInSheet: Bool
