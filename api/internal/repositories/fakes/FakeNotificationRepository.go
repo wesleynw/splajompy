@@ -42,11 +42,25 @@ func (f *FakeNotificationRepository) InsertNotification(ctx context.Context, use
 		}
 	}
 
+	// this is dumb
+	var commentIdValue pgtype.Int4
+	if commentId != nil {
+		commentIdValue = pgtype.Int4{
+			Int32: int32(*commentId),
+			Valid: true,
+		}
+	} else {
+		commentIdValue = pgtype.Int4{
+			Valid: false,
+		}
+	}
+
 	notification := queries.Notification{
 		NotificationID: f.nextNotificationID,
 		UserID:         int32(userId),
 		PostID:         postIdValue,
 		Message:        message,
+		CommentID:      commentIdValue,
 		Viewed:         false,
 		CreatedAt: pgtype.Timestamp{
 			Time:  time.Now(),

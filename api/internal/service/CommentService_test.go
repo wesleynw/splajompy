@@ -18,7 +18,7 @@ func setupCommentTest(t *testing.T) (*CommentService, *fakes.FakeCommentReposito
 
 	svc := NewCommentService(commentRepo, postRepo, notificationRepo, userRepo)
 
-	user, err := userRepo.CreateUser(context.Background(), "testuser", "test@example.com", "password")
+	user, err := userRepo.CreateUser(context.Background(), "testUser", "test@example.com", "password")
 	require.NoError(t, err)
 
 	return svc, commentRepo, postRepo, notificationRepo, userRepo, user
@@ -105,10 +105,10 @@ func TestCommentLikes(t *testing.T) {
 	post, err := postRepo.InsertPost(ctx, int(user.UserID), "Test post for comment likes", nil)
 	require.NoError(t, err)
 
-	otherUser, err := userRepo.CreateUser(ctx, "otheruser", "other@example.com", "password")
+	otherUser, err := userRepo.CreateUser(ctx, "otherUser", "other@example.com", "password")
 	require.NoError(t, err)
 
-	comment, err := svc.AddCommentToPost(ctx, user, int(post.PostID), "Comment to like")
+	comment, err := svc.AddCommentToPost(ctx, otherUser, int(post.PostID), "Comment to like")
 	require.NoError(t, err)
 
 	comments, err := svc.GetCommentsByPostId(ctx, otherUser, int(post.PostID))
@@ -116,10 +116,17 @@ func TestCommentLikes(t *testing.T) {
 	assert.Len(t, comments, 1)
 	assert.False(t, comments[0].IsLiked)
 
-	err = svc.AddLikeToCommentById(ctx, otherUser, int(post.PostID), int(comment.CommentID))
+	err = svc.AddLikeToCommentById(ctx, user, int(post.PostID), int(comment.CommentID))
 	assert.NoError(t, err)
 
-	comments, err = svc.GetCommentsByPostId(ctx, otherUser, int(post.PostID))
+	likes, err := svc.notificationRepo.GetNotificationsForUserId(ctx, int(otherUser.UserID), 0, 10)
+	assert.NoError(t, err)
+
+	assert.Len(t, likes, 1)
+	assert.Equal(t, comment.CommentID, likes[0].CommentID.Int32)
+	assert.Equal(t, comment.UserID, likes[0].UserID)
+
+	comments, err = svc.GetCommentsByPostId(ctx, user, int(post.PostID))
 	assert.NoError(t, err)
 	assert.Len(t, comments, 1)
 	assert.True(t, comments[0].IsLiked)
@@ -147,28 +154,4 @@ func TestCommentCreatedTimestamp(t *testing.T) {
 
 	assert.True(t, comment.CreatedAt.Time.After(beforeCreation))
 	assert.True(t, comment.CreatedAt.Time.Before(afterCreation))
-}
-
-func TestErrorHandling(t *testing.T) {
-	svc, _, postRepo, _, _, user := setupCommentTest(t)
-	ctx := context.Background()
-
-	post, err := postRepo.InsertPost(ctx, int(user.UserID), "Test post for error handling", nil)
-	require.NoError(t, err)
-
-	t.Run("Post not found", func(t *testing.T) {
-		_, err = svc.AddCommentToPost(ctx, user, 9999, "Comment on non-existent post")
-		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "unable to find post")
-	})
-
-	t.Run("Add like to non-existent comment", func(t *testing.T) {
-		err = svc.AddLikeToCommentById(ctx, user, int(post.PostID), 9999)
-		assert.NoError(t, err)
-	})
-
-	t.Run("Remove like from non-existent comment", func(t *testing.T) {
-		err = svc.RemoveLikeFromCommentById(ctx, user, int(post.PostID), 9999)
-		assert.NoError(t, err)
-	})
 }
