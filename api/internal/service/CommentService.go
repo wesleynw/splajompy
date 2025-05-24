@@ -131,9 +131,9 @@ func (s *CommentService) AddLikeToCommentById(ctx context.Context, currentUser m
 		return errors.New("unable to add like to comment")
 	}
 
-	post, err := s.postRepo.GetPostById(ctx, postId)
+	comment, err := s.commentRepo.GetCommentById(ctx, commentId)
 	if err != nil {
-		return errors.New("unable to find post")
+		return errors.New("unable to find comment")
 	}
 
 	text := fmt.Sprintf("@%s liked your comment", currentUser.Username)
@@ -141,7 +141,7 @@ func (s *CommentService) AddLikeToCommentById(ctx context.Context, currentUser m
 	if err != nil {
 		return err
 	}
-	err = s.notificationRepo.InsertNotification(ctx, int(post.UserID), &postId, &commentId, &facets, text)
+	err = s.notificationRepo.InsertNotification(ctx, int(comment.UserID), &postId, &commentId, &facets, text)
 
 	return err
 }
