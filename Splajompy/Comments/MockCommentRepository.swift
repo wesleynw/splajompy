@@ -1,7 +1,7 @@
 import Foundation
 
 class MockCommentService: CommentServiceProtocol, @unchecked Sendable {
-  private var mockComments: [Int: [Comment]] = [:]
+  private var mockComments: [Int: [DetailedComment]] = [:]
   private var mockUsers: [User] = []
   private var commentIdCounter = 1000
 
@@ -9,7 +9,7 @@ class MockCommentService: CommentServiceProtocol, @unchecked Sendable {
     setupMockData()
   }
 
-  func getComments(postId: Int) async -> AsyncResult<[Comment]> {
+  func getComments(postId: Int) async -> AsyncResult<[DetailedComment]> {
     if let comments = mockComments[postId] {
       return .success(comments)
     }
@@ -35,7 +35,7 @@ class MockCommentService: CommentServiceProtocol, @unchecked Sendable {
     )
   }
 
-  func addComment(postId: Int, text: String) async -> AsyncResult<Comment> {
+  func addComment(postId: Int, text: String) async -> AsyncResult<DetailedComment> {
     let newCommentId = commentIdCounter
     commentIdCounter += 1
 
@@ -50,13 +50,14 @@ class MockCommentService: CommentServiceProtocol, @unchecked Sendable {
         name: "Test User"
       )
 
-    let newComment = Comment(
+    let newComment = DetailedComment(
       commentId: newCommentId,
       postId: postId,
       userId: currentUser.userId,
       text: text,
       createdAt: currentDate,
       user: currentUser,
+      facets: [],
       isLiked: false
     )
 
@@ -98,42 +99,46 @@ class MockCommentService: CommentServiceProtocol, @unchecked Sendable {
 
     mockComments = [
       1: [
-        Comment(
+        DetailedComment(
           commentId: 1,
           postId: 1,
           userId: 1,
           text: "Great post!",
           createdAt: currentDate,
           user: mockUsers[0],
+          facets: [],
           isLiked: false
         ),
-        Comment(
+        DetailedComment(
           commentId: 2,
           postId: 1,
           userId: 2,
           text: "I totally agree with this.",
           createdAt: currentDate,
           user: mockUsers[1],
+          facets: [],
           isLiked: true
         ),
       ],
       2: [
-        Comment(
+        DetailedComment(
           commentId: 3,
           postId: 2,
           userId: 3,
           text: "Interesting perspective.",
           createdAt: currentDate,
           user: mockUsers[2],
+          facets: [],
           isLiked: false
         ),
-        Comment(
+        DetailedComment(
           commentId: 4,
           postId: 2,
           userId: 1,
           text: "Thanks for sharing this.",
           createdAt: currentDate,
           user: mockUsers[0],
+          facets: [],
           isLiked: false
         ),
       ],
@@ -142,7 +147,7 @@ class MockCommentService: CommentServiceProtocol, @unchecked Sendable {
 }
 
 class MockCommentService_Empty: CommentServiceProtocol, @unchecked Sendable {
-  func getComments(postId: Int) async -> AsyncResult<[Comment]> {
+  func getComments(postId: Int) async -> AsyncResult<[DetailedComment]> {
     return .success([])
   }
 
@@ -150,18 +155,19 @@ class MockCommentService_Empty: CommentServiceProtocol, @unchecked Sendable {
     return .success(EmptyResponse())
   }
 
-  func addComment(postId: Int, text: String) async -> AsyncResult<Comment> {
+  func addComment(postId: Int, text: String) async -> AsyncResult<DetailedComment> {
     let user = User(
       userId: 1, email: "test@example.com", username: "testuser",
       createdAt: ISO8601DateFormatter().string(from: Date()), name: "Test User")
 
-    let newComment = Comment(
+    let newComment = DetailedComment(
       commentId: Int.random(in: 100...1000),
       postId: postId,
       userId: 1,
       text: text,
       createdAt: ISO8601DateFormatter().string(from: Date()),
       user: user,
+      facets: [],
       isLiked: false
     )
 
@@ -177,7 +183,7 @@ class MockCommentService_Loading: CommentServiceProtocol, @unchecked Sendable {
     self.delay = delay
   }
 
-  func getComments(postId: Int) async -> AsyncResult<[Comment]> {
+  func getComments(postId: Int) async -> AsyncResult<[DetailedComment]> {
     try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000_000))
     return await mockService.getComments(postId: postId)
   }
@@ -187,14 +193,14 @@ class MockCommentService_Loading: CommentServiceProtocol, @unchecked Sendable {
     return await mockService.toggleLike(postId: postId, commentId: commentId, isLiked: isLiked)
   }
 
-  func addComment(postId: Int, text: String) async -> AsyncResult<Comment> {
+  func addComment(postId: Int, text: String) async -> AsyncResult<DetailedComment> {
     try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000_000))
     return await mockService.addComment(postId: postId, text: text)
   }
 }
 
 class MockCommentService_Error: CommentServiceProtocol, @unchecked Sendable {
-  func getComments(postId: Int) async -> AsyncResult<[Comment]> {
+  func getComments(postId: Int) async -> AsyncResult<[DetailedComment]> {
     return .error(
       NSError(
         domain: "MockError", code: 400,
@@ -208,7 +214,7 @@ class MockCommentService_Error: CommentServiceProtocol, @unchecked Sendable {
         userInfo: [NSLocalizedDescriptionKey: "Failed to toggle like"]))
   }
 
-  func addComment(postId: Int, text: String) async -> AsyncResult<Comment> {
+  func addComment(postId: Int, text: String) async -> AsyncResult<DetailedComment> {
     return .error(
       NSError(
         domain: "MockError", code: 400,

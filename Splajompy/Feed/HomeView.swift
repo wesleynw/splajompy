@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct FeedContainerView: View {
+struct HomeView: View {
   @State private var filterState = FilterState()
   @State private var path = NavigationPath()
   @State private var isShowingNewPostView = false
@@ -100,7 +100,6 @@ struct FeedContainerView: View {
             }
           }
           .onOpenURL { url in
-            print("on open url: \(url)")
             if let route = parseDeepLink(url) {
               path.append(route)
             }

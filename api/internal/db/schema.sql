@@ -28,6 +28,7 @@ CREATE TABLE comments (
     post_id INT NOT NULL,
     user_id INT NOT NULL,
     text TEXT NOT NULL,
+    facets JSON,
     created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
     FOREIGN KEY (post_id) REFERENCES posts(post_id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
@@ -77,6 +78,7 @@ CREATE TABLE notifications (
     message TEXT NOT NULL,
     link TEXT NULL,
     viewed BOOLEAN NOT NULL DEFAULT FALSE,
+    facets JSON,
     created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
     FOREIGN KEY (post_id) REFERENCES posts(post_id) ON DELETE CASCADE,
     FOREIGN KEY (comment_id) REFERENCES comments(comment_id) ON DELETE CASCADE,

@@ -9,6 +9,12 @@ struct Notification: Identifiable, Decodable {
   let link: String?
   var viewed: Bool
   let createdAt: String
+  let imageBlob: String?
+  let facets: [Facet]?
+
+  var post: Post?
+  var comment: Comment?
+
   var id: Int { notificationId }
 }
 
@@ -22,6 +28,8 @@ protocol NotificationServiceProtocol: Sendable {
   func markAllNotificationsAsRead() async -> AsyncResult<EmptyResponse>
 
   func hasUnreadNotifications() async -> AsyncResult<Bool>
+
+  func getUnreadNotificationCount() async -> AsyncResult<Int>
 }
 
 struct NotificationService: NotificationServiceProtocol {
@@ -50,5 +58,9 @@ struct NotificationService: NotificationServiceProtocol {
 
   func hasUnreadNotifications() async -> AsyncResult<Bool> {
     return await APIService.performRequest(endpoint: "notifications/hasUnread")
+  }
+
+  func getUnreadNotificationCount() async -> AsyncResult<Int> {
+    return await APIService.performRequest(endpoint: "notifications/unreadCount")
   }
 }

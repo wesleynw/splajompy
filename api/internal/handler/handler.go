@@ -3,14 +3,14 @@ package handler
 import (
 	"errors"
 	"net/http"
+	"splajompy.com/api/v2/internal/db/queries"
 	"strconv"
 
-	db "splajompy.com/api/v2/internal/db/generated"
 	"splajompy.com/api/v2/internal/service"
 )
 
 type Handler struct {
-	queries             *db.Queries
+	queries             queries.Querier
 	postService         *service.PostService
 	commentService      *service.CommentService
 	userService         *service.UserService
@@ -18,14 +18,14 @@ type Handler struct {
 	authService         *service.AuthService
 }
 
-func NewHandler(queries db.Queries,
+func NewHandler(queries queries.Querier,
 	postService *service.PostService,
 	commentService *service.CommentService,
 	userService *service.UserService,
 	notificationService *service.NotificationService,
 	authService *service.AuthService) *Handler {
 	return &Handler{
-		queries:             &queries,
+		queries:             queries,
 		postService:         postService,
 		commentService:      commentService,
 		userService:         userService,
@@ -63,6 +63,7 @@ func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("POST /notifications/markRead", h.MarkAllNotificationsAsRead)
 	mux.HandleFunc("POST /notifications/{id}/markRead", h.MarkNotificationAsReadById)
 	mux.HandleFunc("GET /notifications/hasUnread", h.HasUnreadNotifications)
+	mux.HandleFunc("GET /notifications/unreadCount", h.GetUnreadNotificationCount)
 
 	// comments
 	mux.HandleFunc("POST /post/{post_id}/comment", h.AddCommentToPostById)

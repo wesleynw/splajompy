@@ -5,40 +5,40 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"github.com/jackc/pgx/v5/pgtype"
-	"splajompy.com/api/v2/internal/utilities"
-
-	db "splajompy.com/api/v2/internal/db/generated"
 	"splajompy.com/api/v2/internal/models"
+	"splajompy.com/api/v2/internal/repositories"
+	"splajompy.com/api/v2/internal/utilities"
 )
 
 type UserService struct {
-	queries *db.Queries
+	userRepository         repositories.UserRepository
+	notificationRepository repositories.NotificationRepository
 }
 
-func NewUserService(queries *db.Queries) *UserService {
+func NewUserService(userRepository repositories.UserRepository, notificationRepository repositories.NotificationRepository) *UserService {
 	return &UserService{
-		queries: queries,
+		userRepository:         userRepository,
+		notificationRepository: notificationRepository,
 	}
 }
 
 func (s *UserService) GetUserById(ctx context.Context, cUser models.PublicUser, userID int) (*models.DetailedUser, error) {
-	dbUser, err := s.queries.GetUserById(ctx, int32(userID))
+	dbUser, err := s.userRepository.GetUserById(ctx, userID)
 	if err != nil {
 		return nil, errors.New("unable to find user")
 	}
 
-	bio, err := s.queries.GetBioByUserId(ctx, int32(userID))
+	bio, err := s.userRepository.GetBioForUser(ctx, userID)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return nil, errors.New("unable to find bio")
 	}
 
-	isFollowing, err := s.queries.GetIsUserFollowingUser(ctx, db.GetIsUserFollowingUserParams{FollowerID: cUser.UserID, FollowingID: int32(userID)})
+	isFollowing, err := s.userRepository.IsUserFollowingUser(ctx, int(cUser.UserID), userID)
 	if err != nil {
 		return nil, errors.New("unable to retrieve following information")
 	}
 
-	isFollower, err := s.queries.GetIsUserFollowingUser(ctx, db.GetIsUserFollowingUserParams{FollowerID: int32(userID), FollowingID: cUser.UserID})
+	isFollower, err := s.userRepository.IsUserFollowingUser(ctx, userID, int(cUser.UserID))
 	if err != nil {
 		return nil, errors.New("unable to retrieve following information")
 	}
@@ -58,74 +58,62 @@ func (s *UserService) GetUserById(ctx context.Context, cUser models.PublicUser, 
 }
 
 func (s *UserService) GetUserByUsernamePrefix(ctx context.Context, prefix string) (*[]models.PublicUser, error) {
-	users, err := s.queries.GetUsernameLike(ctx, db.GetUsernameLikeParams{
-		Username: prefix + "%",
-		Limit:    10,
-	})
+	users, err := s.userRepository.GetUsersWithUsernameLike(ctx, prefix, 10)
 	if err != nil {
 		return nil, err
 	}
 
 	publicUsers := make([]models.PublicUser, 0)
-	for i := range users {
-		publicUsers = append(publicUsers, *utilities.MapUserToPublicUser(&users[i]))
-	}
+
+	publicUsers = append(publicUsers, users...)
 
 	return &publicUsers, nil
 }
 
 func (s *UserService) FollowUser(ctx context.Context, currentUser models.PublicUser, userId int) error {
-	user, err := s.queries.GetUserById(ctx, int32(userId))
+	user, err := s.userRepository.GetUserById(ctx, userId)
 	if err != nil {
 		return errors.New("unable to find user")
 	}
 
-	err = s.queries.InsertFollow(ctx, db.InsertFollowParams{
-		FollowerID:  currentUser.UserID,
-		FollowingID: int32(userId),
-	})
+	err = s.userRepository.FollowUser(ctx, int(currentUser.UserID), userId)
 	if err != nil {
 		return err
 	}
 
-	err = s.queries.InsertNotification(ctx, db.InsertNotificationParams{
-		UserID:  user.UserID,
-		Message: fmt.Sprintf("%s started following you.", currentUser.Username),
-	})
+	text := fmt.Sprintf("@%s started following you.", currentUser.Username)
+	facets, err := utilities.GenerateFacets(ctx, s.userRepository, text)
+	if err != nil {
+		return err
+	}
 
-	return err
+	return s.notificationRepository.InsertNotification(ctx, int(user.UserID), nil, nil, &facets, text)
 }
 
 func (s *UserService) UnfollowUser(ctx context.Context, currentUser models.PublicUser, userId int) error {
-	_, err := s.queries.GetUserById(ctx, int32(userId))
+	_, err := s.userRepository.GetUserById(ctx, userId)
 	if err != nil {
 		return errors.New("unable to find user")
 	}
 
-	return s.queries.DeleteFollow(ctx, db.DeleteFollowParams{
-		FollowerID:  currentUser.UserID,
-		FollowingID: int32(userId),
-	})
+	return s.userRepository.UnfollowUser(ctx, int(currentUser.UserID), userId)
 }
 
 func (s *UserService) UpdateProfile(ctx context.Context, userId int, name *string, bio *string) error {
-	_, err := s.queries.GetUserById(ctx, int32(userId))
+	_, err := s.userRepository.GetUserById(ctx, userId)
 	if err != nil {
 		return errors.New("unable to find user")
 	}
 
 	if name != nil {
-		err = s.queries.UpdateUserName(ctx, db.UpdateUserNameParams{UserID: int32(userId), Name: pgtype.Text{String: *name, Valid: true}})
+		err = s.userRepository.UpdateUserName(ctx, userId, *name)
 		if err != nil {
 			return errors.New("unable to update user name")
 		}
 	}
 
 	if bio != nil {
-		err := s.queries.UpdateUserBio(ctx, db.UpdateUserBioParams{
-			UserID: int32(userId),
-			Text:   *bio,
-		})
+		err := s.userRepository.UpdateBio(ctx, userId, *bio)
 		if err != nil {
 			return errors.New("unable to update user bio")
 		}

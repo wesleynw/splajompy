@@ -5,13 +5,13 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"splajompy.com/api/v2/internal/db/queries"
 	"splajompy.com/api/v2/internal/repositories"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
 	"github.com/resend/resend-go/v2"
 
-	db "splajompy.com/api/v2/internal/db/generated"
 	"splajompy.com/api/v2/internal/handler"
 	"splajompy.com/api/v2/internal/middleware"
 	"splajompy.com/api/v2/internal/service"
@@ -31,7 +31,7 @@ func main() {
 	}
 	defer conn.Close()
 
-	queries := db.New(conn)
+	q := queries.New(conn)
 
 	resentApiKey := os.Getenv("RESEND_API_KEY")
 	resentClient := resend.NewClient(resentApiKey)
@@ -43,13 +43,19 @@ func main() {
 
 	bucketRepository := repositories.NewS3BucketRepository(s3Client)
 
-	postService := service.NewPostService(queries, bucketRepository)
-	commentService := service.NewCommentService(queries)
-	userService := service.NewUserService(queries)
-	notificationService := service.NewNotificationService(queries)
-	authManager := service.NewAuthService(queries, resentClient)
+	postRepository := repositories.NewDBPostRepository(q)
+	userRepository := repositories.NewDBUserRepository(q)
+	notificationsRepository := repositories.NewDBNotificationRepository(q)
+	commentRepository := repositories.NewDBCommentRepository(q)
+	likeRepository := repositories.NewDBLikeRepository(q)
 
-	h := handler.NewHandler(*queries, postService, commentService, userService, notificationService, authManager)
+	postService := service.NewPostService(postRepository, userRepository, likeRepository, notificationsRepository, bucketRepository)
+	commentService := service.NewCommentService(commentRepository, postRepository, notificationsRepository, userRepository)
+	userService := service.NewUserService(userRepository, notificationsRepository)
+	notificationService := service.NewNotificationService(notificationsRepository, postRepository, commentRepository)
+	authManager := service.NewAuthService(userRepository, resentClient)
+
+	h := handler.NewHandler(q, postService, commentService, userService, notificationService, authManager)
 
 	mux := http.NewServeMux()
 	h.RegisterRoutes(mux)

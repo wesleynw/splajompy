@@ -1,12 +1,12 @@
 version: "2"
 sql:
   - engine: "postgresql"
-    queries: "queries/*"
-    schema: "schema/schema.sql"
+    queries: "sql/*"
+    schema: "schema.sql"
     gen:
       go:
-        package: "db"
-        out: "./generated"
+        package: "queries"
+        out: "./queries"
         sql_package: "pgx/v5"
         emit_json_tags: true
         emit_interface: true
@@ -17,4 +17,16 @@ sql:
                import: "splajompy.com/api/v2/internal/db",
                package: "db",
                type: "Facets"
+            }
+          - column: "notifications.facets"
+            "go_type": {
+              import: "splajompy.com/api/v2/internal/db",
+              package: "db",
+              type: "Facets"
+            }
+          - column: "comments.facets"
+            "go_type": {
+              import: "splajompy.com/api/v2/internal/db",
+              package: "db",
+              type: "Facets"
             }

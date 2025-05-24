@@ -1,7 +1,11 @@
+import Kingfisher
 import SwiftUI
 
 struct NotificationsView: View {
+  @State private var path = NavigationPath()
   @StateObject private var viewModel: ViewModel
+
+  @EnvironmentObject private var authManager: AuthManager
   @EnvironmentObject private var feedRefreshManager: FeedRefreshManager
 
   init(viewModel: ViewModel = ViewModel()) {
@@ -9,13 +13,19 @@ struct NotificationsView: View {
   }
 
   var body: some View {
-    NavigationStack {
+    NavigationStack(path: $path) {
       ZStack {
         ScrollView {
           switch viewModel.state {
           case .idle:
-            Color.clear
-
+            Color.clear.onAppear {
+              Task { await viewModel.loadNotifications(reset: true) }
+            }
+          case .loading:
+            ProgressView()
+              .scaleEffect(1.5)
+              .frame(maxWidth: .infinity)
+              .frame(maxHeight: .infinity)
           case .loaded(let notifications):
             if notifications.isEmpty {
               Text("No notifications.")
@@ -29,9 +39,6 @@ struct NotificationsView: View {
               )
               .environmentObject(feedRefreshManager)
             }
-          case .loading:
-            ProgressView()
-              .padding(.top, 40)
           case .failed(let error):
             VStack {
               Text("Something went wrong")
@@ -53,21 +60,32 @@ struct NotificationsView: View {
             }
           }
         }
-        .refreshable(action: {
-          Task { await viewModel.loadNotifications(reset: true) }
-        })
-      }
-      .task {
-        await viewModel.loadNotifications()
+        .refreshable {
+          await viewModel.loadNotifications(reset: true)
+        }
       }
       .toolbar {
         Button {
           viewModel.markAllNotificationsAsRead()
         } label: {
-          Image(systemName: "checklist.checked")
+          Image(systemName: "text.badge.checkmark")
         }
+        .buttonStyle(.plain)
       }
       .navigationTitle("Notifications")
+      .onOpenURL { url in
+        if let route = parseDeepLink(url) {
+          path.append(route)
+        }
+      }
+      .navigationDestination(for: Route.self) { route in
+        switch route {
+        case .profile(let id, let username):
+          ProfileView(userId: Int(id)!, username: username)
+        }
+      }
+      .environmentObject(authManager)
+      .environmentObject(feedRefreshManager)
     }
   }
 }
@@ -106,15 +124,8 @@ struct NotificationsList: View {
             }
           }
       }
-
-      if viewModel.isLoadingMore {
-        ProgressView()
-          .padding([.top, .bottom])
-      }
     }
     .padding()
-    //    .listStyle(.plain)
-
   }
 }
 
@@ -131,33 +142,64 @@ struct NotificationRow: View {
   }
 
   var body: some View {
-    HStack {
-      VStack(alignment: .leading, spacing: 4) {
-        ContentTextView(text: notification.message, facets: [])
-          .environmentObject(feedRefreshManager)
-
-        Text(
-          formatter.localizedString(for: notificationDate, relativeTo: Date())
-        )
-        .font(.caption)
-        .foregroundColor(.gray)
+    Group {
+      if notification.post != nil || notification.comment != nil {
+        NavigationLink {
+          if let post = notification.post {
+            StandalonePostView(postId: post.postId)
+          } else if let comment = notification.comment {
+            CommentsView(postId: comment.postId)
+          }
+        } label: {
+          notificationContent
+        }
+        .buttonStyle(.plain)
+      } else {
+        notificationContent
       }
+    }
+  }
 
-      Spacer()
+  private var notificationContent: some View {
+    HStack {
+      Circle()
+        .fill(notification.viewed ? Color.clear : Color.blue)
+        .frame(width: 10, height: 10)
 
-      if !notification.viewed {
-        Circle()
-          .fill(Color.blue)
-          .frame(width: 10, height: 10)
+      VStack(alignment: .leading, spacing: 8) {
+        HStack {
+          VStack(alignment: .leading, spacing: 4) {
+            ContentTextView(text: notification.message, facets: notification.facets ?? [])
+              .environmentObject(feedRefreshManager)
+
+            Text(
+              formatter.localizedString(
+                for: notificationDate,
+                relativeTo: Date()
+              )
+            )
+            .font(.caption)
+            .foregroundColor(.gray)
+          }
+
+          Spacer()
+
+          if let blobUrl = notification.imageBlob {
+            KFImage(URL(string: blobUrl))
+              .resizable()
+              .frame(width: 40, height: 40)
+              .cornerRadius(5)
+          }
+        }
+
+        if let comment = notification.comment {
+          MiniNotificationView(text: comment.text)
+        } else if let post = notification.post, let text = post.text, text.count > 0 {
+          MiniNotificationView(text: text)
+        }
       }
     }
     .padding(.vertical, 4)
-  }
-
-  private func formattedDate(_ date: Date) -> String {
-    let formatter = RelativeDateTimeFormatter()
-    formatter.unitsStyle = .full
-    return formatter.localizedString(for: date, relativeTo: Date())
   }
 }
 

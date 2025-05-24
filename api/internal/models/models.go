@@ -2,7 +2,8 @@ package models
 
 import (
 	"github.com/jackc/pgx/v5/pgtype"
-	db "splajompy.com/api/v2/internal/db/generated"
+	"splajompy.com/api/v2/internal/db"
+	"splajompy.com/api/v2/internal/db/queries"
 )
 
 type APIResponse struct {
@@ -17,13 +18,13 @@ type RelevantLike struct {
 }
 
 type DetailedPost struct {
-	Post          db.Post           `json:"post"`
-	User          db.GetUserByIdRow `json:"user"`
-	IsLiked       bool              `json:"isLiked"`
-	Images        []db.Image        `json:"images"`
-	CommentCount  int               `json:"commentCount"`
-	RelevantLikes []RelevantLike    `json:"relevantLikes"`
-	HasOtherLikes bool              `json:"hasOtherLikes"`
+	Post          queries.Post    `json:"post"`
+	User          PublicUser      `json:"user"`
+	IsLiked       bool            `json:"isLiked"`
+	Images        []queries.Image `json:"images"`
+	CommentCount  int             `json:"commentCount"`
+	RelevantLikes []RelevantLike  `json:"relevantLikes"`
+	HasOtherLikes bool            `json:"hasOtherLikes"`
 }
 
 type DetailedComment struct {
@@ -31,12 +32,20 @@ type DetailedComment struct {
 	PostID    int32            `json:"postId"`
 	UserID    int32            `json:"userId"`
 	Text      string           `json:"text"`
+	Facets    db.Facets        `json:"facets"`
 	CreatedAt pgtype.Timestamp `json:"createdAt"`
 	User      PublicUser       `json:"user"`
 	IsLiked   bool             `json:"isLiked"`
 }
 
-type PublicUser = db.GetUserByIdentifierRow
+type DetailedNotification struct {
+	queries.Notification
+	Post      *queries.Post    `json:"post"`
+	Comment   *queries.Comment `json:"comment"`
+	ImageBlob *string          `json:"imageBlob"`
+}
+
+type PublicUser = queries.GetUserByIdentifierRow
 
 type DetailedUser struct {
 	UserID      int32            `json:"userId"`

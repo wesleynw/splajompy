@@ -5,10 +5,10 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"splajompy.com/api/v2/internal/db/queries"
 	"strings"
 	"time"
 
-	db "splajompy.com/api/v2/internal/db/generated"
 	"splajompy.com/api/v2/internal/models"
 	"splajompy.com/api/v2/internal/service"
 	"splajompy.com/api/v2/internal/utilities"
@@ -19,7 +19,7 @@ func (h *Handler) getAuthenticatedUser(r *http.Request) (*models.PublicUser, err
 	return user, err
 }
 
-func (h *Handler) validateSessionToken(ctx context.Context, authHeader string) (*db.Session, *models.PublicUser, error) {
+func (h *Handler) validateSessionToken(ctx context.Context, authHeader string) (*queries.Session, *models.PublicUser, error) {
 	if authHeader == "" {
 		return nil, nil, errors.New("authorization header required")
 	}

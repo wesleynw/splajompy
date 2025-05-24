@@ -2,7 +2,7 @@
 // versions:
 //   sqlc v1.29.0
 
-package db
+package queries
 
 import (
 	"context"
@@ -19,6 +19,7 @@ type Querier interface {
 	DeleteSession(ctx context.Context, id string) error
 	GetAllPostIds(ctx context.Context, arg GetAllPostIdsParams) ([]int32, error)
 	GetBioByUserId(ctx context.Context, userID int32) (string, error)
+	GetCommentById(ctx context.Context, commentID int32) (Comment, error)
 	GetCommentCountByPostID(ctx context.Context, postID int32) (int64, error)
 	GetCommentsByPostId(ctx context.Context, postID int32) ([]GetCommentsByPostIdRow, error)
 	GetImagesByPostId(ctx context.Context, postID int32) ([]Image, error)
@@ -37,6 +38,7 @@ type Querier interface {
 	GetUserById(ctx context.Context, userID int32) (GetUserByIdRow, error)
 	GetUserByIdentifier(ctx context.Context, email string) (GetUserByIdentifierRow, error)
 	GetUserByUsername(ctx context.Context, username string) (GetUserByUsernameRow, error)
+	GetUserUnreadNotificationCount(ctx context.Context, userID int32) (int64, error)
 	GetUserWithPasswordById(ctx context.Context, userID int32) (User, error)
 	GetUserWithPasswordByIdentifier(ctx context.Context, email string) (User, error)
 	GetUsernameLike(ctx context.Context, arg GetUsernameLikeParams) ([]User, error)

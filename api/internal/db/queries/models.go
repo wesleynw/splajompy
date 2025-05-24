@@ -2,7 +2,7 @@
 // versions:
 //   sqlc v1.29.0
 
-package db
+package queries
 
 import (
 	"github.com/jackc/pgx/v5/pgtype"
@@ -20,6 +20,7 @@ type Comment struct {
 	PostID    int32            `json:"postId"`
 	UserID    int32            `json:"userId"`
 	Text      string           `json:"text"`
+	Facets    db.Facets        `json:"facets"`
 	CreatedAt pgtype.Timestamp `json:"createdAt"`
 }
 
@@ -53,6 +54,7 @@ type Notification struct {
 	Message        string           `json:"message"`
 	Link           pgtype.Text      `json:"link"`
 	Viewed         bool             `json:"viewed"`
+	Facets         db.Facets        `json:"facets"`
 	CreatedAt      pgtype.Timestamp `json:"createdAt"`
 }
 

@@ -94,3 +94,19 @@ func (h *Handler) HasUnreadNotifications(w http.ResponseWriter, r *http.Request)
 
 	utilities.HandleSuccess(w, hasNotifications)
 }
+
+func (h *Handler) GetUnreadNotificationCount(w http.ResponseWriter, r *http.Request) {
+	currentUser, err := h.getAuthenticatedUser(r)
+	if err != nil {
+		utilities.HandleError(w, http.StatusUnauthorized, "Unauthorized")
+		return
+	}
+
+	count, err := h.notificationService.GetUserUnreadNotificationCount(r.Context(), *currentUser)
+	if err != nil {
+		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
+		return
+	}
+
+	utilities.HandleSuccess(w, count)
+}

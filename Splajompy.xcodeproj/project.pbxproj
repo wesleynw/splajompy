@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		187974BA2DDC1EE300BA0F37 /* PostHog in Frameworks */ = {isa = PBXBuildFile; productRef = 187974B92DDC1EE300BA0F37 /* PostHog */; };
 		18A617E82D9B2D6000B93F08 /* FeedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18A617D92D9B2D6000B93F08 /* FeedView.swift */; };
 		18A617E92D9B2D6000B93F08 /* FeedViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18A617DA2D9B2D6000B93F08 /* FeedViewModel.swift */; };
 		18A617EA2D9B2D6000B93F08 /* AuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18A617D62D9B2D6000B93F08 /* AuthManager.swift */; };
@@ -103,6 +104,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				18E435E82DB29069003A0999 /* Kingfisher in Frameworks */,
+				187974BA2DDC1EE300BA0F37 /* PostHog in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -253,6 +255,7 @@
 			name = Splajompy;
 			packageProductDependencies = (
 				18E435E72DB29069003A0999 /* Kingfisher */,
+				187974B92DDC1EE300BA0F37 /* PostHog */,
 			);
 			productName = Splajompy;
 			productReference = 184A63CB2D88CBA100860D6B /* Splajompy.app */;
@@ -332,6 +335,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				18E435E52DB28FF5003A0999 /* XCRemoteSwiftPackageReference "Kingfisher" */,
+				187974B82DDC1EE300BA0F37 /* XCRemoteSwiftPackageReference "posthog-ios" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 184A63CC2D88CBA100860D6B /* Products */;
@@ -730,6 +734,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		187974B82DDC1EE300BA0F37 /* XCRemoteSwiftPackageReference "posthog-ios" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/PostHog/posthog-ios.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 3.25.1;
+			};
+		};
 		18E435E52DB28FF5003A0999 /* XCRemoteSwiftPackageReference "Kingfisher" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/onevcat/Kingfisher.git";
@@ -741,6 +753,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		187974B92DDC1EE300BA0F37 /* PostHog */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 187974B82DDC1EE300BA0F37 /* XCRemoteSwiftPackageReference "posthog-ios" */;
+			productName = PostHog;
+		};
 		18E435E72DB29069003A0999 /* Kingfisher */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 18E435E52DB28FF5003A0999 /* XCRemoteSwiftPackageReference "Kingfisher" */;
