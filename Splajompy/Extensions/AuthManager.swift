@@ -61,8 +61,6 @@ class AuthManager: ObservableObject, Sendable {
     Task { @MainActor in
       isAuthenticated = false
     }
-
-    PostHogSDK.shared.reset()
   }
 
   func getCurrentUser() -> (userId: Int, username: String) {
@@ -79,8 +77,6 @@ class AuthManager: ObservableObject, Sendable {
       signOut()
       return (0, "")
     }
-
-    PostHogSDK.shared.identify(String(userId), userProperties: ["username": username])
 
     return (userId, username)
   }
