@@ -24,6 +24,11 @@ struct SplajompyApp: App {
                 .postHogScreenView()
             }
 
+            Tab("Search", systemImage: "magnifyingglass") {
+              SearchView()
+                .postHogScreenView()
+            }
+
             Tab("Notifications", systemImage: "bell") {
               NotificationsView()
                 .postHogScreenView()
