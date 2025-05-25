@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct SearchView: View {
+  @State private var path = NavigationPath()
   @StateObject private var viewModel: ViewModel
   @State private var searchText = ""
   @FocusState private var isSearchFocused: Bool
@@ -10,23 +11,51 @@ struct SearchView: View {
   }
 
   var body: some View {
-    NavigationStack {
-      VStack(spacing: 0) {
-        searchBar
+    NavigationStack(path: $path) {
+      ZStack {
+        Color.clear
+          .contentShape(Rectangle())
+          .onTapGesture {
+            isSearchFocused = false
+          }
+          .gesture(
+            DragGesture(minimumDistance: 10)
+              .onEnded { gesture in
+                if gesture.translation.height > 0 {
+                  isSearchFocused = false
+                }
+              }
+          )
 
-        if viewModel.isLoading {
-          ProgressView()
-            .scaleEffect(1.5)
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-        } else if searchText.isEmpty {
-          emptyState
-        } else if viewModel.searchResults.isEmpty {
-          noResultsState
-        } else {
-          searchResults
+        VStack(spacing: 0) {
+          searchBar
+
+          if viewModel.isLoading {
+            ProgressView()
+              .scaleEffect(1.5)
+              .frame(maxWidth: .infinity, maxHeight: .infinity)
+          } else if searchText.isEmpty {
+            emptyState
+          } else if viewModel.searchResults.isEmpty {
+            noResultsState
+          } else {
+            searchResults
+          }
         }
       }
+      .frame(maxHeight: .infinity)
       .navigationTitle("Search")
+      .navigationDestination(for: Route.self) { route in
+        switch route {
+        case .profile(let id, let username):
+          ProfileView(userId: Int(id)!, username: username)
+        }
+      }
+      .onOpenURL { url in
+        if let route = parseDeepLink(url) {
+          path.append(route)
+        }
+      }
     }
   }
 
@@ -94,7 +123,7 @@ struct SearchView: View {
 
   private var searchResults: some View {
     List(viewModel.searchResults, id: \.userId) { user in
-      NavigationLink(destination: ProfileView(userId: user.userId, username: user.username)) {
+      NavigationLink(value: Route.profile(id: String(user.userId), username: user.username)) {
         HStack {
           VStack(alignment: .leading, spacing: 2) {
             if let displayName = user.name, !displayName.isEmpty {

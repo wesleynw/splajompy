@@ -44,14 +44,12 @@ struct PostView: View {
     VStack(alignment: .leading, spacing: 12) {
       if showAuthor {
         HStack(alignment: .top) {
-          NavigationLink {
-            ProfileView(
-              userId: post.user.userId,
+          NavigationLink(
+            value: Route.profile(
+              id: String(post.user.userId),
               username: post.user.username
             )
-            .environmentObject(feedRefreshManager)
-            .environmentObject(authManager)
-          } label: {
+          ) {
             VStack(alignment: .leading, spacing: 2) {
 
               if post.user.username == "ads" {

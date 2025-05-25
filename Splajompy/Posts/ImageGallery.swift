@@ -20,7 +20,9 @@ struct ImageGallery: View {
     .fullScreenCover(
       item: Binding<ImageItem?>(
         get: {
-          guard let index = selectedImageIndex, index < imageUrls.count else { return nil }
+          guard let index = selectedImageIndex, index < imageUrls.count else {
+            return nil
+          }
           return ImageItem(id: index, url: URL(string: imageUrls[index])!)
         },
         set: { selectedImageIndex = $0?.id }
@@ -249,6 +251,14 @@ struct FullscreenImagePager: View {
         Spacer()
       }
     }
+    .gesture(
+      DragGesture(minimumDistance: 10)
+        .onEnded { gesture in
+          if gesture.translation.height > 0 {
+            onDismiss()
+          }
+        }
+    )
   }
 }
 
