@@ -47,6 +47,7 @@ struct NotificationsView: View {
             }
             .listStyle(.plain)
             .refreshable {
+              try? await Task.sleep(nanoseconds: 200_000_000)
               await viewModel.loadNotifications(reset: true)
             }
           }
@@ -94,34 +95,6 @@ struct NotificationsView: View {
       .environmentObject(authManager)
       .environmentObject(feedRefreshManager)
     }
-  }
-}
-
-struct NotificationsList: View {
-  @ObservedObject private var viewModel: NotificationsView.ViewModel
-  let notifications: [Notification]
-  @EnvironmentObject private var feedRefreshManager: FeedRefreshManager
-
-  init(viewModel: NotificationsView.ViewModel, notifications: [Notification]) {
-    self.viewModel = viewModel
-    self.notifications = notifications
-  }
-
-  var body: some View {
-    List(notifications) { notification in
-      NotificationRow(viewModel: viewModel, notification: notification)
-        .environmentObject(feedRefreshManager)
-        .onAppear {
-          if viewModel.canLoadMore
-            && notification.id == notifications.last?.id
-          {
-            Task { await viewModel.loadNotifications() }
-          }
-        }
-        .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
-        .listRowSeparator(.hidden)
-    }
-    .listStyle(.plain)
   }
 }
 
