@@ -34,8 +34,7 @@ struct NewPostView: View {
           if viewModel.isLoading {
             ProgressView()
           } else {
-            Text("Post")
-              .bold()
+            Text("Jomp").bold()
           }
         }
         .disabled(

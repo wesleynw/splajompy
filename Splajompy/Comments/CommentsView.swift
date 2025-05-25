@@ -153,9 +153,7 @@ struct AddCommentSheet: View {
 
       Spacer()
     }
-    .presentationDetents([.fraction(0.25), .medium])
     .presentationDragIndicator(.visible)
-    .presentationCornerRadius(16)
   }
 
   private func submitComment() {

@@ -19,25 +19,29 @@ struct SplajompyApp: App {
       Group {
         if authManager.isAuthenticated {
           TabView {
-            Tab("Home", systemImage: "house") {
-              HomeView()
-                .postHogScreenView()
-            }
+            HomeView()
+              .postHogScreenView()
+              .tabItem {
+                Label("Home", systemImage: "house")
+              }
 
-            Tab("Search", systemImage: "magnifyingglass") {
-              SearchView()
-                .postHogScreenView()
-            }
+            SearchView()
+              .postHogScreenView()
+              .tabItem {
+                Label("Search", systemImage: "magnifyingglass")
+              }
 
-            Tab("Notifications", systemImage: "bell") {
-              NotificationsView()
-                .postHogScreenView()
-            }
+            NotificationsView()
+              .postHogScreenView()
+              .tabItem {
+                Label("Notifications", systemImage: "bell")
+              }
 
-            Tab("Profile", systemImage: "person.circle") {
-              CurrentProfileView()
-                .postHogScreenView()
-            }
+            CurrentProfileView()
+              .postHogScreenView()
+              .tabItem {
+                Label("Profile", systemImage: "person.circle")
+              }
           }
         } else {
           SplashScreenView()

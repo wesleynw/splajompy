@@ -15,53 +15,61 @@ struct NotificationsView: View {
   var body: some View {
     NavigationStack(path: $path) {
       ZStack {
-        ScrollView {
-          switch viewModel.state {
-          case .idle:
-            Color.clear.onAppear {
-              Task { await viewModel.loadNotifications(reset: true) }
-            }
-          case .loading:
-            ProgressView()
-              .scaleEffect(1.5)
-              .frame(maxWidth: .infinity)
-              .frame(maxHeight: .infinity)
-          case .loaded(let notifications):
-            if notifications.isEmpty {
-              Text("No notifications.")
-                .font(.title3)
-                .fontWeight(.bold)
-                .padding(.top, 40)
-            } else {
-              NotificationsList(
-                viewModel: viewModel,
-                notifications: notifications
-              )
-              .environmentObject(feedRefreshManager)
-            }
-          case .failed(let error):
-            VStack {
-              Text("Something went wrong")
-                .font(.title3)
-                .fontWeight(.bold)
-                .padding()
-              Text(error.localizedDescription)
-                .font(.caption)
-                .fontWeight(.bold)
-                .foregroundColor(.red)
-              Image(systemName: "arrow.clockwise")
-                .imageScale(.large)
-                .onTapGesture {
-                  Task { @MainActor in
-                    await viewModel.loadNotifications(reset: true)
+        switch viewModel.state {
+        case .idle:
+          Color.clear.onAppear {
+            Task { await viewModel.loadNotifications(reset: true) }
+          }
+        case .loading:
+          ProgressView()
+            .scaleEffect(1.5)
+            .frame(maxWidth: .infinity)
+            .frame(maxHeight: .infinity)
+        case .loaded(let notifications):
+          if notifications.isEmpty {
+            Text("No notifications.")
+              .font(.title3)
+              .fontWeight(.bold)
+              .padding(.top, 40)
+          } else {
+            List(notifications) { notification in
+              NotificationRow(viewModel: viewModel, notification: notification)
+                .environmentObject(feedRefreshManager)
+                .onAppear {
+                  if viewModel.canLoadMore
+                    && notification.id == notifications.last?.id
+                  {
+                    Task { await viewModel.loadNotifications() }
                   }
                 }
-                .padding()
+                .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+                .listRowSeparator(.hidden)
+            }
+            .listStyle(.plain)
+            .refreshable {
+              try? await Task.sleep(nanoseconds: 200_000_000)
+              await viewModel.loadNotifications(reset: true)
             }
           }
-        }
-        .refreshable {
-          await viewModel.loadNotifications(reset: true)
+        case .failed(let error):
+          VStack {
+            Text("Something went wrong")
+              .font(.title3)
+              .fontWeight(.bold)
+              .padding()
+            Text(error.localizedDescription)
+              .font(.caption)
+              .fontWeight(.bold)
+              .foregroundColor(.red)
+            Image(systemName: "arrow.clockwise")
+              .imageScale(.large)
+              .onTapGesture {
+                Task { @MainActor in
+                  await viewModel.loadNotifications(reset: true)
+                }
+              }
+              .padding()
+          }
         }
       }
       .toolbar {
@@ -90,50 +98,17 @@ struct NotificationsView: View {
   }
 }
 
-struct NotificationsList: View {
-  @ObservedObject private var viewModel: NotificationsView.ViewModel
-  let notifications: [Notification]
-  @EnvironmentObject private var feedRefreshManager: FeedRefreshManager
-
-  init(viewModel: NotificationsView.ViewModel, notifications: [Notification]) {
-    self.viewModel = viewModel
-    self.notifications = notifications
-  }
-
-  var body: some View {
-    LazyVStack {
-      ForEach(notifications) { notification in
-        NotificationRow(notification: notification)
-          .swipeActions(edge: .leading) {
-            Button {
-              viewModel.markNotificationAsRead(for: notification)
-            } label: {
-              VStack {
-                Image(systemName: "checkmark.circle")
-                Text("Mark Done")
-              }
-            }
-            .tint(.blue)
-          }
-          .environmentObject(feedRefreshManager)
-          .onAppear {
-            if viewModel.canLoadMore
-              && notification.id == notifications.last?.id
-            {
-              Task { await viewModel.loadNotifications() }
-            }
-          }
-      }
-    }
-    .padding()
-  }
-}
-
 struct NotificationRow: View {
   @EnvironmentObject private var feedRefreshManager: FeedRefreshManager
+  @ObservedObject private var viewModel: NotificationsView.ViewModel
   let notification: Notification
 
   let formatter = RelativeDateTimeFormatter()
+
+  init(viewModel: NotificationsView.ViewModel, notification: Notification) {
+    self.viewModel = viewModel
+    self.notification = notification
+  }
 
   private var notificationDate: Date {
     let formatter = ISO8601DateFormatter()
@@ -142,7 +117,7 @@ struct NotificationRow: View {
   }
 
   var body: some View {
-    Group {
+    ZStack {
       if notification.post != nil || notification.comment != nil {
         NavigationLink {
           if let post = notification.post {
@@ -158,6 +133,14 @@ struct NotificationRow: View {
         notificationContent
       }
     }
+    .swipeActions(edge: .leading) {
+      Button {
+        viewModel.markNotificationAsRead(for: notification)
+      } label: {
+        Label("Mark Read", systemImage: "checkmark.circle")
+      }
+      .tint(.blue)
+    }
   }
 
   private var notificationContent: some View {
@@ -169,8 +152,11 @@ struct NotificationRow: View {
       VStack(alignment: .leading, spacing: 8) {
         HStack {
           VStack(alignment: .leading, spacing: 4) {
-            ContentTextView(text: notification.message, facets: notification.facets ?? [])
-              .environmentObject(feedRefreshManager)
+            ContentTextView(
+              text: notification.message,
+              facets: notification.facets ?? []
+            )
+            .environmentObject(feedRefreshManager)
 
             Text(
               formatter.localizedString(
@@ -194,7 +180,9 @@ struct NotificationRow: View {
 
         if let comment = notification.comment {
           MiniNotificationView(text: comment.text)
-        } else if let post = notification.post, let text = post.text, text.count > 0 {
+        } else if let post = notification.post, let text = post.text,
+          text.count > 0
+        {
           MiniNotificationView(text: text)
         }
       }

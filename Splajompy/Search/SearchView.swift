@@ -123,9 +123,7 @@ struct SearchView: View {
 
   private var searchResults: some View {
     List(viewModel.searchResults, id: \.userId) { user in
-      Button {
-        path.append(Route.profile(id: String(user.userId), username: user.username))
-      } label: {
+      NavigationLink(value: Route.profile(id: String(user.userId), username: user.username)) {
         HStack {
           VStack(alignment: .leading, spacing: 2) {
             if let displayName = user.name, !displayName.isEmpty {
@@ -148,7 +146,6 @@ struct SearchView: View {
         }
         .padding(.vertical, 8)
       }
-      .buttonStyle(.plain)
     }
     .listStyle(.plain)
   }
