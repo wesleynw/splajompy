@@ -85,13 +85,6 @@ struct HomeView: View {
               }
               .menuStyle(BorderlessButtonMenuStyle())
             }
-
-            ToolbarItem(placement: .navigationBarTrailing) {
-              Button(action: { isShowingNewPostView = true }) {
-                Image(systemName: "plus")
-              }
-              .buttonStyle(.plain)
-            }
           }
           .navigationDestination(for: Route.self) { route in
             switch route {
