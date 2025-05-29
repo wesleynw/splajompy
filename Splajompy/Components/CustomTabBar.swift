@@ -67,7 +67,6 @@ struct CustomTabBar: View {
           .foregroundColor(Color.gray.opacity(0.2)),
         alignment: .top
       )
-      .background(Color(UIColor.systemBackground))
     }
   }
 }
