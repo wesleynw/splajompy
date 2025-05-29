@@ -120,6 +120,9 @@ struct CommentsView: View {
     }
     .animation(.easeInOut, value: true)
     .onOpenURL { url in
+      if !isShowingInSheet {
+        return
+      }
       presentationMode.wrappedValue.dismiss()
     }
     .presentationDragIndicator(.visible)

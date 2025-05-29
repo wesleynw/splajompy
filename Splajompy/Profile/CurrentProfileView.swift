@@ -19,6 +19,9 @@ struct CurrentProfileView: View {
         switch route {
         case .profile(let id, let username):
           ProfileView(userId: Int(id)!, username: username)
+  case .post(let id):
+          StandalonePostView(postId: id)
+
         }
       }
       .onOpenURL { url in
