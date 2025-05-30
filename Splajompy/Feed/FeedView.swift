@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct FeedView<Header: View>: View {
+struct FeedView: View {
   var feedType: FeedType
   var userId: Int?
 
@@ -8,7 +8,7 @@ struct FeedView<Header: View>: View {
   @EnvironmentObject var feedRefreshManager: FeedRefreshManager
   @EnvironmentObject var authManager: AuthManager
 
-  init(feedType: FeedType, userId: Int? = nil) where Header == EmptyView {
+  init(feedType: FeedType, userId: Int? = nil) {
     self.feedType = feedType
     self.userId = userId
     _viewModel = StateObject(
@@ -35,11 +35,11 @@ struct FeedView<Header: View>: View {
     }
     .onAppear {
       if viewModel.posts.isEmpty && !viewModel.isLoading {
-        viewModel.refreshPosts()
+//        viewModel.refreshPosts()
       }
     }
     .onReceive(feedRefreshManager.$refreshTrigger) { _ in
-      viewModel.refreshPosts()
+//      viewModel.refreshPosts()
     }
   }
 
@@ -59,7 +59,7 @@ struct FeedView<Header: View>: View {
       Image(systemName: "arrow.clockwise")
         .imageScale(.large)
         .onTapGesture {
-          viewModel.refreshPosts()
+//          viewModel.refreshPosts()
         }
         .padding()
       Text("There was an error.")
@@ -93,7 +93,7 @@ struct FeedView<Header: View>: View {
           if post == viewModel.posts.last && !viewModel.isLoading
             && viewModel.hasMorePosts
           {
-            viewModel.loadMorePosts()
+//            viewModel.loadMorePosts()
           }
         }
         .geometryGroup()

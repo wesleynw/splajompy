@@ -21,11 +21,11 @@ extension FeedView {
       self.userId = userId
       self.service = service
       Task { @MainActor in
-        loadMorePosts()
+        await loadMorePosts()
       }
     }
 
-    func loadMorePosts(reset: Bool = false) {
+    func loadMorePosts(reset: Bool = false) async {
       guard !isLoadingMore else { return }
       guard reset || hasMorePosts else { return }
 
@@ -64,11 +64,9 @@ extension FeedView {
       }
     }
 
-    func refreshPosts() {
-      Task {
+    func refreshPosts() async {
         offset = 0
-        loadMorePosts(reset: true)
-      }
+        await loadMorePosts(reset: true)
     }
 
     func toggleLike(on post: DetailedPost) {
