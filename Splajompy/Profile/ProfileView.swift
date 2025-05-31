@@ -5,6 +5,7 @@ struct ProfileView: View {
   let userId: Int
   let isOwnProfile: Bool
   @State private var isShowingProfileEditor: Bool = false
+  @State private var taskId: UUID = .init()
   @StateObject private var viewModel: ViewModel
   @StateObject private var feedViewModel: FeedViewModel
   @EnvironmentObject private var authManager: AuthManager
@@ -49,26 +50,40 @@ struct ProfileView: View {
         } else if let user = viewModel.profile {
           profileHeader(user: user)
           postsList
-        } else if !viewModel.isLoadingProfile {
-          Text("This user doesn't exist.")
-            .font(.title3)
-            .fontWeight(.bold)
-            .padding(.top, 40)
         }
       }
     }
-    .task {
-      await viewModel.loadProfile()
-    }
     .refreshable {
-      await viewModel.loadProfile()
-      await feedViewModel.loadPosts(reset: true)
+      taskId = .init()
+    }
+    .task(id: taskId) {
+      await loadData(reset: true)
     }
     .sheet(isPresented: $isShowingProfileEditor) {
       ProfileEditorView(viewModel: viewModel)
         .interactiveDismissDisabled()
     }
     .navigationTitle("@" + self.username)
+    .onAppear {
+      Task {
+        await loadData(reset: true)
+      }
+    }
+  }
+
+  private func loadData(reset: Bool = false) async {
+    await viewModel.loadProfile()
+    
+    if reset {
+      await feedViewModel.loadPosts(reset: reset)
+    } else {
+      switch feedViewModel.state {
+      case .idle:
+        await feedViewModel.loadPosts()
+      default:
+        break
+      }
+    }
   }
 
   private func profileHeader(user: UserProfile) -> some View {
@@ -204,16 +219,4 @@ struct ProfileView: View {
       .padding()
       .frame(maxWidth: .infinity, minHeight: 100)
   }
-}
-
-#Preview {
-  let mockViewModel = ProfileView.ViewModel(
-    userId: 1,
-    profileService: MockProfileService()
-  )
-  let feedRefreshManager = FeedRefreshManager()
-  let authManager = AuthManager()
-  ProfileView(userId: 1, username: "wesley", viewModel: mockViewModel)
-    .environmentObject(feedRefreshManager)
-    .environmentObject(authManager)
 }
