@@ -147,11 +147,6 @@ struct HomeView: View {
       )
       .interactiveDismissDisabled()
     }
-    .onAppear {
-      // Debug: Print current state
-      print("HomeView appeared - State: \(viewModel.state)")
-      print("HomeView appeared - Posts count: \(viewModel.posts.count)")
-    }
   }
 
   private func postList(posts: [DetailedPost]) -> some View {
