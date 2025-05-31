@@ -229,7 +229,8 @@ struct HomeView: View {
 
   private func handlePostAppear(post: DetailedPost) {
     if case .loaded(let currentPosts) = viewModel.state,
-       post == currentPosts.last && viewModel.canLoadMore {
+      post == currentPosts.last && viewModel.canLoadMore
+    {
       Task {
         await viewModel.loadPosts()
       }

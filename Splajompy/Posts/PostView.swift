@@ -36,7 +36,7 @@ struct PostView: View {
             EmptyView()
           }
           .opacity(0)
-          
+
           postContent
         }
       } else {
