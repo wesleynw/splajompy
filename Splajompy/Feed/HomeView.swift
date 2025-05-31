@@ -13,7 +13,8 @@ struct HomeView: View {
     let decodedState: FilterState
 
     if let savedState = savedState,
-      let decoded = try? JSONDecoder().decode(FilterState.self, from: savedState) {
+      let decoded = try? JSONDecoder().decode(FilterState.self, from: savedState)
+    {
       decodedState = decoded
     } else {
       decodedState = FilterState()
@@ -106,9 +107,9 @@ struct HomeView: View {
   }
 
   private var allModeButton: some View {
-    Button(action: {
+    Button {
       selectAllMode()
-    }) {
+    } label: {
       HStack {
         Text("All")
         if filterState.mode == .all {
@@ -119,9 +120,9 @@ struct HomeView: View {
   }
 
   private var followingModeButton: some View {
-    Button(action: {
+    Button {
       selectFollowingMode()
-    }) {
+    } label: {
       HStack {
         Text("Following")
         if filterState.mode == .following {

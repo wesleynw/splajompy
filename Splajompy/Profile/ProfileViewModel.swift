@@ -16,11 +16,11 @@ extension ProfileView {
     private let fetchLimit = 10
     private var currentPostsTask: Task<Void, Never>?
     private var currentProfileTask: Task<Void, Never>?
-    
+
     @Published var state: ProfileState = .idle
     @Published var isLoadingFollowButton = false
     @Published var canLoadMorePosts: Bool = true
-    
+
     init(
       userId: Int,
       profileService: ProfileServiceProtocol = ProfileService(),
@@ -30,10 +30,10 @@ extension ProfileView {
       self.profileService = profileService
       self.postService = postService
     }
-    
+
     func loadProfile() async {
       currentProfileTask?.cancel()
-      
+
       currentProfileTask = Task {
         async let profileResult = profileService.getProfile(userId: userId)
         async let postsResult = postService.getPostsForFeed(
@@ -42,14 +42,14 @@ extension ProfileView {
           offset: 0,
           limit: fetchLimit
         )
-        
+
         guard !Task.isCancelled else { return }
-        
+
         let profile = await profileResult
         let posts = await postsResult
-        
+
         guard !Task.isCancelled else { return }
-        
+
         switch (profile, posts) {
         case (.success(let userProfile), .success(let fetchedPosts)):
           postsOffset = fetchedPosts.count
@@ -61,31 +61,31 @@ extension ProfileView {
           state = .failed(error)
         }
       }
-      
+
       await currentProfileTask?.value
     }
-    
+
     func loadPosts(reset: Bool = false) async {
       guard case .loaded(let profile, let existingPosts) = state else { return }
-      
+
       currentPostsTask?.cancel()
-      
+
       currentPostsTask = Task {
         if reset {
           postsOffset = 0
         }
-        
+
         guard !Task.isCancelled else { return }
-        
+
         let result = await postService.getPostsForFeed(
           feedType: .profile,
           userId: userId,
           offset: postsOffset,
           limit: fetchLimit
         )
-        
+
         guard !Task.isCancelled else { return }
-        
+
         switch result {
         case .success(let fetchedPosts):
           let allPosts = reset ? fetchedPosts : existingPosts + fetchedPosts
@@ -96,10 +96,10 @@ extension ProfileView {
           state = .failed(error)
         }
       }
-      
+
       await currentPostsTask?.value
     }
-    
+
     func toggleLike(on post: DetailedPost) {
       guard case .loaded(let profile, var posts) = state else { return }
       if let index = posts.firstIndex(where: { $0.post.postId == post.post.postId }) {
@@ -113,7 +113,9 @@ extension ProfileView {
           if case .error(let error) = result {
             print("Error toggling like: \(error.localizedDescription)")
             guard case .loaded(let currentProfile, var currentPosts) = state,
-                  let revertIndex = currentPosts.firstIndex(where: { $0.post.postId == post.post.postId })
+              let revertIndex = currentPosts.firstIndex(where: {
+                $0.post.postId == post.post.postId
+              })
             else { return }
             currentPosts[revertIndex].isLiked.toggle()
             state = .loaded(currentProfile, currentPosts)
@@ -121,7 +123,7 @@ extension ProfileView {
         }
       }
     }
-    
+
     func deletePost(on post: DetailedPost) {
       guard case .loaded(let profile, var posts) = state else { return }
       if let index = posts.firstIndex(where: { $0.post.postId == post.post.postId }) {
@@ -132,7 +134,7 @@ extension ProfileView {
         }
       }
     }
-    
+
     func updateProfile(name: String, bio: String) {
       Task {
         let result = await profileService.updateProfile(name: name, bio: bio)
@@ -148,7 +150,7 @@ extension ProfileView {
         }
       }
     }
-    
+
     func toggleFollowing() {
       guard case .loaded(let profile, let posts) = state else { return }
       Task {

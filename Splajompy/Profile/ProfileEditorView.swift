@@ -6,7 +6,7 @@ struct ProfileEditorView: View {
   @State private var bio: String = ""
   @FocusState private var isFocused: Bool
   @Environment(\.dismiss) var dismiss
-  
+
   private var currentProfile: UserProfile? {
     switch viewModel.state {
     case .loaded(let profile, _):
@@ -15,7 +15,7 @@ struct ProfileEditorView: View {
       return nil
     }
   }
-  
+
   var body: some View {
     VStack {
       HStack {

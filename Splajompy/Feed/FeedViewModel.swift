@@ -10,7 +10,7 @@ enum FeedState {
 @MainActor class FeedViewModel: ObservableObject {
   var feedType: FeedType
   var userId: Int?
-  
+
   @Published var canLoadMore: Bool = true
   @Published var state: FeedState = .idle
   @Published var posts = [DetailedPost]()
