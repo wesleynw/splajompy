@@ -89,6 +89,16 @@ struct ProfileView: View {
             }
           }
         }
+        
+        if viewModel.isLoadingMorePosts {
+          HStack {
+            Spacer()
+            ProgressView()
+              .padding()
+            Spacer()
+          }
+          .listRowInsets(EdgeInsets())
+        }
       }
     }
     .listStyle(.plain)

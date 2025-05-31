@@ -20,6 +20,7 @@ extension ProfileView {
     @Published var state: ProfileState = .idle
     @Published var isLoadingFollowButton = false
     @Published var canLoadMorePosts: Bool = true
+    @Published var isLoadingMorePosts: Bool = false
 
     init(
       userId: Int,
@@ -73,6 +74,8 @@ extension ProfileView {
       currentPostsTask = Task {
         if reset {
           postsOffset = 0
+        } else {
+          isLoadingMorePosts = true
         }
 
         guard !Task.isCancelled else { return }
@@ -95,6 +98,8 @@ extension ProfileView {
         case .error(let error):
           state = .failed(error)
         }
+        
+        isLoadingMorePosts = false
       }
 
       await currentPostsTask?.value

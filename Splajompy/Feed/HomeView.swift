@@ -205,6 +205,16 @@ struct HomeView: View {
         postRow(post: post)
           .listRowInsets(EdgeInsets())
       }
+      
+      if viewModel.isLoadingMore == true {
+        HStack {
+          Spacer()
+          ProgressView()
+            .padding()
+          Spacer()
+        }
+        .listRowInsets(EdgeInsets())
+      }
     }
     .listStyle(.plain)
     .refreshable {
