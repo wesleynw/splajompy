@@ -98,7 +98,7 @@ extension ProfileView {
         case .error(let error):
           state = .failed(error)
         }
-        
+
         isLoadingMorePosts = false
       }
 

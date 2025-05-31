@@ -208,7 +208,7 @@ struct HomeView: View {
           .id("post-home_\(post.post.postId)_\(index)")
           .transition(.opacity)
       }
-      
+
       if viewModel.isLoadingMore {
         HStack {
           Spacer()

@@ -90,7 +90,7 @@ struct ProfileView: View {
             }
           }
         }
-        
+
         if viewModel.isLoadingMorePosts {
           HStack {
             Spacer()
