@@ -49,6 +49,8 @@ struct SearchView: View {
         switch route {
         case .profile(let id, let username):
           ProfileView(userId: Int(id)!, username: username)
+        case .post(let id):
+          StandalonePostView(postId: id)
         }
       }
       .onOpenURL { url in
@@ -90,7 +92,10 @@ struct SearchView: View {
     .padding(12)
     .background(
       RoundedRectangle(cornerRadius: 8)
-        .stroke(isSearchFocused ? Color.primary : Color.gray.opacity(0.75), lineWidth: 2)
+        .stroke(
+          isSearchFocused ? Color.primary : Color.gray.opacity(0.75),
+          lineWidth: 2
+        )
     )
     .padding()
   }
@@ -123,7 +128,9 @@ struct SearchView: View {
 
   private var searchResults: some View {
     List(viewModel.searchResults, id: \.userId) { user in
-      NavigationLink(value: Route.profile(id: String(user.userId), username: user.username)) {
+      NavigationLink(
+        value: Route.profile(id: String(user.userId), username: user.username)
+      ) {
         HStack {
           VStack(alignment: .leading, spacing: 2) {
             if let displayName = user.name, !displayName.isEmpty {

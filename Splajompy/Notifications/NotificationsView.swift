@@ -90,6 +90,8 @@ struct NotificationsView: View {
         switch route {
         case .profile(let id, let username):
           ProfileView(userId: Int(id)!, username: username)
+        case .post(let id):
+          StandalonePostView(postId: id)
         }
       }
       .environmentObject(authManager)
@@ -118,14 +120,8 @@ struct NotificationRow: View {
 
   var body: some View {
     ZStack {
-      if notification.post != nil || notification.comment != nil {
-        NavigationLink {
-          if let post = notification.post {
-            StandalonePostView(postId: post.postId)
-          } else if let comment = notification.comment {
-            CommentsView(postId: comment.postId)
-          }
-        } label: {
+      if let postId = notification.postId {
+        NavigationLink(value: Route.post(id: postId)) {
           notificationContent
         }
         .buttonStyle(.plain)
