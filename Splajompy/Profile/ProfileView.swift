@@ -4,10 +4,8 @@ struct ProfileView: View {
   let username: String
   let userId: Int
   let isOwnProfile: Bool
-
   @State private var isShowingProfileEditor: Bool = false
   @StateObject private var viewModel: ViewModel
-
   @EnvironmentObject private var authManager: AuthManager
   @EnvironmentObject private var feedRefreshManager: FeedRefreshManager
 
@@ -35,32 +33,79 @@ struct ProfileView: View {
   }
 
   var body: some View {
-    ScrollView {
-      if viewModel.isLoadingProfile {
-        ProgressView()
-          .scaleEffect(1.5)
-          .padding()
-      } else if let user = viewModel.profile {
-        profileHeader(user: user)
-        FeedView(feedType: .profile, userId: self.userId)
+    mainContent
+      .refreshable {
+        await viewModel.loadProfile()
+      }
+      .sheet(isPresented: $isShowingProfileEditor) {
+        ProfileEditorView(viewModel: viewModel)
+          .interactiveDismissDisabled()
+      }
+      .navigationTitle("@" + self.username)
+      .task {
+        await viewModel.loadProfile()
+      }
+  }
+
+  @ViewBuilder
+  private var mainContent: some View {
+    switch viewModel.state {
+    case .idle, .loading:
+      loadingPlaceholder
+    case .loaded(let user, let posts):
+      profileList(user: user, posts: posts)
+    case .failed(let error):
+      errorView(error: error)
+    }
+  }
+
+  private func profileList(user: UserProfile, posts: [DetailedPost])
+    -> some View
+  {
+    List {
+      profileHeader(user: user)
+        .listRowInsets(EdgeInsets())
+
+      if posts.isEmpty {
+        emptyMessage
+          .listRowInsets(EdgeInsets())
+      } else {
+        ForEach(posts) { post in
+          PostView(
+            post: post,
+            showAuthor: false,
+            onLikeButtonTapped: { viewModel.toggleLike(on: post) },
+            onPostDeleted: { viewModel.deletePost(on: post) }
+          )
           .environmentObject(feedRefreshManager)
           .environmentObject(authManager)
-      } else if !viewModel.isLoadingProfile {
-        Text("This user doesn't exist.")
-          .font(.title3)
-          .fontWeight(.bold)
-          .padding(.top, 40)
+          .id("post-profile_\(post.post.postId)")
+          .listRowInsets(EdgeInsets())
+          .transition(.opacity)
+          .onAppear {
+            if post == posts.last && viewModel.canLoadMorePosts {
+              Task {
+                await viewModel.loadPosts()
+              }
+            }
+          }
+        }
+
+        if viewModel.isLoadingMorePosts {
+          HStack {
+            Spacer()
+            ProgressView()
+              .padding()
+            Spacer()
+          }
+          .listRowInsets(EdgeInsets())
+          .transition(.opacity)
+        }
       }
     }
-    .refreshable {
-      feedRefreshManager.triggerRefresh()
-      viewModel.loadProfile()
-    }
-    .sheet(isPresented: $isShowingProfileEditor) {
-      ProfileEditorView(viewModel: viewModel)
-        .interactiveDismissDisabled()
-    }
-    .navigationTitle("@" + self.username)
+    .listStyle(.plain)
+    .animation(.easeInOut(duration: 0.2), value: posts.count)
+    .animation(.easeInOut(duration: 0.2), value: viewModel.isLoadingMorePosts)
   }
 
   private func profileHeader(user: UserProfile) -> some View {
@@ -71,17 +116,12 @@ struct ProfileView: View {
           .fontWeight(.black)
           .lineLimit(1)
       }
-
       if !user.bio.isEmpty {
         Text(user.bio)
           .padding(.vertical, 10)
       }
-
-      if let isFollowing = viewModel.profile?.isFollowing, !isOwnProfile,
-        !isCurrentProfile
-      {
-        // this is unnecessarily verbose because you can't apply conditional styling to buttons i guess??
-        if isFollowing {
+      if !isOwnProfile && !isCurrentProfile {
+        if user.isFollowing {
           Button(action: viewModel.toggleFollowing) {
             if viewModel.isLoadingFollowButton {
               ProgressView()
@@ -120,18 +160,40 @@ struct ProfileView: View {
     .frame(maxWidth: .infinity, alignment: .leading)
     .padding()
   }
-}
 
-#Preview {
-  let mockViewModel = ProfileView.ViewModel(
-    userId: 1,
-    profileService: MockProfileService()
-  )
+  private var loadingPlaceholder: some View {
+    VStack {
+      ProgressView()
+        .scaleEffect(1.5)
+        .padding()
+        .frame(maxWidth: .infinity)
+      Spacer()
+    }
+  }
 
-  let feedRefreshManager = FeedRefreshManager()
-  let authManager = AuthManager()
+  private func errorView(error: Error) -> some View {
+    VStack {
+      Spacer()
+      Image(systemName: "arrow.clockwise")
+        .imageScale(.large)
+        .onTapGesture {
+          Task {
+            await viewModel.loadProfile()
+          }
+        }
+        .padding()
+      Text("There was an error loading posts.")
+        .font(.title2).fontWeight(.bold)
+      Text(error.localizedDescription)
+        .foregroundColor(.red)
+      Spacer()
+    }
+  }
 
-  ProfileView(userId: 1, username: "wesley", viewModel: mockViewModel)
-    .environmentObject(feedRefreshManager)
-    .environmentObject(authManager)
+  private var emptyMessage: some View {
+    Text("No posts yet")
+      .foregroundColor(.gray)
+      .padding()
+      .frame(maxWidth: .infinity, minHeight: 100)
+  }
 }

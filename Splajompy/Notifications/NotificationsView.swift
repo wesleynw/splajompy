@@ -32,18 +32,32 @@ struct NotificationsView: View {
               .fontWeight(.bold)
               .padding(.top, 40)
           } else {
-            List(notifications) { notification in
-              NotificationRow(viewModel: viewModel, notification: notification)
-                .environmentObject(feedRefreshManager)
-                .onAppear {
-                  if viewModel.canLoadMore
-                    && notification.id == notifications.last?.id
-                  {
-                    Task { await viewModel.loadNotifications() }
+            List {
+              ForEach(notifications) { notification in
+                NotificationRow(viewModel: viewModel, notification: notification)
+                  .environmentObject(feedRefreshManager)
+                  .onAppear {
+                    if viewModel.canLoadMore
+                      && notification.notificationId == notifications.last?.notificationId
+                    {
+                      Task { await viewModel.loadNotifications() }
+                    }
                   }
+                  .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+                  .listRowSeparator(.hidden)
+              }
+
+              if viewModel.isLoadingMore {
+                HStack {
+                  Spacer()
+                  ProgressView()
+                    .scaleEffect(1.2)
+                    .padding(.vertical, 8)
+                  Spacer()
                 }
                 .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
                 .listRowSeparator(.hidden)
+              }
             }
             .listStyle(.plain)
             .refreshable {
@@ -90,6 +104,8 @@ struct NotificationsView: View {
         switch route {
         case .profile(let id, let username):
           ProfileView(userId: Int(id)!, username: username)
+        case .post(let id):
+          StandalonePostView(postId: id)
         }
       }
       .environmentObject(authManager)
@@ -118,14 +134,8 @@ struct NotificationRow: View {
 
   var body: some View {
     ZStack {
-      if notification.post != nil || notification.comment != nil {
-        NavigationLink {
-          if let post = notification.post {
-            StandalonePostView(postId: post.postId)
-          } else if let comment = notification.comment {
-            CommentsView(postId: comment.postId)
-          }
-        } label: {
+      if let postId = notification.postId {
+        NavigationLink(value: Route.post(id: postId)) {
           notificationContent
         }
         .buttonStyle(.plain)

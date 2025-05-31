@@ -28,12 +28,17 @@ struct PostView: View {
   var body: some View {
     Group {
       if !isStandalone {
-        NavigationLink {
-          StandalonePostView(postId: post.id)
-        } label: {
+        ZStack(alignment: .leading) {
+          NavigationLink(
+            destination:
+              StandalonePostView(postId: post.id)
+          ) {
+            EmptyView()
+          }
+          .opacity(0)
+
           postContent
         }
-        .buttonStyle(.plain)
       } else {
         postContent
       }
@@ -44,14 +49,18 @@ struct PostView: View {
     VStack(alignment: .leading, spacing: 12) {
       if showAuthor {
         HStack(alignment: .top) {
-          NavigationLink(
-            value: Route.profile(
-              id: String(post.user.userId),
-              username: post.user.username
-            )
-          ) {
-            VStack(alignment: .leading, spacing: 2) {
+          ZStack(alignment: .leading) {
+            NavigationLink(
+              value: Route.profile(
+                id: String(post.user.userId),
+                username: post.user.username
+              )
+            ) {
+              EmptyView()
+            }
+            .opacity(0)
 
+            VStack(alignment: .leading, spacing: 2) {
               if post.user.username == "ads" {
                 HStack {
                   Image(systemName: "medal")
@@ -77,9 +86,7 @@ struct PostView: View {
                 }
               }
             }
-            .backgroundStyle(.red)
           }
-          .foregroundColor(.primary)
         }
       }
       if let postText = post.post.text, postText.count > 0 {
@@ -152,17 +159,6 @@ struct PostView: View {
     }
     .padding(.vertical)
     .padding(.horizontal, 16)
-    .overlay(
-      Rectangle()
-        .stroke(Color.gray.opacity(0.3), lineWidth: 1)
-        .mask(
-          VStack(spacing: 0) {
-            Rectangle().frame(height: 1)
-            Spacer()
-            Rectangle().frame(height: 1)
-          }
-        )
-    )
     .sheet(isPresented: $isShowingComments) {
       CommentsView(postId: post.post.postId)
     }
@@ -173,6 +169,7 @@ struct PostView: View {
             .foregroundColor(.red)
         }
       }
+      .listStyle(.automatic)
       .presentationDetents([.medium])
       .presentationDragIndicator(.visible)
     }

@@ -5,7 +5,6 @@ import SwiftUI
 struct SplajompyApp: App {
   @StateObject private var authManager = AuthManager()
   @StateObject private var feedRefreshManager = FeedRefreshManager()
-  @State private var selectedTab = 0
 
   init() {
     let posthogApiKey = "phc_sSDHxTCqpjwoSDSOQiNAAgmybjEakfePBsaNHWaWy74"
@@ -19,27 +18,30 @@ struct SplajompyApp: App {
     WindowGroup {
       Group {
         if authManager.isAuthenticated {
-          ZStack(alignment: .bottom) {
-            TabView(selection: $selectedTab) {
-              HomeView()
-                .postHogScreenView()
-                .tag(0)
+          TabView {
+            HomeView()
+              .postHogScreenView()
+              .tabItem {
+                Label("Home", systemImage: "house")
+              }
 
-              SearchView()
-                .postHogScreenView()
-                .tag(1)
+            SearchView()
+              .postHogScreenView()
+              .tabItem {
+                Label("Search", systemImage: "magnifyingglass")
+              }
 
-              NotificationsView()
-                .postHogScreenView()
-                .tag(2)
+            NotificationsView()
+              .postHogScreenView()
+              .tabItem {
+                Label("Notifications", systemImage: "bell")
+              }
 
-              CurrentProfileView()
-                .postHogScreenView()
-                .tag(3)
-            }
-            .tabViewStyle(.page(indexDisplayMode: .never))
-
-            CustomTabBar(selectedIndex: $selectedTab)
+            CurrentProfileView()
+              .postHogScreenView()
+              .tabItem {
+                Label("Profile", systemImage: "person.circle")
+              }
           }
         } else {
           SplashScreenView()
@@ -49,4 +51,5 @@ struct SplajompyApp: App {
       .environmentObject(authManager)
     }
   }
+
 }

@@ -8,7 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		187974BA2DDC1EE300BA0F37 /* PostHog in Frameworks */ = {isa = PBXBuildFile; productRef = 187974B92DDC1EE300BA0F37 /* PostHog */; };
-		18A617E82D9B2D6000B93F08 /* FeedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18A617D92D9B2D6000B93F08 /* FeedView.swift */; };
 		18A617E92D9B2D6000B93F08 /* FeedViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18A617DA2D9B2D6000B93F08 /* FeedViewModel.swift */; };
 		18A617EA2D9B2D6000B93F08 /* AuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18A617D62D9B2D6000B93F08 /* AuthManager.swift */; };
 		18A617EB2D9B2D6000B93F08 /* KeychainHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18A617D72D9B2D6000B93F08 /* KeychainHelper.swift */; };
@@ -70,7 +69,6 @@
 				Configuration/Release.xcconfig,
 				Extensions/AuthManager.swift,
 				Extensions/KeychainHelper.swift,
-				Feed/FeedView.swift,
 				Feed/FeedViewModel.swift,
 				Info.plist,
 				Models/models.swift,
@@ -379,7 +377,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				18A617E82D9B2D6000B93F08 /* FeedView.swift in Sources */,
 				18A617E92D9B2D6000B93F08 /* FeedViewModel.swift in Sources */,
 				18A617EA2D9B2D6000B93F08 /* AuthManager.swift in Sources */,
 				18A617EB2D9B2D6000B93F08 /* KeychainHelper.swift in Sources */,

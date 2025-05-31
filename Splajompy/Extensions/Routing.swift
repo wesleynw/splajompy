@@ -2,6 +2,7 @@ import SwiftUI
 
 enum Route: Hashable {
   case profile(id: String, username: String)
+  case post(id: Int)
 }
 
 func parseDeepLink(_ url: URL) -> Route? {
