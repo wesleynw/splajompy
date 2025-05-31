@@ -4,7 +4,7 @@ struct HomeView: View {
   @State private var filterState = FilterState()
   @State private var path = NavigationPath()
   @State private var isShowingNewPostView = false
-  @StateObject private var viewModel: FeedView.ViewModel
+  @StateObject private var viewModel: FeedViewModel
   @EnvironmentObject private var feedRefreshManager: FeedRefreshManager
   @EnvironmentObject var authManager: AuthManager
 
@@ -25,7 +25,7 @@ struct HomeView: View {
 
     _filterState = State(initialValue: decodedState)
     _viewModel = StateObject(
-      wrappedValue: FeedView.ViewModel(
+      wrappedValue: FeedViewModel(
         feedType: decodedState.mode == .all ? .all : .home
       )
     )
@@ -40,22 +40,22 @@ struct HomeView: View {
   var body: some View {
     NavigationStack(path: $path) {
       Group {
-        if !viewModel.error.isEmpty && viewModel.posts.isEmpty
-          && !viewModel.isLoading
-        {
-          errorMessage
-        } else if viewModel.posts.isEmpty && !viewModel.isLoading {
-          emptyMessage
-        } else {
-          if !viewModel.posts.isEmpty {
-            postList
+        switch viewModel.state {
+        case .idle:
+          loadingPlaceholder
+        case .loading:
+          loadingPlaceholder
+        case .loaded(let posts):
+          if posts.isEmpty {
+            emptyMessage
+          } else {
+            postList(posts: posts)
           }
-          if viewModel.isLoading {
-            loadingPlaceholder
-          }
+        case .failed(let error):
+          errorView(error: error)
         }
       }
-      .id(filterState.mode)  // Force view refresh
+      .id(filterState.mode)
       .toolbar {
         ToolbarItem(placement: .navigationBarLeading) {
           Image("Full_Logo")
@@ -70,6 +70,10 @@ struct HomeView: View {
               withAnimation(.snappy) {
                 filterState.mode = .all
                 saveFilterState(filterState)
+                viewModel.feedType = .all
+                Task {
+                  await viewModel.refreshPosts()
+                }
               }
             } label: {
               HStack {
@@ -84,6 +88,10 @@ struct HomeView: View {
               withAnimation(.snappy) {
                 filterState.mode = .following
                 saveFilterState(filterState)
+                viewModel.feedType = .home
+                Task {
+                  await viewModel.refreshPosts()
+                }
               }
             } label: {
               HStack {
@@ -132,7 +140,6 @@ struct HomeView: View {
           path.append(route)
         }
       }
-
     }
     .sheet(isPresented: $isShowingNewPostView) {
       NewPostView(
@@ -140,12 +147,17 @@ struct HomeView: View {
       )
       .interactiveDismissDisabled()
     }
+    .onAppear {
+      // Debug: Print current state
+      print("HomeView appeared - State: \(viewModel.state)")
+      print("HomeView appeared - Posts count: \(viewModel.posts.count)")
+    }
   }
 
-  private var postList: some View {
+  private func postList(posts: [DetailedPost]) -> some View {
     ScrollView {
       LazyVStack(spacing: 0) {
-        ForEach(viewModel.posts) { post in
+        ForEach(posts) { post in
           PostView(
             post: post,
             showAuthor: true,
@@ -156,9 +168,7 @@ struct HomeView: View {
           .environmentObject(authManager)
           .id("post-home_\(post.post.postId)")
           .onAppear {
-            if post == viewModel.posts.last && !viewModel.isLoading
-              && viewModel.hasMorePosts
-            {
+            if post == viewModel.posts.last && viewModel.canLoadMore {
               Task {
                 await viewModel.loadMorePosts()
               }
@@ -183,7 +193,7 @@ struct HomeView: View {
     }
   }
 
-  private var errorMessage: some View {
+  private func errorView(error: Error) -> some View {
     VStack {
       Spacer()
       Image(systemName: "arrow.clockwise")
@@ -196,16 +206,32 @@ struct HomeView: View {
         .padding()
       Text("There was an error.")
         .font(.title2).fontWeight(.bold)
-      Text(viewModel.error)
+      Text(error.localizedDescription)
         .foregroundColor(.red)
+        .multilineTextAlignment(.center)
+        .padding()
+      Button("Retry") {
+        Task {
+          await viewModel.refreshPosts()
+        }
+      }
+      .buttonStyle(.borderedProminent)
       Spacer()
     }
   }
 
   private var emptyMessage: some View {
-    Text("No posts yet")
-      .foregroundColor(.gray)
-      .padding()
-      .frame(maxWidth: .infinity, minHeight: 100)
+    VStack {
+      Spacer()
+      Text("No posts yet")
+        .foregroundColor(.gray)
+        .font(.title2)
+      Text("Pull down to refresh or check your connection")
+        .foregroundColor(.gray)
+        .font(.caption)
+        .padding(.top, 5)
+      Spacer()
+    }
+    .frame(maxWidth: .infinity, minHeight: 200)
   }
 }
