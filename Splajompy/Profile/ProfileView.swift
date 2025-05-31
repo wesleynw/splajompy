@@ -33,36 +33,65 @@ struct ProfileView: View {
   }
 
   var body: some View {
-    ScrollView {
-      VStack(spacing: 0) {
-        switch viewModel.state {
-        case .idle, .loading:
-          ProgressView()
-            .scaleEffect(1.5)
-            .padding()
-        case .loaded(let user, let posts):
-          profileHeader(user: user)
-          if posts.isEmpty {
-            emptyMessage
-          } else {
-            postsContent(posts: posts)
+    mainContent
+      .refreshable {
+        await viewModel.loadProfile()
+      }
+      .sheet(isPresented: $isShowingProfileEditor) {
+        ProfileEditorView(viewModel: viewModel)
+          .interactiveDismissDisabled()
+      }
+      .navigationTitle("@" + self.username)
+      .task {
+        await viewModel.loadProfile()
+      }
+  }
+
+  @ViewBuilder
+  private var mainContent: some View {
+    switch viewModel.state {
+    case .idle, .loading:
+      loadingPlaceholder
+    case .loaded(let user, let posts):
+      profileList(user: user, posts: posts)
+    case .failed(let error):
+      errorView(error: error)
+    }
+  }
+
+  private func profileList(user: UserProfile, posts: [DetailedPost])
+    -> some View
+  {
+    List {
+      profileHeader(user: user)
+        .listRowInsets(EdgeInsets())
+
+      if posts.isEmpty {
+        emptyMessage
+          .listRowInsets(EdgeInsets())
+      } else {
+        ForEach(posts) { post in
+          PostView(
+            post: post,
+            showAuthor: false,
+            onLikeButtonTapped: { viewModel.toggleLike(on: post) },
+            onPostDeleted: { viewModel.deletePost(on: post) }
+          )
+          .environmentObject(feedRefreshManager)
+          .environmentObject(authManager)
+          .id("post-profile_\(post.post.postId)")
+          .listRowInsets(EdgeInsets())
+          .onAppear {
+            if post == posts.last && viewModel.canLoadMorePosts {
+              Task {
+                await viewModel.loadPosts()
+              }
+            }
           }
-        case .failed(let error):
-          errorView(error: error)
         }
       }
     }
-    .refreshable {
-      await viewModel.loadProfile()
-    }
-    .sheet(isPresented: $isShowingProfileEditor) {
-      ProfileEditorView(viewModel: viewModel)
-        .interactiveDismissDisabled()
-    }
-    .navigationTitle("@" + self.username)
-    .task {
-      await viewModel.loadProfile()
-    }
+    .listStyle(.plain)
   }
 
   private func profileHeader(user: UserProfile) -> some View {
@@ -116,47 +145,6 @@ struct ProfileView: View {
     }
     .frame(maxWidth: .infinity, alignment: .leading)
     .padding()
-  }
-
-  private var postsList: some View {
-    Group {
-      switch viewModel.state {
-      case .loaded(_, let posts):
-        if posts.isEmpty {
-          emptyMessage
-        } else {
-          postsContent(posts: posts)
-        }
-      case .failed(let error):
-        errorView(error: error)
-      default:
-        loadingPlaceholder
-      }
-    }
-  }
-
-  private func postsContent(posts: [DetailedPost]) -> some View {
-    LazyVStack(spacing: 0) {
-      ForEach(posts) { post in
-        PostView(
-          post: post,
-          showAuthor: false,
-          onLikeButtonTapped: { viewModel.toggleLike(on: post) },
-          onPostDeleted: { viewModel.deletePost(on: post) }
-        )
-        .environmentObject(feedRefreshManager)
-        .environmentObject(authManager)
-        .id("post-profile_\(post.post.postId)")
-        .onAppear {
-          if post == posts.last && viewModel.canLoadMorePosts {
-            Task {
-              await viewModel.loadPosts()
-            }
-          }
-        }
-        .geometryGroup()
-      }
-    }
   }
 
   private var loadingPlaceholder: some View {
