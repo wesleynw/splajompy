@@ -169,6 +169,7 @@ struct PostView: View {
             .foregroundColor(.red)
         }
       }
+      .listStyle(.automatic)
       .presentationDetents([.medium])
       .presentationDragIndicator(.visible)
     }

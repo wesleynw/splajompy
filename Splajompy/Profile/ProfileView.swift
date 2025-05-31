@@ -81,6 +81,7 @@ struct ProfileView: View {
           .environmentObject(authManager)
           .id("post-profile_\(post.post.postId)")
           .listRowInsets(EdgeInsets())
+          .transition(.opacity)
           .onAppear {
             if post == posts.last && viewModel.canLoadMorePosts {
               Task {
@@ -89,9 +90,22 @@ struct ProfileView: View {
             }
           }
         }
+
+        if viewModel.isLoadingMorePosts {
+          HStack {
+            Spacer()
+            ProgressView()
+              .padding()
+            Spacer()
+          }
+          .listRowInsets(EdgeInsets())
+          .transition(.opacity)
+        }
       }
     }
     .listStyle(.plain)
+    .animation(.easeInOut(duration: 0.2), value: posts.count)
+    .animation(.easeInOut(duration: 0.2), value: viewModel.isLoadingMorePosts)
   }
 
   private func profileHeader(user: UserProfile) -> some View {

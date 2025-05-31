@@ -12,6 +12,7 @@ enum FeedState {
   var userId: Int?
   @Published var canLoadMore: Bool = true
   @Published var state: FeedState = .idle
+  @Published var isLoadingMore: Bool = false
 
   private var offset = 0
   private let fetchLimit = 10
@@ -33,6 +34,12 @@ enum FeedState {
         state = .loading
       }
       offset = 0
+    } else {
+      isLoadingMore = true
+    }
+
+    defer {
+      isLoadingMore = false
     }
 
     let result = await service.getPostsForFeed(
