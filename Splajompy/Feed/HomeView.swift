@@ -13,10 +13,7 @@ struct HomeView: View {
     let decodedState: FilterState
 
     if let savedState = savedState,
-      let decoded = try? JSONDecoder().decode(
-        FilterState.self,
-        from: savedState
-      )
+      let decoded = try? JSONDecoder().decode(FilterState.self, from: savedState)
     {
       decodedState = decoded
     } else {
@@ -39,113 +36,163 @@ struct HomeView: View {
 
   var body: some View {
     NavigationStack(path: $path) {
-      Group {
-        switch viewModel.state {
-        case .idle:
-          loadingPlaceholder
-        case .loading:
-          loadingPlaceholder
-        case .loaded(let posts):
-          if posts.isEmpty {
-            emptyMessage
-          } else {
-            postList(posts: posts)
-          }
-        case .failed(let error):
-          errorView(error: error)
+      mainContent
+        .id(filterState.mode)
+        .toolbar {
+          logoToolbarItem
+          filterMenuToolbarItem
+          addPostToolbarItem
         }
-      }
-      .id(filterState.mode)
-      .toolbar {
-        ToolbarItem(placement: .navigationBarLeading) {
-          Image("Full_Logo")
-            .resizable()
-            .scaledToFit()
-            .frame(height: 30)
+        .navigationDestination(for: Route.self) { route in
+          routeDestination(route)
         }
+        .onOpenURL { url in
+          handleDeepLink(url)
+        }
+    }
+    .task {
+      await viewModel.loadPosts()
+    }
+    .sheet(isPresented: $isShowingNewPostView) {
+      newPostSheet
+    }
+  }
 
-        ToolbarItem(placement: .principal) {
-          Menu {
-            Button {
-              withAnimation(.snappy) {
-                filterState.mode = .all
-                saveFilterState(filterState)
-                viewModel.feedType = .all
-                Task {
-                  await viewModel.refreshPosts()
-                }
-              }
-            } label: {
-              HStack {
-                Text("All")
-                if filterState.mode == .all {
-                  Image(systemName: "checkmark")
-                }
-              }
-            }
-
-            Button {
-              withAnimation(.snappy) {
-                filterState.mode = .following
-                saveFilterState(filterState)
-                viewModel.feedType = .home
-                Task {
-                  await viewModel.refreshPosts()
-                }
-              }
-            } label: {
-              HStack {
-                Text("Following")
-                if filterState.mode == .following {
-                  Image(systemName: "checkmark")
-                }
-              }
-            }
-          } label: {
-            HStack {
-              Text(filterState.mode == .all ? "All" : "Following")
-              Image(systemName: "chevron.down")
-                .font(.caption)
-            }
-            .fontWeight(.semibold)
-            .foregroundColor(.primary)
-            .padding(.vertical, 5)
-            .padding(.horizontal, 10)
-            .background(
-              RoundedRectangle(cornerRadius: 8)
-                .strokeBorder(Color.primary.opacity(0.2), lineWidth: 1)
-                .background(Color.clear)
-            )
-          }
-          .menuStyle(BorderlessButtonMenuStyle())
-        }
-
-        ToolbarItem(placement: .navigationBarTrailing) {
-          Button(action: { isShowingNewPostView = true }) {
-            Image(systemName: "plus")
-          }
-          .buttonStyle(.plain)
-        }
+  @ViewBuilder
+  private var mainContent: some View {
+    switch viewModel.state {
+    case .idle:
+      loadingPlaceholder
+    case .loading:
+      loadingPlaceholder
+    case .loaded(let posts):
+      if posts.isEmpty {
+        emptyMessage
+      } else {
+        postList(posts: posts)
       }
-      .navigationDestination(for: Route.self) { route in
-        switch route {
-        case .profile(let id, let username):
-          ProfileView(userId: Int(id)!, username: username)
-        case .post(let id):
-          StandalonePostView(postId: id)
-        }
+    case .failed(let error):
+      errorView(error: error)
+    }
+  }
+
+  private var logoToolbarItem: some ToolbarContent {
+    ToolbarItem(placement: .navigationBarLeading) {
+      Image("Full_Logo")
+        .resizable()
+        .scaledToFit()
+        .frame(height: 30)
+    }
+  }
+
+  private var filterMenuToolbarItem: some ToolbarContent {
+    ToolbarItem(placement: .principal) {
+      Menu {
+        allModeButton
+        followingModeButton
+      } label: {
+        filterMenuLabel
       }
-      .onOpenURL { url in
-        if let route = parseDeepLink(url) {
-          path.append(route)
+      .menuStyle(BorderlessButtonMenuStyle())
+    }
+  }
+
+  private var addPostToolbarItem: some ToolbarContent {
+    ToolbarItem(placement: .navigationBarTrailing) {
+      Button(action: { isShowingNewPostView = true }) {
+        Image(systemName: "plus")
+      }
+      .buttonStyle(.plain)
+    }
+  }
+
+  private var allModeButton: some View {
+    Button {
+      selectAllMode()
+    } label: {
+      HStack {
+        Text("All")
+        if filterState.mode == .all {
+          Image(systemName: "checkmark")
         }
       }
     }
-    .sheet(isPresented: $isShowingNewPostView) {
-      NewPostView(
-        onPostCreated: { feedRefreshManager.triggerRefresh() }
-      )
-      .interactiveDismissDisabled()
+  }
+
+  private var followingModeButton: some View {
+    Button {
+      selectFollowingMode()
+    } label: {
+      HStack {
+        Text("Following")
+        if filterState.mode == .following {
+          Image(systemName: "checkmark")
+        }
+      }
+    }
+  }
+
+  private var filterMenuLabel: some View {
+    HStack {
+      Text(filterState.mode == .all ? "All" : "Following")
+      Image(systemName: "chevron.down")
+        .font(.caption)
+    }
+    .fontWeight(.semibold)
+    .foregroundColor(.primary)
+    .padding(.vertical, 5)
+    .padding(.horizontal, 10)
+    .background(menuLabelBackground)
+  }
+
+  private var menuLabelBackground: some View {
+    RoundedRectangle(cornerRadius: 8)
+      .strokeBorder(Color.primary.opacity(0.2), lineWidth: 1)
+      .background(Color.clear)
+  }
+
+  private var newPostSheet: some View {
+    NewPostView(
+      onPostCreated: { feedRefreshManager.triggerRefresh() }
+    )
+    .interactiveDismissDisabled()
+  }
+
+  @ViewBuilder
+  private func routeDestination(_ route: Route) -> some View {
+    switch route {
+    case .profile(let id, let username):
+      ProfileView(userId: Int(id) ?? 0, username: username)
+    case .post(let id):
+      StandalonePostView(postId: id)
+    }
+  }
+
+  private func selectAllMode() {
+    withAnimation(.snappy) {
+      filterState.mode = .all
+      saveFilterState(filterState)
+      viewModel.feedType = .all
+      Task {
+        await viewModel.loadPosts(reset: true)
+      }
+    }
+  }
+
+  private func selectFollowingMode() {
+    withAnimation(.snappy) {
+      filterState.mode = .following
+      saveFilterState(filterState)
+      viewModel.feedType = .home
+      Task {
+        await viewModel.loadPosts(reset: true)
+      }
+    }
+  }
+
+  private func handleDeepLink(_ url: URL) {
+    if let route = parseDeepLink(url) {
+      path.append(route)
     }
   }
 
@@ -153,28 +200,36 @@ struct HomeView: View {
     ScrollView {
       LazyVStack(spacing: 0) {
         ForEach(posts) { post in
-          PostView(
-            post: post,
-            showAuthor: true,
-            onLikeButtonTapped: { viewModel.toggleLike(on: post) },
-            onPostDeleted: { viewModel.deletePost(on: post) }
-          )
-          .environmentObject(feedRefreshManager)
-          .environmentObject(authManager)
-          .id("post-home_\(post.post.postId)")
-          .onAppear {
-            if post == viewModel.posts.last && viewModel.canLoadMore {
-              Task {
-                await viewModel.loadMorePosts()
-              }
-            }
-          }
-          .geometryGroup()
+          postRow(post: post)
         }
       }
     }
     .refreshable {
-      await viewModel.refreshPosts()
+      await viewModel.loadPosts(reset: true)
+    }
+  }
+
+  private func postRow(post: DetailedPost) -> some View {
+    PostView(
+      post: post,
+      showAuthor: true,
+      onLikeButtonTapped: { viewModel.toggleLike(on: post) },
+      onPostDeleted: { viewModel.deletePost(on: post) }
+    )
+    .environmentObject(feedRefreshManager)
+    .environmentObject(authManager)
+    .id("post-home_\(post.post.postId)")
+    .onAppear {
+      handlePostAppear(post: post)
+    }
+    .geometryGroup()
+  }
+
+  private func handlePostAppear(post: DetailedPost) {
+    if post == viewModel.posts.last && viewModel.canLoadMore {
+      Task {
+        await viewModel.loadPosts(reset: true)
+      }
     }
   }
 
@@ -191,28 +246,43 @@ struct HomeView: View {
   private func errorView(error: Error) -> some View {
     VStack {
       Spacer()
-      Image(systemName: "arrow.clockwise")
-        .imageScale(.large)
-        .onTapGesture {
-          Task {
-            await viewModel.refreshPosts()
-          }
+      errorIcon
+      errorText(error: error)
+      retryButton
+      Spacer()
+    }
+  }
+
+  private var errorIcon: some View {
+    Image(systemName: "arrow.clockwise")
+      .imageScale(.large)
+      .onTapGesture {
+        Task {
+          await viewModel.loadPosts(reset: true)
         }
-        .padding()
+      }
+      .padding()
+  }
+
+  private func errorText(error: Error) -> some View {
+    VStack {
       Text("There was an error.")
-        .font(.title2).fontWeight(.bold)
+        .font(.title2)
+        .fontWeight(.bold)
       Text(error.localizedDescription)
         .foregroundColor(.red)
         .multilineTextAlignment(.center)
         .padding()
-      Button("Retry") {
-        Task {
-          await viewModel.refreshPosts()
-        }
-      }
-      .buttonStyle(.borderedProminent)
-      Spacer()
     }
+  }
+
+  private var retryButton: some View {
+    Button("Retry") {
+      Task {
+        await viewModel.loadPosts(reset: true)
+      }
+    }
+    .buttonStyle(.borderedProminent)
   }
 
   private var emptyMessage: some View {

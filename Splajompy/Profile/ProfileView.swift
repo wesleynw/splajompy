@@ -6,7 +6,6 @@ struct ProfileView: View {
   let isOwnProfile: Bool
   @State private var isShowingProfileEditor: Bool = false
   @StateObject private var viewModel: ViewModel
-  @StateObject private var feedViewModel: FeedViewModel
   @EnvironmentObject private var authManager: AuthManager
   @EnvironmentObject private var feedRefreshManager: FeedRefreshManager
 
@@ -19,9 +18,6 @@ struct ProfileView: View {
     self.username = username
     self.isOwnProfile = isOwnProfile
     _viewModel = StateObject(wrappedValue: ViewModel(userId: userId))
-    _feedViewModel = StateObject(
-      wrappedValue: FeedViewModel(feedType: .profile, userId: userId)
-    )
   }
 
   init(
@@ -34,39 +30,39 @@ struct ProfileView: View {
     self.username = username
     self.isOwnProfile = isOwnProfile
     _viewModel = StateObject(wrappedValue: viewModel)
-    _feedViewModel = StateObject(
-      wrappedValue: FeedViewModel(feedType: .profile, userId: userId)
-    )
   }
 
   var body: some View {
     ScrollView {
       VStack(spacing: 0) {
-        if viewModel.isLoadingProfile {
+        switch viewModel.state {
+        case .idle, .loading:
           ProgressView()
             .scaleEffect(1.5)
             .padding()
-        } else if let user = viewModel.profile {
+        case .loaded(let user, let posts):
           profileHeader(user: user)
-          postsList
-        } else if !viewModel.isLoadingProfile {
-          Text("This user doesn't exist.")
-            .font(.title3)
-            .fontWeight(.bold)
-            .padding(.top, 40)
+          if posts.isEmpty {
+            emptyMessage
+          } else {
+            postsContent(posts: posts)
+          }
+        case .failed(let error):
+          errorView(error: error)
         }
       }
     }
     .refreshable {
-      feedRefreshManager.triggerRefresh()
-      viewModel.loadProfile()
-      await feedViewModel.refreshPosts()
+      await viewModel.loadProfile()
     }
     .sheet(isPresented: $isShowingProfileEditor) {
       ProfileEditorView(viewModel: viewModel)
         .interactiveDismissDisabled()
     }
     .navigationTitle("@" + self.username)
+    .task {
+      await viewModel.loadProfile()
+    }
   }
 
   private func profileHeader(user: UserProfile) -> some View {
@@ -81,10 +77,8 @@ struct ProfileView: View {
         Text(user.bio)
           .padding(.vertical, 10)
       }
-      if let isFollowing = viewModel.profile?.isFollowing, !isOwnProfile,
-        !isCurrentProfile
-      {
-        if isFollowing {
+      if !isOwnProfile && !isCurrentProfile {
+        if user.isFollowing {
           Button(action: viewModel.toggleFollowing) {
             if viewModel.isLoadingFollowButton {
               ProgressView()
@@ -126,16 +120,8 @@ struct ProfileView: View {
 
   private var postsList: some View {
     Group {
-      switch feedViewModel.state {
-      case .idle:
-        loadingPlaceholder
-      case .loading:
-        if feedViewModel.posts.isEmpty {
-          loadingPlaceholder
-        } else {
-          postsContent(posts: feedViewModel.posts)
-        }
-      case .loaded(let posts):
+      switch viewModel.state {
+      case .loaded(_, let posts):
         if posts.isEmpty {
           emptyMessage
         } else {
@@ -143,6 +129,8 @@ struct ProfileView: View {
         }
       case .failed(let error):
         errorView(error: error)
+      default:
+        loadingPlaceholder
       }
     }
   }
@@ -153,16 +141,16 @@ struct ProfileView: View {
         PostView(
           post: post,
           showAuthor: false,
-          onLikeButtonTapped: { feedViewModel.toggleLike(on: post) },
-          onPostDeleted: { feedViewModel.deletePost(on: post) }
+          onLikeButtonTapped: { viewModel.toggleLike(on: post) },
+          onPostDeleted: { viewModel.deletePost(on: post) }
         )
         .environmentObject(feedRefreshManager)
         .environmentObject(authManager)
         .id("post-profile_\(post.post.postId)")
         .onAppear {
-          if post == posts.last && feedViewModel.canLoadMore {
+          if post == posts.last && viewModel.canLoadMorePosts {
             Task {
-              await feedViewModel.loadMorePosts()
+              await viewModel.loadPosts()
             }
           }
         }
@@ -188,7 +176,7 @@ struct ProfileView: View {
         .imageScale(.large)
         .onTapGesture {
           Task {
-            await feedViewModel.refreshPosts()
+            await viewModel.loadProfile()
           }
         }
         .padding()
@@ -206,16 +194,4 @@ struct ProfileView: View {
       .padding()
       .frame(maxWidth: .infinity, minHeight: 100)
   }
-}
-
-#Preview {
-  let mockViewModel = ProfileView.ViewModel(
-    userId: 1,
-    profileService: MockProfileService()
-  )
-  let feedRefreshManager = FeedRefreshManager()
-  let authManager = AuthManager()
-  ProfileView(userId: 1, username: "wesley", viewModel: mockViewModel)
-    .environmentObject(feedRefreshManager)
-    .environmentObject(authManager)
 }

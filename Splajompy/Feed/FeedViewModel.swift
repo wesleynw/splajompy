@@ -28,12 +28,9 @@ enum FeedState {
     self.feedType = feedType
     self.userId = userId
     self.service = service
-    Task { @MainActor in
-      await loadMorePosts()
-    }
   }
 
-  func loadMorePosts(reset: Bool = false) async {
+  func loadPosts(reset: Bool = false) async {
     if reset {
       if case .idle = state {
         state = .loading
@@ -60,10 +57,6 @@ enum FeedState {
     case .error(let error):
       state = .failed(error)
     }
-  }
-
-  func refreshPosts() async {
-    await loadMorePosts(reset: true)
   }
 
   func toggleLike(on post: DetailedPost) {
