@@ -13,7 +13,10 @@ struct HomeView: View {
     let decodedState: FilterState
 
     if let savedState = savedState,
-      let decoded = try? JSONDecoder().decode(FilterState.self, from: savedState)
+      let decoded = try? JSONDecoder().decode(
+        FilterState.self,
+        from: savedState
+      )
     {
       decodedState = decoded
     } else {
@@ -197,13 +200,13 @@ struct HomeView: View {
   }
 
   private func postList(posts: [DetailedPost]) -> some View {
-    ScrollView {
-      LazyVStack(spacing: 0) {
-        ForEach(posts) { post in
-          postRow(post: post)
-        }
+    List {
+      ForEach(posts) { post in
+        postRow(post: post)
+          .listRowInsets(EdgeInsets())
       }
     }
+    .listStyle(.plain)
     .refreshable {
       await viewModel.loadPosts(reset: true)
     }
@@ -222,13 +225,14 @@ struct HomeView: View {
     .onAppear {
       handlePostAppear(post: post)
     }
-    .geometryGroup()
   }
 
   private func handlePostAppear(post: DetailedPost) {
-    if post == viewModel.posts.last && viewModel.canLoadMore {
+    if case .loaded(let currentPosts) = viewModel.state,
+      post == currentPosts.last && viewModel.canLoadMore
+    {
       Task {
-        await viewModel.loadPosts(reset: true)
+        await viewModel.loadPosts()
       }
     }
   }
