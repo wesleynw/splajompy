@@ -49,6 +49,9 @@ struct HomeView: View {
           handleDeepLink(url)
         }
     }
+    .task {
+      await viewModel.loadPosts()
+    }
     .sheet(isPresented: $isShowingNewPostView) {
       newPostSheet
     }
