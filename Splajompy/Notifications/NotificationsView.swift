@@ -32,18 +32,32 @@ struct NotificationsView: View {
               .fontWeight(.bold)
               .padding(.top, 40)
           } else {
-            List(notifications) { notification in
-              NotificationRow(viewModel: viewModel, notification: notification)
-                .environmentObject(feedRefreshManager)
-                .onAppear {
-                  if viewModel.canLoadMore
-                    && notification.id == notifications.last?.id
-                  {
-                    Task { await viewModel.loadNotifications() }
+            List {
+              ForEach(notifications) { notification in
+                NotificationRow(viewModel: viewModel, notification: notification)
+                  .environmentObject(feedRefreshManager)
+                  .onAppear {
+                    if viewModel.canLoadMore
+                      && notification.notificationId == notifications.last?.notificationId
+                    {
+                      Task { await viewModel.loadNotifications() }
+                    }
                   }
+                  .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+                  .listRowSeparator(.hidden)
+              }
+              
+              if viewModel.isLoadingMore {
+                HStack {
+                  Spacer()
+                  ProgressView()
+                    .scaleEffect(1.2)
+                    .padding(.vertical, 8)
+                  Spacer()
                 }
                 .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
                 .listRowSeparator(.hidden)
+              }
             }
             .listStyle(.plain)
             .refreshable {

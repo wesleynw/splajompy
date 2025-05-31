@@ -11,6 +11,11 @@ extension NotificationsView {
   @MainActor class ViewModel: ObservableObject {
     @Published var canLoadMore: Bool = true
     @Published var state: NotificationState = .idle
+    @Published var isLoadingMore: Bool = false {
+      didSet {
+        print("isloadingmore: \(isLoadingMore)")
+      }
+    }
     private var offset = 0
     private let limit = 10
     private var service: NotificationServiceProtocol
@@ -25,6 +30,8 @@ extension NotificationsView {
           state = .loading
         }
         offset = 0
+      } else {
+        isLoadingMore = true
       }
 
       let result = await service.getAllNotifications(
@@ -41,8 +48,15 @@ extension NotificationsView {
         }
         canLoadMore = notifications.count >= limit
         offset += notifications.count
+
+        if !reset {
+          isLoadingMore = false
+        }
       case .error(let error):
         state = .failed(error)
+        if !reset {
+          isLoadingMore = false
+        }
       }
     }
 
@@ -60,7 +74,9 @@ extension NotificationsView {
       }
 
       Task {
-        await service.markNotificationAsRead(notificationId: notification.notificationId)
+        await service.markNotificationAsRead(
+          notificationId: notification.notificationId
+        )
       }
     }
 
