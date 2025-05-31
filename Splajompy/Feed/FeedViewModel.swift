@@ -10,11 +10,8 @@ enum FeedState {
 @MainActor class FeedViewModel: ObservableObject {
   var feedType: FeedType
   var userId: Int?
-
   @Published var canLoadMore: Bool = true
   @Published var state: FeedState = .idle
-  @Published var posts = [DetailedPost]()
-  @Published var hasMorePosts = true
 
   private var offset = 0
   private let fetchLimit = 10
@@ -61,19 +58,16 @@ enum FeedState {
 
   func toggleLike(on post: DetailedPost) {
     guard case .loaded(var posts) = state else { return }
-
     if let index = posts.firstIndex(where: {
       $0.post.postId == post.post.postId
     }) {
       posts[index].isLiked.toggle()
       state = .loaded(posts)
-
       Task {
         let result = await service.toggleLike(
           postId: post.post.postId,
           isLiked: post.isLiked
         )
-
         if case .error(let error) = result {
           print("Error toggling like: \(error.localizedDescription)")
           guard case .loaded(var currentPosts) = state,
@@ -90,19 +84,16 @@ enum FeedState {
 
   func addComment(on post: DetailedPost, content: String) {
     guard case .loaded(var posts) = state else { return }
-
     if let index = posts.firstIndex(where: {
       $0.post.postId == post.post.postId
     }) {
       posts[index].commentCount += 1
       state = .loaded(posts)
-
       Task {
         let result = await service.addComment(
           postId: post.post.postId,
           content: content
         )
-
         if case .error(let error) = result {
           print("Error adding comment: \(error.localizedDescription)")
           guard case .loaded(var currentPosts) = state,
@@ -119,13 +110,11 @@ enum FeedState {
 
   func deletePost(on post: DetailedPost) {
     guard case .loaded(var posts) = state else { return }
-
     if let index = posts.firstIndex(where: {
       $0.post.postId == post.post.postId
     }) {
       posts.remove(at: index)
       state = .loaded(posts)
-
       Task {
         await service.deletePost(postId: post.post.postId)
       }

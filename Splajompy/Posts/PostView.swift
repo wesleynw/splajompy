@@ -28,12 +28,17 @@ struct PostView: View {
   var body: some View {
     Group {
       if !isStandalone {
-        NavigationLink {
-          StandalonePostView(postId: post.id)
-        } label: {
+        ZStack(alignment: .leading) {
+          NavigationLink(
+            destination:
+              StandalonePostView(postId: post.id)
+          ) {
+            EmptyView()
+          }
+          .opacity(0)
+          
           postContent
         }
-        .buttonStyle(.plain)
       } else {
         postContent
       }
