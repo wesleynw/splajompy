@@ -57,10 +57,12 @@ struct ProfileView: View {
         }
       }
     }
+    .task {
+      await viewModel.loadProfile()
+    }
     .refreshable {
-      feedRefreshManager.triggerRefresh()
-      viewModel.loadProfile()
-      await feedViewModel.refreshPosts()
+      await viewModel.loadProfile()
+      await feedViewModel.loadPosts(reset: true)
     }
     .sheet(isPresented: $isShowingProfileEditor) {
       ProfileEditorView(viewModel: viewModel)
@@ -130,11 +132,7 @@ struct ProfileView: View {
       case .idle:
         loadingPlaceholder
       case .loading:
-        if feedViewModel.posts.isEmpty {
-          loadingPlaceholder
-        } else {
-          postsContent(posts: feedViewModel.posts)
-        }
+        loadingPlaceholder
       case .loaded(let posts):
         if posts.isEmpty {
           emptyMessage
@@ -162,7 +160,7 @@ struct ProfileView: View {
         .onAppear {
           if post == posts.last && feedViewModel.canLoadMore {
             Task {
-              await feedViewModel.loadMorePosts()
+              await feedViewModel.loadPosts()
             }
           }
         }
@@ -188,7 +186,7 @@ struct ProfileView: View {
         .imageScale(.large)
         .onTapGesture {
           Task {
-            await feedViewModel.refreshPosts()
+            await feedViewModel.loadPosts(reset: true)
           }
         }
         .padding()

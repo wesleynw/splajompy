@@ -13,27 +13,23 @@ extension ProfileView {
     @Published var isLoadingProfile = true
     @Published var isLoadingFollowButton = false
 
-    init(userId: Int, profileService: ProfileServiceProtocol = ProfileService()) {
+    init(userId: Int, profileService: ProfileServiceProtocol = ProfileService())
+    {
       self.userId = userId
       self.profileService = profileService
-      loadProfile()
     }
 
-    func loadProfile() {
-      Task {
-        isLoadingProfile = true
+    func loadProfile() async {
+      let result = await profileService.getProfile(userId: userId)
 
-        let result = await profileService.getProfile(userId: userId)
-
-        switch result {
-        case .success(let userProfile):
-          profile = userProfile
-        case .error(let error):
-          print("Error fetching user profile: \(error.localizedDescription)")
-        }
-
-        isLoadingProfile = false
+      switch result {
+      case .success(let userProfile):
+        profile = userProfile
+      case .error(let error):
+        print("Error fetching user profile: \(error.localizedDescription)")
       }
+      
+      isLoadingProfile = false
     }
 
     func updateProfile(name: String, bio: String) {
@@ -61,7 +57,9 @@ extension ProfileView {
         )
 
         if case .error(let error) = result {
-          print("Error toggling following status: \(error.localizedDescription)")
+          print(
+            "Error toggling following status: \(error.localizedDescription)"
+          )
         } else {
           self.profile?.isFollowing.toggle()
 
