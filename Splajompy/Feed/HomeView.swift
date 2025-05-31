@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct HomeView: View {
+  @State private var scrollPosition: Int?
   @State private var filterState = FilterState()
   @State private var path = NavigationPath()
   @State private var isShowingNewPostView = false
@@ -201,12 +202,14 @@ struct HomeView: View {
 
   private func postList(posts: [DetailedPost]) -> some View {
     List {
-      ForEach(posts) { post in
+      ForEach(Array(posts.enumerated()), id: \.element.post.postId) { index, post in
         postRow(post: post)
           .listRowInsets(EdgeInsets())
+          .id("post-home_\(post.post.postId)_\(index)")
+          .transition(.opacity)
       }
       
-      if viewModel.isLoadingMore == true {
+      if viewModel.isLoadingMore {
         HStack {
           Spacer()
           ProgressView()
@@ -216,10 +219,12 @@ struct HomeView: View {
         .listRowInsets(EdgeInsets())
       }
     }
+    .scrollPosition(id: $scrollPosition)
     .listStyle(.plain)
     .refreshable {
       await viewModel.loadPosts(reset: true)
     }
+    .animation(.easeInOut(duration: 0.2), value: posts.count)
   }
 
   private func postRow(post: DetailedPost) -> some View {
@@ -239,7 +244,7 @@ struct HomeView: View {
 
   private func handlePostAppear(post: DetailedPost) {
     if case .loaded(let currentPosts) = viewModel.state,
-      post == currentPosts.last && viewModel.canLoadMore
+      post == currentPosts.last && viewModel.canLoadMore && !viewModel.isLoadingMore
     {
       Task {
         await viewModel.loadPosts()

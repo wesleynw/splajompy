@@ -38,6 +38,10 @@ enum FeedState {
       isLoadingMore = true
     }
 
+    defer {
+      isLoadingMore = false
+    }
+
     let result = await service.getPostsForFeed(
       feedType: feedType,
       userId: userId,
@@ -57,8 +61,6 @@ enum FeedState {
     case .error(let error):
       state = .failed(error)
     }
-    
-    isLoadingMore = false
   }
 
   func toggleLike(on post: DetailedPost) {
