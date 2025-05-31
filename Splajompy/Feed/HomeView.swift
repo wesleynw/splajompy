@@ -203,10 +203,12 @@ struct HomeView: View {
   private func postList(posts: [DetailedPost]) -> some View {
     List {
       ForEach(Array(posts.enumerated()), id: \.element.post.postId) { index, post in
-        postRow(post: post)
-          .listRowInsets(EdgeInsets())
-          .id("post-home_\(post.post.postId)_\(index)")
-          .transition(.opacity)
+        VStack {
+          postRow(post: post)
+            .id("post-home_\(post.post.postId)_\(index)")
+            .transition(.opacity)
+        }
+        .listRowInsets(EdgeInsets())
       }
 
       if viewModel.isLoadingMore {
