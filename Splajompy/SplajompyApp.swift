@@ -8,7 +8,6 @@ struct SplajompyApp: App {
 
   init() {
     let posthogApiKey = "phc_sSDHxTCqpjwoSDSOQiNAAgmybjEakfePBsaNHWaWy74"
-
     let config = PostHogConfig(apiKey: posthogApiKey)
     config.captureScreenViews = false
     PostHogSDK.shared.setup(config)
@@ -18,30 +17,48 @@ struct SplajompyApp: App {
     WindowGroup {
       Group {
         if authManager.isAuthenticated {
-          TabView {
-            HomeView()
-              .postHogScreenView()
-              .tabItem {
-                Label("Home", systemImage: "house")
+          if #available(iOS 18, *) {
+            TabView {
+              Tab("Home", systemImage: "house") {
+                HomeView()
+                  .postHogScreenView()
               }
-
-            SearchView()
-              .postHogScreenView()
-              .tabItem {
-                Label("Search", systemImage: "magnifyingglass")
+              Tab("Notifications", systemImage: "bell") {
+                NotificationsView()
+                  .postHogScreenView()
               }
-
-            NotificationsView()
-              .postHogScreenView()
-              .tabItem {
-                Label("Notifications", systemImage: "bell")
+              Tab("Profile", systemImage: "person.circle") {
+                CurrentProfileView()
+                  .postHogScreenView()
               }
-
-            CurrentProfileView()
-              .postHogScreenView()
-              .tabItem {
-                Label("Profile", systemImage: "person.circle")
+              Tab("Search", systemImage: "magnifyingglass", role: .search) {
+                SearchView()
+                  .postHogScreenView()
               }
+            }
+          } else {
+            TabView {
+              HomeView()
+                .postHogScreenView()
+                .tabItem {
+                  Label("Home", systemImage: "house")
+                }
+              NotificationsView()
+                .postHogScreenView()
+                .tabItem {
+                  Label("Notifications", systemImage: "bell")
+                }
+              CurrentProfileView()
+                .postHogScreenView()
+                .tabItem {
+                  Label("Profile", systemImage: "person.circle")
+                }
+              SearchView()
+                .postHogScreenView()
+                .tabItem {
+                  Label("Search", systemImage: "magnifyingglass")
+                }
+            }
           }
         } else {
           SplashScreenView()
@@ -51,5 +68,4 @@ struct SplajompyApp: App {
       .environmentObject(authManager)
     }
   }
-
 }

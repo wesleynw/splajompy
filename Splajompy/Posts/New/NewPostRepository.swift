@@ -15,7 +15,7 @@ struct PresignedUrlResponse: Codable {
 struct PostCreationService {
   static func createPost(
     text: String,
-    images: [Image],
+    images: [UIImage],
     items: [PhotosPickerItem]
   ) async -> AsyncResult<EmptyResponse> {
     do {

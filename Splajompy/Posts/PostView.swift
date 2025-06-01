@@ -27,21 +27,19 @@ struct PostView: View {
 
   var body: some View {
     Group {
+      Divider()
       if !isStandalone {
-        ZStack(alignment: .leading) {
-          NavigationLink(
-            destination:
-              StandalonePostView(postId: post.id)
-          ) {
-            EmptyView()
-          }
-          .opacity(0)
-
+        NavigationLink(
+          destination:
+            StandalonePostView(postId: post.id)
+        ) {
           postContent
         }
+        .buttonStyle(.plain)
       } else {
         postContent
       }
+      Divider()
     }
   }
 
@@ -157,7 +155,7 @@ struct PostView: View {
         hasOtherLikes: post.hasOtherLikes
       )
     }
-    .padding(.vertical)
+    .padding(.vertical, 4)
     .padding(.horizontal, 16)
     .sheet(isPresented: $isShowingComments) {
       CommentsView(postId: post.post.postId)
@@ -169,7 +167,6 @@ struct PostView: View {
             .foregroundColor(.red)
         }
       }
-      .listStyle(.automatic)
       .presentationDetents([.medium])
       .presentationDragIndicator(.visible)
     }

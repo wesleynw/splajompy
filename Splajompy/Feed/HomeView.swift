@@ -1,7 +1,6 @@
 import SwiftUI
 
 struct HomeView: View {
-  @State private var scrollPosition: Int?
   @State private var filterState = FilterState()
   @State private var path = NavigationPath()
   @State private var isShowingNewPostView = false
@@ -64,19 +63,27 @@ struct HomeView: View {
 
   @ViewBuilder
   private var mainContent: some View {
-    switch viewModel.state {
-    case .idle:
-      loadingPlaceholder
-    case .loading:
-      loadingPlaceholder
-    case .loaded(let posts):
-      if posts.isEmpty {
-        emptyMessage
-      } else {
-        postList(posts: posts)
+    ScrollView {
+      switch viewModel.state {
+      case .idle:
+        loadingPlaceholder
+      case .loading:
+        loadingPlaceholder
+      case .loaded(let posts):
+        if posts.isEmpty {
+          emptyMessage
+        } else {
+          postList(posts: posts)
+        }
+      case .failed(let error):
+        errorView(error: error)
       }
-    case .failed(let error):
-      errorView(error: error)
+    }
+    .navigationBarTitleDisplayMode(.inline)
+    .refreshable {
+      await Task {
+        await viewModel.loadPosts(reset: true)
+      }.value
     }
   }
 
@@ -201,14 +208,15 @@ struct HomeView: View {
   }
 
   private func postList(posts: [DetailedPost]) -> some View {
-    List {
-      ForEach(Array(posts.enumerated()), id: \.element.post.postId) { index, post in
+    LazyVStack(spacing: 0) {
+      ForEach(Array(posts.enumerated()), id: \.element.post.postId) {
+        index,
+        post in
         VStack {
           postRow(post: post)
             .id("post-home_\(post.post.postId)_\(index)")
             .transition(.opacity)
         }
-        .listRowInsets(EdgeInsets())
       }
 
       if viewModel.isLoadingMore {
@@ -218,13 +226,7 @@ struct HomeView: View {
             .padding()
           Spacer()
         }
-        .listRowInsets(EdgeInsets())
       }
-    }
-    .scrollPosition(id: $scrollPosition)
-    .listStyle(.plain)
-    .refreshable {
-      await viewModel.loadPosts(reset: true)
     }
     .animation(.easeInOut(duration: 0.2), value: posts.count)
   }
@@ -246,7 +248,8 @@ struct HomeView: View {
 
   private func handlePostAppear(post: DetailedPost) {
     if case .loaded(let currentPosts) = viewModel.state,
-      post == currentPosts.last && viewModel.canLoadMore && !viewModel.isLoadingMore
+      post == currentPosts.last && viewModel.canLoadMore
+        && !viewModel.isLoadingMore
     {
       Task {
         await viewModel.loadPosts()

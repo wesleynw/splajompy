@@ -54,7 +54,7 @@ struct NewPostView: View {
           HStack(spacing: 12) {
             ForEach(0..<viewModel.selectedImages.count, id: \.self) { i in
               ZStack(alignment: .topTrailing) {
-                viewModel.selectedImages[i]
+                Image(uiImage: viewModel.selectedImages[i])
                   .resizable()
                   .scaledToFill()
                   .frame(width: 100, height: 100)
