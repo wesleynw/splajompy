@@ -33,18 +33,20 @@ struct ProfileView: View {
   }
 
   var body: some View {
-    mainContent
-      .refreshable {
-        await viewModel.loadProfile()
-      }
-      .sheet(isPresented: $isShowingProfileEditor) {
-        ProfileEditorView(viewModel: viewModel)
-          .interactiveDismissDisabled()
-      }
-      .navigationTitle("@" + self.username)
-      .task {
-        await viewModel.loadProfile()
-      }
+    ScrollView {
+      mainContent
+    }
+    .refreshable {
+      await viewModel.loadProfile()
+    }
+    .sheet(isPresented: $isShowingProfileEditor) {
+      ProfileEditorView(viewModel: viewModel)
+        .interactiveDismissDisabled()
+    }
+    .navigationTitle("@" + self.username)
+    .task {
+      await viewModel.loadProfile()
+    }
   }
 
   @ViewBuilder
@@ -62,25 +64,24 @@ struct ProfileView: View {
   private func profileList(user: UserProfile, posts: [DetailedPost])
     -> some View
   {
-    List {
+    LazyVStack(spacing: 0) {
       profileHeader(user: user)
-        .listRowInsets(EdgeInsets())
 
       if posts.isEmpty {
         emptyMessage
-          .listRowInsets(EdgeInsets())
       } else {
         ForEach(posts) { post in
-          PostView(
-            post: post,
-            showAuthor: false,
-            onLikeButtonTapped: { viewModel.toggleLike(on: post) },
-            onPostDeleted: { viewModel.deletePost(on: post) }
-          )
+          VStack {
+            PostView(
+              post: post,
+              showAuthor: false,
+              onLikeButtonTapped: { viewModel.toggleLike(on: post) },
+              onPostDeleted: { viewModel.deletePost(on: post) }
+            )
+          }
           .environmentObject(feedRefreshManager)
           .environmentObject(authManager)
           .id("post-profile_\(post.post.postId)")
-          .listRowInsets(EdgeInsets())
           .transition(.opacity)
           .onAppear {
             if post == posts.last && viewModel.canLoadMorePosts {
@@ -98,12 +99,10 @@ struct ProfileView: View {
               .padding()
             Spacer()
           }
-          .listRowInsets(EdgeInsets())
           .transition(.opacity)
         }
       }
     }
-    .listStyle(.plain)
     .animation(.easeInOut(duration: 0.2), value: posts.count)
     .animation(.easeInOut(duration: 0.2), value: viewModel.isLoadingMorePosts)
   }

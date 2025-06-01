@@ -14,16 +14,18 @@ extension NewPostView {
     @Published var isLoading = false
     @Published var errorDisplay: String?
 
-    @Published var selectedImages = [Image]()
+    @Published var selectedImages = [UIImage]()
     // TODO: find a way to do this without resetting the entire array of selected images
     @Published var selectedItems = [PhotosPickerItem]() {
       didSet {
         Task {
-          var newImages = [Image]()
+          var newImages = [UIImage]()
 
           for item in selectedItems {
-            if let image = try? await item.loadTransferable(type: Image.self) {
-              newImages.append(image)
+            if let data = try? await item.loadTransferable(type: Data.self) {
+              if let uiImage = UIImage(data: data) {
+                newImages.append(uiImage)
+              }
             }
           }
 
