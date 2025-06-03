@@ -2,7 +2,6 @@ import SwiftUI
 
 struct HomeView: View {
   @State private var filterState = FilterState()
-  @State private var path = NavigationPath()
   @State private var isShowingNewPostView = false
   @StateObject private var viewModel: FeedViewModel
   @EnvironmentObject private var feedRefreshManager: FeedRefreshManager
@@ -38,32 +37,25 @@ struct HomeView: View {
   }
 
   var body: some View {
-    NavigationStack(path: $path) {
-      mainContent
-        .id(filterState.mode)
-        .toolbar {
-          logoToolbarItem
-          filterMenuToolbarItem
-          addPostToolbarItem
+    mainContent
+      .id(filterState.mode)
+      .toolbar {
+        logoToolbarItem
+        addPostToolbarItem
+      }
+      .onAppear {
+        Task {
+          await viewModel.loadPosts()
         }
-        .navigationDestination(for: Route.self) { route in
-          routeDestination(route)
-        }
-        .onOpenURL { url in
-          handleDeepLink(url)
-        }
-    }
-    .task {
-      await viewModel.loadPosts()
-    }
-    .sheet(isPresented: $isShowingNewPostView) {
-      newPostSheet
-    }
+      }
+      .sheet(isPresented: $isShowingNewPostView) {
+        newPostSheet
+      }
   }
 
   @ViewBuilder
   private var mainContent: some View {
-    ScrollView {
+    VStack {
       switch viewModel.state {
       case .idle:
         loadingPlaceholder
@@ -80,19 +72,24 @@ struct HomeView: View {
       }
     }
     .navigationBarTitleDisplayMode(.inline)
-    .refreshable {
-      await Task {
-        await viewModel.loadPosts(reset: true)
-      }.value
-    }
   }
 
   private var logoToolbarItem: some ToolbarContent {
     ToolbarItem(placement: .navigationBarLeading) {
-      Image("Full_Logo")
-        .resizable()
-        .scaledToFit()
-        .frame(height: 30)
+      Menu {
+        allModeButton
+        followingModeButton
+      } label: {
+        HStack(spacing: 4) {
+          Image("Full_Logo")
+            .resizable()
+            .scaledToFit()
+            .frame(height: 30)
+          Image(systemName: "chevron.down")
+            .font(.caption2)
+            .foregroundColor(.primary)
+        }
+      }
     }
   }
 
@@ -164,19 +161,9 @@ struct HomeView: View {
 
   private var newPostSheet: some View {
     NewPostView(
-      onPostCreated: { feedRefreshManager.triggerRefresh() }
+      onPostCreated: { Task { await viewModel.loadPosts(reset: true, useLoadingState: true) } }
     )
     .interactiveDismissDisabled()
-  }
-
-  @ViewBuilder
-  private func routeDestination(_ route: Route) -> some View {
-    switch route {
-    case .profile(let id, let username):
-      ProfileView(userId: Int(id) ?? 0, username: username)
-    case .post(let id):
-      StandalonePostView(postId: id)
-    }
   }
 
   private func selectAllMode() {
@@ -201,32 +188,33 @@ struct HomeView: View {
     }
   }
 
-  private func handleDeepLink(_ url: URL) {
-    if let route = parseDeepLink(url) {
-      path.append(route)
-    }
-  }
-
   private func postList(posts: [DetailedPost]) -> some View {
-    LazyVStack(spacing: 0) {
-      ForEach(Array(posts.enumerated()), id: \.element.post.postId) {
-        index,
-        post in
-        VStack {
-          postRow(post: post)
-            .id("post-home_\(post.post.postId)_\(index)")
-            .transition(.opacity)
+    ScrollView {
+      LazyVStack(spacing: 0) {
+        ForEach(Array(posts.enumerated()), id: \.element.post.postId) {
+          index,
+          post in
+          VStack {
+            postRow(post: post)
+              .id("post-home_\(post.post.postId)_\(index)")
+              .transition(.opacity)
+          }
         }
-      }
 
-      if viewModel.isLoadingMore {
-        HStack {
-          Spacer()
-          ProgressView()
-            .padding()
-          Spacer()
+        if viewModel.isLoadingMore {
+          HStack {
+            Spacer()
+            ProgressView()
+              .padding()
+            Spacer()
+          }
         }
       }
+    }
+    .refreshable {
+      await Task {
+        await viewModel.loadPosts(reset: true)
+      }.value
     }
     .animation(.easeInOut(duration: 0.2), value: posts.count)
   }
@@ -259,10 +247,10 @@ struct HomeView: View {
 
   private var loadingPlaceholder: some View {
     VStack {
+      Spacer()
       ProgressView()
         .scaleEffect(1.5)
         .padding()
-        .frame(maxWidth: .infinity)
       Spacer()
     }
   }
@@ -270,43 +258,28 @@ struct HomeView: View {
   private func errorView(error: Error) -> some View {
     VStack {
       Spacer()
-      errorIcon
-      errorText(error: error)
-      retryButton
-      Spacer()
-    }
-  }
-
-  private var errorIcon: some View {
-    Image(systemName: "arrow.clockwise")
-      .imageScale(.large)
-      .onTapGesture {
+      VStack {
+        Text("There was an error :/")
+          .font(.title2)
+          .fontWeight(.bold)
+        Text(error.localizedDescription)
+          .foregroundColor(.red)
+          .multilineTextAlignment(.center)
+      }
+      Button {
         Task {
           await viewModel.loadPosts(reset: true)
         }
+      } label: {
+        HStack {
+          Image(systemName: "arrow.clockwise")
+          Text("Retry")
+        }
       }
       .padding()
-  }
-
-  private func errorText(error: Error) -> some View {
-    VStack {
-      Text("There was an error.")
-        .font(.title2)
-        .fontWeight(.bold)
-      Text(error.localizedDescription)
-        .foregroundColor(.red)
-        .multilineTextAlignment(.center)
-        .padding()
+      .buttonStyle(.bordered)
+      Spacer()
     }
-  }
-
-  private var retryButton: some View {
-    Button("Retry") {
-      Task {
-        await viewModel.loadPosts(reset: true)
-      }
-    }
-    .buttonStyle(.borderedProminent)
   }
 
   private var emptyMessage: some View {

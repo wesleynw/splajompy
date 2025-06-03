@@ -3,6 +3,13 @@ import SwiftUI
 
 @main
 struct SplajompyApp: App {
+  @State private var selection: Int = 0
+  @State private var navigationPaths = [
+    NavigationPath(),
+    NavigationPath(),
+    NavigationPath(),
+    NavigationPath(),
+  ]
   @StateObject private var authManager = AuthManager()
   @StateObject private var feedRefreshManager = FeedRefreshManager()
 
@@ -17,48 +24,53 @@ struct SplajompyApp: App {
     WindowGroup {
       Group {
         if authManager.isAuthenticated {
-          if #available(iOS 18, *) {
-            TabView {
-              Tab("Home", systemImage: "house") {
-                HomeView()
-                  .postHogScreenView()
-              }
-              Tab("Notifications", systemImage: "bell") {
-                NotificationsView()
-                  .postHogScreenView()
-              }
-              Tab("Profile", systemImage: "person.circle") {
-                CurrentProfileView()
-                  .postHogScreenView()
-              }
-              Tab("Search", systemImage: "magnifyingglass", role: .search) {
-                SearchView()
-                  .postHogScreenView()
-              }
-            }
-          } else {
-            TabView {
+          TabView(selection: $selection) {
+            NavigationStack(path: $navigationPaths[0]) {
               HomeView()
                 .postHogScreenView()
-                .tabItem {
-                  Label("Home", systemImage: "house")
-                }
-              NotificationsView()
-                .postHogScreenView()
-                .tabItem {
-                  Label("Notifications", systemImage: "bell")
-                }
-              CurrentProfileView()
-                .postHogScreenView()
-                .tabItem {
-                  Label("Profile", systemImage: "person.circle")
-                }
-              SearchView()
-                .postHogScreenView()
-                .tabItem {
-                  Label("Search", systemImage: "magnifyingglass")
+                .navigationDestination(for: Route.self) { route in
+                  routeDestination(route)
                 }
             }
+            .tabItem {
+              Label("Home", systemImage: "house")
+            }
+
+            NavigationStack(path: $navigationPaths[1]) {
+              NotificationsView()
+                .postHogScreenView()
+                .navigationDestination(for: Route.self) { route in
+                  routeDestination(route)
+                }
+            }
+            .tabItem {
+              Label("Notifications", systemImage: "bell")
+            }
+
+            NavigationStack(path: $navigationPaths[2]) {
+              SearchView()
+                .postHogScreenView()
+                .navigationDestination(for: Route.self) { route in
+                  routeDestination(route)
+                }
+            }
+            .tabItem {
+              Label("Search", systemImage: "magnifyingglass")
+            }
+
+            NavigationStack(path: $navigationPaths[3]) {
+              CurrentProfileView()
+                .postHogScreenView()
+                .navigationDestination(for: Route.self) { route in
+                  routeDestination(route)
+                }
+            }
+            .tabItem {
+              Label("Profile", systemImage: "person.circle")
+            }
+          }
+          .onOpenURL { url in
+            handleDeepLink(url)
           }
         } else {
           SplashScreenView()
@@ -66,6 +78,22 @@ struct SplajompyApp: App {
       }
       .environmentObject(feedRefreshManager)
       .environmentObject(authManager)
+    }
+  }
+
+  @ViewBuilder
+  private func routeDestination(_ route: Route) -> some View {
+    switch route {
+    case .profile(let id, let username):
+      ProfileView(userId: Int(id)!, username: username)
+    case .post(let id):
+      StandalonePostView(postId: id)
+    }
+  }
+
+  private func handleDeepLink(_ url: URL) {
+    if let route = parseDeepLink(url) {
+      navigationPaths[selection].append(route)
     }
   }
 }

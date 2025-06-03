@@ -33,20 +33,17 @@ struct ProfileView: View {
   }
 
   var body: some View {
-    ScrollView {
-      mainContent
-    }
-    .refreshable {
-      await viewModel.loadProfile()
-    }
-    .sheet(isPresented: $isShowingProfileEditor) {
-      ProfileEditorView(viewModel: viewModel)
-        .interactiveDismissDisabled()
-    }
-    .navigationTitle("@" + self.username)
-    .task {
-      await viewModel.loadProfile()
-    }
+    mainContent
+      .sheet(isPresented: $isShowingProfileEditor) {
+        ProfileEditorView(viewModel: viewModel)
+          .interactiveDismissDisabled()
+      }
+      .navigationTitle("@" + self.username)
+      .onAppear {
+        Task {
+          await viewModel.loadProfile()
+        }
+      }
   }
 
   @ViewBuilder
@@ -55,7 +52,12 @@ struct ProfileView: View {
     case .idle, .loading:
       loadingPlaceholder
     case .loaded(let user, let posts):
-      profileList(user: user, posts: posts)
+      ScrollView {
+        profileList(user: user, posts: posts)
+      }
+      .refreshable {
+        await viewModel.loadProfile()
+      }
     case .failed(let error):
       errorView(error: error)
     }
@@ -162,10 +164,10 @@ struct ProfileView: View {
 
   private var loadingPlaceholder: some View {
     VStack {
+      Spacer()
       ProgressView()
         .scaleEffect(1.5)
         .padding()
-        .frame(maxWidth: .infinity)
       Spacer()
     }
   }
@@ -173,18 +175,26 @@ struct ProfileView: View {
   private func errorView(error: Error) -> some View {
     VStack {
       Spacer()
-      Image(systemName: "arrow.clockwise")
-        .imageScale(.large)
-        .onTapGesture {
-          Task {
-            await viewModel.loadProfile()
-          }
+      VStack {
+        Text("There was an error :/")
+          .font(.title2)
+          .fontWeight(.bold)
+        Text(error.localizedDescription)
+          .foregroundColor(.red)
+          .multilineTextAlignment(.center)
+      }
+      Button {
+        Task {
+          await viewModel.loadPosts(reset: true)
         }
-        .padding()
-      Text("There was an error loading posts.")
-        .font(.title2).fontWeight(.bold)
-      Text(error.localizedDescription)
-        .foregroundColor(.red)
+      } label: {
+        HStack {
+          Image(systemName: "arrow.clockwise")
+          Text("Retry")
+        }
+      }
+      .padding()
+      .buttonStyle(.bordered)
       Spacer()
     }
   }
