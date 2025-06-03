@@ -53,36 +53,35 @@ struct AppIconPickerView: View {
     }
     
     var body: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 20) {
-                Image("Image_AppIcon")
-                    .resizable()
-                    .frame(width: 80, height: 80)
-                    .cornerRadius(16)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 16)
-                            .stroke(selectedIcon == nil ? Color.blue : Color.clear, lineWidth: 3)
-                    )
-                    .onTapGesture {
-                        selectedIcon = nil
-                        setAppIcon(nil)
-                    }
-                
-                Image("Image_AppIcon 1")
-                    .resizable()
-                    .frame(width: 80, height: 80)
-                    .cornerRadius(16)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 16)
-                            .stroke(selectedIcon == "AppIcon1" ? Color.blue : Color.clear, lineWidth: 3)
-                    )
-                    .onTapGesture {
-                        selectedIcon = "AppIcon1"
-                        setAppIcon("AppIcon 1")
-                    }
-            }
-            .padding()
+        HStack(spacing: 20) {
+            Image("Image_AppIcon")
+                .resizable()
+                .frame(width: 80, height: 80)
+                .cornerRadius(16)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16)
+                        .stroke(selectedIcon == nil ? Color.blue : Color.clear, lineWidth: 3)
+                )
+                .onTapGesture {
+                    selectedIcon = nil
+                    setAppIcon(nil)
+                }
+            
+            Image("Image_AppIcon 1")
+                .resizable()
+                .frame(width: 80, height: 80)
+                .cornerRadius(16)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16)
+                        .stroke(selectedIcon == "AppIcon 1" ? Color.blue : Color.clear, lineWidth: 3)
+                )
+                .onTapGesture {
+                    selectedIcon = "AppIcon 1"
+                    setAppIcon("AppIcon 1")
+                }
         }
+        .frame(maxWidth: .infinity)
+        .padding()
         .navigationTitle("App Icon")
     }
     
