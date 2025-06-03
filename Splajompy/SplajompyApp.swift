@@ -28,6 +28,9 @@ struct SplajompyApp: App {
             NavigationStack(path: $navigationPaths[0]) {
               HomeView()
                 .postHogScreenView()
+                .navigationDestination(for: Route.self) { route in
+                  routeDestination(route)
+                }
             }
             .tabItem {
               Label("Home", systemImage: "house")
@@ -36,6 +39,9 @@ struct SplajompyApp: App {
             NavigationStack(path: $navigationPaths[1]) {
               NotificationsView()
                 .postHogScreenView()
+                .navigationDestination(for: Route.self) { route in
+                  routeDestination(route)
+                }
             }
             .tabItem {
               Label("Notifications", systemImage: "bell")
@@ -44,25 +50,23 @@ struct SplajompyApp: App {
             NavigationStack(path: $navigationPaths[2]) {
               SearchView()
                 .postHogScreenView()
+                .navigationDestination(for: Route.self) { route in
+                  routeDestination(route)
+                }
             }
             .tabItem {
               Label("Search", systemImage: "magnifyingglass")
             }
 
-            NavigationStack(path: $navigationPaths[2]) {
+            NavigationStack(path: $navigationPaths[3]) {
               CurrentProfileView()
                 .postHogScreenView()
+                .navigationDestination(for: Route.self) { route in
+                  routeDestination(route)
+                }
             }
             .tabItem {
               Label("Profile", systemImage: "person.circle")
-            }
-          }
-          .navigationDestination(for: Route.self) { route in
-            switch route {
-            case .profile(let id, let username):
-              ProfileView(userId: Int(id)!, username: username)
-            case .post(let id):
-              StandalonePostView(postId: id)
             }
           }
           .onOpenURL { url in
@@ -74,6 +78,16 @@ struct SplajompyApp: App {
       }
       .environmentObject(feedRefreshManager)
       .environmentObject(authManager)
+    }
+  }
+
+  @ViewBuilder
+  private func routeDestination(_ route: Route) -> some View {
+    switch route {
+    case .profile(let id, let username):
+      ProfileView(userId: Int(id)!, username: username)
+    case .post(let id):
+      StandalonePostView(postId: id)
     }
   }
 
