@@ -2,7 +2,6 @@ import SwiftUI
 
 struct HomeView: View {
   @State private var filterState = FilterState()
-  @State private var path = NavigationPath()
   @State private var isShowingNewPostView = false
   @StateObject private var viewModel: FeedViewModel
   @EnvironmentObject private var feedRefreshManager: FeedRefreshManager
@@ -38,27 +37,21 @@ struct HomeView: View {
   }
 
   var body: some View {
-    NavigationStack(path: $path) {
-      mainContent
-        .id(filterState.mode)
-        .toolbar {
-          logoToolbarItem
-          filterMenuToolbarItem
-          addPostToolbarItem
+    mainContent
+      .id(filterState.mode)
+      .toolbar {
+        logoToolbarItem
+        filterMenuToolbarItem
+        addPostToolbarItem
+      }
+      .onAppear {
+        Task {
+          await viewModel.loadPosts()
         }
-        .navigationDestination(for: Route.self) { route in
-          routeDestination(route)
-        }
-        .onOpenURL { url in
-          handleDeepLink(url)
-        }
-    }
-    .task {
-      await viewModel.loadPosts()
-    }
-    .sheet(isPresented: $isShowingNewPostView) {
-      newPostSheet
-    }
+      }
+      .sheet(isPresented: $isShowingNewPostView) {
+        newPostSheet
+      }
   }
 
   @ViewBuilder
@@ -169,16 +162,6 @@ struct HomeView: View {
     .interactiveDismissDisabled()
   }
 
-  @ViewBuilder
-  private func routeDestination(_ route: Route) -> some View {
-    switch route {
-    case .profile(let id, let username):
-      ProfileView(userId: Int(id) ?? 0, username: username)
-    case .post(let id):
-      StandalonePostView(postId: id)
-    }
-  }
-
   private func selectAllMode() {
     withAnimation(.snappy) {
       filterState.mode = .all
@@ -198,12 +181,6 @@ struct HomeView: View {
       Task {
         await viewModel.loadPosts(reset: true)
       }
-    }
-  }
-
-  private func handleDeepLink(_ url: URL) {
-    if let route = parseDeepLink(url) {
-      path.append(route)
     }
   }
 

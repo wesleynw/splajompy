@@ -542,7 +542,7 @@
 			baseConfigurationReferenceAnchor = 184A63CD2D88CBA100860D6B /* Splajompy */;
 			baseConfigurationReferenceRelativePath = Configuration/Debug.xcconfig;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = "AppIcon 1";
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
@@ -584,7 +584,7 @@
 			baseConfigurationReferenceAnchor = 184A63CD2D88CBA100860D6B /* Splajompy */;
 			baseConfigurationReferenceRelativePath = Configuration/Release.xcconfig;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = "AppIcon 1";
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
