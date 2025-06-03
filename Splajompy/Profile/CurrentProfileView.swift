@@ -12,5 +12,12 @@ struct CurrentProfileView: View {
       username: username,
       isOwnProfile: true
     )
+    .toolbar {
+      NavigationLink(
+        destination: SettingsView().environmentObject(authManager)
+      ) {
+        Image(systemName: "gearshape")
+      }
+    }
   }
 }
