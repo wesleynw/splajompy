@@ -35,6 +35,7 @@ struct SplajompyApp: App {
             .tabItem {
               Label("Home", systemImage: "house")
             }
+            .tag(0)
 
             NavigationStack(path: $navigationPaths[1]) {
               NotificationsView()
@@ -46,6 +47,7 @@ struct SplajompyApp: App {
             .tabItem {
               Label("Notifications", systemImage: "bell")
             }
+            .tag(1)
 
             NavigationStack(path: $navigationPaths[2]) {
               SearchView()
@@ -57,6 +59,7 @@ struct SplajompyApp: App {
             .tabItem {
               Label("Search", systemImage: "magnifyingglass")
             }
+            .tag(2)
 
             NavigationStack(path: $navigationPaths[3]) {
               CurrentProfileView()
@@ -68,6 +71,7 @@ struct SplajompyApp: App {
             .tabItem {
               Label("Profile", systemImage: "person.circle")
             }
+            .tag(3)
           }
           .onOpenURL { url in
             handleDeepLink(url)
