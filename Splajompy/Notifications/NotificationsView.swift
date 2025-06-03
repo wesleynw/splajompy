@@ -88,7 +88,7 @@ struct NotificationsView: View {
             .padding()
         }
       }
-      
+
     }
     .toolbar {
       Button {
