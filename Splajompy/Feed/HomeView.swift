@@ -41,7 +41,6 @@ struct HomeView: View {
       .id(filterState.mode)
       .toolbar {
         logoToolbarItem
-        filterMenuToolbarItem
         addPostToolbarItem
       }
       .onAppear {
@@ -77,10 +76,20 @@ struct HomeView: View {
 
   private var logoToolbarItem: some ToolbarContent {
     ToolbarItem(placement: .navigationBarLeading) {
-      Image("Full_Logo")
-        .resizable()
-        .scaledToFit()
-        .frame(height: 30)
+      Menu {
+        allModeButton
+        followingModeButton
+      } label: {
+        HStack(spacing: 4) {
+          Image("Full_Logo")
+            .resizable()
+            .scaledToFit()
+            .frame(height: 30)
+          Image(systemName: "chevron.down")
+            .font(.caption2)
+            .foregroundColor(.primary)
+        }
+      }
     }
   }
 
@@ -152,7 +161,7 @@ struct HomeView: View {
 
   private var newPostSheet: some View {
     NewPostView(
-      onPostCreated: { feedRefreshManager.triggerRefresh() }
+      onPostCreated: { Task { await viewModel.loadPosts(reset: true, useLoadingState: true) } }
     )
     .interactiveDismissDisabled()
   }

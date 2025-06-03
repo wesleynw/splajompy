@@ -47,17 +47,12 @@ struct PostView: View {
     VStack(alignment: .leading, spacing: 12) {
       if showAuthor {
         HStack(alignment: .top) {
-          ZStack(alignment: .leading) {
-            NavigationLink(
+          NavigationLink(
               value: Route.profile(
                 id: String(post.user.userId),
                 username: post.user.username
               )
-            ) {
-              EmptyView()
-            }
-            .opacity(0)
-
+          ) {
             VStack(alignment: .leading, spacing: 2) {
               if post.user.username == "ads" {
                 HStack {
@@ -86,6 +81,7 @@ struct PostView: View {
             }
           }
         }
+        .buttonStyle(.plain)
       }
       if let postText = post.post.text, postText.count > 0 {
         ContentTextView(text: postText, facets: post.post.facets ?? [])
@@ -100,7 +96,7 @@ struct PostView: View {
           .foregroundColor(.gray)
         Spacer()
         HStack(spacing: 16) {
-          if authManager.getCurrentUser().userId == post.user.userId {
+          if authManager.getCurrentUser().userId == post.user.userId && !isStandalone {
             Button(action: {
               isShowingPostMenu = true
               let impact = UIImpactFeedbackGenerator(style: .light)

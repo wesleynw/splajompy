@@ -94,9 +94,12 @@ struct NotificationsView: View {
       Button {
         viewModel.markAllNotificationsAsRead()
       } label: {
-        Image(systemName: "text.badge.checkmark")
+        HStack {
+          Image(systemName: "text.badge.checkmark")
+          Text("Mark Read")
+        }
       }
-      .buttonStyle(.plain)
+      .buttonStyle(.bordered)
     }
     .navigationTitle("Notifications")
     .environmentObject(authManager)
