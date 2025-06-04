@@ -7,7 +7,7 @@ struct NotificationsView: View {
   @EnvironmentObject private var authManager: AuthManager
   @EnvironmentObject private var feedRefreshManager: FeedRefreshManager
 
-  init(viewModel: ViewModel = ViewModel()) {
+  init(viewModel: ViewModel = ViewModel(service: MockNotificationService())) {
     _viewModel = StateObject(wrappedValue: viewModel)
   }
 
@@ -25,10 +25,24 @@ struct NotificationsView: View {
           .frame(maxHeight: .infinity)
       case .loaded(let notifications):
         if notifications.isEmpty {
-          Text("No notifications.")
-            .font(.title3)
-            .fontWeight(.bold)
-            .padding(.top, 40)
+          VStack {
+            Spacer()
+            Text("No notifications.")
+              .font(.title3)
+              .fontWeight(.bold)
+              .padding(.top, 40)
+            Button {
+              Task { await viewModel.loadNotifications(reset: true) }
+            } label: {
+              HStack {
+                Image(systemName: "arrow.clockwise")
+                Text("Retry")
+              }
+            }
+            .padding()
+            .buttonStyle(.bordered)
+            Spacer()
+          }
         } else {
           List {
             ForEach(notifications) { notification in
@@ -196,23 +210,28 @@ struct NotificationRow: View {
 
 struct NotificationsView_Previews: PreviewProvider {
   static var feedRefreshManager = FeedRefreshManager()
+  static var authManager = AuthManager()
 
   static var previews: some View {
     Group {
       NotificationsView(viewModel: createViewModel(state: .loaded))
         .environmentObject(feedRefreshManager)
+        .environmentObject(authManager)
         .previewDisplayName("Loaded")
 
       NotificationsView(viewModel: createViewModel(state: .empty))
         .environmentObject(feedRefreshManager)
+        .environmentObject(authManager)
         .previewDisplayName("Empty")
 
       NotificationsView(viewModel: createViewModel(state: .loading))
         .environmentObject(feedRefreshManager)
+        .environmentObject(authManager)
         .previewDisplayName("Loading")
 
       NotificationsView(viewModel: createViewModel(state: .error))
         .environmentObject(feedRefreshManager)
+        .environmentObject(authManager)
         .previewDisplayName("Error")
     }
 
