@@ -17,7 +17,7 @@ struct ProfileView: View {
     self.userId = userId
     self.username = username
     self.isOwnProfile = isOwnProfile
-    _viewModel = StateObject(wrappedValue: ViewModel(userId: userId, profileService: MockProfileService(), postService: MockPostService()))
+    _viewModel = StateObject(wrappedValue: ViewModel(userId: userId))
   }
 
   init(

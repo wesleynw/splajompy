@@ -1,7 +1,6 @@
 import Foundation
 
-class MockNotificationService: @unchecked Sendable, NotificationServiceProtocol
-{
+class MockNotificationService: @unchecked Sendable, NotificationServiceProtocol {
   func getUnreadNotificationCount() async -> AsyncResult<Int> {
     return .success(0)
   }

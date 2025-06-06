@@ -26,7 +26,6 @@ struct HomeView: View {
     _viewModel = StateObject(
       wrappedValue: FeedViewModel(
         feedType: decodedState.mode == .all ? .all : .home,
-        service: MockPostService()
       )
     )
   }
@@ -162,7 +161,9 @@ struct HomeView: View {
 
   private var newPostSheet: some View {
     NewPostView(
-      onPostCreated: { Task { await viewModel.loadPosts(reset: true, useLoadingState: true) } }
+      onPostCreated: {
+        Task { await viewModel.loadPosts(reset: true, useLoadingState: true) }
+      }
     )
     .interactiveDismissDisabled()
   }

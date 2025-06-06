@@ -349,14 +349,15 @@ final class MockPostStore: @unchecked Sendable {
         ],
         hasOtherLikes: true
       ),
-      
+
       2000: DetailedPost(
         post: Post(
           postId: 2000,
           userId: 1,
-          text: "check this out: Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+          text:
+            "check this out: Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
           createdAt: formatter.string(
-            from: baseDate.addingTimeInterval(-10800000)
+            from: baseDate.addingTimeInterval(-10_800_000)
           ),
           facets: nil
         ),
@@ -375,14 +376,14 @@ final class MockPostStore: @unchecked Sendable {
         relevantLikes: [],
         hasOtherLikes: false
       ),
-      
+
       1999: DetailedPost(
         post: Post(
           postId: 1999,
           userId: 1,
           text: "i just found this amazing coffee shop",
           createdAt: formatter.string(
-            from: baseDate.addingTimeInterval(-11800000)
+            from: baseDate.addingTimeInterval(-11_800_000)
           ),
           facets: nil
         ),

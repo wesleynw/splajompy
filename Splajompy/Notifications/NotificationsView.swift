@@ -7,7 +7,7 @@ struct NotificationsView: View {
   @EnvironmentObject private var authManager: AuthManager
   @EnvironmentObject private var feedRefreshManager: FeedRefreshManager
 
-  init(viewModel: ViewModel = ViewModel(service: MockNotificationService())) {
+  init(viewModel: ViewModel = ViewModel()) {
     _viewModel = StateObject(wrappedValue: viewModel)
   }
 
