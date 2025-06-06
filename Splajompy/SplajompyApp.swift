@@ -12,6 +12,7 @@ struct SplajompyApp: App {
   ]
   @StateObject private var authManager = AuthManager()
   @StateObject private var feedRefreshManager = FeedRefreshManager()
+  @AppStorage("appearance_mode") var appearanceMode: String = "Automatic"
 
   init() {
     let posthogApiKey = "phc_sSDHxTCqpjwoSDSOQiNAAgmybjEakfePBsaNHWaWy74"
@@ -82,6 +83,18 @@ struct SplajompyApp: App {
       }
       .environmentObject(feedRefreshManager)
       .environmentObject(authManager)
+      .preferredColorScheme(colorScheme)
+    }
+  }
+
+  private var colorScheme: ColorScheme? {
+    switch appearanceMode {
+    case "Light":
+      return .light
+    case "Dark":
+      return .dark
+    default:
+      return nil
     }
   }
 
