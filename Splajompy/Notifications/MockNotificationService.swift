@@ -1,6 +1,7 @@
 import Foundation
 
-class MockNotificationService: @unchecked Sendable, NotificationServiceProtocol {
+class MockNotificationService: @unchecked Sendable, NotificationServiceProtocol
+{
   func getUnreadNotificationCount() async -> AsyncResult<Int> {
     return .success(0)
   }
@@ -36,8 +37,12 @@ class MockNotificationService: @unchecked Sendable, NotificationServiceProtocol 
 
   static func createDefaultNotifications() -> [Notification] {
     let baseDate = Date()
-    let imageUrl = "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com//posts/6/1055/2c741d27-325a-46dd-a721-d5a7594ba66a.jpeg"
-    
+    let imageUrl =
+      "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com//posts/6/1055/2c741d27-325a-46dd-a721-d5a7594ba66a.jpeg"
+
+    let formatter = ISO8601DateFormatter()
+    formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+
     return [
       Notification(
         notificationId: 1001,
@@ -47,8 +52,9 @@ class MockNotificationService: @unchecked Sendable, NotificationServiceProtocol 
         message: "@joel liked your post",
         link: "/post/2001",
         viewed: false,
-        createdAt: ISO8601DateFormatter().string(from: baseDate.addingTimeInterval(-3600)),
-        imageBlob: "https://www.acouplecooks.com/wp-content/uploads/2021/05/Latte-Art-070.jpg",
+        createdAt: formatter.string(from: baseDate.addingTimeInterval(-3600)),
+        imageBlob:
+          "https://www.acouplecooks.com/wp-content/uploads/2021/05/Latte-Art-070.jpg",
         facets: [
           Facet(type: "mention", userId: 25, indexStart: 0, indexEnd: 5)
         ],
@@ -56,13 +62,12 @@ class MockNotificationService: @unchecked Sendable, NotificationServiceProtocol 
           postId: 2001,
           userId: 6,
           text: "just discovered this amazing coffee shop",
-          createdAt: ISO8601DateFormatter().string(from: baseDate.addingTimeInterval(-7200)),
+          createdAt: formatter.string(from: baseDate.addingTimeInterval(-7200)),
           facets: nil
         ),
         comment: nil
       ),
-      
-      // Comment notification with facet
+
       Notification(
         notificationId: 1002,
         userId: 6,
@@ -71,7 +76,7 @@ class MockNotificationService: @unchecked Sendable, NotificationServiceProtocol 
         message: "@realsophie commented on your post",
         link: "/post/2002",
         viewed: false,
-        createdAt: ISO8601DateFormatter().string(from: baseDate.addingTimeInterval(-7200)),
+        createdAt: formatter.string(from: baseDate.addingTimeInterval(-7200)),
         imageBlob: nil,
         facets: [
           Facet(type: "mention", userId: 120, indexStart: 0, indexEnd: 11)
@@ -80,7 +85,9 @@ class MockNotificationService: @unchecked Sendable, NotificationServiceProtocol 
           postId: 2002,
           userId: 6,
           text: "beautiful sunset from my balcony tonight",
-          createdAt: ISO8601DateFormatter().string(from: baseDate.addingTimeInterval(-14400)),
+          createdAt: formatter.string(
+            from: baseDate.addingTimeInterval(-14400)
+          ),
           facets: nil
         ),
         comment: Comment(
@@ -88,10 +95,10 @@ class MockNotificationService: @unchecked Sendable, NotificationServiceProtocol 
           postId: 2002,
           userId: 120,
           text: "stunning colors! what time was this taken?",
-          createdAt: ISO8601DateFormatter().string(from: baseDate.addingTimeInterval(-7200))
+          createdAt: formatter.string(from: baseDate.addingTimeInterval(-7200))
         )
       ),
-      
+
       Notification(
         notificationId: 1003,
         userId: 6,
@@ -100,7 +107,7 @@ class MockNotificationService: @unchecked Sendable, NotificationServiceProtocol 
         message: "@wesley mentioned you in a post",
         link: "/post/2003",
         viewed: true,
-        createdAt: ISO8601DateFormatter().string(from: baseDate.addingTimeInterval(-10800)),
+        createdAt: formatter.string(from: baseDate.addingTimeInterval(-10800)),
         imageBlob: nil,
         facets: [
           Facet(type: "mention", userId: 6, indexStart: 0, indexEnd: 7)
@@ -109,14 +116,16 @@ class MockNotificationService: @unchecked Sendable, NotificationServiceProtocol 
           postId: 2003,
           userId: 1,
           text: "@wesley you up rn?",
-          createdAt: ISO8601DateFormatter().string(from: baseDate.addingTimeInterval(-10800)),
+          createdAt: formatter.string(
+            from: baseDate.addingTimeInterval(-10800)
+          ),
           facets: [
             Facet(type: "mention", userId: 6, indexStart: 0, indexEnd: 7)
           ]
         ),
         comment: nil
       ),
-      
+
       Notification(
         notificationId: 1004,
         userId: 6,
@@ -125,7 +134,7 @@ class MockNotificationService: @unchecked Sendable, NotificationServiceProtocol 
         message: "@splazackly liked your comment",
         link: "/post/2004",
         viewed: true,
-        createdAt: ISO8601DateFormatter().string(from: baseDate.addingTimeInterval(-14400)),
+        createdAt: formatter.string(from: baseDate.addingTimeInterval(-14400)),
         imageBlob: imageUrl,
         facets: [
           Facet(type: "mention", userId: 103, indexStart: 0, indexEnd: 11)
@@ -134,7 +143,9 @@ class MockNotificationService: @unchecked Sendable, NotificationServiceProtocol 
           postId: 2004,
           userId: 15,
           text: "weekend farmers market haul",
-          createdAt: ISO8601DateFormatter().string(from: baseDate.addingTimeInterval(-18000)),
+          createdAt: formatter.string(
+            from: baseDate.addingTimeInterval(-18000)
+          ),
           facets: nil
         ),
         comment: Comment(
@@ -142,10 +153,10 @@ class MockNotificationService: @unchecked Sendable, NotificationServiceProtocol 
           postId: 2004,
           userId: 6,
           text: "you're incredible 😛😛😛",
-          createdAt: ISO8601DateFormatter().string(from: baseDate.addingTimeInterval(-16200))
+          createdAt: formatter.string(from: baseDate.addingTimeInterval(-16200))
         )
       ),
-      
+
       Notification(
         notificationId: 1005,
         userId: 6,
@@ -154,7 +165,7 @@ class MockNotificationService: @unchecked Sendable, NotificationServiceProtocol 
         message: "@giuseppe liked your post",
         link: "/post/2001",
         viewed: true,
-        createdAt: ISO8601DateFormatter().string(from: baseDate.addingTimeInterval(-18000)),
+        createdAt: formatter.string(from: baseDate.addingTimeInterval(-18000)),
         imageBlob: imageUrl,
         facets: [
           Facet(type: "mention", userId: 112, indexStart: 0, indexEnd: 9)
@@ -163,12 +174,12 @@ class MockNotificationService: @unchecked Sendable, NotificationServiceProtocol 
           postId: 2001,
           userId: 6,
           text: "just discovered this amazing coffee shop",
-          createdAt: ISO8601DateFormatter().string(from: baseDate.addingTimeInterval(-7200)),
+          createdAt: formatter.string(from: baseDate.addingTimeInterval(-7200)),
           facets: nil
         ),
         comment: nil
       ),
-      
+
       Notification(
         notificationId: 1006,
         userId: 6,
@@ -177,7 +188,7 @@ class MockNotificationService: @unchecked Sendable, NotificationServiceProtocol 
         message: "@elena replied to your comment",
         link: "/post/2005",
         viewed: false,
-        createdAt: ISO8601DateFormatter().string(from: baseDate.addingTimeInterval(-21600)),
+        createdAt: formatter.string(from: baseDate.addingTimeInterval(-21600)),
         imageBlob: nil,
         facets: [
           Facet(type: "mention", userId: 97, indexStart: 0, indexEnd: 6)
@@ -186,7 +197,9 @@ class MockNotificationService: @unchecked Sendable, NotificationServiceProtocol 
           postId: 2005,
           userId: 30,
           text: "thoughts on the new season finale?",
-          createdAt: ISO8601DateFormatter().string(from: baseDate.addingTimeInterval(-28800)),
+          createdAt: formatter.string(
+            from: baseDate.addingTimeInterval(-28800)
+          ),
           facets: nil
         ),
         comment: Comment(
@@ -194,11 +207,10 @@ class MockNotificationService: @unchecked Sendable, NotificationServiceProtocol 
           postId: 2005,
           userId: 97,
           text: "completely agree! that plot twist was unexpected",
-          createdAt: ISO8601DateFormatter().string(from: baseDate.addingTimeInterval(-21600))
+          createdAt: formatter.string(from: baseDate.addingTimeInterval(-21600))
         )
       ),
-      
-      // System notification
+
       Notification(
         notificationId: 1007,
         userId: 6,
@@ -207,14 +219,13 @@ class MockNotificationService: @unchecked Sendable, NotificationServiceProtocol 
         message: "Welcome to the community! 🎉",
         link: "/welcome",
         viewed: true,
-        createdAt: ISO8601DateFormatter().string(from: baseDate.addingTimeInterval(-86400)),
+        createdAt: formatter.string(from: baseDate.addingTimeInterval(-86400)),
         imageBlob: nil,
         facets: nil,
         post: nil,
         comment: nil
       ),
-      
-      // Follow notification
+
       Notification(
         notificationId: 1008,
         userId: 6,
@@ -223,26 +234,33 @@ class MockNotificationService: @unchecked Sendable, NotificationServiceProtocol 
         message: "@pari started following you",
         link: "/profile/113",
         viewed: true,
-        createdAt: ISO8601DateFormatter().string(from: baseDate.addingTimeInterval(-43200)),
+        createdAt: formatter.string(from: baseDate.addingTimeInterval(-43200)),
         imageBlob: nil,
         facets: [
           Facet(type: "mention", userId: 113, indexStart: 0, indexEnd: 5)
         ],
         post: nil,
         comment: nil
-      )
+      ),
     ]
   }
 
-  static func createSampleNotifications(count: Int, startingId: Int = 1) -> [Notification] {
+  static func createSampleNotifications(count: Int, startingId: Int = 1)
+    -> [Notification]
+  {
     var notifications: [Notification] = []
+
+    let formatter = ISO8601DateFormatter()
+    formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
 
     for i in startingId..<(startingId + count) {
       let id = i
-      let message = id == 1 ? "{tag:1:wesley}Test notification #\(id)" : "Test notification #\(id)"
+      let message =
+        id == 1
+        ? "{tag:1:wesley}Test notification #\(id)" : "Test notification #\(id)"
       let link = id % 2 == 0 ? "/posts/\(200 + id)" : nil
       let commentId = id % 3 == 0 ? 300 + id : nil
-      let dateString = ISO8601DateFormatter().string(
+      let dateString = formatter.string(
         from: Date().addingTimeInterval(-Double(id * 3600))
       )
 
@@ -267,7 +285,9 @@ class MockNotificationService: @unchecked Sendable, NotificationServiceProtocol 
     return notifications
   }
 
-  func getAllNotifications(offset: Int, limit: Int) async -> AsyncResult<[Notification]> {
+  func getAllNotifications(offset: Int, limit: Int) async -> AsyncResult<
+    [Notification]
+  > {
     callHistory.append((offset, limit))
 
     switch behavior {
@@ -282,11 +302,15 @@ class MockNotificationService: @unchecked Sendable, NotificationServiceProtocol 
       return .success(Array(notifications.dropFirst(offset).prefix(limit)))
 
     default:
-      return .error(MockError("Unexpected behavior set for getAllNotifications"))
+      return .error(
+        MockError("Unexpected behavior set for getAllNotifications")
+      )
     }
   }
 
-  func markNotificationAsRead(notificationId: Int) async -> AsyncResult<EmptyResponse> {
+  func markNotificationAsRead(notificationId: Int) async -> AsyncResult<
+    EmptyResponse
+  > {
     markedAsReadIds.append(notificationId)
 
     switch behavior {
