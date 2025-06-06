@@ -6,6 +6,7 @@ struct HomeView: View {
   @StateObject private var viewModel: FeedViewModel
   @EnvironmentObject private var feedRefreshManager: FeedRefreshManager
   @EnvironmentObject var authManager: AuthManager
+  @AppStorage("mindlessMode") private var mindlessMode: Bool = false
 
   init() {
     let savedState = UserDefaults.standard.data(forKey: "feedFilterState")
@@ -191,34 +192,76 @@ struct HomeView: View {
   }
 
   private func postList(posts: [DetailedPost]) -> some View {
-    ScrollView {
-      LazyVStack(spacing: 0) {
-        ForEach(Array(posts.enumerated()), id: \.element.post.postId) {
-          index,
-          post in
-          VStack {
-            postRow(post: post)
-              .id("post-home_\(post.post.postId)_\(index)")
-              .transition(.opacity)
-          }
-        }
+    Group {
+      if mindlessMode {
+        GeometryReader { proxy in
+          ScrollView(.vertical) {
+            LazyVStack(spacing: 0) {
+              ForEach(Array(posts.enumerated()), id: \.element.post.postId) { index, post in
+                ReelsPostView(
+                  post: post,
+                  onLikeButtonTapped: { viewModel.toggleLike(on: post) },
+                  onPostDeleted: { viewModel.deletePost(on: post) },
+                  onCommentsButtonTapped: {
+                    // Handle comments
+                  }
+                )
+                .environmentObject(feedRefreshManager)
+                .environmentObject(authManager)
+                .containerRelativeFrame([.horizontal, .vertical])
+                .padding(.bottom, proxy.safeAreaInsets.bottom / 2)
+                .id("post-home_\(post.post.postId)_\(index)")
+                .onAppear {
+                  handlePostAppear(post: post)
+                }
+              }
 
-        if viewModel.isLoadingMore {
-          HStack {
-            Spacer()
-            ProgressView()
-              .padding()
-            Spacer()
+              if viewModel.isLoadingMore {
+                ProgressView()
+                  .containerRelativeFrame([.horizontal, .vertical])
+                  .padding(.bottom, proxy.safeAreaInsets.bottom / 2)
+                  .background(Color.black)
+              }
+            }
+            .scrollTargetLayout()
+          }
+          .scrollTargetBehavior(.paging)
+          .scrollIndicators(.hidden)
+          .refreshable {
+            await viewModel.loadPosts(reset: true)
           }
         }
+      } else {
+        ScrollView {
+          LazyVStack(spacing: 0) {
+            ForEach(Array(posts.enumerated()), id: \.element.post.postId) {
+              index,
+              post in
+              VStack {
+                postRow(post: post)
+                  .id("post-home_\(post.post.postId)_\(index)")
+                  .transition(.opacity)
+              }
+            }
+
+            if viewModel.isLoadingMore {
+              HStack {
+                Spacer()
+                ProgressView()
+                  .padding()
+                Spacer()
+              }
+            }
+          }
+        }
+        .refreshable {
+          await Task {
+            await viewModel.loadPosts(reset: true)
+          }.value
+        }
+        .animation(.easeInOut(duration: 0.2), value: posts.count)
       }
     }
-    .refreshable {
-      await Task {
-        await viewModel.loadPosts(reset: true)
-      }.value
-    }
-    .animation(.easeInOut(duration: 0.2), value: posts.count)
   }
 
   private func postRow(post: DetailedPost) -> some View {
