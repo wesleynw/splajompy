@@ -28,9 +28,11 @@ enum FeedState {
     self.service = service
   }
 
-  func loadPosts(reset: Bool = false) async {
+  func loadPosts(reset: Bool = false, useLoadingState: Bool = false) async {
     if reset {
-      if case .idle = state {
+      if useLoadingState == true {
+        state = .loading
+      } else if case .idle = state {
         state = .loading
       }
       offset = 0

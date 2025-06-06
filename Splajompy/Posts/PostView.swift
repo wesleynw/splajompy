@@ -27,21 +27,19 @@ struct PostView: View {
 
   var body: some View {
     Group {
+      Divider()
       if !isStandalone {
-        ZStack(alignment: .leading) {
-          NavigationLink(
-            destination:
-              StandalonePostView(postId: post.id)
-          ) {
-            EmptyView()
-          }
-          .opacity(0)
-
+        NavigationLink(
+          destination:
+            StandalonePostView(postId: post.id)
+        ) {
           postContent
         }
+        .buttonStyle(.plain)
       } else {
         postContent
       }
+      Divider()
     }
   }
 
@@ -49,17 +47,12 @@ struct PostView: View {
     VStack(alignment: .leading, spacing: 12) {
       if showAuthor {
         HStack(alignment: .top) {
-          ZStack(alignment: .leading) {
-            NavigationLink(
-              value: Route.profile(
-                id: String(post.user.userId),
-                username: post.user.username
-              )
-            ) {
-              EmptyView()
-            }
-            .opacity(0)
-
+          NavigationLink(
+            value: Route.profile(
+              id: String(post.user.userId),
+              username: post.user.username
+            )
+          ) {
             VStack(alignment: .leading, spacing: 2) {
               if post.user.username == "ads" {
                 HStack {
@@ -88,6 +81,7 @@ struct PostView: View {
             }
           }
         }
+        .buttonStyle(.plain)
       }
       if let postText = post.post.text, postText.count > 0 {
         ContentTextView(text: postText, facets: post.post.facets ?? [])
@@ -102,7 +96,7 @@ struct PostView: View {
           .foregroundColor(.gray)
         Spacer()
         HStack(spacing: 16) {
-          if authManager.getCurrentUser().userId == post.user.userId {
+          if authManager.getCurrentUser().userId == post.user.userId && !isStandalone {
             Button(action: {
               isShowingPostMenu = true
               let impact = UIImpactFeedbackGenerator(style: .light)
@@ -157,7 +151,7 @@ struct PostView: View {
         hasOtherLikes: post.hasOtherLikes
       )
     }
-    .padding(.vertical)
+    .padding(.vertical, 4)
     .padding(.horizontal, 16)
     .sheet(isPresented: $isShowingComments) {
       CommentsView(postId: post.post.postId)
@@ -169,7 +163,6 @@ struct PostView: View {
             .foregroundColor(.red)
         }
       }
-      .listStyle(.automatic)
       .presentationDetents([.medium])
       .presentationDragIndicator(.visible)
     }

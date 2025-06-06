@@ -2,7 +2,6 @@ import Kingfisher
 import SwiftUI
 
 struct NotificationsView: View {
-  @State private var path = NavigationPath()
   @StateObject private var viewModel: ViewModel
 
   @EnvironmentObject private var authManager: AuthManager
@@ -13,104 +12,112 @@ struct NotificationsView: View {
   }
 
   var body: some View {
-    NavigationStack(path: $path) {
-      ZStack {
-        switch viewModel.state {
-        case .idle:
-          Color.clear.onAppear {
-            Task { await viewModel.loadNotifications(reset: true) }
-          }
-        case .loading:
-          ProgressView()
-            .scaleEffect(1.5)
-            .frame(maxWidth: .infinity)
-            .frame(maxHeight: .infinity)
-        case .loaded(let notifications):
-          if notifications.isEmpty {
+    ZStack {
+      switch viewModel.state {
+      case .idle:
+        Color.clear.onAppear {
+          Task { await viewModel.loadNotifications(reset: true) }
+        }
+      case .loading:
+        ProgressView()
+          .scaleEffect(1.5)
+          .frame(maxWidth: .infinity)
+          .frame(maxHeight: .infinity)
+      case .loaded(let notifications):
+        if notifications.isEmpty {
+          VStack {
+            Spacer()
             Text("No notifications.")
               .font(.title3)
               .fontWeight(.bold)
               .padding(.top, 40)
-          } else {
-            List {
-              ForEach(notifications) { notification in
-                NotificationRow(viewModel: viewModel, notification: notification)
-                  .environmentObject(feedRefreshManager)
-                  .onAppear {
-                    if viewModel.canLoadMore
-                      && notification.notificationId == notifications.last?.notificationId
-                    {
-                      Task { await viewModel.loadNotifications() }
-                    }
+            Button {
+              Task { await viewModel.loadNotifications(reset: true) }
+            } label: {
+              HStack {
+                Image(systemName: "arrow.clockwise")
+                Text("Retry")
+              }
+            }
+            .padding()
+            .buttonStyle(.bordered)
+            Spacer()
+          }
+        } else {
+          List {
+            ForEach(notifications) { notification in
+              NotificationRow(viewModel: viewModel, notification: notification)
+                .environmentObject(feedRefreshManager)
+                .onAppear {
+                  if viewModel.canLoadMore
+                    && notification.notificationId
+                      == notifications.last?.notificationId
+                  {
+                    Task { await viewModel.loadNotifications() }
                   }
-                  .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
-                  .listRowSeparator(.hidden)
-              }
-
-              if viewModel.isLoadingMore {
-                HStack {
-                  Spacer()
-                  ProgressView()
-                    .scaleEffect(1.2)
-                    .padding(.vertical, 8)
-                  Spacer()
                 }
-                .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+                .listRowInsets(
+                  EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16)
+                )
                 .listRowSeparator(.hidden)
-              }
             }
-            .listStyle(.plain)
-            .refreshable {
-              try? await Task.sleep(nanoseconds: 200_000_000)
-              await viewModel.loadNotifications(reset: true)
+
+            if viewModel.isLoadingMore {
+              HStack {
+                Spacer()
+                ProgressView()
+                  .scaleEffect(1.2)
+                  .padding(.vertical, 8)
+                Spacer()
+              }
+              .listRowInsets(
+                EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16)
+              )
+              .listRowSeparator(.hidden)
             }
           }
-        case .failed(let error):
-          VStack {
-            Text("Something went wrong")
-              .font(.title3)
-              .fontWeight(.bold)
-              .padding()
-            Text(error.localizedDescription)
-              .font(.caption)
-              .fontWeight(.bold)
-              .foregroundColor(.red)
-            Image(systemName: "arrow.clockwise")
-              .imageScale(.large)
-              .onTapGesture {
-                Task { @MainActor in
-                  await viewModel.loadNotifications(reset: true)
-                }
-              }
-              .padding()
+          .listStyle(.plain)
+          .refreshable {
+            try? await Task.sleep(nanoseconds: 200_000_000)
+            await viewModel.loadNotifications(reset: true)
           }
         }
-      }
-      .toolbar {
-        Button {
-          viewModel.markAllNotificationsAsRead()
-        } label: {
-          Image(systemName: "text.badge.checkmark")
-        }
-        .buttonStyle(.plain)
-      }
-      .navigationTitle("Notifications")
-      .onOpenURL { url in
-        if let route = parseDeepLink(url) {
-          path.append(route)
-        }
-      }
-      .navigationDestination(for: Route.self) { route in
-        switch route {
-        case .profile(let id, let username):
-          ProfileView(userId: Int(id)!, username: username)
-        case .post(let id):
-          StandalonePostView(postId: id)
+      case .failed(let error):
+        VStack {
+          Text("Something went wrong")
+            .font(.title3)
+            .fontWeight(.bold)
+            .padding()
+          Text(error.localizedDescription)
+            .font(.caption)
+            .fontWeight(.bold)
+            .foregroundColor(.red)
+          Image(systemName: "arrow.clockwise")
+            .imageScale(.large)
+            .onTapGesture {
+              Task { @MainActor in
+                await viewModel.loadNotifications(reset: true)
+              }
+            }
+            .padding()
         }
       }
-      .environmentObject(authManager)
-      .environmentObject(feedRefreshManager)
+
     }
+    .toolbar {
+      Button {
+        viewModel.markAllNotificationsAsRead()
+      } label: {
+        HStack {
+          Image(systemName: "text.badge.checkmark")
+          Text("Mark Read")
+        }
+      }
+      .buttonStyle(.bordered)
+    }
+    .navigationTitle("Notifications")
+    .environmentObject(authManager)
+    .environmentObject(feedRefreshManager)
   }
 }
 
@@ -203,23 +210,28 @@ struct NotificationRow: View {
 
 struct NotificationsView_Previews: PreviewProvider {
   static var feedRefreshManager = FeedRefreshManager()
+  static var authManager = AuthManager()
 
   static var previews: some View {
     Group {
       NotificationsView(viewModel: createViewModel(state: .loaded))
         .environmentObject(feedRefreshManager)
+        .environmentObject(authManager)
         .previewDisplayName("Loaded")
 
       NotificationsView(viewModel: createViewModel(state: .empty))
         .environmentObject(feedRefreshManager)
+        .environmentObject(authManager)
         .previewDisplayName("Empty")
 
       NotificationsView(viewModel: createViewModel(state: .loading))
         .environmentObject(feedRefreshManager)
+        .environmentObject(authManager)
         .previewDisplayName("Loading")
 
       NotificationsView(viewModel: createViewModel(state: .error))
         .environmentObject(feedRefreshManager)
+        .environmentObject(authManager)
         .previewDisplayName("Error")
     }
 

@@ -203,12 +203,9 @@ struct CommentRow: View {
               .fontWeight(.bold)
               .foregroundColor(.gray)
           }
+          Spacer()
         }
-
-        Spacer()
-
       }
-      .allowsHitTesting(true)
 
       ContentTextView(text: comment.text, facets: comment.facets ?? [])
 

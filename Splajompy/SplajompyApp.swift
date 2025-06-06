@@ -3,12 +3,18 @@ import SwiftUI
 
 @main
 struct SplajompyApp: App {
+  @State private var selection: Int = 0
+  @State private var navigationPaths = [
+    NavigationPath(),
+    NavigationPath(),
+    NavigationPath(),
+    NavigationPath(),
+  ]
   @StateObject private var authManager = AuthManager()
   @StateObject private var feedRefreshManager = FeedRefreshManager()
 
   init() {
     let posthogApiKey = "phc_sSDHxTCqpjwoSDSOQiNAAgmybjEakfePBsaNHWaWy74"
-
     let config = PostHogConfig(apiKey: posthogApiKey)
     config.captureScreenViews = false
     PostHogSDK.shared.setup(config)
@@ -18,30 +24,57 @@ struct SplajompyApp: App {
     WindowGroup {
       Group {
         if authManager.isAuthenticated {
-          TabView {
-            HomeView()
-              .postHogScreenView()
-              .tabItem {
-                Label("Home", systemImage: "house")
-              }
+          TabView(selection: $selection) {
+            NavigationStack(path: $navigationPaths[0]) {
+              HomeView()
+                .postHogScreenView()
+                .navigationDestination(for: Route.self) { route in
+                  routeDestination(route)
+                }
+            }
+            .tabItem {
+              Label("Home", systemImage: "house")
+            }
+            .tag(0)
 
-            SearchView()
-              .postHogScreenView()
-              .tabItem {
-                Label("Search", systemImage: "magnifyingglass")
-              }
+            NavigationStack(path: $navigationPaths[1]) {
+              NotificationsView()
+                .postHogScreenView()
+                .navigationDestination(for: Route.self) { route in
+                  routeDestination(route)
+                }
+            }
+            .tabItem {
+              Label("Notifications", systemImage: "bell")
+            }
+            .tag(1)
 
-            NotificationsView()
-              .postHogScreenView()
-              .tabItem {
-                Label("Notifications", systemImage: "bell")
-              }
+            NavigationStack(path: $navigationPaths[2]) {
+              SearchView()
+                .postHogScreenView()
+                .navigationDestination(for: Route.self) { route in
+                  routeDestination(route)
+                }
+            }
+            .tabItem {
+              Label("Search", systemImage: "magnifyingglass")
+            }
+            .tag(2)
 
-            CurrentProfileView()
-              .postHogScreenView()
-              .tabItem {
-                Label("Profile", systemImage: "person.circle")
-              }
+            NavigationStack(path: $navigationPaths[3]) {
+              CurrentProfileView()
+                .postHogScreenView()
+                .navigationDestination(for: Route.self) { route in
+                  routeDestination(route)
+                }
+            }
+            .tabItem {
+              Label("Profile", systemImage: "person.circle")
+            }
+            .tag(3)
+          }
+          .onOpenURL { url in
+            handleDeepLink(url)
           }
         } else {
           SplashScreenView()
@@ -52,4 +85,19 @@ struct SplajompyApp: App {
     }
   }
 
+  @ViewBuilder
+  private func routeDestination(_ route: Route) -> some View {
+    switch route {
+    case .profile(let id, let username):
+      ProfileView(userId: Int(id)!, username: username)
+    case .post(let id):
+      StandalonePostView(postId: id)
+    }
+  }
+
+  private func handleDeepLink(_ url: URL) {
+    if let route = parseDeepLink(url) {
+      navigationPaths[selection].append(route)
+    }
+  }
 }

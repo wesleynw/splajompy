@@ -38,7 +38,7 @@ struct NewPostView: View {
           }
         }
         .disabled(
-          isPostButtonDisabled || text.string.count > 1000
+          isPostButtonDisabled || text.string.count > 2500
         )
       }
       .padding()
@@ -54,7 +54,7 @@ struct NewPostView: View {
           HStack(spacing: 12) {
             ForEach(0..<viewModel.selectedImages.count, id: \.self) { i in
               ZStack(alignment: .topTrailing) {
-                viewModel.selectedImages[i]
+                Image(uiImage: viewModel.selectedImages[i])
                   .resizable()
                   .scaledToFill()
                   .frame(width: 100, height: 100)
@@ -106,9 +106,9 @@ struct NewPostView: View {
 
           Spacer()
 
-          Text("\(text.string.count)/1000")
+          Text("\(text.string.count)/2500")
             .foregroundStyle(
-              text.string.count > 1000
+              text.string.count > 2500
                 ? Color.red.opacity(0.7) : Color.primary.opacity(0.5)
             )
         }

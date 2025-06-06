@@ -34,16 +34,15 @@ struct ProfileView: View {
 
   var body: some View {
     mainContent
-      .refreshable {
-        await viewModel.loadProfile()
-      }
       .sheet(isPresented: $isShowingProfileEditor) {
         ProfileEditorView(viewModel: viewModel)
           .interactiveDismissDisabled()
       }
       .navigationTitle("@" + self.username)
-      .task {
-        await viewModel.loadProfile()
+      .onAppear {
+        Task {
+          await viewModel.loadProfile()
+        }
       }
   }
 
@@ -53,7 +52,12 @@ struct ProfileView: View {
     case .idle, .loading:
       loadingPlaceholder
     case .loaded(let user, let posts):
-      profileList(user: user, posts: posts)
+      ScrollView {
+        profileList(user: user, posts: posts)
+      }
+      .refreshable {
+        await viewModel.loadProfile()
+      }
     case .failed(let error):
       errorView(error: error)
     }
@@ -62,25 +66,24 @@ struct ProfileView: View {
   private func profileList(user: UserProfile, posts: [DetailedPost])
     -> some View
   {
-    List {
+    LazyVStack(spacing: 0) {
       profileHeader(user: user)
-        .listRowInsets(EdgeInsets())
 
       if posts.isEmpty {
         emptyMessage
-          .listRowInsets(EdgeInsets())
       } else {
         ForEach(posts) { post in
-          PostView(
-            post: post,
-            showAuthor: false,
-            onLikeButtonTapped: { viewModel.toggleLike(on: post) },
-            onPostDeleted: { viewModel.deletePost(on: post) }
-          )
+          VStack {
+            PostView(
+              post: post,
+              showAuthor: false,
+              onLikeButtonTapped: { viewModel.toggleLike(on: post) },
+              onPostDeleted: { viewModel.deletePost(on: post) }
+            )
+          }
           .environmentObject(feedRefreshManager)
           .environmentObject(authManager)
           .id("post-profile_\(post.post.postId)")
-          .listRowInsets(EdgeInsets())
           .transition(.opacity)
           .onAppear {
             if post == posts.last && viewModel.canLoadMorePosts {
@@ -98,12 +101,10 @@ struct ProfileView: View {
               .padding()
             Spacer()
           }
-          .listRowInsets(EdgeInsets())
           .transition(.opacity)
         }
       }
     }
-    .listStyle(.plain)
     .animation(.easeInOut(duration: 0.2), value: posts.count)
     .animation(.easeInOut(duration: 0.2), value: viewModel.isLoadingMorePosts)
   }
@@ -163,10 +164,10 @@ struct ProfileView: View {
 
   private var loadingPlaceholder: some View {
     VStack {
+      Spacer()
       ProgressView()
         .scaleEffect(1.5)
         .padding()
-        .frame(maxWidth: .infinity)
       Spacer()
     }
   }
@@ -174,18 +175,26 @@ struct ProfileView: View {
   private func errorView(error: Error) -> some View {
     VStack {
       Spacer()
-      Image(systemName: "arrow.clockwise")
-        .imageScale(.large)
-        .onTapGesture {
-          Task {
-            await viewModel.loadProfile()
-          }
+      VStack {
+        Text("There was an error :/")
+          .font(.title2)
+          .fontWeight(.bold)
+        Text(error.localizedDescription)
+          .foregroundColor(.red)
+          .multilineTextAlignment(.center)
+      }
+      Button {
+        Task {
+          await viewModel.loadPosts(reset: true)
         }
-        .padding()
-      Text("There was an error loading posts.")
-        .font(.title2).fontWeight(.bold)
-      Text(error.localizedDescription)
-        .foregroundColor(.red)
+      } label: {
+        HStack {
+          Image(systemName: "arrow.clockwise")
+          Text("Retry")
+        }
+      }
+      .padding()
+      .buttonStyle(.bordered)
       Spacer()
     }
   }

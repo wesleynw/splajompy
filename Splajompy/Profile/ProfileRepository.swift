@@ -18,13 +18,10 @@ struct UpdateProfileRequest: Encodable {
 
 protocol ProfileServiceProtocol: Sendable {
   func getProfile(userId: Int) async -> AsyncResult<UserProfile>
-
   func getUserFromUsernamePrefix(prefix: String) async -> AsyncResult<[User]>
-
   func updateProfile(name: String, bio: String) async -> AsyncResult<
     EmptyResponse
   >
-
   func toggleFollowing(userId: Int, isFollowing: Bool) async -> AsyncResult<
     EmptyResponse
   >
@@ -40,7 +37,6 @@ struct ProfileService: ProfileServiceProtocol {
 
   func getUserFromUsernamePrefix(prefix: String) async -> AsyncResult<[User]> {
     let queryItems = [URLQueryItem(name: "prefix", value: "\(prefix)")]
-
     return await APIService.performRequest(
       endpoint: "users/search",
       queryItems: queryItems
@@ -57,7 +53,6 @@ struct ProfileService: ProfileServiceProtocol {
     } catch {
       return .error(error)
     }
-
     return await APIService.performRequest(
       endpoint: "user/profile",
       method: "POST",
@@ -69,7 +64,6 @@ struct ProfileService: ProfileServiceProtocol {
     EmptyResponse
   > {
     let method = isFollowing ? "DELETE" : "POST"
-
     return await APIService.performRequest(
       endpoint: "follow/\(userId)",
       method: method
@@ -77,58 +71,199 @@ struct ProfileService: ProfileServiceProtocol {
   }
 }
 
-final class MockUserStore: @unchecked Sendable {  // unchecked ok here because it's just a mock
-  var users: [Int: UserProfile] = [
-    1: UserProfile(
-      userId: 1,
-      email: "wesleynw@pm.me",
-      username: "wesleynw",
-      createdAt: "2023-05-15T10:30:00Z",
-      name: "Wesley 🔥",
-      bio: "splajompy creator",
-      isFollower: false,
-      isFollowing: false
-    ),
-    2: UserProfile(
-      userId: 2,
-      email: "jane@example.com",
-      username: "janesmith",
-      createdAt: "2023-06-20T14:45:00Z",
-      name: "Jane Smith",
-      bio: "test user",
-      isFollower: true,
-      isFollowing: false
-    ),
-  ]
+final class MockUserStore: @unchecked Sendable {
+  static let shared = MockUserStore()
+
+  private let formatter: ISO8601DateFormatter = {
+    let formatter = ISO8601DateFormatter()
+    formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+    return formatter
+  }()
+
+  var users: [Int: UserProfile]
+
+  init() {
+    let baseDate = Date()
+
+    self.users = [
+      1: UserProfile(
+        userId: 1,
+        email: "wesleynw@pm.me",
+        username: "wesleynw",
+        createdAt: formatter.string(
+          from: baseDate.addingTimeInterval(-31_536_000)
+        ),
+        name: "Wesley 🌌",
+        bio:
+          "splajompy creator",
+        isFollower: false,
+        isFollowing: false
+      ),
+      6: UserProfile(
+        userId: 6,
+        email: "wesley@example.com",
+        username: "wesley",
+        createdAt: formatter.string(
+          from: baseDate.addingTimeInterval(-25_920_000)
+        ),
+        name: "Wesley",
+        bio:
+          "coffee enthusiast ☕ | sunset photographer 📸 | always up for a good conversation",
+        isFollower: true,
+        isFollowing: true
+      ),
+      25: UserProfile(
+        userId: 25,
+        email: "joel@example.com",
+        username: "joel",
+        createdAt: formatter.string(
+          from: baseDate.addingTimeInterval(-20_736_000)
+        ),
+        name: "Joel",
+        bio: "heart collector 💕 spreading good vibes everywhere I go",
+        isFollower: false,
+        isFollowing: true
+      ),
+      120: UserProfile(
+        userId: 120,
+        email: "sophie@example.com",
+        username: "realsophie",
+        createdAt: formatter.string(
+          from: baseDate.addingTimeInterval(-18_144_000)
+        ),
+        name: "Sophie",
+        bio:
+          "curious about everything • sunset appreciator • always asking the right questions ✨",
+        isFollower: true,
+        isFollowing: false
+      ),
+      103: UserProfile(
+        userId: 103,
+        email: "splazackly@example.com",
+        username: "splazackly",
+        createdAt: formatter.string(
+          from: baseDate.addingTimeInterval(-15_552_000)
+        ),
+        name: "Splazackly",
+        bio:
+          "comment connoisseur 😛 | farmer's market regular | living life one incredible moment at a time",
+        isFollower: true,
+        isFollowing: true
+      ),
+      112: UserProfile(
+        userId: 112,
+        email: "giuseppe@example.com",
+        username: "giuseppe",
+        createdAt: formatter.string(
+          from: baseDate.addingTimeInterval(-12_960_000)
+        ),
+        name: "Giuseppe",
+        bio:
+          "coffee shop discoverer ☕ | post appreciator | finding amazing places in the city",
+        isFollower: false,
+        isFollowing: false
+      ),
+      97: UserProfile(
+        userId: 97,
+        email: "elena@example.com",
+        username: "elena",
+        createdAt: formatter.string(
+          from: baseDate.addingTimeInterval(-10_368_000)
+        ),
+        name: "Elena",
+        bio:
+          "plot twist enthusiast 📺 | thoughtful commenter | always here for a good discussion",
+        isFollower: true,
+        isFollowing: true
+      ),
+      113: UserProfile(
+        userId: 113,
+        email: "pari@example.com",
+        username: "pari",
+        createdAt: formatter.string(
+          from: baseDate.addingTimeInterval(-7_776_000)
+        ),
+        name: "Pari",
+        bio:
+          "new follower alert! 🎉 | community builder | excited to connect with everyone",
+        isFollower: false,
+        isFollowing: false
+      ),
+      30: UserProfile(
+        userId: 30,
+        email: "showrunner@example.com",
+        username: "showrunner",
+        createdAt: formatter.string(
+          from: baseDate.addingTimeInterval(-5_184_000)
+        ),
+        name: "The Showrunner",
+        bio:
+          "season finale specialist 📺 | creating conversations about the stories we love",
+        isFollower: false,
+        isFollowing: true
+      ),
+      15: UserProfile(
+        userId: 15,
+        email: "marketvendor@example.com",
+        username: "marketvendor",
+        createdAt: formatter.string(
+          from: baseDate.addingTimeInterval(-2_592_000)
+        ),
+        name: "Market Maven",
+        bio:
+          "weekend farmer's market haul curator 🥕 | fresh produce enthusiast | feeding the community",
+        isFollower: true,
+        isFollowing: false
+      ),
+    ]
+  }
 }
 
 struct MockProfileService: ProfileServiceProtocol {
-  private let store = MockUserStore()
+  private let store = MockUserStore.shared
 
   func getProfile(userId: Int) async -> AsyncResult<UserProfile> {
     try? await Task.sleep(nanoseconds: 500_000_000)
-
     if let user = store.users[userId] {
       return .success(user)
     } else {
       return .error(APIErrorMessage(message: "User not found"))
     }
   }
+
   func getUserFromUsernamePrefix(prefix: String) async -> AsyncResult<[User]> {
+    let baseDate = Date()
+
+    let formatter = ISO8601DateFormatter()
+    formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+
     return .success([
       User(
-        userId: 1,
+        userId: 1001,
         email: "jane.smith@example.com",
         username: prefix + "_janesmith",
-        createdAt: "2024-01-15T14:23:45Z",
+        createdAt: formatter.string(
+          from: baseDate.addingTimeInterval(-8_640_000)
+        ),
         name: "Jane Smith"
       ),
       User(
-        userId: 2,
+        userId: 1002,
         email: "david.wilson@example.com",
         username: prefix + "davewilson",
-        createdAt: "2024-02-21T09:17:32Z",
+        createdAt: formatter.string(
+          from: baseDate.addingTimeInterval(-4_320_000)
+        ),
         name: "David Wilson"
+      ),
+      User(
+        userId: 1003,
+        email: "maria.garcia@example.com",
+        username: prefix + "mariagarcia",
+        createdAt: formatter.string(
+          from: baseDate.addingTimeInterval(-2_160_000)
+        ),
+        name: "Maria Garcia"
       ),
     ])
   }
@@ -137,15 +272,13 @@ struct MockProfileService: ProfileServiceProtocol {
     EmptyResponse
   > {
     try? await Task.sleep(nanoseconds: 500_000_000)
-
-    return .success(EmptyResponse())  // TODO
+    return .success(EmptyResponse())
   }
 
   func toggleFollowing(userId: Int, isFollowing: Bool) async -> AsyncResult<
     EmptyResponse
   > {
     try? await Task.sleep(nanoseconds: 300_000_000)
-
     if var user = store.users[userId] {
       user.isFollowing = isFollowing
       store.users[userId] = user
