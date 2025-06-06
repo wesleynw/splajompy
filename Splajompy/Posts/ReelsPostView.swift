@@ -52,7 +52,7 @@ struct ReelsPostView: View {
 
   @ViewBuilder
   private var contentView: some View {
-    VStack(spacing: 16) {
+    VStack(spacing: 12) {
       if let images = post.images, !images.isEmpty {
         ImageGallery(imageUrls: images.map { $0.imageBlobUrl })
           .clipShape(RoundedRectangle(cornerRadius: 12))
@@ -60,14 +60,16 @@ struct ReelsPostView: View {
       }
 
       if let postText = post.post.text, !postText.isEmpty {
+        let hasImages = post.images != nil && !post.images!.isEmpty
+
         ScrollView {
           ContentTextView(text: postText, facets: post.post.facets ?? [])
             .environmentObject(feedRefreshManager)
             .foregroundColor(.white)
-            .font(.title2)
+            .font(.body)
             .multilineTextAlignment(.center)
         }
-        .frame(maxHeight: 200)
+        .frame(maxHeight: hasImages ? 120 : 300)
       }
     }
     .padding(.horizontal, 16)
@@ -98,9 +100,9 @@ struct ReelsPostView: View {
 
         if let postText = post.post.text, !postText.isEmpty {
           Text(postText)
-            .font(.body)
-            .foregroundColor(.white)
-            .lineLimit(2)
+            .font(.callout)
+            .foregroundColor(.white.opacity(0.9))
+            .lineLimit(3)
             .multilineTextAlignment(.leading)
         }
 
@@ -111,7 +113,7 @@ struct ReelsPostView: View {
 
       Spacer()
 
-      VStack(spacing: 20) {
+      VStack(spacing: 16) {
         VStack(spacing: 4) {
           Button(action: {
             let impact = UIImpactFeedbackGenerator(style: .light)
@@ -122,19 +124,13 @@ struct ReelsPostView: View {
             Image(systemName: post.isLiked ? "heart.fill" : "heart")
               .font(.title)
               .foregroundColor(post.isLiked ? .red : .white)
+              .frame(width: 44, height: 44)
               .background(
                 Circle()
                   .fill(Color.black.opacity(0.3))
-                  .frame(width: 44, height: 44)
               )
           }
           .buttonStyle(.plain)
-
-          if post.relevantLikes.count > 0 || post.hasOtherLikes {
-            Text("❤️")
-              .font(.caption)
-              .foregroundColor(.white)
-          }
         }
 
         VStack(spacing: 4) {
@@ -147,10 +143,10 @@ struct ReelsPostView: View {
             Image(systemName: "bubble.right")
               .font(.title)
               .foregroundColor(.white)
+              .frame(width: 44, height: 44)
               .background(
                 Circle()
                   .fill(Color.black.opacity(0.3))
-                  .frame(width: 44, height: 44)
               )
           }
           .buttonStyle(.plain)
@@ -169,10 +165,10 @@ struct ReelsPostView: View {
             Image(systemName: "ellipsis")
               .font(.title)
               .foregroundColor(.white)
+              .frame(width: 44, height: 44)
               .background(
                 Circle()
                   .fill(Color.black.opacity(0.3))
-                  .frame(width: 44, height: 44)
               )
           }
           .buttonStyle(.plain)
