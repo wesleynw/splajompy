@@ -25,7 +25,7 @@ struct HomeView: View {
     _filterState = State(initialValue: decodedState)
     _viewModel = StateObject(
       wrappedValue: FeedViewModel(
-        feedType: decodedState.mode == .all ? .all : .home,
+        feedType: decodedState.mode == .all ? .all : .home
       )
     )
   }
