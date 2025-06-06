@@ -3,7 +3,7 @@ import Foundation
 enum ScrollBehavior: String, CaseIterable {
   case defaultScroll = "default"
   case reels = "reels"
-  
+
   var displayName: String {
     switch self {
     case .defaultScroll:
@@ -12,4 +12,4 @@ enum ScrollBehavior: String, CaseIterable {
       return "Mindless Mode"
     }
   }
-} 
+}

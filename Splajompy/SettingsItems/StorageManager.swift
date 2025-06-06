@@ -1,23 +1,22 @@
-import SwiftUI
 import Kingfisher
+import SwiftUI
 
 struct StorageManager: View {
   @State private var cacheSize: String = "Calculating..."
-  
+
   var body: some View {
     Section {
       HStack {
         Button(action: {
           ImageCache.default.clearMemoryCache()
-          ImageCache.default.clearDiskCache() {}
+          ImageCache.default.clearDiskCache {}
           updateCacheSize()
         }) {
           Text("Clear Cache")
         }
-        
+
         Spacer()
-        
-        
+
         Text(cacheSize)
           .foregroundStyle(.secondary)
       }
@@ -26,7 +25,7 @@ struct StorageManager: View {
       updateCacheSize()
     }
   }
-  
+
   private func updateCacheSize() {
     ImageCache.default.calculateDiskStorageSize { result in
       DispatchQueue.main.async {

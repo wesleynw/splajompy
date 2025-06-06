@@ -2,9 +2,9 @@ import SwiftUI
 
 struct AppearanceSwitcher: View {
   @AppStorage("appearance_mode") var appearanceMode: String = "Automatic"
-  
+
   let options = ["Automatic", "Light", "Dark"]
-  
+
   var body: some View {
     List {
       ForEach(options, id: \.self) { option in
@@ -26,7 +26,6 @@ struct AppearanceSwitcher: View {
     .navigationBarTitleDisplayMode(.inline)
   }
 }
-
 
 #Preview {
   NavigationStack {

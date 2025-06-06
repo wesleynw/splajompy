@@ -25,7 +25,7 @@ struct ReelsPostView: View {
       // Simple black background
       Rectangle()
         .fill(Color.black)
-      
+
       // Content layout
       VStack {
         Spacer()
@@ -49,7 +49,7 @@ struct ReelsPostView: View {
       .presentationDragIndicator(.visible)
     }
   }
-  
+
   @ViewBuilder
   private var contentView: some View {
     VStack(spacing: 16) {
@@ -58,7 +58,7 @@ struct ReelsPostView: View {
           .clipShape(RoundedRectangle(cornerRadius: 12))
           .aspectRatio(contentMode: .fit)
       }
-      
+
       if let postText = post.post.text, !postText.isEmpty {
         ScrollView {
           ContentTextView(text: postText, facets: post.post.facets ?? [])
@@ -72,7 +72,7 @@ struct ReelsPostView: View {
     }
     .padding(.horizontal, 16)
   }
-  
+
   private var bottomOverlay: some View {
     HStack(alignment: .bottom) {
       VStack(alignment: .leading, spacing: 8) {
@@ -95,7 +95,7 @@ struct ReelsPostView: View {
           }
         }
         .buttonStyle(.plain)
-        
+
         if let postText = post.post.text, !postText.isEmpty {
           Text(postText)
             .font(.body)
@@ -103,14 +103,14 @@ struct ReelsPostView: View {
             .lineLimit(2)
             .multilineTextAlignment(.leading)
         }
-        
+
         Text(formatter.localizedString(for: postDate, relativeTo: Date()))
           .font(.caption)
           .foregroundColor(.white.opacity(0.6))
       }
-      
+
       Spacer()
-      
+
       VStack(spacing: 20) {
         VStack(spacing: 4) {
           Button(action: {
@@ -129,14 +129,14 @@ struct ReelsPostView: View {
               )
           }
           .buttonStyle(.plain)
-          
+
           if post.relevantLikes.count > 0 || post.hasOtherLikes {
             Text("❤️")
               .font(.caption)
               .foregroundColor(.white)
           }
         }
-        
+
         VStack(spacing: 4) {
           Button(action: {
             let impact = UIImpactFeedbackGenerator(style: .light)
@@ -154,14 +154,14 @@ struct ReelsPostView: View {
               )
           }
           .buttonStyle(.plain)
-          
+
           if post.commentCount > 0 {
             Text("\(post.commentCount)")
               .font(.caption)
               .foregroundColor(.white)
           }
         }
-        
+
         if authManager.getCurrentUser().userId == post.user.userId {
           Button(action: {
             isShowingPostMenu = true
