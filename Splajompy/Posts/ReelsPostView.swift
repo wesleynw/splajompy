@@ -11,6 +11,7 @@ struct ReelsPostView: View {
 
   @State private var isShowingComments = false
   @State private var isShowingPostMenu = false
+  @State private var isTextExpanded = false
   @EnvironmentObject private var feedRefreshManager: FeedRefreshManager
   @EnvironmentObject private var authManager: AuthManager
 
@@ -22,11 +23,9 @@ struct ReelsPostView: View {
 
   var body: some View {
     ZStack {
-      // Simple black background
       Rectangle()
         .fill(Color.black)
 
-      // Content layout
       VStack {
         Spacer()
         contentView
@@ -58,19 +57,6 @@ struct ReelsPostView: View {
           .clipShape(RoundedRectangle(cornerRadius: 12))
           .aspectRatio(contentMode: .fit)
       }
-
-      if let postText = post.post.text, !postText.isEmpty {
-        let hasImages = post.images != nil && !post.images!.isEmpty
-
-        ScrollView {
-          ContentTextView(text: postText, facets: post.post.facets ?? [])
-            .environmentObject(feedRefreshManager)
-            .foregroundColor(.white)
-            .font(.body)
-            .multilineTextAlignment(.center)
-        }
-        .frame(maxHeight: hasImages ? 120 : 300)
-      }
     }
     .padding(.horizontal, 16)
   }
@@ -99,11 +85,25 @@ struct ReelsPostView: View {
         .buttonStyle(.plain)
 
         if let postText = post.post.text, !postText.isEmpty {
-          Text(postText)
-            .font(.callout)
-            .foregroundColor(.white.opacity(0.9))
-            .lineLimit(3)
-            .multilineTextAlignment(.leading)
+          VStack(alignment: .leading, spacing: 4) {
+            Text(postText)
+              .font(.callout)
+              .foregroundColor(.white.opacity(0.9))
+              .lineLimit(isTextExpanded ? nil : 1)
+              .multilineTextAlignment(.leading)
+
+            if postText.count > 50 {  // Show button only if text is long
+              Button(action: {
+                withAnimation(.easeInOut(duration: 0.2)) {
+                  isTextExpanded.toggle()
+                }
+              }) {
+                Text(isTextExpanded ? "Show less" : "Show more")
+                  .font(.caption)
+                  .foregroundColor(.white.opacity(0.8))
+              }
+            }
+          }
         }
 
         Text(formatter.localizedString(for: postDate, relativeTo: Date()))

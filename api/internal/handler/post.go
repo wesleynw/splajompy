@@ -49,10 +49,6 @@ func (h *Handler) GetPresignedUrl(w http.ResponseWriter, r *http.Request) {
 	}
 
 	folder := r.URL.Query().Get("folder")
-	if extension == "" {
-		utilities.HandleError(w, http.StatusBadRequest, "Bad request format")
-		return
-	}
 
 	key, url, err := h.postService.NewPresignedStagingUrl(r.Context(), *currentUser, &extension, &folder)
 	if err != nil {
@@ -229,7 +225,7 @@ func (h *Handler) AddPostLike(w http.ResponseWriter, r *http.Request) {
 	utilities.HandleEmptySuccess(w)
 }
 
-// DELETE /post/{id}/liked endpoint
+// RemovePostLike DELETE /post/{id}/liked endpoint
 func (h *Handler) RemovePostLike(w http.ResponseWriter, r *http.Request) {
 	currentUser, err := h.getAuthenticatedUser(r)
 	if err != nil {
@@ -244,6 +240,29 @@ func (h *Handler) RemovePostLike(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err = h.postService.RemoveLikeFromPost(r.Context(), *currentUser, id)
+	if err != nil {
+		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
+		return
+	}
+
+	utilities.HandleEmptySuccess(w)
+}
+
+// ReportPost POST /post/{id}/report
+func (h *Handler) ReportPost(w http.ResponseWriter, r *http.Request) {
+	currentUser, err := h.getAuthenticatedUser(r)
+	if err != nil {
+		utilities.HandleError(w, http.StatusUnauthorized, "Unauthorized")
+		return
+	}
+
+	id, err := h.GetIntPathParam(r, "id")
+	if err != nil {
+		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
+		return
+	}
+
+	err = h.postService.ReportPost(r.Context(), currentUser, id)
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
 		return

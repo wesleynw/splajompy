@@ -49,7 +49,7 @@ func main() {
 	commentRepository := repositories.NewDBCommentRepository(q)
 	likeRepository := repositories.NewDBLikeRepository(q)
 
-	postService := service.NewPostService(postRepository, userRepository, likeRepository, notificationsRepository, bucketRepository)
+	postService := service.NewPostService(postRepository, userRepository, likeRepository, notificationsRepository, bucketRepository, resentClient)
 	commentService := service.NewCommentService(commentRepository, postRepository, notificationsRepository, userRepository)
 	userService := service.NewUserService(userRepository, notificationsRepository)
 	notificationService := service.NewNotificationService(notificationsRepository, postRepository, commentRepository)

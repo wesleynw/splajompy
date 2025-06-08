@@ -51,6 +51,11 @@ LIMIT 1;
 SELECT *
 FROM users
 WHERE username LIKE $1
+AND NOT EXISTS (
+    SELECT 1
+    FROM block
+    WHERE block.user_id = users.user_id AND target_user_id = $3
+)
 LIMIT $2;
 
 -- name: GetBioByUserId :one
@@ -94,3 +99,19 @@ INSERT INTO bios (user_id, text)
 VALUES ($1, $2)
 ON CONFLICT (user_id)
 DO UPDATE SET text = $2;
+
+-- name: BlockUser :exec
+INSERT INTO block (user_id, target_user_id)
+VALUES ($1, $2)
+ON CONFLICT DO NOTHING;
+
+-- name: UnblockUser :exec
+DELETE FROM block
+WHERE user_id = $1 AND target_user_id = $2;
+
+-- name: GetIsUserBlockingUser :one
+SELECT EXISTS (
+  SELECT 1
+  FROM block
+  WHERE user_id = $1 AND target_user_id = $2
+);

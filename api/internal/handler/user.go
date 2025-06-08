@@ -29,7 +29,7 @@ func (h *Handler) GetUserById(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) SearchUsers(w http.ResponseWriter, r *http.Request) {
-	_, err := h.getAuthenticatedUser(r)
+	currentUser, err := h.getAuthenticatedUser(r)
 	if err != nil {
 		utilities.HandleError(w, http.StatusUnauthorized, "Unauthorized")
 		return
@@ -41,7 +41,7 @@ func (h *Handler) SearchUsers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	users, err := h.userService.GetUserByUsernamePrefix(r.Context(), prefix)
+	users, err := h.userService.GetUserByUsernamePrefix(r.Context(), prefix, int(currentUser.UserID))
 	if err != nil {
 		utilities.HandleError(w, http.StatusNotFound, "This user doesn't exist")
 		return
@@ -115,6 +115,49 @@ func (h *Handler) UpdateProfile(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
 		return
+	}
+
+	utilities.HandleEmptySuccess(w)
+}
+
+func (h *Handler) BlockUser(w http.ResponseWriter, r *http.Request) {
+	currentUser, err := h.getAuthenticatedUser(r)
+	if err != nil {
+		utilities.HandleError(w, http.StatusUnauthorized, "Unauthorized")
+		return
+	}
+
+	userId, err := h.GetIntPathParam(r, "user_id")
+	if err != nil {
+		utilities.HandleError(w, http.StatusBadRequest, "Missing user ID parameter")
+		return
+	}
+
+	err = h.userService.BlockUser(r.Context(), *currentUser, userId)
+	if err != nil {
+		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
+		return
+	}
+
+	utilities.HandleEmptySuccess(w)
+}
+
+func (h *Handler) UnblockUser(w http.ResponseWriter, r *http.Request) {
+	currentUser, err := h.getAuthenticatedUser(r)
+	if err != nil {
+		utilities.HandleError(w, http.StatusUnauthorized, "Unauthorized")
+		return
+	}
+
+	userId, err := h.GetIntPathParam(r, "user_id")
+	if err != nil {
+		utilities.HandleError(w, http.StatusBadRequest, "Missing user ID parameter")
+		return
+	}
+
+	err = h.userService.UnblockUser(r.Context(), *currentUser, userId)
+	if err != nil {
+		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
 	}
 
 	utilities.HandleEmptySuccess(w)

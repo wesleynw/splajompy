@@ -15,7 +15,7 @@ type PostRepository interface {
 	GetImagesForPost(ctx context.Context, postId int) ([]queries.Image, error)
 	InsertImage(ctx context.Context, postId int, height int, width int, url string, displayOrder int) (queries.Image, error)
 	GetCommentCountForPost(ctx context.Context, postId int) (int, error)
-	GetAllPostIds(ctx context.Context, limit int, offset int) ([]int32, error)
+	GetAllPostIds(ctx context.Context, limit int, offset int, currentUserId int) ([]int32, error)
 	GetPostIdsForFollowing(ctx context.Context, userId int, limit int, offset int) ([]int32, error)
 	GetPostIdsForUser(ctx context.Context, userId int, limit int, offset int) ([]int32, error)
 }
@@ -74,10 +74,11 @@ func (r DBPostRepository) GetCommentCountForPost(ctx context.Context, postId int
 }
 
 // GetAllPostIds retrieves IDs of all posts with pagination
-func (r DBPostRepository) GetAllPostIds(ctx context.Context, limit int, offset int) ([]int32, error) {
+func (r DBPostRepository) GetAllPostIds(ctx context.Context, limit int, offset int, currentUserId int) ([]int32, error) {
 	return r.querier.GetAllPostIds(ctx, queries.GetAllPostIdsParams{
 		Limit:  int32(limit),
 		Offset: int32(offset),
+		UserID: int32(currentUserId),
 	})
 }
 

@@ -154,7 +154,7 @@ func (r *FakePostRepository) SetCommentCount(postId int, count int) {
 	r.commentCount[int32(postId)] = int32(count)
 }
 
-func (r *FakePostRepository) GetAllPostIds(ctx context.Context, limit int, offset int) ([]int32, error) {
+func (r *FakePostRepository) GetAllPostIds(ctx context.Context, limit int, offset int, currentUserId int) ([]int32, error) {
 	r.mutex.RLock()
 	defer r.mutex.RUnlock()
 
@@ -164,7 +164,7 @@ func (r *FakePostRepository) GetAllPostIds(ctx context.Context, limit int, offse
 func (r *FakePostRepository) GetPostIdsForFollowing(ctx context.Context, userId int, limit int, offset int) ([]int32, error) {
 	// In a real implementation, this would filter posts based on followed users
 	// For simplicity, we'll just return all post IDs
-	return r.GetAllPostIds(ctx, limit, offset)
+	return r.GetAllPostIds(ctx, limit, offset, userId)
 }
 
 func (r *FakePostRepository) GetPostIdsForUser(ctx context.Context, userId int, limit int, offset int) ([]int32, error) {

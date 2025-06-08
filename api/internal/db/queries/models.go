@@ -15,6 +15,13 @@ type Bio struct {
 	Text   string `json:"text"`
 }
 
+type Block struct {
+	ID           int32            `json:"id"`
+	UserID       int32            `json:"userId"`
+	TargetUserID int32            `json:"targetUserId"`
+	CreatedAt    pgtype.Timestamp `json:"createdAt"`
+}
+
 type Comment struct {
 	CommentID int32            `json:"commentId"`
 	PostID    int32            `json:"postId"`

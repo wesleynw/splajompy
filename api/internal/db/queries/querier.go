@@ -11,6 +11,7 @@ import (
 type Querier interface {
 	AddCommentToPost(ctx context.Context, arg AddCommentToPostParams) (Comment, error)
 	AddLike(ctx context.Context, arg AddLikeParams) error
+	BlockUser(ctx context.Context, arg BlockUserParams) error
 	CreateSession(ctx context.Context, arg CreateSessionParams) error
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
 	CreateVerificationCode(ctx context.Context, arg CreateVerificationCodeParams) error
@@ -26,6 +27,7 @@ type Querier interface {
 	GetIsEmailInUse(ctx context.Context, email string) (bool, error)
 	GetIsLikedByUser(ctx context.Context, arg GetIsLikedByUserParams) (bool, error)
 	GetIsPostLikedByUser(ctx context.Context, arg GetIsPostLikedByUserParams) (bool, error)
+	GetIsUserBlockingUser(ctx context.Context, arg GetIsUserBlockingUserParams) (bool, error)
 	GetIsUserFollowingUser(ctx context.Context, arg GetIsUserFollowingUserParams) (bool, error)
 	GetIsUsernameInUse(ctx context.Context, username string) (bool, error)
 	GetNotificationById(ctx context.Context, notificationID int32) (Notification, error)
@@ -51,6 +53,7 @@ type Querier interface {
 	MarkAllNotificationsAsReadForUser(ctx context.Context, userID int32) error
 	MarkNotificationAsReadById(ctx context.Context, notificationID int32) error
 	RemoveLike(ctx context.Context, arg RemoveLikeParams) error
+	UnblockUser(ctx context.Context, arg UnblockUserParams) error
 	UpdateUserBio(ctx context.Context, arg UpdateUserBioParams) error
 	UpdateUserName(ctx context.Context, arg UpdateUserNameParams) error
 	UserHasUnreadNotifications(ctx context.Context, userID int32) (bool, error)

@@ -4,12 +4,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/resend/resend-go/v2"
 	"math"
 	"os"
 	"sort"
 	"splajompy.com/api/v2/internal/db/queries"
 	"splajompy.com/api/v2/internal/models"
 	"splajompy.com/api/v2/internal/repositories"
+	"splajompy.com/api/v2/internal/templates"
 	"splajompy.com/api/v2/internal/utilities"
 )
 
@@ -19,15 +21,17 @@ type PostService struct {
 	likeRepository         repositories.LikeRepository
 	notificationRepository repositories.NotificationRepository
 	bucketRepository       repositories.BucketRepository
+	emailService           *resend.Client
 }
 
-func NewPostService(postRepository repositories.PostRepository, userRepository repositories.UserRepository, likeRepository repositories.LikeRepository, notificationRepository repositories.NotificationRepository, bucketRepo repositories.BucketRepository) *PostService {
+func NewPostService(postRepository repositories.PostRepository, userRepository repositories.UserRepository, likeRepository repositories.LikeRepository, notificationRepository repositories.NotificationRepository, bucketRepo repositories.BucketRepository, emailService *resend.Client) *PostService {
 	return &PostService{
 		postRepository:         postRepository,
 		userRepository:         userRepository,
 		likeRepository:         likeRepository,
 		notificationRepository: notificationRepository,
 		bucketRepository:       bucketRepo,
+		emailService:           emailService,
 	}
 }
 
@@ -130,7 +134,7 @@ func (s *PostService) GetPostById(ctx context.Context, cUser models.PublicUser, 
 }
 
 func (s *PostService) GetAllPosts(ctx context.Context, currentUser models.PublicUser, limit int, offset int) (*[]models.DetailedPost, error) {
-	postIds, err := s.postRepository.GetAllPostIds(ctx, limit, offset)
+	postIds, err := s.postRepository.GetAllPostIds(ctx, limit, offset, int(currentUser.UserID))
 	if err != nil {
 		return nil, errors.New("unable to find posts")
 	}
@@ -139,6 +143,11 @@ func (s *PostService) GetAllPosts(ctx context.Context, currentUser models.Public
 }
 
 func (s *PostService) GetPostsByUserId(ctx context.Context, currentUser models.PublicUser, userID int, limit int, offset int) (*[]models.DetailedPost, error) {
+	isBlocked, err := s.userRepository.IsUserBlockingUser(ctx, userID, int(currentUser.UserID))
+	if err != nil || isBlocked {
+		return nil, errors.New("user is blocked")
+	}
+
 	postIds, err := s.postRepository.GetPostIdsForUser(ctx, userID, limit, offset)
 	if err != nil {
 		return nil, errors.New("unable to find posts")
@@ -241,6 +250,40 @@ func (s *PostService) getRelevantLikes(ctx context.Context, currentUser models.P
 	}
 
 	return mappedLikes, hasOtherLikes, nil
+}
+
+func (s *PostService) ReportPost(ctx context.Context, currentUser *models.PublicUser, postId int) error {
+	post, err := s.postRepository.GetPostById(ctx, postId)
+	if err != nil {
+		return err
+	}
+
+	images, err := s.postRepository.GetImagesForPost(ctx, int(post.PostID))
+	if err != nil {
+		return err
+	}
+	if images == nil {
+		images = []queries.Image{}
+	}
+
+	for i := range images {
+		images[i].ImageBlobUrl = s.bucketRepository.GetObjectURL(images[i].ImageBlobUrl)
+	}
+
+	html, err := templates.GeneratePostReportEmail(currentUser.Username, post, images)
+	if err != nil {
+		return err
+	}
+
+	params := &resend.SendEmailRequest{
+		From:    "Splajompy <no-reply@splajompy.com>",
+		To:      []string{"wesleynw@pm.me"},
+		Subject: fmt.Sprintf("@%s reported a post", currentUser.Username),
+		Html:    html,
+	}
+
+	_, err = s.emailService.Emails.Send(params)
+	return err
 }
 
 func seededRandom(seed int) float64 {

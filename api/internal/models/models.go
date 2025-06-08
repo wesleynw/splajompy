@@ -56,4 +56,5 @@ type DetailedUser struct {
 	Bio         string           `json:"bio"`
 	IsFollower  bool             `json:"isFollower"`
 	IsFollowing bool             `json:"isFollowing"`
+	IsBlocking  bool             `json:"isBlocking"`
 }
