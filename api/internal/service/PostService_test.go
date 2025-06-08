@@ -18,7 +18,7 @@ func setupTest(t *testing.T) (*PostService, *fakes.FakePostRepository, *fakes.Fa
 	notificationRepo := fakes.NewFakeNotificationRepository()
 	bucketRepo := fakes.NewFakeBucketRepository()
 
-	svc := NewPostService(postRepo, userRepo, likeRepo, notificationRepo, bucketRepo)
+	svc := NewPostService(postRepo, userRepo, likeRepo, notificationRepo, bucketRepo, nil)
 
 	user, err := userRepo.CreateUser(context.Background(), "testuser", "test@example.com", "password")
 	require.NoError(t, err)

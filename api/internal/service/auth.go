@@ -171,10 +171,7 @@ func (s *AuthService) ProcessOTC(ctx context.Context, identifier string) error {
 	}
 
 	_, err = s.resendClient.Emails.Send(params)
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
 
 func (s *AuthService) GenerateOTCCode() (string, error) {

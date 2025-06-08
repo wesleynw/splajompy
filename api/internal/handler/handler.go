@@ -47,6 +47,7 @@ func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /post/{id}", h.GetPostById)
 	mux.HandleFunc("GET /user/{id}/posts", h.GetPostsByUserId)
 	mux.HandleFunc("DELETE /post/{id}", h.DeletePostById)
+	mux.HandleFunc("POST /post/{id}/report", h.ReportPost)
 
 	// follow
 	mux.HandleFunc("POST /follow/{user_id}", h.FollowUser)

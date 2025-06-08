@@ -4,12 +4,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/resend/resend-go/v2"
 	"math"
 	"os"
 	"sort"
 	"splajompy.com/api/v2/internal/db/queries"
 	"splajompy.com/api/v2/internal/models"
 	"splajompy.com/api/v2/internal/repositories"
+	"splajompy.com/api/v2/internal/templates"
 	"splajompy.com/api/v2/internal/utilities"
 )
 
@@ -19,15 +21,17 @@ type PostService struct {
 	likeRepository         repositories.LikeRepository
 	notificationRepository repositories.NotificationRepository
 	bucketRepository       repositories.BucketRepository
+	emailService           *resend.Client
 }
 
-func NewPostService(postRepository repositories.PostRepository, userRepository repositories.UserRepository, likeRepository repositories.LikeRepository, notificationRepository repositories.NotificationRepository, bucketRepo repositories.BucketRepository) *PostService {
+func NewPostService(postRepository repositories.PostRepository, userRepository repositories.UserRepository, likeRepository repositories.LikeRepository, notificationRepository repositories.NotificationRepository, bucketRepo repositories.BucketRepository, emailService *resend.Client) *PostService {
 	return &PostService{
 		postRepository:         postRepository,
 		userRepository:         userRepository,
 		likeRepository:         likeRepository,
 		notificationRepository: notificationRepository,
 		bucketRepository:       bucketRepo,
+		emailService:           emailService,
 	}
 }
 
@@ -241,6 +245,40 @@ func (s *PostService) getRelevantLikes(ctx context.Context, currentUser models.P
 	}
 
 	return mappedLikes, hasOtherLikes, nil
+}
+
+func (s *PostService) ReportPost(ctx context.Context, currentUser *models.PublicUser, postId int) error {
+	post, err := s.postRepository.GetPostById(ctx, postId)
+	if err != nil {
+		return err
+	}
+
+	images, err := s.postRepository.GetImagesForPost(ctx, int(post.PostID))
+	if err != nil {
+		return err
+	}
+	if images == nil {
+		images = []queries.Image{}
+	}
+
+	for i := range images {
+		images[i].ImageBlobUrl = s.bucketRepository.GetObjectURL(images[i].ImageBlobUrl)
+	}
+
+	html, err := templates.GeneratePostReportEmail(currentUser.Username, post, images)
+	if err != nil {
+		return err
+	}
+
+	params := &resend.SendEmailRequest{
+		From:    "Splajompy <no-reply@splajompy.com>",
+		To:      []string{"wesleynw@pm.me"},
+		Subject: fmt.Sprintf("@%s reported a post", currentUser.Username),
+		Html:    html,
+	}
+
+	_, err = s.emailService.Emails.Send(params)
+	return err
 }
 
 func seededRandom(seed int) float64 {
