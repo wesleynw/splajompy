@@ -19,6 +19,7 @@ extension ProfileView {
 
     @Published var state: ProfileState = .idle
     @Published var isLoadingFollowButton = false
+    @Published var isLoadingBlockButton = false
     @Published var canLoadMorePosts: Bool = true
     @Published var isLoadingMorePosts: Bool = false
 
@@ -172,6 +173,25 @@ extension ProfileView {
           state = .loaded(updatedProfile, posts)
         }
         isLoadingFollowButton = false
+      }
+    }
+
+    func toggleBlocking() {
+      guard case .loaded(let profile, let posts) = state else { return }
+      Task {
+        isLoadingBlockButton = true
+        let result = await profileService.toggleBlocking(
+          userId: userId,
+          isBlocking: profile.isBlocking
+        )
+        if case .error(let error) = result {
+          print("Error toggling blocking status: \(error.localizedDescription)")
+        } else {
+          var updatedProfile = profile
+          updatedProfile.isBlocking.toggle()
+          state = .loaded(updatedProfile, posts)
+        }
+        isLoadingBlockButton = false
       }
     }
   }

@@ -71,6 +71,10 @@ func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("POST /post/{post_id}/comment/{comment_id}/liked", h.AddCommentLike)
 	mux.HandleFunc("DELETE /post/{post_id}/comment/{comment_id}/liked", h.RemoveCommentLike)
 
+	// blocking
+	mux.HandleFunc("POST /user/{user_id}/block", h.BlockUser)
+	mux.HandleFunc("DELETE /user/{user_id}/block", h.UnblockUser)
+
 	mux.HandleFunc("GET /user/{id}", h.GetUserById)
 	mux.HandleFunc("GET /posts/following", h.GetPostsByFollowing)
 	mux.HandleFunc("GET /posts/all", h.GetAllPosts)

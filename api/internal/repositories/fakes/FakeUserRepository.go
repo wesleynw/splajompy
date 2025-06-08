@@ -3,12 +3,13 @@ package fakes
 import (
 	"context"
 	"errors"
-	"github.com/jackc/pgx/v5/pgtype"
-	"splajompy.com/api/v2/internal/db/queries"
-	"splajompy.com/api/v2/internal/models"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/jackc/pgx/v5/pgtype"
+	"splajompy.com/api/v2/internal/db/queries"
+	"splajompy.com/api/v2/internal/models"
 )
 
 type FakeUserRepository struct {
@@ -175,7 +176,7 @@ func (r *FakeUserRepository) UnfollowUser(ctx context.Context, followerId int, f
 	return nil
 }
 
-func (r *FakeUserRepository) GetUsersWithUsernameLike(ctx context.Context, prefix string, limit int) ([]models.PublicUser, error) {
+func (r *FakeUserRepository) GetUsersWithUsernameLike(ctx context.Context, prefix string, limit int, currentUserId int) ([]models.PublicUser, error) {
 	r.mutex.RLock()
 	defer r.mutex.RUnlock()
 
@@ -403,4 +404,16 @@ func (r *FakeUserRepository) GetFollowingForUser(userId int) []int32 {
 	}
 
 	return followingIds
+}
+
+func (r *FakeUserRepository) BlockUser(_ context.Context, _ int, _ int) error {
+	panic("implement me")
+}
+
+func (r *FakeUserRepository) UnblockUser(_ context.Context, _ int, _ int) error {
+	panic("implement me")
+}
+
+func (r *FakeUserRepository) IsUserBlockingUser(_ context.Context, _ int, _ int) (bool, error) {
+	return false, nil
 }

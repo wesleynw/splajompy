@@ -134,7 +134,7 @@ func (s *PostService) GetPostById(ctx context.Context, cUser models.PublicUser, 
 }
 
 func (s *PostService) GetAllPosts(ctx context.Context, currentUser models.PublicUser, limit int, offset int) (*[]models.DetailedPost, error) {
-	postIds, err := s.postRepository.GetAllPostIds(ctx, limit, offset)
+	postIds, err := s.postRepository.GetAllPostIds(ctx, limit, offset, int(currentUser.UserID))
 	if err != nil {
 		return nil, errors.New("unable to find posts")
 	}
@@ -143,6 +143,11 @@ func (s *PostService) GetAllPosts(ctx context.Context, currentUser models.Public
 }
 
 func (s *PostService) GetPostsByUserId(ctx context.Context, currentUser models.PublicUser, userID int, limit int, offset int) (*[]models.DetailedPost, error) {
+	isBlocked, err := s.userRepository.IsUserBlockingUser(ctx, userID, int(currentUser.UserID))
+	if err != nil || isBlocked {
+		return nil, errors.New("user is blocked")
+	}
+
 	postIds, err := s.postRepository.GetPostIdsForUser(ctx, userID, limit, offset)
 	if err != nil {
 		return nil, errors.New("unable to find posts")

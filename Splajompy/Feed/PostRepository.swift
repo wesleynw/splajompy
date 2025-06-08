@@ -21,6 +21,7 @@ protocol PostServiceProtocol: Sendable {
     EmptyResponse
   >
   func deletePost(postId: Int) async -> AsyncResult<EmptyResponse>
+  func reportPost(postId: Int) async -> AsyncResult<EmptyResponse>
 }
 
 struct PostService: PostServiceProtocol {
@@ -89,6 +90,13 @@ struct PostService: PostServiceProtocol {
     return await APIService.performRequest(
       endpoint: "post/\(postId)",
       method: "DELETE"
+    )
+  }
+
+  func reportPost(postId: Int) async -> AsyncResult<EmptyResponse> {
+    return await APIService.performRequest(
+      endpoint: "post/\(postId)/report",
+      method: "POST"
     )
   }
 }
@@ -504,6 +512,16 @@ struct MockPostService: PostServiceProtocol {
 
     if store.posts[postId] != nil {
       store.deletedPostIds.insert(postId)
+      return .success(EmptyResponse())
+    } else {
+      return .error(APIErrorMessage(message: "Post not found"))
+    }
+  }
+
+  func reportPost(postId: Int) async -> AsyncResult<EmptyResponse> {
+    try? await Task.sleep(nanoseconds: 300_000_000)
+
+    if store.posts[postId] != nil {
       return .success(EmptyResponse())
     } else {
       return .error(APIErrorMessage(message: "Post not found"))

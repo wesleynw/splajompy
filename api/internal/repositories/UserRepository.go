@@ -2,10 +2,11 @@ package repositories
 
 import (
 	"context"
+	"time"
+
 	"github.com/jackc/pgx/v5/pgtype"
 	"splajompy.com/api/v2/internal/db/queries"
 	"splajompy.com/api/v2/internal/models"
-	"time"
 )
 
 type UserRepository interface {
@@ -17,7 +18,7 @@ type UserRepository interface {
 	IsUserFollowingUser(ctx context.Context, followerId int, followingId int) (bool, error)
 	FollowUser(ctx context.Context, followerId int, followingId int) error
 	UnfollowUser(ctx context.Context, followerId int, followingId int) error
-	GetUsersWithUsernameLike(ctx context.Context, prefix string, limit int) ([]models.PublicUser, error)
+	GetUsersWithUsernameLike(ctx context.Context, prefix string, limit int, currentUserId int) ([]models.PublicUser, error)
 	UpdateUserName(ctx context.Context, userId int, newName string) error
 	GetIsUsernameInUse(ctx context.Context, username string) (bool, error)
 	GetIsEmailInUse(ctx context.Context, email string) (bool, error)
@@ -26,6 +27,9 @@ type UserRepository interface {
 	CreateVerificationCode(ctx context.Context, userId int, code string, expiresAt time.Time) error
 	GetUserPasswordByIdentifier(ctx context.Context, identifier string) (string, error)
 	CreateSession(ctx context.Context, sessionId string, userId int, expiresAt time.Time) error
+	BlockUser(ctx context.Context, currentUserId int, targetUserId int) error
+	UnblockUser(ctx context.Context, currentUserId int, targetUserId int) error
+	IsUserBlockingUser(ctx context.Context, blockerId int, blockedId int) (bool, error)
 }
 
 type DBUserRepository struct {
@@ -111,10 +115,11 @@ func (r DBUserRepository) UnfollowUser(ctx context.Context, followerId int, foll
 }
 
 // GetUsersWithUsernameLike retrieves users with usernames matching a pattern
-func (r DBUserRepository) GetUsersWithUsernameLike(ctx context.Context, prefix string, limit int) ([]models.PublicUser, error) {
+func (r DBUserRepository) GetUsersWithUsernameLike(ctx context.Context, prefix string, limit int, currentUserId int) ([]models.PublicUser, error) {
 	users, err := r.querier.GetUsernameLike(ctx, queries.GetUsernameLikeParams{
-		Username: prefix + "%",
-		Limit:    int32(limit),
+		Username:     prefix + "%",
+		Limit:        int32(limit),
+		TargetUserID: int32(currentUserId),
 	})
 	if err != nil {
 		return nil, err
@@ -205,6 +210,27 @@ func (r DBUserRepository) CreateSession(ctx context.Context, sessionId string, u
 		ID:        sessionId,
 		UserID:    int32(userId),
 		ExpiresAt: pgtype.Timestamp{Time: expiresAt, Valid: true},
+	})
+}
+
+func (r DBUserRepository) BlockUser(ctx context.Context, currentUserId int, targetUserId int) error {
+	return r.querier.BlockUser(ctx, queries.BlockUserParams{
+		UserID:       int32(currentUserId),
+		TargetUserID: int32(targetUserId),
+	})
+}
+
+func (r DBUserRepository) UnblockUser(ctx context.Context, currentUserId int, targetUserId int) error {
+	return r.querier.UnblockUser(ctx, queries.UnblockUserParams{
+		UserID:       int32(currentUserId),
+		TargetUserID: int32(targetUserId),
+	})
+}
+
+func (r DBUserRepository) IsUserBlockingUser(ctx context.Context, blockerId int, blockedId int) (bool, error) {
+	return r.querier.GetIsUserBlockingUser(ctx, queries.GetIsUserBlockingUserParams{
+		UserID:       int32(blockerId),
+		TargetUserID: int32(blockedId),
 	})
 }
 

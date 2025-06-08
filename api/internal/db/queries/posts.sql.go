@@ -25,6 +25,11 @@ func (q *Queries) DeletePost(ctx context.Context, postID int32) error {
 const getAllPostIds = `-- name: GetAllPostIds :many
 SELECT post_id
 FROM posts
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM block
+    WHERE block.user_id = $3 AND target_user_id = posts.user_id
+)
 ORDER BY posts.created_at DESC
 LIMIT $1
 OFFSET $2
@@ -33,10 +38,11 @@ OFFSET $2
 type GetAllPostIdsParams struct {
 	Limit  int32 `json:"limit"`
 	Offset int32 `json:"offset"`
+	UserID int32 `json:"userId"`
 }
 
 func (q *Queries) GetAllPostIds(ctx context.Context, arg GetAllPostIdsParams) ([]int32, error) {
-	rows, err := q.db.Query(ctx, getAllPostIds, arg.Limit, arg.Offset)
+	rows, err := q.db.Query(ctx, getAllPostIds, arg.Limit, arg.Offset, arg.UserID)
 	if err != nil {
 		return nil, err
 	}
@@ -128,6 +134,10 @@ WHERE posts.user_id = $1 OR EXISTS (
   SELECT 1
   FROM follows
   WHERE follows.follower_id = $1 AND following_id = posts.user_id
+) AND NOT EXISTS (
+    SELECT 1
+    FROM block
+    WHERE user_id = $1 AND target_user_id = posts.user_id
 )
 ORDER BY posts.created_at DESC
 LIMIT $2

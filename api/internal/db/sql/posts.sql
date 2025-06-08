@@ -13,6 +13,10 @@ WHERE posts.user_id = $1 OR EXISTS (
   SELECT 1
   FROM follows
   WHERE follows.follower_id = $1 AND following_id = posts.user_id
+) AND NOT EXISTS (
+    SELECT 1
+    FROM block
+    WHERE user_id = $1 AND target_user_id = posts.user_id
 )
 ORDER BY posts.created_at DESC
 LIMIT $2
@@ -21,6 +25,11 @@ OFFSET $3;
 -- name: GetAllPostIds :many
 SELECT post_id
 FROM posts
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM block
+    WHERE block.user_id = $3 AND target_user_id = posts.user_id
+)
 ORDER BY posts.created_at DESC
 LIMIT $1
 OFFSET $2;

@@ -39,6 +39,26 @@ struct ProfileView: View {
           .interactiveDismissDisabled()
       }
       .navigationTitle("@" + self.username)
+      .toolbar {
+        if !isOwnProfile && !isCurrentProfile {
+          Menu {
+            if case .loaded(let user, _) = viewModel.state {
+              if user.isBlocking {
+                Button(role: .destructive, action: viewModel.toggleBlocking) {
+                  Label("Unblock @\(user.username)", systemImage: "person.fill.checkmark")
+                }
+              } else {
+                Button(role: .destructive, action: viewModel.toggleBlocking) {
+                  Label("Block @\(user.username)", systemImage: "person.fill.xmark")
+                }
+              }
+            }
+          } label: {
+            Image(systemName: "ellipsis.circle")
+          }
+          .disabled(viewModel.isLoadingBlockButton)
+        }
+      }
       .onAppear {
         Task {
           await viewModel.loadProfile()
@@ -122,28 +142,30 @@ struct ProfileView: View {
           .padding(.vertical, 10)
       }
       if !isOwnProfile && !isCurrentProfile {
-        if user.isFollowing {
-          Button(action: viewModel.toggleFollowing) {
-            if viewModel.isLoadingFollowButton {
-              ProgressView()
-                .frame(maxWidth: .infinity)
-            } else {
-              Text("Unfollow")
-                .frame(maxWidth: .infinity)
+        if !user.isBlocking {
+          if user.isFollowing {
+            Button(action: viewModel.toggleFollowing) {
+              if viewModel.isLoadingFollowButton {
+                ProgressView()
+                  .frame(maxWidth: .infinity)
+              } else {
+                Text("Unfollow")
+                  .frame(maxWidth: .infinity)
+              }
             }
-          }
-          .buttonStyle(.bordered)
-        } else {
-          Button(action: viewModel.toggleFollowing) {
-            if viewModel.isLoadingFollowButton {
-              ProgressView()
-                .frame(maxWidth: .infinity)
-            } else {
-              Text("Follow")
-                .frame(maxWidth: .infinity)
+            .buttonStyle(.bordered)
+          } else {
+            Button(action: viewModel.toggleFollowing) {
+              if viewModel.isLoadingFollowButton {
+                ProgressView()
+                  .frame(maxWidth: .infinity)
+              } else {
+                Text("Follow")
+                  .frame(maxWidth: .infinity)
+              }
             }
+            .buttonStyle(.borderedProminent)
           }
-          .buttonStyle(.borderedProminent)
         }
       } else if isOwnProfile {
         Button(action: { isShowingProfileEditor = true }) {

@@ -11,6 +11,22 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const blockUser = `-- name: BlockUser :exec
+INSERT INTO block (user_id, target_user_id)
+VALUES ($1, $2)
+ON CONFLICT DO NOTHING
+`
+
+type BlockUserParams struct {
+	UserID       int32 `json:"userId"`
+	TargetUserID int32 `json:"targetUserId"`
+}
+
+func (q *Queries) BlockUser(ctx context.Context, arg BlockUserParams) error {
+	_, err := q.db.Exec(ctx, blockUser, arg.UserID, arg.TargetUserID)
+	return err
+}
+
 const createSession = `-- name: CreateSession :exec
 INSERT INTO sessions (id, user_id, expires_at)
 VALUES ($1, $2, $3)
@@ -105,6 +121,26 @@ SELECT EXISTS (
 
 func (q *Queries) GetIsEmailInUse(ctx context.Context, email string) (bool, error) {
 	row := q.db.QueryRow(ctx, getIsEmailInUse, email)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
+}
+
+const getIsUserBlockingUser = `-- name: GetIsUserBlockingUser :one
+SELECT EXISTS (
+  SELECT 1
+  FROM block
+  WHERE user_id = $1 AND target_user_id = $2
+)
+`
+
+type GetIsUserBlockingUserParams struct {
+	UserID       int32 `json:"userId"`
+	TargetUserID int32 `json:"targetUserId"`
+}
+
+func (q *Queries) GetIsUserBlockingUser(ctx context.Context, arg GetIsUserBlockingUserParams) (bool, error) {
+	row := q.db.QueryRow(ctx, getIsUserBlockingUser, arg.UserID, arg.TargetUserID)
 	var exists bool
 	err := row.Scan(&exists)
 	return exists, err
@@ -268,16 +304,22 @@ const getUsernameLike = `-- name: GetUsernameLike :many
 SELECT user_id, email, password, username, created_at, name
 FROM users
 WHERE username LIKE $1
+AND NOT EXISTS (
+    SELECT 1
+    FROM block
+    WHERE block.user_id = users.user_id AND target_user_id = $3
+)
 LIMIT $2
 `
 
 type GetUsernameLikeParams struct {
-	Username string `json:"username"`
-	Limit    int32  `json:"limit"`
+	Username     string `json:"username"`
+	Limit        int32  `json:"limit"`
+	TargetUserID int32  `json:"targetUserId"`
 }
 
 func (q *Queries) GetUsernameLike(ctx context.Context, arg GetUsernameLikeParams) ([]User, error) {
-	rows, err := q.db.Query(ctx, getUsernameLike, arg.Username, arg.Limit)
+	rows, err := q.db.Query(ctx, getUsernameLike, arg.Username, arg.Limit, arg.TargetUserID)
 	if err != nil {
 		return nil, err
 	}
@@ -325,6 +367,21 @@ func (q *Queries) GetVerificationCode(ctx context.Context, arg GetVerificationCo
 		&i.ExpiresAt,
 	)
 	return i, err
+}
+
+const unblockUser = `-- name: UnblockUser :exec
+DELETE FROM block
+WHERE user_id = $1 AND target_user_id = $2
+`
+
+type UnblockUserParams struct {
+	UserID       int32 `json:"userId"`
+	TargetUserID int32 `json:"targetUserId"`
+}
+
+func (q *Queries) UnblockUser(ctx context.Context, arg UnblockUserParams) error {
+	_, err := q.db.Exec(ctx, unblockUser, arg.UserID, arg.TargetUserID)
+	return err
 }
 
 const updateUserBio = `-- name: UpdateUserBio :exec

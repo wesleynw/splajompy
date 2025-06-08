@@ -18,6 +18,7 @@ struct PostView: View {
   @State private var isShowingPostMenu = false
   @EnvironmentObject private var feedRefreshManager: FeedRefreshManager
   @EnvironmentObject private var authManager: AuthManager
+  @State private var isReporting = false
 
   private var postDate: Date {
     let formatter = ISO8601DateFormatter()
@@ -96,7 +97,7 @@ struct PostView: View {
           .foregroundColor(.gray)
         Spacer()
         HStack(spacing: 16) {
-          if authManager.getCurrentUser().userId == post.user.userId && !isStandalone {
+          if !isStandalone {
             Button(action: {
               isShowingPostMenu = true
               let impact = UIImpactFeedbackGenerator(style: .light)
@@ -107,9 +108,7 @@ struct PostView: View {
                 .fontWeight(.light)
             }
             .buttonStyle(.plain)
-          }
 
-          if !isStandalone {
             Button(action: {
               isShowingComments = true
               let impact = UIImpactFeedbackGenerator(style: .light)
@@ -158,9 +157,34 @@ struct PostView: View {
     }
     .sheet(isPresented: $isShowingPostMenu) {
       List {
-        Button(action: { onPostDeleted() }) {
-          Label("Delete", systemImage: "trash")
-            .foregroundColor(.red)
+        if authManager.getCurrentUser().userId == post.user.userId {
+          Button(action: { onPostDeleted() }) {
+            Label("Delete", systemImage: "trash")
+              .foregroundColor(.red)
+          }
+        } else {
+          Button(action: {
+            Task {
+              isReporting = true
+              let result = await PostService().reportPost(postId: post.post.postId)
+              if case .success = result {
+                isShowingPostMenu = false
+              }
+              isReporting = false
+            }
+          }) {
+            if isReporting {
+              HStack {
+                Text("Reporting...")
+                Spacer()
+                ProgressView()
+              }
+            } else {
+              Label("Report", systemImage: "exclamationmark.triangle")
+                .foregroundColor(.red)
+            }
+          }
+          .disabled(isReporting)
         }
       }
       .presentationDetents([.medium])

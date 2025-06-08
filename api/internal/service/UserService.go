@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+
 	"splajompy.com/api/v2/internal/models"
 	"splajompy.com/api/v2/internal/repositories"
 	"splajompy.com/api/v2/internal/utilities"
@@ -43,6 +44,11 @@ func (s *UserService) GetUserById(ctx context.Context, cUser models.PublicUser, 
 		return nil, errors.New("unable to retrieve following information")
 	}
 
+	isBlocking, err := s.userRepository.IsUserBlockingUser(ctx, int(cUser.UserID), userID)
+	if err != nil {
+		return nil, errors.New("unable to retrieve blocking information")
+	}
+
 	user := models.DetailedUser{
 		UserID:      dbUser.UserID,
 		Email:       dbUser.Email,
@@ -52,13 +58,14 @@ func (s *UserService) GetUserById(ctx context.Context, cUser models.PublicUser, 
 		Bio:         bio,
 		IsFollowing: isFollowing,
 		IsFollower:  isFollower,
+		IsBlocking:  isBlocking,
 	}
 
 	return &user, nil
 }
 
-func (s *UserService) GetUserByUsernamePrefix(ctx context.Context, prefix string) (*[]models.PublicUser, error) {
-	users, err := s.userRepository.GetUsersWithUsernameLike(ctx, prefix, 10)
+func (s *UserService) GetUserByUsernamePrefix(ctx context.Context, prefix string, currentUserId int) (*[]models.PublicUser, error) {
+	users, err := s.userRepository.GetUsersWithUsernameLike(ctx, prefix, 10, currentUserId)
 	if err != nil {
 		return nil, err
 	}
@@ -74,6 +81,11 @@ func (s *UserService) FollowUser(ctx context.Context, currentUser models.PublicU
 	user, err := s.userRepository.GetUserById(ctx, userId)
 	if err != nil {
 		return errors.New("unable to find user")
+	}
+
+	isBlocked, err := s.userRepository.IsUserBlockingUser(ctx, userId, int(currentUser.UserID))
+	if err != nil || isBlocked {
+		return errors.New("user is blocked")
 	}
 
 	err = s.userRepository.FollowUser(ctx, int(currentUser.UserID), userId)
@@ -120,4 +132,22 @@ func (s *UserService) UpdateProfile(ctx context.Context, userId int, name *strin
 	}
 
 	return nil
+}
+
+func (s *UserService) BlockUser(ctx context.Context, currentUser models.PublicUser, userId int) error {
+	err := s.userRepository.UnfollowUser(ctx, int(currentUser.UserID), userId)
+	if err != nil {
+		return err
+	}
+
+	err = s.userRepository.UnfollowUser(ctx, userId, int(currentUser.UserID))
+	if err != nil {
+		return err
+	}
+
+	return s.userRepository.BlockUser(ctx, int(currentUser.UserID), userId)
+}
+
+func (s *UserService) UnblockUser(ctx context.Context, currentUser models.PublicUser, userId int) error {
+	return s.userRepository.UnblockUser(ctx, int(currentUser.UserID), userId)
 }

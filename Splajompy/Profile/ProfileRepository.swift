@@ -9,6 +9,7 @@ struct UserProfile: Decodable {
   var bio: String
   let isFollower: Bool
   var isFollowing: Bool
+  var isBlocking: Bool
 }
 
 struct UpdateProfileRequest: Encodable {
@@ -23,6 +24,9 @@ protocol ProfileServiceProtocol: Sendable {
     EmptyResponse
   >
   func toggleFollowing(userId: Int, isFollowing: Bool) async -> AsyncResult<
+    EmptyResponse
+  >
+  func toggleBlocking(userId: Int, isBlocking: Bool) async -> AsyncResult<
     EmptyResponse
   >
 }
@@ -69,6 +73,16 @@ struct ProfileService: ProfileServiceProtocol {
       method: method
     )
   }
+
+  func toggleBlocking(userId: Int, isBlocking: Bool) async -> AsyncResult<
+    EmptyResponse
+  > {
+    let method = isBlocking ? "DELETE" : "POST"
+    return await APIService.performRequest(
+      endpoint: "user/\(userId)/block",
+      method: method
+    )
+  }
 }
 
 final class MockUserStore: @unchecked Sendable {
@@ -97,7 +111,8 @@ final class MockUserStore: @unchecked Sendable {
         bio:
           "splajompy creator",
         isFollower: false,
-        isFollowing: false
+        isFollowing: false,
+        isBlocking: false
       ),
       6: UserProfile(
         userId: 6,
@@ -110,7 +125,8 @@ final class MockUserStore: @unchecked Sendable {
         bio:
           "coffee enthusiast ☕ | sunset photographer 📸 | always up for a good conversation",
         isFollower: true,
-        isFollowing: true
+        isFollowing: true,
+        isBlocking: false
       ),
       25: UserProfile(
         userId: 25,
@@ -122,7 +138,8 @@ final class MockUserStore: @unchecked Sendable {
         name: "Joel",
         bio: "heart collector 💕 spreading good vibes everywhere I go",
         isFollower: false,
-        isFollowing: true
+        isFollowing: true,
+        isBlocking: false
       ),
       120: UserProfile(
         userId: 120,
@@ -135,7 +152,8 @@ final class MockUserStore: @unchecked Sendable {
         bio:
           "curious about everything • sunset appreciator • always asking the right questions ✨",
         isFollower: true,
-        isFollowing: false
+        isFollowing: false,
+        isBlocking: false
       ),
       103: UserProfile(
         userId: 103,
@@ -148,7 +166,8 @@ final class MockUserStore: @unchecked Sendable {
         bio:
           "comment connoisseur 😛 | farmer's market regular | living life one incredible moment at a time",
         isFollower: true,
-        isFollowing: true
+        isFollowing: true,
+        isBlocking: false
       ),
       112: UserProfile(
         userId: 112,
@@ -161,7 +180,8 @@ final class MockUserStore: @unchecked Sendable {
         bio:
           "coffee shop discoverer ☕ | post appreciator | finding amazing places in the city",
         isFollower: false,
-        isFollowing: false
+        isFollowing: false,
+        isBlocking: false
       ),
       97: UserProfile(
         userId: 97,
@@ -174,7 +194,8 @@ final class MockUserStore: @unchecked Sendable {
         bio:
           "plot twist enthusiast 📺 | thoughtful commenter | always here for a good discussion",
         isFollower: true,
-        isFollowing: true
+        isFollowing: true,
+        isBlocking: false
       ),
       113: UserProfile(
         userId: 113,
@@ -187,7 +208,8 @@ final class MockUserStore: @unchecked Sendable {
         bio:
           "new follower alert! 🎉 | community builder | excited to connect with everyone",
         isFollower: false,
-        isFollowing: false
+        isFollowing: false,
+        isBlocking: false
       ),
       30: UserProfile(
         userId: 30,
@@ -200,7 +222,8 @@ final class MockUserStore: @unchecked Sendable {
         bio:
           "season finale specialist 📺 | creating conversations about the stories we love",
         isFollower: false,
-        isFollowing: true
+        isFollowing: true,
+        isBlocking: false
       ),
       15: UserProfile(
         userId: 15,
@@ -213,7 +236,8 @@ final class MockUserStore: @unchecked Sendable {
         bio:
           "weekend farmer's market haul curator 🥕 | fresh produce enthusiast | feeding the community",
         isFollower: true,
-        isFollowing: false
+        isFollowing: false,
+        isBlocking: false
       ),
     ]
   }
@@ -281,6 +305,19 @@ struct MockProfileService: ProfileServiceProtocol {
     try? await Task.sleep(nanoseconds: 300_000_000)
     if var user = store.users[userId] {
       user.isFollowing = isFollowing
+      store.users[userId] = user
+      return .success(EmptyResponse())
+    } else {
+      return .error(APIErrorMessage(message: "User not found"))
+    }
+  }
+
+  func toggleBlocking(userId: Int, isBlocking: Bool) async -> AsyncResult<
+    EmptyResponse
+  > {
+    try? await Task.sleep(nanoseconds: 300_000_000)
+    if var user = store.users[userId] {
+      user.isBlocking = isBlocking
       store.users[userId] = user
       return .success(EmptyResponse())
     } else {
