@@ -189,6 +189,7 @@ extension ProfileView {
         } else {
           var updatedProfile = profile
           updatedProfile.isBlocking.toggle()
+          updatedProfile.isFollower = false
           state = .loaded(updatedProfile, posts)
         }
         isLoadingBlockButton = false

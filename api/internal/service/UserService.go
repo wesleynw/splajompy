@@ -134,6 +134,10 @@ func (s *UserService) UpdateProfile(ctx context.Context, userId int, name *strin
 	return nil
 }
 
+func (s *UserService) IsBlockingUser(ctx context.Context, userId int, targetUserId int) (bool, error) {
+	return s.userRepository.IsUserBlockingUser(ctx, userId, targetUserId)
+}
+
 func (s *UserService) BlockUser(ctx context.Context, currentUser models.PublicUser, userId int) error {
 	err := s.userRepository.UnfollowUser(ctx, int(currentUser.UserID), userId)
 	if err != nil {

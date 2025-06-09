@@ -25,6 +25,17 @@ func (h *Handler) GetUserById(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	isBlocking, err := h.userService.IsBlockingUser(r.Context(), int(user.UserID), int(currentUser.UserID))
+	if err != nil {
+		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
+		return
+	}
+
+	if isBlocking {
+		utilities.HandleError(w, http.StatusNotFound, "This user doesn't exist")
+		return
+	}
+
 	utilities.HandleSuccess(w, user)
 }
 
