@@ -166,6 +166,13 @@ struct ProfileView: View {
             }
             .buttonStyle(.borderedProminent)
           }
+        } else {
+          Button(action: viewModel.toggleBlocking) {
+            Text("Unblock")
+              .foregroundStyle(.red.opacity(0.7))
+              .frame(maxWidth: .infinity)
+          }
+          .buttonStyle(.bordered)
         }
       } else if isOwnProfile {
         Button(action: { isShowingProfileEditor = true }) {

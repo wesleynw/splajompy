@@ -7,7 +7,7 @@ struct UserProfile: Decodable {
   let createdAt: String
   var name: String
   var bio: String
-  let isFollower: Bool
+  var isFollower: Bool
   var isFollowing: Bool
   var isBlocking: Bool
 }
