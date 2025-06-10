@@ -25,7 +25,7 @@ func (h *Handler) GetUserById(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	isBlocking, err := h.userService.IsBlockingUser(r.Context(), int(user.UserID), int(currentUser.UserID))
+	isBlocking, err := h.userService.IsBlockingUser(r.Context(), user.UserID, currentUser.UserID)
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
 		return
@@ -52,7 +52,7 @@ func (h *Handler) SearchUsers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	users, err := h.userService.GetUserByUsernamePrefix(r.Context(), prefix, int(currentUser.UserID))
+	users, err := h.userService.GetUserByUsernamePrefix(r.Context(), prefix, currentUser.UserID)
 	if err != nil {
 		utilities.HandleError(w, http.StatusNotFound, "This user doesn't exist")
 		return
@@ -123,7 +123,7 @@ func (h *Handler) UpdateProfile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.userService.UpdateProfile(r.Context(), int(currentUser.UserID), &request.Name, &request.Bio)
+	err = h.userService.UpdateProfile(r.Context(), currentUser.UserID, &request.Name, &request.Bio)
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
 		return
@@ -168,22 +168,6 @@ func (h *Handler) UnblockUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err = h.userService.UnblockUser(r.Context(), *currentUser, userId)
-	if err != nil {
-		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
-		return
-	}
-
-	utilities.HandleEmptySuccess(w)
-}
-
-func (h *Handler) DeleteAccount(w http.ResponseWriter, r *http.Request) {
-	currentUser, err := h.getAuthenticatedUser(r)
-	if err != nil {
-		utilities.HandleError(w, http.StatusUnauthorized, "Unauthorized")
-		return
-	}
-
-	err = h.userService.DeleteAccount(r.Context(), *currentUser)
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
 		return

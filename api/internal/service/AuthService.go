@@ -90,6 +90,19 @@ type AuthResponse struct {
 	User  models.PublicUser `json:"user"`
 }
 
+func (s *AuthService) VerifyPassword(ctx context.Context, identifier string, password string) (bool, error) {
+	storedPassword, err := s.userRepository.GetUserPasswordByIdentifier(ctx, identifier)
+	if err != nil {
+		return false, ErrInvalidPassword
+	}
+
+	if err := bcrypt.CompareHashAndPassword([]byte(storedPassword), []byte(password)); err != nil {
+		return false, ErrInvalidPassword
+	}
+
+	return true, nil
+}
+
 func (s *AuthService) LoginWithCredentials(ctx context.Context, credentials *Credentials) (*AuthResponse, error) {
 	password, err := s.userRepository.GetUserPasswordByIdentifier(ctx, credentials.Identifier)
 	if err != nil {
@@ -105,7 +118,7 @@ func (s *AuthService) LoginWithCredentials(ctx context.Context, credentials *Cre
 		return nil, ErrUserNotFound
 	}
 
-	token, err := s.createSessionToken(ctx, int(user.UserID))
+	token, err := s.createSessionToken(ctx, user.UserID)
 	if err != nil {
 		return nil, ErrGeneral
 	}
@@ -202,4 +215,8 @@ func (s *AuthService) createSessionToken(ctx context.Context, userId int) (strin
 	}
 
 	return sessionId, nil
+}
+
+func (s *AuthService) DeleteAccount(ctx context.Context, currentUser models.PublicUser) error {
+	return s.userRepository.DeleteAccount(ctx, currentUser.UserID)
 }

@@ -154,7 +154,3 @@ func (s *UserService) BlockUser(ctx context.Context, currentUser models.PublicUs
 func (s *UserService) UnblockUser(ctx context.Context, currentUser models.PublicUser, userId int) error {
 	return s.userRepository.UnblockUser(ctx, int(currentUser.UserID), userId)
 }
-
-func (s *UserService) DeleteAccount(ctx context.Context, currentUser models.PublicUser) error {
-	return s.userRepository.DeleteAccount(ctx, currentUser.UserID)
-}

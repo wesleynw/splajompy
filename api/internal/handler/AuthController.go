@@ -167,3 +167,41 @@ func (h *Handler) VerifyOTC(w http.ResponseWriter, r *http.Request) {
 
 	utilities.HandleSuccess(w, response)
 }
+
+type DeleteAccountRequest struct {
+	Password string `json:"password"`
+}
+
+// DeleteAccount deletes the current users account, given the correct password.
+//
+// Request body should contain:
+//   - password: user's password
+//
+// Returns 200 with auth token on success, 400 for invalid credentials.
+func (h *Handler) DeleteAccount(w http.ResponseWriter, r *http.Request) {
+	currentUser, err := h.getAuthenticatedUser(r)
+	if err != nil {
+		utilities.HandleError(w, http.StatusUnauthorized, "Unauthorized")
+		return
+	}
+
+	var request DeleteAccountRequest
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		utilities.HandleError(w, http.StatusBadRequest, "Invalid request body")
+		return
+	}
+
+	success, err := h.authService.VerifyPassword(r.Context(), currentUser.Username, request.Password)
+	if err != nil || !success {
+		utilities.HandleError(w, http.StatusUnauthorized, "Unauthorized")
+		return
+	}
+
+	err = h.authService.DeleteAccount(r.Context(), *currentUser)
+	if err != nil {
+		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
+		return
+	}
+
+	utilities.HandleEmptySuccess(w)
+}

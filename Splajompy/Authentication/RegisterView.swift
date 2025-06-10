@@ -146,6 +146,18 @@ struct RegisterView: View {
 
         Spacer()
 
+        VStack(spacing: 12) {
+          Text("By continuing, you agree to our [Terms of Service](https://splajompy.com/terms) and [Privacy Policy](https://splajompy.com/privacy).")
+            .font(.caption)
+            .foregroundColor(.secondary)
+            .multilineTextAlignment(.center)
+            .environment(\.openURL, OpenURLAction { url in
+              UIApplication.shared.open(url)
+              return .handled
+            })
+        }
+        .padding(.bottom, 16)
+
         Button(action: {
           if validateForm() {
             Task {
