@@ -43,28 +43,47 @@ func (s *CommentService) AddCommentToPost(ctx context.Context, currentUser model
 	if err != nil {
 		return nil, errors.New("unable to generate facets")
 	}
-	comment, err := s.commentRepo.AddCommentToPost(ctx, int(currentUser.UserID), postId, content, commentFacets)
+	comment, err := s.commentRepo.AddCommentToPost(ctx, currentUser.UserID, postId, content, commentFacets)
 	if err != nil {
 		return nil, errors.New("unable to create new comment")
 	}
 
 	commentId := int(comment.CommentID)
-	text := fmt.Sprintf("@%s commented on your post.", currentUser.Username)
-	notificationFacets, err := repositories.GenerateFacets(ctx, s.userRepo, text)
-	if err != nil {
-		return nil, errors.New("unable to generate facets")
+
+	if currentUser.UserID != int(post.UserID) {
+		text := fmt.Sprintf("@%s commented on your post.", currentUser.Username)
+		notificationFacets, err := repositories.GenerateFacets(ctx, s.userRepo, text)
+		if err != nil {
+			return nil, errors.New("unable to generate facets")
+		}
+
+		err = s.notificationRepo.InsertNotification(
+			ctx,
+			int(post.UserID),
+			&postId,
+			&commentId,
+			&notificationFacets,
+			text,
+		)
+		if err != nil {
+			return nil, errors.New("unable to create a new comment notification")
+		}
 	}
 
-	err = s.notificationRepo.InsertNotification(
-		ctx,
-		int(post.UserID),
-		&postId,
-		&commentId,
-		&notificationFacets,
-		text,
-	)
-	if err != nil {
-		return nil, errors.New("unable to create a new comment")
+	// also send notifications to mentioned users
+	for _, facet := range commentFacets {
+		if facet.UserId != int(post.UserID) && facet.UserId != currentUser.UserID {
+			text := fmt.Sprintf("@%s mentioned you in a comment.", currentUser.Username)
+			notificationFacets, err := repositories.GenerateFacets(ctx, s.userRepo, text)
+			if err != nil {
+				return nil, errors.New("unable to generate facets")
+			}
+
+			err = s.notificationRepo.InsertNotification(ctx, facet.UserId, &postId, &commentId, &notificationFacets, text)
+			if err != nil {
+				return nil, errors.New("unable to create a new comment notification")
+			}
+		}
 	}
 
 	detailedComment := utilities.MapComment(comment, currentUser, false)
@@ -116,7 +135,7 @@ func (s *CommentService) GetCommentsByPostId(ctx context.Context, currentUser mo
 
 // AddLikeToCommentById adds a like to a comment
 func (s *CommentService) AddLikeToCommentById(ctx context.Context, currentUser models.PublicUser, postId int, commentId int) error {
-	err := s.commentRepo.AddLikeToComment(ctx, int(currentUser.UserID), postId, commentId)
+	err := s.commentRepo.AddLikeToComment(ctx, currentUser.UserID, postId, commentId)
 	if err != nil {
 		return errors.New("unable to add like to comment")
 	}
@@ -138,7 +157,7 @@ func (s *CommentService) AddLikeToCommentById(ctx context.Context, currentUser m
 
 // RemoveLikeFromCommentById removes a like from a comment
 func (s *CommentService) RemoveLikeFromCommentById(ctx context.Context, currentUser models.PublicUser, postID int, commentID int) error {
-	err := s.commentRepo.RemoveLikeFromComment(ctx, int(currentUser.UserID), postID, commentID)
+	err := s.commentRepo.RemoveLikeFromComment(ctx, currentUser.UserID, postID, commentID)
 	if err != nil {
 		return errors.New("unable to remove like from comment")
 	}

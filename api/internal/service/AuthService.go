@@ -222,13 +222,11 @@ func (s *AuthService) createSessionToken(ctx context.Context, userId int) (strin
 }
 
 func (s *AuthService) DeleteAccount(ctx context.Context, currentUser models.PublicUser) error {
-	// Get all images for the user before deleting the account
 	images, err := s.postRepository.GetAllImagesForUser(ctx, currentUser.UserID)
 	if err != nil {
 		return fmt.Errorf("failed to get user images: %w", err)
 	}
 
-	// Extract S3 keys from image URLs
 	var s3Keys []string
 	for _, image := range images {
 		if image.ImageBlobUrl != "" {
@@ -246,8 +244,6 @@ func (s *AuthService) DeleteAccount(ctx context.Context, currentUser models.Publ
 	if len(s3Keys) > 0 {
 		err = s.bucketRepository.DeleteObjects(ctx, s3Keys)
 		if err != nil {
-			// Log the error but don't fail the entire operation
-			// The database cleanup already succeeded
 			fmt.Printf("Warning: Failed to delete %d images from S3 for user %d: %v\n", len(s3Keys), currentUser.UserID, err)
 		}
 	}
