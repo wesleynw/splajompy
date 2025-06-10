@@ -168,8 +168,6 @@ struct SettingsView: View {
         }
       }
       .padding(24)
-      .presentationDetents([.medium])
-      .presentationDragIndicator(.visible)
     }
   }
 }

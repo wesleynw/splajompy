@@ -17,14 +17,18 @@ import (
 )
 
 type AuthService struct {
-	userRepository repositories.UserRepository
-	resendClient   *resend.Client
+	userRepository   repositories.UserRepository
+	postRepository   repositories.PostRepository
+	bucketRepository repositories.BucketRepository
+	resendClient     *resend.Client
 }
 
-func NewAuthService(userRepository repositories.UserRepository, resendClient *resend.Client) *AuthService {
+func NewAuthService(userRepository repositories.UserRepository, postRepository repositories.PostRepository, bucketRepository repositories.BucketRepository, resendClient *resend.Client) *AuthService {
 	return &AuthService{
-		userRepository: userRepository,
-		resendClient:   resendClient,
+		userRepository:   userRepository,
+		postRepository:   postRepository,
+		bucketRepository: bucketRepository,
+		resendClient:     resendClient,
 	}
 }
 
@@ -218,5 +222,35 @@ func (s *AuthService) createSessionToken(ctx context.Context, userId int) (strin
 }
 
 func (s *AuthService) DeleteAccount(ctx context.Context, currentUser models.PublicUser) error {
-	return s.userRepository.DeleteAccount(ctx, currentUser.UserID)
+	// Get all images for the user before deleting the account
+	images, err := s.postRepository.GetAllImagesForUser(ctx, currentUser.UserID)
+	if err != nil {
+		return fmt.Errorf("failed to get user images: %w", err)
+	}
+
+	// Extract S3 keys from image URLs
+	var s3Keys []string
+	for _, image := range images {
+		if image.ImageBlobUrl != "" {
+			s3Keys = append(s3Keys, image.ImageBlobUrl)
+		}
+	}
+
+	// Delete the user account (this will CASCADE delete all related data)
+	err = s.userRepository.DeleteAccount(ctx, currentUser.UserID)
+	if err != nil {
+		return fmt.Errorf("failed to delete user account: %w", err)
+	}
+
+	// Delete images from S3 (best effort - don't fail if this fails)
+	if len(s3Keys) > 0 {
+		err = s.bucketRepository.DeleteObjects(ctx, s3Keys)
+		if err != nil {
+			// Log the error but don't fail the entire operation
+			// The database cleanup already succeeded
+			fmt.Printf("Warning: Failed to delete %d images from S3 for user %d: %v\n", len(s3Keys), currentUser.UserID, err)
+		}
+	}
+
+	return nil
 }

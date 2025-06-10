@@ -109,6 +109,26 @@ func (r *FakePostRepository) GetImagesForPost(ctx context.Context, postId int) (
 	return images, nil
 }
 
+func (r *FakePostRepository) GetAllImagesForUser(ctx context.Context, userId int) ([]queries.Image, error) {
+	r.mutex.RLock()
+	defer r.mutex.RUnlock()
+
+	var allImages []queries.Image
+	userIdInt32 := int32(userId)
+
+	// Iterate through all posts to find ones by this user
+	for _, post := range r.posts {
+		if post.UserID == userIdInt32 {
+			// Get images for this post
+			if images, exists := r.images[post.PostID]; exists {
+				allImages = append(allImages, images...)
+			}
+		}
+	}
+
+	return allImages, nil
+}
+
 func (r *FakePostRepository) InsertImage(ctx context.Context, postId int, height int, width int, url string, displayOrder int) (queries.Image, error) {
 	r.mutex.Lock()
 	defer r.mutex.Unlock()

@@ -19,6 +19,7 @@ type Querier interface {
 	DeletePost(ctx context.Context, postID int32) error
 	DeleteSession(ctx context.Context, id string) error
 	DeleteUserById(ctx context.Context, userID int32) error
+	GetAllImagesByUserId(ctx context.Context, userID int32) ([]Image, error)
 	GetAllPostIds(ctx context.Context, arg GetAllPostIdsParams) ([]int32, error)
 	GetBioByUserId(ctx context.Context, userID int32) (string, error)
 	GetCommentById(ctx context.Context, commentID int32) (Comment, error)

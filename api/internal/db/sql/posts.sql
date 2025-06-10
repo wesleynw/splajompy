@@ -63,3 +63,9 @@ SELECT *
 FROM images
 WHERE images.post_id = $1
 ORDER BY display_order ASC;
+
+-- name: GetAllImagesByUserId :many
+SELECT images.*
+FROM images
+JOIN posts ON images.post_id = posts.post_id
+WHERE posts.user_id = $1;

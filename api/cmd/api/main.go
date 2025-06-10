@@ -53,7 +53,7 @@ func main() {
 	commentService := service.NewCommentService(commentRepository, postRepository, notificationsRepository, userRepository)
 	userService := service.NewUserService(userRepository, notificationsRepository)
 	notificationService := service.NewNotificationService(notificationsRepository, postRepository, commentRepository)
-	authManager := service.NewAuthService(userRepository, resentClient)
+	authManager := service.NewAuthService(userRepository, postRepository, bucketRepository, resentClient)
 
 	h := handler.NewHandler(q, postService, commentService, userService, notificationService, authManager)
 
