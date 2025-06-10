@@ -120,6 +120,7 @@ func (h *Handler) UpdateProfile(w http.ResponseWriter, r *http.Request) {
 	var request = new(UpdateProfileRequest)
 	if err := json.NewDecoder(r.Body).Decode(request); err != nil {
 		utilities.HandleError(w, http.StatusBadRequest, "Invalid request payload")
+		return
 	}
 
 	err = h.userService.UpdateProfile(r.Context(), int(currentUser.UserID), &request.Name, &request.Bio)
@@ -169,6 +170,23 @@ func (h *Handler) UnblockUser(w http.ResponseWriter, r *http.Request) {
 	err = h.userService.UnblockUser(r.Context(), *currentUser, userId)
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
+		return
+	}
+
+	utilities.HandleEmptySuccess(w)
+}
+
+func (h *Handler) DeleteAccount(w http.ResponseWriter, r *http.Request) {
+	currentUser, err := h.getAuthenticatedUser(r)
+	if err != nil {
+		utilities.HandleError(w, http.StatusUnauthorized, "Unauthorized")
+		return
+	}
+
+	err = h.userService.DeleteAccount(r.Context(), *currentUser)
+	if err != nil {
+		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
+		return
 	}
 
 	utilities.HandleEmptySuccess(w)

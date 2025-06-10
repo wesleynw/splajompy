@@ -8,7 +8,6 @@ import (
 
 	"splajompy.com/api/v2/internal/models"
 	"splajompy.com/api/v2/internal/repositories"
-	"splajompy.com/api/v2/internal/utilities"
 )
 
 type UserService struct {
@@ -54,7 +53,7 @@ func (s *UserService) GetUserById(ctx context.Context, cUser models.PublicUser, 
 		Email:       dbUser.Email,
 		Username:    dbUser.Username,
 		CreatedAt:   dbUser.CreatedAt,
-		Name:        dbUser.Name.String,
+		Name:        dbUser.Name,
 		Bio:         bio,
 		IsFollowing: isFollowing,
 		IsFollower:  isFollower,
@@ -94,7 +93,7 @@ func (s *UserService) FollowUser(ctx context.Context, currentUser models.PublicU
 	}
 
 	text := fmt.Sprintf("@%s started following you.", currentUser.Username)
-	facets, err := utilities.GenerateFacets(ctx, s.userRepository, text)
+	facets, err := repositories.GenerateFacets(ctx, s.userRepository, text)
 	if err != nil {
 		return err
 	}
@@ -154,4 +153,8 @@ func (s *UserService) BlockUser(ctx context.Context, currentUser models.PublicUs
 
 func (s *UserService) UnblockUser(ctx context.Context, currentUser models.PublicUser, userId int) error {
 	return s.userRepository.UnblockUser(ctx, int(currentUser.UserID), userId)
+}
+
+func (s *UserService) DeleteAccount(ctx context.Context, currentUser models.PublicUser) error {
+	return s.userRepository.DeleteAccount(ctx, currentUser.UserID)
 }

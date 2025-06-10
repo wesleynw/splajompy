@@ -53,7 +53,7 @@ func (r *FakeBucketRepository) DeleteObject(ctx context.Context, key string) err
 	return nil
 }
 
-func (r *FakeBucketRepository) GeneratePresignedURL(ctx context.Context, userID int32, extension, folder *string) (string, string, error) {
+func (r *FakeBucketRepository) GeneratePresignedURL(ctx context.Context, userID int, extension, folder *string) (string, string, error) {
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
 

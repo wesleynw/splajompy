@@ -48,8 +48,7 @@ func (h *Handler) validateSessionToken(ctx context.Context, authHeader string) (
 		return nil, nil, err
 	}
 
-	var user = models.PublicUser(dbUser)
-
+	var user = utilities.MapUserToPublicUser(dbUser)
 	return &session, &user, nil
 }
 
@@ -58,6 +57,14 @@ type LoginRequest struct {
 	Password   string `json:"password"`
 }
 
+// Login authenticates a user with email/username and password.
+// It validates credentials, creates a session, and returns an auth token.
+//
+// Request body should contain:
+//   - identifier: email or username
+//   - password: user's password
+//
+// Returns 200 with auth token on success, 400 for invalid credentials.
 func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	var request LoginRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {

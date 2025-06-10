@@ -97,6 +97,16 @@ func (q *Queries) DeleteSession(ctx context.Context, id string) error {
 	return err
 }
 
+const deleteUserById = `-- name: DeleteUserById :exec
+DELETE FROM users
+WHERE user_id = $1
+`
+
+func (q *Queries) DeleteUserById(ctx context.Context, userID int32) error {
+	_, err := q.db.Exec(ctx, deleteUserById, userID)
+	return err
+}
+
 const getBioByUserId = `-- name: GetBioByUserId :one
 SELECT text
 FROM bios
@@ -175,26 +185,19 @@ func (q *Queries) GetSessionById(ctx context.Context, id string) (Session, error
 }
 
 const getUserById = `-- name: GetUserById :one
-SELECT user_id, email, username, created_at, name
+SELECT user_id, email, password, username, created_at, name
 FROM users
 WHERE user_id = $1
 LIMIT 1
 `
 
-type GetUserByIdRow struct {
-	UserID    int32            `json:"userId"`
-	Email     string           `json:"email"`
-	Username  string           `json:"username"`
-	CreatedAt pgtype.Timestamp `json:"createdAt"`
-	Name      pgtype.Text      `json:"name"`
-}
-
-func (q *Queries) GetUserById(ctx context.Context, userID int32) (GetUserByIdRow, error) {
+func (q *Queries) GetUserById(ctx context.Context, userID int32) (User, error) {
 	row := q.db.QueryRow(ctx, getUserById, userID)
-	var i GetUserByIdRow
+	var i User
 	err := row.Scan(
 		&i.UserID,
 		&i.Email,
+		&i.Password,
 		&i.Username,
 		&i.CreatedAt,
 		&i.Name,
@@ -203,26 +206,19 @@ func (q *Queries) GetUserById(ctx context.Context, userID int32) (GetUserByIdRow
 }
 
 const getUserByIdentifier = `-- name: GetUserByIdentifier :one
-SELECT user_id, email, username, created_at, name
+SELECT user_id, email, password, username, created_at, name
 FROM users
 WHERE email = $1 OR username = $1
 LIMIT 1
 `
 
-type GetUserByIdentifierRow struct {
-	UserID    int32            `json:"userId"`
-	Email     string           `json:"email"`
-	Username  string           `json:"username"`
-	CreatedAt pgtype.Timestamp `json:"createdAt"`
-	Name      pgtype.Text      `json:"name"`
-}
-
-func (q *Queries) GetUserByIdentifier(ctx context.Context, email string) (GetUserByIdentifierRow, error) {
+func (q *Queries) GetUserByIdentifier(ctx context.Context, email string) (User, error) {
 	row := q.db.QueryRow(ctx, getUserByIdentifier, email)
-	var i GetUserByIdentifierRow
+	var i User
 	err := row.Scan(
 		&i.UserID,
 		&i.Email,
+		&i.Password,
 		&i.Username,
 		&i.CreatedAt,
 		&i.Name,
@@ -231,26 +227,19 @@ func (q *Queries) GetUserByIdentifier(ctx context.Context, email string) (GetUse
 }
 
 const getUserByUsername = `-- name: GetUserByUsername :one
-SELECT user_id, email, username, created_at, name
+SELECT user_id, email, password, username, created_at, name
 FROM users
 WHERE username = $1
 LIMIT 1
 `
 
-type GetUserByUsernameRow struct {
-	UserID    int32            `json:"userId"`
-	Email     string           `json:"email"`
-	Username  string           `json:"username"`
-	CreatedAt pgtype.Timestamp `json:"createdAt"`
-	Name      pgtype.Text      `json:"name"`
-}
-
-func (q *Queries) GetUserByUsername(ctx context.Context, username string) (GetUserByUsernameRow, error) {
+func (q *Queries) GetUserByUsername(ctx context.Context, username string) (User, error) {
 	row := q.db.QueryRow(ctx, getUserByUsername, username)
-	var i GetUserByUsernameRow
+	var i User
 	err := row.Scan(
 		&i.UserID,
 		&i.Email,
+		&i.Password,
 		&i.Username,
 		&i.CreatedAt,
 		&i.Name,

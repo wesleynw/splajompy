@@ -20,14 +20,14 @@ func TestFollowUser(t *testing.T) {
 
 	service := NewUserService(fakeUserRepo, fakeNotificationRepo)
 
-	err = service.FollowUser(ctx, user1, int(user2.UserID))
+	err = service.FollowUser(ctx, user1, user2.UserID)
 	require.NoError(t, err)
 
-	following := fakeUserRepo.GetFollowingForUser(int(user1.UserID))
+	following := fakeUserRepo.GetFollowingForUser(user1.UserID)
 	assert.Equal(t, 1, len(following))
-	assert.Contains(t, following, user2.UserID)
+	assert.Contains(t, following, int32(user2.UserID))
 
-	followers := fakeUserRepo.GetFollowersForUser(int(user2.UserID))
+	followers := fakeUserRepo.GetFollowersForUser(user2.UserID)
 	assert.Equal(t, 1, len(followers))
-	assert.Contains(t, followers, user1.UserID)
+	assert.Contains(t, followers, int32(user1.UserID))
 }

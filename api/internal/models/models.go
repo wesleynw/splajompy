@@ -1,9 +1,9 @@
 package models
 
 import (
-	"github.com/jackc/pgx/v5/pgtype"
 	"splajompy.com/api/v2/internal/db"
 	"splajompy.com/api/v2/internal/db/queries"
+	"time"
 )
 
 type APIResponse struct {
@@ -14,7 +14,7 @@ type APIResponse struct {
 
 type RelevantLike struct {
 	Username string `json:"username"`
-	UserID   int32  `json:"userId"`
+	UserID   int    `json:"userId"`
 }
 
 type DetailedPost struct {
@@ -28,14 +28,14 @@ type DetailedPost struct {
 }
 
 type DetailedComment struct {
-	CommentID int32            `json:"commentId"`
-	PostID    int32            `json:"postId"`
-	UserID    int32            `json:"userId"`
-	Text      string           `json:"text"`
-	Facets    db.Facets        `json:"facets"`
-	CreatedAt pgtype.Timestamp `json:"createdAt"`
-	User      PublicUser       `json:"user"`
-	IsLiked   bool             `json:"isLiked"`
+	CommentID int        `json:"commentId"`
+	PostID    int        `json:"postId"`
+	UserID    int        `json:"userId"`
+	Text      string     `json:"text"`
+	Facets    db.Facets  `json:"facets"`
+	CreatedAt time.Time  `json:"createdAt"`
+	User      PublicUser `json:"user"`
+	IsLiked   bool       `json:"isLiked"`
 }
 
 type DetailedNotification struct {
@@ -45,16 +45,23 @@ type DetailedNotification struct {
 	ImageBlob *string          `json:"imageBlob"`
 }
 
-type PublicUser = queries.GetUserByIdentifierRow
+// PublicUser Related to queries.GetUserByIdentifierRow
+type PublicUser struct {
+	UserID    int       `json:"userId"`
+	Email     string    `json:"email"`
+	Username  string    `json:"username"`
+	CreatedAt time.Time `json:"createdAt"`
+	Name      string    `json:"name"`
+}
 
 type DetailedUser struct {
-	UserID      int32            `json:"userId"`
-	Email       string           `json:"email"`
-	Username    string           `json:"username"`
-	CreatedAt   pgtype.Timestamp `json:"createdAt"`
-	Name        string           `json:"name"`
-	Bio         string           `json:"bio"`
-	IsFollower  bool             `json:"isFollower"`
-	IsFollowing bool             `json:"isFollowing"`
-	IsBlocking  bool             `json:"isBlocking"`
+	UserID      int       `json:"userId"`
+	Email       string    `json:"email"`
+	Username    string    `json:"username"`
+	CreatedAt   time.Time `json:"createdAt"`
+	Name        string    `json:"name"`
+	Bio         string    `json:"bio"`
+	IsFollower  bool      `json:"isFollower"`
+	IsFollowing bool      `json:"isFollowing"`
+	IsBlocking  bool      `json:"isBlocking"`
 }

@@ -79,7 +79,7 @@ func (s *NotificationService) MarkNotificationAsReadById(ctx context.Context, us
 		return errors.New("unable to fetch notification")
 	}
 
-	if notification.UserID != user.UserID {
+	if int(notification.UserID) != user.UserID {
 		return errors.New("notification does not belong to user")
 	}
 

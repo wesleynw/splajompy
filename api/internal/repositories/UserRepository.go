@@ -2,6 +2,11 @@ package repositories
 
 import (
 	"context"
+	"errors"
+	"github.com/jackc/pgx/v5"
+	"regexp"
+	"splajompy.com/api/v2/internal/db"
+	"splajompy.com/api/v2/internal/utilities"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgtype"
@@ -30,21 +35,11 @@ type UserRepository interface {
 	BlockUser(ctx context.Context, currentUserId int, targetUserId int) error
 	UnblockUser(ctx context.Context, currentUserId int, targetUserId int) error
 	IsUserBlockingUser(ctx context.Context, blockerId int, blockedId int) (bool, error)
+	DeleteAccount(ctx context.Context, userId int) error
 }
 
 type DBUserRepository struct {
 	querier queries.Querier
-}
-
-// convertToPublicUser converts database user types to models.PublicUser
-func convertToPublicUser(userID int32, email string, username string, createdAt pgtype.Timestamp, name pgtype.Text) models.PublicUser {
-	return models.PublicUser{
-		UserID:    userID,
-		Email:     email,
-		Username:  username,
-		CreatedAt: createdAt,
-		Name:      name,
-	}
 }
 
 // GetUserById retrieves a user by their ID
@@ -54,7 +49,7 @@ func (r DBUserRepository) GetUserById(ctx context.Context, userId int) (models.P
 		return models.PublicUser{}, err
 	}
 
-	return convertToPublicUser(user.UserID, user.Email, user.Username, user.CreatedAt, user.Name), nil
+	return utilities.MapUserToPublicUser(user), nil
 }
 
 // GetUserByUsername retrieves a user by their username
@@ -64,7 +59,7 @@ func (r DBUserRepository) GetUserByUsername(ctx context.Context, username string
 		return models.PublicUser{}, err
 	}
 
-	return convertToPublicUser(user.UserID, user.Email, user.Username, user.CreatedAt, user.Name), nil
+	return utilities.MapUserToPublicUser(user), nil
 }
 
 // GetUserByIdentifier retrieves a user by email or username
@@ -74,7 +69,7 @@ func (r DBUserRepository) GetUserByIdentifier(ctx context.Context, identifier st
 		return models.PublicUser{}, err
 	}
 
-	return convertToPublicUser(user.UserID, user.Email, user.Username, user.CreatedAt, user.Name), nil
+	return utilities.MapUserToPublicUser(user), nil
 }
 
 // GetBioForUser retrieves a user's bio
@@ -127,13 +122,7 @@ func (r DBUserRepository) GetUsersWithUsernameLike(ctx context.Context, prefix s
 
 	publicUsers := make([]models.PublicUser, len(users))
 	for i, user := range users {
-		publicUsers[i] = models.PublicUser{
-			UserID:    user.UserID,
-			Email:     user.Email,
-			Username:  user.Username,
-			CreatedAt: pgtype.Timestamp(pgtype.Date{Time: user.CreatedAt.Time, Valid: true}),
-			Name:      pgtype.Text{String: user.Name.String, Valid: true},
-		}
+		publicUsers[i] = utilities.MapUserToPublicUser(user)
 	}
 
 	return publicUsers, nil
@@ -168,13 +157,7 @@ func (r DBUserRepository) CreateUser(ctx context.Context, username string, email
 		return models.PublicUser{}, err
 	}
 
-	return models.PublicUser{
-		UserID:    user.UserID,
-		Email:     user.Email,
-		Username:  user.Username,
-		CreatedAt: pgtype.Timestamp(pgtype.Date{Time: user.CreatedAt.Time, Valid: true}),
-		Name:      pgtype.Text{String: user.Name.String, Valid: true},
-	}, nil
+	return utilities.MapUserToPublicUser(user), nil
 }
 
 // GetVerificationCode retrieves a verification code for a user
@@ -234,7 +217,38 @@ func (r DBUserRepository) IsUserBlockingUser(ctx context.Context, blockerId int,
 	})
 }
 
+func (r DBUserRepository) DeleteAccount(ctx context.Context, userId int) error {
+	return r.querier.DeleteUserById(ctx, int32(userId))
+}
+
 // NewDBUserRepository creates a new user repository
 func NewDBUserRepository(querier queries.Querier) UserRepository {
 	return &DBUserRepository{querier: querier}
+}
+
+func GenerateFacets(ctx context.Context, userRepository UserRepository, text string) (db.Facets, error) {
+	re := regexp.MustCompile(`@(\w+)`)
+	matches := re.FindAllStringSubmatchIndex(text, -1)
+
+	var facets db.Facets
+
+	for _, match := range matches {
+		start, end := match[0], match[1]
+		username := text[start+1 : end]
+		user, err := userRepository.GetUserByUsername(ctx, username)
+		if err != nil {
+			if errors.Is(err, pgx.ErrNoRows) {
+				continue
+			}
+			return nil, err
+		}
+		facets = append(facets, db.Facet{
+			Type:       "mention",
+			UserId:     user.UserID,
+			IndexStart: start,
+			IndexEnd:   end,
+		})
+	}
+
+	return facets, nil
 }

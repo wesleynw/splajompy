@@ -14,7 +14,7 @@ type CommentRepository interface {
 	IsCommentLikedByUser(ctx context.Context, userId int, postId int, commentId int) (bool, error)
 	AddLikeToComment(ctx context.Context, userId int, postId int, commentId int) error
 	RemoveLikeFromComment(ctx context.Context, userId int, postId int, commentId int) error
-	GetUserById(ctx context.Context, userId int) (queries.GetUserByIdRow, error)
+	GetUserById(ctx context.Context, userId int) (queries.User, error)
 }
 
 type DBCommentRepository struct {
@@ -71,7 +71,7 @@ func (r DBCommentRepository) RemoveLikeFromComment(ctx context.Context, userId i
 }
 
 // GetUserById retrieves a user by their ID
-func (r DBCommentRepository) GetUserById(ctx context.Context, userId int) (queries.GetUserByIdRow, error) {
+func (r DBCommentRepository) GetUserById(ctx context.Context, userId int) (queries.User, error) {
 	return r.querier.GetUserById(ctx, int32(userId))
 }
 

@@ -25,8 +25,8 @@ func createTestUser() models.PublicUser {
 		UserID:    1,
 		Email:     "test@example.com",
 		Username:  "testUser",
-		CreatedAt: pgtype.Timestamp{Time: time.Now(), Valid: true},
-		Name:      pgtype.Text{String: "Test User", Valid: true},
+		CreatedAt: time.Now(),
+		Name:      "Test User",
 	}
 }
 
@@ -80,8 +80,8 @@ func TestGetNotificationsByUserId(t *testing.T) {
 		UserID:    2,
 		Email:     "another@example.com",
 		Username:  "anotherUser",
-		CreatedAt: pgtype.Timestamp{Time: time.Now(), Valid: true},
-		Name:      pgtype.Text{String: "Another User", Valid: true},
+		CreatedAt: time.Now(),
+		Name:      "Another User",
 	}
 
 	notifications, err = service.GetNotificationsByUserId(ctx, anotherUser, 0, 10)
@@ -187,16 +187,16 @@ func TestMultipleUsersNotifications(t *testing.T) {
 		UserID:    1,
 		Email:     "user1@example.com",
 		Username:  "user1",
-		CreatedAt: pgtype.Timestamp{Time: time.Now(), Valid: true},
-		Name:      pgtype.Text{String: "User One", Valid: true},
+		CreatedAt: time.Now(),
+		Name:      "User One",
 	}
 
 	user2 := models.PublicUser{
 		UserID:    2,
 		Email:     "user2@example.com",
 		Username:  "user2",
-		CreatedAt: pgtype.Timestamp{Time: time.Now(), Valid: true},
-		Name:      pgtype.Text{String: "User Two", Valid: true},
+		CreatedAt: time.Now(),
+		Name:      "User Two",
 	}
 
 	fakeRepo.AddNotification(createTestNotification(int(user1.UserID), 1, "User 1 notification 1", false))

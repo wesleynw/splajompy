@@ -52,13 +52,13 @@ func TestNewPost(t *testing.T) {
 	post, err := postRepo.GetPostById(ctx, int(postIds[0]))
 	assert.NoError(t, err)
 	assert.Equal(t, text, post.Text.String)
-	assert.Equal(t, user.UserID, post.UserID)
+	assert.Equal(t, user.UserID, int(post.UserID))
 
 	assert.Len(t, post.Facets, 1)
 	assert.Equal(t, "mention", post.Facets[0].Type)
 	assert.Equal(t, int(user.UserID), post.Facets[0].UserId)
 
-	destinationKey := repositories.GetDestinationKey("test", user.UserID, post.PostID, imageKeymap[0])
+	destinationKey := repositories.GetDestinationKey("test", user.UserID, int(post.PostID), imageKeymap[0])
 	imageData, exists := bucketRepo.GetObject(destinationKey)
 	assert.True(t, exists)
 	assert.Equal(t, []byte("test image data"), imageData)
@@ -217,10 +217,10 @@ func TestAddLikeToPost(t *testing.T) {
 
 	var foundPostOwner, foundSecondUser bool
 	for _, like := range likes {
-		if like.UserID == postOwner.UserID {
+		if int(like.UserID) == postOwner.UserID {
 			foundPostOwner = true
 		}
-		if like.UserID == secondUser.UserID {
+		if int(like.UserID) == secondUser.UserID {
 			foundSecondUser = true
 		}
 	}

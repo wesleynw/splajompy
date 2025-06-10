@@ -13,7 +13,7 @@ import (
 type FakeCommentRepository struct {
 	comments       map[int][]queries.Comment
 	commentLikes   map[string]bool
-	users          map[int]queries.GetUserByIdRow
+	users          map[int]queries.User
 	commentCounter int32
 	mu             sync.Mutex
 }
@@ -22,7 +22,7 @@ func NewFakeCommentRepository() *FakeCommentRepository {
 	return &FakeCommentRepository{
 		comments:     make(map[int][]queries.Comment),
 		commentLikes: make(map[string]bool),
-		users:        make(map[int]queries.GetUserByIdRow),
+		users:        make(map[int]queries.User),
 		mu:           sync.Mutex{},
 	}
 }
@@ -119,13 +119,13 @@ func (f *FakeCommentRepository) RemoveLikeFromComment(ctx context.Context, userI
 	return nil
 }
 
-func (f *FakeCommentRepository) GetUserById(ctx context.Context, userId int) (queries.GetUserByIdRow, error) {
+func (f *FakeCommentRepository) GetUserById(ctx context.Context, userId int) (queries.User, error) {
 	f.mu.Lock()
 	defer f.mu.Unlock()
 
 	user, exists := f.users[userId]
 	if !exists {
-		user = queries.GetUserByIdRow{
+		user = queries.User{
 			UserID:    int32(userId),
 			Email:     "user-" + string(rune(userId)) + "@example.com",
 			Username:  "user-" + string(rune(userId)),
@@ -138,7 +138,7 @@ func (f *FakeCommentRepository) GetUserById(ctx context.Context, userId int) (qu
 	return user, nil
 }
 
-func (f *FakeCommentRepository) AddUser(userId int, user queries.GetUserByIdRow) {
+func (f *FakeCommentRepository) AddUser(userId int, user queries.User) {
 	f.mu.Lock()
 	defer f.mu.Unlock()
 

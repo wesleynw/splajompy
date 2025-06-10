@@ -204,7 +204,7 @@ func (r *FakeUserRepository) UpdateUserName(ctx context.Context, userId int, new
 		return errors.New("user not found")
 	}
 
-	user.Name = pgtype.Text{String: newName, Valid: true}
+	user.Name = newName
 	r.users[id] = user
 
 	return nil
@@ -245,11 +245,11 @@ func (r *FakeUserRepository) CreateUser(ctx context.Context, username string, em
 
 	now := time.Now()
 	user := models.PublicUser{
-		UserID:    userId,
+		UserID:    int(userId),
 		Email:     email,
 		Username:  username,
-		CreatedAt: pgtype.Timestamp{Time: now, Valid: true},
-		Name:      pgtype.Text{String: "", Valid: false},
+		CreatedAt: now.UTC(),
+		Name:      "",
 	}
 
 	r.users[userId] = user
@@ -416,4 +416,8 @@ func (r *FakeUserRepository) UnblockUser(_ context.Context, _ int, _ int) error 
 
 func (r *FakeUserRepository) IsUserBlockingUser(_ context.Context, _ int, _ int) (bool, error) {
 	return false, nil
+}
+
+func (r *FakeUserRepository) DeleteAccount(ctx context.Context, userId int) error {
+	panic("implement me")
 }

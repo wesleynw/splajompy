@@ -40,6 +40,7 @@ func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("POST /login", h.Login)
 	mux.HandleFunc("POST /otc/generate", h.GenerateOTC)
 	mux.HandleFunc("POST /otc/verify", h.VerifyOTC)
+	mux.HandleFunc("POST /account/delete", h.DeleteAccount)
 
 	// posts
 	mux.HandleFunc("GET /post/presignedUrl", h.GetPresignedUrl)
