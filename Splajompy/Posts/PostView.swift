@@ -157,34 +157,38 @@ struct PostView: View {
     }
     .sheet(isPresented: $isShowingPostMenu) {
       List {
-        if authManager.getCurrentUser().userId == post.user.userId {
-          Button(action: { onPostDeleted() }) {
-            Label("Delete", systemImage: "trash")
-              .foregroundColor(.red)
-          }
-        } else {
-          Button(action: {
-            Task {
-              isReporting = true
-              let result = await PostService().reportPost(postId: post.post.postId)
-              if case .success = result {
-                isShowingPostMenu = false
-              }
-              isReporting = false
-            }
-          }) {
-            if isReporting {
-              HStack {
-                Text("Reporting...")
-                Spacer()
-                ProgressView()
-              }
-            } else {
-              Label("Report", systemImage: "exclamationmark.triangle")
+        if let currentUser = authManager.getCurrentUser() {
+          if currentUser.userId == post.user.userId {
+            Button(action: { onPostDeleted() }) {
+              Label("Delete", systemImage: "trash")
                 .foregroundColor(.red)
             }
+          } else {
+            Button(action: {
+              Task {
+                isReporting = true
+                let result = await PostService().reportPost(
+                  postId: post.post.postId
+                )
+                if case .success = result {
+                  isShowingPostMenu = false
+                }
+                isReporting = false
+              }
+            }) {
+              if isReporting {
+                HStack {
+                  Text("Reporting...")
+                  Spacer()
+                  ProgressView()
+                }
+              } else {
+                Label("Report", systemImage: "exclamationmark.triangle")
+                  .foregroundColor(.red)
+              }
+            }
+            .disabled(isReporting)
           }
-          .disabled(isReporting)
         }
       }
       .presentationDetents([.medium])

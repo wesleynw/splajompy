@@ -158,20 +158,22 @@ struct ReelsPostView: View {
           }
         }
 
-        if authManager.getCurrentUser().userId == post.user.userId {
-          Button(action: {
-            isShowingPostMenu = true
-          }) {
-            Image(systemName: "ellipsis")
-              .font(.title)
-              .foregroundColor(.white)
-              .frame(width: 44, height: 44)
-              .background(
-                Circle()
-                  .fill(Color.black.opacity(0.3))
-              )
+        if let currentUser = authManager.getCurrentUser() {
+          if currentUser.userId == post.user.userId {
+            Button(action: {
+              isShowingPostMenu = true
+            }) {
+              Image(systemName: "ellipsis")
+                .font(.title)
+                .foregroundColor(.white)
+                .frame(width: 44, height: 44)
+                .background(
+                  Circle()
+                    .fill(Color.black.opacity(0.3))
+                )
+            }
+            .buttonStyle(.plain)
           }
-          .buttonStyle(.plain)
         }
       }
     }

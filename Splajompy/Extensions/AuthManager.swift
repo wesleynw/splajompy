@@ -27,11 +27,18 @@ class AuthManager: ObservableObject, Sendable {
   static let shared = AuthManager()
 
   init() {
-    let sessionToken = KeychainHelper.standard.read(
-      service: "session-token",
-      account: "self"
-    )
-    isAuthenticated = sessionToken != nil
+    checkAuthenticationState()
+  }
+
+  private func checkAuthenticationState() {
+    let hasToken = getAuthToken() != nil
+    let hasValidUserData = getCurrentUser() != nil
+
+    isAuthenticated = hasToken && hasValidUserData
+
+    if hasToken && !hasValidUserData {
+      signOut()
+    }
   }
 
   func getAuthToken() -> String? {
@@ -48,41 +55,69 @@ class AuthManager: ObservableObject, Sendable {
       return nil
     }
 
-    let token = tokenString.trimmingCharacters(
-      in: CharacterSet(charactersIn: "\"")
-    )
-
-    return token
+    return tokenString.trimmingCharacters(in: CharacterSet(charactersIn: "\""))
   }
 
   func signOut() {
     KeychainHelper.standard.delete(service: "session-token", account: "self")
+    UserDefaults.standard.removeObject(forKey: "CurrentUserID")
+    UserDefaults.standard.removeObject(forKey: "CurrentUserUsername")
+    UserDefaults.standard.removeObject(forKey: "CurrentUserEmail")
+    UserDefaults.standard.removeObject(forKey: "CurrentUserCreatedAt")
+    UserDefaults.standard.removeObject(forKey: "CurrentUserName")
 
-    Task { @MainActor in
-      isAuthenticated = false
-    }
+    isAuthenticated = false
   }
 
-  func getCurrentUser() -> (userId: Int, username: String) {
+  func getCurrentUser() -> User? {
     let defaults = UserDefaults.standard
 
-    let userId = defaults.integer(forKey: "CurrentUserID")
-
-    guard let username = defaults.string(forKey: "CurrentUserUsername") else {
-      signOut()
-      return (0, "")
+    guard let userId = defaults.object(forKey: "CurrentUserID") as? Int,
+      let username = defaults.string(forKey: "CurrentUserUsername"),
+      let email = defaults.string(forKey: "CurrentUserEmail"),
+      let createdAt = defaults.string(forKey: "CurrentUserCreatedAt"),
+      !username.isEmpty
+    else {
+      return nil
     }
 
-    if userId == 0 {
-      signOut()
-      return (0, "")
+    let name = defaults.string(forKey: "CurrentUserName")
+    return User(
+      userId: userId,
+      email: email,
+      username: username,
+      createdAt: createdAt,
+      name: name
+    )
+  }
+
+  private func saveUserData(_ user: User, token: String) {
+    KeychainHelper.standard.save(
+      token,
+      service: "session-token",
+      account: "self"
+    )
+
+    let defaults = UserDefaults.standard
+    defaults.set(user.userId, forKey: "CurrentUserID")
+    defaults.set(user.username, forKey: "CurrentUserUsername")
+    defaults.set(user.email, forKey: "CurrentUserEmail")
+    defaults.set(user.createdAt, forKey: "CurrentUserCreatedAt")
+    if let name = user.name {
+      defaults.set(name, forKey: "CurrentUserName")
     }
 
-    return (userId, username)
+    isAuthenticated = true
+
+    PostHogSDK.shared.identify(
+      String(user.userId),
+      userProperties: ["email": user.email]
+    )
   }
 
   func requestOneTimeCode(for identifier: String) async -> Bool {
     isLoading = true
+    defer { isLoading = false }
 
     struct Body: Encodable {
       let identifier: String
@@ -99,18 +134,17 @@ class AuthManager: ObservableObject, Sendable {
       body: jsonData
     )
 
-    isLoading = false
-
     switch result {
     case .success:
       return true
-    default:
+    case .error:
       return false
     }
   }
 
   func verifyOneTimeCode(for identifier: String, code: String) async -> Bool {
     isLoading = true
+    defer { isLoading = false }
 
     struct Body: Encodable {
       let identifier: String
@@ -133,34 +167,19 @@ class AuthManager: ObservableObject, Sendable {
 
     switch result {
     case .success(let authResponse):
-      KeychainHelper.standard.save(
-        authResponse.token,
-        service: "session-token",
-        account: "self"
-      )
-
-      let defaults = UserDefaults.standard
-      defaults.set(authResponse.user.userId, forKey: "CurrentUserID")
-      defaults.set(authResponse.user.username, forKey: "CurrentUserUsername")
-
-      isAuthenticated = true
-      isLoading = false
-
-      PostHogSDK.shared.identify(
-        String(authResponse.user.userId), userProperties: ["email": authResponse.user.email])
+      saveUserData(authResponse.user, token: authResponse.token)
       PostHogSDK.shared.capture("user_signin_otc")
-
       return true
     case .error:
-      isLoading = false
       return false
     }
   }
 
-  func signInWithPassword(identifier: String, password: String) async
-    -> (success: Bool, error: String)
-  {
+  func signInWithPassword(identifier: String, password: String) async -> (
+    success: Bool, error: String
+  ) {
     isLoading = true
+    defer { isLoading = false }
 
     struct LoginCredentials: Encodable {
       let identifier: String
@@ -172,11 +191,8 @@ class AuthManager: ObservableObject, Sendable {
       password: password
     )
 
-    let jsonData: Data
-    do {
-      jsonData = try JSONEncoder().encode(credentials)
-    } catch {
-      return (false, error.localizedDescription)
+    guard let jsonData = try? JSONEncoder().encode(credentials) else {
+      return (false, "Failed to encode credentials")
     }
 
     let result: AsyncResult<AuthResponse> = await APIService.performRequest(
@@ -187,34 +203,19 @@ class AuthManager: ObservableObject, Sendable {
 
     switch result {
     case .success(let authResponse):
-      KeychainHelper.standard.save(
-        authResponse.token,
-        service: "session-token",
-        account: "self"
-      )
-
-      let defaults = UserDefaults.standard
-      defaults.set(authResponse.user.userId, forKey: "CurrentUserID")
-      defaults.set(authResponse.user.username, forKey: "CurrentUserUsername")
-
-      isAuthenticated = true
-      isLoading = false
-
-      PostHogSDK.shared.identify(
-        String(authResponse.user.userId), userProperties: ["email": authResponse.user.email])
+      saveUserData(authResponse.user, token: authResponse.token)
       PostHogSDK.shared.capture("user_signin")
-
       return (true, "")
     case .error(let error):
-      isLoading = false
       return (false, error.localizedDescription)
     }
   }
 
-  func register(username: String, email: String, password: String) async
-    -> (success: Bool, error: String)
-  {
+  func register(username: String, email: String, password: String) async -> (
+    success: Bool, error: String
+  ) {
     isLoading = true
+    defer { isLoading = false }
 
     guard
       let requestBody = try? JSONSerialization.data(withJSONObject: [
@@ -234,41 +235,27 @@ class AuthManager: ObservableObject, Sendable {
 
     switch result {
     case .success(let authResponse):
-      KeychainHelper.standard.save(
-        authResponse.token,
-        service: "session-token",
-        account: "self"
-      )
-
-      let defaults = UserDefaults.standard
-      defaults.set(authResponse.user.userId, forKey: "CurrentUserID")
-      defaults.set(authResponse.user.username, forKey: "CurrentUserUsername")
-
-      PostHogSDK.shared.identify(
-        String(authResponse.user.userId), userProperties: ["email": authResponse.user.email])
+      saveUserData(authResponse.user, token: authResponse.token)
       PostHogSDK.shared.capture("user_register")
-
-      isAuthenticated = true
-      isLoading = false
-
       return (true, "")
     case .error(let error):
-      isLoading = false
       return (false, error.localizedDescription)
     }
   }
 
   func deleteAccount(password: String) async -> (success: Bool, error: String) {
     isLoading = true
+    defer { isLoading = false }
 
     struct DeleteAccountRequest: Encodable {
       let password: String
     }
 
-    let requestBody = DeleteAccountRequest(password: password)
-
-    guard let jsonData = try? JSONEncoder().encode(requestBody) else {
-      isLoading = false
+    guard
+      let jsonData = try? JSONEncoder().encode(
+        DeleteAccountRequest(password: password)
+      )
+    else {
       return (false, "Failed to serialize request")
     }
 
@@ -281,10 +268,8 @@ class AuthManager: ObservableObject, Sendable {
     switch result {
     case .success:
       signOut()
-      isLoading = false
       return (true, "")
     case .error(let error):
-      isLoading = false
       return (false, error.localizedDescription)
     }
   }
