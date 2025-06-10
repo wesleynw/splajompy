@@ -97,7 +97,8 @@ struct PostView: View {
         Spacer()
         HStack(spacing: 16) {
           if !isStandalone {
-            Menu(content: {
+            Menu(
+              content: {
                 if let currentUser = authManager.getCurrentUser() {
                   if currentUser.userId == post.user.userId {
                     Button(role: .destructive, action: { onPostDeleted() }) {
@@ -105,15 +106,18 @@ struct PostView: View {
                         .foregroundColor(.red)
                     }
                   } else {
-                    Button(role: .destructive, action: {
-                      Task {
-                        isReporting = true
-                        let _ = await PostService().reportPost(
-                          postId: post.post.postId
-                        )
-                        isReporting = false
+                    Button(
+                      role: .destructive,
+                      action: {
+                        Task {
+                          isReporting = true
+                          let _ = await PostService().reportPost(
+                            postId: post.post.postId
+                          )
+                          isReporting = false
+                        }
                       }
-                    }) {
+                    ) {
                       if isReporting {
                         HStack {
                           Text("Reporting...")
@@ -128,11 +132,12 @@ struct PostView: View {
                     .disabled(isReporting)
                   }
                 }
-            }, label: {
-              Image(systemName: "ellipsis")
-                .font(.system(size: 25))
-                .fontWeight(.light)
-            })
+              },
+              label: {
+                Image(systemName: "ellipsis")
+                  .font(.system(size: 25))
+                  .fontWeight(.light)
+              })
 
             Button(action: {
               isShowingComments = true
