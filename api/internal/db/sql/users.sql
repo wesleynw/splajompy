@@ -30,19 +30,19 @@ WHERE email = $1 OR username = $1
 LIMIT 1;
 
 -- name: GetUserById :one
-SELECT user_id, email, username, created_at, name
+SELECT *
 FROM users
 WHERE user_id = $1
 LIMIT 1;
 
 -- name: GetUserByUsername :one
-SELECT user_id, email, username, created_at, name
+SELECT *
 FROM users
 WHERE username = $1
 LIMIT 1;
 
 -- name: GetUserByIdentifier :one
-SELECT user_id, email, username, created_at, name
+SELECT *
 FROM users
 WHERE email = $1 OR username = $1
 LIMIT 1;
@@ -115,3 +115,7 @@ SELECT EXISTS (
   FROM block
   WHERE user_id = $1 AND target_user_id = $2
 );
+
+-- name: DeleteUserById :exec
+DELETE FROM users
+WHERE user_id = $1;

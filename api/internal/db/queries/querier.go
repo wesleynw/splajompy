@@ -18,6 +18,8 @@ type Querier interface {
 	DeleteFollow(ctx context.Context, arg DeleteFollowParams) error
 	DeletePost(ctx context.Context, postID int32) error
 	DeleteSession(ctx context.Context, id string) error
+	DeleteUserById(ctx context.Context, userID int32) error
+	GetAllImagesByUserId(ctx context.Context, userID int32) ([]Image, error)
 	GetAllPostIds(ctx context.Context, arg GetAllPostIdsParams) ([]int32, error)
 	GetBioByUserId(ctx context.Context, userID int32) (string, error)
 	GetCommentById(ctx context.Context, commentID int32) (Comment, error)
@@ -37,9 +39,9 @@ type Querier interface {
 	GetPostLikesFromFollowers(ctx context.Context, arg GetPostLikesFromFollowersParams) ([]GetPostLikesFromFollowersRow, error)
 	GetPostsIdsByUserId(ctx context.Context, arg GetPostsIdsByUserIdParams) ([]int32, error)
 	GetSessionById(ctx context.Context, id string) (Session, error)
-	GetUserById(ctx context.Context, userID int32) (GetUserByIdRow, error)
-	GetUserByIdentifier(ctx context.Context, email string) (GetUserByIdentifierRow, error)
-	GetUserByUsername(ctx context.Context, username string) (GetUserByUsernameRow, error)
+	GetUserById(ctx context.Context, userID int32) (User, error)
+	GetUserByIdentifier(ctx context.Context, email string) (User, error)
+	GetUserByUsername(ctx context.Context, username string) (User, error)
 	GetUserUnreadNotificationCount(ctx context.Context, userID int32) (int64, error)
 	GetUserWithPasswordById(ctx context.Context, userID int32) (User, error)
 	GetUserWithPasswordByIdentifier(ctx context.Context, email string) (User, error)

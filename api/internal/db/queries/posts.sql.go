@@ -22,6 +22,40 @@ func (q *Queries) DeletePost(ctx context.Context, postID int32) error {
 	return err
 }
 
+const getAllImagesByUserId = `-- name: GetAllImagesByUserId :many
+SELECT images.image_id, images.post_id, images.height, images.width, images.image_blob_url, images.display_order
+FROM images
+JOIN posts ON images.post_id = posts.post_id
+WHERE posts.user_id = $1
+`
+
+func (q *Queries) GetAllImagesByUserId(ctx context.Context, userID int32) ([]Image, error) {
+	rows, err := q.db.Query(ctx, getAllImagesByUserId, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Image
+	for rows.Next() {
+		var i Image
+		if err := rows.Scan(
+			&i.ImageID,
+			&i.PostID,
+			&i.Height,
+			&i.Width,
+			&i.ImageBlobUrl,
+			&i.DisplayOrder,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getAllPostIds = `-- name: GetAllPostIds :many
 SELECT post_id
 FROM posts

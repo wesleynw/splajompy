@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/jackc/pgx/v5/pgtype"
+	"splajompy.com/api/v2/internal/db/queries"
 	"splajompy.com/api/v2/internal/models"
 	"splajompy.com/api/v2/internal/repositories"
 	"splajompy.com/api/v2/internal/utilities"
@@ -39,7 +39,7 @@ func (s *CommentService) AddCommentToPost(ctx context.Context, currentUser model
 		return nil, errors.New("unable to find post")
 	}
 
-	commentFacets, err := utilities.GenerateFacets(ctx, s.userRepo, content)
+	commentFacets, err := repositories.GenerateFacets(ctx, s.userRepo, content)
 	if err != nil {
 		return nil, errors.New("unable to generate facets")
 	}
@@ -50,7 +50,7 @@ func (s *CommentService) AddCommentToPost(ctx context.Context, currentUser model
 
 	commentId := int(comment.CommentID)
 	text := fmt.Sprintf("@%s commented on your post.", currentUser.Username)
-	notificationFacets, err := utilities.GenerateFacets(ctx, s.userRepo, text)
+	notificationFacets, err := repositories.GenerateFacets(ctx, s.userRepo, text)
 	if err != nil {
 		return nil, errors.New("unable to generate facets")
 	}
@@ -67,18 +67,9 @@ func (s *CommentService) AddCommentToPost(ctx context.Context, currentUser model
 		return nil, errors.New("unable to create a new comment")
 	}
 
-	detailedComment := &models.DetailedComment{
-		CommentID: comment.CommentID,
-		PostID:    comment.PostID,
-		UserID:    comment.UserID,
-		Text:      comment.Text,
-		Facets:    commentFacets,
-		CreatedAt: pgtype.Timestamp{Time: comment.CreatedAt.Time, Valid: true},
-		User:      currentUser,
-		IsLiked:   false,
-	}
+	detailedComment := utilities.MapComment(comment, currentUser, false)
 
-	return detailedComment, nil
+	return &detailedComment, nil
 }
 
 // GetCommentsByPostId retrieves all comments for a specific post with like status
@@ -99,7 +90,7 @@ func (s *CommentService) GetCommentsByPostId(ctx context.Context, currentUser mo
 
 		isLiked, err := s.commentRepo.IsCommentLikedByUser(
 			ctx,
-			int(currentUser.UserID),
+			currentUser.UserID,
 			int(dbComment.PostID),
 			int(dbComment.CommentID),
 		)
@@ -107,16 +98,15 @@ func (s *CommentService) GetCommentsByPostId(ctx context.Context, currentUser mo
 			return nil, errors.New("unable to retrieve comment liked information")
 		}
 
-		detailedComment := models.DetailedComment{
+		var comment = queries.Comment{
 			CommentID: dbComment.CommentID,
 			PostID:    dbComment.PostID,
 			UserID:    dbComment.UserID,
 			Text:      dbComment.Text,
 			Facets:    dbComment.Facets,
-			CreatedAt: pgtype.Timestamp{Time: dbComment.CreatedAt.Time, Valid: true},
-			User:      user,
-			IsLiked:   isLiked,
+			CreatedAt: dbComment.CreatedAt,
 		}
+		detailedComment := utilities.MapComment(comment, user, isLiked)
 
 		comments = append(comments, detailedComment)
 	}
@@ -137,7 +127,7 @@ func (s *CommentService) AddLikeToCommentById(ctx context.Context, currentUser m
 	}
 
 	text := fmt.Sprintf("@%s liked your comment", currentUser.Username)
-	facets, err := utilities.GenerateFacets(ctx, s.userRepo, text)
+	facets, err := repositories.GenerateFacets(ctx, s.userRepo, text)
 	if err != nil {
 		return err
 	}

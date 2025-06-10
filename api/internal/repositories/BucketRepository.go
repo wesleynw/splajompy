@@ -16,7 +16,8 @@ import (
 type BucketRepository interface {
 	CopyObject(ctx context.Context, sourceKey, destinationKey string) error
 	DeleteObject(ctx context.Context, key string) error
-	GeneratePresignedURL(ctx context.Context, userID int32, extension, folder *string) (string, string, error)
+	DeleteObjects(ctx context.Context, keys []string) error
+	GeneratePresignedURL(ctx context.Context, userID int, extension, folder *string) (string, string, error)
 	GetObjectURL(key string) string
 }
 
@@ -56,7 +57,46 @@ func (r *S3BucketRepository) DeleteObject(ctx context.Context, key string) error
 	return err
 }
 
-func (r *S3BucketRepository) GeneratePresignedURL(ctx context.Context, userID int32, extension, folder *string) (string, string, error) {
+func (r *S3BucketRepository) DeleteObjects(ctx context.Context, keys []string) error {
+	if len(keys) == 0 {
+		return nil
+	}
+
+	// S3 allows up to 1000 objects per delete request
+	const batchSize = 1000
+	
+	for i := 0; i < len(keys); i += batchSize {
+		end := i + batchSize
+		if end > len(keys) {
+			end = len(keys)
+		}
+		
+		batch := keys[i:end]
+		var objectsToDelete []types.ObjectIdentifier
+		
+		for _, key := range batch {
+			objectsToDelete = append(objectsToDelete, types.ObjectIdentifier{
+				Key: aws.String(key),
+			})
+		}
+		
+		_, err := r.s3Client.DeleteObjects(ctx, &s3.DeleteObjectsInput{
+			Bucket: aws.String(r.bucketName),
+			Delete: &types.Delete{
+				Objects: objectsToDelete,
+				Quiet:   aws.Bool(true), // Don't return info about successful deletions
+			},
+		})
+		
+		if err != nil {
+			return fmt.Errorf("failed to delete batch of objects: %w", err)
+		}
+	}
+	
+	return nil
+}
+
+func (r *S3BucketRepository) GeneratePresignedURL(ctx context.Context, userID int, extension, folder *string) (string, string, error) {
 	presignClient := s3.NewPresignClient(r.s3Client)
 
 	s3Key := fmt.Sprintf("%s/posts/staging/%d/%s/%s.%s", r.environment, userID, *folder, uuid.New(), *extension)
@@ -82,7 +122,7 @@ func (r *S3BucketRepository) GetObjectURL(key string) string {
 	return r.cdnBaseURL + key
 }
 
-func GetDestinationKey(environment string, userID, postID int32, sourceKey string) string {
+func GetDestinationKey(environment string, userID, postID int, sourceKey string) string {
 	filename := sourceKey[strings.LastIndex(sourceKey, "/"):]
 	return fmt.Sprintf("%s/posts/%d/%d%s", environment, userID, postID, filename)
 }

@@ -38,7 +38,7 @@ func TestAddCommentToPost(t *testing.T) {
 	assert.NotNil(t, detailedComment)
 	assert.Equal(t, commentContent, detailedComment.Text)
 	assert.Equal(t, user.UserID, detailedComment.UserID)
-	assert.Equal(t, post.PostID, detailedComment.PostID)
+	assert.Equal(t, int(post.PostID), detailedComment.PostID)
 	assert.False(t, detailedComment.IsLiked)
 	assert.Equal(t, user, detailedComment.User)
 
@@ -78,7 +78,7 @@ func TestGetCommentsByPostId(t *testing.T) {
 	for i, comment := range comments {
 		commentTexts[i] = comment.Text
 		assert.Equal(t, commenter.UserID, comment.UserID)
-		assert.Equal(t, post.PostID, comment.PostID)
+		assert.Equal(t, int(post.PostID), comment.PostID)
 		assert.False(t, comment.IsLiked)
 		assert.Equal(t, commenter.Username, comment.User.Username)
 	}
@@ -123,8 +123,8 @@ func TestCommentLikes(t *testing.T) {
 	assert.NoError(t, err)
 
 	assert.Len(t, likes, 1)
-	assert.Equal(t, comment.CommentID, likes[0].CommentID.Int32)
-	assert.Equal(t, comment.UserID, likes[0].UserID)
+	assert.Equal(t, comment.CommentID, int(likes[0].CommentID.Int32))
+	assert.Equal(t, comment.UserID, int(likes[0].UserID))
 
 	comments, err = svc.GetCommentsByPostId(ctx, user, int(post.PostID))
 	assert.NoError(t, err)
@@ -152,6 +152,6 @@ func TestCommentCreatedTimestamp(t *testing.T) {
 	afterCreation := time.Now().Add(1 * time.Second)
 	require.NoError(t, err)
 
-	assert.True(t, comment.CreatedAt.Time.After(beforeCreation))
-	assert.True(t, comment.CreatedAt.Time.Before(afterCreation))
+	assert.True(t, comment.CreatedAt.After(beforeCreation))
+	assert.True(t, comment.CreatedAt.Before(afterCreation))
 }

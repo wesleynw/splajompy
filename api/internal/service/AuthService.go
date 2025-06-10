@@ -17,14 +17,18 @@ import (
 )
 
 type AuthService struct {
-	userRepository repositories.UserRepository
-	resendClient   *resend.Client
+	userRepository   repositories.UserRepository
+	postRepository   repositories.PostRepository
+	bucketRepository repositories.BucketRepository
+	resendClient     *resend.Client
 }
 
-func NewAuthService(userRepository repositories.UserRepository, resendClient *resend.Client) *AuthService {
+func NewAuthService(userRepository repositories.UserRepository, postRepository repositories.PostRepository, bucketRepository repositories.BucketRepository, resendClient *resend.Client) *AuthService {
 	return &AuthService{
-		userRepository: userRepository,
-		resendClient:   resendClient,
+		userRepository:   userRepository,
+		postRepository:   postRepository,
+		bucketRepository: bucketRepository,
+		resendClient:     resendClient,
 	}
 }
 
@@ -90,6 +94,19 @@ type AuthResponse struct {
 	User  models.PublicUser `json:"user"`
 }
 
+func (s *AuthService) VerifyPassword(ctx context.Context, identifier string, password string) (bool, error) {
+	storedPassword, err := s.userRepository.GetUserPasswordByIdentifier(ctx, identifier)
+	if err != nil {
+		return false, ErrInvalidPassword
+	}
+
+	if err := bcrypt.CompareHashAndPassword([]byte(storedPassword), []byte(password)); err != nil {
+		return false, ErrInvalidPassword
+	}
+
+	return true, nil
+}
+
 func (s *AuthService) LoginWithCredentials(ctx context.Context, credentials *Credentials) (*AuthResponse, error) {
 	password, err := s.userRepository.GetUserPasswordByIdentifier(ctx, credentials.Identifier)
 	if err != nil {
@@ -105,7 +122,7 @@ func (s *AuthService) LoginWithCredentials(ctx context.Context, credentials *Cre
 		return nil, ErrUserNotFound
 	}
 
-	token, err := s.createSessionToken(ctx, int(user.UserID))
+	token, err := s.createSessionToken(ctx, user.UserID)
 	if err != nil {
 		return nil, ErrGeneral
 	}
@@ -202,4 +219,38 @@ func (s *AuthService) createSessionToken(ctx context.Context, userId int) (strin
 	}
 
 	return sessionId, nil
+}
+
+func (s *AuthService) DeleteAccount(ctx context.Context, currentUser models.PublicUser) error {
+	// Get all images for the user before deleting the account
+	images, err := s.postRepository.GetAllImagesForUser(ctx, currentUser.UserID)
+	if err != nil {
+		return fmt.Errorf("failed to get user images: %w", err)
+	}
+
+	// Extract S3 keys from image URLs
+	var s3Keys []string
+	for _, image := range images {
+		if image.ImageBlobUrl != "" {
+			s3Keys = append(s3Keys, image.ImageBlobUrl)
+		}
+	}
+
+	// Delete the user account (this will CASCADE delete all related data)
+	err = s.userRepository.DeleteAccount(ctx, currentUser.UserID)
+	if err != nil {
+		return fmt.Errorf("failed to delete user account: %w", err)
+	}
+
+	// Delete images from S3 (best effort - don't fail if this fails)
+	if len(s3Keys) > 0 {
+		err = s.bucketRepository.DeleteObjects(ctx, s3Keys)
+		if err != nil {
+			// Log the error but don't fail the entire operation
+			// The database cleanup already succeeded
+			fmt.Printf("Warning: Failed to delete %d images from S3 for user %d: %v\n", len(s3Keys), currentUser.UserID, err)
+		}
+	}
+
+	return nil
 }

@@ -257,4 +257,35 @@ class AuthManager: ObservableObject, Sendable {
       return (false, error.localizedDescription)
     }
   }
+
+  func deleteAccount(password: String) async -> (success: Bool, error: String) {
+    isLoading = true
+
+    struct DeleteAccountRequest: Encodable {
+      let password: String
+    }
+
+    let requestBody = DeleteAccountRequest(password: password)
+
+    guard let jsonData = try? JSONEncoder().encode(requestBody) else {
+      isLoading = false
+      return (false, "Failed to serialize request")
+    }
+
+    let result: AsyncResult<EmptyResponse> = await APIService.performRequest(
+      endpoint: "account/delete",
+      method: "POST",
+      body: jsonData
+    )
+
+    switch result {
+    case .success:
+      signOut()
+      isLoading = false
+      return (true, "")
+    case .error(let error):
+      isLoading = false
+      return (false, error.localizedDescription)
+    }
+  }
 }

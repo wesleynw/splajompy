@@ -12,7 +12,6 @@ import (
 	"splajompy.com/api/v2/internal/models"
 	"splajompy.com/api/v2/internal/repositories"
 	"splajompy.com/api/v2/internal/templates"
-	"splajompy.com/api/v2/internal/utilities"
 )
 
 type PostService struct {
@@ -36,7 +35,7 @@ func NewPostService(postRepository repositories.PostRepository, userRepository r
 }
 
 func (s *PostService) NewPost(ctx context.Context, currentUser models.PublicUser, text string, imageKeymap map[int]string) error {
-	facets, err := utilities.GenerateFacets(ctx, s.userRepository, text)
+	facets, err := repositories.GenerateFacets(ctx, s.userRepository, text)
 	if err != nil {
 		return err
 	}
@@ -52,7 +51,7 @@ func (s *PostService) NewPost(ctx context.Context, currentUser models.PublicUser
 		destinationKey := repositories.GetDestinationKey(
 			environment,
 			currentUser.UserID,
-			post.PostID,
+			int(post.PostID),
 			s3key,
 		)
 
@@ -192,7 +191,7 @@ func (s *PostService) AddLikeToPost(ctx context.Context, currentUser models.Publ
 	}
 
 	text := fmt.Sprintf("@%s liked your post", currentUser.Username)
-	facets, err := utilities.GenerateFacets(ctx, s.userRepository, text)
+	facets, err := repositories.GenerateFacets(ctx, s.userRepository, text)
 	if err != nil {
 		return err
 	}
@@ -212,7 +211,7 @@ func (s *PostService) DeletePost(ctx context.Context, currentUser models.PublicU
 		return err
 	}
 
-	if post.UserID != currentUser.UserID {
+	if int(post.UserID) != currentUser.UserID {
 		return errors.New("unable to delete post")
 	}
 
@@ -220,13 +219,13 @@ func (s *PostService) DeletePost(ctx context.Context, currentUser models.PublicU
 }
 
 func (s *PostService) getRelevantLikes(ctx context.Context, currentUser models.PublicUser, postId int) ([]models.RelevantLike, bool, error) {
-	likes, err := s.likeRepository.GetPostLikesFromFollowers(ctx, postId, int(currentUser.UserID))
+	likes, err := s.likeRepository.GetPostLikesFromFollowers(ctx, postId, currentUser.UserID)
 	if err != nil {
 		return nil, false, err
 	}
 
 	sort.SliceStable(likes, func(i, j int) bool {
-		return seededRandom(postId+int(likes[i].UserID)) < seededRandom(postId+int(likes[i].UserID))
+		return seededRandom(postId+int(likes[i].UserID)) < seededRandom(postId+int(likes[j].UserID))
 	})
 
 	count := min(len(likes), 2)
@@ -236,13 +235,13 @@ func (s *PostService) getRelevantLikes(ctx context.Context, currentUser models.P
 	for i, like := range likes[:count] {
 		mappedLikes[i] = models.RelevantLike{
 			Username: like.Username,
-			UserID:   like.UserID,
+			UserID:   int(like.UserID),
 		}
 		userIDs[i] = like.UserID
 	}
 
 	// don't include the current user
-	userIDs[count] = currentUser.UserID
+	userIDs[count] = int32(currentUser.UserID)
 
 	hasOtherLikes, err := s.likeRepository.HasLikesFromOthers(ctx, postId, userIDs)
 	if err != nil {
