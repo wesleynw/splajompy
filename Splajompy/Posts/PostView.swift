@@ -15,7 +15,6 @@ struct PostView: View {
   }
 
   @State private var isShowingComments = false
-  @State private var isShowingPostMenu = false
   @EnvironmentObject private var feedRefreshManager: FeedRefreshManager
   @EnvironmentObject private var authManager: AuthManager
   @State private var isReporting = false
@@ -98,16 +97,47 @@ struct PostView: View {
         Spacer()
         HStack(spacing: 16) {
           if !isStandalone {
-            Button(action: {
-              isShowingPostMenu = true
-              let impact = UIImpactFeedbackGenerator(style: .light)
-              impact.impactOccurred()
-            }) {
-              Image(systemName: "ellipsis")
-                .font(.system(size: 25))
-                .fontWeight(.light)
-            }
-            .buttonStyle(.plain)
+            Menu(
+              content: {
+                if let currentUser = authManager.getCurrentUser() {
+                  if currentUser.userId == post.user.userId {
+                    Button(role: .destructive, action: { onPostDeleted() }) {
+                      Label("Delete", systemImage: "trash")
+                        .foregroundColor(.red)
+                    }
+                  } else {
+                    Button(
+                      role: .destructive,
+                      action: {
+                        Task {
+                          isReporting = true
+                          let _ = await PostService().reportPost(
+                            postId: post.post.postId
+                          )
+                          isReporting = false
+                        }
+                      }
+                    ) {
+                      if isReporting {
+                        HStack {
+                          Text("Reporting...")
+                          Spacer()
+                          ProgressView()
+                        }
+                      } else {
+                        Label("Report", systemImage: "exclamationmark.triangle")
+                          .foregroundColor(.red)
+                      }
+                    }
+                    .disabled(isReporting)
+                  }
+                }
+              },
+              label: {
+                Image(systemName: "ellipsis")
+                  .font(.system(size: 25))
+                  .fontWeight(.light)
+              })
 
             Button(action: {
               isShowingComments = true
@@ -154,45 +184,6 @@ struct PostView: View {
     .padding(.horizontal, 16)
     .sheet(isPresented: $isShowingComments) {
       CommentsView(postId: post.post.postId)
-    }
-    .sheet(isPresented: $isShowingPostMenu) {
-      List {
-        if let currentUser = authManager.getCurrentUser() {
-          if currentUser.userId == post.user.userId {
-            Button(action: { onPostDeleted() }) {
-              Label("Delete", systemImage: "trash")
-                .foregroundColor(.red)
-            }
-          } else {
-            Button(action: {
-              Task {
-                isReporting = true
-                let result = await PostService().reportPost(
-                  postId: post.post.postId
-                )
-                if case .success = result {
-                  isShowingPostMenu = false
-                }
-                isReporting = false
-              }
-            }) {
-              if isReporting {
-                HStack {
-                  Text("Reporting...")
-                  Spacer()
-                  ProgressView()
-                }
-              } else {
-                Label("Report", systemImage: "exclamationmark.triangle")
-                  .foregroundColor(.red)
-              }
-            }
-            .disabled(isReporting)
-          }
-        }
-      }
-      .presentationDetents([.medium])
-      .presentationDragIndicator(.visible)
     }
   }
 }
