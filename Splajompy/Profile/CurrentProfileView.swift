@@ -5,18 +5,18 @@ struct CurrentProfileView: View {
   @EnvironmentObject private var feedRefreshManager: FeedRefreshManager
 
   var body: some View {
-    let (userId, username) = authManager.getCurrentUser()
-
-    ProfileView(
-      userId: userId,
-      username: username,
-      isOwnProfile: true
-    )
-    .toolbar {
-      NavigationLink(
-        destination: SettingsView().environmentObject(authManager)
-      ) {
-        Image(systemName: "gearshape")
+    if let currentUser = authManager.getCurrentUser() {
+      ProfileView(
+        userId: currentUser.userId,
+        username: currentUser.username,
+        isOwnProfile: true
+      )
+      .toolbar {
+        NavigationLink(
+          destination: SettingsView().environmentObject(authManager)
+        ) {
+          Image(systemName: "gearshape")
+        }
       }
     }
   }
