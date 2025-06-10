@@ -61,7 +61,9 @@ struct SettingsView: View {
           }
           Button("Cancel", role: .cancel) {}
         } message: {
-          Text("This action cannot be undone. All your posts, comments, and data will be permanently deleted.")
+          Text(
+            "This action cannot be undone. All your posts, comments, and data will be permanently deleted."
+          )
         }
 
         StorageManager()
@@ -94,17 +96,17 @@ struct SettingsView: View {
           Image(systemName: "exclamationmark.triangle.fill")
             .font(.system(size: 50))
             .foregroundColor(.red)
-          
+
           Text("Delete Account")
             .font(.title2)
             .fontWeight(.bold)
-          
+
           Text("Enter your password to confirm account deletion. This action cannot be undone.")
             .font(.body)
             .multilineTextAlignment(.center)
             .foregroundColor(.secondary)
         }
-        
+
         VStack(alignment: .leading, spacing: 8) {
           SecureField("Password", text: $deleteAccountPassword)
             .padding(12)
@@ -115,20 +117,21 @@ struct SettingsView: View {
             .textContentType(.password)
             .autocapitalization(.none)
             .autocorrectionDisabled()
-          
+
           if !deleteAccountError.isEmpty {
             Text(deleteAccountError)
               .font(.caption)
               .foregroundColor(.red)
           }
         }
-        
+
         Spacer()
-        
+
         VStack(spacing: 12) {
           Button(action: {
             Task {
-              let (success, error) = await authManager.deleteAccount(password: deleteAccountPassword)
+              let (success, error) = await authManager.deleteAccount(
+                password: deleteAccountPassword)
               if !success {
                 deleteAccountError = error
               } else {
@@ -152,7 +155,7 @@ struct SettingsView: View {
             .containerShape(RoundedRectangle(cornerRadius: 10))
           }
           .disabled(deleteAccountPassword.isEmpty || authManager.isLoading)
-          
+
           Button("Cancel") {
             isShowingDeleteAccountSheet = false
             deleteAccountPassword = ""
