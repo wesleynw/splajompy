@@ -3,15 +3,15 @@ package fakes
 import (
 	"context"
 	"errors"
-	"github.com/jackc/pgx/v5/pgtype"
 	"splajompy.com/api/v2/internal/db"
 	"splajompy.com/api/v2/internal/db/queries"
+	"splajompy.com/api/v2/internal/models"
 	"sync"
 	"time"
 )
 
 type FakePostRepository struct {
-	posts        map[int32]queries.Post
+	posts        map[int32]models.Post
 	images       map[int32][]queries.Image
 	postLikes    map[int32]map[int32]bool
 	commentCount map[int32]int32
@@ -22,7 +22,7 @@ type FakePostRepository struct {
 
 func NewFakePostRepository() *FakePostRepository {
 	return &FakePostRepository{
-		posts:        make(map[int32]queries.Post),
+		posts:        make(map[int32]models.Post),
 		images:       make(map[int32][]queries.Image),
 		postLikes:    make(map[int32]map[int32]bool),
 		commentCount: make(map[int32]int32),
@@ -31,7 +31,7 @@ func NewFakePostRepository() *FakePostRepository {
 	}
 }
 
-func (r *FakePostRepository) InsertPost(ctx context.Context, userId int, content string, facets db.Facets) (queries.Post, error) {
+func (r *FakePostRepository) InsertPost(ctx context.Context, userId int, content string, facets db.Facets) (*models.Post, error) {
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
 
@@ -39,19 +39,19 @@ func (r *FakePostRepository) InsertPost(ctx context.Context, userId int, content
 	r.nextPostId++
 
 	now := time.Now()
-	post := queries.Post{
+	post := models.Post{
 		PostID:    postId,
 		UserID:    int32(userId),
-		Text:      pgtype.Text{String: content, Valid: true},
+		Text:      content,
 		Facets:    facets,
-		CreatedAt: pgtype.Timestamp{Time: now, Valid: true},
+		CreatedAt: now,
 	}
 
 	r.posts[postId] = post
 	r.postLikes[postId] = make(map[int32]bool)
 	r.images[postId] = make([]queries.Image, 0)
 
-	return post, nil
+	return &post, nil
 }
 
 func (r *FakePostRepository) DeletePost(ctx context.Context, postId int) error {
@@ -71,17 +71,17 @@ func (r *FakePostRepository) DeletePost(ctx context.Context, postId int) error {
 	return nil
 }
 
-func (r *FakePostRepository) GetPostById(ctx context.Context, postId int) (queries.Post, error) {
+func (r *FakePostRepository) GetPostById(ctx context.Context, postId int) (*models.Post, error) {
 	r.mutex.RLock()
 	defer r.mutex.RUnlock()
 
 	id := int32(postId)
 	post, exists := r.posts[id]
 	if !exists {
-		return queries.Post{}, errors.New("post not found")
+		return nil, errors.New("post not found")
 	}
 
-	return post, nil
+	return &post, nil
 }
 
 func (r *FakePostRepository) IsPostLikedByUserId(_ context.Context, userId int, postId int) (bool, error) {

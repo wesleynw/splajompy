@@ -5,6 +5,8 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	"splajompy.com/api/v2/internal/db"
 	"splajompy.com/api/v2/internal/db/queries"
+	"splajompy.com/api/v2/internal/models"
+	"splajompy.com/api/v2/internal/utilities"
 	"sync"
 	"time"
 )
@@ -36,23 +38,19 @@ func (f *FakeNotificationRepository) InsertNotification(ctx context.Context, use
 			Int32: int32(*postId),
 			Valid: true,
 		}
-	} else {
-		postIdValue = pgtype.Int4{
-			Valid: false,
-		}
 	}
 
-	// this is dumb
 	var commentIdValue pgtype.Int4
 	if commentId != nil {
 		commentIdValue = pgtype.Int4{
 			Int32: int32(*commentId),
 			Valid: true,
 		}
-	} else {
-		commentIdValue = pgtype.Int4{
-			Valid: false,
-		}
+	}
+
+	var facetsValue db.Facets
+	if facets != nil {
+		facetsValue = *facets
 	}
 
 	notification := queries.Notification{
@@ -61,11 +59,9 @@ func (f *FakeNotificationRepository) InsertNotification(ctx context.Context, use
 		PostID:         postIdValue,
 		Message:        message,
 		CommentID:      commentIdValue,
+		Facets:         facetsValue,
 		Viewed:         false,
-		CreatedAt: pgtype.Timestamp{
-			Time:  time.Now(),
-			Valid: true,
-		},
+		CreatedAt:      pgtype.Timestamp{Time: time.Now()},
 	}
 
 	f.nextNotificationID++
@@ -79,13 +75,13 @@ func (f *FakeNotificationRepository) InsertNotification(ctx context.Context, use
 }
 
 // GetNotificationsForUserId retrieves notifications for a user with pagination
-func (f *FakeNotificationRepository) GetNotificationsForUserId(ctx context.Context, userId int, offset int, limit int) ([]queries.Notification, error) {
+func (f *FakeNotificationRepository) GetNotificationsForUserId(ctx context.Context, userId int, offset int, limit int) ([]*models.Notification, error) {
 	f.mu.Lock()
 	defer f.mu.Unlock()
 
 	userNotifications, exists := f.notifications[userId]
 	if !exists {
-		return []queries.Notification{}, nil
+		return []*models.Notification{}, nil
 	}
 
 	// Apply pagination
@@ -93,18 +89,24 @@ func (f *FakeNotificationRepository) GetNotificationsForUserId(ctx context.Conte
 	end := offset + limit
 
 	if start >= len(userNotifications) {
-		return []queries.Notification{}, nil
+		return []*models.Notification{}, nil
 	}
 
 	if end > len(userNotifications) {
 		end = len(userNotifications)
 	}
 
-	return userNotifications[start:end], nil
+	result := make([]*models.Notification, 0, end-start)
+	for _, notification := range userNotifications[start:end] {
+		mapped := utilities.MapNotification(notification)
+		result = append(result, &mapped)
+	}
+
+	return result, nil
 }
 
 // GetNotificationById retrieves a notification by ID
-func (f *FakeNotificationRepository) GetNotificationById(ctx context.Context, notificationId int) (queries.Notification, error) {
+func (f *FakeNotificationRepository) GetNotificationById(ctx context.Context, notificationId int) (*models.Notification, error) {
 	f.mu.Lock()
 	defer f.mu.Unlock()
 
@@ -112,13 +114,14 @@ func (f *FakeNotificationRepository) GetNotificationById(ctx context.Context, no
 	for _, userNotifications := range f.notifications {
 		for _, notification := range userNotifications {
 			if notification.NotificationID == int32(notificationId) {
-				return notification, nil
+				mapped := utilities.MapNotification(notification)
+				return &mapped, nil
 			}
 		}
 	}
 
-	// Return an empty notification if not found
-	return queries.Notification{}, nil
+	// Return nil if not found
+	return nil, nil
 }
 
 // MarkNotificationAsRead marks a notification as read
@@ -137,7 +140,6 @@ func (f *FakeNotificationRepository) MarkNotificationAsRead(ctx context.Context,
 		}
 	}
 
-	// No error if notification not found
 	return nil
 }
 
@@ -178,6 +180,25 @@ func (f *FakeNotificationRepository) GetUserHasUnreadNotifications(ctx context.C
 	return false, nil
 }
 
+func (f *FakeNotificationRepository) GetUserUnreadNotificationCount(ctx context.Context, userId int) (int, error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+
+	userNotifications, exists := f.notifications[userId]
+	if !exists {
+		return 0, nil
+	}
+
+	count := 0
+	for _, notification := range userNotifications {
+		if !notification.Viewed {
+			count++
+		}
+	}
+
+	return count, nil
+}
+
 // AddNotification adds a pre-defined notification for testing
 func (f *FakeNotificationRepository) AddNotification(notification queries.Notification) {
 	f.mu.Lock()
@@ -194,7 +215,6 @@ func (f *FakeNotificationRepository) AddNotification(notification queries.Notifi
 		notification.NotificationID = f.nextNotificationID
 		f.nextNotificationID++
 	} else if notification.NotificationID >= f.nextNotificationID {
-		// Update nextNotificationID if needed
 		f.nextNotificationID = notification.NotificationID + 1
 	}
 
@@ -237,23 +257,4 @@ func (f *FakeNotificationRepository) GetUnreadNotificationCount(userId int) int 
 	}
 
 	return count
-}
-
-func (f *FakeNotificationRepository) GetUserUnreadNotificationCount(ctx context.Context, userId int) (int, error) {
-	f.mu.Lock()
-	defer f.mu.Unlock()
-
-	userNotifications, exists := f.notifications[userId]
-	if !exists {
-		return 0, nil
-	}
-
-	count := 0
-	for _, notification := range userNotifications {
-		if notification.Viewed {
-			count++
-		}
-	}
-
-	return count, nil
 }
