@@ -16,6 +16,6 @@ updates:
       interval: "weekly"
 
   - package-ecosystem: "swift"
-    directory: "/Splajompy.xcodeproj/project.xcworkspace/xcshareddata/swiftpm
+    directory: "/"
     schedule:
       interval: "weekly"
