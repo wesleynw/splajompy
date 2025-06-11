@@ -8,7 +8,7 @@ jobs:
   diff:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: sqlc-dev/setup-sqlc@v3
         with:
           sqlc-version: "1.29.0"
