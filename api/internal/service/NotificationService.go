@@ -37,34 +37,32 @@ func (s *NotificationService) GetNotificationsByUserId(ctx context.Context, user
 
 	for _, notification := range notifications {
 		var detailedNotification models.DetailedNotification
-		detailedNotification.Notification = notification
+		detailedNotification.Notification = *notification
 
-		if notification.PostID.Valid {
-			post, err := s.postRepository.GetPostById(ctx, int(notification.PostID.Int32))
+		if notification.PostID != 0 {
+			post, err := s.postRepository.GetPostById(ctx, notification.PostID)
 			if err != nil {
 				return nil, errors.New("unable to retrieve post")
 			}
+			detailedNotification.Post = post
 
-			detailedNotification.Post = &post
+			imageBlob, err := s.postRepository.GetImagesForPost(ctx, int(notification.PostID))
+			if err != nil && !errors.Is(err, sql.ErrNoRows) {
+				return nil, errors.New("unable to retrieve image blob")
+			}
+
+			if len(imageBlob) > 0 {
+				url := "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/" + imageBlob[0].ImageBlobUrl
+				detailedNotification.ImageBlob = &url
+			}
 		}
 
-		if notification.CommentID.Valid {
-			comment, err := s.commentRepository.GetCommentById(ctx, int(notification.CommentID.Int32))
+		if notification.CommentID != 0 {
+			comment, err := s.commentRepository.GetCommentById(ctx, notification.CommentID)
 			if err != nil {
 				return nil, errors.New("unable to retrieve comment")
 			}
-
 			detailedNotification.Comment = &comment
-		}
-
-		imageBlob, err := s.postRepository.GetImagesForPost(ctx, int(notification.PostID.Int32))
-		if err != nil && !errors.Is(err, sql.ErrNoRows) {
-			return nil, errors.New("unable to retrieve image blob")
-		}
-
-		if len(imageBlob) > 0 {
-			url := "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/" + imageBlob[0].ImageBlobUrl
-			detailedNotification.ImageBlob = &url
 		}
 
 		detailedNotifications = append(detailedNotifications, detailedNotification)
@@ -79,7 +77,11 @@ func (s *NotificationService) MarkNotificationAsReadById(ctx context.Context, us
 		return errors.New("unable to fetch notification")
 	}
 
-	if int(notification.UserID) != user.UserID {
+	if notification == nil {
+		return errors.New("notification does not belong to user")
+	}
+
+	if notification.UserID != user.UserID {
 		return errors.New("notification does not belong to user")
 	}
 

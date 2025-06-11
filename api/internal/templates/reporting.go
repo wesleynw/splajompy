@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"html/template"
 	"splajompy.com/api/v2/internal/db/queries"
+	"splajompy.com/api/v2/internal/models"
 	"time"
 )
 
@@ -16,7 +17,7 @@ type PostReportEmailData struct {
 	Images           []queries.Image
 }
 
-func GeneratePostReportEmail(reporterUsername string, post queries.Post, images []queries.Image) (string, error) {
+func GeneratePostReportEmail(reporterUsername string, post models.Post, images []queries.Image) (string, error) {
 	tmpl := `
 <!DOCTYPE html>
 <html>
@@ -59,21 +60,11 @@ func GeneratePostReportEmail(reporterUsername string, post queries.Post, images 
 		return "", err
 	}
 
-	postText := ""
-	if post.Text.Valid {
-		postText = post.Text.String
-	}
-
-	postCreatedAt := time.Time{}
-	if post.CreatedAt.Valid {
-		postCreatedAt = post.CreatedAt.Time
-	}
-
 	data := PostReportEmailData{
 		ReporterUsername: reporterUsername,
 		PostID:           post.PostID,
-		PostText:         postText,
-		PostCreatedAt:    postCreatedAt.UTC(),
+		PostText:         post.Text,
+		PostCreatedAt:    post.CreatedAt.UTC(),
 		ReportedAt:       time.Now().UTC(),
 		Images:           images,
 	}

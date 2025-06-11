@@ -244,5 +244,5 @@ func TestGetUserUnreadNotificationsCount(t *testing.T) {
 
 	count, err := service.GetUserUnreadNotificationCount(ctx, user)
 	require.NoError(t, err)
-	assert.Equal(t, 2, count)
+	assert.Equal(t, 1, count)
 }

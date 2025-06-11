@@ -28,7 +28,7 @@ func TestAddCommentToPost(t *testing.T) {
 	svc, _, postRepo, _, _, user := setupCommentTest(t)
 	ctx := context.Background()
 
-	post, err := postRepo.InsertPost(ctx, int(user.UserID), "Test post for comments", nil)
+	post, err := postRepo.InsertPost(ctx, user.UserID, "Test post for comments", nil)
 	require.NoError(t, err)
 
 	commentContent := "This is a test comment"
@@ -52,7 +52,7 @@ func TestGetCommentsByPostId(t *testing.T) {
 	svc, _, postRepo, _, userRepo, user := setupCommentTest(t)
 	ctx := context.Background()
 
-	post, err := postRepo.InsertPost(ctx, int(user.UserID), "Test post for getting comments", nil)
+	post, err := postRepo.InsertPost(ctx, user.UserID, "Test post for getting comments", nil)
 	require.NoError(t, err)
 
 	commenter, err := userRepo.CreateUser(ctx, "commenter", "commenter@example.com", "password")
@@ -123,7 +123,7 @@ func TestCommentLikes(t *testing.T) {
 	assert.NoError(t, err)
 
 	assert.Len(t, likes, 1)
-	assert.Equal(t, comment.CommentID, int(likes[0].CommentID.Int32))
+	assert.Equal(t, comment.CommentID, int(likes[0].CommentID))
 	assert.Equal(t, comment.UserID, int(likes[0].UserID))
 
 	comments, err = svc.GetCommentsByPostId(ctx, user, int(post.PostID))

@@ -51,7 +51,7 @@ func TestNewPost(t *testing.T) {
 
 	post, err := postRepo.GetPostById(ctx, int(postIds[0]))
 	assert.NoError(t, err)
-	assert.Equal(t, text, post.Text.String)
+	assert.Equal(t, text, post.Text)
 	assert.Equal(t, user.UserID, int(post.UserID))
 
 	assert.Len(t, post.Facets, 1)
@@ -106,7 +106,7 @@ func TestGetPostById(t *testing.T) {
 	assert.NotNil(t, detailedPost)
 
 	assert.Equal(t, post.PostID, detailedPost.Post.PostID)
-	assert.Equal(t, postContent, detailedPost.Post.Text.String)
+	assert.Equal(t, postContent, detailedPost.Post.Text)
 	assert.Equal(t, user.UserID, detailedPost.User.UserID)
 	assert.Equal(t, user.Username, detailedPost.User.Username)
 	assert.Len(t, detailedPost.Images, 1)

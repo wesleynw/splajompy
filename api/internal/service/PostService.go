@@ -90,7 +90,7 @@ func (s *PostService) GetPostById(ctx context.Context, cUser models.PublicUser, 
 	}
 
 	isLiked, err := s.postRepository.IsPostLikedByUserId(ctx,
-		int(cUser.UserID),
+		cUser.UserID,
 		int(post.PostID),
 	)
 	if err != nil {
@@ -120,7 +120,7 @@ func (s *PostService) GetPostById(ctx context.Context, cUser models.PublicUser, 
 	}
 
 	response := models.DetailedPost{
-		Post:          post,
+		Post:          *post,
 		User:          user,
 		IsLiked:       isLiked,
 		Images:        images,
@@ -269,7 +269,7 @@ func (s *PostService) ReportPost(ctx context.Context, currentUser *models.Public
 		images[i].ImageBlobUrl = s.bucketRepository.GetObjectURL(images[i].ImageBlobUrl)
 	}
 
-	html, err := templates.GeneratePostReportEmail(currentUser.Username, post, images)
+	html, err := templates.GeneratePostReportEmail(currentUser.Username, *post, images)
 	if err != nil {
 		return err
 	}

@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"net/http"
 	"splajompy.com/api/v2/internal/db/queries"
-
 	"splajompy.com/api/v2/internal/models"
 )
 
@@ -15,6 +14,32 @@ func MapUserToPublicUser(user queries.User) models.PublicUser {
 		Email:     user.Email,
 		Name:      user.Name.String,
 		CreatedAt: user.CreatedAt.Time,
+	}
+}
+
+// MapPost is a utility function to convert from queries.Post to models.Post.
+func MapPost(post queries.Post) models.Post {
+	return models.Post{
+		PostID:    post.PostID,
+		UserID:    post.UserID,
+		Text:      post.Text.String,
+		CreatedAt: post.CreatedAt.Time.UTC(),
+		Facets:    post.Facets,
+	}
+}
+
+// MapNotification is a utility function to convert from queries.Notification to models.Notification.
+func MapNotification(notification queries.Notification) models.Notification {
+	return models.Notification{
+		NotificationID: int(notification.NotificationID),
+		UserID:         int(notification.UserID),
+		PostID:         int(notification.PostID.Int32),
+		CommentID:      int(notification.CommentID.Int32),
+		Message:        notification.Message,
+		Link:           notification.Link.String,
+		Viewed:         notification.Viewed,
+		Facets:         notification.Facets,
+		CreatedAt:      notification.CreatedAt.Time.UTC(),
 	}
 }
 

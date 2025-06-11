@@ -5,12 +5,14 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	"splajompy.com/api/v2/internal/db"
 	"splajompy.com/api/v2/internal/db/queries"
+	"splajompy.com/api/v2/internal/models"
+	"splajompy.com/api/v2/internal/utilities"
 )
 
 type PostRepository interface {
-	InsertPost(ctx context.Context, userId int, content string, facets db.Facets) (queries.Post, error)
+	InsertPost(ctx context.Context, userId int, content string, facets db.Facets) (*models.Post, error)
 	DeletePost(ctx context.Context, postId int) error
-	GetPostById(ctx context.Context, postId int) (queries.Post, error)
+	GetPostById(ctx context.Context, postId int) (*models.Post, error)
 	IsPostLikedByUserId(ctx context.Context, userId int, postId int) (bool, error)
 	GetImagesForPost(ctx context.Context, postId int) ([]queries.Image, error)
 	GetAllImagesForUser(ctx context.Context, userId int) ([]queries.Image, error)
@@ -26,12 +28,18 @@ type DBPostRepository struct {
 }
 
 // InsertPost creates a new post
-func (r DBPostRepository) InsertPost(ctx context.Context, userId int, content string, facets db.Facets) (queries.Post, error) {
-	return r.querier.InsertPost(ctx, queries.InsertPostParams{
+func (r DBPostRepository) InsertPost(ctx context.Context, userId int, content string, facets db.Facets) (*models.Post, error) {
+	var post, err = r.querier.InsertPost(ctx, queries.InsertPostParams{
 		UserID: int32(userId),
 		Text:   pgtype.Text{String: content, Valid: true},
 		Facets: facets,
 	})
+	if err != nil {
+		return nil, err
+	}
+
+	mapped := utilities.MapPost(post)
+	return &mapped, nil
 }
 
 // DeletePost removes a post by ID
@@ -40,8 +48,18 @@ func (r DBPostRepository) DeletePost(ctx context.Context, postId int) error {
 }
 
 // GetPostById retrieves a post by ID
-func (r DBPostRepository) GetPostById(ctx context.Context, postId int) (queries.Post, error) {
-	return r.querier.GetPostById(ctx, int32(postId))
+func (r DBPostRepository) GetPostById(ctx context.Context, postId int) (*models.Post, error) {
+	var dbPost, err = r.querier.GetPostById(ctx, int32(postId))
+	if err != nil {
+		return nil, err
+	}
+	return &models.Post{
+		PostID:    dbPost.PostID,
+		UserID:    dbPost.UserID,
+		Text:      dbPost.Text.String,
+		CreatedAt: dbPost.CreatedAt.Time.UTC(),
+		Facets:    dbPost.Facets,
+	}, nil
 }
 
 // IsPostLikedByUserId checks if a post is liked by a specific user
