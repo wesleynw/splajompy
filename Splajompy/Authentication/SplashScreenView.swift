@@ -11,41 +11,21 @@ struct SplashScreenView: View {
       ZStack {
         LinearGradient(
           gradient: Gradient(colors: [
-            Color(red: 0.05, green: 0.05, blue: 0.2),
-            Color(red: 0.0, green: 0.0, blue: 0.0),
+            Color(red: 0.08, green: 0.08, blue: 0.15),
+            Color(red: 0.02, green: 0.02, blue: 0.08),
           ]),
           startPoint: .top,
           endPoint: .bottom
         )
-
+        
         RadialGradient(
           gradient: Gradient(colors: [
-            Color(red: 0.1, green: 0.2, blue: 0.6).opacity(0.7),
+            Color(red: 0.15, green: 0.2, blue: 0.4).opacity(0.3),
             Color.clear,
           ]),
-          center: .init(x: 0.3, y: 0.3),
+          center: .init(x: 0.3, y: 0.2),
           startRadius: 0,
-          endRadius: UIScreen.main.bounds.width * 0.8
-        )
-
-        RadialGradient(
-          gradient: Gradient(colors: [
-            Color(red: 0.4, green: 0.1, blue: 0.6).opacity(0.5),
-            Color.clear,
-          ]),
-          center: .init(x: 0.7, y: 0.8),
-          startRadius: 50,
-          endRadius: UIScreen.main.bounds.width * 0.8
-        )
-
-        RadialGradient(
-          gradient: Gradient(colors: [
-            Color(red: 0.2, green: 0.3, blue: 0.8).opacity(0.3),
-            Color.clear,
-          ]),
-          center: .top,
-          startRadius: 0,
-          endRadius: UIScreen.main.bounds.height * 0.6
+          endRadius: UIScreen.main.bounds.width * 0.6
         )
       }
       .ignoresSafeArea()
@@ -53,31 +33,18 @@ struct SplashScreenView: View {
       VStack {
         Spacer()
           .frame(height: 60)
-
-        Text("Welcome to")
-          .font(.system(size: 28, weight: .medium, design: .rounded))
-          .padding(.top, 10)
-
-        Text("Splajompy")
-          .font(.system(size: 38, weight: .black))
-          .tracking(2)
-          .foregroundStyle(
-            LinearGradient(
-              colors: [
-                Color(red: 0.6, green: 0.3, blue: 1.0),
-                Color(red: 0.2, green: 0.5, blue: 0.9),
-              ],
-              startPoint: .topLeading,
-              endPoint: .bottomTrailing
-            )
-          )
+        
+        Image("Full_Logo")
+          .resizable()
+          .scaledToFit()
+          .frame(height: 40)
           .shadow(
-            color: Color(red: 0.3, green: 0.1, blue: 0.6).opacity(0.6),
-            radius: 8,
+            color: Color.black.opacity(0.3),
+            radius: 10,
             x: 0,
-            y: 2
+            y: 4
           )
-          .padding(.bottom, 16)
+          .padding(.bottom, 24)
 
         Spacer()
 
@@ -96,7 +63,14 @@ struct SplashScreenView: View {
                   RoundedRectangle(cornerRadius: 30)
                     .fill(Color.clear)
                   RoundedRectangle(cornerRadius: 30)
-                    .stroke(Color.secondary.opacity(0.8), lineWidth: 2)
+                    .stroke(
+                      LinearGradient(
+                        colors: [Color.white.opacity(0.6), Color.white.opacity(0.3)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                      ),
+                      lineWidth: 2
+                    )
                 }
               )
           }
@@ -112,8 +86,21 @@ struct SplashScreenView: View {
               .frame(maxWidth: .infinity)
               .frame(height: 50)
               .background(
-                RoundedRectangle(cornerRadius: 30)
-                  .fill(Color(red: 0.3, green: 0.1, blue: 0.8))
+                LinearGradient(
+                  colors: [
+                    Color(red: 0.4, green: 0.2, blue: 0.9),
+                    Color(red: 0.2, green: 0.1, blue: 0.6)
+                  ],
+                  startPoint: .topLeading,
+                  endPoint: .bottomTrailing
+                )
+                .clipShape(RoundedRectangle(cornerRadius: 30))
+              )
+              .shadow(
+                color: Color(red: 0.3, green: 0.1, blue: 0.7).opacity(0.4),
+                radius: 8,
+                x: 0,
+                y: 4
               )
           }
         }
