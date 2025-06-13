@@ -4,6 +4,7 @@ enum FeedType {
   case home
   case all
   case profile
+  case mutual
 }
 
 protocol PostServiceProtocol: Sendable {
@@ -48,6 +49,8 @@ struct PostService: PostServiceProtocol {
         return .error(URLError(.badURL))
       }
       urlBase = "user/\(userId)/posts"
+    case .mutual:
+      urlBase = "posts/mutual"
     }
     let queryItems = [
       URLQueryItem(name: "offset", value: "\(offset)"),
@@ -465,6 +468,8 @@ struct MockPostService: PostServiceProtocol {
         )
       }
       allPosts = store.getPostsByUserId(userId)
+    case .mutual:
+      allPosts = store.getAllPosts()
     }
 
     let paginatedPosts = Array(allPosts.dropFirst(offset).prefix(limit))

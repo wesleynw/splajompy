@@ -46,11 +46,17 @@ struct ProfileView: View {
             if case .loaded(let user, _) = viewModel.state {
               if user.isBlocking {
                 Button(role: .destructive, action: viewModel.toggleBlocking) {
-                  Label("Unblock @\(user.username)", systemImage: "person.fill.checkmark")
+                  Label(
+                    "Unblock @\(user.username)",
+                    systemImage: "person.fill.checkmark"
+                  )
                 }
               } else {
                 Button(role: .destructive, action: viewModel.toggleBlocking) {
-                  Label("Block @\(user.username)", systemImage: "person.fill.xmark")
+                  Label(
+                    "Block @\(user.username)",
+                    systemImage: "person.fill.xmark"
+                  )
                 }
               }
             }
@@ -142,6 +148,11 @@ struct ProfileView: View {
         Text(user.bio)
           .padding(.vertical, 10)
       }
+
+      if !isOwnProfile && !isCurrentProfile {
+        RelationshipIndicator(user: user)
+      }
+
       if !isOwnProfile && !isCurrentProfile {
         if !user.isBlocking {
           if user.isFollowing {

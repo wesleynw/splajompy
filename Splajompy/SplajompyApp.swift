@@ -13,6 +13,7 @@ struct SplajompyApp: App {
   @StateObject private var authManager = AuthManager()
   @StateObject private var feedRefreshManager = FeedRefreshManager()
   @AppStorage("appearance_mode") var appearanceMode: String = "Automatic"
+ @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding: Bool = false
 
   init() {
     let posthogApiKey = "phc_sSDHxTCqpjwoSDSOQiNAAgmybjEakfePBsaNHWaWy74"
@@ -76,6 +77,11 @@ struct SplajompyApp: App {
           }
           .onOpenURL { url in
             handleDeepLink(url)
+          }
+          .sheet(isPresented: .constant(!hasCompletedOnboarding)) {
+            OnboardingView {
+              hasCompletedOnboarding = true
+            }
           }
         } else {
           SplashScreenView()

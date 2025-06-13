@@ -10,6 +10,8 @@ struct UserProfile: Decodable {
   var isFollower: Bool
   var isFollowing: Bool
   var isBlocking: Bool
+  let relationshipType: String
+  let mutualUsernames: [String]?
 }
 
 struct UpdateProfileRequest: Encodable {
@@ -112,7 +114,9 @@ final class MockUserStore: @unchecked Sendable {
           "splajompy creator",
         isFollower: false,
         isFollowing: false,
-        isBlocking: false
+        isBlocking: false,
+        relationshipType: "friend",
+        mutualUsernames: nil
       ),
       6: UserProfile(
         userId: 6,
@@ -126,7 +130,9 @@ final class MockUserStore: @unchecked Sendable {
           "coffee enthusiast ☕ | sunset photographer 📸 | always up for a good conversation",
         isFollower: true,
         isFollowing: true,
-        isBlocking: false
+        isBlocking: false,
+        relationshipType: "friend",
+        mutualUsernames: nil
       ),
       25: UserProfile(
         userId: 25,
@@ -139,7 +145,9 @@ final class MockUserStore: @unchecked Sendable {
         bio: "heart collector 💕 spreading good vibes everywhere I go",
         isFollower: false,
         isFollowing: true,
-        isBlocking: false
+        isBlocking: false,
+        relationshipType: "friend",
+        mutualUsernames: nil
       ),
       120: UserProfile(
         userId: 120,
@@ -153,7 +161,9 @@ final class MockUserStore: @unchecked Sendable {
           "curious about everything • sunset appreciator • always asking the right questions ✨",
         isFollower: true,
         isFollowing: false,
-        isBlocking: false
+        isBlocking: false,
+        relationshipType: "mutual",
+        mutualUsernames: ["joel", "wesley"]
       ),
       103: UserProfile(
         userId: 103,
@@ -167,7 +177,9 @@ final class MockUserStore: @unchecked Sendable {
           "comment connoisseur 😛 | farmer's market regular | living life one incredible moment at a time",
         isFollower: true,
         isFollowing: true,
-        isBlocking: false
+        isBlocking: false,
+        relationshipType: "friend",
+        mutualUsernames: nil
       ),
       112: UserProfile(
         userId: 112,
@@ -181,7 +193,9 @@ final class MockUserStore: @unchecked Sendable {
           "coffee shop discoverer ☕ | post appreciator | finding amazing places in the city",
         isFollower: false,
         isFollowing: false,
-        isBlocking: false
+        isBlocking: false,
+        relationshipType: "stranger",
+        mutualUsernames: nil
       ),
       97: UserProfile(
         userId: 97,
@@ -195,7 +209,9 @@ final class MockUserStore: @unchecked Sendable {
           "plot twist enthusiast 📺 | thoughtful commenter | always here for a good discussion",
         isFollower: true,
         isFollowing: true,
-        isBlocking: false
+        isBlocking: false,
+        relationshipType: "friend",
+        mutualUsernames: nil
       ),
       113: UserProfile(
         userId: 113,
@@ -209,7 +225,9 @@ final class MockUserStore: @unchecked Sendable {
           "new follower alert! 🎉 | community builder | excited to connect with everyone",
         isFollower: false,
         isFollowing: false,
-        isBlocking: false
+        isBlocking: false,
+        relationshipType: "stranger",
+        mutualUsernames: nil
       ),
       30: UserProfile(
         userId: 30,
@@ -223,7 +241,9 @@ final class MockUserStore: @unchecked Sendable {
           "season finale specialist 📺 | creating conversations about the stories we love",
         isFollower: false,
         isFollowing: true,
-        isBlocking: false
+        isBlocking: false,
+        relationshipType: "friend",
+        mutualUsernames: nil
       ),
       15: UserProfile(
         userId: 15,
@@ -237,7 +257,9 @@ final class MockUserStore: @unchecked Sendable {
           "weekend farmer's market haul curator 🥕 | fresh produce enthusiast | feeding the community",
         isFollower: true,
         isFollowing: false,
-        isBlocking: false
+        isBlocking: false,
+        relationshipType: "stranger",
+        mutualUsernames: nil
       ),
     ]
   }

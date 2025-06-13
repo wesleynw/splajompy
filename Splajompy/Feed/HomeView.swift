@@ -1,45 +1,14 @@
 import SwiftUI
 
 struct HomeView: View {
-  @State private var filterState = FilterState()
   @State private var isShowingNewPostView = false
-  @StateObject private var viewModel: FeedViewModel
+  @StateObject private var viewModel = FeedViewModel(feedType: .mutual)
   @EnvironmentObject private var feedRefreshManager: FeedRefreshManager
   @EnvironmentObject var authManager: AuthManager
   @AppStorage("mindlessMode") private var mindlessMode: Bool = false
 
-  init() {
-    let savedState = UserDefaults.standard.data(forKey: "feedFilterState")
-    let decodedState: FilterState
-
-    if let savedState = savedState,
-      let decoded = try? JSONDecoder().decode(
-        FilterState.self,
-        from: savedState
-      )
-    {
-      decodedState = decoded
-    } else {
-      decodedState = FilterState()
-    }
-
-    _filterState = State(initialValue: decodedState)
-    _viewModel = StateObject(
-      wrappedValue: FeedViewModel(
-        feedType: decodedState.mode == .all ? .all : .home
-      )
-    )
-  }
-
-  private func saveFilterState(_ state: FilterState) {
-    if let encoded = try? JSONEncoder().encode(state) {
-      UserDefaults.standard.set(encoded, forKey: "feedFilterState")
-    }
-  }
-
   var body: some View {
     mainContent
-      .id(filterState.mode)
       .toolbar {
         logoToolbarItem
         addPostToolbarItem
@@ -77,32 +46,10 @@ struct HomeView: View {
 
   private var logoToolbarItem: some ToolbarContent {
     ToolbarItem(placement: .navigationBarLeading) {
-      Menu {
-        allModeButton
-        followingModeButton
-      } label: {
-        HStack(spacing: 4) {
-          Image("Full_Logo")
-            .resizable()
-            .scaledToFit()
-            .frame(height: 30)
-          Image(systemName: "chevron.down")
-            .font(.caption2)
-            .foregroundColor(.primary)
-        }
-      }
-    }
-  }
-
-  private var filterMenuToolbarItem: some ToolbarContent {
-    ToolbarItem(placement: .principal) {
-      Menu {
-        allModeButton
-        followingModeButton
-      } label: {
-        filterMenuLabel
-      }
-      .menuStyle(BorderlessButtonMenuStyle())
+      Image("Full_Logo")
+        .resizable()
+        .scaledToFit()
+        .frame(height: 30)
     }
   }
 
@@ -115,51 +62,6 @@ struct HomeView: View {
     }
   }
 
-  private var allModeButton: some View {
-    Button {
-      selectAllMode()
-    } label: {
-      HStack {
-        Text("All")
-        if filterState.mode == .all {
-          Image(systemName: "checkmark")
-        }
-      }
-    }
-  }
-
-  private var followingModeButton: some View {
-    Button {
-      selectFollowingMode()
-    } label: {
-      HStack {
-        Text("Following")
-        if filterState.mode == .following {
-          Image(systemName: "checkmark")
-        }
-      }
-    }
-  }
-
-  private var filterMenuLabel: some View {
-    HStack {
-      Text(filterState.mode == .all ? "All" : "Following")
-      Image(systemName: "chevron.down")
-        .font(.caption)
-    }
-    .fontWeight(.semibold)
-    .foregroundColor(.primary)
-    .padding(.vertical, 5)
-    .padding(.horizontal, 10)
-    .background(menuLabelBackground)
-  }
-
-  private var menuLabelBackground: some View {
-    RoundedRectangle(cornerRadius: 8)
-      .strokeBorder(Color.primary.opacity(0.2), lineWidth: 1)
-      .background(Color.clear)
-  }
-
   private var newPostSheet: some View {
     NewPostView(
       onPostCreated: {
@@ -167,28 +69,6 @@ struct HomeView: View {
       }
     )
     .interactiveDismissDisabled()
-  }
-
-  private func selectAllMode() {
-    withAnimation(.snappy) {
-      filterState.mode = .all
-      saveFilterState(filterState)
-      viewModel.feedType = .all
-      Task {
-        await viewModel.loadPosts(reset: true)
-      }
-    }
-  }
-
-  private func selectFollowingMode() {
-    withAnimation(.snappy) {
-      filterState.mode = .following
-      saveFilterState(filterState)
-      viewModel.feedType = .home
-      Task {
-        await viewModel.loadPosts(reset: true)
-      }
-    }
   }
 
   private func postList(posts: [DetailedPost]) -> some View {
