@@ -238,3 +238,32 @@ func (r *FakePostRepository) getPaginatedIds(ids []int32, limit int, offset int)
 
 	return ids[offset:end], nil
 }
+
+func (r *FakePostRepository) GetPostIdsForMutualFeed(ctx context.Context, userId int, limit int, offset int) ([]queries.GetPostIdsForMutualFeedRow, error) {
+	r.mutex.RLock()
+	defer r.mutex.RUnlock()
+
+	var rows []queries.GetPostIdsForMutualFeedRow
+	for _, post := range r.posts {
+		row := queries.GetPostIdsForMutualFeedRow{
+			PostID:           post.PostID,
+			UserID:           post.UserID,
+			RelationshipType: "friend",
+			MutualUsernames:  nil,
+		}
+		rows = append(rows, row)
+	}
+
+	// Apply pagination
+	start := offset
+	if start >= len(rows) {
+		return []queries.GetPostIdsForMutualFeedRow{}, nil
+	}
+
+	end := start + limit
+	if end > len(rows) {
+		end = len(rows)
+	}
+
+	return rows[start:end], nil
+}

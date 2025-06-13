@@ -204,6 +204,70 @@ func (q *Queries) GetPostIdsByFollowing(ctx context.Context, arg GetPostIdsByFol
 	return items, nil
 }
 
+const getPostIdsForMutualFeed = `-- name: GetPostIdsForMutualFeed :many
+WITH user_relationships AS (
+  SELECT posts.post_id, posts.user_id,
+    CASE 
+      WHEN posts.user_id = $1 THEN 'own'
+      WHEN f.follower_id IS NOT NULL THEN 'friend'
+      ELSE 'mutual'
+    END as relationship_type
+  FROM posts
+  LEFT JOIN follows f ON f.follower_id = $1 AND f.following_id = posts.user_id
+  WHERE (posts.user_id = $1 OR f.follower_id IS NOT NULL OR 
+         EXISTS (SELECT 1 FROM follows f1 JOIN follows f2 ON f1.following_id = f2.following_id 
+                 WHERE f1.follower_id = $1 AND f2.follower_id = posts.user_id))
+    AND NOT EXISTS (SELECT 1 FROM block WHERE user_id = $1 AND target_user_id = posts.user_id)
+)
+SELECT post_id, user_id, relationship_type, 
+  CASE WHEN relationship_type = 'mutual' THEN 
+    (SELECT ARRAY_AGG(u.username) FROM follows f1 JOIN follows f2 ON f1.following_id = f2.following_id 
+     JOIN users u ON f1.following_id = u.user_id 
+     WHERE f1.follower_id = $1 AND f2.follower_id = user_relationships.user_id LIMIT 5)
+  ELSE NULL END as mutual_usernames
+FROM user_relationships
+ORDER BY (SELECT created_at FROM posts WHERE posts.post_id = user_relationships.post_id) DESC
+LIMIT $2 OFFSET $3
+`
+
+type GetPostIdsForMutualFeedParams struct {
+	FollowerID int32 `json:"followerId"`
+	Limit      int32 `json:"limit"`
+	Offset     int32 `json:"offset"`
+}
+
+type GetPostIdsForMutualFeedRow struct {
+	PostID           int32       `json:"postId"`
+	UserID           int32       `json:"userId"`
+	RelationshipType string      `json:"relationshipType"`
+	MutualUsernames  interface{} `json:"mutualUsernames"`
+}
+
+func (q *Queries) GetPostIdsForMutualFeed(ctx context.Context, arg GetPostIdsForMutualFeedParams) ([]GetPostIdsForMutualFeedRow, error) {
+	rows, err := q.db.Query(ctx, getPostIdsForMutualFeed, arg.FollowerID, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetPostIdsForMutualFeedRow
+	for rows.Next() {
+		var i GetPostIdsForMutualFeedRow
+		if err := rows.Scan(
+			&i.PostID,
+			&i.UserID,
+			&i.RelationshipType,
+			&i.MutualUsernames,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getPostsIdsByUserId = `-- name: GetPostsIdsByUserId :many
 SELECT post_id
 FROM posts

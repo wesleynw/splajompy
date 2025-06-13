@@ -36,6 +36,7 @@ type UserRepository interface {
 	UnblockUser(ctx context.Context, currentUserId int, targetUserId int) error
 	IsUserBlockingUser(ctx context.Context, blockerId int, blockedId int) (bool, error)
 	DeleteAccount(ctx context.Context, userId int) error
+	GetMutualConnectionsForUser(ctx context.Context, currentUserId int, targetUserId int) ([]string, error)
 }
 
 type DBUserRepository struct {
@@ -219,6 +220,14 @@ func (r DBUserRepository) IsUserBlockingUser(ctx context.Context, blockerId int,
 
 func (r DBUserRepository) DeleteAccount(ctx context.Context, userId int) error {
 	return r.querier.DeleteUserById(ctx, int32(userId))
+}
+
+// GetMutualConnectionsForUser retrieves mutual connections between current user and target user
+func (r DBUserRepository) GetMutualConnectionsForUser(ctx context.Context, currentUserId int, targetUserId int) ([]string, error) {
+	return r.querier.GetMutualConnectionsForUser(ctx, queries.GetMutualConnectionsForUserParams{
+		FollowerID:   int32(currentUserId),
+		FollowerID_2: int32(targetUserId),
+	})
 }
 
 // NewDBUserRepository creates a new user repository

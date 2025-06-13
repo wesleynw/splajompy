@@ -79,6 +79,7 @@ func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /user/{id}", h.GetUserById)
 	mux.HandleFunc("GET /posts/following", h.GetPostsByFollowing)
 	mux.HandleFunc("GET /posts/all", h.GetAllPosts)
+	mux.HandleFunc("GET /posts/mutual", h.GetMutualFeed)
 
 	mux.HandleFunc("GET /users/search", h.SearchUsers)
 

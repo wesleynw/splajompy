@@ -454,3 +454,11 @@ func (r *FakeUserRepository) DeleteAccount(ctx context.Context, userId int) erro
 
 	return nil
 }
+
+func (r *FakeUserRepository) GetMutualConnectionsForUser(ctx context.Context, userId1 int, userId2 int) ([]string, error) {
+	r.mutex.RLock()
+	defer r.mutex.RUnlock()
+
+	// Return empty slice for fake implementation
+	return []string{}, nil
+}
