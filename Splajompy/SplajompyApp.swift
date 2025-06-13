@@ -13,7 +13,7 @@ struct SplajompyApp: App {
   @StateObject private var authManager = AuthManager()
   @StateObject private var feedRefreshManager = FeedRefreshManager()
   @AppStorage("appearance_mode") var appearanceMode: String = "Automatic"
- @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding: Bool = false
+  @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding: Bool = false
 
   init() {
     let posthogApiKey = "phc_sSDHxTCqpjwoSDSOQiNAAgmybjEakfePBsaNHWaWy74"

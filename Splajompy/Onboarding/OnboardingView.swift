@@ -22,7 +22,7 @@ struct OnboardingView: View {
 
           HStack {
             Spacer()
-            
+
             RelationshipIndicator(
               user: UserProfile(
                 userId: 1,
@@ -38,7 +38,7 @@ struct OnboardingView: View {
                 mutualUsernames: nil
               )
             )
-            
+
             RelationshipIndicator(
               user: UserProfile(
                 userId: 2,
@@ -54,27 +54,29 @@ struct OnboardingView: View {
                 mutualUsernames: ["wesley"]
               )
             )
-            
+
             RelationshipIndicator(
-                user: UserProfile(
-                  userId: 3,
-                  email: "mutual2@example.com",
-                  username: "mutual_user2",
-                  createdAt: ISO8601DateFormatter().string(from: Date()),
-                  name: "Mutual User 2",
-                  bio: "",
-                  isFollower: false,
-                  isFollowing: false,
-                  isBlocking: false,
-                  relationshipType: "mutual",
-                  mutualUsernames: ["bob", "charlie", "diana"]
-                )
+              user: UserProfile(
+                userId: 3,
+                email: "mutual2@example.com",
+                username: "mutual_user2",
+                createdAt: ISO8601DateFormatter().string(from: Date()),
+                name: "Mutual User 2",
+                bio: "",
+                isFollower: false,
+                isFollowing: false,
+                isBlocking: false,
+                relationshipType: "mutual",
+                mutualUsernames: ["bob", "charlie", "diana"]
               )
+            )
             Spacer()
           }
         }
-        
-        Text("The profiles of other Splajompians will be annotated on whether they're a friend, which mutual you know of theirs, or how many mutuals you share.").padding().multilineTextAlignment(.center).fontWeight(.semibold)
+
+        Text(
+          "The profiles of other Splajompians will be annotated on whether they're a friend, which mutual you know of theirs, or how many mutuals you share."
+        ).padding().multilineTextAlignment(.center).fontWeight(.semibold)
 
         Button("Get Started") {
           onComplete()
