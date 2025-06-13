@@ -21,6 +21,7 @@ type PostRepository interface {
 	GetAllPostIds(ctx context.Context, limit int, offset int, currentUserId int) ([]int32, error)
 	GetPostIdsForFollowing(ctx context.Context, userId int, limit int, offset int) ([]int32, error)
 	GetPostIdsForUser(ctx context.Context, userId int, limit int, offset int) ([]int32, error)
+	GetPostIdsForMutualFeed(ctx context.Context, userId int, limit int, offset int) ([]queries.GetPostIdsForMutualFeedRow, error)
 }
 
 type DBPostRepository struct {
@@ -118,6 +119,15 @@ func (r DBPostRepository) GetPostIdsForFollowing(ctx context.Context, userId int
 // GetPostIdsForUser retrieves all post IDs for a specific user
 func (r DBPostRepository) GetPostIdsForUser(ctx context.Context, userId int, limit int, offset int) ([]int32, error) {
 	return r.querier.GetPostsIdsByUserId(ctx, queries.GetPostsIdsByUserIdParams{
+		UserID: int32(userId),
+		Limit:  int32(limit),
+		Offset: int32(offset),
+	})
+}
+
+// GetPostIdsForMutualFeed retrieves post IDs for mutual feed with relationship metadata
+func (r DBPostRepository) GetPostIdsForMutualFeed(ctx context.Context, userId int, limit int, offset int) ([]queries.GetPostIdsForMutualFeedRow, error) {
+	return r.querier.GetPostIdsForMutualFeed(ctx, queries.GetPostIdsForMutualFeedParams{
 		UserID: int32(userId),
 		Limit:  int32(limit),
 		Offset: int32(offset),

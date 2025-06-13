@@ -103,6 +103,17 @@ func (h *Handler) DeletePostById(w http.ResponseWriter, r *http.Request) {
 	utilities.HandleEmptySuccess(w)
 }
 
+func (h *Handler) parsePagination(r *http.Request) (int, int) {
+	limit, offset := 10, 0
+	if l, err := strconv.Atoi(r.URL.Query().Get("limit")); err == nil && l > 0 {
+		limit = l
+	}
+	if o, err := strconv.Atoi(r.URL.Query().Get("offset")); err == nil && o >= 0 {
+		offset = o
+	}
+	return limit, offset
+}
+
 func (h *Handler) GetPostsByUserId(w http.ResponseWriter, r *http.Request) {
 	currentUser, err := h.getAuthenticatedUser(r)
 	if err != nil {
@@ -116,20 +127,7 @@ func (h *Handler) GetPostsByUserId(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	limit := 10
-	if limitStr := r.URL.Query().Get("limit"); limitStr != "" {
-		if parsedLimit, err := strconv.Atoi(limitStr); err == nil && parsedLimit > 0 {
-			limit = parsedLimit
-		}
-	}
-
-	offset := 0
-	if offsetStr := r.URL.Query().Get("offset"); offsetStr != "" {
-		if parsedOffset, err := strconv.Atoi(offsetStr); err == nil && parsedOffset >= 0 {
-			offset = parsedOffset
-		}
-	}
-
+	limit, offset := h.parsePagination(r)
 	posts, err := h.postService.GetPostsByUserId(r.Context(), *currentUser, id, limit, offset)
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
@@ -146,20 +144,7 @@ func (h *Handler) GetAllPosts(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	limit := 10
-	if limitStr := r.URL.Query().Get("limit"); limitStr != "" {
-		if parsedLimit, err := strconv.Atoi(limitStr); err == nil && parsedLimit > 0 {
-			limit = parsedLimit
-		}
-	}
-
-	offset := 0
-	if offsetStr := r.URL.Query().Get("offset"); offsetStr != "" {
-		if parsedOffset, err := strconv.Atoi(offsetStr); err == nil && parsedOffset >= 0 {
-			offset = parsedOffset
-		}
-	}
-
+	limit, offset := h.parsePagination(r)
 	posts, err := h.postService.GetAllPosts(r.Context(), *currentUser, limit, offset)
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
@@ -176,20 +161,7 @@ func (h *Handler) GetPostsByFollowing(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	limit := 10
-	if limitStr := r.URL.Query().Get("limit"); limitStr != "" {
-		if parsedLimit, err := strconv.Atoi(limitStr); err == nil && parsedLimit > 0 {
-			limit = parsedLimit
-		}
-	}
-
-	offset := 0
-	if offsetStr := r.URL.Query().Get("offset"); offsetStr != "" {
-		if parsedOffset, err := strconv.Atoi(offsetStr); err == nil && parsedOffset >= 0 {
-			offset = parsedOffset
-		}
-	}
-
+	limit, offset := h.parsePagination(r)
 	posts, err := h.postService.GetPostsByFollowing(r.Context(), *currentUser, limit, offset)
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
@@ -199,7 +171,26 @@ func (h *Handler) GetPostsByFollowing(w http.ResponseWriter, r *http.Request) {
 	if posts == nil {
 		posts = &[]models.DetailedPost{}
 	}
+	utilities.HandleSuccess(w, posts)
+}
 
+func (h *Handler) GetMutualFeed(w http.ResponseWriter, r *http.Request) {
+	currentUser, err := h.getAuthenticatedUser(r)
+	if err != nil {
+		utilities.HandleError(w, http.StatusUnauthorized, "Unauthorized")
+		return
+	}
+
+	limit, offset := h.parsePagination(r)
+	posts, err := h.postService.GetMutualFeed(r.Context(), *currentUser, limit, offset)
+	if err != nil {
+		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
+		return
+	}
+
+	if posts == nil {
+		posts = &[]models.DetailedPost{}
+	}
 	utilities.HandleSuccess(w, posts)
 }
 
