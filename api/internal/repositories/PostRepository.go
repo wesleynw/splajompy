@@ -128,9 +128,9 @@ func (r DBPostRepository) GetPostIdsForUser(ctx context.Context, userId int, lim
 // GetPostIdsForMutualFeed retrieves post IDs for mutual feed with relationship metadata
 func (r DBPostRepository) GetPostIdsForMutualFeed(ctx context.Context, userId int, limit int, offset int) ([]queries.GetPostIdsForMutualFeedRow, error) {
 	return r.querier.GetPostIdsForMutualFeed(ctx, queries.GetPostIdsForMutualFeedParams{
-		UserID: int32(userId),
-		Limit:  int32(limit),
-		Offset: int32(offset),
+		FollowerID: int32(userId),
+		Limit:      int32(limit),
+		Offset:     int32(offset),
 	})
 }
 

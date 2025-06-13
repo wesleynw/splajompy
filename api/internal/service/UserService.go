@@ -88,7 +88,10 @@ func (s *UserService) FollowUser(ctx context.Context, currentUser models.PublicU
 
 	text := fmt.Sprintf("@%s started following you.", currentUser.Username)
 	if facets, _ := repositories.GenerateFacets(ctx, s.userRepository, text); facets != nil {
-		s.notificationRepository.InsertNotification(ctx, int(user.UserID), nil, nil, &facets, text)
+		err := s.notificationRepository.InsertNotification(ctx, int(user.UserID), nil, nil, &facets, text)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -116,9 +119,17 @@ func (s *UserService) IsBlockingUser(ctx context.Context, userId int, targetUser
 }
 
 func (s *UserService) BlockUser(ctx context.Context, currentUser models.PublicUser, userId int) error {
-	s.userRepository.UnfollowUser(ctx, int(currentUser.UserID), userId)
-	s.userRepository.UnfollowUser(ctx, userId, int(currentUser.UserID))
-	return s.userRepository.BlockUser(ctx, int(currentUser.UserID), userId)
+	err := s.userRepository.UnfollowUser(ctx, currentUser.UserID, userId)
+	if err != nil {
+		return err
+	}
+
+	err = s.userRepository.UnfollowUser(ctx, userId, currentUser.UserID)
+	if err != nil {
+		return err
+	}
+
+	return s.userRepository.BlockUser(ctx, currentUser.UserID, userId)
 }
 
 func (s *UserService) UnblockUser(ctx context.Context, currentUser models.PublicUser, userId int) error {
