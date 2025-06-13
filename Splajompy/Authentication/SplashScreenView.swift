@@ -17,7 +17,7 @@ struct SplashScreenView: View {
           startPoint: .top,
           endPoint: .bottom
         )
-        
+
         RadialGradient(
           gradient: Gradient(colors: [
             Color(red: 0.15, green: 0.2, blue: 0.4).opacity(0.3),
@@ -33,7 +33,7 @@ struct SplashScreenView: View {
       VStack {
         Spacer()
           .frame(height: 60)
-        
+
         Image("Full_Logo")
           .resizable()
           .scaledToFit()
@@ -89,7 +89,7 @@ struct SplashScreenView: View {
                 LinearGradient(
                   colors: [
                     Color(red: 0.4, green: 0.2, blue: 0.9),
-                    Color(red: 0.2, green: 0.1, blue: 0.6)
+                    Color(red: 0.2, green: 0.1, blue: 0.6),
                   ],
                   startPoint: .topLeading,
                   endPoint: .bottomTrailing
