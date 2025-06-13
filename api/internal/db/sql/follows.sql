@@ -21,5 +21,4 @@ INNER JOIN users u ON f1.following_id = u.user_id
 WHERE f1.follower_id = $1 
   AND f2.follower_id = $2
   AND f1.following_id != $1 
-  AND f1.following_id != $2
-LIMIT 5;
+  AND f1.following_id != $2;
