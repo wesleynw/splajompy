@@ -295,8 +295,7 @@ struct ProfileView: View {
     }
   }
 
-  private func relationshipTitle(for user: UserProfile, type: String) -> String
-  {
+  private func relationshipTitle(for user: UserProfile, type: String) -> String {
     switch type {
     case "friend":
       return "Friend"
