@@ -18,6 +18,7 @@ struct PostView: View {
   @EnvironmentObject private var feedRefreshManager: FeedRefreshManager
   @EnvironmentObject private var authManager: AuthManager
   @State private var isReporting = false
+  @State private var showReportAlert = false
 
   private var postDate: Date {
     let formatter = ISO8601DateFormatter()
@@ -115,6 +116,7 @@ struct PostView: View {
                             postId: post.post.postId
                           )
                           isReporting = false
+                          showReportAlert = true
                         }
                       }
                     ) {
@@ -184,6 +186,11 @@ struct PostView: View {
     .padding(.horizontal, 16)
     .sheet(isPresented: $isShowingComments) {
       CommentsView(postId: post.post.postId)
+    }
+    .alert("Post Reported", isPresented: $showReportAlert) {
+      Button("OK") {}
+    } message: {
+      Text("Thanks. A notification has been sent to the developer.")
     }
   }
 }
