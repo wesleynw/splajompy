@@ -28,34 +28,23 @@ func (s *UserService) GetUserById(ctx context.Context, cUser models.PublicUser, 
 	}
 
 	bio, _ := s.userRepository.GetBioForUser(ctx, userID)
-	isFollowing, _ := s.userRepository.IsUserFollowingUser(ctx, int(cUser.UserID), userID)
-	isFollower, _ := s.userRepository.IsUserFollowingUser(ctx, userID, int(cUser.UserID))
-	isBlocking, _ := s.userRepository.IsUserBlockingUser(ctx, int(cUser.UserID), userID)
+	isFollowing, _ := s.userRepository.IsUserFollowingUser(ctx, cUser.UserID, userID)
+	isFollower, _ := s.userRepository.IsUserFollowingUser(ctx, userID, cUser.UserID)
+	isBlocking, _ := s.userRepository.IsUserBlockingUser(ctx, cUser.UserID, userID)
 
-	relationshipType := "stranger"
-	var mutualUsernames []string
-
-	if int(cUser.UserID) == userID {
-		relationshipType = "own"
-	} else if isFollowing {
-		relationshipType = "friend"
-	} else if mutuals, _ := s.userRepository.GetMutualConnectionsForUser(ctx, int(cUser.UserID), userID); len(mutuals) > 0 {
-		relationshipType = "mutual"
-		mutualUsernames = mutuals
-	}
+	mutuals, _ := s.userRepository.GetMutualConnectionsForUser(ctx, cUser.UserID, userID)
 
 	return &models.DetailedUser{
-		UserID:           dbUser.UserID,
-		Email:            dbUser.Email,
-		Username:         dbUser.Username,
-		CreatedAt:        dbUser.CreatedAt,
-		Name:             dbUser.Name,
-		Bio:              bio,
-		IsFollowing:      isFollowing,
-		IsFollower:       isFollower,
-		IsBlocking:       isBlocking,
-		RelationshipType: relationshipType,
-		MutualUsernames:  mutualUsernames,
+		UserID:      dbUser.UserID,
+		Email:       dbUser.Email,
+		Username:    dbUser.Username,
+		CreatedAt:   dbUser.CreatedAt,
+		Name:        dbUser.Name,
+		Bio:         bio,
+		IsFollowing: isFollowing,
+		IsFollower:  isFollower,
+		IsBlocking:  isBlocking,
+		Mutuals:     mutuals,
 	}, nil
 }
 
@@ -78,17 +67,17 @@ func (s *UserService) FollowUser(ctx context.Context, currentUser models.PublicU
 		return err
 	}
 
-	if blocked, _ := s.userRepository.IsUserBlockingUser(ctx, userId, int(currentUser.UserID)); blocked {
+	if blocked, _ := s.userRepository.IsUserBlockingUser(ctx, userId, currentUser.UserID); blocked {
 		return errors.New("user is blocked")
 	}
 
-	if err := s.userRepository.FollowUser(ctx, int(currentUser.UserID), userId); err != nil {
+	if err := s.userRepository.FollowUser(ctx, currentUser.UserID, userId); err != nil {
 		return err
 	}
 
 	text := fmt.Sprintf("@%s started following you.", currentUser.Username)
 	if facets, _ := repositories.GenerateFacets(ctx, s.userRepository, text); facets != nil {
-		err := s.notificationRepository.InsertNotification(ctx, int(user.UserID), nil, nil, &facets, text)
+		err := s.notificationRepository.InsertNotification(ctx, user.UserID, nil, nil, &facets, text)
 		if err != nil {
 			return err
 		}
@@ -97,7 +86,7 @@ func (s *UserService) FollowUser(ctx context.Context, currentUser models.PublicU
 }
 
 func (s *UserService) UnfollowUser(ctx context.Context, currentUser models.PublicUser, userId int) error {
-	return s.userRepository.UnfollowUser(ctx, int(currentUser.UserID), userId)
+	return s.userRepository.UnfollowUser(ctx, currentUser.UserID, userId)
 }
 
 func (s *UserService) UpdateProfile(ctx context.Context, userId int, name *string, bio *string) error {
@@ -133,5 +122,5 @@ func (s *UserService) BlockUser(ctx context.Context, currentUser models.PublicUs
 }
 
 func (s *UserService) UnblockUser(ctx context.Context, currentUser models.PublicUser, userId int) error {
-	return s.userRepository.UnblockUser(ctx, int(currentUser.UserID), userId)
+	return s.userRepository.UnblockUser(ctx, currentUser.UserID, userId)
 }

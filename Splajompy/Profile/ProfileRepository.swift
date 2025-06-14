@@ -10,8 +10,7 @@ struct UserProfile: Decodable {
   var isFollower: Bool
   var isFollowing: Bool
   var isBlocking: Bool
-  let relationshipType: String
-  let mutualUsernames: [String]?
+  let mutuals: [String]
 }
 
 struct UpdateProfileRequest: Encodable {
@@ -115,8 +114,7 @@ final class MockUserStore: @unchecked Sendable {
         isFollower: false,
         isFollowing: false,
         isBlocking: false,
-        relationshipType: "friend",
-        mutualUsernames: nil
+        mutuals: []
       ),
       6: UserProfile(
         userId: 6,
@@ -131,8 +129,7 @@ final class MockUserStore: @unchecked Sendable {
         isFollower: true,
         isFollowing: true,
         isBlocking: false,
-        relationshipType: "friend",
-        mutualUsernames: nil
+        mutuals: []
       ),
       25: UserProfile(
         userId: 25,
@@ -146,8 +143,7 @@ final class MockUserStore: @unchecked Sendable {
         isFollower: false,
         isFollowing: true,
         isBlocking: false,
-        relationshipType: "friend",
-        mutualUsernames: nil
+        mutuals: []
       ),
       120: UserProfile(
         userId: 120,
@@ -162,8 +158,7 @@ final class MockUserStore: @unchecked Sendable {
         isFollower: true,
         isFollowing: false,
         isBlocking: false,
-        relationshipType: "mutual",
-        mutualUsernames: ["joel", "wesley"]
+        mutuals: ["joel", "wesley"]
       ),
       103: UserProfile(
         userId: 103,
@@ -178,8 +173,7 @@ final class MockUserStore: @unchecked Sendable {
         isFollower: true,
         isFollowing: true,
         isBlocking: false,
-        relationshipType: "friend",
-        mutualUsernames: nil
+        mutuals: []
       ),
       112: UserProfile(
         userId: 112,
@@ -194,8 +188,7 @@ final class MockUserStore: @unchecked Sendable {
         isFollower: false,
         isFollowing: false,
         isBlocking: false,
-        relationshipType: "stranger",
-        mutualUsernames: nil
+        mutuals: []
       ),
       97: UserProfile(
         userId: 97,
@@ -210,8 +203,7 @@ final class MockUserStore: @unchecked Sendable {
         isFollower: true,
         isFollowing: true,
         isBlocking: false,
-        relationshipType: "friend",
-        mutualUsernames: nil
+        mutuals: []
       ),
       113: UserProfile(
         userId: 113,
@@ -226,8 +218,7 @@ final class MockUserStore: @unchecked Sendable {
         isFollower: false,
         isFollowing: false,
         isBlocking: false,
-        relationshipType: "stranger",
-        mutualUsernames: nil
+        mutuals: []
       ),
       30: UserProfile(
         userId: 30,
@@ -242,8 +233,7 @@ final class MockUserStore: @unchecked Sendable {
         isFollower: false,
         isFollowing: true,
         isBlocking: false,
-        relationshipType: "friend",
-        mutualUsernames: nil
+        mutuals: []
       ),
       15: UserProfile(
         userId: 15,
@@ -258,8 +248,7 @@ final class MockUserStore: @unchecked Sendable {
         isFollower: true,
         isFollowing: false,
         isBlocking: false,
-        relationshipType: "stranger",
-        mutualUsernames: nil
+        mutuals: []
       ),
     ]
   }

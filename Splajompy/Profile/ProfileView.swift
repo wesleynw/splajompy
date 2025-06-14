@@ -159,11 +159,7 @@ struct ProfileView: View {
       }
 
       if !isOwnProfile && !isCurrentProfile {
-        RelationshipIndicator(
-          relationshipType: user.relationshipType,
-          mutualUsernames: user.mutualUsernames,
-          isFollower: user.isFollower
-        )
+        RelationshipIndicator(user: user)
       }
 
       if !isOwnProfile && !isCurrentProfile {

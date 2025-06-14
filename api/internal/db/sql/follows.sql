@@ -16,9 +16,7 @@ WHERE following_id = $1 AND follower_id = $2;
 -- name: GetMutualConnectionsForUser :many
 SELECT DISTINCT u.username
 FROM follows f1
-INNER JOIN follows f2 ON f1.following_id = f2.following_id
-INNER JOIN users u ON f1.following_id = u.user_id
-WHERE f1.follower_id = $1 
-  AND f2.follower_id = $2
-  AND f1.following_id != $1 
-  AND f1.following_id != $2;
+INNER JOIN follows f2 ON f1.following_id = f2.follower_id
+INNER JOIN users u on f2.follower_id = u.user_id
+WHERE f1.follower_id = $1
+  AND f2.following_id = $2;
