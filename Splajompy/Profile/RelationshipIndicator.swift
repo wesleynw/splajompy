@@ -1,175 +1,146 @@
 import SwiftUI
 
 struct RelationshipIndicator: View {
-  var user: UserProfile
+  let relationshipType: String
+  let mutualUsernames: [String]?
+  let isFollower: Bool
+
+  private var hasRelationship: Bool {
+    relationshipType != "none" && !relationshipType.isEmpty
+  }
 
   var body: some View {
-    switch user.relationshipType {
-    case "friend":
-      HStack(spacing: 6) {
-        Image(systemName: "person.fill.checkmark")
-          .font(.caption2)
-        Text("Friend")
-          .font(.caption)
-          .fontWeight(.bold)
+    if hasRelationship || isFollower {
+      VStack(spacing: 8) {
+        if hasRelationship {
+          relationshipRow()
+        }
+
+        if isFollower {
+          followsYouRow()
+        }
       }
-      .foregroundColor(.green)
-      .padding(.horizontal, 12)
-      .padding(.vertical, 6)
-      .background(Color.green.opacity(0.1))
-      .clipShape(Capsule())
-      .overlay(
-        Capsule()
-          .strokeBorder(Color.green.opacity(0.3), lineWidth: 1)
-      )
-    case "mutual":
-      if let mutuals = user.mutualUsernames, !mutuals.isEmpty {
-        HStack(spacing: 6) {
-          Image(systemName: "person.2.fill")
-            .font(.caption2)
-          if mutuals.count == 1 {
-            Text("\(mutuals[0])")
-              .font(.caption)
-              .fontWeight(.bold)
-              .lineLimit(1)
-          } else {
-            Text("\(mutuals.count) mutuals")
-              .font(.caption)
-              .fontWeight(.bold)
-          }
+      .padding(12)
+      .background(Color.gray.opacity(0.3).gradient)
+      .cornerRadius(8)
+    }
+  }
+
+  @ViewBuilder
+  private func relationshipRow() -> some View {
+    HStack(spacing: 0) {
+      relationshipIcon(for: relationshipType)
+        .font(.system(size: 16))
+        .foregroundColor(relationshipColor(for: relationshipType))
+        .frame(width: 24, alignment: .center)
+
+      VStack(alignment: .leading, spacing: 4) {
+        Text(relationshipTitle(for: relationshipType))
+          .font(.subheadline)
+          .fontWeight(.medium)
+          .foregroundColor(.primary)
+          .lineLimit(2)
+
+        if let mutuals = mutualUsernames, !mutuals.isEmpty,
+          relationshipType == "mutual"
+        {
+          Text(formatMutualFriends(mutuals))
+            .font(.subheadline)
+            .foregroundColor(.secondary)
         }
-        .foregroundColor(mutuals.count > 1 ? .blue : .purple)
-        .padding(.horizontal, 12)
-        .padding(.vertical, 6)
-        .background(mutuals.count > 1 ? Color.blue.opacity(0.1) : Color.purple.opacity(0.1))
-        .clipShape(Capsule())
-        .overlay(
-          Capsule()
-            .strokeBorder(
-              mutuals.count > 1 ? Color.blue.opacity(0.3) : Color.purple.opacity(0.3), lineWidth: 1)
-        )
-      } else {
-        HStack(spacing: 6) {
-          Image(systemName: "person.2.fill")
-            .font(.caption2)
-          Text("Mutual")
-            .font(.caption)
-            .fontWeight(.bold)
-        }
+      }
+      .padding(.leading, 12)
+
+      Spacer()
+    }
+  }
+
+  @ViewBuilder
+  private func followsYouRow() -> some View {
+    HStack(spacing: 0) {
+      Image(systemName: "person.fill.badge.plus")
+        .font(.system(size: 16))
         .foregroundColor(.blue)
-        .padding(.horizontal, 12)
-        .padding(.vertical, 6)
-        .background(Color.blue.opacity(0.1))
-        .clipShape(Capsule())
-        .overlay(
-          Capsule()
-            .strokeBorder(Color.blue.opacity(0.3), lineWidth: 1)
-        )
+        .frame(width: 24, alignment: .center)
+
+      Text("Follows you")
+        .font(.subheadline)
+        .fontWeight(.medium)
+        .padding(.leading, 12)
+
+      Spacer()
+    }
+  }
+
+  private func relationshipIcon(for type: String) -> Image {
+    switch type {
+    case "friend":
+      return Image(systemName: "person.fill.checkmark")
+    case "mutual":
+      return Image(systemName: "person.3.fill")
+    default:
+      return Image(systemName: "person.fill")
+    }
+  }
+
+  private func relationshipColor(for type: String) -> Color {
+    switch type {
+    case "friend":
+      return .green
+    case "mutual":
+      return .purple
+    default:
+      return .blue
+    }
+  }
+
+  private func relationshipTitle(for type: String) -> String {
+    switch type {
+    case "friend":
+      return "Friend"
+    case "mutual":
+      if let mutuals = mutualUsernames, !mutuals.isEmpty {
+        return mutuals.count == 1 ? "1 mutual" : "\(mutuals.count) mutuals"
+      } else {
+        return "Mutual"
       }
     default:
-      EmptyView()
+      return "Mutual"
+    }
+  }
+
+  private func formatMutualFriends(_ mutuals: [String]) -> String {
+    if mutuals.count == 1 {
+      return "@\(mutuals[0])"
+    } else if mutuals.count == 2 {
+      return "@\(mutuals[0]) and @\(mutuals[1])"
+    } else if mutuals.count == 3 {
+      return "@\(mutuals[0]), @\(mutuals[1]) and @\(mutuals[2])"
+    } else {
+      return "@\(mutuals[0]), @\(mutuals[1]) and \(mutuals.count - 2) others"
     }
   }
 }
 
 #Preview {
-  let currentDate = ISO8601DateFormatter().string(from: Date())
+  VStack(spacing: 16) {
+    RelationshipIndicator(
+      relationshipType: "friend",
+      mutualUsernames: nil,
+      isFollower: false
+    )
 
-  VStack(spacing: 20) {
-    VStack(alignment: .leading, spacing: 10) {
-      Text("Friend")
-        .font(.headline)
-      RelationshipIndicator(
-        user: UserProfile(
-          userId: 1,
-          email: "friend@test.com",
-          username: "friend_user",
-          createdAt: currentDate,
-          name: "Friend User",
-          bio: "",
-          isFollower: false,
-          isFollowing: true,
-          isBlocking: false,
-          relationshipType: "friend",
-          mutualUsernames: nil
-        ))
-    }
+    RelationshipIndicator(
+      relationshipType: "mutual",
+      mutualUsernames: ["alice", "bob"],
+      isFollower: true
+    )
 
-    VStack(alignment: .leading, spacing: 10) {
-      Text("Mutual - Single Friend")
-        .font(.headline)
-      RelationshipIndicator(
-        user: UserProfile(
-          userId: 2,
-          email: "mutual@test.com",
-          username: "mutual_user",
-          createdAt: currentDate,
-          name: "Mutual User",
-          bio: "",
-          isFollower: false,
-          isFollowing: true,
-          isBlocking: false,
-          relationshipType: "mutual",
-          mutualUsernames: ["alice_doe"]
-        ))
-    }
-
-    VStack(alignment: .leading, spacing: 10) {
-      Text("Mutual - Multiple Friends")
-        .font(.headline)
-      RelationshipIndicator(
-        user: UserProfile(
-          userId: 3,
-          email: "mutual2@test.com",
-          username: "mutual_user2",
-          createdAt: currentDate,
-          name: "Mutual User 2",
-          bio: "",
-          isFollower: false,
-          isFollowing: true,
-          isBlocking: false,
-          relationshipType: "mutual",
-          mutualUsernames: ["alice_doe", "bob_smith", "charlie_jones"]
-        ))
-    }
-
-    VStack(alignment: .leading, spacing: 10) {
-      Text("Mutual - No Usernames")
-        .font(.headline)
-      RelationshipIndicator(
-        user: UserProfile(
-          userId: 4,
-          email: "mutual3@test.com",
-          username: "mutual_user3",
-          createdAt: currentDate,
-          name: "Mutual User 3",
-          bio: "",
-          isFollower: false,
-          isFollowing: true,
-          isBlocking: false,
-          relationshipType: "mutual",
-          mutualUsernames: nil
-        ))
-    }
-
-    VStack(alignment: .leading, spacing: 10) {
-      Text("No Relationship")
-        .font(.headline)
-      RelationshipIndicator(
-        user: UserProfile(
-          userId: 5,
-          email: "stranger@test.com",
-          username: "stranger_user",
-          createdAt: currentDate,
-          name: "Stranger User",
-          bio: "",
-          isFollower: false,
-          isFollowing: false,
-          isBlocking: false,
-          relationshipType: "none",
-          mutualUsernames: nil
-        ))
-    }
+    RelationshipIndicator(
+      relationshipType: "none",
+      mutualUsernames: nil,
+      isFollower: true
+    )
   }
   .padding()
 }
