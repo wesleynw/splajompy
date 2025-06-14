@@ -137,20 +137,29 @@ struct ProfileView: View {
   }
 
   private func profileHeader(user: UserProfile) -> some View {
-    VStack(alignment: .leading) {
-      if !user.name.isEmpty {
-        Text(user.name)
-          .font(.title2)
-          .fontWeight(.black)
-          .lineLimit(1)
+    VStack(alignment: .leading, spacing: 16) {
+      HStack {
+        VStack(alignment: .leading, spacing: 4) {
+          if !user.name.isEmpty {
+            Text(user.name)
+              .font(.title2)
+              .fontWeight(.bold)
+              .lineLimit(1)
+          }
+        }
+
+        Spacer()
+
       }
+
       if !user.bio.isEmpty {
         Text(user.bio)
-          .padding(.vertical, 10)
+          .font(.body)
+          .fixedSize(horizontal: false, vertical: true)
       }
 
       if !isOwnProfile && !isCurrentProfile {
-        RelationshipIndicator(user: user)
+        relationshipInfoCard(user: user)
       }
 
       if !isOwnProfile && !isCurrentProfile {
@@ -159,7 +168,6 @@ struct ProfileView: View {
             Button(action: viewModel.toggleFollowing) {
               if viewModel.isLoadingFollowButton {
                 ProgressView()
-                  .frame(maxWidth: .infinity)
               } else {
                 Text("Unfollow")
                   .frame(maxWidth: .infinity)
@@ -170,7 +178,6 @@ struct ProfileView: View {
             Button(action: viewModel.toggleFollowing) {
               if viewModel.isLoadingFollowButton {
                 ProgressView()
-                  .frame(maxWidth: .infinity)
               } else {
                 Text("Follow")
                   .frame(maxWidth: .infinity)
@@ -181,8 +188,8 @@ struct ProfileView: View {
         } else {
           Button(action: viewModel.toggleBlocking) {
             Text("Unblock")
-              .foregroundStyle(.red.opacity(0.7))
               .frame(maxWidth: .infinity)
+              .foregroundStyle(.red.opacity(0.7))
           }
           .buttonStyle(.bordered)
         }
@@ -193,14 +200,127 @@ struct ProfileView: View {
         }
         .buttonStyle(.bordered)
       }
-      if user.isFollower && !isOwnProfile {
-        Text("Follows You")
-          .fontWeight(.bold)
-          .foregroundColor(Color.gray.opacity(0.4))
-      }
     }
     .frame(maxWidth: .infinity, alignment: .leading)
     .padding()
+  }
+
+  @ViewBuilder
+  private func relationshipInfoCard(user: UserProfile) -> some View {
+    let hasRelationship =
+      user.relationshipType != "none" && !user.relationshipType.isEmpty
+    let isFollower = user.isFollower
+
+    if hasRelationship || isFollower {
+      VStack(spacing: 8) {
+        if hasRelationship {
+          relationshipRow(user: user)
+        }
+
+        if isFollower {
+          followsYouRow()
+        }
+      }
+      .padding(12)
+      .background(Color.gray.opacity(0.3).gradient)
+      .cornerRadius(8)
+    }
+  }
+
+  @ViewBuilder
+  private func relationshipRow(user: UserProfile) -> some View {
+    HStack(spacing: 0) {
+      relationshipIcon(for: user.relationshipType)
+        .font(.system(size: 16))
+        .foregroundColor(relationshipColor(for: user.relationshipType))
+        .frame(width: 24, alignment: .center)
+
+      VStack(alignment: .leading, spacing: 4) {
+        Text(relationshipTitle(for: user, type: user.relationshipType))
+          .font(.subheadline)
+          .fontWeight(.medium)
+          .foregroundColor(.primary)
+          .lineLimit(2)
+
+        if let mutuals = user.mutualUsernames, !mutuals.isEmpty,
+          user.relationshipType == "mutual"
+        {
+          Text(formatMutualFriends(mutuals))
+            .font(.subheadline)
+            .foregroundColor(.secondary)
+        }
+      }
+      .padding(.leading, 12)
+
+      Spacer()
+    }
+  }
+
+  @ViewBuilder
+  private func followsYouRow() -> some View {
+    HStack(spacing: 0) {
+      Image(systemName: "person.fill.badge.plus")
+        .font(.system(size: 16))
+        .foregroundColor(.blue)
+        .frame(width: 24, alignment: .center)
+
+      Text("Follows you")
+        .font(.subheadline)
+        .fontWeight(.medium)
+        .padding(.leading, 12)
+
+      Spacer()
+    }
+  }
+
+  private func relationshipIcon(for type: String) -> Image {
+    switch type {
+    case "friend":
+      return Image(systemName: "person.fill.checkmark")
+    case "mutual":
+      return Image(systemName: "person.3.fill")
+    default:
+      return Image(systemName: "person.fill")
+    }
+  }
+
+  private func relationshipColor(for type: String) -> Color {
+    switch type {
+    case "friend":
+      return .green
+    case "mutual":
+      return .purple
+    default:
+      return .blue
+    }
+  }
+
+  private func relationshipTitle(for user: UserProfile, type: String) -> String {
+    switch type {
+    case "friend":
+      return "Friend"
+    case "mutual":
+      if let mutuals = user.mutualUsernames, !mutuals.isEmpty {
+        return mutuals.count == 1
+          ? "1 mutual" : "\(mutuals.count) mutuals"
+      } else {
+        return "Mutual"
+      }
+    default:
+      return "Mutual"
+    }
+  }
+
+  private func formatMutualFriends(_ mutuals: [String]) -> String {
+    if mutuals.count == 1 {
+      return "@\(mutuals[0])"
+    } else if mutuals.count == 2 {
+      return "@\(mutuals[0]) and @\(mutuals[1])"
+    } else if mutuals.count == 3 {
+      return "@\(mutuals[0]), @\(mutuals[1]) and @\(mutuals[2])"
+    } else {
+      return "@\(mutuals[0]), @\(mutuals[1]) and \(mutuals.count - 2) others"
+    }
   }
 
   private var loadingPlaceholder: some View {
