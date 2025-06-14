@@ -40,10 +40,11 @@ func (s *PostService) NewPost(ctx context.Context, currentUser models.PublicUser
 		return err
 	}
 
-	post, err := s.postRepository.InsertPost(ctx, int(currentUser.UserID), text, facets)
+	post, err := s.postRepository.InsertPost(ctx, currentUser.UserID, text, facets)
 	if err != nil {
 		return errors.New("unable to create post")
 	}
+	postId := int(post.PostID)
 
 	environment := os.Getenv("ENVIRONMENT")
 
@@ -71,6 +72,22 @@ func (s *PostService) NewPost(ctx context.Context, currentUser models.PublicUser
 		}
 	}
 
+	// send notifications to users mentioned in post
+	for _, facet := range facets {
+		if facet.UserId != currentUser.UserID {
+			text := fmt.Sprintf("@%s mentioned you in a post.", currentUser.Username)
+			notificationFacets, err := repositories.GenerateFacets(ctx, s.userRepository, text)
+			if err != nil {
+				return err
+			}
+
+			err = s.notificationRepository.InsertNotification(ctx, facet.UserId, &postId, nil, &notificationFacets, text)
+			if err != nil {
+				return errors.New("unable to create post")
+			}
+		}
+	}
+
 	return nil
 }
 
@@ -90,7 +107,7 @@ func (s *PostService) GetPostById(ctx context.Context, cUser models.PublicUser, 
 	}
 
 	isLiked, _ := s.postRepository.IsPostLikedByUserId(ctx, cUser.UserID, int(post.PostID))
-	
+
 	images, _ := s.postRepository.GetImagesForPost(ctx, int(post.PostID))
 	if images == nil {
 		images = []queries.Image{}
@@ -114,7 +131,7 @@ func (s *PostService) GetPostById(ctx context.Context, cUser models.PublicUser, 
 }
 
 func (s *PostService) GetAllPosts(ctx context.Context, currentUser models.PublicUser, limit int, offset int) (*[]models.DetailedPost, error) {
-	postIds, err := s.postRepository.GetAllPostIds(ctx, limit, offset, int(currentUser.UserID))
+	postIds, err := s.postRepository.GetAllPostIds(ctx, limit, offset, currentUser.UserID)
 	if err != nil {
 		return nil, err
 	}
@@ -122,7 +139,7 @@ func (s *PostService) GetAllPosts(ctx context.Context, currentUser models.Public
 }
 
 func (s *PostService) GetPostsByUserId(ctx context.Context, currentUser models.PublicUser, userID int, limit int, offset int) (*[]models.DetailedPost, error) {
-	if blocked, _ := s.userRepository.IsUserBlockingUser(ctx, userID, int(currentUser.UserID)); blocked {
+	if blocked, _ := s.userRepository.IsUserBlockingUser(ctx, userID, currentUser.UserID); blocked {
 		return &[]models.DetailedPost{}, nil
 	}
 
@@ -134,7 +151,7 @@ func (s *PostService) GetPostsByUserId(ctx context.Context, currentUser models.P
 }
 
 func (s *PostService) GetPostsByFollowing(ctx context.Context, currentUser models.PublicUser, limit int, offset int) (*[]models.DetailedPost, error) {
-	postIds, err := s.postRepository.GetPostIdsForFollowing(ctx, int(currentUser.UserID), limit, offset)
+	postIds, err := s.postRepository.GetPostIdsForFollowing(ctx, currentUser.UserID, limit, offset)
 	if err != nil {
 		return nil, err
 	}
@@ -142,17 +159,17 @@ func (s *PostService) GetPostsByFollowing(ctx context.Context, currentUser model
 }
 
 func (s *PostService) GetMutualFeed(ctx context.Context, currentUser models.PublicUser, limit int, offset int) (*[]models.DetailedPost, error) {
-	postRows, err := s.postRepository.GetPostIdsForMutualFeed(ctx, int(currentUser.UserID), limit, offset)
+	postRows, err := s.postRepository.GetPostIdsForMutualFeed(ctx, currentUser.UserID, limit, offset)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	// Extract just the post IDs from the rows
 	postIDs := make([]int32, len(postRows))
 	for i, row := range postRows {
 		postIDs[i] = row.PostID
 	}
-	
+
 	return s.getPostsByPostIDs(ctx, currentUser, postIDs)
 }
 
@@ -170,9 +187,8 @@ func (s *PostService) getPostsByPostIDs(ctx context.Context, currentUser models.
 	return &posts, nil
 }
 
-
 func (s *PostService) AddLikeToPost(ctx context.Context, currentUser models.PublicUser, postId int) error {
-	err := s.likeRepository.AddLike(ctx, int(currentUser.UserID), postId, true)
+	err := s.likeRepository.AddLike(ctx, currentUser.UserID, postId, true)
 	if err != nil {
 		return err
 	}
@@ -193,7 +209,7 @@ func (s *PostService) AddLikeToPost(ctx context.Context, currentUser models.Publ
 }
 
 func (s *PostService) RemoveLikeFromPost(ctx context.Context, currentUser models.PublicUser, postId int) error {
-	err := s.likeRepository.RemoveLike(ctx, int(currentUser.UserID), postId, true)
+	err := s.likeRepository.RemoveLike(ctx, currentUser.UserID, postId, true)
 	return err
 }
 
