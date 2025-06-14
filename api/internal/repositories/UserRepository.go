@@ -225,8 +225,8 @@ func (r DBUserRepository) DeleteAccount(ctx context.Context, userId int) error {
 // GetMutualConnectionsForUser retrieves mutual connections between current user and target user
 func (r DBUserRepository) GetMutualConnectionsForUser(ctx context.Context, currentUserId int, targetUserId int) ([]string, error) {
 	return r.querier.GetMutualConnectionsForUser(ctx, queries.GetMutualConnectionsForUserParams{
-		FollowerID:   int32(currentUserId),
-		FollowerID_2: int32(targetUserId),
+		FollowerID:  int32(currentUserId),
+		FollowingID: int32(targetUserId),
 	})
 }
 

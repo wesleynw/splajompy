@@ -76,15 +76,14 @@ type PublicUser struct {
 }
 
 type DetailedUser struct {
-	UserID           int       `json:"userId"`
-	Email            string    `json:"email"`
-	Username         string    `json:"username"`
-	CreatedAt        time.Time `json:"createdAt"`
-	Name             string    `json:"name"`
-	Bio              string    `json:"bio"`
-	IsFollower       bool      `json:"isFollower"`
-	IsFollowing      bool      `json:"isFollowing"`
-	IsBlocking       bool      `json:"isBlocking"`
-	RelationshipType string    `json:"relationshipType"`
-	MutualUsernames  []string  `json:"mutualUsernames,omitempty"`
+	UserID      int       `json:"userId"`
+	Email       string    `json:"email"`
+	Username    string    `json:"username"`
+	CreatedAt   time.Time `json:"createdAt"`
+	Name        string    `json:"name"`
+	Bio         string    `json:"bio"`
+	IsFollower  bool      `json:"isFollower"`
+	IsFollowing bool      `json:"isFollowing"`
+	IsBlocking  bool      `json:"isBlocking"`
+	Mutuals     []string  `json:"mutuals"`
 }

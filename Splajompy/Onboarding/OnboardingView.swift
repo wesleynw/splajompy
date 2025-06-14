@@ -14,28 +14,40 @@ struct OnboardingView: View {
               + Text(" mutuals").foregroundStyle(.purple) + Text(".")
 
             Text(
-              "If you're curious why you're seeing someone's posts, you can why they're showing up for you in their profile."
+              "If you're curious why you're seeing someone's posts, you can see why they're showing up for you in their profile."
             )
           }
           .multilineTextAlignment(.center)
 
           VStack(spacing: 12) {
             RelationshipIndicator(
-              relationshipType: "friend",
-              mutualUsernames: nil,
-              isFollower: false
+              user: UserProfile(
+                userId: 1,
+                email: "friend@example.com",
+                username: "friend_example",
+                createdAt: "2024-01-01T00:00:00.000Z",
+                name: "Friend Example",
+                bio: "This is a friend",
+                isFollower: true,
+                isFollowing: true,
+                isBlocking: false,
+                mutuals: []
+              )
             )
 
             RelationshipIndicator(
-              relationshipType: "mutual",
-              mutualUsernames: ["alice", "bob"],
-              isFollower: false
-            )
-
-            RelationshipIndicator(
-              relationshipType: "none",
-              mutualUsernames: nil,
-              isFollower: true
+              user: UserProfile(
+                userId: 2,
+                email: "mutual@example.com",
+                username: "mutual_example",
+                createdAt: "2024-01-01T00:00:00.000Z",
+                name: "Mutual Example",
+                bio: "Has mutual friends",
+                isFollower: false,
+                isFollowing: false,
+                isBlocking: false,
+                mutuals: ["alice", "bob"]
+              )
             )
           }
         }
@@ -43,17 +55,19 @@ struct OnboardingView: View {
       .padding(32)
       .navigationTitle("What's New")
 
-      HStack {
+      VStack {
+        Spacer()
+
         Button(action: onComplete) {
           Text("Get Started")
             .font(.headline)
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 5)
+            .padding(.vertical, 12)
         }
         .clipShape(RoundedRectangle(cornerRadius: 12))
         .buttonStyle(.borderedProminent)
+        .padding()
       }
-      .padding()
 
     }
   }
