@@ -431,20 +431,20 @@ func (r *FakeUserRepository) DeleteAccount(ctx context.Context, userId int) erro
 	// Clean up user mappings first (before deleting the user)
 	delete(r.usersByUsername, user.Username)
 	delete(r.usersByEmail, user.Email)
-	
+
 	// Delete the user
 	delete(r.users, id)
 	delete(r.userBios, id)
 	delete(r.passwords, id)
 	delete(r.followRelations, id)
 	delete(r.verificationCodes, id)
-	
+
 	// Remove user from other users' follow relations
 	for userIdKey, following := range r.followRelations {
 		delete(following, id)
 		r.followRelations[userIdKey] = following
 	}
-	
+
 	// Clean up sessions
 	for sessionId, session := range r.sessions {
 		if session.UserID == id {
@@ -459,6 +459,5 @@ func (r *FakeUserRepository) GetMutualConnectionsForUser(ctx context.Context, us
 	r.mutex.RLock()
 	defer r.mutex.RUnlock()
 
-	// Return empty slice for fake implementation
-	return []string{}, nil
+	return nil, nil
 }

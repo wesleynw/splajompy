@@ -33,6 +33,9 @@ func (s *UserService) GetUserById(ctx context.Context, cUser models.PublicUser, 
 	isBlocking, _ := s.userRepository.IsUserBlockingUser(ctx, cUser.UserID, userID)
 
 	mutuals, _ := s.userRepository.GetMutualConnectionsForUser(ctx, cUser.UserID, userID)
+	if mutuals == nil {
+		mutuals = []string{}
+	}
 
 	return &models.DetailedUser{
 		UserID:      dbUser.UserID,
