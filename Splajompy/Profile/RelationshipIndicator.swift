@@ -4,8 +4,19 @@ struct RelationshipIndicator: View {
   let user: UserProfile
 
   var body: some View {
-    VStack(spacing: 0) {
-      relationshipRow()
+    VStack(spacing: 4) {
+      if isFriend {
+        friendRow()
+        if hasMutuals {
+          Divider()
+            .padding(2)
+          mutualsRow()
+        }
+      } else if hasMutuals {
+        mutualsRow()
+      } else {
+        noConnectionRow()
+      }
     }
     .padding(12)
     .background(Color.gray.opacity(0.1))
@@ -13,25 +24,19 @@ struct RelationshipIndicator: View {
   }
 
   @ViewBuilder
-  private func relationshipRow() -> some View {
+  private func friendRow() -> some View {
     HStack(spacing: 0) {
-      relationshipIcon
+      Image(systemName: "person.fill.checkmark")
         .font(.system(size: 16))
-        .foregroundColor(relationshipColor)
+        .foregroundColor(.green)
         .frame(width: 24, alignment: .center)
 
       VStack(alignment: .leading, spacing: 4) {
-        Text(relationshipTitle)
+        Text("Friend")
           .font(.subheadline)
           .fontWeight(.medium)
           .foregroundColor(.primary)
           .lineLimit(2)
-
-        if hasMutuals {
-          Text(formatMutualFriends(user.mutuals))
-            .font(.caption)
-            .foregroundColor(.secondary)
-        }
       }
       .padding(.leading, 12)
 
@@ -39,35 +44,55 @@ struct RelationshipIndicator: View {
     }
   }
 
-  private var relationshipIcon: Image {
-    if isFriend {
-      return Image(systemName: "person.fill.checkmark")
-    } else if hasMutuals {
-      return Image(systemName: "person.3.fill")
-    } else {
-      return Image(systemName: "person.fill")
+  @ViewBuilder
+  private func mutualsRow() -> some View {
+    HStack(spacing: 0) {
+      Image(systemName: "person.3.fill")
+        .font(.system(size: 16))
+        .foregroundColor(.purple)
+        .frame(width: 24, alignment: .center)
+
+      VStack(alignment: .leading, spacing: 4) {
+        Text(mutualFriendsTitle)
+          .font(.subheadline)
+          .fontWeight(.medium)
+          .foregroundColor(.primary)
+          .lineLimit(2)
+
+        Text(formatMutualFriends(user.mutuals))
+          .font(.caption)
+          .foregroundColor(.secondary)
+      }
+      .padding(.leading, 12)
+
+      Spacer()
     }
   }
 
-  private var relationshipColor: Color {
-    if isFriend {
-      return .green
-    } else if hasMutuals {
-      return .purple
-    } else {
-      return .blue
+  @ViewBuilder
+  private func noConnectionRow() -> some View {
+    HStack(spacing: 0) {
+      Image(systemName: "person.fill")
+        .font(.system(size: 16))
+        .foregroundColor(.blue)
+        .frame(width: 24, alignment: .center)
+
+      VStack(alignment: .leading, spacing: 4) {
+        Text("No connection")
+          .font(.subheadline)
+          .fontWeight(.medium)
+          .foregroundColor(.primary)
+          .lineLimit(2)
+      }
+      .padding(.leading, 12)
+
+      Spacer()
     }
   }
 
-  private var relationshipTitle: String {
-    if isFriend {
-      return "Friend"
-    } else if hasMutuals {
-      let count = user.mutuals.count
-      return count == 1 ? "1 mutual friend" : "\(count) mutual friends"
-    } else {
-      return "No connection"
-    }
+  private var mutualFriendsTitle: String {
+    let count = user.mutuals.count
+    return count == 1 ? "1 mutual" : "\(count) mutuals"
   }
 
   private var isFriend: Bool {
@@ -105,6 +130,21 @@ struct RelationshipIndicator: View {
         isFollowing: true,
         isBlocking: false,
         mutuals: []
+      )
+    )
+
+    RelationshipIndicator(
+      user: UserProfile(
+        userId: 4,
+        email: "friend_with_mutuals@example.com",
+        username: "friend_with_mutuals",
+        createdAt: "2024-01-01T00:00:00.000Z",
+        name: "Friend With Mutuals",
+        bio: "Friend who also has mutuals",
+        isFollower: true,
+        isFollowing: true,
+        isBlocking: false,
+        mutuals: ["alice", "bob", "charlie"]
       )
     )
 
