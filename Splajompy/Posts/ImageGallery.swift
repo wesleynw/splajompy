@@ -7,6 +7,9 @@ struct ImageGallery: View {
   @State private var selectedImageIndex: Int? = nil
   @Environment(\.colorScheme) var colorScheme
 
+  private let imageSpacing: CGFloat = 4
+  private let cornerRadius: CGFloat = 6
+
   var body: some View {
     Group {
       if imageUrls.isEmpty {
@@ -39,135 +42,145 @@ struct ImageGallery: View {
   private func multipleImagesLayout() -> some View {
     GeometryReader { geometry in
       if imageUrls.count == 2 {
-        HStack(spacing: 4) {
-          imageCell(
-            index: 0,
-            width: (geometry.size.width - 4) / 2,
-            height: geometry.size.height,
-            bottomTrailing: 0,
-            topTrailing: 0
-          )
-
-          imageCell(
-            index: 1,
-            width: (geometry.size.width - 4) / 2,
-            height: geometry.size.height,
-            topLeading: 0,
-            bottomLeading: 0
-          )
-        }
+        twoImagesLayout(geometry: geometry)
       } else if imageUrls.count == 3 {
-        HStack(spacing: 4) {
-          imageCell(
-            index: 0,
-            width: (geometry.size.width - 4) / 2,
-            height: geometry.size.height,
-            bottomTrailing: 0,
-            topTrailing: 0
-          )
-
-          VStack(spacing: 4) {
-            imageCell(
-              index: 1,
-              width: (geometry.size.width - 4) / 2,
-              height: (geometry.size.height - 4) / 2,
-              topLeading: 0,
-              bottomLeading: 0,
-              bottomTrailing: 0
-            )
-
-            imageCell(
-              index: 2,
-              width: (geometry.size.width - 4) / 2,
-              height: (geometry.size.height - 4) / 2,
-              topLeading: 0,
-              bottomLeading: 0,
-              topTrailing: 0
-            )
-          }
-        }
+        threeImagesLayout(geometry: geometry)
       } else {
-        VStack(spacing: 4) {
-          HStack(spacing: 4) {
-            imageCell(
-              index: 0,
-              width: (geometry.size.width - 4) / 2,
-              height: (geometry.size.height - 4) / 2,
-              bottomLeading: 0,
-              bottomTrailing: 0,
-              topTrailing: 0
-            )
-            imageCell(
-              index: 1,
-              width: (geometry.size.width - 4) / 2,
-              height: (geometry.size.height - 4) / 2,
-              topLeading: 0,
-              bottomLeading: 0,
-              bottomTrailing: 0
-            )
-          }
-          HStack(spacing: 4) {
-            imageCell(
-              index: 2,
-              width: (geometry.size.width - 4) / 2,
-              height: (geometry.size.height - 4) / 2,
-              topLeading: 0,
-              bottomTrailing: 0,
-              topTrailing: 0
-            )
-            ZStack {
-              imageCell(
-                index: 3,
-                width: (geometry.size.width - 4) / 2,
-                height: (geometry.size.height - 4) / 2,
-                topLeading: 0,
-                bottomLeading: 0,
-                topTrailing: 0
-              )
-              if imageUrls.count > 4 {
-                Color.black.opacity(0.6)
-                  .clipShape(
-                    .rect(
-                      bottomTrailingRadius: 6
-                    )
-                  )
-                Text("+\(imageUrls.count - 4)")
-                  .font(.system(size: 22, weight: .bold))
-                  .foregroundColor(.white)
-              }
-            }
-            .onTapGesture {
-              selectedImageIndex = 3
-            }
-          }
-        }
+        fourPlusImagesLayout(geometry: geometry)
       }
     }
     .aspectRatio(contentMode: .fit)
+    .drawingGroup()
   }
 
-  private func imageCell(
+  private func twoImagesLayout(geometry: GeometryProxy) -> some View {
+    HStack(spacing: imageSpacing) {
+      optimizedImageCell(
+        index: 0,
+        width: (geometry.size.width - imageSpacing) / 2,
+        height: geometry.size.height,
+        topLeading: true,
+        bottomLeading: true
+      )
+      optimizedImageCell(
+        index: 1,
+        width: (geometry.size.width - imageSpacing) / 2,
+        height: geometry.size.height,
+        topTrailing: true,
+        bottomTrailing: true
+      )
+    }
+  }
+
+  private func threeImagesLayout(geometry: GeometryProxy) -> some View {
+    HStack(spacing: imageSpacing) {
+      optimizedImageCell(
+        index: 0,
+        width: (geometry.size.width - imageSpacing) / 2,
+        height: geometry.size.height,
+        topLeading: true,
+        bottomLeading: true
+      )
+
+      VStack(spacing: imageSpacing) {
+        optimizedImageCell(
+          index: 1,
+          width: (geometry.size.width - imageSpacing) / 2,
+          height: (geometry.size.height - imageSpacing) / 2,
+          topTrailing: true
+        )
+        optimizedImageCell(
+          index: 2,
+          width: (geometry.size.width - imageSpacing) / 2,
+          height: (geometry.size.height - imageSpacing) / 2,
+          bottomTrailing: true
+        )
+      }
+    }
+  }
+
+  private func fourPlusImagesLayout(geometry: GeometryProxy) -> some View {
+    VStack(spacing: imageSpacing) {
+      HStack(spacing: imageSpacing) {
+        optimizedImageCell(
+          index: 0,
+          width: (geometry.size.width - imageSpacing) / 2,
+          height: (geometry.size.height - imageSpacing) / 2,
+          topLeading: true
+        )
+        optimizedImageCell(
+          index: 1,
+          width: (geometry.size.width - imageSpacing) / 2,
+          height: (geometry.size.height - imageSpacing) / 2,
+          topTrailing: true
+        )
+      }
+
+      HStack(spacing: imageSpacing) {
+        optimizedImageCell(
+          index: 2,
+          width: (geometry.size.width - imageSpacing) / 2,
+          height: (geometry.size.height - imageSpacing) / 2,
+          bottomLeading: true
+        )
+
+        ZStack {
+          optimizedImageCell(
+            index: 3,
+            width: (geometry.size.width - imageSpacing) / 2,
+            height: (geometry.size.height - imageSpacing) / 2,
+            bottomTrailing: true
+          )
+
+          if imageUrls.count > 4 {
+            RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+              .fill(Color.black.opacity(0.6))
+              .overlay(
+                Text("+\(imageUrls.count - 4)")
+                  .font(.system(size: 22, weight: .bold))
+                  .foregroundColor(.white)
+              )
+          }
+        }
+        .onTapGesture {
+          selectedImageIndex = 3
+        }
+      }
+    }
+  }
+
+  private func optimizedImageCell(
     index: Int,
     width: CGFloat,
     height: CGFloat,
-    topLeading: CGFloat = 6,
-    bottomLeading: CGFloat = 6,
-    bottomTrailing: CGFloat = 6,
-    topTrailing: CGFloat = 6
+    topLeading: Bool = false,
+    topTrailing: Bool = false,
+    bottomLeading: Bool = false,
+    bottomTrailing: Bool = false
   ) -> some View {
     Group {
       if index < imageUrls.count, let url = URL(string: imageUrls[index]) {
         KFImage(url)
+          .fade(duration: 0.1)
+          .placeholder {
+            Rectangle()
+              .fill(Color.gray.opacity(0.3))
+              .frame(width: width, height: height)
+              .overlay {
+                CustomProgressIndicator()
+                  .scaleEffect(0.8)
+              }
+          }
           .resizable()
           .aspectRatio(contentMode: .fill)
           .frame(width: width, height: height)
           .clipped()
           .clipShape(
             .rect(
-              topLeadingRadius: topLeading,
-              bottomLeadingRadius: bottomLeading,
-              bottomTrailingRadius: bottomTrailing,
-              topTrailingRadius: topTrailing
+              topLeadingRadius: topLeading ? cornerRadius : 0,
+              bottomLeadingRadius: bottomLeading ? cornerRadius : 0,
+              bottomTrailingRadius: bottomTrailing ? cornerRadius : 0,
+              topTrailingRadius: topTrailing ? cornerRadius : 0
             )
           )
           .contentShape(Rectangle())
@@ -182,15 +195,54 @@ struct ImageGallery: View {
     Group {
       if let url = URL(string: imageUrls[0]) {
         KFImage(url)
+          .fade(duration: 0.1)
+          .placeholder {
+            Rectangle()
+              .fill(Color.gray.opacity(0.3))
+              .aspectRatio(4 / 3, contentMode: .fit)
+              .overlay {
+                CustomProgressIndicator()
+                  .scaleEffect(1.2)
+              }
+          }
           .resizable()
           .aspectRatio(contentMode: .fit)
-          .clipShape(.rect(cornerRadius: 6))
+          .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
+          .contentShape(Rectangle())
           .onTapGesture {
             selectedImageIndex = 0
           }
       } else {
         Color.clear
       }
+    }
+  }
+}
+
+struct CustomProgressIndicator: View {
+  @State private var rotation: Double = 0
+
+  var body: some View {
+    Circle()
+      .trim(from: 0, to: 0.7)
+      .stroke(Color.gray, lineWidth: 2)
+      .frame(width: 20, height: 20)
+      .rotationEffect(.degrees(rotation))
+      .onAppear {
+        withAnimation(.linear(duration: 1).repeatForever(autoreverses: false)) {
+          rotation = 360
+        }
+      }
+  }
+}
+
+extension View {
+  @ViewBuilder
+  func conditionalDrawingGroup(_ condition: Bool) -> some View {
+    if condition {
+      self.drawingGroup()
+    } else {
+      self
     }
   }
 }

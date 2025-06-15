@@ -99,7 +99,9 @@ struct HomeView: View {
 
               if viewModel.isLoadingMore {
                 ProgressView()
+                  .scaleEffect(1.5)
                   .containerRelativeFrame([.horizontal, .vertical])
+                  .padding(.top, 40)
                   .padding(.bottom, proxy.safeAreaInsets.bottom / 2)
                   .background(Color.black)
               }
