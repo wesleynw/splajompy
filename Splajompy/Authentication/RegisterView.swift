@@ -153,6 +153,7 @@ struct RegisterView: View {
           .font(.caption)
           .foregroundColor(.secondary)
           .multilineTextAlignment(.center)
+          .fixedSize(horizontal: false, vertical: true)
           .environment(
             \.openURL,
             OpenURLAction { url in

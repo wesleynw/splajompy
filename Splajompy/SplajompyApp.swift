@@ -82,6 +82,7 @@ struct SplajompyApp: App {
             OnboardingView {
               hasCompletedOnboarding = true
             }
+            .interactiveDismissDisabled()
           }
         } else {
           SplashScreenView()
