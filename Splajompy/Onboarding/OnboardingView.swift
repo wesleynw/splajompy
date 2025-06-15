@@ -22,21 +22,21 @@ struct OnboardingView: View {
         .padding()
       }
       .navigationTitle("What's New")
-      
-//      VStack {
-//        Spacer()
-//
-//        Button(action: onComplete) {
-//          Text("Get Started")
-//            .font(.headline)
-//            .frame(maxWidth: .infinity)
-//            .padding(.vertical, 12)
-//        }
-//        .clipShape(RoundedRectangle(cornerRadius: 12))
-//        .buttonStyle(.borderedProminent)
-//        .padding()
-//      }
-      
+
+      //      VStack {
+      //        Spacer()
+      //
+      //        Button(action: onComplete) {
+      //          Text("Get Started")
+      //            .font(.headline)
+      //            .frame(maxWidth: .infinity)
+      //            .padding(.vertical, 12)
+      //        }
+      //        .clipShape(RoundedRectangle(cornerRadius: 12))
+      //        .buttonStyle(.borderedProminent)
+      //        .padding()
+      //      }
+
       VStack {
         Button(action: onComplete) {
           Text("Sure, why not")

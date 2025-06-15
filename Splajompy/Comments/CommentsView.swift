@@ -60,7 +60,7 @@ struct CommentsView: View {
             .fontWeight(.bold)
             .font(.title3)
             .padding()
-          
+
           Spacer()
         }
       }
