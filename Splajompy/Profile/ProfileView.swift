@@ -100,12 +100,15 @@ struct ProfileView: View {
         emptyMessage
       } else {
         ForEach(posts) { post in
-          PostView(
-            post: post,
-            showAuthor: false,
-            onLikeButtonTapped: { viewModel.toggleLike(on: post) },
-            onPostDeleted: { viewModel.deletePost(on: post) }
-          )
+          VStack {
+            PostView(
+              post: post,
+              showAuthor: false,
+              onLikeButtonTapped: { viewModel.toggleLike(on: post) },
+              onPostDeleted: { viewModel.deletePost(on: post) }
+            )
+          }
+          .geometryGroup()
           .environmentObject(feedRefreshManager)
           .environmentObject(authManager)
           .onAppear {
