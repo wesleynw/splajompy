@@ -77,7 +77,9 @@ struct HomeView: View {
         GeometryReader { proxy in
           ScrollView(.vertical) {
             LazyVStack(spacing: 0) {
-              ForEach(Array(posts.enumerated()), id: \.element.post.postId) { index, post in
+              ForEach(Array(posts.enumerated()), id: \.element.post.postId) {
+                index,
+                post in
                 ReelsPostView(
                   post: post,
                   onLikeButtonTapped: { viewModel.toggleLike(on: post) },
@@ -90,7 +92,6 @@ struct HomeView: View {
                 .environmentObject(authManager)
                 .containerRelativeFrame([.horizontal, .vertical])
                 .padding(.bottom, proxy.safeAreaInsets.bottom / 2)
-                .id("post-home_\(post.post.postId)_\(index)")
                 .onAppear {
                   handlePostAppear(post: post)
                 }
@@ -117,11 +118,8 @@ struct HomeView: View {
             ForEach(Array(posts.enumerated()), id: \.element.post.postId) {
               index,
               post in
-              VStack {
-                postRow(post: post)
-                  .id("post-home_\(post.post.postId)_\(index)")
-                  .transition(.opacity)
-              }
+              postRow(post: post)
+                .transition(.opacity)
             }
 
             if viewModel.isLoadingMore {
@@ -153,7 +151,6 @@ struct HomeView: View {
     )
     .environmentObject(feedRefreshManager)
     .environmentObject(authManager)
-    .id("post-home_\(post.post.postId)")
     .onAppear {
       handlePostAppear(post: post)
     }

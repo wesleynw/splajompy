@@ -100,18 +100,14 @@ struct ProfileView: View {
         emptyMessage
       } else {
         ForEach(posts) { post in
-          VStack {
-            PostView(
-              post: post,
-              showAuthor: false,
-              onLikeButtonTapped: { viewModel.toggleLike(on: post) },
-              onPostDeleted: { viewModel.deletePost(on: post) }
-            )
-          }
+          PostView(
+            post: post,
+            showAuthor: false,
+            onLikeButtonTapped: { viewModel.toggleLike(on: post) },
+            onPostDeleted: { viewModel.deletePost(on: post) }
+          )
           .environmentObject(feedRefreshManager)
           .environmentObject(authManager)
-          .id("post-profile_\(post.post.postId)")
-          .transition(.opacity)
           .onAppear {
             if post == posts.last && viewModel.canLoadMorePosts {
               Task {
@@ -128,12 +124,10 @@ struct ProfileView: View {
               .padding()
             Spacer()
           }
-          .transition(.opacity)
         }
       }
     }
     .animation(.easeInOut(duration: 0.2), value: posts.count)
-    .animation(.easeInOut(duration: 0.2), value: viewModel.isLoadingMorePosts)
   }
 
   private func profileHeader(user: UserProfile) -> some View {
