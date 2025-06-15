@@ -31,3 +31,24 @@ func TestFollowUser(t *testing.T) {
 	assert.Equal(t, 1, len(followers))
 	assert.Contains(t, followers, int32(user1.UserID))
 }
+
+func TestGetUserById_WithNoMutuals_ReturnsEmptyArray(t *testing.T) {
+	ctx := context.Background()
+	fakeUserRepo := fakes.NewFakeUserRepository()
+	fakeNotificationRepo := fakes.NewFakeNotificationRepository()
+
+	requestingUser, err := fakeUserRepo.CreateUser(ctx, "requester", "requester@splajompy.com", "password123")
+	require.NoError(t, err)
+	targetUser, err := fakeUserRepo.CreateUser(ctx, "target", "target@splajompy.com", "password123")
+	require.NoError(t, err)
+
+	service := NewUserService(fakeUserRepo, fakeNotificationRepo)
+
+	profile, err := service.GetUserById(ctx, requestingUser, targetUser.UserID)
+	require.NoError(t, err)
+
+	assert.NotNil(t, profile)
+	assert.NotNil(t, profile.Mutuals)
+	assert.Equal(t, []string{}, profile.Mutuals)
+	assert.Equal(t, 0, len(profile.Mutuals))
+}
