@@ -31,7 +31,7 @@ struct AccountSettingsView: View {
         }
       }
 
-      Section("Account Actions") {
+      Section {
         Button(action: { isShowingSignoutConfirm = true }) {
           Label("Sign Out", systemImage: "rectangle.portrait.and.arrow.right")
         }

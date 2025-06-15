@@ -37,6 +37,7 @@ struct SplashScreenView: View {
         Image("Full_Logo")
           .resizable()
           .scaledToFit()
+          .colorScheme(.dark)
           .frame(height: 40)
           .shadow(
             color: Color.black.opacity(0.3),

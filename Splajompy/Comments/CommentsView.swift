@@ -55,16 +55,24 @@ struct CommentsView: View {
           .fill(Color.gray.opacity(0.2))
           .frame(height: 1)
       } else {
-        Text("Comments")
-          .fontWeight(.bold)
-          .font(.title3)
-          .padding()
+        HStack {
+          Text("Comments")
+            .fontWeight(.bold)
+            .font(.title3)
+            .padding()
+
+          Spacer()
+        }
       }
 
       if viewModel.isLoading {
-        ProgressView()
-          .scaleEffect(1.5)
-          .padding()
+        VStack {
+          Spacer()
+          ProgressView()
+            .scaleEffect(1.5)
+            .padding()
+          Spacer()
+        }
       } else if viewModel.comments.isEmpty {
         VStack(spacing: 16) {
           Spacer()
