@@ -29,17 +29,23 @@ struct PostView: View {
   var body: some View {
     Group {
       Divider()
-      if !isStandalone {
-        NavigationLink(
-          destination:
-            StandalonePostView(postId: post.id)
-        ) {
+
+      Group {
+        if !isStandalone {
+          NavigationLink(
+            destination:
+              StandalonePostView(postId: post.id)
+          ) {
+            postContent
+          }
+          .buttonStyle(.plain)
+        } else {
           postContent
         }
-        .buttonStyle(.plain)
-      } else {
-        postContent
       }
+      .padding(.horizontal, 2)
+      .padding(.vertical, 4)
+
       Divider()
     }
   }
@@ -139,7 +145,8 @@ struct PostView: View {
                 Image(systemName: "ellipsis")
                   .font(.system(size: 25))
                   .fontWeight(.light)
-              })
+              }
+            )
 
             Button(action: {
               isShowingComments = true
