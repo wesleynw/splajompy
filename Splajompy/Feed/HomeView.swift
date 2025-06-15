@@ -118,8 +118,11 @@ struct HomeView: View {
             ForEach(Array(posts.enumerated()), id: \.element.post.postId) {
               index,
               post in
-              postRow(post: post)
-                .transition(.opacity)
+              VStack {
+                postRow(post: post)
+                  .transition(.opacity)
+              }
+              .geometryGroup()
             }
 
             if viewModel.isLoadingMore {

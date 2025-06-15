@@ -23,9 +23,6 @@ struct ReelsPostView: View {
 
   var body: some View {
     ZStack {
-      Rectangle()
-        .fill(Color.black)
-
       VStack {
         Spacer()
         contentView
@@ -75,11 +72,10 @@ struct ReelsPostView: View {
               Text(displayName)
                 .font(.headline)
                 .fontWeight(.bold)
-                .foregroundColor(.white)
             }
             Text("@\(post.user.username)")
               .font(.subheadline)
-              .foregroundColor(.white.opacity(0.8))
+              .foregroundColor(.gray)
           }
         }
         .buttonStyle(.plain)
@@ -88,7 +84,7 @@ struct ReelsPostView: View {
           VStack(alignment: .leading, spacing: 4) {
             Text(postText)
               .font(.callout)
-              .foregroundColor(.white.opacity(0.9))
+              .foregroundColor(.primary)
               .lineLimit(isTextExpanded ? nil : 1)
               .multilineTextAlignment(.leading)
 
@@ -100,7 +96,7 @@ struct ReelsPostView: View {
               }) {
                 Text(isTextExpanded ? "Show less" : "Show more")
                   .font(.caption)
-                  .foregroundColor(.white.opacity(0.8))
+                  .foregroundColor(.gray)
               }
             }
           }
@@ -108,7 +104,7 @@ struct ReelsPostView: View {
 
         Text(formatter.localizedString(for: postDate, relativeTo: Date()))
           .font(.caption)
-          .foregroundColor(.white.opacity(0.6))
+          .foregroundColor(.gray)
       }
 
       Spacer()
@@ -123,12 +119,7 @@ struct ReelsPostView: View {
           }) {
             Image(systemName: post.isLiked ? "heart.fill" : "heart")
               .font(.title)
-              .foregroundColor(post.isLiked ? .red : .white)
-              .frame(width: 44, height: 44)
-              .background(
-                Circle()
-                  .fill(Color.black.opacity(0.3))
-              )
+              .foregroundColor(post.isLiked ? .red : .primary)
           }
           .buttonStyle(.plain)
         }
@@ -142,19 +133,13 @@ struct ReelsPostView: View {
           }) {
             Image(systemName: "bubble.right")
               .font(.title)
-              .foregroundColor(.white)
-              .frame(width: 44, height: 44)
-              .background(
-                Circle()
-                  .fill(Color.black.opacity(0.3))
-              )
+              .foregroundColor(.primary)
           }
           .buttonStyle(.plain)
 
           if post.commentCount > 0 {
             Text("\(post.commentCount)")
               .font(.caption)
-              .foregroundColor(.white)
           }
         }
 
@@ -165,12 +150,7 @@ struct ReelsPostView: View {
             }) {
               Image(systemName: "ellipsis")
                 .font(.title)
-                .foregroundColor(.white)
-                .frame(width: 44, height: 44)
-                .background(
-                  Circle()
-                    .fill(Color.black.opacity(0.3))
-                )
+                .foregroundColor(.primary)
             }
             .buttonStyle(.plain)
           }
