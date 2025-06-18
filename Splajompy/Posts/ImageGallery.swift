@@ -157,10 +157,12 @@ struct ImageGallery: View {
   ) -> some View {
     Group {
       if index < imageUrls.count, let url = URL(string: imageUrls[index]) {
-        KFImage(url)
-          .resizable()
-          .aspectRatio(contentMode: .fill)
-          .frame(width: width, height: height)
+        OptimizedKFImage(
+          url, 
+          contentMode: .fill,
+          targetSize: CGSize(width: width, height: height)
+        )
+        .frame(width: width, height: height)
           .clipped()
           .clipShape(
             .rect(
@@ -181,9 +183,7 @@ struct ImageGallery: View {
   private func singleImageCell() -> some View {
     Group {
       if let url = URL(string: imageUrls[0]) {
-        KFImage(url)
-          .resizable()
-          .aspectRatio(contentMode: .fit)
+        OptimizedKFImage(url, contentMode: .fit)
           .clipShape(.rect(cornerRadius: 6))
           .onTapGesture {
             selectedImageIndex = 0
