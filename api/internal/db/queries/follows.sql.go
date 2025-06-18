@@ -46,20 +46,27 @@ func (q *Queries) GetIsUserFollowingUser(ctx context.Context, arg GetIsUserFollo
 
 const getMutualConnectionsForUser = `-- name: GetMutualConnectionsForUser :many
 SELECT DISTINCT u.username
-FROM follows f1
-INNER JOIN follows f2 ON f1.following_id = f2.follower_id
-INNER JOIN users u on f2.follower_id = u.user_id
-WHERE f1.follower_id = $1
-  AND f2.following_id = $2
+FROM users u
+WHERE EXISTS (
+  SELECT 1
+  FROM follows f
+  WHERE f.follower_id = $1
+    AND following_id = u.user_id
+) AND EXISTS (
+  SELECT 1
+  FROM follows f
+  WHERE f.follower_id = $2
+    AND following_id = u.user_id
+)
 `
 
 type GetMutualConnectionsForUserParams struct {
-	FollowerID  int32 `json:"followerId"`
-	FollowingID int32 `json:"followingId"`
+	FollowerID   int32 `json:"followerId"`
+	FollowerID_2 int32 `json:"followerId2"`
 }
 
 func (q *Queries) GetMutualConnectionsForUser(ctx context.Context, arg GetMutualConnectionsForUserParams) ([]string, error) {
-	rows, err := q.db.Query(ctx, getMutualConnectionsForUser, arg.FollowerID, arg.FollowingID)
+	rows, err := q.db.Query(ctx, getMutualConnectionsForUser, arg.FollowerID, arg.FollowerID_2)
 	if err != nil {
 		return nil, err
 	}
