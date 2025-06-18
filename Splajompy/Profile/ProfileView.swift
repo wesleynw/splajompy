@@ -165,6 +165,7 @@ struct ProfileView: View {
             Button(action: viewModel.toggleFollowing) {
               if viewModel.isLoadingFollowButton {
                 ProgressView()
+                  .frame(maxWidth: .infinity)
               } else {
                 Text("Unfollow")
                   .frame(maxWidth: .infinity)
@@ -175,6 +176,7 @@ struct ProfileView: View {
             Button(action: viewModel.toggleFollowing) {
               if viewModel.isLoadingFollowButton {
                 ProgressView()
+                  .frame(maxWidth: .infinity)
               } else {
                 Text("Follow")
                   .frame(maxWidth: .infinity)
