@@ -5,9 +5,9 @@ struct OptimizedKFImage: View {
   let url: URL?
   let contentMode: SwiftUI.ContentMode
   let targetSize: CGSize
-  
+
   init(
-    _ url: URL?, 
+    _ url: URL?,
     contentMode: SwiftUI.ContentMode = .fit,
     targetSize: CGSize = CGSize(width: 400, height: 400)
   ) {
@@ -15,7 +15,7 @@ struct OptimizedKFImage: View {
     self.contentMode = contentMode
     self.targetSize = targetSize
   }
-  
+
   var body: some View {
     KFImage(url)
       .setProcessor(
@@ -39,7 +39,10 @@ struct OptimizedKFImage: View {
 
 #Preview {
   OptimizedKFImage(
-    URL(string: "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/development/posts/1/9278fc8a-401b-4145-83bb-ef05d4d52632.jpeg")
+    URL(
+      string:
+        "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/development/posts/1/9278fc8a-401b-4145-83bb-ef05d4d52632.jpeg"
+    )
   )
   .frame(height: 200)
-} 
+}

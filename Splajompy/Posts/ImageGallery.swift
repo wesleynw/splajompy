@@ -158,24 +158,24 @@ struct ImageGallery: View {
     Group {
       if index < imageUrls.count, let url = URL(string: imageUrls[index]) {
         OptimizedKFImage(
-          url, 
+          url,
           contentMode: .fill,
           targetSize: CGSize(width: width, height: height)
         )
         .frame(width: width, height: height)
-          .clipped()
-          .clipShape(
-            .rect(
-              topLeadingRadius: topLeading,
-              bottomLeadingRadius: bottomLeading,
-              bottomTrailingRadius: bottomTrailing,
-              topTrailingRadius: topTrailing
-            )
+        .clipped()
+        .clipShape(
+          .rect(
+            topLeadingRadius: topLeading,
+            bottomLeadingRadius: bottomLeading,
+            bottomTrailingRadius: bottomTrailing,
+            topTrailingRadius: topTrailing
           )
-          .contentShape(Rectangle())
-          .onTapGesture {
-            selectedImageIndex = index
-          }
+        )
+        .contentShape(Rectangle())
+        .onTapGesture {
+          selectedImageIndex = index
+        }
       }
     }
   }
