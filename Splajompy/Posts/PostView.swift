@@ -143,8 +143,10 @@ struct PostView: View {
               },
               label: {
                 Image(systemName: "ellipsis")
-                  .font(.system(size: 25))
-                  .fontWeight(.light)
+                  .imageScale(.medium)
+                  .frame(width: 44, height: 44)
+                  .padding(10)
+                  .contentShape(Rectangle())
               }
             )
 
@@ -181,6 +183,7 @@ struct PostView: View {
             }
           }
           .buttonStyle(.plain)
+          .padding(.horizontal)
         }
       }
 
