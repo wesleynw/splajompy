@@ -30,11 +30,23 @@ func MapPost(post queries.Post) models.Post {
 
 // MapNotification is a utility function to convert from queries.Notification to models.Notification.
 func MapNotification(notification queries.Notification) models.Notification {
+	var postId *int
+	if notification.PostID.Valid {
+		id := int(notification.PostID.Int32)
+		postId = &id
+	}
+
+	var commentId *int
+	if notification.CommentID.Valid {
+		id := int(notification.CommentID.Int32)
+		commentId = &id
+	}
+
 	return models.Notification{
 		NotificationID: int(notification.NotificationID),
 		UserID:         int(notification.UserID),
-		PostID:         int(notification.PostID.Int32),
-		CommentID:      int(notification.CommentID.Int32),
+		PostID:         postId,
+		CommentID:      commentId,
 		Message:        notification.Message,
 		Link:           notification.Link.String,
 		Viewed:         notification.Viewed,

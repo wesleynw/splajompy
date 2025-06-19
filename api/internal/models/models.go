@@ -21,8 +21,8 @@ type RelevantLike struct {
 type Notification struct {
 	NotificationID int       `json:"notificationId"`
 	UserID         int       `json:"userId"`
-	PostID         int       `json:"postId"`
-	CommentID      int       `json:"commentId"`
+	PostID         *int      `json:"postId"`
+	CommentID      *int      `json:"commentId"`
 	Message        string    `json:"message"`
 	Link           string    `json:"link"`
 	Viewed         bool      `json:"viewed"`
