@@ -34,10 +34,6 @@ struct SettingsView: View {
           Label("App Icon", systemImage: "square.grid.2x2")
         }
 
-        NavigationLink(destination: PostViewLayoutSamples()) {
-          Label("Post Layout Samples", systemImage: "rectangle.3.group")
-        }
-
         Toggle(isOn: $mindlessMode) {
           Label("Mindless Mode", systemImage: "infinity")
         }
