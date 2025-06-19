@@ -86,7 +86,8 @@ struct ProfileView: View {
         await viewModel.loadProfile()
       }
     case .failed(let error):
-      ErrorScreen(errorString: error.localizedDescription, onRetry: { await viewModel.loadProfile() })
+      ErrorScreen(
+        errorString: error.localizedDescription, onRetry: { await viewModel.loadProfile() })
     }
   }
 

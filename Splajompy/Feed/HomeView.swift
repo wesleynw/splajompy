@@ -38,7 +38,9 @@ struct HomeView: View {
           postList(posts: posts)
         }
       case .failed(let error):
-        ErrorScreen(errorString: error.localizedDescription, onRetry: { await viewModel.loadPosts(reset: true) })
+        ErrorScreen(
+          errorString: error.localizedDescription,
+          onRetry: { await viewModel.loadPosts(reset: true) })
       }
     }
     .navigationBarTitleDisplayMode(.inline)

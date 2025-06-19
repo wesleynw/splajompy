@@ -4,7 +4,7 @@ struct ErrorScreen: View {
   let errorString: String
   let onRetry: () async -> Void
   @State private var isRetrying = false
-  
+
   var body: some View {
     VStack {
       Spacer()
