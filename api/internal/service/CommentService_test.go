@@ -85,7 +85,7 @@ func TestGetCommentsByPostId(t *testing.T) {
 
 	assert.ElementsMatch(t, commentContents, commentTexts)
 
-	emptyPost, err := postRepo.InsertPost(ctx, int(user.UserID), "Empty post", nil)
+	emptyPost, err := postRepo.InsertPost(ctx, user.UserID, "Empty post", nil)
 	require.NoError(t, err)
 
 	emptyComments, err := svc.GetCommentsByPostId(ctx, user, int(emptyPost.PostID))
@@ -102,7 +102,7 @@ func TestCommentLikes(t *testing.T) {
 	svc, _, postRepo, _, userRepo, user := setupCommentTest(t)
 	ctx := context.Background()
 
-	post, err := postRepo.InsertPost(ctx, int(user.UserID), "Test post for comment likes", nil)
+	post, err := postRepo.InsertPost(ctx, user.UserID, "Test post for comment likes", nil)
 	require.NoError(t, err)
 
 	otherUser, err := userRepo.CreateUser(ctx, "otherUser", "other@example.com", "password")
@@ -116,22 +116,22 @@ func TestCommentLikes(t *testing.T) {
 	assert.Len(t, comments, 1)
 	assert.False(t, comments[0].IsLiked)
 
-	err = svc.AddLikeToCommentById(ctx, user, int(post.PostID), int(comment.CommentID))
+	err = svc.AddLikeToCommentById(ctx, user, int(post.PostID), comment.CommentID)
 	assert.NoError(t, err)
 
-	likes, err := svc.notificationRepo.GetNotificationsForUserId(ctx, int(otherUser.UserID), 0, 10)
+	likes, err := svc.notificationRepo.GetNotificationsForUserId(ctx, otherUser.UserID, 0, 10)
 	assert.NoError(t, err)
 
 	assert.Len(t, likes, 1)
-	assert.Equal(t, comment.CommentID, int(likes[0].CommentID))
-	assert.Equal(t, comment.UserID, int(likes[0].UserID))
+	assert.Equal(t, comment.CommentID, *likes[0].CommentID)
+	assert.Equal(t, comment.UserID, likes[0].UserID)
 
 	comments, err = svc.GetCommentsByPostId(ctx, user, int(post.PostID))
 	assert.NoError(t, err)
 	assert.Len(t, comments, 1)
 	assert.True(t, comments[0].IsLiked)
 
-	err = svc.RemoveLikeFromCommentById(ctx, otherUser, int(post.PostID), int(comment.CommentID))
+	err = svc.RemoveLikeFromCommentById(ctx, otherUser, int(post.PostID), comment.CommentID)
 	assert.NoError(t, err)
 
 	comments, err = svc.GetCommentsByPostId(ctx, otherUser, int(post.PostID))
@@ -144,7 +144,7 @@ func TestCommentCreatedTimestamp(t *testing.T) {
 	svc, _, postRepo, _, _, user := setupCommentTest(t)
 	ctx := context.Background()
 
-	post, err := postRepo.InsertPost(ctx, int(user.UserID), "Test post for comment timestamp", nil)
+	post, err := postRepo.InsertPost(ctx, user.UserID, "Test post for comment timestamp", nil)
 	require.NoError(t, err)
 
 	beforeCreation := time.Now().Add(-1 * time.Second)

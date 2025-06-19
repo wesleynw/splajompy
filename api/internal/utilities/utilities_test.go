@@ -14,8 +14,8 @@ func TestMapNotification_WithInvalidPostIDAndCommentID(t *testing.T) {
 	notification := queries.Notification{
 		NotificationID: 123,
 		UserID:         456,
-		PostID:         pgtype.Int4{Int32: 999, Valid: false},
-		CommentID:      pgtype.Int4{Int32: 888, Valid: false},
+		PostID:         pgtype.Int4{Int32: 0, Valid: false},
+		CommentID:      pgtype.Int4{Int32: 0, Valid: false},
 		Message:        "Test notification",
 		Link:           pgtype.Text{String: "https://example.com", Valid: true},
 		Viewed:         false,
@@ -25,12 +25,9 @@ func TestMapNotification_WithInvalidPostIDAndCommentID(t *testing.T) {
 
 	result := MapNotification(notification)
 
-	// When Valid=false, pointer fields should be nil
-	// The actual Int32 values (999, 888) should be ignored when Valid=false
 	assert.Nil(t, result.PostID, "PostID should be nil when pgtype.Int4.Valid is false")
-	assert.Equal(t, 0, result.CommentID, "CommentID should be 0 when pgtype.Int4.Valid is false (since it's not a pointer)")
+	assert.Nil(t, result.CommentID, "CommentID should be nil when pgtype.Int4.Valid is false")
 
-	// Other fields should map correctly
 	assert.Equal(t, 123, result.NotificationID)
 	assert.NotNil(t, result.UserID, "UserID should not be nil when it has a valid value")
 	assert.Equal(t, 456, result.UserID, "UserID should be 456")
@@ -56,8 +53,8 @@ func TestMapNotification_WithValidPostIDAndCommentID(t *testing.T) {
 
 	result := MapNotification(notification)
 
-	assert.Equal(t, 789, result.PostID)
-	assert.Equal(t, 101112, result.CommentID)
+	assert.Equal(t, 789, *result.PostID)
+	assert.Equal(t, 101112, *result.CommentID)
 	assert.Equal(t, 123, result.NotificationID)
 	assert.Equal(t, 456, result.UserID)
 	assert.Equal(t, "Test notification", result.Message)
