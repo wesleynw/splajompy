@@ -86,7 +86,7 @@ struct ProfileView: View {
         await viewModel.loadProfile()
       }
     case .failed(let error):
-      errorView(error: error)
+      ErrorScreen(errorString: error.localizedDescription, onRetry: { await viewModel.loadProfile() })
     }
   }
 
@@ -210,33 +210,6 @@ struct ProfileView: View {
       ProgressView()
         .scaleEffect(1.5)
         .padding()
-      Spacer()
-    }
-  }
-
-  private func errorView(error: Error) -> some View {
-    VStack {
-      Spacer()
-      VStack {
-        Text("There was an error :/")
-          .font(.title2)
-          .fontWeight(.bold)
-        Text(error.localizedDescription)
-          .foregroundColor(.red)
-          .multilineTextAlignment(.center)
-      }
-      Button {
-        Task {
-          await viewModel.loadPosts(reset: true)
-        }
-      } label: {
-        HStack {
-          Image(systemName: "arrow.clockwise")
-          Text("Retry")
-        }
-      }
-      .padding()
-      .buttonStyle(.bordered)
       Spacer()
     }
   }
