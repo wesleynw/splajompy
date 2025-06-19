@@ -45,7 +45,7 @@ struct ContentTextView: View {
       output.replaceSubrange(
         startIndex..<endIndex,
         with:
-          " **[@\(username)](splajompy://user?id=\(facet.userId)&username=\(username))**"
+          "**[@\(username)](splajompy://user?id=\(facet.userId)&username=\(username))**"
       )
     }
 
