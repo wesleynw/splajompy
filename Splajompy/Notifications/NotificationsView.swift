@@ -83,24 +83,27 @@ struct NotificationsView: View {
           }
         }
       case .failed(let error):
-        VStack {
-          Text("Something went wrong")
-            .font(.title3)
-            .fontWeight(.bold)
-            .padding()
-          Text(error.localizedDescription)
-            .font(.caption)
-            .fontWeight(.bold)
-            .foregroundColor(.red)
-          Image(systemName: "arrow.clockwise")
-            .imageScale(.large)
-            .onTapGesture {
-              Task { @MainActor in
-                await viewModel.loadNotifications(reset: true)
-              }
-            }
-            .padding()
-        }
+        ErrorScreen(
+          errorString: error.localizedDescription,
+          onRetry: { await viewModel.loadNotifications(reset: true) })
+      //        VStack {
+      //          Text("Something went wrong")
+      //            .font(.title3)
+      //            .fontWeight(.bold)
+      //            .padding()
+      //          Text(error.localizedDescription)
+      //            .font(.caption)
+      //            .fontWeight(.bold)
+      //            .foregroundColor(.red)
+      //          Image(systemName: "arrow.clockwise")
+      //            .imageScale(.large)
+      //            .onTapGesture {
+      //              Task { @MainActor in
+      //                await viewModel.loadNotifications(reset: true)
+      //              }
+      //            }
+      //            .padding()
+      //        }
       }
 
     }
