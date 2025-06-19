@@ -85,7 +85,7 @@ struct ReelsPostView: View {
             Text(postText)
               .font(.callout)
               .foregroundColor(.primary)
-              .lineLimit(isTextExpanded ? nil : 1)
+              .lineLimit(isTextExpanded ? nil : 10)
               .multilineTextAlignment(.leading)
 
             if postText.count > 50 {  // Show button only if text is long
