@@ -102,7 +102,7 @@ struct PostView: View {
           .font(.caption)
           .foregroundColor(.gray)
         Spacer()
-        HStack(spacing: 16) {
+        HStack(spacing: 8) {
           if !isStandalone {
             Menu(
               content: {
@@ -143,12 +143,13 @@ struct PostView: View {
               },
               label: {
                 Image(systemName: "ellipsis")
-                  .imageScale(.medium)
-                  .frame(width: 44, height: 44)
-                  .padding(10)
-                  .contentShape(Rectangle())
+                  .font(.system(size: 18))
+                  .frame(width: 48, height: 40)
+                  .background(RoundedRectangle(cornerRadius: 12).fill(.gray.opacity(0.08)))
+                  .contentShape(RoundedRectangle(cornerRadius: 12))
               }
             )
+            .accessibilityLabel("More options")
 
             Button(action: {
               isShowingComments = true
@@ -157,17 +158,21 @@ struct PostView: View {
             }) {
               ZStack {
                 Image(systemName: "bubble.middle.bottom")
-                  .font(.system(size: 25))
-                  .fontWeight(.light)
+                  .font(.system(size: 18))
+                  .frame(width: 48, height: 40)
+                  .background(RoundedRectangle(cornerRadius: 12).fill(.gray.opacity(0.08)))
+                  .contentShape(RoundedRectangle(cornerRadius: 12))
 
                 if post.commentCount > 0 {
                   Text(post.commentCount > 9 ? "9+" : "\(post.commentCount)")
-                    .font(.subheadline)
+                    .font(.caption2)
+                    .fontWeight(.medium)
                     .padding(.bottom, 4)
                 }
               }
             }
             .buttonStyle(.plain)
+            .accessibilityLabel("Comment on post")
           }
 
           Button(action: {
@@ -176,14 +181,14 @@ struct PostView: View {
             onLikeButtonTapped()
             PostHogSDK.shared.capture("post_like")
           }) {
-            HStack(spacing: 4) {
-              Image(systemName: post.isLiked ? "heart.fill" : "heart")
-                .font(.system(size: 26))
-                .fontWeight(.light)
-            }
+            Image(systemName: post.isLiked ? "heart.fill" : "heart")
+              .font(.system(size: 18))
+              .frame(width: 48, height: 40)
+              .background(RoundedRectangle(cornerRadius: 12).fill(.gray.opacity(0.08)))
+              .contentShape(RoundedRectangle(cornerRadius: 12))
           }
           .buttonStyle(.plain)
-          .padding(.horizontal)
+          .accessibilityLabel("Like post")
         }
       }
 
