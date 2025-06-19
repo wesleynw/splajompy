@@ -24,7 +24,7 @@ func NewNotificationService(notificationRepository repositories.NotificationRepo
 }
 
 func (s *NotificationService) GetNotificationsByUserId(ctx context.Context, user models.PublicUser, offset int, limit int) ([]models.DetailedNotification, error) {
-	notifications, err := s.notificationRepository.GetNotificationsForUserId(ctx, int(user.UserID), offset, limit)
+	notifications, err := s.notificationRepository.GetNotificationsForUserId(ctx, user.UserID, offset, limit)
 	if err != nil {
 		return nil, errors.New("unable to retrieve notifications")
 	}
@@ -39,14 +39,14 @@ func (s *NotificationService) GetNotificationsByUserId(ctx context.Context, user
 		var detailedNotification models.DetailedNotification
 		detailedNotification.Notification = *notification
 
-		if notification.PostID != 0 {
-			post, err := s.postRepository.GetPostById(ctx, notification.PostID)
+		if notification.PostID != nil {
+			post, err := s.postRepository.GetPostById(ctx, *notification.PostID)
 			if err != nil {
 				return nil, errors.New("unable to retrieve post")
 			}
 			detailedNotification.Post = post
 
-			imageBlob, err := s.postRepository.GetImagesForPost(ctx, int(notification.PostID))
+			imageBlob, err := s.postRepository.GetImagesForPost(ctx, *notification.PostID)
 			if err != nil && !errors.Is(err, sql.ErrNoRows) {
 				return nil, errors.New("unable to retrieve image blob")
 			}
@@ -57,8 +57,8 @@ func (s *NotificationService) GetNotificationsByUserId(ctx context.Context, user
 			}
 		}
 
-		if notification.CommentID != 0 {
-			comment, err := s.commentRepository.GetCommentById(ctx, notification.CommentID)
+		if notification.CommentID != nil {
+			comment, err := s.commentRepository.GetCommentById(ctx, *notification.CommentID)
 			if err != nil {
 				return nil, errors.New("unable to retrieve comment")
 			}
@@ -89,13 +89,13 @@ func (s *NotificationService) MarkNotificationAsReadById(ctx context.Context, us
 }
 
 func (s *NotificationService) MarkAllNotificationsAsReadForUserId(ctx context.Context, user models.PublicUser) error {
-	return s.notificationRepository.MarkAllNotificationsAsReadForUser(ctx, int(user.UserID))
+	return s.notificationRepository.MarkAllNotificationsAsReadForUser(ctx, user.UserID)
 }
 
 func (s *NotificationService) UserHasUnreadNotifications(ctx context.Context, user models.PublicUser) (bool, error) {
-	return s.notificationRepository.GetUserHasUnreadNotifications(ctx, int(user.UserID))
+	return s.notificationRepository.GetUserHasUnreadNotifications(ctx, user.UserID)
 }
 
 func (s *NotificationService) GetUserUnreadNotificationCount(ctx context.Context, user models.PublicUser) (int, error) {
-	return s.notificationRepository.GetUserUnreadNotificationCount(ctx, int(user.UserID))
+	return s.notificationRepository.GetUserUnreadNotificationCount(ctx, user.UserID)
 }
