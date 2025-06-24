@@ -14,7 +14,7 @@ struct AttributedTextEditor: UIViewRepresentable {
     textView.font = UIFont.preferredFont(forTextStyle: .body)
     textView.isEditable = true
     textView.isUserInteractionEnabled = true
-    textView.autocorrectionType = .no
+    textView.autocorrectionType = .yes
     textView.backgroundColor = .clear
     textView.typingAttributes = [
       .font: UIFont.preferredFont(forTextStyle: .body),
