@@ -3,85 +3,40 @@ import SwiftUI
 struct SearchView: View {
   @StateObject private var viewModel: ViewModel
   @State private var searchText = ""
-  @FocusState private var isSearchFocused: Bool
 
   init() {
     _viewModel = StateObject(wrappedValue: ViewModel())
   }
 
   var body: some View {
-    ZStack {
-      Color.clear
-        .contentShape(Rectangle())
-        .onTapGesture {
-          isSearchFocused = false
-        }
-        .gesture(
-          DragGesture(minimumDistance: 10)
-            .onEnded { gesture in
-              if gesture.translation.height > 0 {
-                isSearchFocused = false
-              }
-            }
-        )
-
-      VStack(spacing: 0) {
-        searchBar
-
-        if viewModel.isLoading {
-          ProgressView()
-            .scaleEffect(1.5)
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-        } else if searchText.isEmpty {
-          emptyState
-        } else if viewModel.searchResults.isEmpty {
-          noResultsState
-        } else {
-          searchResults
-        }
+    Group {
+      if viewModel.isLoading {
+        ProgressView()
+          .scaleEffect(1.5)
+          .frame(maxWidth: .infinity, maxHeight: .infinity)
+      } else if searchText.isEmpty {
+        emptyState
+      } else if viewModel.searchResults.isEmpty {
+        noResultsState
+      } else {
+        searchResults
       }
     }
-    .frame(maxHeight: .infinity)
     .navigationTitle("Search")
-  }
-
-  private var searchBar: some View {
-    HStack {
-      Image(systemName: "magnifyingglass")
-        .foregroundColor(.gray)
-
-      TextField("Search users...", text: $searchText)
-        .textFieldStyle(.plain)
-        .autocapitalization(.none)
-        .autocorrectionDisabled()
-        .focused($isSearchFocused)
-        .onChange(of: searchText) { _, newValue in
-          if newValue.count >= 1 {
-            viewModel.searchUsers(prefix: newValue)
-          } else {
-            viewModel.clearResults()
-          }
-        }
-
+    .searchable(text: $searchText, prompt: "Search users...")
+    .autocorrectionDisabled()
+    .onSubmit(of: .search) {
       if !searchText.isEmpty {
-        Button(action: {
-          searchText = ""
-          viewModel.clearResults()
-        }) {
-          Image(systemName: "xmark.circle.fill")
-            .foregroundColor(.gray)
-        }
+        viewModel.searchUsers(prefix: searchText.lowercased())
       }
     }
-    .padding(12)
-    .background(
-      RoundedRectangle(cornerRadius: 8)
-        .stroke(
-          isSearchFocused ? Color.primary : Color.gray.opacity(0.75),
-          lineWidth: 2
-        )
-    )
-    .padding()
+    .onChange(of: searchText) { _, newValue in
+      if newValue.count >= 1 {
+        viewModel.searchUsers(prefix: newValue.lowercased())
+      } else {
+        viewModel.clearResults()
+      }
+    }
   }
 
   private var emptyState: some View {
