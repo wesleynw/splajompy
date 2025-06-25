@@ -71,6 +71,7 @@ struct AccountSettingsView: View {
       }
     }
     .navigationTitle("Account")
+    .navigationBarTitleDisplayMode(.inline)
     .sheet(isPresented: $isShowingDeleteAccountSheet) {
       VStack(spacing: 24) {
         VStack(spacing: 16) {
