@@ -39,7 +39,6 @@ struct SearchView: View {
     }
   }
 
-
   private var emptyState: some View {
     VStack(spacing: 16) {
       Image(systemName: "magnifyingglass")
