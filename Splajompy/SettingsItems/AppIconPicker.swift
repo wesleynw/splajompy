@@ -44,6 +44,7 @@ struct AppIconPickerView: View {
     .frame(maxWidth: .infinity)
     .padding()
     .navigationTitle("App Icon")
+    .navigationBarTitleDisplayMode(.inline)
   }
 
   private func setAppIcon(_ iconName: String?) {
