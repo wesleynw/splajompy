@@ -112,8 +112,6 @@ struct ReelsPostView: View {
       VStack(spacing: 16) {
         VStack(spacing: 4) {
           Button(action: {
-            let impact = UIImpactFeedbackGenerator(style: .light)
-            impact.impactOccurred()
             onLikeButtonTapped()
             PostHogSDK.shared.capture("post_like")
           }) {
@@ -122,12 +120,11 @@ struct ReelsPostView: View {
               .foregroundColor(post.isLiked ? .red : .primary)
           }
           .buttonStyle(.plain)
+          .sensoryFeedback(.impact, trigger: post.isLiked)
         }
 
         VStack(spacing: 4) {
           Button(action: {
-            let impact = UIImpactFeedbackGenerator(style: .light)
-            impact.impactOccurred()
             isShowingComments = true
             onCommentsButtonTapped()
           }) {
@@ -136,6 +133,7 @@ struct ReelsPostView: View {
               .foregroundColor(.primary)
           }
           .buttonStyle(.plain)
+          .sensoryFeedback(.impact, trigger: isShowingComments)
 
           if post.commentCount > 0 {
             Text("\(post.commentCount)")

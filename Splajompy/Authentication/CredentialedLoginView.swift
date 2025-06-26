@@ -1,7 +1,6 @@
 import SwiftUI
 
 struct CredentialedLoginView: View {
-  let feedbackGenerator = UIImpactFeedbackGenerator(style: .medium)
   @Binding var isPresenting: Bool
   @Environment(\.dismiss) var dismiss
 
@@ -125,7 +124,6 @@ struct CredentialedLoginView: View {
       .toolbar {
         ToolbarItem(placement: .topBarTrailing) {
           Button(action: {
-            feedbackGenerator.impactOccurred()
             isPresenting = false
           }) {
             Image(systemName: "xmark")
@@ -135,6 +133,7 @@ struct CredentialedLoginView: View {
               .background(Color(.systemGray6))
               .clipShape(Circle())
           }
+          .sensoryFeedback(.impact, trigger: isPresenting)
         }
       }
       .alert(isPresented: $showError) {

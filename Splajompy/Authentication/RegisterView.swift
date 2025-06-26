@@ -1,7 +1,6 @@
 import SwiftUI
 
 struct RegisterView: View {
-  let feedbackGenerator = UIImpactFeedbackGenerator(style: .medium)
   @Binding var isPresenting: Bool
   @Environment(\.dismiss) var dismiss
 
@@ -221,7 +220,6 @@ struct RegisterView: View {
       .toolbar {
         ToolbarItem(placement: .topBarTrailing) {
           Button(action: {
-            feedbackGenerator.impactOccurred()
             isPresenting = false
           }) {
             Image(systemName: "xmark")
@@ -231,6 +229,7 @@ struct RegisterView: View {
               .background(Color(.systemGray6))
               .clipShape(Circle())
           }
+          .sensoryFeedback(.impact, trigger: isPresenting)
         }
       }
       .animation(.easeInOut(duration: 0.2), value: usernameError)

@@ -153,8 +153,6 @@ struct PostView: View {
 
             Button(action: {
               isShowingComments = true
-              let impact = UIImpactFeedbackGenerator(style: .light)
-              impact.impactOccurred()
             }) {
               ZStack {
                 Image(systemName: "bubble.middle.bottom")
@@ -173,11 +171,10 @@ struct PostView: View {
             }
             .buttonStyle(.plain)
             .accessibilityLabel("Comment on post")
+            .sensoryFeedback(.impact, trigger: isShowingComments)
           }
 
           Button(action: {
-            let impact = UIImpactFeedbackGenerator(style: .light)
-            impact.impactOccurred()
             onLikeButtonTapped()
             PostHogSDK.shared.capture("post_like")
           }) {
@@ -189,6 +186,7 @@ struct PostView: View {
           }
           .buttonStyle(.plain)
           .accessibilityLabel("Like post")
+          .sensoryFeedback(.impact, trigger: post.isLiked)
         }
       }
 

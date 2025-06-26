@@ -35,14 +35,13 @@ struct CommentsView: View {
           HStack {
             Spacer()
             Button(action: {
-              let generator = UIImpactFeedbackGenerator(style: .medium)
-              generator.impactOccurred()
               presentationMode.wrappedValue.dismiss()
             }) {
               Image(systemName: "xmark.circle.fill")
                 .font(.system(size: 24))
                 .foregroundColor(Color.gray.opacity(0.7))
             }
+            .sensoryFeedback(.impact, trigger: presentationMode.wrappedValue.isPresented)
             .padding(.top, 8)
             .padding(.trailing, 16)
           }
@@ -255,8 +254,6 @@ struct LikeButton: View {
 
   var body: some View {
     Button(action: {
-      let impact = UIImpactFeedbackGenerator(style: .light)
-      impact.impactOccurred()
       action()
     }) {
       Image(systemName: isLiked ? "heart.fill" : "heart")
@@ -264,6 +261,7 @@ struct LikeButton: View {
         .padding(8)
     }
     .buttonStyle(.plain)
+    .sensoryFeedback(.impact, trigger: isLiked)
   }
 }
 

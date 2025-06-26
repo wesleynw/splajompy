@@ -1,7 +1,6 @@
 import SwiftUI
 
 struct OneTimeCodeView: View {
-  let feedbackGenerator = UIImpactFeedbackGenerator(style: .medium)
   var identifier: String
   @Binding var isPresenting: Bool
   @Environment(\.dismiss) var dismiss
@@ -76,7 +75,6 @@ struct OneTimeCodeView: View {
     .toolbar {
       ToolbarItem(placement: .topBarTrailing) {
         Button(action: {
-          feedbackGenerator.impactOccurred()
           isPresenting = false
         }) {
           Image(systemName: "xmark")
@@ -86,6 +84,7 @@ struct OneTimeCodeView: View {
             .background(Color(.systemGray6))
             .clipShape(Circle())
         }
+        .sensoryFeedback(.impact, trigger: isPresenting)
       }
     }
     .alert(isPresented: $showError) {
