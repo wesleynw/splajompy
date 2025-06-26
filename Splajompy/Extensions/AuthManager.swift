@@ -75,13 +75,19 @@ class AuthManager: ObservableObject, Sendable {
     guard let userId = defaults.object(forKey: "CurrentUserID") as? Int,
       let username = defaults.string(forKey: "CurrentUserUsername"),
       let email = defaults.string(forKey: "CurrentUserEmail"),
-      let createdAt = defaults.string(forKey: "CurrentUserCreatedAt"),
+      let createdAtString = defaults.string(forKey: "CurrentUserCreatedAt"),
       !username.isEmpty
     else {
       return nil
     }
 
     let name = defaults.string(forKey: "CurrentUserName")
+
+    // Parse the stored date string back to Date
+    let formatter = ISO8601DateFormatter()
+    formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+    let createdAt = formatter.date(from: createdAtString) ?? Date()
+
     return User(
       userId: userId,
       email: email,

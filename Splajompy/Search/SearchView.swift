@@ -23,7 +23,7 @@ struct SearchView: View {
       }
     }
     .navigationTitle("Search")
-    .searchable(text: $searchText, prompt: "Search users...")
+    .searchable(text: $searchText, prompt: "People...")
     .autocorrectionDisabled()
     .onSubmit(of: .search) {
       if !searchText.isEmpty {

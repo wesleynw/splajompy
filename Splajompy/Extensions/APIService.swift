@@ -70,7 +70,23 @@ public struct APIService {
       let (data, _) = try await URLSession.shared.data(for: request)
 
       let decoder = JSONDecoder()
-      decoder.dateDecodingStrategy = .iso8601
+
+      decoder.dateDecodingStrategy = .custom { decoder in
+        let container = try decoder.singleValueContainer()
+        let dateString = try container.decode(String.self)
+
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds, .withTimeZone]
+
+        if let date = formatter.date(from: dateString) {
+          return date
+        }
+
+        throw DecodingError.dataCorrupted(
+          DecodingError.Context(
+            codingPath: decoder.codingPath, debugDescription: "Invalid date format: \(dateString)")
+        )
+      }
 
       do {
         let decodedResponse = try decoder.decode(

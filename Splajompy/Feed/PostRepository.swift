@@ -130,16 +130,14 @@ final class MockPostStore: @unchecked Sendable {
           userId: 6,
           text:
             "just discovered this amazing coffee shop ☕ perfect latte art and the vibes are immaculate",
-          createdAt: formatter.string(from: baseDate.addingTimeInterval(-7200)),
+          createdAt: baseDate.addingTimeInterval(-7200),
           facets: nil
         ),
         user: User(
           userId: 6,
           email: "wesley@example.com",
           username: "wesley",
-          createdAt: formatter.string(
-            from: baseDate.addingTimeInterval(-25_920_000)
-          ),
+          createdAt: baseDate.addingTimeInterval(-25_920_000),
           name: "Wesley"
         ),
         isLiked: true,
@@ -167,18 +165,14 @@ final class MockPostStore: @unchecked Sendable {
           userId: 6,
           text:
             "beautiful sunset from my balcony tonight 🌅 the colors are absolutely stunning",
-          createdAt: formatter.string(
-            from: baseDate.addingTimeInterval(-14400)
-          ),
+          createdAt: baseDate.addingTimeInterval(-14400),
           facets: nil
         ),
         user: User(
           userId: 6,
           email: "wesley@example.com",
           username: "wesley",
-          createdAt: formatter.string(
-            from: baseDate.addingTimeInterval(-25_920_000)
-          ),
+          createdAt: baseDate.addingTimeInterval(-25_920_000),
           name: "Wesley"
         ),
         isLiked: false,
@@ -193,9 +187,7 @@ final class MockPostStore: @unchecked Sendable {
           postId: 2003,
           userId: 1,
           text: "@sophie you up rn? need to show you something wild",
-          createdAt: formatter.string(
-            from: baseDate.addingTimeInterval(-10800)
-          ),
+          createdAt: baseDate.addingTimeInterval(-10800),
           facets: [
             Facet(type: "mention", userId: 6, indexStart: 0, indexEnd: 7)
           ]
@@ -204,9 +196,7 @@ final class MockPostStore: @unchecked Sendable {
           userId: 1,
           email: "wesleynw@pm.me",
           username: "wesleynw",
-          createdAt: formatter.string(
-            from: baseDate.addingTimeInterval(-31_536_000)
-          ),
+          createdAt: baseDate.addingTimeInterval(-31_536_000),
           name: "Wesley 🌌"
         ),
         isLiked: false,
@@ -222,18 +212,14 @@ final class MockPostStore: @unchecked Sendable {
           userId: 15,
           text:
             "weekend farmers market haul 🥕🥬🍅 supporting local vendors and eating fresh!",
-          createdAt: formatter.string(
-            from: baseDate.addingTimeInterval(-18000)
-          ),
+          createdAt: baseDate.addingTimeInterval(-18000),
           facets: nil
         ),
         user: User(
           userId: 15,
           email: "marketvendor@example.com",
           username: "marketvendor",
-          createdAt: formatter.string(
-            from: baseDate.addingTimeInterval(-2_592_000)
-          ),
+          createdAt: baseDate.addingTimeInterval(-2_592_000),
           name: "Market Maven"
         ),
         isLiked: true,
@@ -260,18 +246,14 @@ final class MockPostStore: @unchecked Sendable {
           userId: 30,
           text:
             "thoughts on the new season finale? 📺 that plot twist was absolutely wild!",
-          createdAt: formatter.string(
-            from: baseDate.addingTimeInterval(-28800)
-          ),
+          createdAt: baseDate.addingTimeInterval(-28800),
           facets: nil
         ),
         user: User(
           userId: 30,
           email: "showrunner@example.com",
           username: "giuseppe",
-          createdAt: formatter.string(
-            from: baseDate.addingTimeInterval(-5_184_000)
-          ),
+          createdAt: baseDate.addingTimeInterval(-5_184_000),
           name: "DROP TABLE users; --"
         ),
         isLiked: false,
@@ -289,16 +271,14 @@ final class MockPostStore: @unchecked Sendable {
           userId: 120,
           text:
             "morning walks hit different when the weather is perfect like this ☀️",
-          createdAt: formatter.string(from: baseDate.addingTimeInterval(-3600)),
+          createdAt: baseDate.addingTimeInterval(-3600),
           facets: nil
         ),
         user: User(
           userId: 120,
           email: "sophie@example.com",
           username: "realsophie",
-          createdAt: formatter.string(
-            from: baseDate.addingTimeInterval(-18_144_000)
-          ),
+          createdAt: baseDate.addingTimeInterval(-18_144_000),
           name: "Sophie"
         ),
         isLiked: true,
@@ -314,16 +294,14 @@ final class MockPostStore: @unchecked Sendable {
           userId: 25,
           text:
             "spreading good vibes today 💕 hope everyone is having an amazing day!",
-          createdAt: formatter.string(from: baseDate.addingTimeInterval(-5400)),
+          createdAt: baseDate.addingTimeInterval(-5400),
           facets: nil
         ),
         user: User(
           userId: 25,
           email: "joel@example.com",
           username: "joel",
-          createdAt: formatter.string(
-            from: baseDate.addingTimeInterval(-20_736_000)
-          ),
+          createdAt: baseDate.addingTimeInterval(-20_736_000),
           name: "Joel"
         ),
         isLiked: false,
@@ -339,16 +317,14 @@ final class MockPostStore: @unchecked Sendable {
           userId: 1,
           text:
             "building splajompy has been such an incredible journey 🚀 excited to share what's coming next",
-          createdAt: formatter.string(from: baseDate.addingTimeInterval(-1800)),
+          createdAt: baseDate.addingTimeInterval(-1800),
           facets: nil
         ),
         user: User(
           userId: 1,
           email: "wesleynw@pm.me",
           username: "wesleynw",
-          createdAt: formatter.string(
-            from: baseDate.addingTimeInterval(-31_536_000)
-          ),
+          createdAt: baseDate.addingTimeInterval(-31_536_000),
           name: "Wesley 🔥"
         ),
         isLiked: true,
@@ -367,18 +343,14 @@ final class MockPostStore: @unchecked Sendable {
           userId: 1,
           text:
             "check this out: Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
-          createdAt: formatter.string(
-            from: baseDate.addingTimeInterval(-10_800_000)
-          ),
+          createdAt: baseDate.addingTimeInterval(-10_800_000),
           facets: nil
         ),
         user: User(
           userId: 1,
           email: "wesleynw@pm.me",
           username: "wesleynw",
-          createdAt: formatter.string(
-            from: baseDate.addingTimeInterval(-31_536_000)
-          ),
+          createdAt: baseDate.addingTimeInterval(-31_536_000),
           name: "Wesley 🌌"
         ),
         isLiked: false,
@@ -393,18 +365,14 @@ final class MockPostStore: @unchecked Sendable {
           postId: 1999,
           userId: 1,
           text: "i just found this amazing coffee shop",
-          createdAt: formatter.string(
-            from: baseDate.addingTimeInterval(-11_800_000)
-          ),
+          createdAt: baseDate.addingTimeInterval(-11_800_000),
           facets: nil
         ),
         user: User(
           userId: 1,
           email: "wesleynw@pm.me",
           username: "wesleynw",
-          createdAt: formatter.string(
-            from: baseDate.addingTimeInterval(-31_536_000)
-          ),
+          createdAt: baseDate.addingTimeInterval(-31_536_000),
           name: "Wesley 🌌"
         ),
         isLiked: false,
