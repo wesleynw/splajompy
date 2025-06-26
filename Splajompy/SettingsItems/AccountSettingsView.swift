@@ -153,17 +153,10 @@ struct AccountSettingsView: View {
     }
   }
 
-  private func formatDate(_ dateString: String) -> String {
-    let inputFormatter = DateFormatter()
-    inputFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSSSS'Z'"
-
-    if let date = inputFormatter.date(from: dateString) {
-      let outputFormatter = DateFormatter()
-      outputFormatter.dateStyle = .medium
-      return outputFormatter.string(from: date)
-    }
-
-    return dateString
+  private func formatDate(_ date: Date) -> String {
+    let outputFormatter = DateFormatter()
+    outputFormatter.dateStyle = .medium
+    return outputFormatter.string(from: date)
   }
 }
 

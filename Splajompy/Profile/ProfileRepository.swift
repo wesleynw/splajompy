@@ -277,27 +277,21 @@ struct MockProfileService: ProfileServiceProtocol {
         userId: 1001,
         email: "jane.smith@example.com",
         username: prefix + "_janesmith",
-        createdAt: formatter.string(
-          from: baseDate.addingTimeInterval(-8_640_000)
-        ),
+        createdAt: baseDate.addingTimeInterval(-8_640_000),
         name: "Jane Smith"
       ),
       User(
         userId: 1002,
         email: "david.wilson@example.com",
         username: prefix + "davewilson",
-        createdAt: formatter.string(
-          from: baseDate.addingTimeInterval(-4_320_000)
-        ),
+        createdAt: baseDate.addingTimeInterval(-4_320_000),
         name: "David Wilson"
       ),
       User(
         userId: 1003,
         email: "maria.garcia@example.com",
         username: prefix + "mariagarcia",
-        createdAt: formatter.string(
-          from: baseDate.addingTimeInterval(-2_160_000)
-        ),
+        createdAt: baseDate.addingTimeInterval(-2_160_000),
         name: "Maria Garcia"
       ),
     ])

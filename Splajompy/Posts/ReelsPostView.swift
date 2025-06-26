@@ -4,7 +4,6 @@ import SwiftUI
 
 struct ReelsPostView: View {
   let post: DetailedPost
-  let formatter = RelativeDateTimeFormatter()
   var onLikeButtonTapped: () -> Void = {}
   var onPostDeleted: () -> Void = {}
   var onCommentsButtonTapped: () -> Void = {}
@@ -14,12 +13,6 @@ struct ReelsPostView: View {
   @State private var isTextExpanded = false
   @EnvironmentObject private var feedRefreshManager: FeedRefreshManager
   @EnvironmentObject private var authManager: AuthManager
-
-  private var postDate: Date {
-    let formatter = ISO8601DateFormatter()
-    formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-    return formatter.date(from: post.post.createdAt) ?? Date()
-  }
 
   var body: some View {
     ZStack {
@@ -102,9 +95,12 @@ struct ReelsPostView: View {
           }
         }
 
-        Text(formatter.localizedString(for: postDate, relativeTo: Date()))
-          .font(.caption)
-          .foregroundColor(.gray)
+        Text(
+          RelativeDateTimeFormatter().localizedString(
+            for: post.post.createdAt, relativeTo: Date.now)
+        )
+        .font(.caption)
+        .foregroundColor(.gray)
       }
 
       Spacer()

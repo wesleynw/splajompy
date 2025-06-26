@@ -6,7 +6,6 @@ struct PostView: View {
   let post: DetailedPost
   var showAuthor: Bool = true
   var isStandalone: Bool = false
-  let formatter = RelativeDateTimeFormatter()
   var onLikeButtonTapped: () -> Void = {
     print("Unimplemented: PostView.onLikeButtonTapped")
   }
@@ -19,12 +18,6 @@ struct PostView: View {
   @EnvironmentObject private var authManager: AuthManager
   @State private var isReporting = false
   @State private var showReportAlert = false
-
-  private var postDate: Date {
-    let formatter = ISO8601DateFormatter()
-    formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-    return formatter.date(from: post.post.createdAt) ?? Date()
-  }
 
   var body: some View {
     Group {
@@ -98,9 +91,12 @@ struct PostView: View {
         ImageGallery(imageUrls: images.map { $0.imageBlobUrl })
       }
       HStack {
-        Text(formatter.localizedString(for: postDate, relativeTo: Date()))
-          .font(.caption)
-          .foregroundColor(.gray)
+        Text(
+          RelativeDateTimeFormatter().localizedString(
+            for: post.post.createdAt, relativeTo: Date.now)
+        )
+        .font(.caption)
+        .foregroundColor(.gray)
         Spacer()
         HStack(spacing: 8) {
           if !isStandalone {
@@ -216,7 +212,7 @@ struct PostView: View {
     userId: 456,
     text:
       "This is a sample post with some text content. also here's a link: https://google.com, another link: splajompy.com",
-    createdAt: "2025-04-01T12:30:45.123Z",
+    createdAt: ISO8601DateFormatter().date(from: "2025-04-01T12:30:45.123Z")!,
     facets: nil
   )
 
@@ -224,7 +220,7 @@ struct PostView: View {
     userId: 456,
     email: "wesleynw@pm.me",
     username: "wesleynw",
-    createdAt: "2025-01-15T10:20:30.000Z",
+    createdAt: ISO8601DateFormatter().date(from: "2025-01-15T10:20:30.000Z")!,
     name: "John Doe"
   )
 
@@ -275,7 +271,7 @@ struct PostView: View {
     userId: 456,
     text:
       "This is a sample post with some text content. also here's a link: https://google.com, another link: splajompy.com",
-    createdAt: "2025-04-01T12:30:45.123Z",
+    createdAt: ISO8601DateFormatter().date(from: "2025-04-01T12:30:45.123Z")!,
     facets: nil
   )
 
@@ -283,7 +279,7 @@ struct PostView: View {
     userId: 456,
     email: "wesleynw@pm.me",
     username: "wesleynw",
-    createdAt: "2025-01-15T10:20:30.000Z",
+    createdAt: ISO8601DateFormatter().date(from: "2025-01-15T10:20:30.000Z")!,
     name: "John Doe"
   )
 

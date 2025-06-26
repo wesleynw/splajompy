@@ -39,7 +39,7 @@ class MockCommentService: CommentServiceProtocol, @unchecked Sendable {
     let newCommentId = commentIdCounter
     commentIdCounter += 1
 
-    let currentDate = ISO8601DateFormatter().string(from: Date())
+    let currentDate = Date()
     let currentUser =
       mockUsers.first
       ?? User(
@@ -55,7 +55,7 @@ class MockCommentService: CommentServiceProtocol, @unchecked Sendable {
       postId: postId,
       userId: currentUser.userId,
       text: text,
-      createdAt: currentDate,
+      createdAt: ISO8601DateFormatter().string(from: currentDate),
       user: currentUser,
       facets: [],
       isLiked: false
@@ -71,7 +71,7 @@ class MockCommentService: CommentServiceProtocol, @unchecked Sendable {
   }
 
   private func setupMockData() {
-    let currentDate = ISO8601DateFormatter().string(from: Date())
+    let currentDate = Date()
 
     mockUsers = [
       User(
@@ -104,7 +104,7 @@ class MockCommentService: CommentServiceProtocol, @unchecked Sendable {
           postId: 1,
           userId: 1,
           text: "Great post!",
-          createdAt: currentDate,
+          createdAt: ISO8601DateFormatter().string(from: currentDate),
           user: mockUsers[0],
           facets: [],
           isLiked: false
@@ -114,7 +114,7 @@ class MockCommentService: CommentServiceProtocol, @unchecked Sendable {
           postId: 1,
           userId: 2,
           text: "I totally agree with this.",
-          createdAt: currentDate,
+          createdAt: ISO8601DateFormatter().string(from: currentDate),
           user: mockUsers[1],
           facets: [],
           isLiked: true
@@ -126,7 +126,7 @@ class MockCommentService: CommentServiceProtocol, @unchecked Sendable {
           postId: 2,
           userId: 3,
           text: "Interesting perspective.",
-          createdAt: currentDate,
+          createdAt: ISO8601DateFormatter().string(from: currentDate),
           user: mockUsers[2],
           facets: [],
           isLiked: false
@@ -136,7 +136,7 @@ class MockCommentService: CommentServiceProtocol, @unchecked Sendable {
           postId: 2,
           userId: 1,
           text: "Thanks for sharing this.",
-          createdAt: currentDate,
+          createdAt: ISO8601DateFormatter().string(from: currentDate),
           user: mockUsers[0],
           facets: [],
           isLiked: false
@@ -158,7 +158,7 @@ class MockCommentService_Empty: CommentServiceProtocol, @unchecked Sendable {
   func addComment(postId: Int, text: String) async -> AsyncResult<DetailedComment> {
     let user = User(
       userId: 1, email: "test@example.com", username: "testuser",
-      createdAt: ISO8601DateFormatter().string(from: Date()), name: "Test User")
+      createdAt: Date(), name: "Test User")
 
     let newComment = DetailedComment(
       commentId: Int.random(in: 100...1000),

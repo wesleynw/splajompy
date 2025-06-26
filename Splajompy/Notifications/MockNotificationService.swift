@@ -61,7 +61,7 @@ class MockNotificationService: @unchecked Sendable, NotificationServiceProtocol 
           postId: 2001,
           userId: 6,
           text: "just discovered this amazing coffee shop",
-          createdAt: formatter.string(from: baseDate.addingTimeInterval(-7200)),
+          createdAt: baseDate.addingTimeInterval(-7200),
           facets: nil
         ),
         comment: nil
@@ -84,9 +84,7 @@ class MockNotificationService: @unchecked Sendable, NotificationServiceProtocol 
           postId: 2002,
           userId: 6,
           text: "beautiful sunset from my balcony tonight",
-          createdAt: formatter.string(
-            from: baseDate.addingTimeInterval(-14400)
-          ),
+          createdAt: baseDate.addingTimeInterval(-14400),
           facets: nil
         ),
         comment: Comment(
@@ -115,9 +113,7 @@ class MockNotificationService: @unchecked Sendable, NotificationServiceProtocol 
           postId: 2003,
           userId: 1,
           text: "@wesley you up rn?",
-          createdAt: formatter.string(
-            from: baseDate.addingTimeInterval(-10800)
-          ),
+          createdAt: baseDate.addingTimeInterval(-10800),
           facets: [
             Facet(type: "mention", userId: 6, indexStart: 0, indexEnd: 7)
           ]
@@ -142,9 +138,7 @@ class MockNotificationService: @unchecked Sendable, NotificationServiceProtocol 
           postId: 2004,
           userId: 15,
           text: "weekend farmers market haul",
-          createdAt: formatter.string(
-            from: baseDate.addingTimeInterval(-18000)
-          ),
+          createdAt: baseDate.addingTimeInterval(-18000),
           facets: nil
         ),
         comment: Comment(
@@ -173,7 +167,7 @@ class MockNotificationService: @unchecked Sendable, NotificationServiceProtocol 
           postId: 2001,
           userId: 6,
           text: "just discovered this amazing coffee shop",
-          createdAt: formatter.string(from: baseDate.addingTimeInterval(-7200)),
+          createdAt: baseDate.addingTimeInterval(-7200),
           facets: nil
         ),
         comment: nil
@@ -196,9 +190,7 @@ class MockNotificationService: @unchecked Sendable, NotificationServiceProtocol 
           postId: 2005,
           userId: 30,
           text: "thoughts on the new season finale?",
-          createdAt: formatter.string(
-            from: baseDate.addingTimeInterval(-28800)
-          ),
+          createdAt: baseDate.addingTimeInterval(-28800),
           facets: nil
         ),
         comment: Comment(

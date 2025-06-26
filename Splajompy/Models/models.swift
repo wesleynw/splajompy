@@ -5,11 +5,13 @@
 //  Created by Wesley Weisenberger on 3/28/25.
 //
 
+import Foundation
+
 struct User: Decodable {
   let userId: Int
   let email: String
   let username: String
-  let createdAt: String
+  let createdAt: Date
   let name: String?
 }
 
@@ -40,7 +42,7 @@ struct Post: Decodable {
   let postId: Int
   let userId: Int
   let text: String?
-  let createdAt: String
+  let createdAt: Date
   let facets: [Facet]?
 }
 
