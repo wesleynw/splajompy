@@ -4,7 +4,6 @@ struct SplashScreenView: View {
   @EnvironmentObject var authManager: AuthManager
   @State private var isLoginViewPresenting: Bool = false
   @State private var isRegisterViewPresenting: Bool = false
-  let feedbackGenerator = UIImpactFeedbackGenerator(style: .medium)
 
   var body: some View {
     ZStack {
@@ -52,7 +51,6 @@ struct SplashScreenView: View {
         HStack(spacing: 16) {
           Button {
             isLoginViewPresenting = true
-            feedbackGenerator.impactOccurred()
           } label: {
             Text("Log In")
               .fontWeight(.bold)
@@ -76,10 +74,10 @@ struct SplashScreenView: View {
               )
           }
           .contentShape(Rectangle())
+          .sensoryFeedback(.impact, trigger: isLoginViewPresenting)
 
           Button {
             isRegisterViewPresenting = true
-            feedbackGenerator.impactOccurred()
           } label: {
             Text("Sign Up")
               .fontWeight(.bold)
@@ -104,6 +102,7 @@ struct SplashScreenView: View {
                 y: 4
               )
           }
+          .sensoryFeedback(.impact, trigger: isRegisterViewPresenting)
         }
         .padding(.horizontal, 24)
         .padding(.bottom, 32)
