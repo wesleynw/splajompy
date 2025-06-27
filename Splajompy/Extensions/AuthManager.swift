@@ -107,12 +107,12 @@ class AuthManager: ObservableObject, Sendable {
     defaults.set(user.userId, forKey: "CurrentUserID")
     defaults.set(user.username, forKey: "CurrentUserUsername")
     defaults.set(user.email, forKey: "CurrentUserEmail")
-    
+
     let formatter = ISO8601DateFormatter()
     formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds, .withTimeZone]
     let createdAtString = formatter.string(from: user.createdAt)
     defaults.set(createdAtString, forKey: "CurrentUserCreatedAt")
-    
+
     if let name = user.name {
       defaults.set(name, forKey: "CurrentUserName")
     }
