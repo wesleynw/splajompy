@@ -22,7 +22,7 @@ struct PostCreationService {
       let stagingFolder = UUID()
       var imageKeymap = [Int: String]()
 
-      for (index, item) in items.enumerated() {
+      for (index, image) in images.enumerated() {
         if let preferredFilenameExtension = items[index].supportedContentTypes
           .first?.preferredFilenameExtension
         {
@@ -45,22 +45,9 @@ struct PostCreationService {
           switch response {
           case .success(let urlResponse):
             if let url = URL(string: urlResponse.url) {
-              let imageData = try await item.loadTransferable(type: Data.self)
-              guard let imageData = imageData else {
-                return .error(
-                  NSError(
-                    domain: "ImageUploader",
-                    code: 1,
-                    userInfo: [
-                      NSLocalizedDescriptionKey: "Failed to load image data"
-                    ]
-                  )
-                )
-              }
-
               guard
-                let compressedImage = UIImage(data: imageData)?.jpegData(
-                  compressionQuality: 0.65
+                let compressedImage = image.jpegData(
+                  compressionQuality: 1
                 )
               else {
                 return .error(

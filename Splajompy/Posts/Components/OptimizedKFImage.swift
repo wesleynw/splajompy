@@ -21,8 +21,8 @@ struct OptimizedKFImage: View {
       .setProcessor(
         DownsamplingImageProcessor(
           size: CGSize(
-            width: min(targetSize.width * UIScreen.main.scale, 800),
-            height: min(targetSize.height * UIScreen.main.scale, 800)
+            width: min(targetSize.width * UIScreen.main.scale, 1000),
+            height: min(targetSize.height * UIScreen.main.scale, 1000)
           )
         )
       )
