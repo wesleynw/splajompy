@@ -83,9 +83,8 @@ class AuthManager: ObservableObject, Sendable {
 
     let name = defaults.string(forKey: "CurrentUserName")
 
-    // Parse the stored date string back to Date
     let formatter = ISO8601DateFormatter()
-    formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+    formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds, .withTimeZone]
     let createdAt = formatter.date(from: createdAtString) ?? Date()
 
     return User(
@@ -108,7 +107,12 @@ class AuthManager: ObservableObject, Sendable {
     defaults.set(user.userId, forKey: "CurrentUserID")
     defaults.set(user.username, forKey: "CurrentUserUsername")
     defaults.set(user.email, forKey: "CurrentUserEmail")
-    defaults.set(user.createdAt, forKey: "CurrentUserCreatedAt")
+    
+    let formatter = ISO8601DateFormatter()
+    formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds, .withTimeZone]
+    let createdAtString = formatter.string(from: user.createdAt)
+    defaults.set(createdAtString, forKey: "CurrentUserCreatedAt")
+    
     if let name = user.name {
       defaults.set(name, forKey: "CurrentUserName")
     }
