@@ -10,7 +10,7 @@ Originally written as a full-stack Typescript application, Splajompy now has an 
 ## Starting the API
 You'll need to have a `.env` file in the `api` folder that includes a DB connection string, Resend API key, S3 API Key, and a few other things.
 
-Start the API by running `go run cmd/api/main.go`
+Start the API by running `go run cmd/api/main.go` from the `api` directory.
 
 ## SQLC
 The API uses [SQLC](https://docs.sqlc.dev/en/stable/tutorials/getting-started-postgresql.html) to generate typed functions from database calls. Given a raw SQL query, you can have SQLC generate a function that can be called from a `querier` interface.
