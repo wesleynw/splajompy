@@ -24,7 +24,13 @@ extension NewPostView {
           for item in selectedItems {
             if let data = try? await item.loadTransferable(type: Data.self) {
               if let uiImage = UIImage(data: data) {
-                newImages.append(uiImage)
+                print("Original image size: \(uiImage.size)")
+                if let resizedImage = uiImage.resize(newWidth: 1000) {
+                  print("Resized image size: \(resizedImage.size)")
+                  newImages.append(resizedImage)
+                } else {
+                  print("Resize failed")
+                }
               }
             }
           }
