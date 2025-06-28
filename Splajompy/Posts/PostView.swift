@@ -14,10 +14,10 @@ struct PostView: View {
   }
 
   @State private var isShowingComments = false
-  @EnvironmentObject private var feedRefreshManager: FeedRefreshManager
-  @EnvironmentObject private var authManager: AuthManager
   @State private var isReporting = false
   @State private var showReportAlert = false
+  @EnvironmentObject private var feedRefreshManager: FeedRefreshManager
+  @EnvironmentObject private var authManager: AuthManager
 
   var body: some View {
     Group {

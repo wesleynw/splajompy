@@ -205,7 +205,8 @@ struct FullscreenImagePager: View {
   @State private var currentIndex: Int
   let onDismiss: () -> Void
 
-  init(imageUrls: [String], initialIndex: Int, onDismiss: @escaping () -> Void) {
+  init(imageUrls: [String], initialIndex: Int, onDismiss: @escaping () -> Void)
+  {
     self.imageUrls = imageUrls
     self._currentIndex = State(initialValue: initialIndex)
     self.onDismiss = onDismiss
@@ -218,6 +219,10 @@ struct FullscreenImagePager: View {
           if let url = URL(string: url) {
             KFImage(url)
               .resizable()
+              .placeholder {
+                ProgressView()
+                  .progressViewStyle(CircularProgressViewStyle())
+              }
               .scaledToFit()
               .tag(index)
               .zoomable(minZoomScale: 1, doubleTapZoomScale: 2)

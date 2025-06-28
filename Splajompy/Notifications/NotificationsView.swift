@@ -86,24 +86,6 @@ struct NotificationsView: View {
         ErrorScreen(
           errorString: error.localizedDescription,
           onRetry: { await viewModel.loadNotifications(reset: true) })
-      //        VStack {
-      //          Text("Something went wrong")
-      //            .font(.title3)
-      //            .fontWeight(.bold)
-      //            .padding()
-      //          Text(error.localizedDescription)
-      //            .font(.caption)
-      //            .fontWeight(.bold)
-      //            .foregroundColor(.red)
-      //          Image(systemName: "arrow.clockwise")
-      //            .imageScale(.large)
-      //            .onTapGesture {
-      //              Task { @MainActor in
-      //                await viewModel.loadNotifications(reset: true)
-      //              }
-      //            }
-      //            .padding()
-      //        }
       }
 
     }
@@ -192,6 +174,7 @@ struct NotificationRow: View {
 
           if let blobUrl = notification.imageBlob {
             KFImage(URL(string: blobUrl))
+//              .downsampling(size: CGSize.init(width: 40, height: 40))
               .resizable()
               .frame(width: 40, height: 40)
               .cornerRadius(5)
