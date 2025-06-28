@@ -34,7 +34,7 @@ func NewPostService(postRepository repositories.PostRepository, userRepository r
 	}
 }
 
-func (s *PostService) NewPost(ctx context.Context, currentUser models.PublicUser, text string, imageKeymap map[int]string) error {
+func (s *PostService) NewPost(ctx context.Context, currentUser models.PublicUser, text string, imageKeymap map[int]models.ImageData) error {
 	facets, err := repositories.GenerateFacets(ctx, s.userRepository, text)
 	if err != nil {
 		return err
@@ -48,25 +48,25 @@ func (s *PostService) NewPost(ctx context.Context, currentUser models.PublicUser
 
 	environment := os.Getenv("ENVIRONMENT")
 
-	for displayOrder, s3key := range imageKeymap {
+	for displayOrder, imageData := range imageKeymap {
 		destinationKey := repositories.GetDestinationKey(
 			environment,
 			currentUser.UserID,
 			int(post.PostID),
-			s3key,
+			imageData.S3Key,
 		)
 
-		err := s.bucketRepository.CopyObject(ctx, s3key, destinationKey)
+		err := s.bucketRepository.CopyObject(ctx, imageData.S3Key, destinationKey)
 		if err != nil {
 			return errors.New("unable to create post")
 		}
 
-		err = s.bucketRepository.DeleteObject(ctx, s3key)
+		err = s.bucketRepository.DeleteObject(ctx, imageData.S3Key)
 		if err != nil {
 			return errors.New("unable to create post")
 		}
 
-		_, err = s.postRepository.InsertImage(ctx, int(post.PostID), 500, 500, destinationKey, int(int32(displayOrder)))
+		_, err = s.postRepository.InsertImage(ctx, int(post.PostID), imageData.Height, imageData.Width, destinationKey, int(int32(displayOrder)))
 		if err != nil {
 			return errors.New("unable to create post")
 		}

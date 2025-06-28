@@ -2,9 +2,15 @@ import Foundation
 import PhotosUI
 import SwiftUI
 
+struct ImageData: Encodable {
+  let s3Key: String
+  let width: Int
+  let height: Int
+}
+
 struct CreatePostRequest: Encodable {
   let text: String
-  let imageKeymap: [Int: String]  // [displayOrder : s3Key]
+  let imageKeymap: [Int: ImageData]  // [displayOrder : ImageData]
 }
 
 struct PresignedUrlResponse: Codable {
@@ -20,7 +26,7 @@ struct PostCreationService {
   ) async -> AsyncResult<EmptyResponse> {
     do {
       let stagingFolder = UUID()
-      var imageKeymap = [Int: String]()
+      var imageKeymap = [Int: ImageData]()
 
       for (index, image) in images.enumerated() {
         if let preferredFilenameExtension = items[index].supportedContentTypes
@@ -90,7 +96,11 @@ struct PostCreationService {
                 )
               }
 
-              imageKeymap[index] = urlResponse.key
+              imageKeymap[index] = ImageData(
+                s3Key: urlResponse.key,
+                width: Int(image.size.width),
+                height: Int(image.size.height)
+              )
             }
           case .error:
             return .error(

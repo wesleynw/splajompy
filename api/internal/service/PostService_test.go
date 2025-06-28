@@ -36,11 +36,15 @@ func TestNewPost(t *testing.T) {
 
 	ctx := context.Background()
 	text := "Hello world @testuser"
-	imageKeymap := map[int]string{
-		0: "test/posts/staging/1/images/123.jpg",
+	imageKeymap := map[int]models.ImageData{
+		0: {
+			S3Key:  "test/posts/staging/1/images/123.jpg",
+			Width:  1000,
+			Height: 750,
+		},
 	}
 
-	bucketRepo.SetObject(imageKeymap[0], []byte("test image data"))
+	bucketRepo.SetObject(imageKeymap[0].S3Key, []byte("test image data"))
 
 	err := svc.NewPost(ctx, user, text, imageKeymap)
 	assert.NoError(t, err)
@@ -58,18 +62,20 @@ func TestNewPost(t *testing.T) {
 	assert.Equal(t, "mention", post.Facets[0].Type)
 	assert.Equal(t, int(user.UserID), post.Facets[0].UserId)
 
-	destinationKey := repositories.GetDestinationKey("test", user.UserID, int(post.PostID), imageKeymap[0])
+	destinationKey := repositories.GetDestinationKey("test", user.UserID, int(post.PostID), imageKeymap[0].S3Key)
 	imageData, exists := bucketRepo.GetObject(destinationKey)
 	assert.True(t, exists)
 	assert.Equal(t, []byte("test image data"), imageData)
 
-	_, exists = bucketRepo.GetObject(imageKeymap[0])
+	_, exists = bucketRepo.GetObject(imageKeymap[0].S3Key)
 	assert.False(t, exists)
 
 	images, err := postRepo.GetImagesForPost(ctx, int(post.PostID))
 	assert.NoError(t, err)
 	assert.Len(t, images, 1)
 	assert.Equal(t, destinationKey, images[0].ImageBlobUrl)
+	assert.Equal(t, int32(1000), images[0].Width)
+	assert.Equal(t, int32(750), images[0].Height)
 }
 
 func TestNewPresignedStagingUrl(t *testing.T) {

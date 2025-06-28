@@ -16,9 +16,15 @@ func (h *Handler) CreateNewPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	type ImageData struct {
+		S3Key  string `json:"s3Key"`
+		Width  int    `json:"width"`
+		Height int    `json:"height"`
+	}
+
 	var requestBody struct {
-		Text        string         `json:"text"`
-		ImageKeymap map[int]string `json:"imageKeymap"`
+		Text        string            `json:"text"`
+		ImageKeymap map[int]ImageData `json:"imageKeymap"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&requestBody); err != nil {
@@ -26,7 +32,17 @@ func (h *Handler) CreateNewPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.postService.NewPost(r.Context(), *currentUser, requestBody.Text, requestBody.ImageKeymap)
+	// Convert handler ImageData to service ImageData
+	serviceImageKeymap := make(map[int]models.ImageData)
+	for displayOrder, imageData := range requestBody.ImageKeymap {
+		serviceImageKeymap[displayOrder] = models.ImageData{
+			S3Key:  imageData.S3Key,
+			Width:  imageData.Width,
+			Height: imageData.Height,
+		}
+	}
+
+	err = h.postService.NewPost(r.Context(), *currentUser, requestBody.Text, serviceImageKeymap)
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
 		return
