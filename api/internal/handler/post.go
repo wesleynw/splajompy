@@ -16,13 +16,9 @@ func (h *Handler) CreateNewPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	type ImageData struct {
-		S3Key string `json:"s3Key"`
-	}
-
 	var requestBody struct {
-		Text        string            `json:"text"`
-		ImageKeymap map[int]ImageData `json:"imageKeymap"`
+		Text        string         `json:"text"`
+		ImageKeymap map[int]string `json:"imageKeymap"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&requestBody); err != nil {
@@ -30,11 +26,11 @@ func (h *Handler) CreateNewPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Convert to service ImageData with default dimensions for old app versions
+	// Convert old string format to service ImageData with default dimensions
 	serviceImageKeymap := make(map[int]models.ImageData)
-	for displayOrder, imageData := range requestBody.ImageKeymap {
+	for displayOrder, s3Key := range requestBody.ImageKeymap {
 		serviceImageKeymap[displayOrder] = models.ImageData{
-			S3Key:  imageData.S3Key,
+			S3Key:  s3Key,
 			Width:  500,
 			Height: 500,
 		}
