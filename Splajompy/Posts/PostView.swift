@@ -88,7 +88,7 @@ struct PostView: View {
           .environmentObject(feedRefreshManager)
       }
       if let images = post.images, !images.isEmpty {
-        ImageGallery(imageUrls: images.map { $0.imageBlobUrl })
+        ImageGallery(images: images)
       }
       HStack {
         Text(

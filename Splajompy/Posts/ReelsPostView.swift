@@ -43,7 +43,7 @@ struct ReelsPostView: View {
   private var contentView: some View {
     VStack(spacing: 12) {
       if let images = post.images, !images.isEmpty {
-        ImageGallery(imageUrls: images.map { $0.imageBlobUrl })
+        ImageGallery(images: images)
           .clipShape(RoundedRectangle(cornerRadius: 12))
           .aspectRatio(contentMode: .fit)
       }

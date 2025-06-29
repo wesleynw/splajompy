@@ -26,6 +26,42 @@ func (h *Handler) CreateNewPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Convert old string format to service ImageData with default dimensions
+	serviceImageKeymap := make(map[int]models.ImageData)
+	for displayOrder, s3Key := range requestBody.ImageKeymap {
+		serviceImageKeymap[displayOrder] = models.ImageData{
+			S3Key:  s3Key,
+			Width:  500,
+			Height: 500,
+		}
+	}
+
+	err = h.postService.NewPost(r.Context(), *currentUser, requestBody.Text, serviceImageKeymap)
+	if err != nil {
+		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
+		return
+	}
+
+	utilities.HandleEmptySuccess(w)
+}
+
+func (h *Handler) CreateNewPostV2(w http.ResponseWriter, r *http.Request) {
+	currentUser, err := h.getAuthenticatedUser(r)
+	if err != nil {
+		utilities.HandleError(w, http.StatusUnauthorized, "Unauthorized")
+		return
+	}
+
+	var requestBody struct {
+		Text        string                  `json:"text"`
+		ImageKeymap map[int]models.ImageData `json:"imageKeymap"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&requestBody); err != nil {
+		utilities.HandleError(w, http.StatusBadRequest, "Bad request format")
+		return
+	}
+
 	err = h.postService.NewPost(r.Context(), *currentUser, requestBody.Text, requestBody.ImageKeymap)
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")

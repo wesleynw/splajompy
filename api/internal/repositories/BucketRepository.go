@@ -64,22 +64,22 @@ func (r *S3BucketRepository) DeleteObjects(ctx context.Context, keys []string) e
 
 	// S3 allows up to 1000 objects per delete request
 	const batchSize = 1000
-	
+
 	for i := 0; i < len(keys); i += batchSize {
 		end := i + batchSize
 		if end > len(keys) {
 			end = len(keys)
 		}
-		
+
 		batch := keys[i:end]
 		var objectsToDelete []types.ObjectIdentifier
-		
+
 		for _, key := range batch {
 			objectsToDelete = append(objectsToDelete, types.ObjectIdentifier{
 				Key: aws.String(key),
 			})
 		}
-		
+
 		_, err := r.s3Client.DeleteObjects(ctx, &s3.DeleteObjectsInput{
 			Bucket: aws.String(r.bucketName),
 			Delete: &types.Delete{
@@ -87,12 +87,12 @@ func (r *S3BucketRepository) DeleteObjects(ctx context.Context, keys []string) e
 				Quiet:   aws.Bool(true), // Don't return info about successful deletions
 			},
 		})
-		
+
 		if err != nil {
 			return fmt.Errorf("failed to delete batch of objects: %w", err)
 		}
 	}
-	
+
 	return nil
 }
 

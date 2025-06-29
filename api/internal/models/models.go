@@ -87,3 +87,9 @@ type DetailedUser struct {
 	IsBlocking  bool      `json:"isBlocking"`
 	Mutuals     []string  `json:"mutuals"`
 }
+
+type ImageData struct {
+	S3Key  string `json:"s3Key"`
+	Width  int    `json:"width"`
+	Height int    `json:"height"`
+}
