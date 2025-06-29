@@ -1,3 +1,9 @@
+<div align="center">
+<picture>
+    <img src="./Assets/logo.svg" width="128px">
+</picture>
+</div>
+
 # Splajompy
 [![API Build](https://github.com/wesleynw/splajompy/actions/workflows/go.yml/badge.svg)](https://github.com/wesleynw/splajompy/actions/workflows/go.yml)
 [![iOS Build](https://github.com/wesleynw/splajompy/actions/workflows/ios.yml/badge.svg)](https://github.com/wesleynw/splajompy/actions/workflows/ios.yml)
