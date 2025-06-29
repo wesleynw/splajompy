@@ -85,7 +85,8 @@ struct NotificationsView: View {
       case .failed(let error):
         ErrorScreen(
           errorString: error.localizedDescription,
-          onRetry: { await viewModel.loadNotifications(reset: true) })
+          onRetry: { await viewModel.loadNotifications(reset: true) }
+        )
       }
 
     }
@@ -173,10 +174,18 @@ struct NotificationRow: View {
           Spacer()
 
           if let blobUrl = notification.imageBlob {
+            let targetSize: CGFloat = 40
+            let scale = UIScreen.main.scale
+            let downsamplingSize = CGSize(
+              width: targetSize * scale,
+              height: targetSize * scale
+            )
             KFImage(URL(string: blobUrl))
-              .downsampling(size: CGSize.init(width: 40, height: 40))
+              .downsampling(size: downsamplingSize)
               .resizable()
+              .aspectRatio(contentMode: .fill)
               .frame(width: 40, height: 40)
+              .clipped()
               .cornerRadius(5)
           }
         }
