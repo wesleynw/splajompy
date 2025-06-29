@@ -205,8 +205,7 @@ struct FullscreenImagePager: View {
   @State private var currentIndex: Int
   let onDismiss: () -> Void
 
-  init(imageUrls: [String], initialIndex: Int, onDismiss: @escaping () -> Void)
-  {
+  init(imageUrls: [String], initialIndex: Int, onDismiss: @escaping () -> Void) {
     self.imageUrls = imageUrls
     self._currentIndex = State(initialValue: initialIndex)
     self.onDismiss = onDismiss

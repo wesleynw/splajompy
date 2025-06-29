@@ -174,7 +174,7 @@ struct NotificationRow: View {
 
           if let blobUrl = notification.imageBlob {
             KFImage(URL(string: blobUrl))
-//              .downsampling(size: CGSize.init(width: 40, height: 40))
+              .downsampling(size: CGSize.init(width: 40, height: 40))
               .resizable()
               .frame(width: 40, height: 40)
               .cornerRadius(5)
