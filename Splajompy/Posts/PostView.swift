@@ -139,9 +139,9 @@ struct PostView: View {
               },
               label: {
                 Image(systemName: "ellipsis")
-                  .font(.system(size: 18))
+                  .font(.system(size: 22))
                   .frame(width: 48, height: 40)
-                  .background(RoundedRectangle(cornerRadius: 12).fill(.gray.opacity(0.08)))
+                  .background(RoundedRectangle(cornerRadius: 12).fill(.gray.opacity(0.15)))
                   .contentShape(RoundedRectangle(cornerRadius: 12))
               }
             )
@@ -152,9 +152,9 @@ struct PostView: View {
             }) {
               ZStack {
                 Image(systemName: "bubble.middle.bottom")
-                  .font(.system(size: 18))
+                  .font(.system(size: 22))
                   .frame(width: 48, height: 40)
-                  .background(RoundedRectangle(cornerRadius: 12).fill(.gray.opacity(0.08)))
+                  .background(RoundedRectangle(cornerRadius: 12).fill(.gray.opacity(0.15)))
                   .contentShape(RoundedRectangle(cornerRadius: 12))
 
                 if post.commentCount > 0 {
@@ -175,9 +175,9 @@ struct PostView: View {
             PostHogSDK.shared.capture("post_like")
           }) {
             Image(systemName: post.isLiked ? "heart.fill" : "heart")
-              .font(.system(size: 18))
+              .font(.system(size: 22))
               .frame(width: 48, height: 40)
-              .background(RoundedRectangle(cornerRadius: 12).fill(.gray.opacity(0.08)))
+              .background(RoundedRectangle(cornerRadius: 12).fill(.gray.opacity(0.15)))
               .contentShape(RoundedRectangle(cornerRadius: 12))
           }
           .buttonStyle(.plain)
