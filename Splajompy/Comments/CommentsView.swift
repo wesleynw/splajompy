@@ -8,7 +8,7 @@ struct CommentsView: View {
   @StateObject private var viewModel: ViewModel
   @State private var showingCommentSheet = false
   @FocusState private var isTextFieldFocused: Bool
-  @Environment(\.presentationMode) var presentationMode
+  @Environment(\.dismiss) private var dismiss
 
   init(postId: Int, isShowingInSheet: Bool = true) {
     self.postId = postId
@@ -35,13 +35,12 @@ struct CommentsView: View {
           HStack {
             Spacer()
             Button(action: {
-              presentationMode.wrappedValue.dismiss()
+              dismiss()
             }) {
               Image(systemName: "xmark.circle.fill")
                 .font(.system(size: 24))
                 .foregroundColor(Color.gray.opacity(0.7))
             }
-            .sensoryFeedback(.impact, trigger: presentationMode.wrappedValue.isPresented)
             .padding(.top, 8)
             .padding(.trailing, 16)
           }
@@ -130,7 +129,7 @@ struct CommentsView: View {
       if !isShowingInSheet {
         return
       }
-      presentationMode.wrappedValue.dismiss()
+      dismiss()
     }
     .presentationDragIndicator(.visible)
     .postHogScreenView("CommentsView", ["post": postId])

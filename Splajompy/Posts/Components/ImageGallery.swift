@@ -218,6 +218,10 @@ struct FullscreenImagePager: View {
           if let url = URL(string: url) {
             KFImage(url)
               .resizable()
+              .placeholder {
+                ProgressView()
+                  .progressViewStyle(CircularProgressViewStyle())
+              }
               .scaledToFit()
               .tag(index)
               .zoomable(minZoomScale: 1, doubleTapZoomScale: 2)

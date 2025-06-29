@@ -118,11 +118,6 @@ class AuthManager: ObservableObject, Sendable {
     }
 
     isAuthenticated = true
-
-    PostHogSDK.shared.identify(
-      String(user.userId),
-      userProperties: ["email": user.email]
-    )
   }
 
   func requestOneTimeCode(for identifier: String) async -> Bool {
