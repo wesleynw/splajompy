@@ -45,6 +45,7 @@ func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
 	// posts
 	mux.HandleFunc("GET /post/presignedUrl", h.GetPresignedUrl)
 	mux.HandleFunc("POST /post/new", h.CreateNewPost)
+	mux.HandleFunc("POST /v2/post/new", h.CreateNewPostV2)
 	mux.HandleFunc("GET /post/{id}", h.GetPostById)
 	mux.HandleFunc("GET /user/{id}/posts", h.GetPostsByUserId)
 	mux.HandleFunc("DELETE /post/{id}", h.DeletePostById)

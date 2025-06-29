@@ -22,6 +22,21 @@ struct ImageDTO: Decodable {
   let width: Int
   let imageBlobUrl: String
   let displayOrder: Int
+
+  init(from decoder: Decoder) throws {
+    let container = try decoder.container(keyedBy: CodingKeys.self)
+
+    imageId = try container.decode(Int.self, forKey: .imageId)
+    postId = try container.decode(Int.self, forKey: .postId)
+    height = try container.decodeIfPresent(Int.self, forKey: .height) ?? 500
+    width = try container.decodeIfPresent(Int.self, forKey: .width) ?? 500
+    imageBlobUrl = try container.decode(String.self, forKey: .imageBlobUrl)
+    displayOrder = try container.decode(Int.self, forKey: .displayOrder)
+  }
+
+  private enum CodingKeys: String, CodingKey {
+    case imageId, postId, height, width, imageBlobUrl, displayOrder
+  }
 }
 
 struct Facet: Decodable {

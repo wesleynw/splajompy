@@ -123,7 +123,7 @@ struct PostCreationService {
       let jsonData = try JSONEncoder().encode(createPostRequest)
 
       return await APIService.performRequest(
-        endpoint: "post/new",
+        endpoint: "v2/post/new",
         method: "POST",
         body: jsonData
       )

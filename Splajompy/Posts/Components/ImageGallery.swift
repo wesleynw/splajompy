@@ -184,9 +184,9 @@ struct ImageGallery: View {
     Group {
       if let url = URL(string: images[0].imageBlobUrl) {
         let aspectRatio = CGFloat(images[0].width) / CGFloat(images[0].height)
-        let containerWidth = UIScreen.main.bounds.width - 32 // Account for padding
+        let containerWidth = UIScreen.main.bounds.width - 32  // Account for padding
         let calculatedHeight = containerWidth / aspectRatio
-        
+
         OptimizedKFImage(url, contentMode: .fit)
           .frame(height: calculatedHeight)
           .clipShape(.rect(cornerRadius: 6))
@@ -288,7 +288,8 @@ struct FullscreenImagePager: View {
       postId: 1,
       height: 800,
       width: 600,
-      imageBlobUrl: "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/development/posts/1/9278fc8a-401b-4145-83bb-ef05d4d52632.jpeg",
+      imageBlobUrl:
+        "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/development/posts/1/9278fc8a-401b-4145-83bb-ef05d4d52632.jpeg",
       displayOrder: 0
     )
   ]
@@ -300,8 +301,16 @@ struct FullscreenImagePager: View {
 
 #Preview("2 Images") {
   let images = [
-    ImageDTO(imageId: 1, postId: 1, height: 800, width: 600, imageBlobUrl: "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/development/posts/1/9278fc8a-401b-4145-83bb-ef05d4d52632.jpeg", displayOrder: 0),
-    ImageDTO(imageId: 2, postId: 1, height: 600, width: 800, imageBlobUrl: "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/development/posts/1/9278fc8a-401b-4145-83bb-ef05d4d52632.jpeg", displayOrder: 1)
+    ImageDTO(
+      imageId: 1, postId: 1, height: 800, width: 600,
+      imageBlobUrl:
+        "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/development/posts/1/9278fc8a-401b-4145-83bb-ef05d4d52632.jpeg",
+      displayOrder: 0),
+    ImageDTO(
+      imageId: 2, postId: 1, height: 600, width: 800,
+      imageBlobUrl:
+        "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/development/posts/1/9278fc8a-401b-4145-83bb-ef05d4d52632.jpeg",
+      displayOrder: 1),
   ]
 
   Rectangle().frame(height: 10)
@@ -311,9 +320,21 @@ struct FullscreenImagePager: View {
 
 #Preview("3 Images") {
   let images = [
-    ImageDTO(imageId: 1, postId: 1, height: 800, width: 600, imageBlobUrl: "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/development/posts/1/9278fc8a-401b-4145-83bb-ef05d4d52632.jpeg", displayOrder: 0),
-    ImageDTO(imageId: 2, postId: 1, height: 600, width: 800, imageBlobUrl: "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/development/posts/1/9278fc8a-401b-4145-83bb-ef05d4d52632.jpeg", displayOrder: 1),
-    ImageDTO(imageId: 3, postId: 1, height: 800, width: 600, imageBlobUrl: "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/development/posts/1/9278fc8a-401b-4145-83bb-ef05d4d52632.jpeg", displayOrder: 2)
+    ImageDTO(
+      imageId: 1, postId: 1, height: 800, width: 600,
+      imageBlobUrl:
+        "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/development/posts/1/9278fc8a-401b-4145-83bb-ef05d4d52632.jpeg",
+      displayOrder: 0),
+    ImageDTO(
+      imageId: 2, postId: 1, height: 600, width: 800,
+      imageBlobUrl:
+        "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/development/posts/1/9278fc8a-401b-4145-83bb-ef05d4d52632.jpeg",
+      displayOrder: 1),
+    ImageDTO(
+      imageId: 3, postId: 1, height: 800, width: 600,
+      imageBlobUrl:
+        "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/development/posts/1/9278fc8a-401b-4145-83bb-ef05d4d52632.jpeg",
+      displayOrder: 2),
   ]
 
   Rectangle().frame(height: 10)
@@ -323,10 +344,26 @@ struct FullscreenImagePager: View {
 
 #Preview("4 Images") {
   let images = [
-    ImageDTO(imageId: 1, postId: 1, height: 800, width: 600, imageBlobUrl: "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/development/posts/1/9278fc8a-401b-4145-83bb-ef05d4d52632.jpeg", displayOrder: 0),
-    ImageDTO(imageId: 2, postId: 1, height: 600, width: 800, imageBlobUrl: "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/development/posts/1/9278fc8a-401b-4145-83bb-ef05d4d52632.jpeg", displayOrder: 1),
-    ImageDTO(imageId: 3, postId: 1, height: 800, width: 600, imageBlobUrl: "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/development/posts/1/9278fc8a-401b-4145-83bb-ef05d4d52632.jpeg", displayOrder: 2),
-    ImageDTO(imageId: 4, postId: 1, height: 600, width: 800, imageBlobUrl: "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/development/posts/1/9278fc8a-401b-4145-83bb-ef05d4d52632.jpeg", displayOrder: 3)
+    ImageDTO(
+      imageId: 1, postId: 1, height: 800, width: 600,
+      imageBlobUrl:
+        "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/development/posts/1/9278fc8a-401b-4145-83bb-ef05d4d52632.jpeg",
+      displayOrder: 0),
+    ImageDTO(
+      imageId: 2, postId: 1, height: 600, width: 800,
+      imageBlobUrl:
+        "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/development/posts/1/9278fc8a-401b-4145-83bb-ef05d4d52632.jpeg",
+      displayOrder: 1),
+    ImageDTO(
+      imageId: 3, postId: 1, height: 800, width: 600,
+      imageBlobUrl:
+        "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/development/posts/1/9278fc8a-401b-4145-83bb-ef05d4d52632.jpeg",
+      displayOrder: 2),
+    ImageDTO(
+      imageId: 4, postId: 1, height: 600, width: 800,
+      imageBlobUrl:
+        "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/development/posts/1/9278fc8a-401b-4145-83bb-ef05d4d52632.jpeg",
+      displayOrder: 3),
   ]
 
   Rectangle().frame(height: 10)
@@ -336,11 +373,31 @@ struct FullscreenImagePager: View {
 
 #Preview("5 Images") {
   let images = [
-    ImageDTO(imageId: 1, postId: 1, height: 800, width: 600, imageBlobUrl: "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/development/posts/1/9278fc8a-401b-4145-83bb-ef05d4d52632.jpeg", displayOrder: 0),
-    ImageDTO(imageId: 2, postId: 1, height: 600, width: 800, imageBlobUrl: "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/development/posts/1/9278fc8a-401b-4145-83bb-ef05d4d52632.jpeg", displayOrder: 1),
-    ImageDTO(imageId: 3, postId: 1, height: 800, width: 600, imageBlobUrl: "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/development/posts/1/9278fc8a-401b-4145-83bb-ef05d4d52632.jpeg", displayOrder: 2),
-    ImageDTO(imageId: 4, postId: 1, height: 600, width: 800, imageBlobUrl: "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/development/posts/1/9278fc8a-401b-4145-83bb-ef05d4d52632.jpeg", displayOrder: 3),
-    ImageDTO(imageId: 5, postId: 1, height: 800, width: 600, imageBlobUrl: "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/development/posts/1/9278fc8a-401b-4145-83bb-ef05d4d52632.jpeg", displayOrder: 4)
+    ImageDTO(
+      imageId: 1, postId: 1, height: 800, width: 600,
+      imageBlobUrl:
+        "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/development/posts/1/9278fc8a-401b-4145-83bb-ef05d4d52632.jpeg",
+      displayOrder: 0),
+    ImageDTO(
+      imageId: 2, postId: 1, height: 600, width: 800,
+      imageBlobUrl:
+        "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/development/posts/1/9278fc8a-401b-4145-83bb-ef05d4d52632.jpeg",
+      displayOrder: 1),
+    ImageDTO(
+      imageId: 3, postId: 1, height: 800, width: 600,
+      imageBlobUrl:
+        "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/development/posts/1/9278fc8a-401b-4145-83bb-ef05d4d52632.jpeg",
+      displayOrder: 2),
+    ImageDTO(
+      imageId: 4, postId: 1, height: 600, width: 800,
+      imageBlobUrl:
+        "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/development/posts/1/9278fc8a-401b-4145-83bb-ef05d4d52632.jpeg",
+      displayOrder: 3),
+    ImageDTO(
+      imageId: 5, postId: 1, height: 800, width: 600,
+      imageBlobUrl:
+        "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/development/posts/1/9278fc8a-401b-4145-83bb-ef05d4d52632.jpeg",
+      displayOrder: 4),
   ]
 
   Rectangle().frame(height: 10)
@@ -355,7 +412,8 @@ struct FullscreenImagePager: View {
       postId: 1,
       height: 400,
       width: 1200,
-      imageBlobUrl: "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/development/posts/6/59041497-5dfa-4a8d-b87d-7745bb59f953.jpg",
+      imageBlobUrl:
+        "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/development/posts/6/59041497-5dfa-4a8d-b87d-7745bb59f953.jpg",
       displayOrder: 0
     )
   ]
