@@ -17,9 +17,7 @@ func (h *Handler) CreateNewPost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	type ImageData struct {
-		S3Key  string `json:"s3Key"`
-		Width  int    `json:"width"`
-		Height int    `json:"height"`
+		S3Key string `json:"s3Key"`
 	}
 
 	var requestBody struct {
@@ -32,13 +30,13 @@ func (h *Handler) CreateNewPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Convert handler ImageData to service ImageData with default dimensions for backwards compatibility
+	// Convert to service ImageData with default dimensions for old app versions
 	serviceImageKeymap := make(map[int]models.ImageData)
 	for displayOrder, imageData := range requestBody.ImageKeymap {
 		serviceImageKeymap[displayOrder] = models.ImageData{
 			S3Key:  imageData.S3Key,
-			Width:  500, // Default for old app versions
-			Height: 500, // Default for old app versions
+			Width:  500,
+			Height: 500,
 		}
 	}
 
