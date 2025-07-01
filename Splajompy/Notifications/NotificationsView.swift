@@ -187,10 +187,19 @@ struct NotificationRow: View {
                 ProgressView()
               }
               .setProcessor(
+                // > 1 aspect ration is landscale
+                // in the second condition, we're effectively multiplying by the reciprocal of the aspect ratio
                 DownsamplingImageProcessor(
                   size: aspectRatio > 1
-                    ? CGSize(width: targetPixelSize * aspectRatio, height: targetPixelSize)  // landscape
-                    : CGSize(width: targetPixelSize, height: targetPixelSize / aspectRatio))  // portrait: we're effectively multiplying by the reciprocal of the aspect ratio
+                    ? CGSize(
+                      width: targetPixelSize * aspectRatio,
+                      height: targetPixelSize
+                    )
+                    : CGSize(
+                      width: targetPixelSize,
+                      height: targetPixelSize / aspectRatio
+                    )
+                )
               )
               .resizable()
               .aspectRatio(contentMode: .fill)
