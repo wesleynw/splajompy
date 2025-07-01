@@ -173,16 +173,25 @@ struct NotificationRow: View {
 
           Spacer()
 
-          if let blobUrl = notification.imageBlob {
+          if let blobUrl = notification.imageBlob,
+            let imageWidth = notification.imageWidth,
+            let imageHeight = notification.imageHeight
+          {
             let targetSize: CGFloat = 40
             let scale = UIScreen.main.scale
             let targetPixelSize = targetSize * scale
-            let aspectRatio = CGFloat(notification.imageWidth) / CGFloat(notification.imageHeight)
-            
+            let aspectRatio = CGFloat(imageWidth) / CGFloat(imageHeight)
+
             KFImage(URL(string: blobUrl))
-              .setProcessor(DownsamplingImageProcessor(size: aspectRatio > 1 
-                ? CGSize(width: targetPixelSize * aspectRatio, height: targetPixelSize)
-                : CGSize(width: targetPixelSize, height: targetPixelSize / aspectRatio)))
+              .placeholder {
+                ProgressView()
+              }
+              .setProcessor(
+                DownsamplingImageProcessor(
+                  size: aspectRatio > 1
+                    ? CGSize(width: targetPixelSize * aspectRatio, height: targetPixelSize)
+                    : CGSize(width: targetPixelSize, height: targetPixelSize / aspectRatio))
+              )
               .resizable()
               .aspectRatio(contentMode: .fill)
               .frame(width: targetSize, height: targetSize)
