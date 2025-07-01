@@ -189,8 +189,8 @@ struct NotificationRow: View {
               .setProcessor(
                 DownsamplingImageProcessor(
                   size: aspectRatio > 1
-                    ? CGSize(width: targetPixelSize * aspectRatio, height: targetPixelSize)
-                    : CGSize(width: targetPixelSize, height: targetPixelSize / aspectRatio))
+                    ? CGSize(width: targetPixelSize * aspectRatio, height: targetPixelSize) // landscape
+                    : CGSize(width: targetPixelSize, height: targetPixelSize / aspectRatio)) // portrait: we're effectively multiplying by the reciprocal of the aspect ratio
               )
               .resizable()
               .aspectRatio(contentMode: .fill)
