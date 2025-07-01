@@ -187,7 +187,7 @@ struct NotificationRow: View {
                 ProgressView()
               }
               .setProcessor(
-                // > 1 aspect ration is landscale
+                // > 1 aspect ratio is landscape
                 // in the second condition, we're effectively multiplying by the reciprocal of the aspect ratio
                 DownsamplingImageProcessor(
                   size: aspectRatio > 1
