@@ -173,18 +173,37 @@ struct NotificationRow: View {
 
           Spacer()
 
-          if let blobUrl = notification.imageBlob {
+          if let blobUrl = notification.imageBlob,
+            let imageWidth = notification.imageWidth,
+            let imageHeight = notification.imageHeight
+          {
             let targetSize: CGFloat = 40
             let scale = UIScreen.main.scale
-            let downsamplingSize = CGSize(
-              width: targetSize * scale,
-              height: targetSize * scale
-            )
+            let targetPixelSize = targetSize * scale
+            let aspectRatio = CGFloat(imageWidth) / CGFloat(imageHeight)
+
             KFImage(URL(string: blobUrl))
-              .downsampling(size: downsamplingSize)
+              .placeholder {
+                ProgressView()
+              }
+              .setProcessor(
+                // > 1 aspect ratio is landscape
+                // in the second condition, we're effectively multiplying by the reciprocal of the aspect ratio
+                DownsamplingImageProcessor(
+                  size: aspectRatio > 1
+                    ? CGSize(
+                      width: targetPixelSize * aspectRatio,
+                      height: targetPixelSize
+                    )
+                    : CGSize(
+                      width: targetPixelSize,
+                      height: targetPixelSize / aspectRatio
+                    )
+                )
+              )
               .resizable()
               .aspectRatio(contentMode: .fill)
-              .frame(width: 40, height: 40)
+              .frame(width: targetSize, height: targetSize)
               .clipped()
               .cornerRadius(5)
           }

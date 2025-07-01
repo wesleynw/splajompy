@@ -54,6 +54,8 @@ func (s *NotificationService) GetNotificationsByUserId(ctx context.Context, user
 			if len(imageBlob) > 0 {
 				url := "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/" + imageBlob[0].ImageBlobUrl
 				detailedNotification.ImageBlob = &url
+				detailedNotification.ImageWidth = &imageBlob[0].Width
+				detailedNotification.ImageHeight = &imageBlob[0].Height
 			}
 		}
 

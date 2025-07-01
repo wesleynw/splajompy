@@ -54,6 +54,8 @@ class MockNotificationService: @unchecked Sendable, NotificationServiceProtocol 
         createdAt: formatter.string(from: baseDate.addingTimeInterval(-3600)),
         imageBlob:
           "https://www.acouplecooks.com/wp-content/uploads/2021/05/Latte-Art-070.jpg",
+        imageWidth: 500,
+        imageHeight: 500,
         facets: [
           Facet(type: "mention", userId: 25, indexStart: 0, indexEnd: 5)
         ],
@@ -77,6 +79,8 @@ class MockNotificationService: @unchecked Sendable, NotificationServiceProtocol 
         viewed: false,
         createdAt: formatter.string(from: baseDate.addingTimeInterval(-7200)),
         imageBlob: nil,
+        imageWidth: 0,
+        imageHeight: 0,
         facets: [
           Facet(type: "mention", userId: 120, indexStart: 0, indexEnd: 11)
         ],
@@ -106,6 +110,8 @@ class MockNotificationService: @unchecked Sendable, NotificationServiceProtocol 
         viewed: true,
         createdAt: formatter.string(from: baseDate.addingTimeInterval(-10800)),
         imageBlob: nil,
+        imageWidth: 0,
+        imageHeight: 0,
         facets: [
           Facet(type: "mention", userId: 6, indexStart: 0, indexEnd: 7)
         ],
@@ -131,6 +137,8 @@ class MockNotificationService: @unchecked Sendable, NotificationServiceProtocol 
         viewed: true,
         createdAt: formatter.string(from: baseDate.addingTimeInterval(-14400)),
         imageBlob: imageUrl,
+        imageWidth: 500,
+        imageHeight: 500,
         facets: [
           Facet(type: "mention", userId: 103, indexStart: 0, indexEnd: 11)
         ],
@@ -160,6 +168,8 @@ class MockNotificationService: @unchecked Sendable, NotificationServiceProtocol 
         viewed: true,
         createdAt: formatter.string(from: baseDate.addingTimeInterval(-18000)),
         imageBlob: imageUrl,
+        imageWidth: 500,
+        imageHeight: 500,
         facets: [
           Facet(type: "mention", userId: 112, indexStart: 0, indexEnd: 9)
         ],
@@ -183,6 +193,8 @@ class MockNotificationService: @unchecked Sendable, NotificationServiceProtocol 
         viewed: false,
         createdAt: formatter.string(from: baseDate.addingTimeInterval(-21600)),
         imageBlob: nil,
+        imageWidth: 0,
+        imageHeight: 0,
         facets: [
           Facet(type: "mention", userId: 97, indexStart: 0, indexEnd: 6)
         ],
@@ -212,6 +224,8 @@ class MockNotificationService: @unchecked Sendable, NotificationServiceProtocol 
         viewed: true,
         createdAt: formatter.string(from: baseDate.addingTimeInterval(-86400)),
         imageBlob: nil,
+        imageWidth: 0,
+        imageHeight: 0,
         facets: nil,
         post: nil,
         comment: nil
@@ -227,6 +241,8 @@ class MockNotificationService: @unchecked Sendable, NotificationServiceProtocol 
         viewed: true,
         createdAt: formatter.string(from: baseDate.addingTimeInterval(-43200)),
         imageBlob: nil,
+        imageWidth: 0,
+        imageHeight: 0,
         facets: [
           Facet(type: "mention", userId: 113, indexStart: 0, indexEnd: 5)
         ],
@@ -265,6 +281,8 @@ class MockNotificationService: @unchecked Sendable, NotificationServiceProtocol 
         viewed: id % 4 == 0,
         createdAt: dateString,
         imageBlob: nil,
+        imageWidth: 0,
+        imageHeight: 0,
         facets: nil,
         post: nil,
         comment: nil

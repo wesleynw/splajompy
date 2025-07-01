@@ -61,9 +61,11 @@ type DetailedComment struct {
 
 type DetailedNotification struct {
 	Notification
-	Post      *Post            `json:"post"`
-	Comment   *queries.Comment `json:"comment"`
-	ImageBlob *string          `json:"imageBlob"`
+	Post        *Post            `json:"post"`
+	Comment     *queries.Comment `json:"comment"`
+	ImageBlob   *string          `json:"imageBlob"`
+	ImageWidth  *int32           `json:"imageWidth"`
+	ImageHeight *int32           `json:"imageHeight"`
 }
 
 // PublicUser Related to queries.GetUserByIdentifierRow

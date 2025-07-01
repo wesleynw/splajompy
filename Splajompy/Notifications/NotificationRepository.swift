@@ -10,6 +10,8 @@ struct Notification: Identifiable, Decodable {
   var viewed: Bool
   let createdAt: String
   let imageBlob: String?
+  let imageWidth: Int32?
+  let imageHeight: Int32?
   let facets: [Facet]?
 
   var post: Post?
