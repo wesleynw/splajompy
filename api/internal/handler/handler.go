@@ -86,6 +86,16 @@ func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
 
 	// comments
 	mux.HandleFunc("GET /post/{id}/comments", h.GetCommentsByPost)
+
+	// temporary API route for image compression
+	mux.HandleFunc("POST /temp/compress-all-images", h.CompressAllImages)
+
+	// image rotation tool routes
+	mux.HandleFunc("GET /tools/image-rotation", h.ImageRotationUI)
+	mux.HandleFunc("GET /api/images", h.ListImages)
+	mux.HandleFunc("GET /api/images/{key}", h.GetImageInfo)
+	mux.HandleFunc("GET /api/images/{key}/view", h.ViewImage)
+	mux.HandleFunc("POST /api/images/{key}/rotate", h.RotateImage)
 }
 
 func (h *Handler) GetIntPathParam(r *http.Request, paramName string) (int, error) {
