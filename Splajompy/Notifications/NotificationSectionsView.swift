@@ -150,9 +150,13 @@ struct NotificationSectionRow: View {
   
   private var notificationContent: some View {
     HStack {
-      Circle()
-        .fill(notification.viewed ? Color.clear : Color.blue)
-        .frame(width: 10, height: 10)
+      VStack {
+        NotificationIcon.icon(for: notification.notificationType)
+          .font(.system(size: 20))
+          .foregroundColor(.blue)
+          .frame(width: 28, height: 28)
+      }
+      .frame(width: 28)
 
       VStack(alignment: .leading, spacing: 8) {
         HStack {

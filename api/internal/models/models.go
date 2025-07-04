@@ -19,15 +19,16 @@ type RelevantLike struct {
 }
 
 type Notification struct {
-	NotificationID int       `json:"notificationId"`
-	UserID         int       `json:"userId"`
-	PostID         *int      `json:"postId"`
-	CommentID      *int      `json:"commentId"`
-	Message        string    `json:"message"`
-	Link           string    `json:"link"`
-	Viewed         bool      `json:"viewed"`
-	Facets         db.Facets `json:"facets"`
-	CreatedAt      time.Time `json:"createdAt"`
+	NotificationID   int                       `json:"notificationId"`
+	UserID           int                       `json:"userId"`
+	PostID           *int                      `json:"postId"`
+	CommentID        *int                      `json:"commentId"`
+	Message          string                    `json:"message"`
+	Link             string                    `json:"link"`
+	Viewed           bool                      `json:"viewed"`
+	Facets           db.Facets                 `json:"facets"`
+	NotificationType queries.NotificationType `json:"notificationType"`
+	CreatedAt        time.Time                 `json:"createdAt"`
 }
 
 type Post struct {

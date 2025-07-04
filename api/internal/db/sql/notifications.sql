@@ -43,5 +43,5 @@ LIMIT $2
 OFFSET $3;
 
 -- name: InsertNotification :exec
-INSERT INTO notifications (user_id, post_id, comment_id, message, facets, link)
-VALUES ($1, $2, $3, $4, $5, $6);
+INSERT INTO notifications (user_id, post_id, comment_id, message, facets, link, notification_type)
+VALUES ($1, $2, $3, $4, $5, $6, $7);

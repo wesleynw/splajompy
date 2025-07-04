@@ -13,7 +13,7 @@ import (
 )
 
 const getNotificationById = `-- name: GetNotificationById :one
-SELECT notification_id, user_id, post_id, comment_id, message, link, viewed, facets, created_at
+SELECT notification_id, user_id, post_id, comment_id, message, link, viewed, facets, notification_type, created_at
 FROM notifications
 WHERE notification_id = $1
 LIMIT 1
@@ -31,13 +31,14 @@ func (q *Queries) GetNotificationById(ctx context.Context, notificationID int32)
 		&i.Link,
 		&i.Viewed,
 		&i.Facets,
+		&i.NotificationType,
 		&i.CreatedAt,
 	)
 	return i, err
 }
 
 const getNotificationsForUserId = `-- name: GetNotificationsForUserId :many
-SELECT notification_id, user_id, post_id, comment_id, message, link, viewed, facets, created_at
+SELECT notification_id, user_id, post_id, comment_id, message, link, viewed, facets, notification_type, created_at
 FROM notifications 
 WHERE user_id = $1
 ORDER BY created_at DESC
@@ -69,6 +70,7 @@ func (q *Queries) GetNotificationsForUserId(ctx context.Context, arg GetNotifica
 			&i.Link,
 			&i.Viewed,
 			&i.Facets,
+			&i.NotificationType,
 			&i.CreatedAt,
 		); err != nil {
 			return nil, err
@@ -82,7 +84,7 @@ func (q *Queries) GetNotificationsForUserId(ctx context.Context, arg GetNotifica
 }
 
 const getUnreadNotificationsForUserId = `-- name: GetUnreadNotificationsForUserId :many
-SELECT notification_id, user_id, post_id, comment_id, message, link, viewed, facets, created_at
+SELECT notification_id, user_id, post_id, comment_id, message, link, viewed, facets, notification_type, created_at
 FROM notifications 
 WHERE user_id = $1 AND viewed = FALSE
 ORDER BY created_at DESC
@@ -114,6 +116,7 @@ func (q *Queries) GetUnreadNotificationsForUserId(ctx context.Context, arg GetUn
 			&i.Link,
 			&i.Viewed,
 			&i.Facets,
+			&i.NotificationType,
 			&i.CreatedAt,
 		); err != nil {
 			return nil, err
@@ -140,17 +143,18 @@ func (q *Queries) GetUserUnreadNotificationCount(ctx context.Context, userID int
 }
 
 const insertNotification = `-- name: InsertNotification :exec
-INSERT INTO notifications (user_id, post_id, comment_id, message, facets, link)
-VALUES ($1, $2, $3, $4, $5, $6)
+INSERT INTO notifications (user_id, post_id, comment_id, message, facets, link, notification_type)
+VALUES ($1, $2, $3, $4, $5, $6, $7)
 `
 
 type InsertNotificationParams struct {
-	UserID    int32       `json:"userId"`
-	PostID    pgtype.Int4 `json:"postId"`
-	CommentID pgtype.Int4 `json:"commentId"`
-	Message   string      `json:"message"`
-	Facets    db.Facets   `json:"facets"`
-	Link      pgtype.Text `json:"link"`
+	UserID           int32            `json:"userId"`
+	PostID           pgtype.Int4      `json:"postId"`
+	CommentID        pgtype.Int4      `json:"commentId"`
+	Message          string           `json:"message"`
+	Facets           db.Facets        `json:"facets"`
+	Link             pgtype.Text      `json:"link"`
+	NotificationType NotificationType `json:"notificationType"`
 }
 
 func (q *Queries) InsertNotification(ctx context.Context, arg InsertNotificationParams) error {
@@ -161,6 +165,7 @@ func (q *Queries) InsertNotification(ctx context.Context, arg InsertNotification
 		arg.Message,
 		arg.Facets,
 		arg.Link,
+		arg.NotificationType,
 	)
 	return err
 }

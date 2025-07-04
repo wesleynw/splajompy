@@ -1,5 +1,12 @@
 import Foundation
 
+enum NotificationType: String, Decodable, CaseIterable {
+  case like = "like"
+  case comment = "comment" 
+  case announcement = "announcement"
+  case mention = "mention"
+}
+
 struct Notification: Identifiable, Decodable {
   let notificationId: Int
   let userId: Int
@@ -13,6 +20,7 @@ struct Notification: Identifiable, Decodable {
   let imageWidth: Int32?
   let imageHeight: Int32?
   let facets: [Facet]?
+  let notificationType: NotificationType
 
   var post: Post?
   var comment: Comment?

@@ -43,15 +43,16 @@ func MapNotification(notification queries.Notification) models.Notification {
 	}
 
 	return models.Notification{
-		NotificationID: int(notification.NotificationID),
-		UserID:         int(notification.UserID),
-		PostID:         postId,
-		CommentID:      commentId,
-		Message:        notification.Message,
-		Link:           notification.Link.String,
-		Viewed:         notification.Viewed,
-		Facets:         notification.Facets,
-		CreatedAt:      notification.CreatedAt.Time.UTC(),
+		NotificationID:   int(notification.NotificationID),
+		UserID:           int(notification.UserID),
+		PostID:           postId,
+		CommentID:        commentId,
+		Message:          notification.Message,
+		Link:             notification.Link.String,
+		Viewed:           notification.Viewed,
+		Facets:           notification.Facets,
+		NotificationType: notification.NotificationType,
+		CreatedAt:        notification.CreatedAt.Time.UTC(),
 	}
 }
 
