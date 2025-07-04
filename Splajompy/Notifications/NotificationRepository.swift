@@ -2,7 +2,7 @@ import Foundation
 
 enum NotificationType: String, Decodable, CaseIterable {
   case like = "like"
-  case comment = "comment" 
+  case comment = "comment"
   case announcement = "announcement"
   case mention = "mention"
 }

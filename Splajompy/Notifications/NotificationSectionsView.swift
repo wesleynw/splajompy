@@ -1,15 +1,15 @@
-import SwiftUI
 import Kingfisher
+import SwiftUI
 
 struct NotificationSectionsView: View {
   @ObservedObject var viewModel: NotificationsViewModel
-  
+
   var body: some View {
     List {
       if !viewModel.unreadNotifications.isEmpty {
         UnreadNotificationsSection(viewModel: viewModel)
       }
-      
+
       if !viewModel.readNotifications.isEmpty || !viewModel.unreadNotifications.isEmpty {
         ReadNotificationsSection(viewModel: viewModel)
       }
@@ -25,17 +25,19 @@ struct NotificationSectionsView: View {
 
 struct UnreadNotificationsSection: View {
   @ObservedObject var viewModel: NotificationsViewModel
-  
+
   var body: some View {
     Section {
       ForEach(viewModel.unreadNotifications) { notification in
         NotificationSectionRow(notification: notification) {
           await viewModel.markNotificationAsRead(notificationId: notification.notificationId)
         }
-        .transition(.asymmetric(
-          insertion: .move(edge: .top).combined(with: .opacity),
-          removal: .move(edge: .leading).combined(with: .opacity)
-        ))
+        .transition(
+          .asymmetric(
+            insertion: .move(edge: .top).combined(with: .opacity),
+            removal: .move(edge: .leading).combined(with: .opacity)
+          )
+        )
         .onAppear {
           if notification.id == viewModel.unreadNotifications.last?.id {
             Task {
@@ -44,7 +46,7 @@ struct UnreadNotificationsSection: View {
           }
         }
       }
-      
+
       if viewModel.isLoadingMoreUnread {
         ProgressView()
           .frame(maxWidth: .infinity, alignment: .center)
@@ -54,9 +56,9 @@ struct UnreadNotificationsSection: View {
       HStack {
         Text("Unread")
           .font(.headline)
-        
+
         Spacer()
-        
+
         if !viewModel.unreadNotifications.isEmpty {
           Button(action: {
             Task {
@@ -80,17 +82,19 @@ struct UnreadNotificationsSection: View {
 
 struct ReadNotificationsSection: View {
   @ObservedObject var viewModel: NotificationsViewModel
-  
+
   var body: some View {
     Section {
       ForEach(viewModel.readNotifications) { notification in
         NotificationSectionRow(notification: notification) {
           // Read notifications cannot be marked as read again
         }
-        .transition(.asymmetric(
-          insertion: .move(edge: .trailing).combined(with: .opacity),
-          removal: .move(edge: .top).combined(with: .opacity)
-        ))
+        .transition(
+          .asymmetric(
+            insertion: .move(edge: .trailing).combined(with: .opacity),
+            removal: .move(edge: .top).combined(with: .opacity)
+          )
+        )
         .onAppear {
           if notification.id == viewModel.readNotifications.last?.id {
             Task {
@@ -99,7 +103,7 @@ struct ReadNotificationsSection: View {
           }
         }
       }
-      
+
       if viewModel.isLoadingMoreRead {
         ProgressView()
           .frame(maxWidth: .infinity, alignment: .center)
@@ -116,13 +120,13 @@ struct NotificationSectionRow: View {
   @EnvironmentObject private var feedRefreshManager: FeedRefreshManager
   let notification: Notification
   let onMarkAsRead: () async -> Void
-  
+
   private var notificationDate: Date {
     let formatter = ISO8601DateFormatter()
     formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
     return formatter.date(from: notification.createdAt) ?? Date()
   }
-  
+
   var body: some View {
     ZStack {
       if let postId = notification.postId {
@@ -147,7 +151,7 @@ struct NotificationSectionRow: View {
       }
     }
   }
-  
+
   private var notificationContent: some View {
     HStack {
       VStack {

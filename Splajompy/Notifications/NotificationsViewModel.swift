@@ -108,7 +108,8 @@ class NotificationsViewModel: ObservableObject {
   func markNotificationAsRead(notificationId: Int) async {
     guard !isRefreshing else { return }
 
-    guard let index = unreadNotifications.firstIndex(where: { $0.notificationId == notificationId }) else {
+    guard let index = unreadNotifications.firstIndex(where: { $0.notificationId == notificationId })
+    else {
       return
     }
 

@@ -7,7 +7,6 @@ struct NotificationsView: View {
   @EnvironmentObject private var authManager: AuthManager
   @EnvironmentObject private var feedRefreshManager: FeedRefreshManager
 
-
   var body: some View {
     ZStack {
       if viewModel.isInitialLoading {

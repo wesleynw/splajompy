@@ -13,15 +13,15 @@ struct NotificationIcon {
       return "at"
     }
   }
-  
+
   static func icon(for notificationType: NotificationType) -> some View {
     Image(systemName: iconName(for: notificationType))
   }
-  
+
   static func defaultIcon() -> some View {
     Image(systemName: "bell.fill")
   }
-  
+
   static func defaultIconName() -> String {
     return "bell"
   }
