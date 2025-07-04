@@ -71,8 +71,13 @@ struct NotificationsView: View {
       }
 
       if !viewModel.readNotifications.isEmpty && !viewModel.canLoadMoreUnread {
-        notificationSection(
-          title: "Read", notifications: viewModel.readNotifications, isUnread: false)
+        ForEach(readNotificationsByDateSection, id: \.key) { section in
+          notificationSection(
+            title: section.key.rawValue,
+            notifications: section.value,
+            isUnread: false
+          )
+        }
       }
     }
     .listStyle(.plain)
@@ -82,6 +87,20 @@ struct NotificationsView: View {
       await viewModel.refreshNotifications()
     }
     .environmentObject(viewModel)
+  }
+
+  private var readNotificationsByDateSection:
+    [(key: NotificationDateSection, value: [Notification])]
+  {
+    let grouped = Dictionary(grouping: viewModel.readNotifications) { notification in
+      let date = sharedISO8601Formatter.date(from: notification.createdAt) ?? Date()
+      return date.notificationSection()
+    }
+
+    return NotificationDateSection.allCases.compactMap { section in
+      guard let notifications = grouped[section], !notifications.isEmpty else { return nil }
+      return (key: section, value: notifications)
+    }
   }
 
   private func notificationSection(title: String, notifications: [Notification], isUnread: Bool)
@@ -135,7 +154,7 @@ struct NotificationRow: View {
   let isUnread: Bool
 
   private var notificationDate: Date {
-    ISO8601DateFormatter().date(from: notification.createdAt) ?? Date()
+    sharedISO8601Formatter.date(from: notification.createdAt) ?? Date()
   }
 
   var body: some View {
