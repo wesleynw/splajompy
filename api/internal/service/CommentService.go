@@ -64,6 +64,7 @@ func (s *CommentService) AddCommentToPost(ctx context.Context, currentUser model
 			&commentId,
 			&notificationFacets,
 			text,
+			models.NotificationTypeComment,
 		)
 		if err != nil {
 			return nil, errors.New("unable to create a new comment notification")
@@ -79,7 +80,7 @@ func (s *CommentService) AddCommentToPost(ctx context.Context, currentUser model
 				return nil, errors.New("unable to generate facets")
 			}
 
-			err = s.notificationRepo.InsertNotification(ctx, facet.UserId, &postId, &commentId, &notificationFacets, text)
+			err = s.notificationRepo.InsertNotification(ctx, facet.UserId, &postId, &commentId, &notificationFacets, text, models.NotificationTypeMention)
 			if err != nil {
 				return nil, errors.New("unable to create a new comment notification")
 			}
@@ -150,7 +151,7 @@ func (s *CommentService) AddLikeToCommentById(ctx context.Context, currentUser m
 	if err != nil {
 		return err
 	}
-	err = s.notificationRepo.InsertNotification(ctx, int(comment.UserID), &postId, &commentId, &facets, text)
+	err = s.notificationRepo.InsertNotification(ctx, int(comment.UserID), &postId, &commentId, &facets, text, models.NotificationTypeLike)
 
 	return err
 }

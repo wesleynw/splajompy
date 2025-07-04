@@ -63,6 +63,7 @@ func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
 
 	// notifications
 	mux.HandleFunc("GET /notifications", h.GetAllNotificationByUserId)
+	mux.HandleFunc("GET /notifications/unread", h.GetUnreadNotificationsByUserId)
 	mux.HandleFunc("POST /notifications/markRead", h.MarkAllNotificationsAsRead)
 	mux.HandleFunc("POST /notifications/{id}/markRead", h.MarkNotificationAsReadById)
 	mux.HandleFunc("GET /notifications/hasUnread", h.HasUnreadNotifications)

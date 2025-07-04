@@ -1,5 +1,12 @@
 import Foundation
 
+enum NotificationType: String, Decodable, CaseIterable {
+  case like = "like"
+  case comment = "comment"
+  case announcement = "announcement"
+  case mention = "mention"
+}
+
 struct Notification: Identifiable, Decodable {
   let notificationId: Int
   let userId: Int
@@ -13,6 +20,7 @@ struct Notification: Identifiable, Decodable {
   let imageWidth: Int32?
   let imageHeight: Int32?
   let facets: [Facet]?
+  let notificationType: NotificationType
 
   var post: Post?
   var comment: Comment?
@@ -22,6 +30,10 @@ struct Notification: Identifiable, Decodable {
 
 protocol NotificationServiceProtocol: Sendable {
   func getAllNotifications(offset: Int, limit: Int) async -> AsyncResult<
+    [Notification]
+  >
+
+  func getUnreadNotifications(offset: Int, limit: Int) async -> AsyncResult<
     [Notification]
   >
 
@@ -64,5 +76,19 @@ struct NotificationService: NotificationServiceProtocol {
 
   func getUnreadNotificationCount() async -> AsyncResult<Int> {
     return await APIService.performRequest(endpoint: "notifications/unreadCount")
+  }
+
+  func getUnreadNotifications(offset: Int, limit: Int) async -> AsyncResult<
+    [Notification]
+  > {
+    let queryItems = [
+      URLQueryItem(name: "offset", value: "\(offset)"),
+      URLQueryItem(name: "limit", value: "\(limit)"),
+    ]
+
+    return await APIService.performRequest(
+      endpoint: "notifications/unread",
+      queryItems: queryItems
+    )
   }
 }

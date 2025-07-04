@@ -1,103 +1,201 @@
 import Foundation
+import SwiftUI
 
 enum NotificationState {
   case idle
   case loading
-  case loaded([Notification])
+  case loaded(unread: [Notification], read: [Notification])
   case failed(Error)
 }
 
 extension NotificationsView {
   @MainActor class ViewModel: ObservableObject {
-    @Published var canLoadMore: Bool = true
     @Published var state: NotificationState = .idle
-    @Published var isLoadingMore: Bool = false {
-      didSet {
-        print("isloadingmore: \(isLoadingMore)")
-      }
-    }
-    private var offset = 0
+    @Published var isLoadingMoreUnread: Bool = false
+    @Published var isLoadingMoreRead: Bool = false
+    @Published var canLoadMoreUnread: Bool = true
+    @Published var canLoadMoreRead: Bool = true
+
+    private var unreadOffset = 0
+    private var readOffset = 0
     private let limit = 10
-    private var service: NotificationServiceProtocol
+    private let readLimit = 20
+    private let service = NotificationService()
 
-    init(service: NotificationServiceProtocol = NotificationService()) {
-      self.service = service
+    var isEmpty: Bool {
+      guard case .loaded(let unread, let read) = state else { return true }
+      return unread.isEmpty && read.isEmpty
     }
 
-    func loadNotifications(reset: Bool = false) async {
-      if reset {
-        if case .idle = state {
-          state = .loading
-        }
-        offset = 0
-      } else {
-        isLoadingMore = true
+    var unreadNotifications: [Notification] {
+      guard case .loaded(let unread, _) = state else { return [] }
+      return unread
+    }
+
+    var readNotifications: [Notification] {
+      guard case .loaded(_, let read) = state else { return [] }
+      return read
+    }
+
+    func refreshNotifications() async {
+      if case .idle = state {
+        state = .loading
+      } else if case .loaded(let unread, let read) = state, unread.isEmpty && read.isEmpty {
+        state = .loading
       }
 
-      let result = await service.getAllNotifications(
-        offset: offset,
+      unreadOffset = 0
+      readOffset = 0
+
+      // async let allows us to use parallel async ops
+      async let unreadResult = service.getUnreadNotifications(offset: 0, limit: limit)
+      async let readResult = service.getAllNotifications(offset: 0, limit: readLimit)
+
+      let (unread, read) = await (unreadResult, readResult)
+
+      switch (unread, read) {
+      case (.success(let unreadNotifications), .success(let allNotifications)):
+        let filteredRead = allNotifications.filter { $0.viewed }
+        state = .loaded(unread: unreadNotifications, read: filteredRead)
+
+        canLoadMoreUnread = unreadNotifications.count >= limit
+        unreadOffset = unreadNotifications.count
+
+        canLoadMoreRead = allNotifications.count >= readLimit
+        readOffset = allNotifications.count
+
+      case (.error(let error), _), (_, .error(let error)):
+        state = .failed(error)
+        canLoadMoreUnread = false
+        canLoadMoreRead = false
+      }
+    }
+
+    func loadMoreUnreadNotifications() async {
+      guard canLoadMoreUnread && !isLoadingMoreUnread else { return }
+
+      isLoadingMoreUnread = true
+
+      let result = await service.getUnreadNotifications(
+        offset: unreadOffset,
         limit: limit
       )
 
       switch result {
       case .success(let notifications):
-        if case .loaded(let existingNotifications) = state, !reset {
-          state = .loaded(existingNotifications + notifications)
-        } else {
-          state = .loaded(notifications)
+        if case .loaded(let currentUnread, let currentRead) = state {
+          state = .loaded(unread: currentUnread + notifications, read: currentRead)
         }
-        canLoadMore = notifications.count >= limit
-        offset += notifications.count
+        canLoadMoreUnread = notifications.count >= limit
+        unreadOffset += notifications.count
+      case .error:
+        canLoadMoreUnread = false
+      }
 
-        if !reset {
-          isLoadingMore = false
+      isLoadingMoreUnread = false
+    }
+
+    func loadMoreReadNotifications() async {
+      guard canLoadMoreRead && !isLoadingMoreRead else { return }
+
+      isLoadingMoreRead = true
+
+      let result = await service.getAllNotifications(
+        offset: readOffset,
+        limit: readLimit
+      )
+
+      switch result {
+      case .success(let notifications):
+        var addedNewNotifications = false
+
+        if case .loaded(let currentUnread, let currentRead) = state {
+          let filteredRead = filterReadNotifications(notifications, existing: currentRead)
+
+          if !filteredRead.isEmpty {
+            state = .loaded(unread: currentUnread, read: currentRead + filteredRead)
+            addedNewNotifications = true
+          }
         }
-      case .error(let error):
-        state = .failed(error)
-        if !reset {
-          isLoadingMore = false
+
+        readOffset += notifications.count
+        canLoadMoreRead = notifications.count >= readLimit
+
+        if !addedNewNotifications && notifications.count >= readLimit {
+          await loadMoreReadNotifications()
+          return
         }
+      case .error:
+        canLoadMoreRead = false
+      }
+
+      isLoadingMoreRead = false
+    }
+
+    private func filterReadNotifications(_ notifications: [Notification], existing: [Notification])
+      -> [Notification]
+    {
+      notifications.filter { newNotification in
+        newNotification.viewed
+          && !existing.contains { existingNotification in
+            existingNotification.notificationId == newNotification.notificationId
+          }
       }
     }
 
-    func markNotificationAsRead(for notification: Notification) {
-      guard case .loaded(var notifications) = state else {
+    func markNotificationAsRead(notificationId: Int) async {
+      guard case .loaded(var unread, let read) = state else { return }
+
+      guard let index = unread.firstIndex(where: { $0.notificationId == notificationId }) else {
         return
       }
 
-      if let index = notifications.firstIndex(where: {
-        $0.notificationId == notification.notificationId
-      }) {
-        notifications[index].viewed = true
+      var notification = unread[index]
+      notification.viewed = true
+      unread.remove(at: index)
 
-        state = .loaded(notifications)
+      // Update state immediately to remove from unread
+      state = .loaded(unread: unread, read: read)
+
+      // Add to read notifications after a delay
+      DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+        if case .loaded(let currentUnread, var currentRead) = self.state {
+          if !currentRead.contains(where: { $0.notificationId == notification.notificationId }) {
+            currentRead.insert(notification, at: 0)
+            self.state = .loaded(unread: currentUnread, read: currentRead)
+          }
+        }
       }
 
-      Task {
-        await service.markNotificationAsRead(
-          notificationId: notification.notificationId
-        )
-      }
+      let _ = await service.markNotificationAsRead(notificationId: notificationId)
     }
 
-    func markAllNotificationsAsRead() {
-      guard case .loaded(var notifications) = state else {
-        return
+    func markAllNotificationsAsRead() async {
+      guard case .loaded(let unread, let read) = state else { return }
+
+      let unreadCopy = unread
+      state = .loaded(unread: [], read: read)
+
+      DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+        let updatedNotifications = unreadCopy.map { notification in
+          var updated = notification
+          updated.viewed = true
+          return updated
+        }
+
+        if case .loaded(_, var currentRead) = self.state {
+          let newReadNotifications = updatedNotifications.filter { updatedNotification in
+            !currentRead.contains(where: {
+              $0.notificationId == updatedNotification.notificationId
+            })
+          }
+          currentRead.insert(contentsOf: newReadNotifications, at: 0)
+          self.state = .loaded(unread: [], read: currentRead)
+        }
       }
 
-      for i in 0..<notifications.count {
-        notifications[i].viewed = true
-      }
-
-      state = .loaded(notifications)
-
-      Task {
-        await service.markAllNotificationsAsRead()
-      }
+      let _ = await service.markAllNotificationsAsRead()
     }
 
-    func refresh() async {
-      await loadNotifications(reset: true)
-    }
   }
 }

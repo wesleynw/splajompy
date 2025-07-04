@@ -79,6 +79,7 @@ CREATE TABLE notifications (
     link TEXT NULL,
     viewed BOOLEAN NOT NULL DEFAULT FALSE,
     facets JSON,
+    notification_type VARCHAR(50) NOT NULL DEFAULT 'default',
     created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
     FOREIGN KEY (post_id) REFERENCES posts(post_id) ON DELETE CASCADE,
     FOREIGN KEY (comment_id) REFERENCES comments(comment_id) ON DELETE CASCADE,

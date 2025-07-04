@@ -81,7 +81,7 @@ func (s *PostService) NewPost(ctx context.Context, currentUser models.PublicUser
 				return err
 			}
 
-			err = s.notificationRepository.InsertNotification(ctx, facet.UserId, &postId, nil, &notificationFacets, text)
+			err = s.notificationRepository.InsertNotification(ctx, facet.UserId, &postId, nil, &notificationFacets, text, models.NotificationTypeMention)
 			if err != nil {
 				return errors.New("unable to create post")
 			}
@@ -203,7 +203,7 @@ func (s *PostService) AddLikeToPost(ctx context.Context, currentUser models.Publ
 	if err != nil {
 		return err
 	}
-	err = s.notificationRepository.InsertNotification(ctx, int(post.UserID), &postId, nil, &facets, text)
+	err = s.notificationRepository.InsertNotification(ctx, int(post.UserID), &postId, nil, &facets, text, models.NotificationTypeLike)
 
 	return err
 }
