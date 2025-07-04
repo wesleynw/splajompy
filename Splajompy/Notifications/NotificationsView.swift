@@ -43,7 +43,7 @@ struct NotificationsView: View {
       Spacer()
     }
   }
-  
+
   private var emptyStateView: some View {
     VStack {
       Spacer()

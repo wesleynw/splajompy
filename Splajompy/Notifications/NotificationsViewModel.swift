@@ -29,14 +29,14 @@ extension NotificationsView {
       }
       return true
     }
-    
+
     var unreadNotifications: [Notification] {
       if case .loaded(let unread, _) = state {
         return unread
       }
       return []
     }
-    
+
     var readNotifications: [Notification] {
       if case .loaded(_, let read) = state {
         return read
@@ -64,10 +64,10 @@ extension NotificationsView {
       case (.success(let unreadNotifications), .success(let allNotifications)):
         let filteredRead = allNotifications.filter { $0.viewed }
         state = .loaded(unread: unreadNotifications, read: filteredRead)
-        
+
         canLoadMoreUnread = unreadNotifications.count >= limit
         unreadOffset = unreadNotifications.count
-        
+
         // Track all notification IDs to prevent duplicates
         seenNotificationIds.removeAll()
         for notification in unreadNotifications {
@@ -76,10 +76,10 @@ extension NotificationsView {
         for notification in filteredRead {
           seenNotificationIds.insert(notification.notificationId)
         }
-        
+
         canLoadMoreRead = allNotifications.count >= readLimit
         readOffset = allNotifications.count
-        
+
       case (.error(let error), _), (_, .error(let error)):
         state = .failed(error)
         canLoadMoreUnread = false
@@ -158,7 +158,7 @@ extension NotificationsView {
       var notification = unread[index]
       notification.viewed = true
       unread.remove(at: index)
-      
+
       // Update state immediately with animation to remove from unread
       withAnimation(.easeInOut(duration: 0.2)) {
         state = .loaded(unread: unread, read: read)
