@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+
 	"splajompy.com/api/v2/internal/repositories"
 
 	"splajompy.com/api/v2/internal/models"
@@ -114,6 +115,7 @@ func (s *NotificationService) GetUnreadNotificationsByUserId(ctx context.Context
 
 	detailedNotifications := make([]models.DetailedNotification, 0, len(notifications))
 
+	// todo refactor this into a method, this is duplicated from above
 	for _, notification := range notifications {
 		var detailedNotification models.DetailedNotification
 		detailedNotification.Notification = *notification
