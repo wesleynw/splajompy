@@ -124,7 +124,9 @@ struct NotificationsView: View {
           }
       }
 
-      if (isUnread && viewModel.isLoadingMoreUnread) || (!isUnread && viewModel.isLoadingMoreRead) {
+      if (isUnread && viewModel.isLoadingMoreUnread)
+        || (!isUnread && viewModel.isLoadingMoreRead && isLastReadSection(title: title))
+      {
         ProgressView()
           .frame(maxWidth: .infinity, alignment: .center)
           .listRowSeparator(.hidden)
@@ -144,6 +146,11 @@ struct NotificationsView: View {
         }
       }
     }
+  }
+
+  private func isLastReadSection(title: String) -> Bool {
+    guard let lastSection = readNotificationsByDateSection.last else { return false }
+    return lastSection.key.rawValue == title
   }
 }
 
