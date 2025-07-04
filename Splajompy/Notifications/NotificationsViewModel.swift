@@ -1,16 +1,20 @@
 import Foundation
 import SwiftUI
 
+enum NotificationState {
+  case idle
+  case loading
+  case loaded(unread: [Notification], read: [Notification])
+  case failed(Error)
+}
+
 extension NotificationsView {
   @MainActor class ViewModel: ObservableObject {
-    @Published var unreadNotifications: [Notification] = []
-    @Published var readNotifications: [Notification] = []
+    @Published var state: NotificationState = .idle
     @Published var isLoadingMoreUnread: Bool = false
     @Published var isLoadingMoreRead: Bool = false
     @Published var canLoadMoreUnread: Bool = true
     @Published var canLoadMoreRead: Bool = true
-    @Published var isInitialLoading: Bool = false
-    @Published var isRefreshing: Bool = false
 
     private var unreadOffset = 0
     private var readOffset = 0
@@ -20,16 +24,31 @@ extension NotificationsView {
     private var seenNotificationIds = Set<Int>()
 
     var isEmpty: Bool {
-      unreadNotifications.isEmpty && readNotifications.isEmpty
+      if case .loaded(let unread, let read) = state {
+        return unread.isEmpty && read.isEmpty
+      }
+      return true
+    }
+    
+    var unreadNotifications: [Notification] {
+      if case .loaded(let unread, _) = state {
+        return unread
+      }
+      return []
+    }
+    
+    var readNotifications: [Notification] {
+      if case .loaded(_, let read) = state {
+        return read
+      }
+      return []
     }
 
     func refreshNotifications() async {
-      guard !isRefreshing else { return }
-
-      isRefreshing = true
-
-      if unreadNotifications.isEmpty && readNotifications.isEmpty {
-        isInitialLoading = true
+      if case .idle = state {
+        state = .loading
+      } else if case .loaded(let unread, let read) = state, unread.isEmpty && read.isEmpty {
+        state = .loading
       }
 
       unreadOffset = 0
@@ -41,42 +60,35 @@ extension NotificationsView {
 
       let (unread, read) = await (unreadResult, readResult)
 
-      switch unread {
-      case .success(let notifications):
-        unreadNotifications = notifications
-        canLoadMoreUnread = notifications.count >= limit
-        unreadOffset = notifications.count
-      case .error:
-        unreadNotifications = []
-        canLoadMoreUnread = false
-      }
-
-      switch read {
-      case .success(let notifications):
-        let filteredRead = notifications.filter { $0.viewed }
-        readNotifications = filteredRead
-
+      switch (unread, read) {
+      case (.success(let unreadNotifications), .success(let allNotifications)):
+        let filteredRead = allNotifications.filter { $0.viewed }
+        state = .loaded(unread: unreadNotifications, read: filteredRead)
+        
+        canLoadMoreUnread = unreadNotifications.count >= limit
+        unreadOffset = unreadNotifications.count
+        
         // Track all notification IDs to prevent duplicates
+        seenNotificationIds.removeAll()
         for notification in unreadNotifications {
           seenNotificationIds.insert(notification.notificationId)
         }
         for notification in filteredRead {
           seenNotificationIds.insert(notification.notificationId)
         }
-
-        canLoadMoreRead = notifications.count >= readLimit
-        readOffset = notifications.count
-      case .error:
-        readNotifications = []
+        
+        canLoadMoreRead = allNotifications.count >= readLimit
+        readOffset = allNotifications.count
+        
+      case (.error(let error), _), (_, .error(let error)):
+        state = .failed(error)
+        canLoadMoreUnread = false
         canLoadMoreRead = false
       }
-
-      isInitialLoading = false
-      isRefreshing = false
     }
 
     func loadMoreUnreadNotifications() async {
-      guard canLoadMoreUnread && !isLoadingMoreUnread && !isRefreshing else { return }
+      guard canLoadMoreUnread && !isLoadingMoreUnread else { return }
 
       isLoadingMoreUnread = true
 
@@ -87,7 +99,9 @@ extension NotificationsView {
 
       switch result {
       case .success(let notifications):
-        unreadNotifications.append(contentsOf: notifications)
+        if case .loaded(let currentUnread, let currentRead) = state {
+          state = .loaded(unread: currentUnread + notifications, read: currentRead)
+        }
         canLoadMoreUnread = notifications.count >= limit
         unreadOffset += notifications.count
       case .error:
@@ -98,7 +112,7 @@ extension NotificationsView {
     }
 
     func loadMoreReadNotifications() async {
-      guard canLoadMoreRead && !isLoadingMoreRead && !isRefreshing else { return }
+      guard canLoadMoreRead && !isLoadingMoreRead else { return }
 
       isLoadingMoreRead = true
 
@@ -114,7 +128,9 @@ extension NotificationsView {
         }
 
         if !filteredRead.isEmpty {
-          readNotifications.append(contentsOf: filteredRead)
+          if case .loaded(let currentUnread, let currentRead) = state {
+            state = .loaded(unread: currentUnread, read: currentRead + filteredRead)
+          }
           updateSeenNotificationIds()
         }
 
@@ -133,26 +149,29 @@ extension NotificationsView {
     }
 
     func markNotificationAsRead(notificationId: Int) async {
-      guard !isRefreshing else { return }
+      guard case .loaded(var unread, let read) = state else { return }
 
-      guard
-        let index = unreadNotifications.firstIndex(where: { $0.notificationId == notificationId })
-      else {
+      guard let index = unread.firstIndex(where: { $0.notificationId == notificationId }) else {
         return
       }
 
-      var notification = unreadNotifications[index]
+      var notification = unread[index]
       notification.viewed = true
+      unread.remove(at: index)
+      
+      // Update state immediately with animation to remove from unread
+      withAnimation(.easeInOut(duration: 0.2)) {
+        state = .loaded(unread: unread, read: read)
+      }
 
-      unreadNotifications.remove(at: index)
-
-      DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+      DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
         withAnimation(.easeInOut(duration: 0.3)) {
-          if !self.readNotifications.contains(where: {
-            $0.notificationId == notification.notificationId
-          }) {
-            self.readNotifications.insert(notification, at: 0)
-            self.updateSeenNotificationIds()
+          if case .loaded(let currentUnread, var currentRead) = self.state {
+            if !currentRead.contains(where: { $0.notificationId == notification.notificationId }) {
+              currentRead.insert(notification, at: 0)
+              self.state = .loaded(unread: currentUnread, read: currentRead)
+              self.updateSeenNotificationIds()
+            }
           }
         }
       }
@@ -161,11 +180,10 @@ extension NotificationsView {
     }
 
     func markAllNotificationsAsRead() async {
-      guard !isRefreshing else { return }
+      guard case .loaded(let unread, let read) = state else { return }
 
-      let unreadCopy = unreadNotifications
-
-      unreadNotifications.removeAll()
+      let unreadCopy = unread
+      state = .loaded(unread: [], read: read)
 
       DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
         withAnimation(.easeInOut(duration: 0.4)) {
@@ -175,13 +193,16 @@ extension NotificationsView {
             return updated
           }
 
-          let newReadNotifications = updatedNotifications.filter { updatedNotification in
-            !self.readNotifications.contains(where: {
-              $0.notificationId == updatedNotification.notificationId
-            })
+          if case .loaded(_, var currentRead) = self.state {
+            let newReadNotifications = updatedNotifications.filter { updatedNotification in
+              !currentRead.contains(where: {
+                $0.notificationId == updatedNotification.notificationId
+              })
+            }
+            currentRead.insert(contentsOf: newReadNotifications, at: 0)
+            self.state = .loaded(unread: [], read: currentRead)
+            self.updateSeenNotificationIds()
           }
-          self.readNotifications.insert(contentsOf: newReadNotifications, at: 0)
-          self.updateSeenNotificationIds()
         }
       }
 
@@ -190,11 +211,13 @@ extension NotificationsView {
 
     private func updateSeenNotificationIds() {
       seenNotificationIds.removeAll()
-      for notification in unreadNotifications {
-        seenNotificationIds.insert(notification.notificationId)
-      }
-      for notification in readNotifications {
-        seenNotificationIds.insert(notification.notificationId)
+      if case .loaded(let unread, let read) = state {
+        for notification in unread {
+          seenNotificationIds.insert(notification.notificationId)
+        }
+        for notification in read {
+          seenNotificationIds.insert(notification.notificationId)
+        }
       }
     }
   }

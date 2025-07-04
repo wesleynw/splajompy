@@ -8,24 +8,42 @@ struct NotificationsView: View {
 
   var body: some View {
     Group {
-      if viewModel.isInitialLoading {
-        ProgressView()
-          .scaleEffect(1.5)
-          .frame(maxWidth: .infinity, maxHeight: .infinity)
-      } else if viewModel.isEmpty {
-        emptyStateView
-      } else {
-        notificationsList
+      switch viewModel.state {
+      case .idle:
+        loadingPlaceholder
+      case .loading:
+        loadingPlaceholder
+      case .loaded(let unread, let read):
+        if unread.isEmpty && read.isEmpty {
+          emptyStateView
+        } else {
+          notificationsList
+        }
+      case .failed(let error):
+        ErrorScreen(
+          errorString: error.localizedDescription,
+          onRetry: { await viewModel.refreshNotifications() }
+        )
       }
     }
     .navigationTitle("Notifications")
     .onAppear {
-      if viewModel.isEmpty {
+      if case .idle = viewModel.state {
         Task { await viewModel.refreshNotifications() }
       }
     }
   }
 
+  private var loadingPlaceholder: some View {
+    VStack {
+      Spacer()
+      ProgressView()
+        .scaleEffect(1.5)
+        .padding()
+      Spacer()
+    }
+  }
+  
   private var emptyStateView: some View {
     VStack {
       Spacer()
