@@ -88,13 +88,15 @@ struct NotificationsView: View {
     }
     .environmentObject(viewModel)
   }
-  
-  private var readNotificationsByDateSection: [(key: NotificationDateSection, value: [Notification])] {
+
+  private var readNotificationsByDateSection:
+    [(key: NotificationDateSection, value: [Notification])]
+  {
     let grouped = Dictionary(grouping: viewModel.readNotifications) { notification in
       let date = sharedISO8601Formatter.date(from: notification.createdAt) ?? Date()
       return date.notificationSection()
     }
-    
+
     return NotificationDateSection.allCases.compactMap { section in
       guard let notifications = grouped[section], !notifications.isEmpty else { return nil }
       return (key: section, value: notifications)
