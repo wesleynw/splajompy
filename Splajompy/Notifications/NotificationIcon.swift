@@ -11,6 +11,8 @@ struct NotificationIcon {
       return "megaphone"
     case .mention:
       return "at"
+    case .none:
+      return "bell"
     }
   }
 
