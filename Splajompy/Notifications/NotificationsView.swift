@@ -3,116 +3,109 @@ import SwiftUI
 
 struct NotificationsView: View {
   @StateObject private var viewModel = ViewModel()
-
   @EnvironmentObject private var authManager: AuthManager
   @EnvironmentObject private var feedRefreshManager: FeedRefreshManager
 
   var body: some View {
-    ZStack {
+    Group {
       if viewModel.isInitialLoading {
         ProgressView()
           .scaleEffect(1.5)
-          .frame(maxWidth: .infinity)
-          .frame(maxHeight: .infinity)
-      } else if viewModel.unreadNotifications.isEmpty && viewModel.readNotifications.isEmpty {
-        VStack {
-          Spacer()
-          Text("No notifications.")
-            .font(.title3)
-            .fontWeight(.bold)
-            .padding(.top, 40)
-          Button {
-            Task { await viewModel.refreshNotifications() }
-          } label: {
-            HStack {
-              Image(systemName: "arrow.clockwise")
-              Text("Retry")
-            }
-          }
-          .padding()
-          .buttonStyle(.bordered)
-          Spacer()
-        }
+          .frame(maxWidth: .infinity, maxHeight: .infinity)
+      } else if viewModel.isEmpty {
+        emptyStateView
       } else {
-        List {
-          if !viewModel.unreadNotifications.isEmpty {
-            UnreadNotificationsSection()
-          }
-
-          if !viewModel.readNotifications.isEmpty || !viewModel.unreadNotifications.isEmpty {
-            ReadNotificationsSection()
-          }
-        }
-        .listStyle(.plain)
-        .animation(.easeInOut(duration: 0.3), value: viewModel.unreadNotifications.count)
-        .animation(.easeInOut(duration: 0.3), value: viewModel.readNotifications.count)
-        .refreshable {
-          await viewModel.refreshNotifications()
-        }
-        .environmentObject(viewModel)
+        notificationsList
       }
     }
     .navigationTitle("Notifications")
-    .environmentObject(authManager)
-    .environmentObject(feedRefreshManager)
     .onAppear {
-      if viewModel.unreadNotifications.isEmpty && viewModel.readNotifications.isEmpty {
+      if viewModel.isEmpty {
         Task { await viewModel.refreshNotifications() }
       }
     }
   }
-}
 
-struct UnreadNotificationsSection: View {
-  @EnvironmentObject private var viewModel: NotificationsView.ViewModel
-
-  var body: some View {
-    Section {
-      ForEach(viewModel.unreadNotifications) { notification in
-        NotificationSectionRow(notification: notification) {
-          await viewModel.markNotificationAsRead(notificationId: notification.notificationId)
-        }
-        .transition(
-          .asymmetric(
-            insertion: .move(edge: .top).combined(with: .opacity),
-            removal: .move(edge: .leading).combined(with: .opacity)
-          )
-        )
-        .onAppear {
-          if notification.id == viewModel.unreadNotifications.last?.id {
-            Task {
-              await viewModel.loadMoreUnreadNotifications()
-            }
-          }
+  private var emptyStateView: some View {
+    VStack {
+      Spacer()
+      Text("No notifications.")
+        .font(.title3)
+        .fontWeight(.bold)
+        .padding(.top, 40)
+      Button {
+        Task { await viewModel.refreshNotifications() }
+      } label: {
+        HStack {
+          Image(systemName: "arrow.clockwise")
+          Text("Retry")
         }
       }
+      .padding()
+      .buttonStyle(.bordered)
+      Spacer()
+    }
+  }
 
-      if viewModel.isLoadingMoreUnread {
+  private var notificationsList: some View {
+    List {
+      if !viewModel.unreadNotifications.isEmpty {
+        notificationSection(
+          title: "Unread", notifications: viewModel.unreadNotifications, isUnread: true)
+      }
+
+      if !viewModel.readNotifications.isEmpty && !viewModel.canLoadMoreUnread {
+        notificationSection(
+          title: "Read", notifications: viewModel.readNotifications, isUnread: false)
+      }
+    }
+    .listStyle(.plain)
+    .animation(.easeInOut(duration: 0.3), value: viewModel.unreadNotifications.count)
+    .animation(.easeInOut(duration: 0.3), value: viewModel.readNotifications.count)
+    .refreshable {
+      await viewModel.refreshNotifications()
+    }
+    .environmentObject(viewModel)
+  }
+
+  private func notificationSection(title: String, notifications: [Notification], isUnread: Bool)
+    -> some View
+  {
+    Section {
+      ForEach(notifications) { notification in
+        NotificationRow(notification: notification, isUnread: isUnread)
+          .onAppear {
+            if notification.id == notifications.last?.id {
+              Task {
+                if isUnread {
+                  await viewModel.loadMoreUnreadNotifications()
+                  if !viewModel.canLoadMoreUnread && viewModel.readNotifications.isEmpty {
+                    await viewModel.loadMoreReadNotifications()
+                  }
+                } else {
+                  await viewModel.loadMoreReadNotifications()
+                }
+              }
+            }
+          }
+      }
+
+      if (isUnread && viewModel.isLoadingMoreUnread) || (!isUnread && viewModel.isLoadingMoreRead) {
         ProgressView()
           .frame(maxWidth: .infinity, alignment: .center)
           .listRowSeparator(.hidden)
       }
     } header: {
       HStack {
-        Text("Unread")
+        Text(title)
           .font(.headline)
-
         Spacer()
-
-        if !viewModel.unreadNotifications.isEmpty {
-          Button(action: {
-            Task {
-              await viewModel.markAllNotificationsAsRead()
-            }
-          }) {
-            HStack(spacing: 4) {
-              Image(systemName: "checkmark")
-                .font(.caption)
-              Text("Mark All Read")
-                .font(.caption)
-            }
-            .foregroundColor(.blue)
+        if isUnread && !notifications.isEmpty {
+          Button("Mark All Read") {
+            Task { await viewModel.markAllNotificationsAsRead() }
           }
+          .font(.caption)
+          .foregroundColor(.blue)
           .buttonStyle(BorderlessButtonStyle())
         }
       }
@@ -120,46 +113,11 @@ struct UnreadNotificationsSection: View {
   }
 }
 
-struct ReadNotificationsSection: View {
+struct NotificationRow: View {
   @EnvironmentObject private var viewModel: NotificationsView.ViewModel
-
-  var body: some View {
-    Section {
-      ForEach(viewModel.readNotifications) { notification in
-        NotificationSectionRow(notification: notification) {
-          // Read notifications cannot be marked as read again
-        }
-        .transition(
-          .asymmetric(
-            insertion: .move(edge: .trailing).combined(with: .opacity),
-            removal: .move(edge: .top).combined(with: .opacity)
-          )
-        )
-        .onAppear {
-          if notification.id == viewModel.readNotifications.last?.id {
-            Task {
-              await viewModel.loadMoreReadNotifications()
-            }
-          }
-        }
-      }
-
-      if viewModel.isLoadingMoreRead {
-        ProgressView()
-          .frame(maxWidth: .infinity, alignment: .center)
-          .listRowSeparator(.hidden)
-      }
-    } header: {
-      Text("Read")
-        .font(.headline)
-    }
-  }
-}
-
-struct NotificationSectionRow: View {
   @EnvironmentObject private var feedRefreshManager: FeedRefreshManager
   let notification: Notification
-  let onMarkAsRead: () async -> Void
+  let isUnread: Bool
 
   private var notificationDate: Date {
     let formatter = ISO8601DateFormatter()
@@ -168,7 +126,7 @@ struct NotificationSectionRow: View {
   }
 
   var body: some View {
-    ZStack {
+    Group {
       if let postId = notification.postId {
         NavigationLink(value: Route.post(id: postId)) {
           notificationContent
@@ -179,10 +137,10 @@ struct NotificationSectionRow: View {
       }
     }
     .swipeActions(edge: .leading) {
-      if !notification.viewed {
+      if isUnread {
         Button {
           Task {
-            await onMarkAsRead()
+            await viewModel.markNotificationAsRead(notificationId: notification.notificationId)
           }
         } label: {
           Label("Mark Read", systemImage: "checkmark.circle")
@@ -194,13 +152,10 @@ struct NotificationSectionRow: View {
 
   private var notificationContent: some View {
     HStack {
-      VStack {
-        NotificationIcon.icon(for: notification.notificationType)
-          .font(.system(size: 20))
-          .foregroundColor(.white)
-          .frame(width: 28, height: 28)
-      }
-      .frame(width: 28)
+      NotificationIcon.icon(for: notification.notificationType)
+        .font(.system(size: 20))
+        .foregroundColor(.white)
+        .frame(width: 28, height: 28)
 
       VStack(alignment: .leading, spacing: 8) {
         HStack {
@@ -227,46 +182,40 @@ struct NotificationSectionRow: View {
             let imageWidth = notification.imageWidth,
             let imageHeight = notification.imageHeight
           {
-            let targetSize: CGFloat = 40
-            let scale = UIScreen.main.scale
-            let targetPixelSize = targetSize * scale
-            let aspectRatio = CGFloat(imageWidth) / CGFloat(imageHeight)
-
-            KFImage(URL(string: blobUrl))
-              .placeholder {
-                ProgressView()
-              }
-              .setProcessor(
-                DownsamplingImageProcessor(
-                  size: aspectRatio > 1
-                    ? CGSize(
-                      width: targetPixelSize * aspectRatio,
-                      height: targetPixelSize
-                    )
-                    : CGSize(
-                      width: targetPixelSize,
-                      height: targetPixelSize / aspectRatio
-                    )
-                )
-              )
-              .resizable()
-              .aspectRatio(contentMode: .fill)
-              .frame(width: targetSize, height: targetSize)
-              .clipped()
-              .cornerRadius(5)
+            notificationImage(url: blobUrl, width: imageWidth, height: imageHeight)
           }
         }
 
         if let comment = notification.comment {
           MiniNotificationView(text: comment.text)
-        } else if let post = notification.post, let text = post.text,
-          text.count > 0
-        {
+        } else if let post = notification.post, let text = post.text, !text.isEmpty {
           MiniNotificationView(text: text)
         }
       }
     }
     .padding(.vertical, 4)
+  }
+
+  private func notificationImage(url: String, width: Int32, height: Int32) -> some View {
+    let targetSize: CGFloat = 40
+    let scale = UIScreen.main.scale
+    let targetPixelSize = targetSize * scale
+    let aspectRatio = CGFloat(width) / CGFloat(height)
+
+    return KFImage(URL(string: url))
+      .placeholder { ProgressView() }
+      .setProcessor(
+        DownsamplingImageProcessor(
+          size: aspectRatio > 1
+            ? CGSize(width: targetPixelSize * aspectRatio, height: targetPixelSize)
+            : CGSize(width: targetPixelSize, height: targetPixelSize / aspectRatio)
+        )
+      )
+      .resizable()
+      .aspectRatio(contentMode: .fill)
+      .frame(width: targetSize, height: targetSize)
+      .clipped()
+      .cornerRadius(5)
   }
 }
 

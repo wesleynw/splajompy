@@ -17,6 +17,11 @@ extension NotificationsView {
     private let limit = 10
     private let readLimit = 20
     private let service = NotificationService()
+    private var seenNotificationIds = Set<Int>()
+
+    var isEmpty: Bool {
+      unreadNotifications.isEmpty && readNotifications.isEmpty
+    }
 
     func refreshNotifications() async {
       guard !isRefreshing else { return }
@@ -29,6 +34,7 @@ extension NotificationsView {
 
       unreadOffset = 0
       readOffset = 0
+      seenNotificationIds.removeAll()
 
       async let unreadResult = service.getUnreadNotifications(offset: 0, limit: limit)
       async let readResult = service.getAllNotifications(offset: 0, limit: readLimit)
@@ -49,6 +55,15 @@ extension NotificationsView {
       case .success(let notifications):
         let filteredRead = notifications.filter { $0.viewed }
         readNotifications = filteredRead
+
+        // Track all notification IDs to prevent duplicates
+        for notification in unreadNotifications {
+          seenNotificationIds.insert(notification.notificationId)
+        }
+        for notification in filteredRead {
+          seenNotificationIds.insert(notification.notificationId)
+        }
+
         canLoadMoreRead = notifications.count >= readLimit
         readOffset = notifications.count
       case .error:
@@ -94,10 +109,22 @@ extension NotificationsView {
 
       switch result {
       case .success(let notifications):
-        let filteredRead = notifications.filter { $0.viewed }
-        readNotifications.append(contentsOf: filteredRead)
-        canLoadMoreRead = notifications.count >= readLimit
+        let filteredRead = notifications.filter {
+          $0.viewed && !seenNotificationIds.contains($0.notificationId)
+        }
+
+        if !filteredRead.isEmpty {
+          readNotifications.append(contentsOf: filteredRead)
+          updateSeenNotificationIds()
+        }
+
         readOffset += notifications.count
+        canLoadMoreRead = notifications.count >= readLimit
+
+        if filteredRead.isEmpty && notifications.count >= readLimit {
+          await loadMoreReadNotifications()
+          return
+        }
       case .error:
         canLoadMoreRead = false
       }
@@ -121,7 +148,12 @@ extension NotificationsView {
 
       DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
         withAnimation(.easeInOut(duration: 0.3)) {
-          self.readNotifications.insert(notification, at: 0)
+          if !self.readNotifications.contains(where: {
+            $0.notificationId == notification.notificationId
+          }) {
+            self.readNotifications.insert(notification, at: 0)
+            self.updateSeenNotificationIds()
+          }
         }
       }
 
@@ -137,15 +169,33 @@ extension NotificationsView {
 
       DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
         withAnimation(.easeInOut(duration: 0.4)) {
-          var updatedNotifications = unreadCopy
-          for i in 0..<updatedNotifications.count {
-            updatedNotifications[i].viewed = true
+          let updatedNotifications = unreadCopy.map { notification in
+            var updated = notification
+            updated.viewed = true
+            return updated
           }
-          self.readNotifications.insert(contentsOf: updatedNotifications, at: 0)
+
+          let newReadNotifications = updatedNotifications.filter { updatedNotification in
+            !self.readNotifications.contains(where: {
+              $0.notificationId == updatedNotification.notificationId
+            })
+          }
+          self.readNotifications.insert(contentsOf: newReadNotifications, at: 0)
+          self.updateSeenNotificationIds()
         }
       }
 
       let _ = await service.markAllNotificationsAsRead()
+    }
+
+    private func updateSeenNotificationIds() {
+      seenNotificationIds.removeAll()
+      for notification in unreadNotifications {
+        seenNotificationIds.insert(notification.notificationId)
+      }
+      for notification in readNotifications {
+        seenNotificationIds.insert(notification.notificationId)
+      }
     }
   }
 }
