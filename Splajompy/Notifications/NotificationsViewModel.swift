@@ -1,11 +1,24 @@
 import Foundation
 import SwiftUI
 
-enum NotificationState {
+enum NotificationState: Equatable {
   case idle
   case loading
   case loaded(unread: [Notification], read: [Notification])
   case failed(Error)
+
+  static func == (lhs: NotificationState, rhs: NotificationState) -> Bool {
+    switch (lhs, rhs) {
+    case (.idle, .idle), (.loading, .loading):
+      return true
+    case (.loaded(let lhsUnread, let lhsRead), .loaded(let rhsUnread, let rhsRead)):
+      return lhsUnread.count == rhsUnread.count && lhsRead.count == rhsRead.count
+    case (.failed, .failed):
+      return true
+    default:
+      return false
+    }
+  }
 }
 
 extension NotificationsView {
@@ -15,12 +28,15 @@ extension NotificationsView {
     @Published var isLoadingMoreRead: Bool = false
     @Published var canLoadMoreUnread: Bool = true
     @Published var canLoadMoreRead: Bool = true
+    @Published var readNotificationsByDateSection:
+      [(key: NotificationDateSection, value: [Notification])] = []
 
     private var unreadOffset = 0
     private var readOffset = 0
     private let limit = 10
     private let readLimit = 20
     private let service = NotificationService()
+    private var parsedDates: [String: Date] = [:]
 
     var isEmpty: Bool {
       guard case .loaded(let unread, let read) = state else { return true }
@@ -35,6 +51,27 @@ extension NotificationsView {
     var readNotifications: [Notification] {
       guard case .loaded(_, let read) = state else { return [] }
       return read
+    }
+
+    func parsedDate(for dateString: String) -> Date {
+      if let cachedDate = parsedDates[dateString] {
+        return cachedDate
+      }
+      let date = sharedISO8601Formatter.date(from: dateString) ?? Date()
+      parsedDates[dateString] = date
+      return date
+    }
+
+    private func updateReadNotificationSections() {
+      let grouped = Dictionary(grouping: readNotifications) { notification in
+        let date = parsedDate(for: notification.createdAt)
+        return date.notificationSection()
+      }
+
+      readNotificationsByDateSection = NotificationDateSection.allCases.compactMap { section in
+        guard let notifications = grouped[section], !notifications.isEmpty else { return nil }
+        return (key: section, value: notifications)
+      }
     }
 
     func refreshNotifications() async {
@@ -57,6 +94,7 @@ extension NotificationsView {
       case (.success(let unreadNotifications), .success(let allNotifications)):
         let filteredRead = allNotifications.filter { $0.viewed }
         state = .loaded(unread: unreadNotifications, read: filteredRead)
+        updateReadNotificationSections()
 
         canLoadMoreUnread = unreadNotifications.count >= limit
         unreadOffset = unreadNotifications.count
@@ -114,6 +152,7 @@ extension NotificationsView {
 
           if !filteredRead.isEmpty {
             state = .loaded(unread: currentUnread, read: currentRead + filteredRead)
+            updateReadNotificationSections()
             addedNewNotifications = true
           }
         }
@@ -163,6 +202,7 @@ extension NotificationsView {
           if !currentRead.contains(where: { $0.notificationId == notification.notificationId }) {
             currentRead.insert(notification, at: 0)
             self.state = .loaded(unread: currentUnread, read: currentRead)
+            self.updateReadNotificationSections()
           }
         }
       }
@@ -191,6 +231,7 @@ extension NotificationsView {
           }
           currentRead.insert(contentsOf: newReadNotifications, at: 0)
           self.state = .loaded(unread: [], read: currentRead)
+          self.updateReadNotificationSections()
         }
       }
 

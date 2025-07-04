@@ -5,6 +5,7 @@ struct NotificationsView: View {
   @StateObject private var viewModel = ViewModel()
   @EnvironmentObject private var authManager: AuthManager
   @EnvironmentObject private var feedRefreshManager: FeedRefreshManager
+  @State private var animationTrigger: UUID = UUID()
 
   var body: some View {
     Group {
@@ -71,7 +72,7 @@ struct NotificationsView: View {
       }
 
       if !viewModel.readNotifications.isEmpty && !viewModel.canLoadMoreUnread {
-        ForEach(readNotificationsByDateSection, id: \.key) { section in
+        ForEach(viewModel.readNotificationsByDateSection, id: \.key) { section in
           notificationSection(
             title: section.key.rawValue,
             notifications: section.value,
@@ -81,25 +82,13 @@ struct NotificationsView: View {
       }
     }
     .listStyle(.plain)
-    .animation(.easeInOut(duration: 0.3), value: viewModel.unreadNotifications.count)
-    .animation(.easeInOut(duration: 0.3), value: viewModel.readNotifications.count)
+    .animation(.easeInOut(duration: 0.3), value: animationTrigger)
     .refreshable {
       await viewModel.refreshNotifications()
     }
     .environmentObject(viewModel)
-  }
-
-  private var readNotificationsByDateSection:
-    [(key: NotificationDateSection, value: [Notification])]
-  {
-    let grouped = Dictionary(grouping: viewModel.readNotifications) { notification in
-      let date = sharedISO8601Formatter.date(from: notification.createdAt) ?? Date()
-      return date.notificationSection()
-    }
-
-    return NotificationDateSection.allCases.compactMap { section in
-      guard let notifications = grouped[section], !notifications.isEmpty else { return nil }
-      return (key: section, value: notifications)
+    .onChange(of: viewModel.state) {
+      animationTrigger = UUID()
     }
   }
 
@@ -109,6 +98,8 @@ struct NotificationsView: View {
     Section {
       ForEach(notifications) { notification in
         NotificationRow(notification: notification, isUnread: isUnread)
+          .listRowInsets(EdgeInsets())
+          .listRowSeparator(.hidden)
           .onAppear {
             guard notification.id == notifications.last?.id else { return }
             Task {
@@ -127,15 +118,21 @@ struct NotificationsView: View {
       if (isUnread && viewModel.isLoadingMoreUnread)
         || (!isUnread && viewModel.isLoadingMoreRead && isLastReadSection(title: title))
       {
-        ProgressView()
-          .frame(maxWidth: .infinity, alignment: .center)
-          .listRowSeparator(.hidden)
+        HStack {
+          Spacer()
+          ProgressView()
+            .scaleEffect(0.8)
+          Spacer()
+        }
+        .listRowInsets(EdgeInsets())
+        .listRowSeparator(.hidden)
+        .padding(.vertical, 8)
       }
     } header: {
-      HStack {
+      HStack(spacing: 0) {
         Text(title)
           .font(.headline)
-        Spacer()
+        Spacer(minLength: 0)
         if isUnread && !notifications.isEmpty {
           Button("Mark All Read") {
             Task { await viewModel.markAllNotificationsAsRead() }
@@ -145,11 +142,13 @@ struct NotificationsView: View {
           .buttonStyle(BorderlessButtonStyle())
         }
       }
+      .padding(.horizontal, 16)
+      .padding(.vertical, 8)
     }
   }
 
   private func isLastReadSection(title: String) -> Bool {
-    guard let lastSection = readNotificationsByDateSection.last else { return false }
+    guard let lastSection = viewModel.readNotificationsByDateSection.last else { return false }
     return lastSection.key.rawValue == title
   }
 }
@@ -161,7 +160,7 @@ struct NotificationRow: View {
   let isUnread: Bool
 
   private var notificationDate: Date {
-    sharedISO8601Formatter.date(from: notification.createdAt) ?? Date()
+    viewModel.parsedDate(for: notification.createdAt)
   }
 
   var body: some View {
@@ -190,53 +189,69 @@ struct NotificationRow: View {
   }
 
   private var notificationContent: some View {
-    HStack {
-      NotificationIcon.icon(for: notification.notificationType)
-        .font(.system(size: 20))
-        .foregroundColor(.white)
-        .frame(width: 28, height: 28)
+    ZStack {
+      Color(UIColor.systemBackground)
 
-      VStack(alignment: .leading, spacing: 8) {
-        HStack {
-          VStack(alignment: .leading, spacing: 4) {
-            ContentTextView(
-              text: notification.message,
-              facets: notification.facets ?? []
-            )
-            .environmentObject(feedRefreshManager)
+      HStack(alignment: .top, spacing: 0) {
+        NotificationIcon.icon(for: notification.notificationType)
+          .font(.system(size: 20, weight: .medium))
+          .foregroundColor(.white)
+          .frame(width: 28, height: 28, alignment: .center)
+          .padding(.leading, 16)
+          .padding(.top, 14)
 
-            Text(
-              RelativeDateTimeFormatter().localizedString(
-                for: notificationDate,
-                relativeTo: Date()
+        VStack(alignment: .leading, spacing: 0) {
+          HStack(alignment: .top, spacing: 0) {
+            VStack(alignment: .leading, spacing: 0) {
+              ContentTextView(
+                text: notification.message,
+                facets: notification.facets ?? []
               )
-            )
-            .font(.caption)
-            .foregroundColor(.gray)
+              .environmentObject(feedRefreshManager)
+              .fixedSize(horizontal: false, vertical: true)
+              .padding(.leading, 12)
+              .padding(.top, 12)
+
+              Text(
+                sharedRelativeDateTimeFormatter.localizedString(
+                  for: notificationDate,
+                  relativeTo: Date()
+                )
+              )
+              .font(.caption)
+              .foregroundColor(.secondary)
+              .padding(.leading, 12)
+              .padding(.top, 4)
+            }
+
+            Spacer(minLength: 0)
+
+            if let blobUrl = notification.imageBlob,
+              let imageWidth = notification.imageWidth,
+              let imageHeight = notification.imageHeight
+            {
+              NotificationImageView(url: blobUrl, width: imageWidth, height: imageHeight)
+                .frame(width: 40, height: 40)
+                .padding(.trailing, 16)
+                .padding(.top, 12)
+            }
           }
 
-          Spacer()
-
-          if let blobUrl = notification.imageBlob,
-            let imageWidth = notification.imageWidth,
-            let imageHeight = notification.imageHeight
-          {
-            notificationImage(url: blobUrl, width: imageWidth, height: imageHeight)
+          if let comment = notification.comment {
+            MiniNotificationView(text: comment.text)
+              .padding(.leading, 12)
+              .padding(.top, 8)
+              .padding(.trailing, 16)
+          } else if let post = notification.post, let text = post.text, !text.isEmpty {
+            MiniNotificationView(text: text)
+              .padding(.leading, 12)
+              .padding(.top, 8)
+              .padding(.trailing, 16)
           }
-        }
-
-        if let comment = notification.comment {
-          MiniNotificationView(text: comment.text)
-        } else if let post = notification.post, let text = post.text, !text.isEmpty {
-          MiniNotificationView(text: text)
         }
       }
+      .padding(.bottom, 12)
     }
-    .padding(.vertical, 4)
-  }
-
-  private func notificationImage(url: String, width: Int32, height: Int32) -> some View {
-    NotificationImageView(url: url, width: width, height: height)
   }
 }
 
@@ -245,25 +260,27 @@ struct NotificationImageView: View {
   let width: Int32
   let height: Int32
 
-  private let targetSize: CGFloat = 40
+  private static let targetSize: CGFloat = 40
+  private static let scale = UIScreen.main.scale
+  private static let targetPixelSize = targetSize * scale
 
   var body: some View {
-    let scale = UIScreen.main.scale
-    let targetPixelSize = targetSize * scale
     let aspectRatio = CGFloat(width) / CGFloat(height)
+    let processorSize =
+      aspectRatio > 1
+      ? CGSize(width: Self.targetPixelSize * aspectRatio, height: Self.targetPixelSize)
+      : CGSize(width: Self.targetPixelSize, height: Self.targetPixelSize / aspectRatio)
 
     KFImage(URL(string: url))
-      .placeholder { ProgressView() }
-      .setProcessor(
-        DownsamplingImageProcessor(
-          size: aspectRatio > 1
-            ? CGSize(width: targetPixelSize * aspectRatio, height: targetPixelSize)
-            : CGSize(width: targetPixelSize, height: targetPixelSize / aspectRatio)
-        )
-      )
+      .placeholder {
+        Rectangle()
+          .fill(Color.gray.opacity(0.3))
+          .frame(width: Self.targetSize, height: Self.targetSize)
+      }
+      .setProcessor(DownsamplingImageProcessor(size: processorSize))
       .resizable()
       .aspectRatio(contentMode: .fill)
-      .frame(width: targetSize, height: targetSize)
+      .frame(width: Self.targetSize, height: Self.targetSize)
       .clipped()
       .cornerRadius(5)
   }
