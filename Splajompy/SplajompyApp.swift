@@ -88,6 +88,11 @@ struct SplajompyApp: App {
           SplashScreenView()
         }
       }
+      .onChange(of: authManager.isAuthenticated) { _, newValue in
+        if newValue {
+          selection = 0
+        }
+      }
       .environmentObject(feedRefreshManager)
       .environmentObject(authManager)
       .preferredColorScheme(colorScheme)
