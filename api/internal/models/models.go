@@ -7,6 +7,28 @@ import (
 	"splajompy.com/api/v2/internal/db/queries"
 )
 
+type NotificationType string
+
+const (
+	NotificationTypeMention      NotificationType = "mention"
+	NotificationTypeLike         NotificationType = "like"
+	NotificationTypeComment      NotificationType = "comment"
+	NotificationTypeAnnouncement NotificationType = "announcement"
+)
+
+func (nt NotificationType) String() string {
+	return string(nt)
+}
+
+func (nt NotificationType) IsValid() bool {
+	switch nt {
+	case NotificationTypeMention, NotificationTypeLike, NotificationTypeComment, NotificationTypeAnnouncement:
+		return true
+	default:
+		return false
+	}
+}
+
 type APIResponse struct {
 	Success bool        `json:"success"`
 	Data    interface{} `json:"data,omitempty"`
@@ -19,16 +41,16 @@ type RelevantLike struct {
 }
 
 type Notification struct {
-	NotificationID   int                       `json:"notificationId"`
-	UserID           int                       `json:"userId"`
-	PostID           *int                      `json:"postId"`
-	CommentID        *int                      `json:"commentId"`
-	Message          string                    `json:"message"`
-	Link             string                    `json:"link"`
-	Viewed           bool                      `json:"viewed"`
-	Facets           db.Facets                 `json:"facets"`
-	NotificationType string `json:"notificationType"`
-	CreatedAt        time.Time                 `json:"createdAt"`
+	NotificationID   int       `json:"notificationId"`
+	UserID           int       `json:"userId"`
+	PostID           *int      `json:"postId"`
+	CommentID        *int      `json:"commentId"`
+	Message          string    `json:"message"`
+	Link             string    `json:"link"`
+	Viewed           bool      `json:"viewed"`
+	Facets           db.Facets `json:"facets"`
+	NotificationType NotificationType `json:"notificationType"`
+	CreatedAt        time.Time `json:"createdAt"`
 }
 
 type Post struct {

@@ -28,7 +28,7 @@ func NewFakeNotificationRepository() *FakeNotificationRepository {
 }
 
 // InsertNotification adds a new notification
-func (f *FakeNotificationRepository) InsertNotification(ctx context.Context, userId int, postId *int, commentId *int, facets *db.Facets, message string, notificationType string) error {
+func (f *FakeNotificationRepository) InsertNotification(ctx context.Context, userId int, postId *int, commentId *int, facets *db.Facets, message string, notificationType models.NotificationType) error {
 	f.mu.Lock()
 	defer f.mu.Unlock()
 
@@ -60,7 +60,7 @@ func (f *FakeNotificationRepository) InsertNotification(ctx context.Context, use
 		Message:          message,
 		CommentID:        commentIdValue,
 		Facets:           facetsValue,
-		NotificationType: notificationType,
+		NotificationType: notificationType.String(),
 		Viewed:           false,
 		CreatedAt:        pgtype.Timestamp{Time: time.Now()},
 	}

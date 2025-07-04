@@ -3,6 +3,7 @@ package utilities
 import (
 	"encoding/json"
 	"net/http"
+
 	"splajompy.com/api/v2/internal/db/queries"
 	"splajompy.com/api/v2/internal/models"
 )
@@ -51,7 +52,7 @@ func MapNotification(notification queries.Notification) models.Notification {
 		Link:             notification.Link.String,
 		Viewed:           notification.Viewed,
 		Facets:           notification.Facets,
-		NotificationType: notification.NotificationType,
+		NotificationType: models.NotificationType(notification.NotificationType),
 		CreatedAt:        notification.CreatedAt.Time.UTC(),
 	}
 }
