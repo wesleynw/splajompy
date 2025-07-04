@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct NotificationIcon {
-  static func iconName(for notificationType: NotificationType) -> String {
+  private static func iconName(for notificationType: NotificationType) -> String {
     switch notificationType {
     case .like:
       return "heart"
@@ -20,9 +20,5 @@ struct NotificationIcon {
 
   static func defaultIcon() -> some View {
     Image(systemName: "bell.fill")
-  }
-
-  static func defaultIconName() -> String {
-    return "bell"
   }
 }

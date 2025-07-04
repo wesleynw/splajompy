@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"context"
+
 	"github.com/jackc/pgx/v5/pgtype"
 	"splajompy.com/api/v2/internal/db"
 	"splajompy.com/api/v2/internal/db/queries"
@@ -44,7 +45,7 @@ func (r DBNotificationRepository) InsertNotification(ctx context.Context, userId
 	return r.querier.InsertNotification(ctx, params)
 }
 
-// GetNotificationsForUserId retrieves notifications for a user with pagination
+// GetNotificationsForUserId retrieves notifications for a user.
 func (r DBNotificationRepository) GetNotificationsForUserId(ctx context.Context, userId int, offset int, limit int) ([]*models.Notification, error) {
 	notifications, err := r.querier.GetNotificationsForUserId(ctx, queries.GetNotificationsForUserIdParams{
 		UserID: int32(userId),
