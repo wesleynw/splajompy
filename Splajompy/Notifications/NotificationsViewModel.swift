@@ -21,7 +21,6 @@ extension NotificationsView {
     private let limit = 10
     private let readLimit = 20
     private let service = NotificationService()
-    private var seenNotificationIds = Set<Int>()
 
     var isEmpty: Bool {
       if case .loaded(let unread, let read) = state {
@@ -53,8 +52,8 @@ extension NotificationsView {
 
       unreadOffset = 0
       readOffset = 0
-      seenNotificationIds.removeAll()
 
+      // async let allows us to use parallel async ops
       async let unreadResult = service.getUnreadNotifications(offset: 0, limit: limit)
       async let readResult = service.getAllNotifications(offset: 0, limit: readLimit)
 
@@ -67,15 +66,6 @@ extension NotificationsView {
 
         canLoadMoreUnread = unreadNotifications.count >= limit
         unreadOffset = unreadNotifications.count
-
-        // Track all notification IDs to prevent duplicates
-        seenNotificationIds.removeAll()
-        for notification in unreadNotifications {
-          seenNotificationIds.insert(notification.notificationId)
-        }
-        for notification in filteredRead {
-          seenNotificationIds.insert(notification.notificationId)
-        }
 
         canLoadMoreRead = allNotifications.count >= readLimit
         readOffset = allNotifications.count
@@ -123,21 +113,26 @@ extension NotificationsView {
 
       switch result {
       case .success(let notifications):
-        let filteredRead = notifications.filter {
-          $0.viewed && !seenNotificationIds.contains($0.notificationId)
-        }
+        var addedNewNotifications = false
 
-        if !filteredRead.isEmpty {
-          if case .loaded(let currentUnread, let currentRead) = state {
-            state = .loaded(unread: currentUnread, read: currentRead + filteredRead)
+        if case .loaded(let currentUnread, let currentRead) = state {
+          let filteredRead = notifications.filter { newNotification in
+            newNotification.viewed
+              && !currentRead.contains { existingNotification in
+                existingNotification.notificationId == newNotification.notificationId
+              }
           }
-          updateSeenNotificationIds()
+
+          if !filteredRead.isEmpty {
+            state = .loaded(unread: currentUnread, read: currentRead + filteredRead)
+            addedNewNotifications = true
+          }
         }
 
         readOffset += notifications.count
         canLoadMoreRead = notifications.count >= readLimit
 
-        if filteredRead.isEmpty && notifications.count >= readLimit {
+        if !addedNewNotifications && notifications.count >= readLimit {
           await loadMoreReadNotifications()
           return
         }
@@ -170,7 +165,6 @@ extension NotificationsView {
             if !currentRead.contains(where: { $0.notificationId == notification.notificationId }) {
               currentRead.insert(notification, at: 0)
               self.state = .loaded(unread: currentUnread, read: currentRead)
-              self.updateSeenNotificationIds()
             }
           }
         }
@@ -201,7 +195,6 @@ extension NotificationsView {
             }
             currentRead.insert(contentsOf: newReadNotifications, at: 0)
             self.state = .loaded(unread: [], read: currentRead)
-            self.updateSeenNotificationIds()
           }
         }
       }
@@ -209,16 +202,5 @@ extension NotificationsView {
       let _ = await service.markAllNotificationsAsRead()
     }
 
-    private func updateSeenNotificationIds() {
-      seenNotificationIds.removeAll()
-      if case .loaded(let unread, let read) = state {
-        for notification in unread {
-          seenNotificationIds.insert(notification.notificationId)
-        }
-        for notification in read {
-          seenNotificationIds.insert(notification.notificationId)
-        }
-      }
-    }
   }
 }
