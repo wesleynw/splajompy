@@ -14,6 +14,12 @@ enum NotificationDateSection: String, CaseIterable {
   return formatter
 }()
 
+@MainActor let sharedRelativeDateTimeFormatter: RelativeDateTimeFormatter = {
+  let formatter = RelativeDateTimeFormatter()
+  formatter.unitsStyle = .full
+  return formatter
+}()
+
 extension Date {
   func notificationSection() -> NotificationDateSection {
     let calendar = Calendar.current
