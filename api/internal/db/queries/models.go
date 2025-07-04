@@ -5,56 +5,9 @@
 package queries
 
 import (
-	"database/sql/driver"
-	"fmt"
-
 	"github.com/jackc/pgx/v5/pgtype"
 	db "splajompy.com/api/v2/internal/db"
 )
-
-type NotificationType string
-
-const (
-	NotificationTypeLike         NotificationType = "like"
-	NotificationTypeComment      NotificationType = "comment"
-	NotificationTypeAnnouncement NotificationType = "announcement"
-	NotificationTypeMention      NotificationType = "mention"
-)
-
-func (e *NotificationType) Scan(src interface{}) error {
-	switch s := src.(type) {
-	case []byte:
-		*e = NotificationType(s)
-	case string:
-		*e = NotificationType(s)
-	default:
-		return fmt.Errorf("unsupported scan type for NotificationType: %T", src)
-	}
-	return nil
-}
-
-type NullNotificationType struct {
-	NotificationType NotificationType `json:"notificationType"`
-	Valid            bool             `json:"valid"` // Valid is true if NotificationType is not NULL
-}
-
-// Scan implements the Scanner interface.
-func (ns *NullNotificationType) Scan(value interface{}) error {
-	if value == nil {
-		ns.NotificationType, ns.Valid = "", false
-		return nil
-	}
-	ns.Valid = true
-	return ns.NotificationType.Scan(value)
-}
-
-// Value implements the driver Valuer interface.
-func (ns NullNotificationType) Value() (driver.Value, error) {
-	if !ns.Valid {
-		return nil, nil
-	}
-	return string(ns.NotificationType), nil
-}
 
 type Bio struct {
 	ID     int32  `json:"id"`
@@ -109,7 +62,7 @@ type Notification struct {
 	Link             pgtype.Text      `json:"link"`
 	Viewed           bool             `json:"viewed"`
 	Facets           db.Facets        `json:"facets"`
-	NotificationType NotificationType `json:"notificationType"`
+	NotificationType string           `json:"notificationType"`
 	CreatedAt        pgtype.Timestamp `json:"createdAt"`
 }
 

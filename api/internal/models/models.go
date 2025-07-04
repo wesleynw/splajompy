@@ -27,7 +27,7 @@ type Notification struct {
 	Link             string                    `json:"link"`
 	Viewed           bool                      `json:"viewed"`
 	Facets           db.Facets                 `json:"facets"`
-	NotificationType queries.NotificationType `json:"notificationType"`
+	NotificationType string `json:"notificationType"`
 	CreatedAt        time.Time                 `json:"createdAt"`
 }
 

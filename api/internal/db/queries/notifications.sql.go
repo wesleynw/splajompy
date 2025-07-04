@@ -148,13 +148,13 @@ VALUES ($1, $2, $3, $4, $5, $6, $7)
 `
 
 type InsertNotificationParams struct {
-	UserID           int32            `json:"userId"`
-	PostID           pgtype.Int4      `json:"postId"`
-	CommentID        pgtype.Int4      `json:"commentId"`
-	Message          string           `json:"message"`
-	Facets           db.Facets        `json:"facets"`
-	Link             pgtype.Text      `json:"link"`
-	NotificationType NotificationType `json:"notificationType"`
+	UserID           int32       `json:"userId"`
+	PostID           pgtype.Int4 `json:"postId"`
+	CommentID        pgtype.Int4 `json:"commentId"`
+	Message          string      `json:"message"`
+	Facets           db.Facets   `json:"facets"`
+	Link             pgtype.Text `json:"link"`
+	NotificationType string      `json:"notificationType"`
 }
 
 func (q *Queries) InsertNotification(ctx context.Context, arg InsertNotificationParams) error {
