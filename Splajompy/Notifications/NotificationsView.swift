@@ -9,9 +9,7 @@ struct NotificationsView: View {
   var body: some View {
     Group {
       switch viewModel.state {
-      case .idle:
-        loadingPlaceholder
-      case .loading:
+      case .idle, .loading:
         loadingPlaceholder
       case .loaded(let unread, let read):
         if unread.isEmpty && read.isEmpty {
@@ -93,16 +91,15 @@ struct NotificationsView: View {
       ForEach(notifications) { notification in
         NotificationRow(notification: notification, isUnread: isUnread)
           .onAppear {
-            if notification.id == notifications.last?.id {
-              Task {
-                if isUnread {
-                  await viewModel.loadMoreUnreadNotifications()
-                  if !viewModel.canLoadMoreUnread && viewModel.readNotifications.isEmpty {
-                    await viewModel.loadMoreReadNotifications()
-                  }
-                } else {
+            guard notification.id == notifications.last?.id else { return }
+            Task {
+              if isUnread {
+                await viewModel.loadMoreUnreadNotifications()
+                if !viewModel.canLoadMoreUnread && viewModel.readNotifications.isEmpty {
                   await viewModel.loadMoreReadNotifications()
                 }
+              } else {
+                await viewModel.loadMoreReadNotifications()
               }
             }
           }
@@ -138,9 +135,7 @@ struct NotificationRow: View {
   let isUnread: Bool
 
   private var notificationDate: Date {
-    let formatter = ISO8601DateFormatter()
-    formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-    return formatter.date(from: notification.createdAt) ?? Date()
+    ISO8601DateFormatter().date(from: notification.createdAt) ?? Date()
   }
 
   var body: some View {
@@ -215,12 +210,23 @@ struct NotificationRow: View {
   }
 
   private func notificationImage(url: String, width: Int32, height: Int32) -> some View {
-    let targetSize: CGFloat = 40
+    NotificationImageView(url: url, width: width, height: height)
+  }
+}
+
+struct NotificationImageView: View {
+  let url: String
+  let width: Int32
+  let height: Int32
+
+  private let targetSize: CGFloat = 40
+
+  var body: some View {
     let scale = UIScreen.main.scale
     let targetPixelSize = targetSize * scale
     let aspectRatio = CGFloat(width) / CGFloat(height)
 
-    return KFImage(URL(string: url))
+    KFImage(URL(string: url))
       .placeholder { ProgressView() }
       .setProcessor(
         DownsamplingImageProcessor(

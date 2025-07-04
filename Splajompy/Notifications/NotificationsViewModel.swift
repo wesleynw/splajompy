@@ -23,24 +23,18 @@ extension NotificationsView {
     private let service = NotificationService()
 
     var isEmpty: Bool {
-      if case .loaded(let unread, let read) = state {
-        return unread.isEmpty && read.isEmpty
-      }
-      return true
+      guard case .loaded(let unread, let read) = state else { return true }
+      return unread.isEmpty && read.isEmpty
     }
 
     var unreadNotifications: [Notification] {
-      if case .loaded(let unread, _) = state {
-        return unread
-      }
-      return []
+      guard case .loaded(let unread, _) = state else { return [] }
+      return unread
     }
 
     var readNotifications: [Notification] {
-      if case .loaded(_, let read) = state {
-        return read
-      }
-      return []
+      guard case .loaded(_, let read) = state else { return [] }
+      return read
     }
 
     func refreshNotifications() async {
@@ -116,12 +110,7 @@ extension NotificationsView {
         var addedNewNotifications = false
 
         if case .loaded(let currentUnread, let currentRead) = state {
-          let filteredRead = notifications.filter { newNotification in
-            newNotification.viewed
-              && !currentRead.contains { existingNotification in
-                existingNotification.notificationId == newNotification.notificationId
-              }
-          }
+          let filteredRead = filterReadNotifications(notifications, existing: currentRead)
 
           if !filteredRead.isEmpty {
             state = .loaded(unread: currentUnread, read: currentRead + filteredRead)
@@ -143,6 +132,17 @@ extension NotificationsView {
       isLoadingMoreRead = false
     }
 
+    private func filterReadNotifications(_ notifications: [Notification], existing: [Notification])
+      -> [Notification]
+    {
+      notifications.filter { newNotification in
+        newNotification.viewed
+          && !existing.contains { existingNotification in
+            existingNotification.notificationId == newNotification.notificationId
+          }
+      }
+    }
+
     func markNotificationAsRead(notificationId: Int) async {
       guard case .loaded(var unread, let read) = state else { return }
 
@@ -154,18 +154,15 @@ extension NotificationsView {
       notification.viewed = true
       unread.remove(at: index)
 
-      // Update state immediately with animation to remove from unread
-      withAnimation(.easeInOut(duration: 0.2)) {
-        state = .loaded(unread: unread, read: read)
-      }
+      // Update state immediately to remove from unread
+      state = .loaded(unread: unread, read: read)
 
+      // Add to read notifications after a delay
       DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-        withAnimation(.easeInOut(duration: 0.3)) {
-          if case .loaded(let currentUnread, var currentRead) = self.state {
-            if !currentRead.contains(where: { $0.notificationId == notification.notificationId }) {
-              currentRead.insert(notification, at: 0)
-              self.state = .loaded(unread: currentUnread, read: currentRead)
-            }
+        if case .loaded(let currentUnread, var currentRead) = self.state {
+          if !currentRead.contains(where: { $0.notificationId == notification.notificationId }) {
+            currentRead.insert(notification, at: 0)
+            self.state = .loaded(unread: currentUnread, read: currentRead)
           }
         }
       }
@@ -180,22 +177,20 @@ extension NotificationsView {
       state = .loaded(unread: [], read: read)
 
       DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-        withAnimation(.easeInOut(duration: 0.4)) {
-          let updatedNotifications = unreadCopy.map { notification in
-            var updated = notification
-            updated.viewed = true
-            return updated
-          }
+        let updatedNotifications = unreadCopy.map { notification in
+          var updated = notification
+          updated.viewed = true
+          return updated
+        }
 
-          if case .loaded(_, var currentRead) = self.state {
-            let newReadNotifications = updatedNotifications.filter { updatedNotification in
-              !currentRead.contains(where: {
-                $0.notificationId == updatedNotification.notificationId
-              })
-            }
-            currentRead.insert(contentsOf: newReadNotifications, at: 0)
-            self.state = .loaded(unread: [], read: currentRead)
+        if case .loaded(_, var currentRead) = self.state {
+          let newReadNotifications = updatedNotifications.filter { updatedNotification in
+            !currentRead.contains(where: {
+              $0.notificationId == updatedNotification.notificationId
+            })
           }
+          currentRead.insert(contentsOf: newReadNotifications, at: 0)
+          self.state = .loaded(unread: [], read: currentRead)
         }
       }
 
