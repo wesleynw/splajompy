@@ -41,6 +41,7 @@ type Querier interface {
 	GetPostLikesFromFollowers(ctx context.Context, arg GetPostLikesFromFollowersParams) ([]GetPostLikesFromFollowersRow, error)
 	GetPostsIdsByUserId(ctx context.Context, arg GetPostsIdsByUserIdParams) ([]int32, error)
 	GetSessionById(ctx context.Context, id string) (Session, error)
+	GetUnreadNotificationsForUserId(ctx context.Context, arg GetUnreadNotificationsForUserIdParams) ([]Notification, error)
 	GetUserById(ctx context.Context, userID int32) (User, error)
 	GetUserByIdentifier(ctx context.Context, email string) (User, error)
 	GetUserByUsername(ctx context.Context, username string) (User, error)

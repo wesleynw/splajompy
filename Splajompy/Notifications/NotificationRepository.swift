@@ -25,6 +25,10 @@ protocol NotificationServiceProtocol: Sendable {
     [Notification]
   >
 
+  func getUnreadNotifications(offset: Int, limit: Int) async -> AsyncResult<
+    [Notification]
+  >
+
   func markNotificationAsRead(notificationId: Int) async -> AsyncResult<EmptyResponse>
 
   func markAllNotificationsAsRead() async -> AsyncResult<EmptyResponse>
@@ -64,5 +68,19 @@ struct NotificationService: NotificationServiceProtocol {
 
   func getUnreadNotificationCount() async -> AsyncResult<Int> {
     return await APIService.performRequest(endpoint: "notifications/unreadCount")
+  }
+
+  func getUnreadNotifications(offset: Int, limit: Int) async -> AsyncResult<
+    [Notification]
+  > {
+    let queryItems = [
+      URLQueryItem(name: "offset", value: "\(offset)"),
+      URLQueryItem(name: "limit", value: "\(limit)"),
+    ]
+
+    return await APIService.performRequest(
+      endpoint: "notifications/unread",
+      queryItems: queryItems
+    )
   }
 }

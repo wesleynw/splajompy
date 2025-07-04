@@ -317,6 +317,31 @@ class MockNotificationService: @unchecked Sendable, NotificationServiceProtocol 
     }
   }
 
+  func getUnreadNotifications(offset: Int, limit: Int) async -> AsyncResult<
+    [Notification]
+  > {
+    callHistory.append((offset, limit))
+
+    switch behavior {
+    case .success(let notifications):
+      let unreadNotifications = notifications.filter { !$0.viewed }
+      return .success(Array(unreadNotifications.dropFirst(offset).prefix(limit)))
+
+    case .failure(let error):
+      return .error(error)
+
+    case .delayed(let notifications, let delay):
+      try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
+      let unreadNotifications = notifications.filter { !$0.viewed }
+      return .success(Array(unreadNotifications.dropFirst(offset).prefix(limit)))
+
+    default:
+      return .error(
+        MockError("Unexpected behavior set for getUnreadNotifications")
+      )
+    }
+  }
+
   func markNotificationAsRead(notificationId: Int) async -> AsyncResult<
     EmptyResponse
   > {

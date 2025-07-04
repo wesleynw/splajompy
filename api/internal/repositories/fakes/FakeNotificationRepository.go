@@ -199,6 +199,45 @@ func (f *FakeNotificationRepository) GetUserUnreadNotificationCount(ctx context.
 	return count, nil
 }
 
+// GetUnreadNotificationsForUserId retrieves unread notifications for a user with pagination
+func (f *FakeNotificationRepository) GetUnreadNotificationsForUserId(ctx context.Context, userId int, offset int, limit int) ([]*models.Notification, error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+
+	userNotifications, exists := f.notifications[userId]
+	if !exists {
+		return []*models.Notification{}, nil
+	}
+
+	// Filter to only unread notifications
+	unreadNotifications := make([]queries.Notification, 0)
+	for _, notification := range userNotifications {
+		if !notification.Viewed {
+			unreadNotifications = append(unreadNotifications, notification)
+		}
+	}
+
+	// Apply pagination
+	start := offset
+	end := offset + limit
+
+	if start >= len(unreadNotifications) {
+		return []*models.Notification{}, nil
+	}
+
+	if end > len(unreadNotifications) {
+		end = len(unreadNotifications)
+	}
+
+	result := make([]*models.Notification, 0, end-start)
+	for _, notification := range unreadNotifications[start:end] {
+		mapped := utilities.MapNotification(notification)
+		result = append(result, &mapped)
+	}
+
+	return result, nil
+}
+
 // AddNotification adds a pre-defined notification for testing
 func (f *FakeNotificationRepository) AddNotification(notification queries.Notification) {
 	f.mu.Lock()
