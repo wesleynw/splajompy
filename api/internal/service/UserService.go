@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 
-	"splajompy.com/api/v2/internal/db/queries"
 	"splajompy.com/api/v2/internal/models"
 	"splajompy.com/api/v2/internal/repositories"
 )
@@ -81,7 +80,7 @@ func (s *UserService) FollowUser(ctx context.Context, currentUser models.PublicU
 
 	text := fmt.Sprintf("@%s started following you.", currentUser.Username)
 	if facets, _ := repositories.GenerateFacets(ctx, s.userRepository, text); facets != nil {
-		err := s.notificationRepository.InsertNotification(ctx, user.UserID, nil, nil, &facets, text, queries.NotificationTypeAnnouncement)
+		err := s.notificationRepository.InsertNotification(ctx, user.UserID, nil, nil, &facets, text, "announcement")
 		if err != nil {
 			return err
 		}
