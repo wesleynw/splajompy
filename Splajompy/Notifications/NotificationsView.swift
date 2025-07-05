@@ -70,6 +70,7 @@ struct NotificationsView: View {
           notifications: viewModel.unreadNotifications,
           isUnread: true,
           isLoading: false,
+          isLastSection: viewModel.readNotificationsByDate.isEmpty,
           onMarkAsRead: { notificationId in
             Task { await viewModel.markNotificationAsRead(notificationId: notificationId) }
           },
@@ -90,6 +91,7 @@ struct NotificationsView: View {
           isUnread: false,
           isLoading: viewModel.isLoadingMore
             && section.key == viewModel.readNotificationsByDate.last?.key,
+          isLastSection: section.key == viewModel.readNotificationsByDate.last?.key,
           onMarkAsRead: { _ in },
           onMarkAllAsRead: {},
           onLoadMore: {
