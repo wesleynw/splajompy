@@ -1,20 +1,25 @@
 import SwiftUI
 
 struct ContentTextView: View {
-  let processedText: String
+  let attributedText: AttributedString
 
-  init(text: String, facets: [Facet]) {
-    self.processedText = ContentTextView.processText(text, facets: facets)
+  init(attributedText: AttributedString) {
+    self.attributedText = attributedText
   }
 
-  var body: some View {
-    Text(
-      try! AttributedString(
+  // Keep backward compatibility for other uses
+  init(text: String, facets: [Facet]) {
+    let processedText = ContentTextView.processText(text, facets: facets)
+    self.attributedText =
+      (try? AttributedString(
         markdown: processedText,
         options: AttributedString.MarkdownParsingOptions(
           interpretedSyntax: .inlineOnlyPreservingWhitespace)
-      )
-    )
+      )) ?? AttributedString(text)
+  }
+
+  var body: some View {
+    Text(attributedText)
   }
 
   static func processText(_ input: String, facets: [Facet]) -> String {
