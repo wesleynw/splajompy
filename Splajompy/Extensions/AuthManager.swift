@@ -84,7 +84,9 @@ class AuthManager: ObservableObject, Sendable {
     let name = defaults.string(forKey: "CurrentUserName")
 
     let formatter = ISO8601DateFormatter()
-    formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds, .withTimeZone]
+    formatter.formatOptions = [
+      .withInternetDateTime, .withFractionalSeconds, .withTimeZone,
+    ]
     let createdAt = formatter.date(from: createdAtString) ?? Date()
 
     return User(
@@ -109,7 +111,9 @@ class AuthManager: ObservableObject, Sendable {
     defaults.set(user.email, forKey: "CurrentUserEmail")
 
     let formatter = ISO8601DateFormatter()
-    formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds, .withTimeZone]
+    formatter.formatOptions = [
+      .withInternetDateTime, .withFractionalSeconds, .withTimeZone,
+    ]
     let createdAtString = formatter.string(from: user.createdAt)
     defaults.set(createdAtString, forKey: "CurrentUserCreatedAt")
 
