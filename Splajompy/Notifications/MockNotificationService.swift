@@ -326,6 +326,25 @@ class MockNotificationService: @unchecked Sendable, NotificationServiceProtocol 
     }
   }
 
+  func getAllNotificationWithSections(offset: Int, limit: Int) async -> AsyncResult<
+    NotificationSectionData
+  > {
+    let result = await getAllNotifications(offset: offset, limit: limit)
+
+    switch result {
+    case .success(let notifications):
+      let sectionedNotifications = Dictionary(grouping: notifications) { notification in
+        guard let date = sharedISO8601Formatter.date(from: notification.createdAt) else {
+          return NotificationDateSection.older
+        }
+        return date.notificationSection()
+      }
+      return .success(NotificationSectionData(sections: sectionedNotifications))
+    case .error(let error):
+      return .error(error)
+    }
+  }
+
   func getUnreadNotifications(offset: Int, limit: Int) async -> AsyncResult<
     [Notification]
   > {
@@ -348,6 +367,53 @@ class MockNotificationService: @unchecked Sendable, NotificationServiceProtocol 
       return .error(
         MockError("Unexpected behavior set for getUnreadNotifications")
       )
+    }
+  }
+
+  func getReadNotifications(offset: Int, limit: Int) async -> AsyncResult<
+    [Notification]
+  > {
+    callHistory.append((offset, limit))
+
+    switch behavior {
+    case .success(let notifications):
+      let readNotifications = notifications.filter { $0.viewed }
+      // Apply proper client-side pagination after filtering
+      let paginatedRead = Array(readNotifications.dropFirst(offset).prefix(limit))
+      return .success(paginatedRead)
+
+    case .failure(let error):
+      return .error(error)
+
+    case .delayed(let notifications, let delay):
+      try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
+      let readNotifications = notifications.filter { $0.viewed }
+      let paginatedRead = Array(readNotifications.dropFirst(offset).prefix(limit))
+      return .success(paginatedRead)
+
+    default:
+      return .error(
+        MockError("Unexpected behavior set for getReadNotifications")
+      )
+    }
+  }
+
+  func getReadNotificationWithSections(offset: Int, limit: Int) async -> AsyncResult<
+    NotificationSectionData
+  > {
+    let result = await getReadNotifications(offset: offset, limit: limit)
+
+    switch result {
+    case .success(let notifications):
+      let sectionedNotifications = Dictionary(grouping: notifications) { notification in
+        guard let date = sharedISO8601Formatter.date(from: notification.createdAt) else {
+          return NotificationDateSection.older
+        }
+        return date.notificationSection()
+      }
+      return .success(NotificationSectionData(sections: sectionedNotifications))
+    case .error(let error):
+      return .error(error)
     }
   }
 

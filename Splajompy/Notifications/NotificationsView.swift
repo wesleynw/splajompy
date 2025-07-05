@@ -3,18 +3,20 @@ import SwiftUI
 struct NotificationsView: View {
   @StateObject private var viewModel = ViewModel()
   @EnvironmentObject private var authManager: AuthManager
-  @EnvironmentObject private var feedRefreshManager: FeedRefreshManager
 
   var body: some View {
     Group {
       switch viewModel.state {
       case .idle, .loading:
         loadingView
-      case .loaded:
-        if viewModel.isEmpty {
-          emptyStateView
+      case .loaded(let sections, let unreadNotifications):
+        if sections.isEmpty && unreadNotifications.isEmpty {
+          noNotificationsView
         } else {
-          notificationsList
+          notificationsSectionedList(
+            sections: sections,
+            unreadNotifications: unreadNotifications
+          )
         }
       case .failed(let error):
         ErrorScreen(
@@ -23,12 +25,12 @@ struct NotificationsView: View {
         )
       }
     }
-    .navigationTitle("Notifications")
     .onAppear {
       if case .idle = viewModel.state {
         Task { await viewModel.refreshNotifications() }
       }
     }
+    .navigationTitle("Notifications")
   }
 
   private var loadingView: some View {
@@ -41,7 +43,7 @@ struct NotificationsView: View {
     }
   }
 
-  private var emptyStateView: some View {
+  private var noNotificationsView: some View {
     VStack {
       Spacer()
       Text("No notifications.")
@@ -62,59 +64,97 @@ struct NotificationsView: View {
     }
   }
 
-  private var notificationsList: some View {
+  private func notificationsSectionedList(
+    sections: [NotificationDateSection: [Notification]],
+    unreadNotifications: [Notification]
+  ) -> some View {
     List {
-      if !viewModel.unreadNotifications.isEmpty {
-        NotificationSection(
-          title: "Unread",
-          notifications: viewModel.unreadNotifications,
-          isUnread: true,
-          isLoading: false,
-          isLastSection: viewModel.readNotificationsByDate.isEmpty,
-          onMarkAsRead: { notificationId in
-            Task { await viewModel.markNotificationAsRead(notificationId: notificationId) }
-          },
-          onMarkAllAsRead: {
-            Task { await viewModel.markAllNotificationsAsRead() }
-          },
-          onLoadMore: {
-            Task { await viewModel.loadMoreNotifications() }
+      if !unreadNotifications.isEmpty {
+        Section {
+          ForEach(unreadNotifications, id: \.notificationId) { notification in
+            NotificationRow(notification: notification)
+              .swipeActions(edge: .leading) {
+                Button {
+                  Task {
+                    await viewModel.markNotificationAsRead(
+                      notificationId: notification.notificationId
+                    )
+                  }
+                } label: {
+                  Label("Mark as Read", systemImage: "checkmark.circle")
+                }
+              }
+              .tint(.blue)
           }
-        )
-        .transition(.opacity.combined(with: .move(edge: .top)))
+        } header: {
+          HStack {
+            Text("Unread")
+
+            Spacer()
+
+            Button("Mark All Read") {
+              Task {
+                await viewModel.markAllNotificationsAsRead()
+              }
+            }
+            .font(.caption)
+            .foregroundColor(.blue)
+            .buttonStyle(BorderlessButtonStyle())
+          }
+        }
       }
 
-      ForEach(viewModel.readNotificationsByDate, id: \.key) { section in
-        NotificationSection(
-          title: section.key,
-          notifications: section.value,
-          isUnread: false,
-          isLoading: viewModel.isLoadingMore
-            && section.key == viewModel.readNotificationsByDate.last?.key,
-          isLastSection: section.key == viewModel.readNotificationsByDate.last?.key,
-          onMarkAsRead: { _ in },
-          onMarkAllAsRead: {},
-          onLoadMore: {
-            Task { await viewModel.loadMoreNotifications() }
+      ForEach(NotificationDateSection.allCases, id: \.self) { section in
+        if let notifications = sections[section], !notifications.isEmpty {
+          Section(header: Text(section.rawValue)) {
+            ForEach(notifications, id: \.notificationId) { notification in
+              NotificationRow(notification: notification)
+                .onAppear {
+                  var lastSectionWithNotifications: NotificationDateSection? =
+                    nil
+                  for sectionCase in NotificationDateSection.allCases.reversed() {
+                    if let sectionNotifications = sections[sectionCase],
+                      !sectionNotifications.isEmpty
+                    {
+                      lastSectionWithNotifications = sectionCase
+                      break
+                    }
+                  }
+
+                  if section == lastSectionWithNotifications
+                    && notification.notificationId
+                      == notifications.last?.notificationId
+                  {
+                    Task {
+                      await viewModel.loadMoreNotifications()
+                    }
+                  }
+                }
+            }
           }
-        )
-        .transition(.opacity.combined(with: .move(edge: .top)))
+        }
+      }
+
+      // the uuid part is a fix from: https://stackoverflow.com/questions/70627642/progressview-hides-on-list-scroll/75431883#75431883
+      if viewModel.isFetching {
+        HStack {
+          Spacer()
+          ProgressView()
+            .scaleEffect(1.1)
+            .padding()
+          Spacer()
+        }
       }
     }
     .listStyle(.plain)
-    .animation(.easeInOut(duration: 0.3), value: viewModel.unreadNotifications.count)
-    .animation(.easeInOut(duration: 0.3), value: viewModel.readNotificationsByDate.count)
+    .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
     .refreshable {
       await viewModel.refreshNotifications()
     }
-    .environmentObject(feedRefreshManager)
   }
 }
 
-struct NotificationsView_Previews: PreviewProvider {
-  static var previews: some View {
-    NotificationsView()
-      .environmentObject(FeedRefreshManager())
-      .environmentObject(AuthManager())
-  }
+#Preview {
+  NotificationsView()
+    .environmentObject(AuthManager())
 }

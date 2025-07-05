@@ -1,6 +1,6 @@
 import Foundation
 
-enum NotificationDateSection: String, CaseIterable {
+enum NotificationDateSection: String, CaseIterable, Decodable, Hashable {
   case today = "Today"
   case yesterday = "Yesterday"
   case thisWeek = "This Week"
@@ -8,7 +8,7 @@ enum NotificationDateSection: String, CaseIterable {
   case older = "Older"
 }
 
-@MainActor let sharedISO8601Formatter: ISO8601DateFormatter = {
+nonisolated(unsafe) let sharedISO8601Formatter: ISO8601DateFormatter = {
   let formatter = ISO8601DateFormatter()
   formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
   return formatter
