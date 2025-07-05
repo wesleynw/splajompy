@@ -16,7 +16,7 @@ struct NotificationRow: View {
   }
 
   private var notificationContent: some View {
-    HStack(alignment: .top, spacing: 12) {
+    HStack(alignment: .top, spacing: 10) {
       NotificationIcon.icon(for: notification.notificationType)
         .frame(width: 28, height: 28)
 
@@ -54,7 +54,8 @@ struct NotificationRow: View {
         }
       }
     }
-    .padding(.horizontal, 16)
     .padding(.vertical, 12)
+    .listRowSeparator(.visible)
+    .listRowSeparatorTint(.secondary.opacity(0.3))
   }
 }
