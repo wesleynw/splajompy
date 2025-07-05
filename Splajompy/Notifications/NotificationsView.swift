@@ -119,9 +119,10 @@ struct NotificationsView: View {
                       break
                     }
                   }
-                  
-                  if section == lastSectionWithNotifications && 
-                     notification.notificationId == notifications.last?.notificationId {
+
+                  if section == lastSectionWithNotifications
+                    && notification.notificationId == notifications.last?.notificationId
+                  {
                     Task {
                       await viewModel.loadMoreNotifications()
                     }
