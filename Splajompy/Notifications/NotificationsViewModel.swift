@@ -18,7 +18,6 @@ extension NotificationsView {
 
     private let service = NotificationService()
 
-    /** `refreshNotifications` clears stored notifications in the ViewModel and submits a request to re-fetch more notifications. */
     func refreshNotifications() async {
       // if state != idle, there are existing notifications, leave them there while more are being fetched
       if case .idle = state {
