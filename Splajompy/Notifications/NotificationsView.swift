@@ -9,11 +9,14 @@ struct NotificationsView: View {
       switch viewModel.state {
       case .idle, .loading:
         loadingView
-      case .loaded(let notifications):
-        if notifications.isEmpty {
+      case .loaded(let sections, let unreadNotifications):
+        if sections.isEmpty && unreadNotifications.isEmpty {
           noNotificationsView
         } else {
-          notificationsList(notifications: notifications)
+          notificationsSectionedList(
+            sections: sections,
+            unreadNotifications: unreadNotifications
+          )
         }
       case .failed(let error):
         ErrorScreen(
@@ -61,20 +64,84 @@ struct NotificationsView: View {
     }
   }
 
-  private func notificationsList(notifications: [Notification]) -> some View {
+  private func notificationsSectionedList(
+    sections: [NotificationDateSection: [Notification]],
+    unreadNotifications: [Notification]
+  ) -> some View {
     List {
-      ForEach(notifications, id: \.notificationId) { notification in
-        NotificationRow(notification: notification)
+      if !unreadNotifications.isEmpty {
+        Section {
+          ForEach(unreadNotifications, id: \.notificationId) { notification in
+            NotificationRow(notification: notification)
+              .swipeActions(edge: .leading) {
+                Button {
+                  Task {
+                    await viewModel.markNotificationAsRead(
+                      notificationId: notification.notificationId
+                    )
+                  }
+                } label: {
+                  Label("Mark as Read", systemImage: "checkmark.circle")
+                }
+              }
+              .tint(.blue)
+          }
+        } header: {
+          HStack {
+            Text("Unread")
+
+            Spacer()
+
+            Button("Mark All Read") {
+              Task {
+                await viewModel.markAllNotificationsAsRead()
+              }
+            }
+            .font(.caption)
+            .foregroundColor(.blue)
+            .buttonStyle(BorderlessButtonStyle())
+          }
+        }
+      }
+
+      ForEach(NotificationDateSection.allCases, id: \.self) { section in
+        if let notifications = sections[section], !notifications.isEmpty {
+          Section(header: Text(section.rawValue)) {
+            ForEach(notifications, id: \.notificationId) { notification in
+              NotificationRow(notification: notification)
+                .onAppear {
+                  let shouldLoadMore =
+                    notifications.count < 8
+                    || (notifications.count >= 8
+                      && notification.notificationId
+                        == notifications[notifications.count - 8].notificationId)
+
+                  if shouldLoadMore {
+                    Task {
+                      await viewModel.loadMoreNotifications()
+                    }
+                  }
+                }
+            }
+          }
           .onAppear {
-            if notifications.count < 10
-              || notification.notificationId
-                == notifications[notifications.endIndex - 8].notificationId
-            {
+            var lastSectionWithNotifications: NotificationDateSection? = nil
+            for sectionCase in NotificationDateSection.allCases.reversed() {
+              if let sectionNotifications = sections[sectionCase],
+                !sectionNotifications.isEmpty
+              {
+                lastSectionWithNotifications = sectionCase
+                break
+              }
+            }
+
+            if section == lastSectionWithNotifications {
               Task {
                 await viewModel.loadMoreNotifications()
               }
             }
           }
+        }
       }
 
       if viewModel.isFetching {

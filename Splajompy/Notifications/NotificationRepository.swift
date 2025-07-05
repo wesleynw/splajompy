@@ -61,14 +61,28 @@ struct Notification: Identifiable, Decodable, Equatable {
   }
 }
 
+struct NotificationSectionData: Sendable, Decodable {
+  let sections: [NotificationDateSection: [Notification]]
+}
+
 protocol NotificationServiceProtocol: Sendable {
   func getAllNotifications(offset: Int, limit: Int) async -> AsyncResult<
     [Notification]
   >
 
+  func getAllNotificationWithSections(offset: Int, limit: Int) async
+    -> AsyncResult<NotificationSectionData>
+
   func getUnreadNotifications(offset: Int, limit: Int) async -> AsyncResult<
     [Notification]
   >
+
+  func getReadNotifications(offset: Int, limit: Int) async -> AsyncResult<
+    [Notification]
+  >
+
+  func getReadNotificationWithSections(offset: Int, limit: Int) async
+    -> AsyncResult<NotificationSectionData>
 
   func markNotificationAsRead(notificationId: Int) async -> AsyncResult<
     EmptyResponse
@@ -122,6 +136,28 @@ struct NotificationService: NotificationServiceProtocol {
     )
   }
 
+  func getAllNotificationWithSections(offset: Int, limit: Int) async
+    -> AsyncResult<NotificationSectionData>
+  {
+    let result = await getAllNotifications(offset: offset, limit: limit)
+
+    switch result {
+    case .success(let notifications):
+      let sectionedNotifications = Dictionary(grouping: notifications) {
+        notification in
+        guard
+          let date = sharedISO8601Formatter.date(from: notification.createdAt)
+        else {
+          return NotificationDateSection.older
+        }
+        return date.notificationSection()
+      }
+      return .success(NotificationSectionData(sections: sectionedNotifications))
+    case .error(let error):
+      return .error(error)
+    }
+  }
+
   func getUnreadNotifications(offset: Int, limit: Int) async -> AsyncResult<
     [Notification]
   > {
@@ -134,5 +170,45 @@ struct NotificationService: NotificationServiceProtocol {
       endpoint: "notifications/unread",
       queryItems: queryItems
     )
+  }
+
+  func getReadNotifications(offset: Int, limit: Int) async -> AsyncResult<
+    [Notification]
+  > {
+    let result = await getAllNotifications(offset: 0, limit: limit)
+
+    switch result {
+    case .success(let notifications):
+      let readNotifications = notifications.filter { $0.viewed }
+
+      let paginatedRead = Array(
+        readNotifications.dropFirst(offset).prefix(limit)
+      )
+      return .success(paginatedRead)
+    case .error(let error):
+      return .error(error)
+    }
+  }
+
+  func getReadNotificationWithSections(offset: Int, limit: Int) async
+    -> AsyncResult<NotificationSectionData>
+  {
+    let result = await getReadNotifications(offset: offset, limit: limit)
+
+    switch result {
+    case .success(let notifications):
+      let sectionedNotifications = Dictionary(grouping: notifications) {
+        notification in
+        guard
+          let date = sharedISO8601Formatter.date(from: notification.createdAt)
+        else {
+          return NotificationDateSection.older
+        }
+        return date.notificationSection()
+      }
+      return .success(NotificationSectionData(sections: sectionedNotifications))
+    case .error(let error):
+      return .error(error)
+    }
   }
 }
