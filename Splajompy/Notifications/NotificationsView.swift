@@ -110,7 +110,8 @@ struct NotificationsView: View {
             ForEach(notifications, id: \.notificationId) { notification in
               NotificationRow(notification: notification)
                 .onAppear {
-                  var lastSectionWithNotifications: NotificationDateSection? = nil
+                  var lastSectionWithNotifications: NotificationDateSection? =
+                    nil
                   for sectionCase in NotificationDateSection.allCases.reversed() {
                     if let sectionNotifications = sections[sectionCase],
                       !sectionNotifications.isEmpty
@@ -121,7 +122,8 @@ struct NotificationsView: View {
                   }
 
                   if section == lastSectionWithNotifications
-                    && notification.notificationId == notifications.last?.notificationId
+                    && notification.notificationId
+                      == notifications.last?.notificationId
                   {
                     Task {
                       await viewModel.loadMoreNotifications()
@@ -133,11 +135,11 @@ struct NotificationsView: View {
         }
       }
 
+      // the uuid part is a fix from: https://stackoverflow.com/questions/70627642/progressview-hides-on-list-scroll/75431883#75431883
       if viewModel.isFetching {
         HStack {
           Spacer()
           ProgressView()
-            .id(UUID())  // a fix from: https://stackoverflow.com/questions/70627642/progressview-hides-on-list-scroll/75431883#75431883
             .scaleEffect(1.1)
             .padding()
           Spacer()

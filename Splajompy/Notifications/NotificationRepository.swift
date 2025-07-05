@@ -29,7 +29,7 @@ struct Notification: Identifiable, Decodable, Equatable {
   var id: Int { notificationId }
 
   var richContent: AttributedString {
-    let markdown = GenerateAttributedStringUsingFacets(
+    let markdown = generateAttributedStringUsingFacets(
       self.message,
       facets: facets ?? []
     )

@@ -9,7 +9,7 @@ struct ContentTextView: View {
 
   // Keep backward compatibility for other uses
   init(text: String, facets: [Facet]) {
-    let processedText = GenerateAttributedStringUsingFacets(text, facets: facets)
+    let processedText = generateAttributedStringUsingFacets(text, facets: facets)
     self.attributedText =
       (try? AttributedString(
         markdown: processedText,

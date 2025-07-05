@@ -1,7 +1,6 @@
 import SwiftUI
 
-/// `GenerateAttributedStringUsingFacets` takes in a `input` String and a list of facets.
-func GenerateAttributedStringUsingFacets(_ input: String, facets: [Facet]) -> String {
+func generateAttributedStringUsingFacets(_ input: String, facets: [Facet]) -> String {
   var output = input
 
   for facet in facets.sorted(by: { $0.indexStart > $1.indexStart }) {
