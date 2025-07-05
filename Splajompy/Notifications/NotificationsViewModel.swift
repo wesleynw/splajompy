@@ -14,7 +14,7 @@ extension NotificationsView {
 
     private var readOffset = 0
     private var unreadOffset = 0
-    private let limit = 60
+    private let limit = 30
 
     private let service = NotificationService()
 

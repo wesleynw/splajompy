@@ -29,20 +29,16 @@ struct Notification: Identifiable, Decodable, Equatable {
   var id: Int { notificationId }
 
   var richContent: AttributedString {
-    if let facets = self.facets {
-      let markdown = GenerateAttributedStringUsingFacets(
-        self.message,
-        facets: facets
+    let markdown = GenerateAttributedStringUsingFacets(
+      self.message,
+      facets: facets ?? []
+    )
+    return try! AttributedString(
+      markdown: markdown,
+      options: AttributedString.MarkdownParsingOptions(
+        interpretedSyntax: .inlineOnlyPreservingWhitespace
       )
-      return try! AttributedString(
-        markdown: markdown,
-        options: AttributedString.MarkdownParsingOptions(
-          interpretedSyntax: .inlineOnlyPreservingWhitespace
-        )
-      )
-    } else {
-      return AttributedString(self.message)
-    }
+    )
   }
 
   var relativeDate: String {
@@ -175,16 +171,12 @@ struct NotificationService: NotificationServiceProtocol {
   func getReadNotifications(offset: Int, limit: Int) async -> AsyncResult<
     [Notification]
   > {
-    let result = await getAllNotifications(offset: 0, limit: limit)
+    let result = await getAllNotifications(offset: offset, limit: limit)
 
     switch result {
     case .success(let notifications):
       let readNotifications = notifications.filter { $0.viewed }
-
-      let paginatedRead = Array(
-        readNotifications.dropFirst(offset).prefix(limit)
-      )
-      return .success(paginatedRead)
+      return .success(readNotifications)
     case .error(let error):
       return .error(error)
     }

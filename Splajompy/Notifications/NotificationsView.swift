@@ -110,35 +110,23 @@ struct NotificationsView: View {
             ForEach(notifications, id: \.notificationId) { notification in
               NotificationRow(notification: notification)
                 .onAppear {
-                  let shouldLoadMore =
-                    notifications.count < 8
-                    || (notifications.count >= 8
-                      && notification.notificationId
-                        == notifications[notifications.count - 8].notificationId)
-
-                  if shouldLoadMore {
+                  var lastSectionWithNotifications: NotificationDateSection? = nil
+                  for sectionCase in NotificationDateSection.allCases.reversed() {
+                    if let sectionNotifications = sections[sectionCase],
+                      !sectionNotifications.isEmpty
+                    {
+                      lastSectionWithNotifications = sectionCase
+                      break
+                    }
+                  }
+                  
+                  if section == lastSectionWithNotifications && 
+                     notification.notificationId == notifications.last?.notificationId {
                     Task {
                       await viewModel.loadMoreNotifications()
                     }
                   }
                 }
-            }
-          }
-          .onAppear {
-            var lastSectionWithNotifications: NotificationDateSection? = nil
-            for sectionCase in NotificationDateSection.allCases.reversed() {
-              if let sectionNotifications = sections[sectionCase],
-                !sectionNotifications.isEmpty
-              {
-                lastSectionWithNotifications = sectionCase
-                break
-              }
-            }
-
-            if section == lastSectionWithNotifications {
-              Task {
-                await viewModel.loadMoreNotifications()
-              }
             }
           }
         }
