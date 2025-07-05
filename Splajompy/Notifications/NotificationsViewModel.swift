@@ -1,4 +1,3 @@
-import Foundation
 import SwiftUI
 
 enum NotificationState: Equatable {
@@ -24,47 +23,21 @@ enum NotificationState: Equatable {
 extension NotificationsView {
   @MainActor class ViewModel: ObservableObject {
     @Published var state: NotificationState = .idle
-    @Published var isLoadingMore: Bool = false
-    @Published var canLoadMore: Bool = true
+    @Published var isFetching: Bool = false
 
     private var offset = 0
-    private let limit = 20
+    private let limit = 60
+
     private let service = NotificationService()
 
-    var notifications: [Notification] {
-      guard case .loaded(let notifications) = state else { return [] }
-      return notifications
-    }
-
-    var unreadNotifications: [Notification] {
-      notifications.filter { !$0.viewed }
-    }
-
-    var readNotificationsByDate: [(key: String, value: [Notification])] {
-      let readNotifications = notifications.filter { $0.viewed }
-      let grouped = Dictionary(grouping: readNotifications) { notification in
-        let date = sharedISO8601Formatter.date(from: notification.createdAt) ?? Date()
-        return date.notificationSection().rawValue
-      }
-
-      return NotificationDateSection.allCases.compactMap { section in
-        guard let sectionNotifications = grouped[section.rawValue], !sectionNotifications.isEmpty
-        else { return nil }
-        return (key: section.rawValue, value: sectionNotifications)
-      }
-    }
-
-    var isEmpty: Bool {
-      notifications.isEmpty
-    }
-
+    /** `refreshNotifications` clears stored notifications in the ViewModel and submits a request to re-fetch more notifications. */
     func refreshNotifications() async {
+      // if state != idle, there are existing notifications, leave them there while more are being fetched
       if case .idle = state {
         state = .loading
       }
 
       offset = 0
-      canLoadMore = true
 
       let result = await service.getAllNotifications(offset: 0, limit: limit)
 
@@ -72,37 +45,30 @@ extension NotificationsView {
       case .success(let notifications):
         state = .loaded(notifications)
         offset = notifications.count
-        canLoadMore = notifications.count >= limit
       case .error(let error):
         state = .failed(error)
-        canLoadMore = false
       }
     }
 
     func loadMoreNotifications() async {
-      guard canLoadMore && !isLoadingMore else { return }
+      guard !isFetching else { return }
+      isFetching = true
+      defer { isFetching = false }
 
-      isLoadingMore = true
-
-      let result = await service.getAllNotifications(offset: offset, limit: limit)
+      let result = await service.getAllNotifications(
+        offset: offset,
+        limit: limit
+      )
 
       switch result {
       case .success(let newNotifications):
         if case .loaded(let currentNotifications) = state {
-          let filteredNew = newNotifications.filter { newNotification in
-            !currentNotifications.contains { $0.notificationId == newNotification.notificationId }
-          }
-          withAnimation(.easeInOut(duration: 0.3)) {
-            state = .loaded(currentNotifications + filteredNew)
-          }
+          state = .loaded(currentNotifications + newNotifications)
           offset += newNotifications.count
-          canLoadMore = newNotifications.count >= limit
         }
-      case .error:
-        canLoadMore = false
+      case .error(let error):
+        state = .failed(error)
       }
-
-      isLoadingMore = false
     }
 
     func markNotificationAsRead(notificationId: Int) async {
@@ -123,7 +89,9 @@ extension NotificationsView {
         }
       }
 
-      let _ = await service.markNotificationAsRead(notificationId: notificationId)
+      let _ = await service.markNotificationAsRead(
+        notificationId: notificationId
+      )
     }
 
     func markAllNotificationsAsRead() async {

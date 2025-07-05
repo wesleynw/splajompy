@@ -8,7 +8,7 @@ enum NotificationType: String, Decodable, CaseIterable {
   case mention = "mention"
 }
 
-struct Notification: Identifiable, Decodable {
+struct Notification: Identifiable, Decodable, Equatable {
   let notificationId: Int
   let userId: Int
   let postId: Int?
@@ -27,6 +27,38 @@ struct Notification: Identifiable, Decodable {
   var comment: Comment?
 
   var id: Int { notificationId }
+
+  var richContent: AttributedString {
+    if let facets = self.facets {
+      let markdown = GenerateAttributedStringUsingFacets(
+        self.message,
+        facets: facets
+      )
+      return try! AttributedString(
+        markdown: markdown,
+        options: AttributedString.MarkdownParsingOptions(
+          interpretedSyntax: .inlineOnlyPreservingWhitespace
+        )
+      )
+    } else {
+      return AttributedString(self.message)
+    }
+  }
+
+  var relativeDate: String {
+    let decoder = ISO8601DateFormatter()
+    decoder.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+
+    let formatter = RelativeDateTimeFormatter()
+    formatter.unitsStyle = .full
+
+    let date = decoder.date(from: self.createdAt) ?? Date()
+    return formatter.localizedString(for: date, relativeTo: Date())
+  }
+
+  static func == (lhs: Notification, rhs: Notification) -> Bool {
+    return lhs.notificationId == rhs.notificationId
+  }
 }
 
 protocol NotificationServiceProtocol: Sendable {
@@ -38,7 +70,9 @@ protocol NotificationServiceProtocol: Sendable {
     [Notification]
   >
 
-  func markNotificationAsRead(notificationId: Int) async -> AsyncResult<EmptyResponse>
+  func markNotificationAsRead(notificationId: Int) async -> AsyncResult<
+    EmptyResponse
+  >
 
   func markAllNotificationsAsRead() async -> AsyncResult<EmptyResponse>
 
@@ -62,13 +96,20 @@ struct NotificationService: NotificationServiceProtocol {
     )
   }
 
-  func markNotificationAsRead(notificationId: Int) async -> AsyncResult<EmptyResponse> {
+  func markNotificationAsRead(notificationId: Int) async -> AsyncResult<
+    EmptyResponse
+  > {
     return await APIService.performRequest(
-      endpoint: "notifications/\(notificationId)/markRead", method: "POST")
+      endpoint: "notifications/\(notificationId)/markRead",
+      method: "POST"
+    )
   }
 
   func markAllNotificationsAsRead() async -> AsyncResult<EmptyResponse> {
-    await APIService.performRequest(endpoint: "notifications/markRead", method: "POST")
+    await APIService.performRequest(
+      endpoint: "notifications/markRead",
+      method: "POST"
+    )
   }
 
   func hasUnreadNotifications() async -> AsyncResult<Bool> {
@@ -76,7 +117,9 @@ struct NotificationService: NotificationServiceProtocol {
   }
 
   func getUnreadNotificationCount() async -> AsyncResult<Int> {
-    return await APIService.performRequest(endpoint: "notifications/unreadCount")
+    return await APIService.performRequest(
+      endpoint: "notifications/unreadCount"
+    )
   }
 
   func getUnreadNotifications(offset: Int, limit: Int) async -> AsyncResult<

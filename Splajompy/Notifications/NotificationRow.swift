@@ -2,8 +2,6 @@ import SwiftUI
 
 struct NotificationRow: View {
   let notification: Notification
-  let isUnread: Bool
-  let onMarkAsRead: () -> Void
 
   var body: some View {
     Group {
@@ -15,40 +13,21 @@ struct NotificationRow: View {
         notificationContent
       }
     }
-    .swipeActions(edge: .leading) {
-      if isUnread {
-        Button {
-          onMarkAsRead()
-        } label: {
-          Label("Mark Read", systemImage: "checkmark.circle")
-        }
-        .tint(.blue)
-      }
-    }
   }
 
   private var notificationContent: some View {
-    HStack(alignment: .top, spacing: 0) {
+    HStack(alignment: .top, spacing: 12) {
       NotificationIcon.icon(for: notification.notificationType)
-        .font(.system(size: 20, weight: .medium))
-        .foregroundColor(.white)
-        .frame(width: 28, height: 28, alignment: .center)
-        .padding(.leading, 16)
-        .padding(.top, 14)
+        .frame(width: 28, height: 28)
 
-      VStack(alignment: .leading, spacing: 0) {
-        HStack(alignment: .top, spacing: 0) {
-          VStack(alignment: .leading, spacing: 0) {
-            ContentTextView(attributedText: processedContent)
-              .fixedSize(horizontal: false, vertical: true)
-              .padding(.leading, 12)
-              .padding(.top, 12)
+      VStack(alignment: .leading, spacing: 4) {
+        HStack(alignment: .top, spacing: 8) {
+          VStack(alignment: .leading, spacing: 4) {
+            ContentTextView(attributedText: notification.richContent)
 
-            Text(displayDate)
+            Text(notification.relativeDate)
               .font(.caption)
               .foregroundColor(.secondary)
-              .padding(.leading, 12)
-              .padding(.top, 4)
           }
 
           Spacer(minLength: 0)
@@ -57,46 +36,25 @@ struct NotificationRow: View {
             let imageWidth = notification.imageWidth,
             let imageHeight = notification.imageHeight
           {
-            NotificationImageView(url: blobUrl, width: imageWidth, height: imageHeight)
-              .frame(width: 40, height: 40)
-              .padding(.trailing, 16)
-              .padding(.top, 12)
+            NotificationImageView(
+              url: blobUrl,
+              width: imageWidth,
+              height: imageHeight
+            )
+            .frame(width: 40, height: 40)
           }
         }
 
         if let comment = notification.comment {
           MiniNotificationView(text: comment.text)
-            .padding(.leading, 12)
-            .padding(.top, 8)
-            .padding(.trailing, 16)
-        } else if let post = notification.post, let text = post.text, !text.isEmpty {
+        } else if let post = notification.post, let text = post.text,
+          !text.isEmpty
+        {
           MiniNotificationView(text: text)
-            .padding(.leading, 12)
-            .padding(.top, 8)
-            .padding(.trailing, 16)
         }
       }
     }
-    .padding(.bottom, 12)
-  }
-
-  private var processedContent: AttributedString {
-    let processedText = ContentTextView.processText(
-      notification.message,
-      facets: notification.facets ?? []
-    )
-
-    return
-      (try? AttributedString(
-        markdown: processedText,
-        options: AttributedString.MarkdownParsingOptions(
-          interpretedSyntax: .inlineOnlyPreservingWhitespace
-        )
-      )) ?? AttributedString(notification.message)
-  }
-
-  private var displayDate: String {
-    let date = sharedISO8601Formatter.date(from: notification.createdAt) ?? Date()
-    return sharedRelativeDateTimeFormatter.localizedString(for: date, relativeTo: Date())
+    .padding(.horizontal, 16)
+    .padding(.vertical, 12)
   }
 }
