@@ -92,7 +92,9 @@ extension NotificationsView {
           let filteredNew = newNotifications.filter { newNotification in
             !currentNotifications.contains { $0.notificationId == newNotification.notificationId }
           }
-          state = .loaded(currentNotifications + filteredNew)
+          withAnimation(.easeInOut(duration: 0.3)) {
+            state = .loaded(currentNotifications + filteredNew)
+          }
           offset += newNotifications.count
           canLoadMore = newNotifications.count >= limit
         }

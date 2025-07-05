@@ -5,6 +5,7 @@ struct NotificationSection: View {
   let notifications: [Notification]
   let isUnread: Bool
   let isLoading: Bool
+  let isLastSection: Bool
   let onMarkAsRead: (Int) -> Void
   let onMarkAllAsRead: () -> Void
   let onLoadMore: () -> Void
@@ -21,7 +22,7 @@ struct NotificationSection: View {
         .listRowSeparator(.hidden)
         .transition(.opacity.combined(with: .move(edge: .top)))
         .onAppear {
-          if notification.id == notifications.last?.id {
+          if isLastSection && notification.id == notifications.last?.id {
             onLoadMore()
           }
         }
