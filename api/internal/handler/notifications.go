@@ -3,6 +3,7 @@ package handler
 import (
 	"net/http"
 	"strconv"
+	"time"
 
 	"splajompy.com/api/v2/internal/utilities"
 )
@@ -134,6 +135,78 @@ func (h *Handler) GetUnreadNotificationsByUserId(w http.ResponseWriter, r *http.
 	}
 
 	notifications, err := h.notificationService.GetUnreadNotificationsByUserId(r.Context(), *currentUser, offset, limit)
+	if err != nil {
+		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
+		return
+	}
+
+	utilities.HandleSuccess(w, notifications)
+}
+
+// GET /notifications/read/time
+func (h *Handler) GetReadNotificationsByUserIdWithTimeOffset(w http.ResponseWriter, r *http.Request) {
+	currentUser, err := h.getAuthenticatedUser(r)
+	if err != nil {
+		utilities.HandleError(w, http.StatusUnauthorized, "Unauthorized")
+		return
+	}
+
+	beforeTimeStr := r.URL.Query().Get("before_time")
+	var beforeTime time.Time
+	if beforeTimeStr != "" {
+		beforeTime, err = time.Parse(time.RFC3339, beforeTimeStr)
+		if err != nil {
+			utilities.HandleError(w, http.StatusBadRequest, "Invalid before_time format, expected RFC3339")
+			return
+		}
+	} else {
+		beforeTime = time.Now()
+	}
+
+	limit := 30
+	if limitStr := r.URL.Query().Get("limit"); limitStr != "" {
+		if parsedLimit, err := strconv.Atoi(limitStr); err == nil && parsedLimit > 0 {
+			limit = parsedLimit
+		}
+	}
+
+	notifications, err := h.notificationService.GetReadNotificationsByUserIdWithTimeOffset(r.Context(), *currentUser, beforeTime, limit)
+	if err != nil {
+		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
+		return
+	}
+
+	utilities.HandleSuccess(w, notifications)
+}
+
+// GET /notifications/unread/time
+func (h *Handler) GetUnreadNotificationsByUserIdWithTimeOffset(w http.ResponseWriter, r *http.Request) {
+	currentUser, err := h.getAuthenticatedUser(r)
+	if err != nil {
+		utilities.HandleError(w, http.StatusUnauthorized, "Unauthorized")
+		return
+	}
+
+	beforeTimeStr := r.URL.Query().Get("before_time")
+	var beforeTime time.Time
+	if beforeTimeStr != "" {
+		beforeTime, err = time.Parse(time.RFC3339, beforeTimeStr)
+		if err != nil {
+			utilities.HandleError(w, http.StatusBadRequest, "Invalid before_time format, expected RFC3339")
+			return
+		}
+	} else {
+		beforeTime = time.Now()
+	}
+
+	limit := 30
+	if limitStr := r.URL.Query().Get("limit"); limitStr != "" {
+		if parsedLimit, err := strconv.Atoi(limitStr); err == nil && parsedLimit > 0 {
+			limit = parsedLimit
+		}
+	}
+
+	notifications, err := h.notificationService.GetUnreadNotificationsByUserIdWithTimeOffset(r.Context(), *currentUser, beforeTime, limit)
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
 		return

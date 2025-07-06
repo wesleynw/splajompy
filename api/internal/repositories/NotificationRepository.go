@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"context"
+	"time"
 
 	"github.com/jackc/pgx/v5/pgtype"
 	"splajompy.com/api/v2/internal/db"
@@ -19,6 +20,8 @@ type NotificationRepository interface {
 	MarkAllNotificationsAsReadForUser(ctx context.Context, userId int) error
 	GetUserHasUnreadNotifications(ctx context.Context, userId int) (bool, error)
 	GetUserUnreadNotificationCount(ctx context.Context, userId int) (int, error)
+	GetReadNotificationsForUserIdWithTimeOffset(ctx context.Context, userId int, beforeTime time.Time, limit int) ([]*models.Notification, error)
+	GetUnreadNotificationsForUserIdWithTimeOffset(ctx context.Context, userId int, beforeTime time.Time, limit int) ([]*models.Notification, error)
 }
 
 type DBNotificationRepository struct {
@@ -102,6 +105,46 @@ func (r DBNotificationRepository) GetUnreadNotificationsForUserId(ctx context.Co
 		UserID: int32(userId),
 		Offset: int32(offset),
 		Limit:  int32(limit),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]*models.Notification, len(notifications))
+	for i, notification := range notifications {
+		mapped := utilities.MapNotification(notification)
+		result[i] = &mapped
+	}
+
+	return result, nil
+}
+
+// GetReadNotificationsForUserIdWithTimeOffset retrieves read notifications for a user with time-based pagination
+func (r DBNotificationRepository) GetReadNotificationsForUserIdWithTimeOffset(ctx context.Context, userId int, beforeTime time.Time, limit int) ([]*models.Notification, error) {
+	notifications, err := r.querier.GetReadNotificationsForUserIdWithTimeOffset(ctx, queries.GetReadNotificationsForUserIdWithTimeOffsetParams{
+		UserID:    int32(userId),
+		CreatedAt: pgtype.Timestamp{Time: beforeTime, Valid: true},
+		Limit:     int32(limit),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]*models.Notification, len(notifications))
+	for i, notification := range notifications {
+		mapped := utilities.MapNotification(notification)
+		result[i] = &mapped
+	}
+
+	return result, nil
+}
+
+// GetUnreadNotificationsForUserIdWithTimeOffset retrieves unread notifications for a user with time-based pagination
+func (r DBNotificationRepository) GetUnreadNotificationsForUserIdWithTimeOffset(ctx context.Context, userId int, beforeTime time.Time, limit int) ([]*models.Notification, error) {
+	notifications, err := r.querier.GetUnreadNotificationsForUserIdWithTimeOffset(ctx, queries.GetUnreadNotificationsForUserIdWithTimeOffsetParams{
+		UserID:    int32(userId),
+		CreatedAt: pgtype.Timestamp{Time: beforeTime, Valid: true},
+		Limit:     int32(limit),
 	})
 	if err != nil {
 		return nil, err

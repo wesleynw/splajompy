@@ -298,3 +298,67 @@ func (f *FakeNotificationRepository) GetUnreadNotificationCount(userId int) int 
 
 	return count
 }
+
+// GetReadNotificationsForUserIdWithTimeOffset retrieves read notifications for a user with time-based pagination
+func (f *FakeNotificationRepository) GetReadNotificationsForUserIdWithTimeOffset(ctx context.Context, userId int, beforeTime time.Time, limit int) ([]*models.Notification, error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+
+	userNotifications, exists := f.notifications[userId]
+	if !exists {
+		return []*models.Notification{}, nil
+	}
+
+	// Filter to only read notifications that are before the given time
+	filteredNotifications := make([]queries.Notification, 0)
+	for _, notification := range userNotifications {
+		if notification.Viewed && notification.CreatedAt.Time.Before(beforeTime) {
+			filteredNotifications = append(filteredNotifications, notification)
+		}
+	}
+
+	// Limit results
+	if limit > 0 && len(filteredNotifications) > limit {
+		filteredNotifications = filteredNotifications[:limit]
+	}
+
+	result := make([]*models.Notification, 0, len(filteredNotifications))
+	for _, notification := range filteredNotifications {
+		mapped := utilities.MapNotification(notification)
+		result = append(result, &mapped)
+	}
+
+	return result, nil
+}
+
+// GetUnreadNotificationsForUserIdWithTimeOffset retrieves unread notifications for a user with time-based pagination
+func (f *FakeNotificationRepository) GetUnreadNotificationsForUserIdWithTimeOffset(ctx context.Context, userId int, beforeTime time.Time, limit int) ([]*models.Notification, error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+
+	userNotifications, exists := f.notifications[userId]
+	if !exists {
+		return []*models.Notification{}, nil
+	}
+
+	// Filter to only unread notifications that are before the given time
+	filteredNotifications := make([]queries.Notification, 0)
+	for _, notification := range userNotifications {
+		if !notification.Viewed && notification.CreatedAt.Time.Before(beforeTime) {
+			filteredNotifications = append(filteredNotifications, notification)
+		}
+	}
+
+	// Limit results
+	if limit > 0 && len(filteredNotifications) > limit {
+		filteredNotifications = filteredNotifications[:limit]
+	}
+
+	result := make([]*models.Notification, 0, len(filteredNotifications))
+	for _, notification := range filteredNotifications {
+		mapped := utilities.MapNotification(notification)
+		result = append(result, &mapped)
+	}
+
+	return result, nil
+}

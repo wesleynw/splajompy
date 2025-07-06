@@ -45,3 +45,17 @@ OFFSET $3;
 -- name: InsertNotification :exec
 INSERT INTO notifications (user_id, post_id, comment_id, message, facets, link, notification_type)
 VALUES ($1, $2, $3, $4, $5, $6, $7);
+
+-- name: GetReadNotificationsForUserIdWithTimeOffset :many
+SELECT *
+FROM notifications 
+WHERE user_id = $1 AND viewed = TRUE AND created_at < $2
+ORDER BY created_at DESC
+LIMIT $3;
+
+-- name: GetUnreadNotificationsForUserIdWithTimeOffset :many
+SELECT *
+FROM notifications 
+WHERE user_id = $1 AND viewed = FALSE AND created_at < $2
+ORDER BY created_at DESC
+LIMIT $3;
