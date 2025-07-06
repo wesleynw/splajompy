@@ -14,6 +14,7 @@ extension NotificationsView {
 
     private var readOffset = 0
     private var unreadOffset = 0
+    private var lastReadNotificationTime: String?
     private let limit = 30
 
     private let service = NotificationService()
@@ -26,13 +27,14 @@ extension NotificationsView {
 
       readOffset = 0
       unreadOffset = 0
+      lastReadNotificationTime = nil
 
-      async let unreadResult = service.getUnreadNotifications(
-        offset: 0,
+      async let unreadResult = service.getUnreadNotificationsWithTimeOffset(
+        beforeTime: ISO8601DateFormatter().string(from: Date()),
         limit: limit
       )
-      async let readResult = service.getReadNotificationWithSections(
-        offset: 0,
+      async let readResult = service.getReadNotificationWithSectionsWithTimeOffset(
+        beforeTime: ISO8601DateFormatter().string(from: Date()),
         limit: limit
       )
 
@@ -43,6 +45,20 @@ extension NotificationsView {
         state = .loaded(readSectionData.sections, unreadNotifications)
         readOffset = readSectionData.sections.values.flatMap { $0 }.count
         unreadOffset = unreadNotifications.count
+
+        let allReadNotifications = readSectionData.sections.values.flatMap { $0 }
+        let sortedReadNotifications = allReadNotifications.sorted { notification1, notification2 in
+          guard let date1 = sharedISO8601Formatter.date(from: notification1.createdAt),
+            let date2 = sharedISO8601Formatter.date(from: notification2.createdAt)
+          else {
+            return false
+          }
+          return date1 > date2
+        }
+
+        if let oldestReadNotification = sortedReadNotifications.last {
+          lastReadNotificationTime = oldestReadNotification.createdAt
+        }
       case (.error(let error), _), (_, .error(let error)):
         state = .failed(error)
       }
@@ -53,8 +69,10 @@ extension NotificationsView {
       isFetching = true
       defer { isFetching = false }
 
-      let result = await service.getReadNotificationWithSections(
-        offset: readOffset,
+      let beforeTime = lastReadNotificationTime ?? ISO8601DateFormatter().string(from: Date())
+
+      let result = await service.getReadNotificationWithSectionsWithTimeOffset(
+        beforeTime: beforeTime,
         limit: limit
       )
 
@@ -65,7 +83,12 @@ extension NotificationsView {
 
           for (section, notifications) in newSectionData.sections {
             if let existingNotifications = mergedSections[section] {
-              mergedSections[section] = existingNotifications + notifications
+              let existingIds = Set(existingNotifications.map { $0.notificationId })
+              let newUniqueNotifications = notifications.filter {
+                !existingIds.contains($0.notificationId)
+              }
+
+              mergedSections[section] = existingNotifications + newUniqueNotifications
             } else {
               mergedSections[section] = notifications
             }
@@ -73,6 +96,20 @@ extension NotificationsView {
 
           state = .loaded(mergedSections, unreadNotifications)
           readOffset += newSectionData.sections.values.flatMap { $0 }.count
+
+          let allNewNotifications = newSectionData.sections.values.flatMap { $0 }
+          let sortedNewNotifications = allNewNotifications.sorted { notification1, notification2 in
+            guard let date1 = sharedISO8601Formatter.date(from: notification1.createdAt),
+              let date2 = sharedISO8601Formatter.date(from: notification2.createdAt)
+            else {
+              return false
+            }
+            return date1 > date2
+          }
+
+          if let oldestNewNotification = sortedNewNotifications.last {
+            lastReadNotificationTime = oldestNewNotification.createdAt
+          }
         }
       case .error(let error):
         state = .failed(error)

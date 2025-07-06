@@ -89,6 +89,17 @@ protocol NotificationServiceProtocol: Sendable {
   func hasUnreadNotifications() async -> AsyncResult<Bool>
 
   func getUnreadNotificationCount() async -> AsyncResult<Int>
+
+  func getReadNotificationsWithTimeOffset(beforeTime: String, limit: Int) async -> AsyncResult<
+    [Notification]
+  >
+
+  func getUnreadNotificationsWithTimeOffset(beforeTime: String, limit: Int) async -> AsyncResult<
+    [Notification]
+  >
+
+  func getReadNotificationWithSectionsWithTimeOffset(beforeTime: String, limit: Int) async
+    -> AsyncResult<NotificationSectionData>
 }
 
 struct NotificationService: NotificationServiceProtocol {
@@ -186,6 +197,56 @@ struct NotificationService: NotificationServiceProtocol {
     -> AsyncResult<NotificationSectionData>
   {
     let result = await getReadNotifications(offset: offset, limit: limit)
+
+    switch result {
+    case .success(let notifications):
+      let sectionedNotifications = Dictionary(grouping: notifications) {
+        notification in
+        guard
+          let date = sharedISO8601Formatter.date(from: notification.createdAt)
+        else {
+          return NotificationDateSection.older
+        }
+        return date.notificationSection()
+      }
+      return .success(NotificationSectionData(sections: sectionedNotifications))
+    case .error(let error):
+      return .error(error)
+    }
+  }
+
+  func getReadNotificationsWithTimeOffset(beforeTime: String, limit: Int) async -> AsyncResult<
+    [Notification]
+  > {
+    let queryItems = [
+      URLQueryItem(name: "before_time", value: beforeTime),
+      URLQueryItem(name: "limit", value: "\(limit)"),
+    ]
+
+    return await APIService.performRequest(
+      endpoint: "notifications/read/time",
+      queryItems: queryItems
+    )
+  }
+
+  func getUnreadNotificationsWithTimeOffset(beforeTime: String, limit: Int) async -> AsyncResult<
+    [Notification]
+  > {
+    let queryItems = [
+      URLQueryItem(name: "before_time", value: beforeTime),
+      URLQueryItem(name: "limit", value: "\(limit)"),
+    ]
+
+    return await APIService.performRequest(
+      endpoint: "notifications/unread/time",
+      queryItems: queryItems
+    )
+  }
+
+  func getReadNotificationWithSectionsWithTimeOffset(beforeTime: String, limit: Int) async
+    -> AsyncResult<NotificationSectionData>
+  {
+    let result = await getReadNotificationsWithTimeOffset(beforeTime: beforeTime, limit: limit)
 
     switch result {
     case .success(let notifications):

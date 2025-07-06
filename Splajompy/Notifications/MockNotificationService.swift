@@ -476,6 +476,71 @@ class MockNotificationService: @unchecked Sendable, NotificationServiceProtocol 
     }
   }
 
+  func getReadNotificationsWithTimeOffset(beforeTime: String, limit: Int) async -> AsyncResult<
+    [Notification]
+  > {
+    switch behavior {
+    case .success(let notifications):
+      let readNotifications = notifications.filter { $0.viewed }
+      return .success(Array(readNotifications.prefix(limit)))
+
+    case .failure(let error):
+      return .error(error)
+
+    case .delayed(let notifications, let delay):
+      try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
+      let readNotifications = notifications.filter { $0.viewed }
+      return .success(Array(readNotifications.prefix(limit)))
+
+    default:
+      return .error(
+        MockError("Unexpected behavior set for getReadNotificationsWithTimeOffset")
+      )
+    }
+  }
+
+  func getUnreadNotificationsWithTimeOffset(beforeTime: String, limit: Int) async -> AsyncResult<
+    [Notification]
+  > {
+    switch behavior {
+    case .success(let notifications):
+      let unreadNotifications = notifications.filter { !$0.viewed }
+      return .success(Array(unreadNotifications.prefix(limit)))
+
+    case .failure(let error):
+      return .error(error)
+
+    case .delayed(let notifications, let delay):
+      try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
+      let unreadNotifications = notifications.filter { !$0.viewed }
+      return .success(Array(unreadNotifications.prefix(limit)))
+
+    default:
+      return .error(
+        MockError("Unexpected behavior set for getUnreadNotificationsWithTimeOffset")
+      )
+    }
+  }
+
+  func getReadNotificationWithSectionsWithTimeOffset(beforeTime: String, limit: Int) async
+    -> AsyncResult<NotificationSectionData>
+  {
+    let result = await getReadNotificationsWithTimeOffset(beforeTime: beforeTime, limit: limit)
+
+    switch result {
+    case .success(let notifications):
+      let sectionedNotifications = Dictionary(grouping: notifications) { notification in
+        guard let date = sharedISO8601Formatter.date(from: notification.createdAt) else {
+          return NotificationDateSection.older
+        }
+        return date.notificationSection()
+      }
+      return .success(NotificationSectionData(sections: sectionedNotifications))
+    case .error(let error):
+      return .error(error)
+    }
+  }
+
   func resetCallHistory() {
     callHistory = []
     markedAsReadIds = []
