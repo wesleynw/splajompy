@@ -10,7 +10,7 @@ enum NotificationState {
 extension NotificationsView {
   @MainActor class ViewModel: ObservableObject {
     @Published var state: NotificationState = .idle
-    @Published var isFetching: Bool = false
+    var isFetching: Bool = false
 
     private var readOffset = 0
     private var unreadOffset = 0

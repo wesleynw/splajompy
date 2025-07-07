@@ -136,16 +136,14 @@ struct NotificationsView: View {
       }
 
       // the uuid part is a fix from: https://stackoverflow.com/questions/70627642/progressview-hides-on-list-scroll/75431883#75431883
-      if viewModel.isFetching {
-        HStack {
-          Spacer()
-          ProgressView()
-            .id(UUID())
-            .scaleEffect(1.1)
-            .padding()
-          Spacer()
-        }
+      HStack {
+        Spacer()
+        ProgressView()
+          .scaleEffect(1.1)
+          .padding()
+        Spacer()
       }
+      .id(UUID())
     }
     .listStyle(.plain)
     .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
