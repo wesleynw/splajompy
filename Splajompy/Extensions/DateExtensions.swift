@@ -33,19 +33,16 @@ extension Date {
       return .yesterday
     }
 
-    if calendar.isDate(self, equalTo: now, toGranularity: .weekOfYear) {
+    let daysBetween =
+      calendar.dateComponents(
+        [.day], from: calendar.startOfDay(for: self), to: calendar.startOfDay(for: now)
+      ).day ?? 0
+
+    if daysBetween >= 2 && daysBetween <= 7 {
       return .thisWeek
     }
 
-    let lastWeekStart = calendar.date(byAdding: .weekOfYear, value: -1, to: now)!
-    let lastWeekEnd = calendar.date(
-      byAdding: .day, value: -1,
-      to: calendar.startOfDay(for: calendar.dateInterval(of: .weekOfYear, for: now)!.start))!
-
-    if self
-      >= calendar.startOfDay(for: calendar.dateInterval(of: .weekOfYear, for: lastWeekStart)!.start)
-      && self <= calendar.startOfDay(for: lastWeekEnd).addingTimeInterval(86400 - 1)
-    {
+    if daysBetween >= 8 && daysBetween <= 14 {
       return .lastWeek
     }
 
