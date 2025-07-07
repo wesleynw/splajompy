@@ -21,7 +21,7 @@ func main() {
 	ctx := context.Background()
 	err := godotenv.Load()
 	if err != nil {
-		print("no .env present")
+		log.Printf("no .env file present")
 	}
 
 	connString := os.Getenv("DB_CONNECTION_STRING")
