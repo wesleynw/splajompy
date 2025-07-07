@@ -10,14 +10,49 @@ enum NotificationState {
 extension NotificationsView {
   @MainActor class ViewModel: ObservableObject {
     @Published var state: NotificationState = .idle
-    var isFetching: Bool = false
+    @Published var hasMoreToLoad: Bool = true
+    @Published var hasMoreUnreadToLoad: Bool = true
+    private var isFetching: Bool = false
+    private var isFetchingUnread: Bool = false
 
     private var readOffset = 0
     private var unreadOffset = 0
     private var lastReadNotificationTime: String?
+    private var lastUnreadNotificationTime: String?
     private let limit = 30
 
     private let service = NotificationService()
+
+    private func sortNotificationsByDate(_ notifications: [Notification]) -> [Notification] {
+      return notifications.sorted { notification1, notification2 in
+        guard let date1 = sharedISO8601Formatter.date(from: notification1.createdAt),
+          let date2 = sharedISO8601Formatter.date(from: notification2.createdAt)
+        else {
+          return false
+        }
+        return date1 > date2
+      }
+    }
+
+    private func updateLastTimestamp(from notifications: [Notification], isUnread: Bool) {
+      let sorted = sortNotificationsByDate(notifications)
+      if let oldest = sorted.last {
+        if isUnread {
+          lastUnreadNotificationTime = oldest.createdAt
+        } else {
+          lastReadNotificationTime = oldest.createdAt
+        }
+      }
+    }
+
+    private func updateLoadingState(newCount: Int, isUnread: Bool) {
+      let hasMore = newCount >= limit
+      if isUnread {
+        hasMoreUnreadToLoad = hasMore
+      } else {
+        hasMoreToLoad = hasMore
+      }
+    }
 
     func refreshNotifications() async {
       // if state != idle, there are existing notifications, leave them there while more are being fetched
@@ -28,6 +63,7 @@ extension NotificationsView {
       readOffset = 0
       unreadOffset = 0
       lastReadNotificationTime = nil
+      lastUnreadNotificationTime = nil
 
       async let unreadResult = service.getUnreadNotificationsWithTimeOffset(
         beforeTime: ISO8601DateFormatter().string(from: Date()),
@@ -46,20 +82,50 @@ extension NotificationsView {
         readOffset = readSectionData.sections.values.flatMap { $0 }.count
         unreadOffset = unreadNotifications.count
 
-        let allReadNotifications = readSectionData.sections.values.flatMap { $0 }
-        let sortedReadNotifications = allReadNotifications.sorted { notification1, notification2 in
-          guard let date1 = sharedISO8601Formatter.date(from: notification1.createdAt),
-            let date2 = sharedISO8601Formatter.date(from: notification2.createdAt)
-          else {
-            return false
-          }
-          return date1 > date2
-        }
+        updateLoadingState(newCount: unreadNotifications.count, isUnread: true)
+        updateLoadingState(
+          newCount: readSectionData.sections.values.flatMap { $0 }.count, isUnread: false)
 
-        if let oldestReadNotification = sortedReadNotifications.last {
-          lastReadNotificationTime = oldestReadNotification.createdAt
-        }
+        let allReadNotifications = readSectionData.sections.values.flatMap { $0 }
+        updateLastTimestamp(from: allReadNotifications, isUnread: false)
+        updateLastTimestamp(from: unreadNotifications, isUnread: true)
       case (.error(let error), _), (_, .error(let error)):
+        state = .failed(error)
+      }
+    }
+
+    func loadMoreUnreadNotifications() async {
+      guard !isFetchingUnread else { return }
+      isFetchingUnread = true
+      defer { isFetchingUnread = false }
+
+      let beforeTime = lastUnreadNotificationTime ?? ISO8601DateFormatter().string(from: Date())
+
+      let result = await service.getUnreadNotificationsWithTimeOffset(
+        beforeTime: beforeTime,
+        limit: limit
+      )
+
+      switch result {
+      case .success(let newUnreadNotifications):
+        if case .loaded(let currentSections, let currentUnreadNotifications) = state {
+          let existingIds = Set(currentUnreadNotifications.map { $0.notificationId })
+          let uniqueNewNotifications = newUnreadNotifications.filter {
+            !existingIds.contains($0.notificationId)
+          }
+
+          let mergedUnreadNotifications = currentUnreadNotifications + uniqueNewNotifications
+
+          state = .loaded(currentSections, mergedUnreadNotifications)
+          unreadOffset += uniqueNewNotifications.count
+
+          updateLoadingState(newCount: uniqueNewNotifications.count, isUnread: true)
+
+          if !uniqueNewNotifications.isEmpty {
+            updateLastTimestamp(from: uniqueNewNotifications, isUnread: true)
+          }
+        }
+      case .error(let error):
         state = .failed(error)
       }
     }
@@ -98,17 +164,10 @@ extension NotificationsView {
           readOffset += newSectionData.sections.values.flatMap { $0 }.count
 
           let allNewNotifications = newSectionData.sections.values.flatMap { $0 }
-          let sortedNewNotifications = allNewNotifications.sorted { notification1, notification2 in
-            guard let date1 = sharedISO8601Formatter.date(from: notification1.createdAt),
-              let date2 = sharedISO8601Formatter.date(from: notification2.createdAt)
-            else {
-              return false
-            }
-            return date1 > date2
-          }
+          updateLoadingState(newCount: allNewNotifications.count, isUnread: false)
 
-          if let oldestNewNotification = sortedNewNotifications.last {
-            lastReadNotificationTime = oldestNewNotification.createdAt
+          if !allNewNotifications.isEmpty {
+            updateLastTimestamp(from: allNewNotifications, isUnread: false)
           }
         }
       case .error(let error):
@@ -168,7 +227,6 @@ extension NotificationsView {
       case .loaded(let sections, let unreadNotifications):
         var updatedSections = sections
 
-        // Mark all notifications in sections as read
         for (section, notifications) in sections {
           let updatedNotifications = notifications.map { notification in
             var updated = notification
@@ -178,7 +236,6 @@ extension NotificationsView {
           updatedSections[section] = updatedNotifications
         }
 
-        // Move all unread notifications to appropriate read sections
         for var unreadNotification in unreadNotifications {
           unreadNotification.viewed = true
 

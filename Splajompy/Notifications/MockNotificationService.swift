@@ -59,7 +59,7 @@ class MockNotificationService: @unchecked Sendable, NotificationServiceProtocol 
         facets: [
           Facet(type: "mention", userId: 25, indexStart: 0, indexEnd: 5)
         ],
-        notificationType: .like,
+        notificationType: "like",
         post: Post(
           postId: 2001,
           userId: 6,
@@ -85,7 +85,7 @@ class MockNotificationService: @unchecked Sendable, NotificationServiceProtocol 
         facets: [
           Facet(type: "mention", userId: 120, indexStart: 0, indexEnd: 11)
         ],
-        notificationType: .comment,
+        notificationType: "comment",
         post: Post(
           postId: 2002,
           userId: 6,
@@ -117,7 +117,7 @@ class MockNotificationService: @unchecked Sendable, NotificationServiceProtocol 
         facets: [
           Facet(type: "mention", userId: 6, indexStart: 0, indexEnd: 7)
         ],
-        notificationType: .mention,
+        notificationType: "mention",
         post: Post(
           postId: 2003,
           userId: 1,
@@ -145,7 +145,7 @@ class MockNotificationService: @unchecked Sendable, NotificationServiceProtocol 
         facets: [
           Facet(type: "mention", userId: 103, indexStart: 0, indexEnd: 11)
         ],
-        notificationType: .like,
+        notificationType: "like",
         post: Post(
           postId: 2004,
           userId: 15,
@@ -177,7 +177,7 @@ class MockNotificationService: @unchecked Sendable, NotificationServiceProtocol 
         facets: [
           Facet(type: "mention", userId: 112, indexStart: 0, indexEnd: 9)
         ],
-        notificationType: .like,
+        notificationType: "like",
         post: Post(
           postId: 2001,
           userId: 6,
@@ -203,7 +203,7 @@ class MockNotificationService: @unchecked Sendable, NotificationServiceProtocol 
         facets: [
           Facet(type: "mention", userId: 97, indexStart: 0, indexEnd: 6)
         ],
-        notificationType: .comment,
+        notificationType: "comment",
         post: Post(
           postId: 2005,
           userId: 30,
@@ -233,7 +233,7 @@ class MockNotificationService: @unchecked Sendable, NotificationServiceProtocol 
         imageWidth: 0,
         imageHeight: 0,
         facets: nil,
-        notificationType: .announcement,
+        notificationType: "announcement",
         post: nil,
         comment: nil
       ),
@@ -253,7 +253,7 @@ class MockNotificationService: @unchecked Sendable, NotificationServiceProtocol 
         facets: [
           Facet(type: "mention", userId: 113, indexStart: 0, indexEnd: 5)
         ],
-        notificationType: .announcement,
+        notificationType: "announcement",
         post: nil,
         comment: nil
       ),
@@ -292,7 +292,7 @@ class MockNotificationService: @unchecked Sendable, NotificationServiceProtocol 
         imageWidth: 0,
         imageHeight: 0,
         facets: nil,
-        notificationType: .comment,
+        notificationType: "comment",
         post: nil,
         comment: nil
       )
