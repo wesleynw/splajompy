@@ -1,13 +1,5 @@
 import Foundation
 
-enum NotificationType: String, Decodable, CaseIterable {
-  case none = "default"
-  case like = "like"
-  case comment = "comment"
-  case announcement = "announcement"
-  case mention = "mention"
-}
-
 struct Notification: Identifiable, Decodable, Equatable {
   let notificationId: Int
   let userId: Int
@@ -21,7 +13,7 @@ struct Notification: Identifiable, Decodable, Equatable {
   let imageWidth: Int32?
   let imageHeight: Int32?
   let facets: [Facet]?
-  let notificationType: NotificationType
+  let notificationType: String
 
   var post: Post?
   var comment: Comment?
@@ -39,17 +31,6 @@ struct Notification: Identifiable, Decodable, Equatable {
         interpretedSyntax: .inlineOnlyPreservingWhitespace
       )
     )
-  }
-
-  var relativeDate: String {
-    let decoder = ISO8601DateFormatter()
-    decoder.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-
-    let formatter = RelativeDateTimeFormatter()
-    formatter.unitsStyle = .full
-
-    let date = decoder.date(from: self.createdAt) ?? Date()
-    return formatter.localizedString(for: date, relativeTo: Date())
   }
 
   static func == (lhs: Notification, rhs: Notification) -> Bool {

@@ -1,22 +1,22 @@
 import SwiftUI
 
 struct NotificationIcon {
-  private static func iconName(for notificationType: NotificationType) -> String {
+  private static func iconName(for notificationType: String) -> String {
     switch notificationType {
-    case .like:
+    case "like":
       return "heart"
-    case .comment:
+    case "comment":
       return "bubble.middle.bottom"
-    case .announcement:
+    case "announcement":
       return "megaphone"
-    case .mention:
+    case "mention":
       return "at"
-    case .none:
+    default:
       return "bell"
     }
   }
 
-  static func icon(for notificationType: NotificationType) -> some View {
+  static func icon(for notificationType: String) -> some View {
     Image(systemName: iconName(for: notificationType))
   }
 

@@ -2,6 +2,12 @@ import SwiftUI
 
 struct NotificationRow: View {
   let notification: Notification
+  let refreshId: UUID
+
+  private func relativeDate(from createdAt: String) -> String {
+    let date = sharedISO8601Formatter.date(from: createdAt) ?? Date()
+    return sharedRelativeDateTimeFormatter.localizedString(for: date, relativeTo: Date())
+  }
 
   var body: some View {
     Group {
@@ -25,7 +31,7 @@ struct NotificationRow: View {
           VStack(alignment: .leading, spacing: 4) {
             ContentTextView(attributedText: notification.richContent)
 
-            Text(notification.relativeDate)
+            Text(relativeDate(from: notification.createdAt))
               .font(.caption)
               .foregroundColor(.secondary)
           }
