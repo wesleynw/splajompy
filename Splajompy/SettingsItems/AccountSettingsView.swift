@@ -71,7 +71,9 @@ struct AccountSettingsView: View {
       }
     }
     .navigationTitle("Account")
-    .navigationBarTitleDisplayMode(.inline)
+    #if os(iOS)
+      .navigationBarTitleDisplayMode(.inline)
+    #endif
     .sheet(isPresented: $isShowingDeleteAccountSheet) {
       VStack(spacing: 24) {
         VStack(spacing: 16) {
@@ -83,10 +85,12 @@ struct AccountSettingsView: View {
             .font(.title2)
             .fontWeight(.bold)
 
-          Text("Enter your password to confirm account deletion. This action cannot be undone.")
-            .font(.body)
-            .multilineTextAlignment(.center)
-            .foregroundColor(.secondary)
+          Text(
+            "Enter your password to confirm account deletion. This action cannot be undone."
+          )
+          .font(.body)
+          .multilineTextAlignment(.center)
+          .foregroundColor(.secondary)
         }
 
         VStack(alignment: .leading, spacing: 8) {
@@ -97,7 +101,9 @@ struct AccountSettingsView: View {
                 .stroke(Color.gray.opacity(0.75), lineWidth: 1)
             )
             .textContentType(.password)
-            .autocapitalization(.none)
+            #if os(iOS)
+              .autocapitalization(.none)
+            #endif
             .autocorrectionDisabled()
 
           if !deleteAccountError.isEmpty {
@@ -113,7 +119,8 @@ struct AccountSettingsView: View {
           Button(action: {
             Task {
               let (success, error) = await authManager.deleteAccount(
-                password: deleteAccountPassword)
+                password: deleteAccountPassword
+              )
               if !success {
                 deleteAccountError = error
               } else {
@@ -145,7 +152,7 @@ struct AccountSettingsView: View {
           }
           .frame(maxWidth: .infinity)
           .padding()
-          .background(Color(.systemGray6))
+          .background(.gray)
           .containerShape(RoundedRectangle(cornerRadius: 10))
         }
       }

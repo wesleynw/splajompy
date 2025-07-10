@@ -17,23 +17,49 @@ struct ImageGallery: View {
         multipleImagesLayout()
       }
     }
-    .fullScreenCover(
-      item: Binding<ImageItem?>(
-        get: {
-          guard let index = selectedImageIndex, index < images.count else {
-            return nil
-          }
-          return ImageItem(id: index, url: URL(string: images[index].imageBlobUrl)!)
-        },
-        set: { selectedImageIndex = $0?.id }
-      )
-    ) { imageItem in
-      FullscreenImagePager(
-        imageUrls: images.map { $0.imageBlobUrl },
-        initialIndex: imageItem.id,
-        onDismiss: { selectedImageIndex = nil }
-      )
-    }
+    #if os(iOS)
+      .fullScreenCover(
+        item: Binding<ImageItem?>(
+          get: {
+            guard let index = selectedImageIndex, index < images.count else {
+              return nil
+            }
+            return ImageItem(
+              id: index,
+              url: URL(string: images[index].imageBlobUrl)!
+            )
+          },
+          set: { selectedImageIndex = $0?.id }
+        )
+      ) { imageItem in
+        FullscreenImagePager(
+          imageUrls: images.map { $0.imageBlobUrl },
+          initialIndex: imageItem.id,
+          onDismiss: { selectedImageIndex = nil }
+        )
+      }
+    #else
+      .sheet(
+        item: Binding<ImageItem?>(
+          get: {
+            guard let index = selectedImageIndex, index < images.count else {
+              return nil
+            }
+            return ImageItem(
+              id: index,
+              url: URL(string: images[index].imageBlobUrl)!
+            )
+          },
+          set: { selectedImageIndex = $0?.id }
+        )
+      ) { imageItem in
+        FullscreenImagePager(
+          imageUrls: images.map { $0.imageBlobUrl },
+          initialIndex: imageItem.id,
+          onDismiss: { selectedImageIndex = nil }
+        )
+      }
+    #endif
   }
 
   private func multipleImagesLayout() -> some View {
@@ -180,11 +206,18 @@ struct ImageGallery: View {
     }
   }
 
+  private var containerWidth: CGFloat {
+    #if os(iOS)
+      return UIScreen.main.bounds.width - 32
+    #else
+      return 400  // Default width for macOS, or use GeometryReader
+    #endif
+  }
+
   private func singleImageCell() -> some View {
     Group {
       if let url = URL(string: images[0].imageBlobUrl) {
         let aspectRatio = CGFloat(images[0].width) / CGFloat(images[0].height)
-        let containerWidth = UIScreen.main.bounds.width - 32  // Account for padding
         let calculatedHeight = containerWidth / aspectRatio
 
         OptimizedKFImage(url, contentMode: .fit)
@@ -229,12 +262,16 @@ struct FullscreenImagePager: View {
               }
               .scaledToFit()
               .tag(index)
-              .zoomable(minZoomScale: 1, doubleTapZoomScale: 2)
+              #if os(iOS)
+                .zoomable(minZoomScale: 1, doubleTapZoomScale: 2)
+              #endif
           }
         }
       }
-      .tabViewStyle(PageTabViewStyle())
-      .indexViewStyle(PageIndexViewStyle(backgroundDisplayMode: .always))
+      #if os(iOS)
+        .tabViewStyle(PageTabViewStyle())
+        .indexViewStyle(PageIndexViewStyle(backgroundDisplayMode: .always))
+      #endif
 
       VStack {
         HStack {
@@ -257,6 +294,24 @@ struct FullscreenImagePager: View {
           }
           .padding()
         }
+
+        #if os(macOS)
+          // Custom page indicator for macOS
+          if imageUrls.count > 1 {
+            HStack(spacing: 8) {
+              ForEach(0..<imageUrls.count, id: \.self) { index in
+                Circle()
+                  .fill(
+                    index == currentIndex
+                      ? Color.white : Color.white.opacity(0.5)
+                  )
+                  .frame(width: 8, height: 8)
+              }
+            }
+            .padding(.bottom, 20)
+          }
+        #endif
+
         Spacer()
       }
     }
@@ -306,15 +361,23 @@ struct FullscreenImagePager: View {
 #Preview("2 Images") {
   let images = [
     ImageDTO(
-      imageId: 1, postId: 1, height: 800, width: 600,
+      imageId: 1,
+      postId: 1,
+      height: 800,
+      width: 600,
       imageBlobUrl:
         "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/development/posts/1/9278fc8a-401b-4145-83bb-ef05d4d52632.jpeg",
-      displayOrder: 0),
+      displayOrder: 0
+    ),
     ImageDTO(
-      imageId: 2, postId: 1, height: 600, width: 800,
+      imageId: 2,
+      postId: 1,
+      height: 600,
+      width: 800,
       imageBlobUrl:
         "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/development/posts/1/9278fc8a-401b-4145-83bb-ef05d4d52632.jpeg",
-      displayOrder: 1),
+      displayOrder: 1
+    ),
   ]
 
   Rectangle().frame(height: 10)
@@ -325,20 +388,32 @@ struct FullscreenImagePager: View {
 #Preview("3 Images") {
   let images = [
     ImageDTO(
-      imageId: 1, postId: 1, height: 800, width: 600,
+      imageId: 1,
+      postId: 1,
+      height: 800,
+      width: 600,
       imageBlobUrl:
         "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/development/posts/1/9278fc8a-401b-4145-83bb-ef05d4d52632.jpeg",
-      displayOrder: 0),
+      displayOrder: 0
+    ),
     ImageDTO(
-      imageId: 2, postId: 1, height: 600, width: 800,
+      imageId: 2,
+      postId: 1,
+      height: 600,
+      width: 800,
       imageBlobUrl:
         "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/development/posts/1/9278fc8a-401b-4145-83bb-ef05d4d52632.jpeg",
-      displayOrder: 1),
+      displayOrder: 1
+    ),
     ImageDTO(
-      imageId: 3, postId: 1, height: 800, width: 600,
+      imageId: 3,
+      postId: 1,
+      height: 800,
+      width: 600,
       imageBlobUrl:
         "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/development/posts/1/9278fc8a-401b-4145-83bb-ef05d4d52632.jpeg",
-      displayOrder: 2),
+      displayOrder: 2
+    ),
   ]
 
   Rectangle().frame(height: 10)
@@ -349,25 +424,41 @@ struct FullscreenImagePager: View {
 #Preview("4 Images") {
   let images = [
     ImageDTO(
-      imageId: 1, postId: 1, height: 800, width: 600,
+      imageId: 1,
+      postId: 1,
+      height: 800,
+      width: 600,
       imageBlobUrl:
         "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/development/posts/1/9278fc8a-401b-4145-83bb-ef05d4d52632.jpeg",
-      displayOrder: 0),
+      displayOrder: 0
+    ),
     ImageDTO(
-      imageId: 2, postId: 1, height: 600, width: 800,
+      imageId: 2,
+      postId: 1,
+      height: 600,
+      width: 800,
       imageBlobUrl:
         "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/development/posts/1/9278fc8a-401b-4145-83bb-ef05d4d52632.jpeg",
-      displayOrder: 1),
+      displayOrder: 1
+    ),
     ImageDTO(
-      imageId: 3, postId: 1, height: 800, width: 600,
+      imageId: 3,
+      postId: 1,
+      height: 800,
+      width: 600,
       imageBlobUrl:
         "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/development/posts/1/9278fc8a-401b-4145-83bb-ef05d4d52632.jpeg",
-      displayOrder: 2),
+      displayOrder: 2
+    ),
     ImageDTO(
-      imageId: 4, postId: 1, height: 600, width: 800,
+      imageId: 4,
+      postId: 1,
+      height: 600,
+      width: 800,
       imageBlobUrl:
         "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/development/posts/1/9278fc8a-401b-4145-83bb-ef05d4d52632.jpeg",
-      displayOrder: 3),
+      displayOrder: 3
+    ),
   ]
 
   Rectangle().frame(height: 10)
@@ -378,30 +469,50 @@ struct FullscreenImagePager: View {
 #Preview("5 Images") {
   let images = [
     ImageDTO(
-      imageId: 1, postId: 1, height: 800, width: 600,
+      imageId: 1,
+      postId: 1,
+      height: 800,
+      width: 600,
       imageBlobUrl:
         "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/development/posts/1/9278fc8a-401b-4145-83bb-ef05d4d52632.jpeg",
-      displayOrder: 0),
+      displayOrder: 0
+    ),
     ImageDTO(
-      imageId: 2, postId: 1, height: 600, width: 800,
+      imageId: 2,
+      postId: 1,
+      height: 600,
+      width: 800,
       imageBlobUrl:
         "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/development/posts/1/9278fc8a-401b-4145-83bb-ef05d4d52632.jpeg",
-      displayOrder: 1),
+      displayOrder: 1
+    ),
     ImageDTO(
-      imageId: 3, postId: 1, height: 800, width: 600,
+      imageId: 3,
+      postId: 1,
+      height: 800,
+      width: 600,
       imageBlobUrl:
         "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/development/posts/1/9278fc8a-401b-4145-83bb-ef05d4d52632.jpeg",
-      displayOrder: 2),
+      displayOrder: 2
+    ),
     ImageDTO(
-      imageId: 4, postId: 1, height: 600, width: 800,
+      imageId: 4,
+      postId: 1,
+      height: 600,
+      width: 800,
       imageBlobUrl:
         "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/development/posts/1/9278fc8a-401b-4145-83bb-ef05d4d52632.jpeg",
-      displayOrder: 3),
+      displayOrder: 3
+    ),
     ImageDTO(
-      imageId: 5, postId: 1, height: 800, width: 600,
+      imageId: 5,
+      postId: 1,
+      height: 800,
+      width: 600,
       imageBlobUrl:
         "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/development/posts/1/9278fc8a-401b-4145-83bb-ef05d4d52632.jpeg",
-      displayOrder: 4),
+      displayOrder: 4
+    ),
   ]
 
   Rectangle().frame(height: 10)

@@ -1,10 +1,3 @@
-//
-//  KeychainHelper.swift
-//  Splajompy
-//
-//  Created by Wesley Weisenberger on 3/24/25.
-//
-
 import Foundation
 
 final class KeychainHelper: @unchecked Sendable {

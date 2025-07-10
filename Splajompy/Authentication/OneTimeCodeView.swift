@@ -23,18 +23,22 @@ struct OneTimeCodeView: View {
         )
         .cornerRadius(8)
         .textContentType(.username)
-        .autocapitalization(.none)
         .autocorrectionDisabled()
         .focused($isFocused)
         .textContentType(.oneTimeCode)
-        .keyboardType(.numberPad)
+        #if os(iOS)
+          .keyboardType(.numberPad)
+        #endif
         .onAppear { isFocused = true }
 
       Spacer()
 
       Button(action: {
         Task {
-          let success = await authManager.verifyOneTimeCode(for: identifier, code: oneTimeCode)
+          let success = await authManager.verifyOneTimeCode(
+            for: identifier,
+            code: oneTimeCode
+          )
           if !success {
             showError = true
           }
@@ -52,15 +56,6 @@ struct OneTimeCodeView: View {
               .padding()
             Spacer()
           }
-
-          //          if authManager.isLoading {
-          //            HStack {
-          //              Spacer()
-          //              ProgressView()
-          //                .progressViewStyle(CircularProgressViewStyle(tint: .white))
-          //                .padding(.trailing, 16)
-          //            }
-          //          }
         }
         .background(
           oneTimeCode.isEmpty ? Color.gray.opacity(0.3) : Color.accentColor
@@ -73,7 +68,15 @@ struct OneTimeCodeView: View {
     .padding()
     .navigationTitle("Check your email")
     .toolbar {
-      ToolbarItem(placement: .topBarTrailing) {
+      ToolbarItem(
+        placement: {
+          #if os(iOS)
+            .topBarTrailing
+          #else
+            .primaryAction
+          #endif
+        }()
+      ) {
         Button(action: {
           isPresenting = false
         }) {
@@ -81,7 +84,7 @@ struct OneTimeCodeView: View {
             .font(.system(size: 15, weight: .bold))
             .foregroundColor(.primary.opacity(0.5))
             .padding(8)
-            .background(Color(.systemGray6))
+            .background(Color(.gray))
             .clipShape(Circle())
         }
         .sensoryFeedback(.impact, trigger: isPresenting)

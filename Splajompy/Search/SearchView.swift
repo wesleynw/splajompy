@@ -22,6 +22,10 @@ struct SearchView: View {
         searchResults
       }
     }
+    #if os(macOS)
+      .contentMargins(.horizontal, 40, for: .scrollContent)
+      .safeAreaPadding(.horizontal, 20)
+    #endif
     .navigationTitle("Search")
     .searchable(text: $searchText, prompt: "People...")
     .autocorrectionDisabled()

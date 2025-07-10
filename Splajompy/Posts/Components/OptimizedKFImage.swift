@@ -16,15 +16,27 @@ struct OptimizedKFImage: View {
     self.targetSize = targetSize
   }
 
+  private var scale: CGFloat {
+    #if os(iOS)
+      return UIScreen.main.scale
+    #else
+      return NSScreen.main?.backingScaleFactor ?? 1.0
+    #endif
+  }
+
+  private var processorSize: CGSize {
+    CGSize(
+      width: min(targetSize.width * scale, 1000),
+      height: min(targetSize.height * scale, 1000)
+    )
+  }
+
   var body: some View {
     KFImage(url)
       .setProcessors(
         [
           DownsamplingImageProcessor(
-            size: CGSize(
-              width: min(targetSize.width * UIScreen.main.scale, 1000),
-              height: min(targetSize.height * UIScreen.main.scale, 1000)
-            )
+            size: processorSize
           ),
           RoundCornerImageProcessor(cornerRadius: 10),
         ]

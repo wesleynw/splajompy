@@ -7,15 +7,33 @@ struct NotificationImageView: View {
   let height: Int32
 
   private static let targetSize: CGFloat = 40
-  private static let scale = UIScreen.main.scale
-  private static let targetPixelSize = targetSize * scale
 
-  private var aspectRatio: CGFloat { CGFloat(width) / CGFloat(height) }
+  private static var scale: CGFloat {
+    #if os(iOS)
+      return UIScreen.main.scale
+    #else
+      return NSScreen.main?.backingScaleFactor ?? 1.0
+    #endif
+  }
+
+  private static var targetPixelSize: CGFloat {
+    return targetSize * scale
+  }
+
+  private var aspectRatio: CGFloat {
+    CGFloat(width) / CGFloat(height)
+  }
 
   private var processorSize: CGSize {
     aspectRatio > 1
-      ? CGSize(width: Self.targetPixelSize * aspectRatio, height: Self.targetPixelSize)
-      : CGSize(width: Self.targetPixelSize, height: Self.targetPixelSize / aspectRatio)
+      ? CGSize(
+        width: Self.targetPixelSize * aspectRatio,
+        height: Self.targetPixelSize
+      )
+      : CGSize(
+        width: Self.targetPixelSize,
+        height: Self.targetPixelSize / aspectRatio
+      )
   }
 
   var body: some View {

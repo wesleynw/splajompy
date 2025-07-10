@@ -24,13 +24,16 @@ struct CredentialedLoginView: View {
             .background(
               RoundedRectangle(cornerRadius: 8)
                 .stroke(
-                  isIdentifierFieldFocused ? Color.primary : Color.gray.opacity(0.75),
+                  isIdentifierFieldFocused
+                    ? Color.primary : Color.gray.opacity(0.75),
                   lineWidth: 2
                 )
             )
             .cornerRadius(8)
             .textContentType(.username)
-            .autocapitalization(.none)
+            #if os(iOS)
+              .autocapitalization(.none)
+            #endif
             .autocorrectionDisabled()
             .focused($isIdentifierFieldFocused)
             .onAppear { isIdentifierFieldFocused = true }
@@ -41,13 +44,16 @@ struct CredentialedLoginView: View {
             .background(
               RoundedRectangle(cornerRadius: 8)
                 .stroke(
-                  isPasswordFieldFocused ? Color.primary : Color.gray.opacity(0.75),
+                  isPasswordFieldFocused
+                    ? Color.primary : Color.gray.opacity(0.75),
                   lineWidth: 2
                 )
             )
             .cornerRadius(8)
             .textContentType(.password)
-            .autocapitalization(.none)
+            #if os(iOS)
+              .autocapitalization(.none)
+            #endif
             .autocorrectionDisabled()
             .focused($isPasswordFieldFocused)
         }
@@ -122,7 +128,15 @@ struct CredentialedLoginView: View {
       .navigationTitle("Sign In")
       .navigationBarBackButtonHidden()
       .toolbar {
-        ToolbarItem(placement: .topBarTrailing) {
+        ToolbarItem(
+          placement: {
+            #if os(iOS)
+              .topBarTrailing
+            #else
+              .primaryAction
+            #endif
+          }()
+        ) {
           Button(action: {
             isPresenting = false
           }) {
@@ -130,7 +144,7 @@ struct CredentialedLoginView: View {
               .font(.system(size: 15, weight: .bold))
               .foregroundColor(.primary.opacity(0.5))
               .padding(8)
-              .background(Color(.systemGray6))
+              .background(Color(.gray))
               .clipShape(Circle())
           }
           .sensoryFeedback(.impact, trigger: isPresenting)

@@ -30,9 +30,11 @@ struct SettingsView: View {
           Label("Appearance", systemImage: "circle.lefthalf.filled")
         }
 
-        NavigationLink(destination: AppIconPickerView()) {
-          Label("App Icon", systemImage: "square.grid.2x2")
-        }
+        #if os(iOS)
+          NavigationLink(destination: AppIconPickerView()) {
+            Label("App Icon", systemImage: "square.grid.2x2")
+          }
+        #endif
 
         Toggle(isOn: $mindlessMode) {
           Label("Mindless Mode", systemImage: "infinity")
@@ -60,6 +62,10 @@ struct SettingsView: View {
           }
         }
       }
+      #if os(macOS)
+        .contentMargins(.horizontal, 20, for: .scrollContent)
+        .safeAreaPadding(.horizontal, 20)
+      #endif
     }
     .navigationTitle("Settings")
   }

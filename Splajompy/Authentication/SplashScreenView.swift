@@ -17,15 +17,17 @@ struct SplashScreenView: View {
           endPoint: .bottom
         )
 
-        RadialGradient(
-          gradient: Gradient(colors: [
-            Color(red: 0.15, green: 0.2, blue: 0.4).opacity(0.3),
-            Color.clear,
-          ]),
-          center: .init(x: 0.3, y: 0.2),
-          startRadius: 0,
-          endRadius: UIScreen.main.bounds.width * 0.6
-        )
+        #if os(iOS)
+          RadialGradient(
+            gradient: Gradient(colors: [
+              Color(red: 0.15, green: 0.2, blue: 0.4).opacity(0.3),
+              Color.clear,
+            ]),
+            center: .init(x: 0.3, y: 0.2),
+            startRadius: 0,
+            endRadius: UIScreen.main.bounds.width * 0.6
+          )
+        #endif
       }
       .ignoresSafeArea()
 
@@ -64,7 +66,9 @@ struct SplashScreenView: View {
                   RoundedRectangle(cornerRadius: 30)
                     .stroke(
                       LinearGradient(
-                        colors: [Color.white.opacity(0.6), Color.white.opacity(0.3)],
+                        colors: [
+                          Color.white.opacity(0.6), Color.white.opacity(0.3),
+                        ],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                       ),
@@ -108,12 +112,21 @@ struct SplashScreenView: View {
         .padding(.bottom, 32)
       }
     }
-    .fullScreenCover(isPresented: $isLoginViewPresenting) {
-      LoginView(isPresenting: $isLoginViewPresenting)
-    }
-    .fullScreenCover(isPresented: $isRegisterViewPresenting) {
-      RegisterView(isPresenting: $isRegisterViewPresenting)
-    }
+    #if os(iOS)
+      .fullScreenCover(isPresented: $isLoginViewPresenting) {
+        LoginView(isPresenting: $isLoginViewPresenting)
+      }
+      .fullScreenCover(isPresented: $isRegisterViewPresenting) {
+        RegisterView(isPresenting: $isRegisterViewPresenting)
+      }
+    #else
+      .sheet(isPresented: $isLoginViewPresenting) {
+        LoginView(isPresenting: $isLoginViewPresenting)
+      }
+      .sheet(isPresented: $isRegisterViewPresenting) {
+        RegisterView(isPresenting: $isRegisterViewPresenting)
+      }
+    #endif
     .environmentObject(authManager)
     .preferredColorScheme(.dark)
   }

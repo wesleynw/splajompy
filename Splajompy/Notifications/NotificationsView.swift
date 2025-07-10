@@ -26,6 +26,10 @@ struct NotificationsView: View {
         )
       }
     }
+    #if os(macOS)
+      .contentMargins(.horizontal, 40, for: .scrollContent)
+      .safeAreaPadding(.horizontal, 20)
+    #endif
     .onAppear {
       if case .idle = viewModel.state {
         Task { await viewModel.refreshNotifications() }

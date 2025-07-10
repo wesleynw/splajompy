@@ -35,6 +35,10 @@ struct ProfileView: View {
 
   var body: some View {
     mainContent
+      #if os(macOS)
+        .contentMargins(.horizontal, 40, for: .scrollContent)
+        .safeAreaPadding(.horizontal, 20)
+      #endif
       .sheet(isPresented: $isShowingProfileEditor) {
         ProfileEditorView(viewModel: viewModel)
           .interactiveDismissDisabled()
