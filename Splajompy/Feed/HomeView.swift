@@ -40,7 +40,8 @@ struct HomeView: View {
       case .failed(let error):
         ErrorScreen(
           errorString: error.localizedDescription,
-          onRetry: { await viewModel.loadPosts(reset: true) })
+          onRetry: { await viewModel.loadPosts(reset: true) }
+        )
       }
     }
     .navigationBarTitleDisplayMode(.inline)
@@ -185,15 +186,28 @@ struct HomeView: View {
   private var emptyMessage: some View {
     VStack {
       Spacer()
-      Text("No posts yet")
-        .foregroundColor(.gray)
-        .font(.title2)
-      Text("Pull down to refresh or check your connection")
-        .foregroundColor(.gray)
-        .font(.caption)
-        .padding(.top, 5)
+      Text("No posts yet.")
+        .font(.title3)
+        .fontWeight(.bold)
+        .padding(.top, 40)
+      Text("Here's where you'll see posts from others.")
+        .padding()
+      Button {
+        Task { await viewModel.loadPosts(reset: true) }
+      } label: {
+        HStack {
+          if case .loading = viewModel.state {
+            ProgressView()
+              .scaleEffect(0.8)
+          } else {
+            Image(systemName: "arrow.clockwise")
+          }
+          Text("Reload")
+        }
+      }
+      .padding()
+      .buttonStyle(.bordered)
       Spacer()
     }
-    .frame(maxWidth: .infinity, minHeight: 200)
   }
 }

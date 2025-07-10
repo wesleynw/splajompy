@@ -7,8 +7,10 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
-	"splajompy.com/api/v2/internal/repositories"
+	"regexp"
 	"time"
+
+	"splajompy.com/api/v2/internal/repositories"
 
 	"github.com/resend/resend-go/v2"
 	"golang.org/x/crypto/bcrypt"
@@ -33,11 +35,15 @@ func NewAuthService(userRepository repositories.UserRepository, postRepository r
 }
 
 var (
-	ErrUserNotFound    = errors.New("user not found")
-	ErrInvalidPassword = errors.New("incorrect password")
-	ErrGeneral         = errors.New("general failure")
-	ErrUsernameTaken   = errors.New("this username is in use")
-	ErrEmailTaken      = errors.New("this email is in use")
+	ErrUserNotFound          = errors.New("user not found")
+	ErrInvalidPassword       = errors.New("incorrect password")
+	ErrGeneral               = errors.New("general failure")
+	ErrUsernameTaken         = errors.New("this username is in use")
+	ErrEmailTaken            = errors.New("this email is in use")
+	ErrUsernameInvalidFormat = errors.New("username can only contain letters and numbers")
+	ErrUsernameTooShort      = errors.New("username must be at least 3 characters")
+	ErrPasswordTooShort      = errors.New("password must be at least 8 characters")
+	ErrInvalidEmail          = errors.New("please enter a valid email address")
 )
 
 type RegisterRequest struct {
@@ -47,6 +53,10 @@ type RegisterRequest struct {
 }
 
 func (s *AuthService) Register(ctx context.Context, email string, username string, password string) (*AuthResponse, error) {
+	if err := s.ValidateRegistrationData(email, username, password); err != nil {
+		return nil, err
+	}
+
 	existingUsername, err := s.userRepository.GetIsUsernameInUse(ctx, username)
 	if err != nil {
 		return nil, errors.New("unable to create user")
@@ -82,6 +92,40 @@ func (s *AuthService) Register(ctx context.Context, email string, username strin
 		Token: sessionId,
 		User:  user,
 	}, nil
+}
+
+func (s *AuthService) ValidateRegistrationData(email, username, password string) error {
+	if email == "" {
+		return errors.New("email cannot be empty")
+	}
+
+	if username == "" {
+		return errors.New("username cannot be empty")
+	}
+
+	if len(username) < 3 {
+		return ErrUsernameTooShort
+	}
+
+	alphanumericRegex := regexp.MustCompile(`^[a-zA-Z0-9]+$`)
+	if !alphanumericRegex.MatchString(username) {
+		return ErrUsernameInvalidFormat
+	}
+
+	if password == "" {
+		return errors.New("password cannot be empty")
+	}
+
+	if len(password) < 8 {
+		return ErrPasswordTooShort
+	}
+
+	emailRegex := regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
+	if !emailRegex.MatchString(email) {
+		return ErrInvalidEmail
+	}
+
+	return nil
 }
 
 type Credentials struct {

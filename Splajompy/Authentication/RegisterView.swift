@@ -38,24 +38,32 @@ struct RegisterView: View {
             .textContentType(.username)
             .autocapitalization(.none)
             .autocorrectionDisabled()
-            .padding(.bottom, 10)
+            .padding(.bottom, usernameError.isEmpty ? 10 : 4)
             .focused($isUsernameFieldFocused)
             .onAppear {
               isUsernameFieldFocused = true
             }
-            .onChange(of: username) {
-              if isUsernameFieldFocused { usernameError = "" }
-            }
             .onSubmit {
-              _ = validateUsername()
+              usernameError = authManager.validateUsername(username) ?? ""
             }
 
           if !usernameError.isEmpty {
-            Text(usernameError)
-              .font(.subheadline)
-              .foregroundColor(.red.opacity(0.9))
-              .padding(.bottom, 8)
-              .transition(.opacity)
+            HStack(alignment: .firstTextBaseline, spacing: 6) {
+              Image(systemName: "exclamationmark.circle.fill")
+                .foregroundColor(.red)
+                .font(.callout)
+              
+              Text(usernameError)
+                .font(.callout)
+                .foregroundColor(.red)
+                .multilineTextAlignment(.leading)
+            }
+            .padding(.horizontal, 6)
+            .padding(.vertical, 4)
+            .background(Color.red.opacity(0.1))
+            .cornerRadius(6)
+            .padding(.bottom, 12)
+            .transition(.opacity.combined(with: .move(edge: .top)))
           }
 
           TextField("Email", text: $email)
@@ -72,21 +80,29 @@ struct RegisterView: View {
             .textContentType(.emailAddress)
             .autocapitalization(.none)
             .autocorrectionDisabled()
-            .padding(.bottom, 10)
+            .padding(.bottom, emailError.isEmpty ? 10 : 4)
             .focused($isEmailFieldFocused)
-            .onChange(of: email) {
-              if isEmailFieldFocused { emailError = "" }
-            }
             .onSubmit {
-              _ = validateEmail()
+              emailError = authManager.validateEmail(email) ?? ""
             }
 
           if !emailError.isEmpty {
-            Text(emailError)
-              .font(.subheadline)
-              .foregroundColor(.red.opacity(0.9))
-              .padding(.bottom, 8)
-              .transition(.opacity)
+            HStack(alignment: .firstTextBaseline, spacing: 6) {
+              Image(systemName: "exclamationmark.circle.fill")
+                .foregroundColor(.red)
+                .font(.callout)
+              
+              Text(emailError)
+                .font(.callout)
+                .foregroundColor(.red)
+                .multilineTextAlignment(.leading)
+            }
+            .padding(.horizontal, 6)
+            .padding(.vertical, 4)
+            .background(Color.red.opacity(0.1))
+            .cornerRadius(6)
+            .padding(.bottom, 12)
+            .transition(.opacity.combined(with: .move(edge: .top)))
           }
 
           SecureField("Password", text: $password)
@@ -104,25 +120,35 @@ struct RegisterView: View {
             .autocapitalization(.none)
             .autocorrectionDisabled()
             .focused($isPasswordFieldFocused)
-            .onChange(of: password) {
-              if isPasswordFieldFocused { passwordError = "" }
-            }
+            .padding(.bottom, passwordError.isEmpty ? 0 : 4)
             .onSubmit {
-              _ = validatePassword()
+              passwordError = authManager.validatePassword(password) ?? ""
             }
 
           if !passwordError.isEmpty {
-            Text(passwordError)
-              .font(.subheadline)
-              .foregroundColor(.red.opacity(0.9))
-              .padding(.bottom, 8)
-              .transition(.opacity)
+            HStack(alignment: .firstTextBaseline, spacing: 6) {
+              Image(systemName: "exclamationmark.circle.fill")
+                .foregroundColor(.red)
+                .font(.callout)
+              
+              Text(passwordError)
+                .font(.callout)
+                .foregroundColor(.red)
+                .multilineTextAlignment(.leading)
+            }
+            .padding(.horizontal, 6)
+            .padding(.vertical, 4)
+            .background(Color.red.opacity(0.1))
+            .cornerRadius(6)
+            .padding(.bottom, 12)
+            .transition(.opacity.combined(with: .move(edge: .top)))
           }
 
           if !errorMessage.isEmpty {
             HStack(alignment: .firstTextBaseline, spacing: 8) {
               Image(systemName: "exclamationmark.triangle.fill")
                 .foregroundColor(.white)
+                .font(.callout)
 
               Text(
                 errorMessage.isEmpty
@@ -132,11 +158,12 @@ struct RegisterView: View {
               .foregroundColor(.white)
               .multilineTextAlignment(.leading)
             }
-            .padding()
+            .padding(.horizontal, 10)
+            .padding(.vertical, 8)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(Color.red.opacity(0.9))
-            .cornerRadius(10)
-            .padding(.top, 20)
+            .background(Color.red)
+            .cornerRadius(8)
+            .padding(.top, 16)
             .transition(.move(edge: .top).combined(with: .opacity))
             .animation(.easeInOut(duration: 0.3), value: errorMessage.isEmpty)
           }
@@ -232,65 +259,22 @@ struct RegisterView: View {
           .sensoryFeedback(.impact, trigger: isPresenting)
         }
       }
-      .animation(.easeInOut(duration: 0.2), value: usernameError)
-      .animation(.easeInOut(duration: 0.2), value: emailError)
-      .animation(.easeInOut(duration: 0.2), value: passwordError)
+      .animation(.easeInOut(duration: 0.25), value: usernameError.isEmpty)
+      .animation(.easeInOut(duration: 0.25), value: emailError.isEmpty)
+      .animation(.easeInOut(duration: 0.25), value: passwordError.isEmpty)
     }
   }
 
-  private func validateUsername() -> Bool {
-    if username.isEmpty {
-      usernameError = "Username cannot be empty"
-      return false
-    }
-
-    if username.count < 3 {
-      usernameError = "Username must be at least 3 characters"
-      return false
-    }
-
-    usernameError = ""
-    return true
-  }
-
-  private func validateEmail() -> Bool {
-    if email.isEmpty {
-      emailError = "Email cannot be empty"
-      return false
-    }
-
-    let emailRegEx = "[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,64}"
-    let emailPred = NSPredicate(format: "SELF MATCHES %@", emailRegEx)
-    if !emailPred.evaluate(with: email) {
-      emailError = "Please enter a valid email address"
-      return false
-    }
-
-    emailError = ""
-    return true
-  }
-
-  private func validatePassword() -> Bool {
-    if password.isEmpty {
-      passwordError = "Password cannot be empty"
-      return false
-    }
-
-    if password.count < 8 {
-      passwordError = "Password must be at least 8 characters"
-      return false
-    }
-
-    passwordError = ""
-    return true
-  }
 
   private func validateForm() -> Bool {
-    let isUsernameValid = validateUsername()
-    let isEmailValid = validateEmail()
-    let isPasswordValid = validatePassword()
+    errorMessage = ""
+    
+    // Use AuthManager validation methods
+    usernameError = authManager.validateUsername(username) ?? ""
+    emailError = authManager.validateEmail(email) ?? ""
+    passwordError = authManager.validatePassword(password) ?? ""
 
-    return isUsernameValid && isEmailValid && isPasswordValid
+    return usernameError.isEmpty && emailError.isEmpty && passwordError.isEmpty
   }
 
 }

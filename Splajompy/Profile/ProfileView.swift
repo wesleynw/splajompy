@@ -216,9 +216,30 @@ struct ProfileView: View {
   }
 
   private var emptyMessage: some View {
-    Text("No posts yet")
-      .foregroundColor(.gray)
+    VStack {
+      Spacer()
+      Text("No posts yet.")
+        .font(.title3)
+        .fontWeight(.bold)
+        .padding(.top, 40)
+      Text("Your posts will show up here.")
+        .padding()
+      Button {
+        Task { await viewModel.loadPosts(reset: true)}
+      } label: {
+        HStack {
+          if case .loading = viewModel.state {
+            ProgressView()
+              .scaleEffect(0.8)
+          } else {
+            Image(systemName: "arrow.clockwise")
+          }
+          Text("Reload")
+        }
+      }
       .padding()
-      .frame(maxWidth: .infinity, minHeight: 100)
+      .buttonStyle(.bordered)
+      Spacer()
+    }
   }
 }
