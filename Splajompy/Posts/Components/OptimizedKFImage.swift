@@ -33,11 +33,19 @@ struct OptimizedKFImage: View {
 
   var body: some View {
     KFImage(url)
-      .setProcessor(DownsamplingImageProcessor(size: processorSize))
-      .fade(duration: 0.15)
+      .setProcessors(
+        [
+          DownsamplingImageProcessor(
+            size: CGSize(
+              width: min(targetSize.width * UIScreen.main.scale, 1000),
+              height: min(targetSize.height * UIScreen.main.scale, 1000)
+            )
+          ),
+          RoundCornerImageProcessor(cornerRadius: 10),
+        ]
+      )
       .placeholder {
         ProgressView()
-          .progressViewStyle(CircularProgressViewStyle())
       }
       .retry(maxCount: 2, interval: .seconds(1))
       .resizable()
