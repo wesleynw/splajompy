@@ -41,6 +41,7 @@ struct Post: Decodable {
   var richContent: AttributedString? {
     guard let text, !text.isEmpty else { return nil }
 
+    // TODO: the null coalescing here is dumb
     let markdown = generateAttributedStringUsingFacets(
       text,
       facets: self.facets ?? []

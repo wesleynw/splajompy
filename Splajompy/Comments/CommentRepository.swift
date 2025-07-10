@@ -21,6 +21,18 @@ struct DetailedComment: Identifiable, Decodable {
   var isLiked: Bool
 
   var id: Int { commentId }
+
+  // TODO: the null coalescing here is dumb
+  var richContent: AttributedString {
+    let markdown = generateAttributedStringUsingFacets(text, facets: facets ?? [])
+
+    return try! AttributedString(
+      markdown: markdown,
+      options: AttributedString.MarkdownParsingOptions(
+        interpretedSyntax: .inlineOnlyPreservingWhitespace
+      )
+    )
+  }
 }
 
 protocol CommentServiceProtocol: Sendable {
