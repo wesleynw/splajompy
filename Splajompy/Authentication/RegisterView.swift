@@ -52,7 +52,7 @@ struct RegisterView: View {
               Image(systemName: "exclamationmark.circle.fill")
                 .foregroundColor(.red)
                 .font(.callout)
-              
+
               Text(usernameError)
                 .font(.callout)
                 .foregroundColor(.red)
@@ -91,7 +91,7 @@ struct RegisterView: View {
               Image(systemName: "exclamationmark.circle.fill")
                 .foregroundColor(.red)
                 .font(.callout)
-              
+
               Text(emailError)
                 .font(.callout)
                 .foregroundColor(.red)
@@ -130,7 +130,7 @@ struct RegisterView: View {
               Image(systemName: "exclamationmark.circle.fill")
                 .foregroundColor(.red)
                 .font(.callout)
-              
+
               Text(passwordError)
                 .font(.callout)
                 .foregroundColor(.red)
@@ -265,10 +265,9 @@ struct RegisterView: View {
     }
   }
 
-
   private func validateForm() -> Bool {
     errorMessage = ""
-    
+
     // Use AuthManager validation methods
     usernameError = authManager.validateUsername(username) ?? ""
     emailError = authManager.validateEmail(email) ?? ""

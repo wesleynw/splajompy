@@ -225,7 +225,7 @@ struct ProfileView: View {
       Text("Your posts will show up here.")
         .padding()
       Button {
-        Task { await viewModel.loadPosts(reset: true)}
+        Task { await viewModel.loadPosts(reset: true) }
       } label: {
         HStack {
           if case .loading = viewModel.state {
