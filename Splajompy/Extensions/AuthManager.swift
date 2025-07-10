@@ -226,6 +226,12 @@ class AuthManager: ObservableObject, Sendable {
     isLoading = true
     defer { isLoading = false }
 
+    if let validationError = validateRegistrationInput(
+      username: username, email: email, password: password)
+    {
+      return (false, validationError)
+    }
+
     guard
       let requestBody = try? JSONSerialization.data(withJSONObject: [
         "username": username,
@@ -250,6 +256,68 @@ class AuthManager: ObservableObject, Sendable {
     case .error(let error):
       return (false, error.localizedDescription)
     }
+  }
+
+  func validateUsername(_ username: String) -> String? {
+    if username.isEmpty {
+      return "Username cannot be empty"
+    }
+
+    if username.count < 3 {
+      return "Username must be at least 3 characters"
+    }
+
+    let alphanumericRegex = "^[a-zA-Z0-9]+$"
+    let alphanumericPred = NSPredicate(format: "SELF MATCHES %@", alphanumericRegex)
+    if !alphanumericPred.evaluate(with: username) {
+      return "Username can only contain letters and numbers"
+    }
+
+    return nil
+  }
+
+  func validateEmail(_ email: String) -> String? {
+    if email.isEmpty {
+      return "Email cannot be empty"
+    }
+
+    let emailRegEx = "[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,64}"
+    let emailPred = NSPredicate(format: "SELF MATCHES %@", emailRegEx)
+    if !emailPred.evaluate(with: email) {
+      return "Please enter a valid email address"
+    }
+
+    return nil
+  }
+
+  func validatePassword(_ password: String) -> String? {
+    if password.isEmpty {
+      return "Password cannot be empty"
+    }
+
+    if password.count < 8 {
+      return "Password must be at least 8 characters"
+    }
+
+    return nil
+  }
+
+  private func validateRegistrationInput(username: String, email: String, password: String)
+    -> String?
+  {
+    if let usernameError = validateUsername(username) {
+      return usernameError
+    }
+
+    if let emailError = validateEmail(email) {
+      return emailError
+    }
+
+    if let passwordError = validatePassword(password) {
+      return passwordError
+    }
+
+    return nil
   }
 
   func deleteAccount(password: String) async -> (success: Bool, error: String) {

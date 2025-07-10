@@ -106,11 +106,6 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if request.Email == "" || request.Username == "" || request.Password == "" {
-		utilities.HandleError(w, http.StatusBadRequest, "Validation error") // TODO: more comprehensive validation errors
-		return
-	}
-
 	response, err := h.authService.Register(r.Context(), request.Email, request.Username, request.Password)
 	if err != nil {
 		switch err {
@@ -118,14 +113,23 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 			utilities.HandleError(w, http.StatusBadRequest, "An account already exists with this email")
 		case service.ErrUsernameTaken:
 			utilities.HandleError(w, http.StatusBadRequest, "An account already exists with this username")
+		case service.ErrUsernameInvalidFormat:
+			utilities.HandleError(w, http.StatusBadRequest, "Username can only contain letters and numbers")
+		case service.ErrUsernameTooShort:
+			utilities.HandleError(w, http.StatusBadRequest, "Username must be at least 3 characters")
+		case service.ErrPasswordTooShort:
+			utilities.HandleError(w, http.StatusBadRequest, "Password must be at least 8 characters")
+		case service.ErrInvalidEmail:
+			utilities.HandleError(w, http.StatusBadRequest, "Please enter a valid email address")
 		default:
-			utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
+			utilities.HandleError(w, http.StatusBadRequest, err.Error())
 		}
 		return
 	}
 
 	utilities.HandleSuccess(w, response)
 }
+
 
 type GenerateOtcRequest struct {
 	Identifier string `json:"identifier"`
