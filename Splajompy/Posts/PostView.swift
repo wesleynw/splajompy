@@ -83,17 +83,20 @@ struct PostView: View {
         }
         .buttonStyle(.plain)
       }
-      if let postText = post.post.text, postText.count > 0 {
-        ContentTextView(text: postText, facets: post.post.facets ?? [])
-          .environmentObject(feedRefreshManager)
+
+      if let content = post.post.richContent {
+        ContentTextView(attributedText: content)
       }
+
       if let images = post.images, !images.isEmpty {
         ImageGallery(images: images)
       }
       HStack {
         Text(
           RelativeDateTimeFormatter().localizedString(
-            for: post.post.createdAt, relativeTo: Date.now)
+            for: post.post.createdAt,
+            relativeTo: Date.now
+          )
         )
         .font(.caption)
         .foregroundColor(.gray)
@@ -141,7 +144,9 @@ struct PostView: View {
                 Image(systemName: "ellipsis")
                   .font(.system(size: 22))
                   .frame(width: 48, height: 40)
-                  .background(RoundedRectangle(cornerRadius: 12).fill(.gray.opacity(0.15)))
+                  .background(
+                    RoundedRectangle(cornerRadius: 12).fill(.gray.opacity(0.15))
+                  )
                   .contentShape(RoundedRectangle(cornerRadius: 12))
               }
             )
@@ -154,7 +159,9 @@ struct PostView: View {
                 Image(systemName: "bubble.middle.bottom")
                   .font(.system(size: 22))
                   .frame(width: 48, height: 40)
-                  .background(RoundedRectangle(cornerRadius: 12).fill(.gray.opacity(0.15)))
+                  .background(
+                    RoundedRectangle(cornerRadius: 12).fill(.gray.opacity(0.15))
+                  )
                   .contentShape(RoundedRectangle(cornerRadius: 12))
 
                 if post.commentCount > 0 {
@@ -177,7 +184,9 @@ struct PostView: View {
             Image(systemName: post.isLiked ? "heart.fill" : "heart")
               .font(.system(size: 22))
               .frame(width: 48, height: 40)
-              .background(RoundedRectangle(cornerRadius: 12).fill(.gray.opacity(0.15)))
+              .background(
+                RoundedRectangle(cornerRadius: 12).fill(.gray.opacity(0.15))
+              )
               .contentShape(RoundedRectangle(cornerRadius: 12))
           }
           .buttonStyle(.plain)
