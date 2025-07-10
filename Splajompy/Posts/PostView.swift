@@ -141,13 +141,23 @@ struct PostView: View {
                 }
               },
               label: {
-                Image(systemName: "ellipsis")
-                  .font(.system(size: 22))
-                  .frame(width: 48, height: 40)
-                  .background(
-                    RoundedRectangle(cornerRadius: 12).fill(.gray.opacity(0.15))
-                  )
-                  .contentShape(RoundedRectangle(cornerRadius: 12))
+                #if os(iOS)
+                  Image(systemName: "ellipsis")
+                    .font(.system(size: 22))
+                    .frame(width: 48, height: 40)
+                    .background(
+                      RoundedRectangle(cornerRadius: 12).fill(.gray.opacity(0.15))
+                    )
+                    .contentShape(RoundedRectangle(cornerRadius: 12))
+                #else
+                  Image(systemName: "ellipsis")
+                    .font(.system(size: 18))
+                    .frame(width: 32, height: 32)
+                    .background(
+                      RoundedRectangle(cornerRadius: 6).fill(.gray.opacity(0.1))
+                    )
+                    .contentShape(RoundedRectangle(cornerRadius: 6))
+                #endif
               }
             )
             .accessibilityLabel("More options")
@@ -156,13 +166,23 @@ struct PostView: View {
               isShowingComments = true
             }) {
               ZStack {
-                Image(systemName: "bubble.middle.bottom")
-                  .font(.system(size: 22))
-                  .frame(width: 48, height: 40)
-                  .background(
-                    RoundedRectangle(cornerRadius: 12).fill(.gray.opacity(0.15))
-                  )
-                  .contentShape(RoundedRectangle(cornerRadius: 12))
+                #if os(iOS)
+                  Image(systemName: "bubble.middle.bottom")
+                    .font(.system(size: 22))
+                    .frame(width: 48, height: 40)
+                    .background(
+                      RoundedRectangle(cornerRadius: 12).fill(.gray.opacity(0.15))
+                    )
+                    .contentShape(RoundedRectangle(cornerRadius: 12))
+                #else
+                  Image(systemName: "bubble.middle.bottom")
+                    .font(.system(size: 18))
+                    .frame(width: 32, height: 32)
+                    .background(
+                      RoundedRectangle(cornerRadius: 6).fill(.gray.opacity(0.1))
+                    )
+                    .contentShape(RoundedRectangle(cornerRadius: 6))
+                #endif
 
                 if post.commentCount > 0 {
                   Text(post.commentCount > 9 ? "9+" : "\(post.commentCount)")
@@ -181,13 +201,23 @@ struct PostView: View {
             onLikeButtonTapped()
             PostHogSDK.shared.capture("post_like")
           }) {
-            Image(systemName: post.isLiked ? "heart.fill" : "heart")
-              .font(.system(size: 22))
-              .frame(width: 48, height: 40)
-              .background(
-                RoundedRectangle(cornerRadius: 12).fill(.gray.opacity(0.15))
-              )
-              .contentShape(RoundedRectangle(cornerRadius: 12))
+            #if os(iOS)
+              Image(systemName: post.isLiked ? "heart.fill" : "heart")
+                .font(.system(size: 22))
+                .frame(width: 48, height: 40)
+                .background(
+                  RoundedRectangle(cornerRadius: 12).fill(.gray.opacity(0.15))
+                )
+                .contentShape(RoundedRectangle(cornerRadius: 12))
+            #else
+              Image(systemName: post.isLiked ? "heart.fill" : "heart")
+                .font(.system(size: 18))
+                .frame(width: 32, height: 32)
+                .background(
+                  RoundedRectangle(cornerRadius: 6).fill(.gray.opacity(0.1))
+                )
+                .contentShape(RoundedRectangle(cornerRadius: 6))
+            #endif
           }
           .buttonStyle(.plain)
           .accessibilityLabel("Like post")
@@ -201,7 +231,11 @@ struct PostView: View {
       )
     }
     .padding(.vertical, 4)
-    .padding(.horizontal, 16)
+    #if os(iOS)
+      .padding(.horizontal, 16)
+    #else
+      .padding(.horizontal, 24)
+    #endif
     .sheet(isPresented: $isShowingComments) {
       CommentsView(postId: post.post.postId)
     }

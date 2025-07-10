@@ -16,21 +16,29 @@ struct LoginView: View {
     NavigationStack {
       VStack {
         VStack(alignment: .leading, spacing: 5) {
-          TextField("Username or Email", text: $identifier)
-            .padding(12)
-            .background(
-              RoundedRectangle(cornerRadius: 8)
-                .stroke(
-                  isIdentifierFieldFocused ? Color.primary : Color.gray.opacity(0.75),
-                  lineWidth: 2
-                )
+          TextField(
+            "Username or Email",
+            text: Binding(
+              get: { identifier },
+              set: { identifier = $0.lowercased() }
             )
-            .cornerRadius(8)
-            .textContentType(.username)
-            .autocapitalization(.none)
+          )
+          .padding(12)
+          .background(
+            RoundedRectangle(cornerRadius: 8)
+              .stroke(
+                isIdentifierFieldFocused
+                  ? Color.primary : Color.gray.opacity(0.75),
+                lineWidth: 2
+              )
+          )
+          .cornerRadius(8)
+          .textContentType(.username)
+          #if os(iOS)
             .autocorrectionDisabled()
-            .focused($isIdentifierFieldFocused)
-            .onAppear { isIdentifierFieldFocused = true }
+          #endif
+          .focused($isIdentifierFieldFocused)
+          .onAppear { isIdentifierFieldFocused = true }
         }
         .padding(.bottom, 10)
 
@@ -77,7 +85,10 @@ struct LoginView: View {
         .padding(.bottom, 8)
 
         NavigationLink {
-          CredentialedLoginView(isPresenting: $isPresenting, identifier: $identifier)
+          CredentialedLoginView(
+            isPresenting: $isPresenting,
+            identifier: $identifier
+          )
         } label: {
           HStack {
             Spacer()
@@ -100,7 +111,15 @@ struct LoginView: View {
       .padding(.vertical, 32)
       .navigationTitle("Sign In")
       .toolbar {
-        ToolbarItem(placement: .topBarTrailing) {
+        ToolbarItem(
+          placement: {
+            #if os(iOS)
+              .topBarTrailing
+            #else
+              .primaryAction
+            #endif
+          }()
+        ) {
           Button(action: {
             isPresenting = false
           }) {
@@ -108,7 +127,7 @@ struct LoginView: View {
               .font(.system(size: 15, weight: .bold))
               .foregroundColor(.primary.opacity(0.5))
               .padding(8)
-              .background(Color(.systemGray6))
+              .background(Color(.gray))
               .clipShape(Circle())
           }
         }

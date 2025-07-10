@@ -46,7 +46,6 @@ struct CommentsView: View {
           }
         }
         .frame(maxWidth: .infinity)
-        .background(Color(UIColor.systemBackground))
         .contentShape(Rectangle())
 
         Rectangle()
@@ -156,9 +155,11 @@ struct AddCommentSheet: View {
       }
       .padding([.top, .leading, .trailing])
 
-      MentionTextEditor(text: $text, showSuggestionsOnTop: false)
-        .frame(minHeight: 80)
-        .padding(.horizontal, 16)
+      #if os(iOS)
+        MentionTextEditor(text: $text, showSuggestionsOnTop: false)
+          .frame(minHeight: 80)
+          .padding(.horizontal, 16)
+      #endif
 
       Spacer()
     }
@@ -229,8 +230,11 @@ struct CommentRow: View {
       .allowsHitTesting(true)
     }
     .padding(.vertical, 12)
-    .padding(.horizontal, 16)
-    .background(Color(UIColor.systemBackground))
+    #if os(iOS)
+      .padding(.horizontal, 16)
+    #else
+      .padding(.horizontal, 24)
+    #endif
     .contentShape(Rectangle())
     .onLongPressGesture(minimumDuration: .infinity) {}
     .overlay(

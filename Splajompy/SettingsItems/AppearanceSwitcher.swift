@@ -23,7 +23,9 @@ struct AppearanceSwitcher: View {
       }
     }
     .navigationTitle("Appearance")
-    .navigationBarTitleDisplayMode(.inline)
+    #if os(iOS)
+      .navigationBarTitleDisplayMode(.inline)
+    #endif
   }
 }
 

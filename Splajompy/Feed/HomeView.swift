@@ -10,17 +10,21 @@ struct HomeView: View {
   var body: some View {
     mainContent
       .toolbar {
-        logoToolbarItem
-        addPostToolbarItem
+        #if os(iOS)
+          logoToolbarItem
+          addPostToolbarItem
+        #endif
       }
       .onAppear {
         Task {
           await viewModel.loadPosts()
         }
       }
-      .sheet(isPresented: $isShowingNewPostView) {
-        newPostSheet
-      }
+      #if os(iOS)
+        .sheet(isPresented: $isShowingNewPostView) {
+          newPostSheet
+        }
+      #endif
   }
 
   @ViewBuilder
@@ -44,11 +48,24 @@ struct HomeView: View {
         )
       }
     }
-    .navigationBarTitleDisplayMode(.inline)
+    #if os(iOS)
+      .navigationBarTitleDisplayMode(.inline)
+    #else
+      .contentMargins(.horizontal, 40, for: .scrollContent)
+      .safeAreaPadding(.horizontal, 20)
+    #endif
   }
 
   private var logoToolbarItem: some ToolbarContent {
-    ToolbarItem(placement: .navigationBarLeading) {
+    ToolbarItem(
+      placement: {
+        #if os(iOS)
+          .navigationBarLeading
+        #else
+          .navigation
+        #endif
+      }()
+    ) {
       Image("Full_Logo")
         .resizable()
         .scaledToFit()
@@ -57,7 +74,15 @@ struct HomeView: View {
   }
 
   private var addPostToolbarItem: some ToolbarContent {
-    ToolbarItem(placement: .navigationBarTrailing) {
+    ToolbarItem(
+      placement: {
+        #if os(iOS)
+          .navigationBarTrailing
+        #else
+          .primaryAction
+        #endif
+      }()
+    ) {
       Button(action: { isShowingNewPostView = true }) {
         Image(systemName: "plus")
       }
@@ -65,14 +90,16 @@ struct HomeView: View {
     }
   }
 
-  private var newPostSheet: some View {
-    NewPostView(
-      onPostCreated: {
-        Task { await viewModel.loadPosts(reset: true, useLoadingState: true) }
-      }
-    )
-    .interactiveDismissDisabled()
-  }
+  #if os(iOS)
+    private var newPostSheet: some View {
+      NewPostView(
+        onPostCreated: {
+          Task { await viewModel.loadPosts(reset: true, useLoadingState: true) }
+        }
+      )
+      .interactiveDismissDisabled()
+    }
+  #endif
 
   private func postList(posts: [DetailedPost]) -> some View {
     Group {

@@ -74,6 +74,23 @@
 				Profile/ProfileViewModel.swift,
 				SplajompyApp.swift,
 			);
+			platformFiltersByRelativePath = {
+				Extensions/ImageResize.swift = (ios, );
+				Posts/New/NewPostRepository.swift = (ios, );
+				Posts/New/NewPostView.swift = (ios, );
+				Posts/New/NewPostViewModel.swift = (ios, );
+				SettingsItems/AppIconPicker.swift = (ios, );
+				Utilities/AttributedTextEditor.swift = (ios, );
+				Utilities/MentionTextEditor.swift = (ios, );
+				Utilities/MentionTextEditorViewModel.swift = (ios, );
+			};
+			target = 184A63CA2D88CBA000860D6B /* Splajompy */;
+		};
+		18A5873F2E204DD700436724 /* Exceptions for "Assets" folder in "Splajompy" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			platformFiltersByRelativePath = {
+				"Launch Screen.storyboard" = (ios, );
+			};
 			target = 184A63CA2D88CBA000860D6B /* Splajompy */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -89,6 +106,9 @@
 		};
 		187F00462D95DBE800BE80DF /* Assets */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				18A5873F2E204DD700436724 /* Exceptions for "Assets" folder in "Splajompy" target */,
+			);
 			path = Assets;
 			sourceTree = "<group>";
 		};
@@ -565,7 +585,8 @@
 				MARKETING_VERSION = 1.2.1;
 				PRODUCT_BUNDLE_IDENTIFIER = splajompy.com.Splajompy.devW;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				REGISTER_APP_GROUPS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
@@ -608,7 +629,8 @@
 				MARKETING_VERSION = 1.2.1;
 				PRODUCT_BUNDLE_IDENTIFIER = splajompy.com.Splajompy;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				REGISTER_APP_GROUPS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;

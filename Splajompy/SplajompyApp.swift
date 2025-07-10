@@ -24,79 +24,171 @@ struct SplajompyApp: App {
 
   var body: some Scene {
     WindowGroup {
-      Group {
-        if authManager.isAuthenticated {
-          TabView(selection: $selection) {
-            NavigationStack(path: $navigationPaths[0]) {
-              HomeView()
-                .postHogScreenView()
-                .navigationDestination(for: Route.self) { route in
-                  routeDestination(route)
-                }
-            }
-            .tabItem {
-              Label("Home", systemImage: "house")
-            }
-            .tag(0)
-
-            NavigationStack(path: $navigationPaths[1]) {
-              NotificationsView()
-                .postHogScreenView()
-                .navigationDestination(for: Route.self) { route in
-                  routeDestination(route)
-                }
-            }
-            .tabItem {
-              Label("Notifications", systemImage: "bell")
-            }
-            .tag(1)
-
-            NavigationStack(path: $navigationPaths[2]) {
-              SearchView()
-                .postHogScreenView()
-                .navigationDestination(for: Route.self) { route in
-                  routeDestination(route)
-                }
-            }
-            .tabItem {
-              Label("Search", systemImage: "magnifyingglass")
-            }
-            .tag(2)
-
-            NavigationStack(path: $navigationPaths[3]) {
-              CurrentProfileView()
-                .postHogScreenView()
-                .navigationDestination(for: Route.self) { route in
-                  routeDestination(route)
-                }
-            }
-            .tabItem {
-              Label("Profile", systemImage: "person.circle")
-            }
-            .tag(3)
+      mainContentView
+        .onChange(of: authManager.isAuthenticated) { _, newValue in
+          if newValue {
+            selection = 0
           }
-          .onOpenURL { url in
-            handleDeepLink(url)
-          }
-          .sheet(isPresented: .constant(!hasCompletedOnboarding)) {
-            OnboardingView {
-              hasCompletedOnboarding = true
-            }
-            .interactiveDismissDisabled()
-          }
-        } else {
-          SplashScreenView()
         }
-      }
-      .onChange(of: authManager.isAuthenticated) { _, newValue in
-        if newValue {
-          selection = 0
-        }
-      }
-      .environmentObject(feedRefreshManager)
-      .environmentObject(authManager)
-      .preferredColorScheme(colorScheme)
+        .environmentObject(feedRefreshManager)
+        .environmentObject(authManager)
+        .preferredColorScheme(colorScheme)
     }
+    #if os(macOS)
+      .defaultSize(width: 1200, height: 800)
+      .windowResizability(.contentSize)
+    #endif
+  }
+
+  @ViewBuilder
+  private var mainContentView: some View {
+    if authManager.isAuthenticated {
+      authenticatedView
+    } else {
+      SplashScreenView()
+    }
+  }
+
+  @ViewBuilder
+  private var authenticatedView: some View {
+    #if os(iOS)
+      iOSTabView
+    #else
+      macOSSplitView
+    #endif
+  }
+
+  @ViewBuilder
+  private var iOSTabView: some View {
+    TabView(selection: $selection) {
+      NavigationStack(path: $navigationPaths[0]) {
+        HomeView()
+          .postHogScreenView()
+          .navigationDestination(for: Route.self) { route in
+            routeDestination(route)
+          }
+      }
+      .tabItem {
+        Label("Home", systemImage: "house")
+      }
+      .tag(0)
+
+      NavigationStack(path: $navigationPaths[1]) {
+        NotificationsView()
+          .postHogScreenView()
+          .navigationDestination(for: Route.self) { route in
+            routeDestination(route)
+          }
+      }
+      .tabItem {
+        Label("Notifications", systemImage: "bell")
+      }
+      .tag(1)
+
+      NavigationStack(path: $navigationPaths[2]) {
+        SearchView()
+          .postHogScreenView()
+          .navigationDestination(for: Route.self) { route in
+            routeDestination(route)
+          }
+      }
+      .tabItem {
+        Label("Search", systemImage: "magnifyingglass")
+      }
+      .tag(2)
+
+      NavigationStack(path: $navigationPaths[3]) {
+        CurrentProfileView()
+          .postHogScreenView()
+          .navigationDestination(for: Route.self) { route in
+            routeDestination(route)
+          }
+      }
+      .tabItem {
+        Label("Profile", systemImage: "person.circle")
+      }
+      .tag(3)
+    }
+    .onOpenURL { url in
+      handleDeepLink(url)
+    }
+    .sheet(isPresented: .constant(!hasCompletedOnboarding)) {
+      onboardingSheet
+    }
+  }
+
+  @ViewBuilder
+  private var macOSSplitView: some View {
+    NavigationSplitView {
+      sidebarList
+    } detail: {
+      detailView
+    }
+    .onOpenURL { url in
+      handleDeepLink(url)
+    }
+    .sheet(isPresented: .constant(!hasCompletedOnboarding)) {
+      onboardingSheet
+    }
+  }
+
+  private var sidebarList: some View {
+    List {
+      Button(action: { selection = 0 }) {
+        Label("Home", systemImage: "house")
+      }
+      .foregroundColor(selection == 0 ? .primary : .secondary)
+
+      Button(action: { selection = 1 }) {
+        Label("Notifications", systemImage: "bell")
+      }
+      .foregroundColor(selection == 1 ? .primary : .secondary)
+
+      Button(action: { selection = 2 }) {
+        Label("Search", systemImage: "magnifyingglass")
+      }
+      .foregroundColor(selection == 2 ? .primary : .secondary)
+
+      Button(action: { selection = 3 }) {
+        Label("Profile", systemImage: "person.circle")
+      }
+      .foregroundColor(selection == 3 ? .primary : .secondary)
+    }
+    .navigationSplitViewColumnWidth(min: 180, ideal: 200)
+  }
+
+  private var detailView: some View {
+    NavigationStack(path: $navigationPaths[selection]) {
+      Group {
+        switch selection {
+        case 0:
+          HomeView()
+            .postHogScreenView()
+        case 1:
+          NotificationsView()
+            .postHogScreenView()
+        case 2:
+          SearchView()
+            .postHogScreenView()
+        case 3:
+          CurrentProfileView()
+            .postHogScreenView()
+        default:
+          HomeView()
+            .postHogScreenView()
+        }
+      }
+      .navigationDestination(for: Route.self) { route in
+        routeDestination(route)
+      }
+    }
+  }
+
+  private var onboardingSheet: some View {
+    OnboardingView {
+      hasCompletedOnboarding = true
+    }
+    .interactiveDismissDisabled()
   }
 
   private var colorScheme: ColorScheme? {
