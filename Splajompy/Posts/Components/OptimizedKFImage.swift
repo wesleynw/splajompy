@@ -36,10 +36,7 @@ struct OptimizedKFImage: View {
       .setProcessors(
         [
           DownsamplingImageProcessor(
-            size: CGSize(
-              width: min(targetSize.width * UIScreen.main.scale, 1000),
-              height: min(targetSize.height * UIScreen.main.scale, 1000)
-            )
+            size: processorSize
           ),
           RoundCornerImageProcessor(cornerRadius: 10),
         ]
