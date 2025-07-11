@@ -18,7 +18,7 @@ struct RelevantLikeView: View {
         Image(systemName: "heart.fill")
           .font(.system(size: 16))
           .foregroundColor(.red)
-        
+
         ForEach(relevantLikes, id: \.userId) { like in
           NavigationLink(
             value: Route.profile(
@@ -39,7 +39,7 @@ struct RelevantLikeView: View {
           }
           .buttonStyle(.plain)
         }
-        
+
         if hasOtherLikes {
           HStack(spacing: 2) {
             Image(systemName: "person.2.fill")
@@ -60,7 +60,7 @@ struct RelevantLikeView: View {
         RoundedRectangle(cornerRadius: 16)
           .fill(Color.gray.opacity(0.1))
       )
-      
+
       Spacer()
     }
   }

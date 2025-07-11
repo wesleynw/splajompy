@@ -91,12 +91,12 @@ struct PostView: View {
       if let images = post.images, !images.isEmpty {
         ImageGallery(images: images)
       }
-      
+
       RelevantLikeView(
         relevantLikes: post.relevantLikes,
         hasOtherLikes: post.hasOtherLikes
       )
-      
+
       HStack {
         Text(
           RelativeDateTimeFormatter().localizedString(
