@@ -107,7 +107,7 @@ struct CommentsView: View {
           Spacer()
           Image(systemName: "plus.circle.fill")
             .font(.system(size: 20))
-          Text("Add a comment")
+          Text("Comment")
             .fontWeight(.medium)
           Spacer()
         }
@@ -192,25 +192,23 @@ struct CommentRow: View {
   }
 
   var body: some View {
-    VStack(alignment: .leading, spacing: 12) {
-      HStack(alignment: .top) {
-        VStack(alignment: .leading, spacing: 2) {
-          if let displayName = comment.user.name, !displayName.isEmpty {
-            Text(displayName)
-              .font(.headline)
-              .fontWeight(.bold)
-              .lineLimit(1)
+    VStack(alignment: .leading, spacing: 6) {
+      HStack(alignment: .firstTextBaseline, spacing: 4) {
+        if let displayName = comment.user.name, !displayName.isEmpty {
+          Text(displayName)
+            .font(.headline)
+            .fontWeight(.bold)
+            .lineLimit(1)
 
-            Text("@\(comment.user.username)")
-              .font(.subheadline)
-              .foregroundColor(.gray)
-          } else {
-            Text("@\(comment.user.username)")
-              .font(.headline)
-              .fontWeight(.bold)
-              .foregroundColor(.gray)
-          }
-          Spacer()
+          Text("@\(comment.user.username)")
+            .font(.subheadline)
+            .foregroundColor(.gray)
+            .lineLimit(1)
+        } else {
+          Text("@\(comment.user.username)")
+            .font(.headline)
+            .fontWeight(.bold)
+            .foregroundColor(.gray)
         }
       }
 
@@ -229,7 +227,7 @@ struct CommentRow: View {
       }
       .allowsHitTesting(true)
     }
-    .padding(.vertical, 12)
+    .padding(.vertical, 8)
     #if os(iOS)
       .padding(.horizontal, 16)
     #else
@@ -260,8 +258,8 @@ struct LikeButton: View {
       action()
     }) {
       Image(systemName: isLiked ? "heart.fill" : "heart")
-        .font(.system(size: 18))
-        .padding(8)
+        .font(.system(size: 16))
+        .padding(6)
     }
     .buttonStyle(.plain)
     .sensoryFeedback(.impact, trigger: isLiked)
