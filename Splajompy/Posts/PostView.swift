@@ -91,6 +91,12 @@ struct PostView: View {
       if let images = post.images, !images.isEmpty {
         ImageGallery(images: images)
       }
+      
+      RelevantLikeView(
+        relevantLikes: post.relevantLikes,
+        hasOtherLikes: post.hasOtherLikes
+      )
+      
       HStack {
         Text(
           RelativeDateTimeFormatter().localizedString(
@@ -204,6 +210,7 @@ struct PostView: View {
             #if os(iOS)
               Image(systemName: post.isLiked ? "heart.fill" : "heart")
                 .font(.system(size: 22))
+                .foregroundColor(post.isLiked ? .red : .primary)
                 .frame(width: 48, height: 40)
                 .background(
                   RoundedRectangle(cornerRadius: 12).fill(.gray.opacity(0.15))
@@ -212,6 +219,7 @@ struct PostView: View {
             #else
               Image(systemName: post.isLiked ? "heart.fill" : "heart")
                 .font(.system(size: 18))
+                .foregroundColor(post.isLiked ? .red : .primary)
                 .frame(width: 32, height: 32)
                 .background(
                   RoundedRectangle(cornerRadius: 6).fill(.gray.opacity(0.1))
@@ -224,11 +232,6 @@ struct PostView: View {
           .sensoryFeedback(.impact, trigger: post.isLiked)
         }
       }
-
-      RelevantLikeView(
-        relevantLikes: post.relevantLikes,
-        hasOtherLikes: post.hasOtherLikes
-      )
     }
     .padding(.vertical, 4)
     #if os(iOS)
