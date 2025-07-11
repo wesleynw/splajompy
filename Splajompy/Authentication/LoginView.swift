@@ -23,6 +23,7 @@ struct LoginView: View {
               set: { identifier = $0.lowercased() }
             )
           )
+          .textFieldStyle(.plain)
           .padding(12)
           .background(
             RoundedRectangle(cornerRadius: 8)
@@ -61,7 +62,7 @@ struct LoginView: View {
               Text("Continue")
                 .font(.system(size: 16, weight: .bold))
                 .foregroundColor(
-                  identifier.isEmpty ? Color.white.opacity(0.4) : Color.white
+                  identifier.isEmpty ? Color.primary.opacity(0.4) : Color.white
                 )
                 .padding()
               Spacer()
@@ -81,8 +82,10 @@ struct LoginView: View {
           )
           .cornerRadius(10)
         }
+        .buttonStyle(.plain)
         .disabled(authManager.isLoading || identifier.isEmpty)
         .padding(.bottom, 8)
+        .animation(.snappy, value: identifier.isEmpty || authManager.isLoading)
 
         NavigationLink {
           CredentialedLoginView(
@@ -127,7 +130,7 @@ struct LoginView: View {
               .font(.system(size: 15, weight: .bold))
               .foregroundColor(.primary.opacity(0.5))
               .padding(8)
-              .background(Color(.gray))
+              .background(Color(.gray.opacity(0.35)))
               .clipShape(Circle())
           }
         }
