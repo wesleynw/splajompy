@@ -4,32 +4,41 @@ struct ProfileView: View {
   let username: String
   let userId: Int
   let isOwnProfile: Bool
+  @ObservedObject var postManager: PostManager
+
   @State private var isShowingProfileEditor: Bool = false
   @StateObject private var viewModel: ViewModel
   @EnvironmentObject private var authManager: AuthManager
-  @EnvironmentObject private var feedRefreshManager: FeedRefreshManager
 
   private var isCurrentProfile: Bool {
     guard let currentUser = authManager.getCurrentUser() else { return false }
     return currentUser.userId == userId
   }
 
-  init(userId: Int, username: String, isOwnProfile: Bool = false) {
+  init(
+    userId: Int,
+    username: String,
+    postManager: PostManager,
+    isOwnProfile: Bool = false
+  ) {
     self.userId = userId
     self.username = username
     self.isOwnProfile = isOwnProfile
-    _viewModel = StateObject(wrappedValue: ViewModel(userId: userId))
+    self.postManager = postManager
+    _viewModel = StateObject(wrappedValue: ViewModel(userId: userId, postManager: postManager))
   }
 
   init(
     userId: Int,
     username: String,
+    postManager: PostManager,
     isOwnProfile: Bool = false,
     viewModel: ViewModel
   ) {
     self.userId = userId
     self.username = username
     self.isOwnProfile = isOwnProfile
+    self.postManager = postManager
     _viewModel = StateObject(wrappedValue: viewModel)
   }
 
@@ -82,16 +91,18 @@ struct ProfileView: View {
     switch viewModel.state {
     case .idle, .loading:
       loadingPlaceholder
-    case .loaded(let user, let posts):
+    case .loaded(let user, _):
       ScrollView {
-        profileList(user: user, posts: posts)
+        profileList(user: user, posts: viewModel.posts)
       }
       .refreshable {
         await viewModel.loadProfile()
       }
     case .failed(let error):
       ErrorScreen(
-        errorString: error.localizedDescription, onRetry: { await viewModel.loadProfile() })
+        errorString: error.localizedDescription,
+        onRetry: { await viewModel.loadProfile() }
+      )
     }
   }
 
@@ -108,13 +119,13 @@ struct ProfileView: View {
           VStack {
             PostView(
               post: post,
+              postManager: postManager,
               showAuthor: false,
               onLikeButtonTapped: { viewModel.toggleLike(on: post) },
               onPostDeleted: { viewModel.deletePost(on: post) }
             )
           }
           .geometryGroup()
-          .environmentObject(feedRefreshManager)
           .environmentObject(authManager)
           .onAppear {
             if post == posts.last && viewModel.canLoadMorePosts {

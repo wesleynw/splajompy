@@ -2,10 +2,18 @@ import SwiftUI
 
 struct HomeView: View {
   @State private var isShowingNewPostView = false
-  @StateObject private var viewModel = FeedViewModel(feedType: .mutual)
-  @EnvironmentObject private var feedRefreshManager: FeedRefreshManager
+  @StateObject private var viewModel: FeedViewModel
   @EnvironmentObject var authManager: AuthManager
+  @ObservedObject var postManager: PostManager
+
   @AppStorage("mindlessMode") private var mindlessMode: Bool = false
+
+  init(feedType: FeedType = .mutual, postManager: PostManager) {
+    self.postManager = postManager
+    _viewModel = StateObject(
+      wrappedValue: FeedViewModel(feedType: feedType, postManager: postManager)
+    )
+  }
 
   var body: some View {
     mainContent
@@ -15,10 +23,8 @@ struct HomeView: View {
           addPostToolbarItem
         #endif
       }
-      .onAppear {
-        Task {
-          await viewModel.loadPosts()
-        }
+      .task {
+        await viewModel.loadPosts()
       }
       #if os(iOS)
         .sheet(isPresented: $isShowingNewPostView) {
@@ -35,11 +41,11 @@ struct HomeView: View {
         loadingPlaceholder
       case .loading:
         loadingPlaceholder
-      case .loaded(let posts):
-        if posts.isEmpty {
+      case .loaded(let postIds):
+        if postIds.isEmpty {
           emptyMessage
         } else {
-          postList(posts: posts)
+          postList(posts: viewModel.posts)
         }
       case .failed(let error):
         ErrorScreen(
@@ -112,13 +118,13 @@ struct HomeView: View {
                 post in
                 ReelsPostView(
                   post: post,
+                  postManager: postManager,
                   onLikeButtonTapped: { viewModel.toggleLike(on: post) },
                   onPostDeleted: { viewModel.deletePost(on: post) },
                   onCommentsButtonTapped: {
                     // Handle comments
                   }
                 )
-                .environmentObject(feedRefreshManager)
                 .environmentObject(authManager)
                 .containerRelativeFrame([.horizontal, .vertical])
                 .padding(.bottom, proxy.safeAreaInsets.bottom / 2)
@@ -178,11 +184,11 @@ struct HomeView: View {
   private func postRow(post: DetailedPost) -> some View {
     PostView(
       post: post,
+      postManager: postManager,
       showAuthor: true,
       onLikeButtonTapped: { viewModel.toggleLike(on: post) },
       onPostDeleted: { viewModel.deletePost(on: post) }
     )
-    .environmentObject(feedRefreshManager)
     .environmentObject(authManager)
     .onAppear {
       handlePostAppear(post: post)
@@ -190,8 +196,8 @@ struct HomeView: View {
   }
 
   private func handlePostAppear(post: DetailedPost) {
-    if case .loaded(let currentPosts) = viewModel.state,
-      post == currentPosts.last && viewModel.canLoadMore
+    if case .loaded(let currentPostIds) = viewModel.state,
+      post.id == currentPostIds.last && viewModel.canLoadMore
         && !viewModel.isLoadingMore
     {
       Task {

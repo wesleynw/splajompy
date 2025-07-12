@@ -8,7 +8,10 @@ extension CommentsView {
     @Published var comments = [DetailedComment]()
     @Published var isLoading = true
 
-    init(postId: Int, service: CommentServiceProtocol = CommentService()) {
+    init(
+      postId: Int,
+      service: CommentServiceProtocol = CommentService()
+    ) {
       self.postId = postId
       self.service = service
       loadComments()
@@ -33,7 +36,6 @@ extension CommentsView {
 
     func toggleLike(for comment: DetailedComment) {
       Task {
-        // Optimistic update TODO: this is broken
         if let index = comments.firstIndex(where: {
           $0.commentId == comment.commentId
         }) {
@@ -54,21 +56,21 @@ extension CommentsView {
             }
           }
         }
-        // TODO: update parent viewModel with comment count
       }
     }
 
-    func addComment(text: String) {
-      Task {
-        let result = await service.addComment(postId: postId, text: text)
+    private func addCommentToList(_ comment: DetailedComment) {
+      comments.insert(comment, at: 0)
+    }
 
-        switch result {
-        case .success(let newComment):
-          comments.insert(newComment, at: 0)
-        // TODO: update comment count in parent VM
-        case .error(let error):
-          print("Error adding comment: \(error.localizedDescription)")
-        }
+    func submitComment(text: String) async {
+      let result = await service.addComment(postId: postId, text: text)
+
+      switch result {
+      case .success(let newComment):
+        addCommentToList(newComment)
+      case .error(let error):
+        print("Error adding comment: \(error.localizedDescription)")
       }
     }
   }

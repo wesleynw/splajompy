@@ -4,8 +4,23 @@ import SwiftUI
 
 struct PostView: View {
   let post: DetailedPost
-  var showAuthor: Bool = true
-  var isStandalone: Bool = false
+  let postManager: PostManager
+  var showAuthor: Bool
+  var isStandalone: Bool
+
+  init(
+    post: DetailedPost, postManager: PostManager, showAuthor: Bool = false,
+    isStandalone: Bool = false, onLikeButtonTapped: @escaping () -> Void,
+    onPostDeleted: @escaping () -> Void
+  ) {
+    self.post = post
+    self.postManager = postManager
+    self.showAuthor = showAuthor
+    self.isStandalone = isStandalone
+    self.onLikeButtonTapped = onLikeButtonTapped
+    self.onPostDeleted = onPostDeleted
+  }
+
   var onLikeButtonTapped: () -> Void = {
     print("Unimplemented: PostView.onLikeButtonTapped")
   }
@@ -16,7 +31,6 @@ struct PostView: View {
   @State private var isShowingComments = false
   @State private var isReporting = false
   @State private var showReportAlert = false
-  @EnvironmentObject private var feedRefreshManager: FeedRefreshManager
   @EnvironmentObject private var authManager: AuthManager
 
   var body: some View {
@@ -27,7 +41,7 @@ struct PostView: View {
         if !isStandalone {
           NavigationLink(
             destination:
-              StandalonePostView(postId: post.id)
+              StandalonePostView(postId: post.id, postManager: postManager)
           ) {
             postContent
           }
@@ -240,7 +254,7 @@ struct PostView: View {
       .padding(.horizontal, 24)
     #endif
     .sheet(isPresented: $isShowingComments) {
-      CommentsView(postId: post.post.postId)
+      CommentsView(postId: post.post.postId, postManager: postManager)
     }
     .alert("Post Reported", isPresented: $showReportAlert) {
       Button("OK") {}
@@ -299,13 +313,14 @@ struct PostView: View {
     hasOtherLikes: false
   )
 
-  let feedRefreshManager = FeedRefreshManager()
   let authManager = AuthManager()
+  let postManager = PostManager()
 
   NavigationView {
-    PostView(post: detailedPost)
-      .environmentObject(feedRefreshManager)
-      .environmentObject(authManager)
+    PostView(
+      post: detailedPost, postManager: postManager, onLikeButtonTapped: {}, onPostDeleted: {}
+    )
+    .environmentObject(authManager)
   }
 }
 
@@ -358,12 +373,13 @@ struct PostView: View {
     hasOtherLikes: false
   )
 
-  let feedRefreshManager = FeedRefreshManager()
   let authManager = AuthManager()
+  let postManager = PostManager()
 
   NavigationView {
-    PostView(post: detailedPost, isStandalone: true)
-      .environmentObject(feedRefreshManager)
-      .environmentObject(authManager)
+    PostView(
+      post: detailedPost, postManager: postManager, onLikeButtonTapped: {}, onPostDeleted: {}
+    )
+    .environmentObject(authManager)
   }
 }
