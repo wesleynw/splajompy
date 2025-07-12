@@ -187,7 +187,7 @@ struct HomeView: View {
       postManager: postManager,
       showAuthor: true,
       onLikeButtonTapped: { viewModel.toggleLike(on: post) },
-      onPostDeleted: { viewModel.deletePost(on: post) },
+      onPostDeleted: { viewModel.deletePost(on: post) }
     )
     .environmentObject(authManager)
     .onAppear {
