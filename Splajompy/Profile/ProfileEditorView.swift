@@ -43,7 +43,10 @@ struct ProfileEditorView: View {
           Spacer()
           Text("\(name.count)/25")
             .font(.subheadline)
-            .foregroundStyle(name.count > 25 ? Color.red.opacity(0.7) : Color.primary.opacity(0.7))
+            .foregroundStyle(
+              name.count > 25
+                ? Color.red.opacity(0.7) : Color.primary.opacity(0.7)
+            )
         }
         Divider()
         TextEditor(text: $name)
@@ -60,7 +63,10 @@ struct ProfileEditorView: View {
           Spacer()
           Text("\(bio.count)/400")
             .font(.subheadline)
-            .foregroundStyle(bio.count > 400 ? Color.red.opacity(0.7) : Color.primary.opacity(0.7))
+            .foregroundStyle(
+              bio.count > 400
+                ? Color.red.opacity(0.7) : Color.primary.opacity(0.7)
+            )
         }
         Divider()
         TextEditor(text: $bio)
@@ -72,10 +78,4 @@ struct ProfileEditorView: View {
       bio = currentProfile?.bio ?? ""
     }
   }
-}
-
-#Preview {
-  @Previewable @StateObject var viewModel = ProfileView.ViewModel(
-    userId: 1, profileService: MockProfileService())
-  ProfileEditorView(viewModel: viewModel)
 }

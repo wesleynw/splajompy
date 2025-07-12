@@ -1,24 +1,33 @@
-import Foundation
 import PostHog
 import SwiftUI
 
 struct CommentsView: View {
   var isShowingInSheet: Bool
   var postId: Int
+
+  @ObservedObject var postManager: PostManager
+
   @StateObject private var viewModel: ViewModel
   @State private var showingCommentSheet = false
   @FocusState private var isTextFieldFocused: Bool
   @Environment(\.dismiss) private var dismiss
 
-  init(postId: Int, isShowingInSheet: Bool = true) {
+  init(postId: Int, isShowingInSheet: Bool = true, postManager: PostManager) {
     self.postId = postId
-    _viewModel = StateObject(wrappedValue: ViewModel(postId: postId))
     self.isShowingInSheet = isShowingInSheet
+    self.postManager = postManager
+    _viewModel = StateObject(wrappedValue: ViewModel(postId: postId))
   }
 
-  init(postId: Int, isShowingInSheet: Bool = true, viewModel: ViewModel) {
+  init(
+    postId: Int,
+    postManager: PostManager,
+    isShowingInSheet: Bool = true,
+    viewModel: ViewModel
+  ) {
     self.postId = postId
     self.isShowingInSheet = isShowingInSheet
+    self.postManager = postManager
     _viewModel = StateObject(wrappedValue: viewModel)
   }
 
@@ -116,7 +125,11 @@ struct CommentsView: View {
       .buttonStyle(.plain)
     }
     .sheet(isPresented: $showingCommentSheet) {
-      AddCommentSheet(viewModel: viewModel)
+      AddCommentSheet(
+        viewModel: viewModel,
+        postId: postId,
+        postManager: postManager
+      )
     }
     .onTapGesture {
       if isTextFieldFocused {
@@ -138,7 +151,9 @@ struct CommentsView: View {
 struct AddCommentSheet: View {
   @ObservedObject var viewModel: CommentsView.ViewModel
   @State private var text = NSAttributedString(string: "")
-  @Environment(\.presentationMode) var presentationMode
+  @Environment(\.dismiss) var dismiss
+  let postId: Int
+  let postManager: PostManager
 
   var body: some View {
     VStack(spacing: 12) {
@@ -172,8 +187,17 @@ struct AddCommentSheet: View {
     )
     guard !commentText.isEmpty else { return }
 
-    viewModel.addComment(text: commentText)
-    presentationMode.wrappedValue.dismiss()
+    Task {
+      await viewModel.submitComment(text: commentText)
+
+      postManager.updatePost(id: postId) { post in
+        post.commentCount += 1
+      }
+
+      await MainActor.run {
+        dismiss()
+      }
+    }
   }
 }
 
@@ -272,7 +296,14 @@ struct LikeButton: View {
     service: MockCommentService()
   )
 
-  CommentsView(postId: 1, isShowingInSheet: true, viewModel: mockViewModel)
+  let postManager = PostManager()
+
+  CommentsView(
+    postId: 1,
+    postManager: postManager,
+    isShowingInSheet: true,
+    viewModel: mockViewModel
+  )
 }
 
 #Preview("Loading") {
@@ -281,7 +312,14 @@ struct LikeButton: View {
     service: MockCommentService_Loading()
   )
 
-  CommentsView(postId: 1, isShowingInSheet: true, viewModel: mockViewModel)
+  let postManager = PostManager()
+
+  CommentsView(
+    postId: 1,
+    postManager: postManager,
+    isShowingInSheet: true,
+    viewModel: mockViewModel
+  )
 }
 
 #Preview("No Comments") {
@@ -290,7 +328,14 @@ struct LikeButton: View {
     service: MockCommentService_Empty()
   )
 
-  CommentsView(postId: 1, isShowingInSheet: true, viewModel: mockViewModel)
+  let postManager = PostManager()
+
+  CommentsView(
+    postId: 1,
+    postManager: postManager,
+    isShowingInSheet: true,
+    viewModel: mockViewModel
+  )
 }
 
 #Preview("Error") {
@@ -299,5 +344,12 @@ struct LikeButton: View {
     service: MockCommentService_Error()
   )
 
-  CommentsView(postId: 1, isShowingInSheet: true, viewModel: mockViewModel)
+  let postManager = PostManager()
+
+  CommentsView(
+    postId: 1,
+    postManager: postManager,
+    isShowingInSheet: true,
+    viewModel: mockViewModel
+  )
 }

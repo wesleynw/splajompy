@@ -11,7 +11,7 @@ struct SplajompyApp: App {
     NavigationPath(),
   ]
   @StateObject private var authManager = AuthManager()
-  @StateObject private var feedRefreshManager = FeedRefreshManager()
+  @StateObject private var postManager = PostManager()
   @AppStorage("appearance_mode") var appearanceMode: String = "Automatic"
   @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding: Bool = false
 
@@ -30,7 +30,6 @@ struct SplajompyApp: App {
             selection = 0
           }
         }
-        .environmentObject(feedRefreshManager)
         .environmentObject(authManager)
         .preferredColorScheme(colorScheme)
     }
@@ -62,7 +61,7 @@ struct SplajompyApp: App {
   private var iOSTabView: some View {
     TabView(selection: $selection) {
       NavigationStack(path: $navigationPaths[0]) {
-        HomeView()
+        HomeView(postManager: postManager)
           .postHogScreenView()
           .navigationDestination(for: Route.self) { route in
             routeDestination(route)
@@ -98,7 +97,7 @@ struct SplajompyApp: App {
       .tag(2)
 
       NavigationStack(path: $navigationPaths[3]) {
-        CurrentProfileView()
+        CurrentProfileView(postManager: postManager)
           .postHogScreenView()
           .navigationDestination(for: Route.self) { route in
             routeDestination(route)
@@ -162,7 +161,7 @@ struct SplajompyApp: App {
       Group {
         switch selection {
         case 0:
-          HomeView()
+          HomeView(postManager: postManager)
             .postHogScreenView()
         case 1:
           NotificationsView()
@@ -171,10 +170,10 @@ struct SplajompyApp: App {
           SearchView()
             .postHogScreenView()
         case 3:
-          CurrentProfileView()
+          CurrentProfileView(postManager: postManager)
             .postHogScreenView()
         default:
-          HomeView()
+          HomeView(postManager: postManager)
             .postHogScreenView()
         }
       }
@@ -206,9 +205,9 @@ struct SplajompyApp: App {
   private func routeDestination(_ route: Route) -> some View {
     switch route {
     case .profile(let id, let username):
-      ProfileView(userId: Int(id)!, username: username)
+      ProfileView(userId: Int(id)!, username: username, postManager: postManager)
     case .post(let id):
-      StandalonePostView(postId: id)
+      StandalonePostView(postId: id, postManager: postManager)
     }
   }
 
