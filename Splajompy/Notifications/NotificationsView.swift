@@ -102,7 +102,7 @@ struct NotificationsView: View {
           }
         } header: {
           HStack {
-            Text("Unread")
+            Text("New")
 
             Spacer()
 

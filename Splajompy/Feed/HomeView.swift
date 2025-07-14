@@ -7,8 +7,9 @@ struct HomeView: View {
   @ObservedObject var postManager: PostManager
 
   @AppStorage("mindlessMode") private var mindlessMode: Bool = false
+  @AppStorage("selectedFeedType") private var selectedFeedType: FeedType = .all
 
-  init(feedType: FeedType = .mutual, postManager: PostManager) {
+  init(feedType: FeedType = .all, postManager: PostManager) {
     self.postManager = postManager
     _viewModel = StateObject(
       wrappedValue: FeedViewModel(feedType: feedType, postManager: postManager)
@@ -17,14 +18,29 @@ struct HomeView: View {
 
   var body: some View {
     mainContent
+      .navigationTitle(selectedFeedType == .mutual ? "Home" : "Explore")
+      .toolbarTitleMenu {
+        Button("Home") {
+          selectedFeedType = .mutual
+        }
+        Button("Explore") {
+          selectedFeedType = .all
+        }
+      }
       .toolbar {
         #if os(iOS)
-          logoToolbarItem
           addPostToolbarItem
         #endif
       }
       .task {
+        viewModel.feedType = selectedFeedType
         await viewModel.loadPosts()
+      }
+      .onChange(of: selectedFeedType) { _, newFeedType in
+        Task {
+          viewModel.feedType = newFeedType
+          await viewModel.loadPosts(reset: true, useLoadingState: true)
+        }
       }
       #if os(iOS)
         .sheet(isPresented: $isShowingNewPostView) {
@@ -60,23 +76,6 @@ struct HomeView: View {
       .contentMargins(.horizontal, 40, for: .scrollContent)
       .safeAreaPadding(.horizontal, 20)
     #endif
-  }
-
-  private var logoToolbarItem: some ToolbarContent {
-    ToolbarItem(
-      placement: {
-        #if os(iOS)
-          .navigationBarLeading
-        #else
-          .navigation
-        #endif
-      }()
-    ) {
-      Image("Full_Logo")
-        .resizable()
-        .scaledToFit()
-        .frame(height: 30)
-    }
   }
 
   private var addPostToolbarItem: some ToolbarContent {

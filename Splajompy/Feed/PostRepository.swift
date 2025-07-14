@@ -1,6 +1,6 @@
 import Foundation
 
-enum FeedType {
+enum FeedType: String, CaseIterable {
   case home
   case all
   case profile
