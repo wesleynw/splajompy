@@ -221,7 +221,6 @@ struct ImageGallery: View {
         let calculatedHeight = containerWidth / aspectRatio
 
         OptimizedKFImage(url, contentMode: .fit)
-          .cacheOriginalImage()
           .frame(height: calculatedHeight)
           .clipShape(.rect(cornerRadius: 6))
           .onTapGesture {
