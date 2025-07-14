@@ -221,6 +221,7 @@ struct ImageGallery: View {
         let calculatedHeight = containerWidth / aspectRatio
 
         OptimizedKFImage(url, contentMode: .fit)
+          .cacheOriginalImage()
           .frame(height: calculatedHeight)
           .clipShape(.rect(cornerRadius: 6))
           .onTapGesture {
@@ -255,6 +256,7 @@ struct FullscreenImagePager: View {
         ForEach(Array(imageUrls.enumerated()), id: \.1) { index, url in
           if let url = URL(string: url) {
             KFImage(url)
+              .cacheOriginalImage()
               .resizable()
               .placeholder {
                 ProgressView()

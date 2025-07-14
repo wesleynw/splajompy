@@ -18,13 +18,27 @@ struct HomeView: View {
 
   var body: some View {
     mainContent
-      .navigationTitle(selectedFeedType == .mutual ? "Home" : "Explore")
+      .navigationTitle(selectedFeedType == .mutual ? "Home" : "All")
       .toolbarTitleMenu {
-        Button("Home") {
+        Button {
           selectedFeedType = .mutual
+        } label: {
+          HStack {
+            Text("Home")
+            if selectedFeedType == .mutual {
+              Image(systemName: "checkmark")
+            }
+          }
         }
-        Button("Explore") {
+        Button {
           selectedFeedType = .all
+        } label: {
+          HStack {
+            Text("All")
+            if selectedFeedType == .all {
+              Image(systemName: "checkmark")
+            }
+          }
         }
       }
       .toolbar {
