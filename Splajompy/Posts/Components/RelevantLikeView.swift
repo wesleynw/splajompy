@@ -15,9 +15,10 @@ struct RelevantLikeView: View {
   private var likesContainer: some View {
     HStack(spacing: 8) {
       HStack(spacing: 6) {
-        Image(systemName: "heart.fill")
-          .font(.system(size: 16))
-          .foregroundColor(.red)
+        Text("Liked by")
+          .font(.caption)
+          .fontWeight(.medium)
+          .foregroundColor(.secondary)
 
         ForEach(relevantLikes, id: \.userId) { like in
           NavigationLink(
@@ -30,6 +31,8 @@ struct RelevantLikeView: View {
               .font(.caption)
               .fontWeight(.medium)
               .foregroundColor(.blue)
+              .lineLimit(1)
+              .truncationMode(.tail)
               .padding(.horizontal, 8)
               .padding(.vertical, 4)
               .background(
@@ -42,11 +45,14 @@ struct RelevantLikeView: View {
 
         if hasOtherLikes {
           HStack(spacing: 2) {
+            Image(systemName: "plus")
+              .font(.caption)
+              .foregroundColor(.gray)
             Image(systemName: "person.2.fill")
-              .font(.system(size: 10))
+              .font(.caption)
               .foregroundColor(.gray)
           }
-          .padding(.horizontal, 6)
+          .padding(.horizontal, 8)
           .padding(.vertical, 4)
           .background(
             RoundedRectangle(cornerRadius: 12)
@@ -54,14 +60,8 @@ struct RelevantLikeView: View {
           )
         }
       }
-      .padding(.horizontal, 10)
-      .padding(.vertical, 6)
-      .background(
-        RoundedRectangle(cornerRadius: 16)
-          .fill(Color.gray.opacity(0.1))
-      )
-
-      Spacer()
+      .padding(.horizontal, 5)
+      .padding(.vertical, 3)
     }
   }
 }
