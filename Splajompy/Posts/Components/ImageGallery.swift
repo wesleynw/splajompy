@@ -255,6 +255,7 @@ struct FullscreenImagePager: View {
         ForEach(Array(imageUrls.enumerated()), id: \.1) { index, url in
           if let url = URL(string: url) {
             KFImage(url)
+              .cacheOriginalImage()
               .resizable()
               .placeholder {
                 ProgressView()

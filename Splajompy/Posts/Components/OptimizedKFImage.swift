@@ -33,6 +33,7 @@ struct OptimizedKFImage: View {
 
   var body: some View {
     KFImage(url)
+      .cacheOriginalImage()
       .setProcessors(
         [
           DownsamplingImageProcessor(
