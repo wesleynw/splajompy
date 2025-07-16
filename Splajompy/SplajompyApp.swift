@@ -25,10 +25,8 @@ struct SplajompyApp: App {
   var body: some Scene {
     WindowGroup {
       mainContentView
-        .onChange(of: authManager.isAuthenticated) { _, newValue in
-          if newValue {
-            selection = 0
-          }
+        .onReceive(NotificationCenter.default.publisher(for: .userDidSignOut)) { _ in
+          handleUserSignOut()
         }
         .environmentObject(authManager)
         .preferredColorScheme(colorScheme)
@@ -215,5 +213,18 @@ struct SplajompyApp: App {
     if let route = parseDeepLink(url) {
       navigationPaths[selection].append(route)
     }
+  }
+
+  private func handleUserSignOut() {
+    navigationPaths = [
+      NavigationPath(),
+      NavigationPath(),
+      NavigationPath(),
+      NavigationPath(),
+    ]
+
+    selection = 0
+
+    postManager.clearCache()
   }
 }
