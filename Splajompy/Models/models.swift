@@ -76,3 +76,19 @@ struct DetailedPost: Decodable, Equatable, Identifiable {
     return lhs.post.postId == rhs.post.postId
   }
 }
+
+
+struct Poll {
+  let title: String
+  let voteTotal: Int
+  let options: [PollOption]
+  
+  var selectedOptionId: Int?
+  var hasVoted: Bool { selectedOptionId != nil }
+}
+
+struct PollOption: Identifiable {
+  let id: Int
+  let label: String
+  let voteTotal: Int
+}
