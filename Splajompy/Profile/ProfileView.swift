@@ -237,7 +237,7 @@ struct ProfileView: View {
         .font(.title3)
         .fontWeight(.bold)
         .padding(.top, 40)
-      Text(isCurrentUser ? "Your posts will show up here." : "No posts from this user yet.")
+      Text(isCurrentUser ? "Your posts will show up here." : "No posts here.")
         .padding()
       Button {
         Task { await viewModel.loadPosts(reset: true) }
