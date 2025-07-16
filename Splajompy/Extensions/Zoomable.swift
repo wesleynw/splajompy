@@ -21,12 +21,15 @@
           }
         }
         .animatableTransformEffect(transform)
-        .gesture(dragGesture, including: transform == .identity ? .none : .all)
+        .highPriorityGesture(
+          dragGesture,
+          including: transform == .identity ? .none : .all
+        )
         .modify { view in
           if #available(iOS 17.0, *) {
-            view.gesture(magnificationGesture)
+            view.simultaneousGesture(magnificationGesture)
           } else {
-            view.gesture(oldMagnificationGesture)
+            view.simultaneousGesture(oldMagnificationGesture)
           }
         }
         .gesture(doubleTapGesture)
@@ -38,7 +41,8 @@
         .onChanged { value in
           let zoomFactor = 0.5
           let scale = value * zoomFactor
-          transform = lastTransform.scaledBy(x: scale, y: scale)
+          let newTransform = lastTransform.scaledBy(x: scale, y: scale)
+          transform = limitTransform(newTransform)
         }
         .onEnded { _ in
           onEndGesture()
@@ -55,7 +59,7 @@
           )
 
           withAnimation(.interactiveSpring) {
-            transform = lastTransform.concatenating(newTransform)
+            transform = limitTransform(lastTransform.concatenating(newTransform))
           }
         }
         .onEnded { _ in
@@ -84,10 +88,11 @@
       DragGesture()
         .onChanged { value in
           withAnimation(.interactiveSpring) {
-            transform = lastTransform.translatedBy(
+            let newTransform = lastTransform.translatedBy(
               x: value.translation.width / transform.scaleX,
               y: value.translation.height / transform.scaleY
             )
+            transform = limitTransform(newTransform)
           }
         }
         .onEnded { _ in
@@ -110,22 +115,41 @@
       let scaleX = transform.scaleX
       let scaleY = transform.scaleY
 
-      if scaleX < minZoomScale
-        || scaleY < minZoomScale
-      {
+      // Limit minimum zoom
+      if scaleX < minZoomScale || scaleY < minZoomScale {
         return .identity
       }
 
+      // Limit maximum zoom to 3x
+      let maxZoomScale: CGFloat = 3.0
+      if scaleX > maxZoomScale || scaleY > maxZoomScale {
+        let clampedScale = min(scaleX, maxZoomScale)
+        var limitedTransform = transform
+        limitedTransform.a = clampedScale
+        limitedTransform.d = clampedScale
+        return limitedTransform
+      }
+
+      // Calculate pan boundaries with 20% over-scroll buffer
       let maxX = contentSize.width * (scaleX - 1)
       let maxY = contentSize.height * (scaleY - 1)
+      
+      // Add 20% buffer for over-scroll
+      let bufferX = contentSize.width * 0.2
+      let bufferY = contentSize.height * 0.2
 
-      if transform.tx > 0
-        || transform.tx < -maxX
-        || transform.ty > 0
-        || transform.ty < -maxY
+      let minTx = -maxX - bufferX
+      let maxTx = bufferX
+      let minTy = -maxY - bufferY
+      let maxTy = bufferY
+
+      if transform.tx > maxTx
+        || transform.tx < minTx
+        || transform.ty > maxTy
+        || transform.ty < minTy
       {
-        let tx = min(max(transform.tx, -maxX), 0)
-        let ty = min(max(transform.ty, -maxY), 0)
+        let tx = min(max(transform.tx, minTx), maxTx)
+        let ty = min(max(transform.ty, minTy), maxTy)
         var transform = transform
         transform.tx = tx
         transform.ty = ty
