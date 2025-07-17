@@ -1,9 +1,10 @@
 import Foundation
+import SwiftUI
 
 enum PostState {
   case idle
   case loading
-  case loaded(DetailedPost)
+  case loaded(Int)
   case failed(Error)
 }
 
@@ -11,49 +12,39 @@ extension StandalonePostView {
   @MainActor class ViewModel: ObservableObject {
     @Published var post: PostState = .idle
 
-    private var postId: Int
-    private var postService: PostServiceProtocol
+    var detailedPost: DetailedPost? {
+      postManager.getPost(id: postId)
+    }
 
-    init(
-      postId: Int,
-      postService: PostServiceProtocol = PostService()
-    ) {
+    private var postId: Int
+    private var postManager: PostManager
+
+    init(postId: Int, postManager: PostManager) {
       self.postId = postId
-      self.postService = postService
+      self.postManager = postManager
     }
 
     func load() async {
-      let postResult = await postService.getPostById(postId: postId)
+      // Check if post is already cached
+      if postManager.getPost(id: postId) != nil {
+        post = .loaded(postId)
+        return
+      }
 
-      switch postResult {
-      case .success(let fetchedPost):
-        post = .loaded(fetchedPost)
+      post = .loading
+      await postManager.loadPost(id: postId)
 
-      case .error(let error):
-        post = .failed(error)
+      if postManager.getPost(id: postId) != nil {
+        post = .loaded(postId)
+      } else {
+        post = .failed(NSError(domain: "PostNotFound", code: 404))
       }
     }
 
     func toggleLike() {
       Task {
-        guard case .loaded(let detailedPost) = post else { return }
-
-        var updatedPost = detailedPost
-        updatedPost.isLiked.toggle()
-        post = .loaded(updatedPost)
-
-        let result = await postService.toggleLike(
-          postId: detailedPost.id,
-          isLiked: !updatedPost.isLiked
-        )
-
-        if case .error(let error) = result {
-          print("Error toggling like: \(error.localizedDescription)")
-          updatedPost.isLiked.toggle()
-          post = .loaded(updatedPost)
-        }
+        await postManager.likePost(id: postId)
       }
     }
-
   }
 }

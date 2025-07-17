@@ -29,6 +29,16 @@ Migrations are handled with `golang-migrate`. To make changes to the DB, follow 
 
 [Database migrations in Go with golang-migrate](https://betterstack.com/community/guides/scaling-go/golang-migrate)
 
+## Linting
+Before pushing Swift code changes, run the following command to format your code:
+```bash
+xcrun swift-format --in-place --recursive .
+# or shorthand:
+xcrun swift-format -i -r .
+```
+
+Swift linting is also enforced via a GitHub action that runs on pull requests.
+
 ## Deployment
 API code merged to the `main` branch is automatically deployed to the production API environment.
 

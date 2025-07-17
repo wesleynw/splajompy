@@ -8,48 +8,61 @@ struct RelevantLikeView: View {
     if relevantLikes.isEmpty && !hasOtherLikes {
       EmptyView()
     } else {
-      likesText
-        .font(.footnote)
-        .fontWeight(.semibold)
+      likesContainer
     }
   }
 
-  private var likesText: some View {
-    Text(.init(buildLikesString()))
-  }
+  private var likesContainer: some View {
+    HStack(spacing: 8) {
+      HStack(spacing: 6) {
+        Text("Liked by")
+          .font(.caption)
+          .fontWeight(.medium)
+          .foregroundColor(.secondary)
 
-  private func buildLikesString() -> String {
-    let prefix = "Liked by "
+        ForEach(relevantLikes, id: \.userId) { like in
+          NavigationLink(
+            value: Route.profile(
+              id: String(like.userId),
+              username: like.username
+            )
+          ) {
+            Text("@\(like.username)")
+              .font(.caption)
+              .fontWeight(.medium)
+              .foregroundColor(.blue)
+              .lineLimit(1)
+              .truncationMode(.tail)
+              .padding(.horizontal, 8)
+              .padding(.vertical, 4)
+              .background(
+                RoundedRectangle(cornerRadius: 12)
+                  .fill(Color.gray.opacity(0.2))
+              )
+          }
+          .buttonStyle(.plain)
+        }
 
-    if relevantLikes.isEmpty {
-      return prefix + "others"
-    }
-
-    var components = [String]()
-
-    for (index, like) in relevantLikes.enumerated() {
-      let username =
-        "**[@\(like.username)](splajompy://user?id=\(like.userId)&username=\(like.username))**"
-
-      if index == 0 {
-        components.append(username)
-      } else if index == 1 && relevantLikes.count == 2 && hasOtherLikes {
-        components.append(", " + username)
-      } else if index == 1 {
-        components.append(" and " + username)
-      } else {
-        components.append(", " + username)
+        if hasOtherLikes {
+          HStack(spacing: 2) {
+            Image(systemName: "plus")
+              .font(.caption)
+              .foregroundColor(.gray)
+            Image(systemName: "person.2.fill")
+              .font(.caption)
+              .foregroundColor(.gray)
+          }
+          .padding(.horizontal, 8)
+          .padding(.vertical, 4)
+          .background(
+            RoundedRectangle(cornerRadius: 12)
+              .fill(Color.gray.opacity(0.15))
+          )
+        }
       }
+      .padding(.horizontal, 5)
+      .padding(.vertical, 3)
     }
-
-    let result = prefix + components.joined()
-
-    if hasOtherLikes {
-      return result
-        + (relevantLikes.count == 1 ? " and others" : ", and others")
-    }
-
-    return result
   }
 }
 

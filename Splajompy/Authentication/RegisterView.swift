@@ -43,8 +43,16 @@ struct RegisterView: View {
       .navigationTitle("Register")
       .navigationBarBackButtonHidden()
       .toolbar {
-        ToolbarItem(placement: toolbarPlacement) {
-          closeButton
+        ToolbarItem(
+          placement: {
+            #if os(iOS)
+              return .topBarTrailing
+            #else
+              return .primaryAction
+            #endif
+          }()
+        ) {
+          CloseButton(onClose: { isPresenting = false })
         }
       }
       .animation(.easeInOut(duration: 0.25), value: usernameError.isEmpty)
@@ -224,20 +232,6 @@ struct RegisterView: View {
     .disabled(isContinueButtonDisabled)
   }
 
-  private var closeButton: some View {
-    Button(action: {
-      isPresenting = false
-    }) {
-      Image(systemName: "xmark")
-        .font(.system(size: 15, weight: .bold))
-        .foregroundColor(.primary.opacity(0.5))
-        .padding(8)
-        .background(backgroundColorForCloseButton)
-        .clipShape(Circle())
-    }
-    .sensoryFeedback(.impact, trigger: isPresenting)
-  }
-
   private func errorMessageView(_ message: String) -> some View {
     HStack(alignment: .firstTextBaseline, spacing: 6) {
       Image(systemName: "exclamationmark.circle.fill")
@@ -275,14 +269,6 @@ struct RegisterView: View {
 
   private var isContinueButtonDisabled: Bool {
     authManager.isLoading || isFormEmpty
-  }
-
-  private var backgroundColorForCloseButton: Color {
-    #if os(iOS)
-      return Color(.systemGray6)
-    #else
-      return Color(.controlBackgroundColor)
-    #endif
   }
 
   private var toolbarPlacement: ToolbarItemPlacement {
@@ -323,17 +309,8 @@ struct RegisterView: View {
 
 #Preview {
   @Previewable @State var isPresenting = true
-  @Previewable @State var identifier = "wesleynw@pm.me"
+  let authManager = AuthManager()
 
-  CredentialedLoginView(isPresenting: $isPresenting, identifier: $identifier)
-    .environmentObject(AuthManager())
-}
-
-#Preview("Dark Mode") {
-  @Previewable @State var isPresenting = true
-  @Previewable @State var identifier = "wesleynw@pm.me"
-
-  CredentialedLoginView(isPresenting: $isPresenting, identifier: $identifier)
-    .environmentObject(AuthManager())
-    .preferredColorScheme(.dark)
+  RegisterView(isPresenting: $isPresenting)
+    .environmentObject(authManager)
 }

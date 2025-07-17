@@ -1,9 +1,10 @@
 import Foundation
+import SwiftUI
 
 enum FeedState {
   case idle
   case loading
-  case loaded([DetailedPost])
+  case loaded([Int])
   case failed(Error)
 }
 
@@ -13,22 +14,24 @@ enum FeedState {
   @Published var canLoadMore: Bool = true
   @Published var state: FeedState = .idle
   @Published var isLoadingMore: Bool = false
+  @Published var postIds: [Int] = []
+
+  var posts: [DetailedPost] {
+    postManager.getPostsById(postIds)
+  }
 
   private var offset = 0
   private let fetchLimit = 10
-  private var service: PostServiceProtocol
+  var postManager: PostManager
 
-  init(
-    feedType: FeedType,
-    userId: Int? = nil,
-    service: PostServiceProtocol = PostService()
-  ) {
+  init(feedType: FeedType, userId: Int? = nil, postManager: PostManager) {
     self.feedType = feedType
     self.userId = userId
-    self.service = service
+    self.postManager = postManager
   }
 
   func loadPosts(reset: Bool = false, useLoadingState: Bool = false) async {
+
     if reset {
       if useLoadingState == true {
         state = .loading
@@ -44,7 +47,7 @@ enum FeedState {
       isLoadingMore = false
     }
 
-    let result = await service.getPostsForFeed(
+    let result = await postManager.loadFeed(
       feedType: feedType,
       userId: userId,
       offset: offset,
@@ -53,10 +56,14 @@ enum FeedState {
 
     switch result {
     case .success(let fetchedPosts):
-      if case .loaded(let existingPosts) = state, !reset {
-        state = .loaded(existingPosts + fetchedPosts)
+      let newPostIds = fetchedPosts.map { $0.id }
+
+      if reset {
+        postIds = newPostIds
+        state = .loaded(newPostIds)
       } else {
-        state = .loaded(fetchedPosts)
+        postIds.append(contentsOf: newPostIds)
+        state = .loaded(postIds)
       }
       canLoadMore = fetchedPosts.count >= fetchLimit
       offset += fetchedPosts.count
@@ -66,66 +73,23 @@ enum FeedState {
   }
 
   func toggleLike(on post: DetailedPost) {
-    guard case .loaded(var posts) = state else { return }
-    if let index = posts.firstIndex(where: {
-      $0.post.postId == post.post.postId
-    }) {
-      posts[index].isLiked.toggle()
-      state = .loaded(posts)
-      Task {
-        let result = await service.toggleLike(
-          postId: post.post.postId,
-          isLiked: post.isLiked
-        )
-        if case .error(let error) = result {
-          print("Error toggling like: \(error.localizedDescription)")
-          guard case .loaded(var currentPosts) = state,
-            let revertIndex = currentPosts.firstIndex(where: {
-              $0.post.postId == post.post.postId
-            })
-          else { return }
-          currentPosts[revertIndex].isLiked.toggle()
-          state = .loaded(currentPosts)
-        }
-      }
+    Task {
+      await postManager.likePost(id: post.id)
     }
   }
 
   func addComment(on post: DetailedPost, content: String) {
-    guard case .loaded(var posts) = state else { return }
-    if let index = posts.firstIndex(where: {
-      $0.post.postId == post.post.postId
-    }) {
-      posts[index].commentCount += 1
-      state = .loaded(posts)
-      Task {
-        let result = await service.addComment(
-          postId: post.post.postId,
-          content: content
-        )
-        if case .error(let error) = result {
-          print("Error adding comment: \(error.localizedDescription)")
-          guard case .loaded(var currentPosts) = state,
-            let revertIndex = currentPosts.firstIndex(where: {
-              $0.post.postId == post.post.postId
-            })
-          else { return }
-          currentPosts[revertIndex].commentCount -= 1
-          state = .loaded(currentPosts)
-        }
-      }
+    Task {
+      postManager.incrementCommentCount(for: post.id)
     }
   }
 
   func deletePost(on post: DetailedPost) {
-    guard case .loaded(var posts) = state else { return }
-    if let index = posts.firstIndex(where: {
-      $0.post.postId == post.post.postId
-    }) {
-      posts.remove(at: index)
-      state = .loaded(posts)
+    if let index = postIds.firstIndex(of: post.id) {
+      postIds.remove(at: index)
+      state = .loaded(postIds)
       Task {
-        await service.deletePost(postId: post.post.postId)
+        await postManager.deletePost(id: post.id)
       }
     }
   }

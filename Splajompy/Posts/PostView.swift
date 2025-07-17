@@ -4,8 +4,23 @@ import SwiftUI
 
 struct PostView: View {
   let post: DetailedPost
-  var showAuthor: Bool = true
-  var isStandalone: Bool = false
+  let postManager: PostManager
+  var showAuthor: Bool
+  var isStandalone: Bool
+
+  init(
+    post: DetailedPost, postManager: PostManager, showAuthor: Bool = false,
+    isStandalone: Bool = false, onLikeButtonTapped: @escaping () -> Void,
+    onPostDeleted: @escaping () -> Void
+  ) {
+    self.post = post
+    self.postManager = postManager
+    self.showAuthor = showAuthor
+    self.isStandalone = isStandalone
+    self.onLikeButtonTapped = onLikeButtonTapped
+    self.onPostDeleted = onPostDeleted
+  }
+
   var onLikeButtonTapped: () -> Void = {
     print("Unimplemented: PostView.onLikeButtonTapped")
   }
@@ -16,7 +31,6 @@ struct PostView: View {
   @State private var isShowingComments = false
   @State private var isReporting = false
   @State private var showReportAlert = false
-  @EnvironmentObject private var feedRefreshManager: FeedRefreshManager
   @EnvironmentObject private var authManager: AuthManager
 
   var body: some View {
@@ -27,7 +41,7 @@ struct PostView: View {
         if !isStandalone {
           NavigationLink(
             destination:
-              StandalonePostView(postId: post.id)
+              StandalonePostView(postId: post.id, postManager: postManager)
           ) {
             postContent
           }
@@ -91,6 +105,12 @@ struct PostView: View {
       if let images = post.images, !images.isEmpty {
         ImageGallery(images: images)
       }
+
+      RelevantLikeView(
+        relevantLikes: post.relevantLikes,
+        hasOtherLikes: post.hasOtherLikes
+      )
+
       HStack {
         Text(
           RelativeDateTimeFormatter().localizedString(
@@ -204,6 +224,7 @@ struct PostView: View {
             #if os(iOS)
               Image(systemName: post.isLiked ? "heart.fill" : "heart")
                 .font(.system(size: 22))
+                .foregroundColor(post.isLiked ? .red : .primary)
                 .frame(width: 48, height: 40)
                 .background(
                   RoundedRectangle(cornerRadius: 12).fill(.gray.opacity(0.15))
@@ -212,6 +233,7 @@ struct PostView: View {
             #else
               Image(systemName: post.isLiked ? "heart.fill" : "heart")
                 .font(.system(size: 18))
+                .foregroundColor(post.isLiked ? .red : .primary)
                 .frame(width: 32, height: 32)
                 .background(
                   RoundedRectangle(cornerRadius: 6).fill(.gray.opacity(0.1))
@@ -224,11 +246,6 @@ struct PostView: View {
           .sensoryFeedback(.impact, trigger: post.isLiked)
         }
       }
-
-      RelevantLikeView(
-        relevantLikes: post.relevantLikes,
-        hasOtherLikes: post.hasOtherLikes
-      )
     }
     .padding(.vertical, 4)
     #if os(iOS)
@@ -237,7 +254,7 @@ struct PostView: View {
       .padding(.horizontal, 24)
     #endif
     .sheet(isPresented: $isShowingComments) {
-      CommentsView(postId: post.post.postId)
+      CommentsView(postId: post.post.postId, postManager: postManager)
     }
     .alert("Post Reported", isPresented: $showReportAlert) {
       Button("OK") {}
@@ -296,13 +313,14 @@ struct PostView: View {
     hasOtherLikes: false
   )
 
-  let feedRefreshManager = FeedRefreshManager()
   let authManager = AuthManager()
+  let postManager = PostManager()
 
   NavigationView {
-    PostView(post: detailedPost)
-      .environmentObject(feedRefreshManager)
-      .environmentObject(authManager)
+    PostView(
+      post: detailedPost, postManager: postManager, onLikeButtonTapped: {}, onPostDeleted: {}
+    )
+    .environmentObject(authManager)
   }
 }
 
@@ -355,12 +373,13 @@ struct PostView: View {
     hasOtherLikes: false
   )
 
-  let feedRefreshManager = FeedRefreshManager()
   let authManager = AuthManager()
+  let postManager = PostManager()
 
   NavigationView {
-    PostView(post: detailedPost, isStandalone: true)
-      .environmentObject(feedRefreshManager)
-      .environmentObject(authManager)
+    PostView(
+      post: detailedPost, postManager: postManager, onLikeButtonTapped: {}, onPostDeleted: {}
+    )
+    .environmentObject(authManager)
   }
 }

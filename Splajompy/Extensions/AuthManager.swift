@@ -1,4 +1,5 @@
 import Foundation
+import Kingfisher
 import PostHog
 
 struct AuthResponse: Decodable {
@@ -60,11 +61,21 @@ class AuthManager: ObservableObject, Sendable {
 
   func signOut() {
     KeychainHelper.standard.delete(service: "session-token", account: "self")
+
     UserDefaults.standard.removeObject(forKey: "CurrentUserID")
     UserDefaults.standard.removeObject(forKey: "CurrentUserUsername")
     UserDefaults.standard.removeObject(forKey: "CurrentUserEmail")
     UserDefaults.standard.removeObject(forKey: "CurrentUserCreatedAt")
     UserDefaults.standard.removeObject(forKey: "CurrentUserName")
+
+    UserDefaults.standard.removeObject(forKey: "mindlessMode")
+    UserDefaults.standard.removeObject(forKey: "selectedFeedType")
+    // UserDefaults.standard.removeObject(forKey: "hasCompletedOnboarding") // do we want to remove this?
+
+    KingfisherManager.shared.cache.clearMemoryCache()
+    KingfisherManager.shared.cache.clearDiskCache()
+
+    NotificationCenter.default.post(name: .userDidSignOut, object: nil)
 
     isAuthenticated = false
   }
@@ -350,4 +361,8 @@ class AuthManager: ObservableObject, Sendable {
       return (false, error.localizedDescription)
     }
   }
+}
+
+extension Foundation.Notification.Name {
+  static let userDidSignOut = Foundation.Notification.Name("userDidSignOut")
 }

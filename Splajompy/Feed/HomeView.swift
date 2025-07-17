@@ -2,22 +2,58 @@ import SwiftUI
 
 struct HomeView: View {
   @State private var isShowingNewPostView = false
-  @StateObject private var viewModel = FeedViewModel(feedType: .mutual)
-  @EnvironmentObject private var feedRefreshManager: FeedRefreshManager
+  @StateObject private var viewModel: FeedViewModel
   @EnvironmentObject var authManager: AuthManager
+  @ObservedObject var postManager: PostManager
+
   @AppStorage("mindlessMode") private var mindlessMode: Bool = false
+  @AppStorage("selectedFeedType") private var selectedFeedType: FeedType = .all
+
+  init(feedType: FeedType = .all, postManager: PostManager) {
+    self.postManager = postManager
+    _viewModel = StateObject(
+      wrappedValue: FeedViewModel(feedType: feedType, postManager: postManager)
+    )
+  }
 
   var body: some View {
     mainContent
+      .navigationTitle(selectedFeedType == .mutual ? "Home" : "All")
+      .toolbarTitleMenu {
+        Button {
+          selectedFeedType = .mutual
+        } label: {
+          HStack {
+            Text("Home")
+            if selectedFeedType == .mutual {
+              Image(systemName: "checkmark")
+            }
+          }
+        }
+        Button {
+          selectedFeedType = .all
+        } label: {
+          HStack {
+            Text("All")
+            if selectedFeedType == .all {
+              Image(systemName: "checkmark")
+            }
+          }
+        }
+      }
       .toolbar {
         #if os(iOS)
-          logoToolbarItem
           addPostToolbarItem
         #endif
       }
-      .onAppear {
+      .task {
+        viewModel.feedType = selectedFeedType
+        await viewModel.loadPosts()
+      }
+      .onChange(of: selectedFeedType) { _, newFeedType in
         Task {
-          await viewModel.loadPosts()
+          viewModel.feedType = newFeedType
+          await viewModel.loadPosts(reset: true, useLoadingState: true)
         }
       }
       #if os(iOS)
@@ -35,11 +71,11 @@ struct HomeView: View {
         loadingPlaceholder
       case .loading:
         loadingPlaceholder
-      case .loaded(let posts):
-        if posts.isEmpty {
+      case .loaded(let postIds):
+        if postIds.isEmpty {
           emptyMessage
         } else {
-          postList(posts: posts)
+          postList(posts: viewModel.posts)
         }
       case .failed(let error):
         ErrorScreen(
@@ -54,23 +90,6 @@ struct HomeView: View {
       .contentMargins(.horizontal, 40, for: .scrollContent)
       .safeAreaPadding(.horizontal, 20)
     #endif
-  }
-
-  private var logoToolbarItem: some ToolbarContent {
-    ToolbarItem(
-      placement: {
-        #if os(iOS)
-          .navigationBarLeading
-        #else
-          .navigation
-        #endif
-      }()
-    ) {
-      Image("Full_Logo")
-        .resizable()
-        .scaledToFit()
-        .frame(height: 30)
-    }
   }
 
   private var addPostToolbarItem: some ToolbarContent {
@@ -112,18 +131,18 @@ struct HomeView: View {
                 post in
                 ReelsPostView(
                   post: post,
+                  postManager: postManager,
                   onLikeButtonTapped: { viewModel.toggleLike(on: post) },
                   onPostDeleted: { viewModel.deletePost(on: post) },
                   onCommentsButtonTapped: {
                     // Handle comments
                   }
                 )
-                .environmentObject(feedRefreshManager)
                 .environmentObject(authManager)
                 .containerRelativeFrame([.horizontal, .vertical])
                 .padding(.bottom, proxy.safeAreaInsets.bottom / 2)
                 .onAppear {
-                  handlePostAppear(post: post)
+                  handlePostAppear(post: post, index: index)
                 }
               }
 
@@ -149,7 +168,7 @@ struct HomeView: View {
               index,
               post in
               VStack {
-                postRow(post: post)
+                postRow(post: post, index: index)
                   .transition(.opacity)
               }
               .geometryGroup()
@@ -175,23 +194,23 @@ struct HomeView: View {
     }
   }
 
-  private func postRow(post: DetailedPost) -> some View {
+  private func postRow(post: DetailedPost, index: Int) -> some View {
     PostView(
       post: post,
+      postManager: postManager,
       showAuthor: true,
       onLikeButtonTapped: { viewModel.toggleLike(on: post) },
       onPostDeleted: { viewModel.deletePost(on: post) }
     )
-    .environmentObject(feedRefreshManager)
     .environmentObject(authManager)
     .onAppear {
-      handlePostAppear(post: post)
+      handlePostAppear(post: post, index: index)
     }
   }
 
-  private func handlePostAppear(post: DetailedPost) {
-    if case .loaded(let currentPosts) = viewModel.state,
-      post == currentPosts.last && viewModel.canLoadMore
+  private func handlePostAppear(post: DetailedPost, index: Int) {
+    if case .loaded(let currentPostIds) = viewModel.state,
+      post.id == currentPostIds.last && viewModel.canLoadMore
         && !viewModel.isLoadingMore
     {
       Task {

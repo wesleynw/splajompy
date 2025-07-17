@@ -38,16 +38,16 @@ struct NotificationImageView: View {
 
   var body: some View {
     KFImage(URL(string: url))
+      .serialize(as: .PNG)  // store as .png to save alpha channel
       .placeholder {
         Rectangle()
           .fill(Color.gray.opacity(0.3))
           .frame(width: Self.targetSize, height: Self.targetSize)
       }
-      .setProcessor(DownsamplingImageProcessor(size: processorSize))
+      .downsampling(size: processorSize)
       .resizable()
       .aspectRatio(contentMode: .fill)
       .frame(width: Self.targetSize, height: Self.targetSize)
-      .clipped()
       .cornerRadius(5)
   }
 }

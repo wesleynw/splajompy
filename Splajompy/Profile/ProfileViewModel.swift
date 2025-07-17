@@ -1,9 +1,10 @@
 import Foundation
+import SwiftUI
 
 enum ProfileState {
   case idle
   case loading
-  case loaded(UserProfile, [DetailedPost])
+  case loaded(UserProfile, [Int])
   case failed(Error)
 }
 
@@ -11,26 +12,31 @@ extension ProfileView {
   @MainActor class ViewModel: ObservableObject {
     private let userId: Int
     private var profileService: ProfileServiceProtocol
-    private var postService: PostServiceProtocol
     private var postsOffset = 0
     private let fetchLimit = 10
-    private var currentPostsTask: Task<Void, Never>?
-    private var currentProfileTask: Task<Void, Never>?
+    private var currentPostsTask: Task<Void, Never>? = nil
+    private var currentProfileTask: Task<Void, Never>? = nil
+    var postManager: PostManager
 
     @Published var state: ProfileState = .idle
     @Published var isLoadingFollowButton = false
     @Published var isLoadingBlockButton = false
     @Published var canLoadMorePosts: Bool = true
     @Published var isLoadingMorePosts: Bool = false
+    @Published var postIds: [Int] = []
 
     init(
       userId: Int,
-      profileService: ProfileServiceProtocol = ProfileService(),
-      postService: PostServiceProtocol = PostService()
+      postManager: PostManager,
+      profileService: ProfileServiceProtocol = ProfileService()
     ) {
       self.userId = userId
+      self.postManager = postManager
       self.profileService = profileService
-      self.postService = postService
+    }
+
+    var posts: [DetailedPost] {
+      postManager.getPostsById(postIds)
     }
 
     func loadProfile() async {
@@ -38,12 +44,13 @@ extension ProfileView {
 
       currentProfileTask = Task {
         async let profileResult = profileService.getProfile(userId: userId)
-        async let postsResult = postService.getPostsForFeed(
-          feedType: .profile,
-          userId: userId,
-          offset: 0,
-          limit: fetchLimit
-        )
+        async let postsResult =
+          postManager.loadFeed(
+            feedType: .profile,
+            userId: userId,
+            offset: 0,
+            limit: fetchLimit
+          )
 
         guard !Task.isCancelled else { return }
 
@@ -54,10 +61,13 @@ extension ProfileView {
 
         switch (profile, posts) {
         case (.success(let userProfile), .success(let fetchedPosts)):
+          postManager.cachePosts(fetchedPosts)
+          postIds = fetchedPosts.map { $0.id }
           postsOffset = fetchedPosts.count
           canLoadMorePosts = fetchedPosts.count >= fetchLimit
-          state = .loaded(userProfile, fetchedPosts)
+          state = .loaded(userProfile, postIds)
         case (.success(let userProfile), .error(_)):
+          postIds = []
           state = .loaded(userProfile, [])
         case (.error(let error), _):
           state = .failed(error)
@@ -68,7 +78,7 @@ extension ProfileView {
     }
 
     func loadPosts(reset: Bool = false) async {
-      guard case .loaded(let profile, let existingPosts) = state else { return }
+      guard case .loaded(let profile, _) = state else { return }
 
       currentPostsTask?.cancel()
 
@@ -81,19 +91,28 @@ extension ProfileView {
 
         guard !Task.isCancelled else { return }
 
-        let result = await postService.getPostsForFeed(
-          feedType: .profile,
-          userId: userId,
-          offset: postsOffset,
-          limit: fetchLimit
-        )
+        let result =
+          await postManager.loadFeed(
+            feedType: .profile,
+            userId: userId,
+            offset: postsOffset,
+            limit: fetchLimit
+          )
 
         guard !Task.isCancelled else { return }
 
         switch result {
         case .success(let fetchedPosts):
-          let allPosts = reset ? fetchedPosts : existingPosts + fetchedPosts
-          state = .loaded(profile, allPosts)
+          postManager.cachePosts(fetchedPosts)
+          let newPostIds = fetchedPosts.map { $0.id }
+
+          if reset {
+            postIds = newPostIds
+          } else {
+            postIds.append(contentsOf: newPostIds)
+          }
+
+          state = .loaded(profile, postIds)
           canLoadMorePosts = fetchedPosts.count >= fetchLimit
           postsOffset += fetchedPosts.count
         case .error(let error):
@@ -107,36 +126,18 @@ extension ProfileView {
     }
 
     func toggleLike(on post: DetailedPost) {
-      guard case .loaded(let profile, var posts) = state else { return }
-      if let index = posts.firstIndex(where: { $0.post.postId == post.post.postId }) {
-        posts[index].isLiked.toggle()
-        state = .loaded(profile, posts)
-        Task {
-          let result = await postService.toggleLike(
-            postId: post.post.postId,
-            isLiked: post.isLiked
-          )
-          if case .error(let error) = result {
-            print("Error toggling like: \(error.localizedDescription)")
-            guard case .loaded(let currentProfile, var currentPosts) = state,
-              let revertIndex = currentPosts.firstIndex(where: {
-                $0.post.postId == post.post.postId
-              })
-            else { return }
-            currentPosts[revertIndex].isLiked.toggle()
-            state = .loaded(currentProfile, currentPosts)
-          }
-        }
+      Task {
+        await postManager.likePost(id: post.id)
       }
     }
 
     func deletePost(on post: DetailedPost) {
-      guard case .loaded(let profile, var posts) = state else { return }
-      if let index = posts.firstIndex(where: { $0.post.postId == post.post.postId }) {
-        posts.remove(at: index)
-        state = .loaded(profile, posts)
+      guard case .loaded(let profile, _) = state else { return }
+      if let index = postIds.firstIndex(of: post.id) {
+        postIds.remove(at: index)
+        state = .loaded(profile, postIds)
         Task {
-          await postService.deletePost(postId: post.post.postId)
+          await postManager.deletePost(id: post.id)
         }
       }
     }
@@ -146,10 +147,10 @@ extension ProfileView {
         let result = await profileService.updateProfile(name: name, bio: bio)
         switch result {
         case .success(_):
-          if case .loaded(var profile, let posts) = state {
+          if case .loaded(var profile, let postIds) = state {
             profile.name = name
             profile.bio = bio
-            state = .loaded(profile, posts)
+            state = .loaded(profile, postIds)
           }
         case .error(_):
           break
@@ -158,7 +159,7 @@ extension ProfileView {
     }
 
     func toggleFollowing() {
-      guard case .loaded(let profile, let posts) = state else { return }
+      guard case .loaded(let profile, let postIds) = state else { return }
       Task {
         isLoadingFollowButton = true
         let result = await profileService.toggleFollowing(
@@ -170,14 +171,14 @@ extension ProfileView {
         } else {
           var updatedProfile = profile
           updatedProfile.isFollowing.toggle()
-          state = .loaded(updatedProfile, posts)
+          state = .loaded(updatedProfile, postIds)
         }
         isLoadingFollowButton = false
       }
     }
 
     func toggleBlocking() {
-      guard case .loaded(let profile, let posts) = state else { return }
+      guard case .loaded(let profile, let postIds) = state else { return }
       Task {
         isLoadingBlockButton = true
         let result = await profileService.toggleBlocking(
@@ -190,7 +191,7 @@ extension ProfileView {
           var updatedProfile = profile
           updatedProfile.isBlocking.toggle()
           updatedProfile.isFollower = false
-          state = .loaded(updatedProfile, posts)
+          state = .loaded(updatedProfile, postIds)
         }
         isLoadingBlockButton = false
       }

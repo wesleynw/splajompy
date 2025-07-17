@@ -4,6 +4,7 @@ import SwiftUI
 
 struct ReelsPostView: View {
   let post: DetailedPost
+  @ObservedObject var postManager: PostManager
   var onLikeButtonTapped: () -> Void = {}
   var onPostDeleted: () -> Void = {}
   var onCommentsButtonTapped: () -> Void = {}
@@ -11,7 +12,6 @@ struct ReelsPostView: View {
   @State private var isShowingComments = false
   @State private var isShowingPostMenu = false
   @State private var isTextExpanded = false
-  @EnvironmentObject private var feedRefreshManager: FeedRefreshManager
   @EnvironmentObject private var authManager: AuthManager
 
   var body: some View {
@@ -25,7 +25,7 @@ struct ReelsPostView: View {
       }
     }
     .sheet(isPresented: $isShowingComments) {
-      CommentsView(postId: post.post.postId)
+      CommentsView(postId: post.post.postId, postManager: postManager)
     }
     .sheet(isPresented: $isShowingPostMenu) {
       List {
