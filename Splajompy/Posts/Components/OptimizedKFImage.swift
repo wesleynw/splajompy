@@ -34,14 +34,9 @@ struct OptimizedKFImage: View {
   var body: some View {
     KFImage(url)
       .cacheOriginalImage()
-      .setProcessors(
-        [
-          DownsamplingImageProcessor(
-            size: processorSize
-          ),
-          RoundCornerImageProcessor(cornerRadius: 10),
-        ]
-      )
+      .serialize(as: .PNG)  // store as .png to preserve alpha channel
+      .downsampling(size: processorSize)
+      .roundCorner(radius: .point(15))
       .placeholder {
         ProgressView()
       }
