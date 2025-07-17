@@ -3,7 +3,7 @@ import SwiftUI
 struct CloseButton: View {
   var onClose: () -> Void
   @State private var didTap = false
-  
+
   var body: some View {
     Button(action: {
       didTap.toggle()
