@@ -9,7 +9,7 @@ struct PostView: View {
   var isStandalone: Bool
 
   init(
-    post: DetailedPost, postManager: PostManager, showAuthor: Bool = false,
+    post: DetailedPost, postManager: PostManager, showAuthor: Bool = true,
     isStandalone: Bool = false, onLikeButtonTapped: @escaping () -> Void,
     onPostDeleted: @escaping () -> Void
   ) {
