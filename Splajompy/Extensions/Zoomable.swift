@@ -42,7 +42,7 @@
           let zoomFactor = 0.5
           let scale = value * zoomFactor
           let newTransform = lastTransform.scaledBy(x: scale, y: scale)
-          transform = limitTransform(newTransform)
+          transform = limitTransformForGesture(newTransform)
         }
         .onEnded { _ in
           onEndGesture()
@@ -59,7 +59,7 @@
           )
 
           withAnimation(.interactiveSpring) {
-            transform = limitTransform(lastTransform.concatenating(newTransform))
+            transform = limitTransformForGesture(lastTransform.concatenating(newTransform))
           }
         }
         .onEnded { _ in
@@ -109,7 +109,7 @@
       }
     }
 
-    private func limitTransform(_ transform: CGAffineTransform)
+    private func limitTransformForGesture(_ transform: CGAffineTransform)
       -> CGAffineTransform
     {
       let scaleX = transform.scaleX
@@ -120,21 +120,12 @@
         return .identity
       }
 
-      // Limit maximum zoom to 3x
-      let maxZoomScale: CGFloat = 3.0
-      if scaleX > maxZoomScale || scaleY > maxZoomScale {
-        let clampedScale = min(scaleX, maxZoomScale)
-        var limitedTransform = transform
-        limitedTransform.a = clampedScale
-        limitedTransform.d = clampedScale
-        return limitedTransform
-      }
-
-      // Calculate pan boundaries with 20% over-scroll buffer
+      // Allow over-zooming during gestures (no max limit for pinch)
+      // Just limit pan boundaries
       let maxX = contentSize.width * (scaleX - 1)
       let maxY = contentSize.height * (scaleY - 1)
 
-      // Add 20% buffer for over-scroll
+      // Allow some over-scroll for pan
       let bufferX = contentSize.width * 0.2
       let bufferY = contentSize.height * 0.2
 
@@ -150,13 +141,43 @@
       {
         let tx = min(max(transform.tx, minTx), maxTx)
         let ty = min(max(transform.ty, minTy), maxTy)
-        var transform = transform
-        transform.tx = tx
-        transform.ty = ty
-        return transform
+        var limitedTransform = transform
+        limitedTransform.tx = tx
+        limitedTransform.ty = ty
+        return limitedTransform
       }
 
       return transform
+    }
+
+    private func limitTransform(_ transform: CGAffineTransform)
+      -> CGAffineTransform
+    {
+      let scaleX = transform.scaleX
+      let scaleY = transform.scaleY
+
+      // Limit minimum zoom
+      if scaleX < minZoomScale || scaleY < minZoomScale {
+        return .identity
+      }
+
+      // Reset to max zoom if over-zoomed
+      let maxZoomScale: CGFloat = 3.0
+      let finalScale = min(max(scaleX, minZoomScale), maxZoomScale)
+
+      // Calculate pan boundaries for final scale
+      let maxX = contentSize.width * (finalScale - 1)
+      let maxY = contentSize.height * (finalScale - 1)
+
+      let minTx = -maxX
+      let maxTx: CGFloat = 0
+      let minTy = -maxY
+      let maxTy: CGFloat = 0
+
+      let tx = min(max(transform.tx, minTx), maxTx)
+      let ty = min(max(transform.ty, minTy), maxTy)
+
+      return CGAffineTransform(a: finalScale, b: 0, c: 0, d: finalScale, tx: tx, ty: ty)
     }
   }
 
