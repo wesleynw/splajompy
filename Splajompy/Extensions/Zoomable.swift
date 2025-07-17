@@ -133,7 +133,7 @@
       // Calculate pan boundaries with 20% over-scroll buffer
       let maxX = contentSize.width * (scaleX - 1)
       let maxY = contentSize.height * (scaleY - 1)
-      
+
       // Add 20% buffer for over-scroll
       let bufferX = contentSize.width * 0.2
       let bufferY = contentSize.height * 0.2
