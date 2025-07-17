@@ -142,7 +142,7 @@ struct HomeView: View {
                 .containerRelativeFrame([.horizontal, .vertical])
                 .padding(.bottom, proxy.safeAreaInsets.bottom / 2)
                 .onAppear {
-                  handlePostAppear(post: post, index: index)
+                  handlePostAppear(post: post)
                 }
               }
 
@@ -168,7 +168,7 @@ struct HomeView: View {
               index,
               post in
               VStack {
-                postRow(post: post, index: index)
+                postRow(post: post)
                   .transition(.opacity)
               }
               .geometryGroup()
@@ -194,7 +194,7 @@ struct HomeView: View {
     }
   }
 
-  private func postRow(post: DetailedPost, index: Int) -> some View {
+  private func postRow(post: DetailedPost) -> some View {
     PostView(
       post: post,
       postManager: postManager,
@@ -204,11 +204,11 @@ struct HomeView: View {
     )
     .environmentObject(authManager)
     .onAppear {
-      handlePostAppear(post: post, index: index)
+      handlePostAppear(post: post)
     }
   }
 
-  private func handlePostAppear(post: DetailedPost, index: Int) {
+  private func handlePostAppear(post: DetailedPost) {
     if case .loaded(let currentPostIds) = viewModel.state,
       post.id == currentPostIds.last && viewModel.canLoadMore
         && !viewModel.isLoadingMore
