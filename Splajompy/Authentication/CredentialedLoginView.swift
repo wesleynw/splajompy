@@ -137,17 +137,7 @@ struct CredentialedLoginView: View {
             #endif
           }()
         ) {
-          Button(action: {
-            isPresenting = false
-          }) {
-            Image(systemName: "xmark")
-              .font(.system(size: 15, weight: .bold))
-              .foregroundColor(.primary.opacity(0.5))
-              .padding(8)
-              .background(Color(.gray))
-              .clipShape(Circle())
-          }
-          .sensoryFeedback(.impact, trigger: isPresenting)
+          CloseButton(onClose: { isPresenting = false })
         }
       }
       .alert(isPresented: $showError) {
@@ -167,13 +157,4 @@ struct CredentialedLoginView: View {
 
   CredentialedLoginView(isPresenting: $isPresenting, identifier: $identifier)
     .environmentObject(AuthManager())
-}
-
-#Preview("Dark Mode") {
-  @Previewable @State var isPresenting = true
-  @Previewable @State var identifier = "wesleynw@pm.me"
-
-  CredentialedLoginView(isPresenting: $isPresenting, identifier: $identifier)
-    .environmentObject(AuthManager())
-    .preferredColorScheme(.dark)
 }

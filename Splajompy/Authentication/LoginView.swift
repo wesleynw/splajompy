@@ -120,16 +120,7 @@ struct LoginView: View {
             #endif
           }()
         ) {
-          Button(action: {
-            isPresenting = false
-          }) {
-            Image(systemName: "xmark")
-              .font(.system(size: 15, weight: .bold))
-              .foregroundColor(.primary.opacity(0.5))
-              .padding(8)
-              .background(Color(.gray))
-              .clipShape(Circle())
-          }
+          CloseButton(onClose: { isPresenting = false })
         }
       }
       .navigationDestination(isPresented: $hasRequestedCode) {
@@ -152,12 +143,4 @@ struct LoginView: View {
 
   return LoginView(isPresenting: $isPresenting)
     .environmentObject(AuthManager())
-}
-
-#Preview("Dark Mode") {
-  @Previewable @State var isPresenting = true
-
-  return LoginView(isPresenting: $isPresenting)
-    .environmentObject(AuthManager())
-    .preferredColorScheme(.dark)
 }
