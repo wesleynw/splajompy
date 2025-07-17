@@ -224,7 +224,7 @@ struct PostView: View {
             #if os(iOS)
               Image(systemName: post.isLiked ? "heart.fill" : "heart")
                 .font(.system(size: 22))
-                .foregroundColor(post.isLiked ? .red : .primary)
+                .foregroundStyle(post.isLiked ? Color.red.gradient : Color.primary.gradient)
                 .frame(width: 48, height: 40)
                 .background(
                   RoundedRectangle(cornerRadius: 12).fill(.gray.opacity(0.15))

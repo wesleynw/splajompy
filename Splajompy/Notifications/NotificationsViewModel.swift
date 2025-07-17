@@ -202,7 +202,11 @@ extension NotificationsView {
           if !existingNotifications.contains(where: {
             $0.notificationId == movedNotification.notificationId
           }) {
-            existingNotifications.insert(movedNotification, at: 0)
+            existingNotifications.insert(
+              movedNotification,
+              at: existingNotifications.firstIndex(where: {
+                $0.createdAt < movedNotification.createdAt
+              }) ?? 0)
             updatedSections[section] = existingNotifications
           }
         } else {
@@ -247,11 +251,14 @@ extension NotificationsView {
           let section = date.notificationSection()
 
           if var existingNotifications = updatedSections[section] {
-            // Check if notification already exists in this section to prevent duplicates
             if !existingNotifications.contains(where: {
               $0.notificationId == unreadNotification.notificationId
             }) {
-              existingNotifications.insert(unreadNotification, at: 0)
+              existingNotifications.insert(
+                unreadNotification,
+                at: existingNotifications.firstIndex(where: {
+                  $0.createdAt < unreadNotification.createdAt
+                }) ?? 0)
               updatedSections[section] = existingNotifications
             }
           } else {
