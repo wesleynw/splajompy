@@ -28,7 +28,7 @@ func TestAddCommentToPost(t *testing.T) {
 	svc, _, postRepo, _, _, user := setupCommentTest(t)
 	ctx := context.Background()
 
-	post, err := postRepo.InsertPost(ctx, user.UserID, "Test post for comments", nil)
+	post, err := postRepo.InsertPost(ctx, user.UserID, "Test post for comments", nil, nil)
 	require.NoError(t, err)
 
 	commentContent := "This is a test comment"
@@ -52,7 +52,7 @@ func TestGetCommentsByPostId(t *testing.T) {
 	svc, _, postRepo, _, userRepo, user := setupCommentTest(t)
 	ctx := context.Background()
 
-	post, err := postRepo.InsertPost(ctx, user.UserID, "Test post for getting comments", nil)
+	post, err := postRepo.InsertPost(ctx, user.UserID, "Test post for getting comments", nil, nil)
 	require.NoError(t, err)
 
 	commenter, err := userRepo.CreateUser(ctx, "commenter", "commenter@example.com", "password")
@@ -85,7 +85,7 @@ func TestGetCommentsByPostId(t *testing.T) {
 
 	assert.ElementsMatch(t, commentContents, commentTexts)
 
-	emptyPost, err := postRepo.InsertPost(ctx, user.UserID, "Empty post", nil)
+	emptyPost, err := postRepo.InsertPost(ctx, user.UserID, "Empty post", nil, nil)
 	require.NoError(t, err)
 
 	emptyComments, err := svc.GetCommentsByPostId(ctx, user, int(emptyPost.PostID))
@@ -102,7 +102,7 @@ func TestCommentLikes(t *testing.T) {
 	svc, _, postRepo, _, userRepo, user := setupCommentTest(t)
 	ctx := context.Background()
 
-	post, err := postRepo.InsertPost(ctx, user.UserID, "Test post for comment likes", nil)
+	post, err := postRepo.InsertPost(ctx, user.UserID, "Test post for comment likes", nil, nil)
 	require.NoError(t, err)
 
 	otherUser, err := userRepo.CreateUser(ctx, "otherUser", "other@example.com", "password")
@@ -144,7 +144,7 @@ func TestCommentCreatedTimestamp(t *testing.T) {
 	svc, _, postRepo, _, _, user := setupCommentTest(t)
 	ctx := context.Background()
 
-	post, err := postRepo.InsertPost(ctx, user.UserID, "Test post for comment timestamp", nil)
+	post, err := postRepo.InsertPost(ctx, user.UserID, "Test post for comment timestamp", nil, nil)
 	require.NoError(t, err)
 
 	beforeCreation := time.Now().Add(-1 * time.Second)

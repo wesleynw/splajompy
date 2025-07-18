@@ -53,7 +53,7 @@ func (h *Handler) CreateNewPostV2(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var requestBody struct {
-		Text        string                  `json:"text"`
+		Text        string                   `json:"text"`
 		ImageKeymap map[int]models.ImageData `json:"imageKeymap"`
 	}
 
@@ -290,6 +290,34 @@ func (h *Handler) ReportPost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err = h.postService.ReportPost(r.Context(), currentUser, id)
+	if err != nil {
+		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
+		return
+	}
+
+	utilities.HandleEmptySuccess(w)
+}
+
+func (h *Handler) VoteOnPost(w http.ResponseWriter, r *http.Request) {
+	currentUser, err := h.getAuthenticatedUser(r)
+	if err != nil {
+		utilities.HandleError(w, http.StatusUnauthorized, "Unauthorized")
+		return
+	}
+
+	postId, err := h.GetIntPathParam(r, "post_id")
+	if err != nil {
+		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
+		return
+	}
+
+	optionIndex, err := h.GetIntPathParam(r, "option_index")
+	if err != nil {
+		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
+		return
+	}
+
+	err = h.postService.VoteOnPoll(r.Context(), *currentUser, postId, optionIndex)
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
 		return

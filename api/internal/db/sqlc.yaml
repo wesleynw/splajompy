@@ -12,6 +12,12 @@ sql:
         emit_interface: true
         json_tags_case_style: "camel"
         overrides:
+          - column: "posts.attributes"
+            "go_type": {
+                import: "splajompy.com/api/v2/internal/db" ,
+                package: "db",
+                type: "Attributes"
+            }
           - column: "posts.facets"
             "go_type": {
                import: "splajompy.com/api/v2/internal/db",

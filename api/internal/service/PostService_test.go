@@ -5,6 +5,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"os"
+	"splajompy.com/api/v2/internal/db"
 	"splajompy.com/api/v2/internal/models"
 	"splajompy.com/api/v2/internal/repositories"
 	"splajompy.com/api/v2/internal/repositories/fakes"
@@ -99,7 +100,7 @@ func TestGetPostById(t *testing.T) {
 	ctx := context.Background()
 
 	postContent := "Test post content"
-	post, err := postRepo.InsertPost(ctx, int(user.UserID), postContent, nil)
+	post, err := postRepo.InsertPost(ctx, int(user.UserID), postContent, nil, nil)
 	require.NoError(t, err)
 
 	imageUrl := "test/posts/1/images/123.jpg"
@@ -125,7 +126,7 @@ func TestGetAllPosts(t *testing.T) {
 	ctx := context.Background()
 
 	for i := 0; i < 5; i++ {
-		_, err := postRepo.InsertPost(ctx, int(user.UserID), "Post content "+string(rune(i+48)), nil)
+		_, err := postRepo.InsertPost(ctx, int(user.UserID), "Post content "+string(rune(i+48)), nil, nil)
 		require.NoError(t, err)
 	}
 
@@ -155,12 +156,12 @@ func TestGetPostsByUserId(t *testing.T) {
 	require.NoError(t, err)
 
 	for i := 0; i < 3; i++ {
-		_, err := postRepo.InsertPost(ctx, int(user.UserID), "User 1 post "+string(rune(i+48)), nil)
+		_, err := postRepo.InsertPost(ctx, int(user.UserID), "User 1 post "+string(rune(i+48)), nil, nil)
 		require.NoError(t, err)
 	}
 
 	for i := 0; i < 2; i++ {
-		_, err := postRepo.InsertPost(ctx, int(user2.UserID), "User 2 post "+string(rune(i+48)), nil)
+		_, err := postRepo.InsertPost(ctx, int(user2.UserID), "User 2 post "+string(rune(i+48)), nil, nil)
 		require.NoError(t, err)
 	}
 
@@ -178,7 +179,7 @@ func TestDeletePost(t *testing.T) {
 
 	ctx := context.Background()
 
-	post, err := postRepo.InsertPost(ctx, int(user.UserID), "Test post for deletion", nil)
+	post, err := postRepo.InsertPost(ctx, int(user.UserID), "Test post for deletion", nil, nil)
 	require.NoError(t, err)
 
 	err = svc.DeletePost(ctx, user, int(post.PostID))
@@ -190,7 +191,7 @@ func TestDeletePost(t *testing.T) {
 	otherUser, err := userRepo.CreateUser(ctx, "otheruser", "other@example.com", "password")
 	require.NoError(t, err)
 
-	post2, err := postRepo.InsertPost(ctx, int(otherUser.UserID), "Other user's post", nil)
+	post2, err := postRepo.InsertPost(ctx, int(otherUser.UserID), "Other user's post", nil, nil)
 	require.NoError(t, err)
 
 	err = svc.DeletePost(ctx, user, int(post2.PostID))
@@ -209,7 +210,7 @@ func TestAddLikeToPost(t *testing.T) {
 	secondUser, err := userRepo.CreateUser(ctx, "otherUser", "otheruser@splajompy.com", "password")
 	require.NoError(t, err)
 
-	post0, err := postRepo.InsertPost(ctx, int(postOwner.UserID), "Test post for liking", nil)
+	post0, err := postRepo.InsertPost(ctx, int(postOwner.UserID), "Test post for liking", nil, nil)
 	require.NoError(t, err)
 
 	err = svc.AddLikeToPost(ctx, postOwner, int(post0.PostID))
@@ -244,7 +245,7 @@ func TestRemoveLikeFromPost(t *testing.T) {
 	secondUser, err := userRepo.CreateUser(ctx, "otherUser", "otheruser@splajompy.com", "password")
 	require.NoError(t, err)
 
-	post0, err := postRepo.InsertPost(ctx, int(postOwner.UserID), "Test post for liking", nil)
+	post0, err := postRepo.InsertPost(ctx, postOwner.UserID, "Test post for liking", nil, nil)
 	require.NoError(t, err)
 
 	err = svc.AddLikeToPost(ctx, postOwner, int(post0.PostID))
@@ -269,4 +270,63 @@ func TestRemoveLikeFromPost(t *testing.T) {
 	likes, err = likeRepo.GetLikesForPost(ctx, int(post0.PostID))
 	assert.NoError(t, err)
 	assert.Len(t, likes, 0)
+}
+
+func TestGetPollDetails_ReturnsDetails(t *testing.T) {
+	svc, postRepo, userRepo, _, _, _, currentUser := setupTest(t)
+	ctx := context.Background()
+
+	user, err := userRepo.CreateUser(ctx, "test1", "testuser@splajompy.com", "password123")
+	require.NoError(t, err)
+
+	attributes := db.Attributes{Poll: db.Poll{
+		Title: "is this test passing?",
+		Options: []string{
+			"yes", "no",
+		},
+	}}
+
+	post, err := postRepo.InsertPost(ctx, user.UserID, "Test post for vote on saving", nil, &attributes)
+	require.NoError(t, err)
+
+	updatedPost, err := svc.GetPostById(ctx, currentUser, post.PostID)
+	require.NoError(t, err)
+
+	poll, err := svc.GetPollDetails(ctx, currentUser, post.PostID, updatedPost.Post.Attributes.Poll)
+	require.NoError(t, err)
+
+	assert.NotNil(t, poll)
+	assert.Equal(t, poll.Title, "is this test passing?")
+	assert.Equal(t, poll.VoteTotal, 0)
+	assert.Nil(t, poll.CurrentUserVote)
+	assert.Equal(t, poll.Options[0].Title, "yes")
+	assert.Equal(t, poll.Options[1].Title, "no")
+	assert.Equal(t, poll.Options[0].VoteTotal, 0)
+	assert.Equal(t, poll.Options[1].VoteTotal, 0)
+}
+
+func TestVoteOnPoll_SavesVote(t *testing.T) {
+	svc, postRepo, userRepo, _, _, _, currentUser := setupTest(t)
+	ctx := context.Background()
+
+	user, err := userRepo.CreateUser(ctx, "test1", "testuser@splajompy.com", "password123")
+	require.NoError(t, err)
+
+	poll := db.Poll{
+		Title: "is this test passing?",
+		Options: []string{
+			"yes", "no",
+		},
+	}
+
+	post, err := postRepo.InsertPost(ctx, user.UserID, "Test post for vote on saving", nil, &db.Attributes{Poll: poll})
+	require.NoError(t, err)
+
+	err = svc.VoteOnPoll(ctx, currentUser, post.PostID, 0)
+	require.NoError(t, err)
+
+	updatedPost, err := svc.GetPostById(ctx, currentUser, post.PostID)
+	require.NoError(t, err)
+
+	assert.NotNil(t, updatedPost.Poll)
 }

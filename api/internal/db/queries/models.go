@@ -66,12 +66,21 @@ type Notification struct {
 	CreatedAt        pgtype.Timestamp `json:"createdAt"`
 }
 
+type PollVote struct {
+	ID          int32            `json:"id"`
+	PostID      int32            `json:"postId"`
+	UserID      int32            `json:"userId"`
+	OptionIndex int32            `json:"optionIndex"`
+	CreatedAt   pgtype.Timestamp `json:"createdAt"`
+}
+
 type Post struct {
-	PostID    int32            `json:"postId"`
-	UserID    int32            `json:"userId"`
-	Text      pgtype.Text      `json:"text"`
-	CreatedAt pgtype.Timestamp `json:"createdAt"`
-	Facets    db.Facets        `json:"facets"`
+	PostID     int32            `json:"postId"`
+	UserID     int32            `json:"userId"`
+	Text       pgtype.Text      `json:"text"`
+	CreatedAt  pgtype.Timestamp `json:"createdAt"`
+	Facets     db.Facets        `json:"facets"`
+	Attributes db.Attributes    `json:"attributes"`
 }
 
 type Session struct {

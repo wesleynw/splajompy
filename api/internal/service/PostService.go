@@ -8,6 +8,7 @@ import (
 	"math"
 	"os"
 	"sort"
+	"splajompy.com/api/v2/internal/db"
 	"splajompy.com/api/v2/internal/db/queries"
 	"splajompy.com/api/v2/internal/models"
 	"splajompy.com/api/v2/internal/repositories"
@@ -40,7 +41,7 @@ func (s *PostService) NewPost(ctx context.Context, currentUser models.PublicUser
 		return err
 	}
 
-	post, err := s.postRepository.InsertPost(ctx, currentUser.UserID, text, facets)
+	post, err := s.postRepository.InsertPost(ctx, currentUser.UserID, text, facets, nil) // todo - replace nil
 	if err != nil {
 		return errors.New("unable to create post")
 	}
@@ -106,9 +107,9 @@ func (s *PostService) GetPostById(ctx context.Context, cUser models.PublicUser, 
 		return nil, err
 	}
 
-	isLiked, _ := s.postRepository.IsPostLikedByUserId(ctx, cUser.UserID, int(post.PostID))
+	isLiked, _ := s.postRepository.IsPostLikedByUserId(ctx, cUser.UserID, post.PostID)
 
-	images, _ := s.postRepository.GetImagesForPost(ctx, int(post.PostID))
+	images, _ := s.postRepository.GetImagesForPost(ctx, post.PostID)
 	if images == nil {
 		images = []queries.Image{}
 	}
@@ -116,7 +117,7 @@ func (s *PostService) GetPostById(ctx context.Context, cUser models.PublicUser, 
 		images[i].ImageBlobUrl = s.bucketRepository.GetObjectURL(images[i].ImageBlobUrl)
 	}
 
-	commentCount, _ := s.postRepository.GetCommentCountForPost(ctx, int(post.PostID))
+	commentCount, _ := s.postRepository.GetCommentCountForPost(ctx, post.PostID)
 	relevantLikes, hasOtherLikes, _ := s.getRelevantLikes(ctx, cUser, postID)
 
 	return &models.DetailedPost{
@@ -165,15 +166,15 @@ func (s *PostService) GetMutualFeed(ctx context.Context, currentUser models.Publ
 	}
 
 	// Extract just the post IDs from the rows
-	postIDs := make([]int32, len(postRows))
+	postIDs := make([]int, len(postRows))
 	for i, row := range postRows {
-		postIDs[i] = row.PostID
+		postIDs[i] = int(row.PostID)
 	}
 
 	return s.getPostsByPostIDs(ctx, currentUser, postIDs)
 }
 
-func (s *PostService) getPostsByPostIDs(ctx context.Context, currentUser models.PublicUser, postIDs []int32) (*[]models.DetailedPost, error) {
+func (s *PostService) getPostsByPostIDs(ctx context.Context, currentUser models.PublicUser, postIDs []int) (*[]models.DetailedPost, error) {
 	var posts = make([]models.DetailedPost, 0)
 
 	for i := range postIDs {
@@ -291,6 +292,45 @@ func (s *PostService) ReportPost(ctx context.Context, currentUser *models.Public
 
 	_, err = s.emailService.Emails.Send(params)
 	return err
+}
+
+func (s *PostService) GetPollDetails(ctx context.Context, currentUser models.PublicUser, postId int, poll db.Poll) (*models.DetailedPoll, error) {
+	currentUserVote, err := s.postRepository.GetUserVoteInPoll(ctx, postId, currentUser.UserID)
+	if err != nil {
+		return nil, err
+	}
+
+	voteTotals, err := s.postRepository.GetPollVotesGrouped(ctx, postId)
+	if err != nil {
+		return nil, err
+	}
+
+	voteCountMap := make(map[int]int64)
+	totalVotes := int64(0)
+	for _, voteRow := range voteTotals {
+		voteCountMap[int(voteRow.OptionIndex)] = voteRow.Count
+		totalVotes += voteRow.Count
+	}
+
+	options := make([]models.DetailedPollOption, len(poll.Options))
+	for i, option := range poll.Options {
+		voteCount := voteCountMap[i]
+		options[i] = models.DetailedPollOption{
+			Title:     option,
+			VoteTotal: int(voteCount),
+		}
+	}
+
+	return &models.DetailedPoll{
+		Title:           poll.Title,
+		VoteTotal:       int(totalVotes),
+		CurrentUserVote: currentUserVote,
+		Options:         options,
+	}, nil
+}
+
+func (s *PostService) VoteOnPoll(ctx context.Context, currentUser models.PublicUser, postId int, optionIndex int) error {
+	return nil
 }
 
 func seededRandom(seed int) float64 {
