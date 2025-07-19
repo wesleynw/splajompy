@@ -35,13 +35,20 @@ func NewPostService(postRepository repositories.PostRepository, userRepository r
 	}
 }
 
-func (s *PostService) NewPost(ctx context.Context, currentUser models.PublicUser, text string, imageKeymap map[int]models.ImageData) error {
+func (s *PostService) NewPost(ctx context.Context, currentUser models.PublicUser, text string, imageKeymap map[int]models.ImageData, poll *db.Poll) error {
 	facets, err := repositories.GenerateFacets(ctx, s.userRepository, text)
 	if err != nil {
 		return err
 	}
 
-	post, err := s.postRepository.InsertPost(ctx, currentUser.UserID, text, facets, nil) // todo - replace nil
+	var attributes *db.Attributes
+	if poll != nil {
+		attributes = &db.Attributes{
+			Poll: *poll,
+		}
+	}
+
+	post, err := s.postRepository.InsertPost(ctx, currentUser.UserID, text, facets, attributes)
 	if err != nil {
 		return errors.New("unable to create post")
 	}

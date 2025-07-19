@@ -397,10 +397,10 @@ RETURNING post_id, user_id, text, created_at, facets, attributes
 `
 
 type InsertPostParams struct {
-	UserID     int32         `json:"userId"`
-	Text       pgtype.Text   `json:"text"`
-	Facets     db.Facets     `json:"facets"`
-	Attributes db.Attributes `json:"attributes"`
+	UserID     int32          `json:"userId"`
+	Text       pgtype.Text    `json:"text"`
+	Facets     db.Facets      `json:"facets"`
+	Attributes *db.Attributes `json:"attributes"`
 }
 
 func (q *Queries) InsertPost(ctx context.Context, arg InsertPostParams) (Post, error) {

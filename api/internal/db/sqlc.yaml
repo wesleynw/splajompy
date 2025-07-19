@@ -16,8 +16,10 @@ sql:
             "go_type": {
                 import: "splajompy.com/api/v2/internal/db" ,
                 package: "db",
-                type: "Attributes"
+                type: "Attributes",
+                pointer: true
             }
+            "nullable": true
           - column: "posts.facets"
             "go_type": {
                import: "splajompy.com/api/v2/internal/db",

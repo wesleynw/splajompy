@@ -105,6 +105,10 @@ struct PostView: View {
       if let images = post.images, !images.isEmpty {
         ImageGallery(images: images)
       }
+      
+      if let poll = post.poll {
+        PollView(poll: poll, onVote: { option in print("voted: \(option)") })
+      }
 
       RelevantLikeView(
         relevantLikes: post.relevantLikes,

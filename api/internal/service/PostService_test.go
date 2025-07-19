@@ -47,7 +47,7 @@ func TestNewPost(t *testing.T) {
 
 	bucketRepo.SetObject(imageKeymap[0].S3Key, []byte("test image data"))
 
-	err := svc.NewPost(ctx, user, text, imageKeymap)
+	err := svc.NewPost(ctx, user, text, imageKeymap, nil)
 	assert.NoError(t, err)
 
 	postIds, err := postRepo.GetPostIdsForUser(ctx, user.UserID, 10, 0)

@@ -39,7 +39,7 @@ func (r DBPostRepository) InsertPost(ctx context.Context, userId int, content st
 		UserID:     int32(userId),
 		Text:       pgtype.Text{String: content, Valid: true},
 		Facets:     facets,
-		Attributes: *attributes,
+		Attributes: attributes,
 	})
 	if err != nil {
 		return nil, err
@@ -61,11 +61,12 @@ func (r DBPostRepository) GetPostById(ctx context.Context, postId int) (*models.
 		return nil, err
 	}
 	return &models.Post{
-		PostID:    int(dbPost.PostID),
-		UserID:    dbPost.UserID,
-		Text:      dbPost.Text.String,
-		CreatedAt: dbPost.CreatedAt.Time.UTC(),
-		Facets:    dbPost.Facets,
+		PostID:     int(dbPost.PostID),
+		UserID:     dbPost.UserID,
+		Text:       dbPost.Text.String,
+		CreatedAt:  dbPost.CreatedAt.Time.UTC(),
+		Facets:     dbPost.Facets,
+		Attributes: dbPost.Attributes,
 	}, nil
 }
 

@@ -23,6 +23,9 @@ protocol PostServiceProtocol: Sendable {
   >
   func deletePost(postId: Int) async -> AsyncResult<EmptyResponse>
   func reportPost(postId: Int) async -> AsyncResult<EmptyResponse>
+  func voteOnPostPoll(postId: Int, optionIndex: Int) async -> AsyncResult<
+    EmptyResponse
+  >
 }
 
 struct PostService: PostServiceProtocol {
@@ -99,6 +102,15 @@ struct PostService: PostServiceProtocol {
   func reportPost(postId: Int) async -> AsyncResult<EmptyResponse> {
     return await APIService.performRequest(
       endpoint: "post/\(postId)/report",
+      method: "POST"
+    )
+  }
+
+  func voteOnPostPoll(postId: Int, optionIndex: Int) async -> AsyncResult<
+    EmptyResponse
+  > {
+    return await APIService.performRequest(
+      endpoint: "post/\(postId)/vote/\(optionIndex)",
       method: "POST"
     )
   }
@@ -499,5 +511,12 @@ struct MockPostService: PostServiceProtocol {
     } else {
       return .error(APIErrorMessage(message: "Post not found"))
     }
+  }
+
+  func voteOnPostPoll(postId: Int, optionIndex: Int) async -> AsyncResult<
+    EmptyResponse
+  > {
+    // TODO: implementation
+    return .success(EmptyResponse())
   }
 }

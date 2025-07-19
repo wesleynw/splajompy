@@ -69,6 +69,7 @@ struct DetailedPost: Decodable, Equatable, Identifiable {
   var images: [ImageDTO]?
   let relevantLikes: [RelevantLike]
   let hasOtherLikes: Bool
+  var poll: Poll?
 
   var id: Int { post.postId }
 
@@ -78,17 +79,14 @@ struct DetailedPost: Decodable, Equatable, Identifiable {
 }
 
 
-struct Poll {
+struct Poll: Decodable {
   let title: String
-  let voteTotal: Int
-  let options: [PollOption]
-  
-  var selectedOptionId: Int?
-  var hasVoted: Bool { selectedOptionId != nil }
+  var voteTotal: Int
+  var currentUserVote: Int?
+  var options: [PollOption]
 }
 
-struct PollOption: Identifiable {
-  let id: Int
-  let label: String
-  let voteTotal: Int
+struct PollOption: Decodable {
+  let title: String
+  var voteTotal: Int
 }

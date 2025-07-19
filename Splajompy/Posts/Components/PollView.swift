@@ -1,7 +1,8 @@
 import SwiftUI
 
 struct PollView: View {
-  @Binding var poll: Poll
+  var poll: Poll
+  var onVote: (Int) -> Void
 
   var body: some View {
     VStack(alignment: .leading) {
@@ -11,13 +12,15 @@ struct PollView: View {
         .multilineTextAlignment(.leading)
 
       VStack {
-        ForEach(poll.options) { option in
+        ForEach(Array(poll.options.enumerated()), id: \.offset) {
+          index,
+          option in
           PollOptionView(
-            isSelected: option.id == poll.selectedOptionId,
+            isSelected: index == poll.currentUserVote,
             option: option,
-            hasVoted: poll.hasVoted,
+            hasVoted: poll.currentUserVote != nil,
             totalVotes: poll.voteTotal,
-            onTap: { onOptionSelected(option) }
+            onTap: { onVote(index) }
           )
         }
       }
@@ -41,14 +44,13 @@ struct PollView: View {
     var body: some View {
       Button(action: onTap) {
         HStack {
-          Text(option.label)
+          Text(option.title)
             .font(.body)
             .fontWeight(.semibold)
           Spacer()
           if hasVoted {
             Text("\(percentage)%")
               .font(.callout)
-//              .font(.footnote)
               .foregroundColor(.secondary)
           }
         }
@@ -59,7 +61,11 @@ struct PollView: View {
               .fill(Color.secondary.opacity(0.2).gradient)
 
             RoundedRectangle(cornerRadius: 12)
-              .fill(isSelected ? Color.blue.opacity(0.5).gradient : Color.blue.opacity(0.2).gradient)
+              .fill(
+                isSelected
+                  ? Color.blue.opacity(0.5).gradient
+                  : Color.blue.opacity(0.2).gradient
+              )
               .containerRelativeFrame(
                 .horizontal,
                 count: 100,
@@ -77,25 +83,22 @@ struct PollView: View {
       .buttonStyle(.plain)
     }
   }
-
-  private func onOptionSelected(_ option: PollOption) {
-    guard !poll.hasVoted else { return }
-
-    print("selected option in poll: \(option.label)")
-    poll.selectedOptionId = option.id
-  }
 }
 
 #Preview {
-  @Previewable @State var poll: Poll = Poll(
+  let poll: Poll = Poll(
     title: "Test Poll",
     voteTotal: 10,
+    currentUserVote: nil,
     options: [
-      PollOption(id: 0, label: "Option A", voteTotal: 3),
-      PollOption(id: 1, label: "Option B", voteTotal: 2),
-      PollOption(id: 2, label: "Option C", voteTotal: 5),
+      PollOption(title: "Option A", voteTotal: 3),
+      PollOption(title: "Option B", voteTotal: 2),
+      PollOption(title: "Option C", voteTotal: 5),
     ],
-    selectedOptionId: nil
   )
-  PollView(poll: $poll)
+
+  PollView(
+    poll: poll,
+    onVote: { option in print("voted for option \(option)") }
+  )
 }

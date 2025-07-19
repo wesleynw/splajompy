@@ -93,4 +93,8 @@ enum FeedState {
       }
     }
   }
+  
+  func voteOnPoll(on post: DetailedPost, optionIndex: Int) -> Void {
+    return
+  }
 }

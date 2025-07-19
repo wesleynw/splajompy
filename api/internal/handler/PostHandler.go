@@ -3,6 +3,7 @@ package handler
 import (
 	"encoding/json"
 	"net/http"
+	"splajompy.com/api/v2/internal/db"
 	"strconv"
 
 	"splajompy.com/api/v2/internal/models"
@@ -36,7 +37,7 @@ func (h *Handler) CreateNewPost(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	err = h.postService.NewPost(r.Context(), *currentUser, requestBody.Text, serviceImageKeymap)
+	err = h.postService.NewPost(r.Context(), *currentUser, requestBody.Text, serviceImageKeymap, nil)
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
 		return
@@ -55,6 +56,7 @@ func (h *Handler) CreateNewPostV2(w http.ResponseWriter, r *http.Request) {
 	var requestBody struct {
 		Text        string                   `json:"text"`
 		ImageKeymap map[int]models.ImageData `json:"imageKeymap"`
+		Poll        *db.Poll                 `json:"poll"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&requestBody); err != nil {
@@ -62,7 +64,7 @@ func (h *Handler) CreateNewPostV2(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.postService.NewPost(r.Context(), *currentUser, requestBody.Text, requestBody.ImageKeymap)
+	err = h.postService.NewPost(r.Context(), *currentUser, requestBody.Text, requestBody.ImageKeymap, requestBody.Poll)
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
 		return

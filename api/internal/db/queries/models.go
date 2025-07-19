@@ -80,7 +80,7 @@ type Post struct {
 	Text       pgtype.Text      `json:"text"`
 	CreatedAt  pgtype.Timestamp `json:"createdAt"`
 	Facets     db.Facets        `json:"facets"`
-	Attributes db.Attributes    `json:"attributes"`
+	Attributes *db.Attributes   `json:"attributes"`
 }
 
 type Session struct {
