@@ -120,9 +120,12 @@ func (s *PostService) GetPostById(ctx context.Context, currentUser models.Public
 	commentCount, _ := s.postRepository.GetCommentCountForPost(ctx, post.PostID)
 	relevantLikes, hasOtherLikes, _ := s.getRelevantLikes(ctx, currentUser, postId)
 
-	pollDetails, err := s.GetPollDetails(ctx, currentUser, postId, post.Attributes.Poll)
-	if err != nil {
-		return nil, err
+	var pollDetails *models.DetailedPoll
+	if post.Attributes != nil {
+		pollDetails, err = s.GetPollDetails(ctx, currentUser, postId, post.Attributes.Poll)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return &models.DetailedPost{

@@ -49,7 +49,7 @@ func (r *FakePostRepository) InsertPost(ctx context.Context, userId int, content
 		UserID:     int32(userId),
 		Text:       content,
 		Facets:     facets,
-		Attributes: *attributes,
+		Attributes: attributes,
 		CreatedAt:  now,
 	}
 

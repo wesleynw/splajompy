@@ -45,7 +45,7 @@ func TestGetNotificationsByUserId(t *testing.T) {
 	ctx := context.Background()
 	service, fakeRepo := setupNotificationService()
 	user := createTestUser()
-	userId := int(user.UserID)
+	userId := user.UserID
 
 	notifications, err := service.GetNotificationsByUserId(ctx, user, 0, 10)
 	require.NoError(t, err)
@@ -94,7 +94,7 @@ func TestMarkNotificationAsReadById(t *testing.T) {
 	ctx := context.Background()
 	service, fakeRepo := setupNotificationService()
 	user := createTestUser()
-	userId := int(user.UserID)
+	userId := user.UserID
 
 	notification := createTestNotification(userId, 1, "Test notification", false)
 	fakeRepo.AddNotification(notification)
@@ -121,7 +121,7 @@ func TestMarkAllNotificationsAsReadForUserId(t *testing.T) {
 	ctx := context.Background()
 	service, fakeRepo := setupNotificationService()
 	user := createTestUser()
-	userId := int(user.UserID)
+	userId := user.UserID
 
 	fakeRepo.AddNotification(createTestNotification(userId, 1, "Test notification 1", false))
 	fakeRepo.AddNotification(createTestNotification(userId, 2, "Test notification 2", false))
@@ -153,7 +153,7 @@ func TestUserHasUnreadNotifications(t *testing.T) {
 	ctx := context.Background()
 	service, fakeRepo := setupNotificationService()
 	user := createTestUser()
-	userId := int(user.UserID)
+	userId := user.UserID
 
 	hasUnread, err := service.UserHasUnreadNotifications(ctx, user)
 	require.NoError(t, err)
@@ -199,9 +199,9 @@ func TestMultipleUsersNotifications(t *testing.T) {
 		Name:      "User Two",
 	}
 
-	fakeRepo.AddNotification(createTestNotification(int(user1.UserID), 1, "User 1 notification 1", false))
-	fakeRepo.AddNotification(createTestNotification(int(user1.UserID), 2, "User 1 notification 2", false))
-	fakeRepo.AddNotification(createTestNotification(int(user2.UserID), 3, "User 2 notification 1", false))
+	fakeRepo.AddNotification(createTestNotification(user1.UserID, 1, "User 1 notification 1", false))
+	fakeRepo.AddNotification(createTestNotification(user1.UserID, 2, "User 1 notification 2", false))
+	fakeRepo.AddNotification(createTestNotification(user2.UserID, 3, "User 2 notification 1", false))
 
 	notificationsUser1, err := service.GetNotificationsByUserId(ctx, user1, 0, 10)
 	require.NoError(t, err)
@@ -238,9 +238,9 @@ func TestGetUserUnreadNotificationsCount(t *testing.T) {
 	service, fakeRepo := setupNotificationService()
 	user := createTestUser()
 
-	fakeRepo.AddNotification(createTestNotification(int(user.UserID), 1, "User 1 notification 1", true))
-	fakeRepo.AddNotification(createTestNotification(int(user.UserID), 2, "User 1 notification 2", true))
-	fakeRepo.AddNotification(createTestNotification(int(user.UserID), 3, "User 2 notification 1", false))
+	fakeRepo.AddNotification(createTestNotification(user.UserID, 1, "User 1 notification 1", true))
+	fakeRepo.AddNotification(createTestNotification(user.UserID, 2, "User 1 notification 2", true))
+	fakeRepo.AddNotification(createTestNotification(user.UserID, 3, "User 2 notification 1", false))
 
 	count, err := service.GetUserUnreadNotificationCount(ctx, user)
 	require.NoError(t, err)
