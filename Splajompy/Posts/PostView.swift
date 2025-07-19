@@ -105,9 +105,13 @@ struct PostView: View {
       if let images = post.images, !images.isEmpty {
         ImageGallery(images: images)
       }
-      
+
       if let poll = post.poll {
-        PollView(poll: poll, onVote: { option in Task { await postManager.voteInPoll(postId: post.id, optionIndex: option) } })
+        PollView(
+          poll: poll,
+          onVote: { option in
+            Task { await postManager.voteInPoll(postId: post.id, optionIndex: option) }
+          })
       }
 
       RelevantLikeView(

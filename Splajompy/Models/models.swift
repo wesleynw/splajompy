@@ -78,7 +78,6 @@ struct DetailedPost: Decodable, Equatable, Identifiable {
   }
 }
 
-
 struct Poll: Decodable {
   let title: String
   var voteTotal: Int

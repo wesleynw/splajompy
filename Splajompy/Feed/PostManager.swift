@@ -115,10 +115,10 @@ class PostManager: ObservableObject {
       }
     }
   }
-  
-  func voteInPoll(postId: Int, optionIndex: Int) async -> Void {
+
+  func voteInPoll(postId: Int, optionIndex: Int) async {
     guard let post = getPost(id: postId), post.poll?.currentUserVote == nil else { return }
-    
+
     // optimistic update
     if let poll = post.poll, poll.options.count > optionIndex {
       updatePost(id: postId) { post in
@@ -126,12 +126,12 @@ class PostManager: ObservableObject {
         post.poll?.options[optionIndex].voteTotal += 1
         post.poll?.currentUserVote = optionIndex
       }
-      
+
       let result = await postService.voteOnPostPoll(postId: postId, optionIndex: optionIndex)
-      
+
       if case .error = result {
         print("error voting on post: \(postId)")
-        
+
         // revert update on failure
         updatePost(id: postId) { post in
           post.poll?.voteTotal -= 1
