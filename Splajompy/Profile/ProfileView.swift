@@ -3,14 +3,14 @@ import SwiftUI
 struct ProfileView: View {
   let username: String
   let userId: Int
-  let isOwnProfile: Bool
+  let isProfileTab: Bool
   @ObservedObject var postManager: PostManager
 
   @State private var isShowingProfileEditor: Bool = false
   @StateObject private var viewModel: ViewModel
   @EnvironmentObject private var authManager: AuthManager
 
-  private var isCurrentProfile: Bool {
+  private var isCurrentUser: Bool {
     guard let currentUser = authManager.getCurrentUser() else { return false }
     return currentUser.userId == userId
   }
@@ -19,11 +19,11 @@ struct ProfileView: View {
     userId: Int,
     username: String,
     postManager: PostManager,
-    isOwnProfile: Bool = false
+    isProfileTab: Bool = false
   ) {
     self.userId = userId
     self.username = username
-    self.isOwnProfile = isOwnProfile
+    self.isProfileTab = isProfileTab
     self.postManager = postManager
     _viewModel = StateObject(wrappedValue: ViewModel(userId: userId, postManager: postManager))
   }
@@ -32,12 +32,12 @@ struct ProfileView: View {
     userId: Int,
     username: String,
     postManager: PostManager,
-    isOwnProfile: Bool = false,
+    isProfileTab: Bool = false,
     viewModel: ViewModel
   ) {
     self.userId = userId
     self.username = username
-    self.isOwnProfile = isOwnProfile
+    self.isProfileTab = isProfileTab
     self.postManager = postManager
     _viewModel = StateObject(wrappedValue: viewModel)
   }
@@ -54,7 +54,7 @@ struct ProfileView: View {
       }
       .navigationTitle("@" + self.username)
       .toolbar {
-        if !isOwnProfile && !isCurrentProfile {
+        if !isProfileTab && !isCurrentUser {
           Menu {
             if case .loaded(let user, _) = viewModel.state {
               if user.isBlocking {
@@ -171,11 +171,11 @@ struct ProfileView: View {
           .fixedSize(horizontal: false, vertical: true)
       }
 
-      if !isOwnProfile && !isCurrentProfile {
+      if !isProfileTab && !isCurrentUser {
         RelationshipIndicator(user: user)
       }
 
-      if !isOwnProfile && !isCurrentProfile {
+      if !isProfileTab && !isCurrentUser {
         if !user.isBlocking {
           if user.isFollowing {
             Button(action: viewModel.toggleFollowing) {
@@ -208,7 +208,7 @@ struct ProfileView: View {
           }
           .buttonStyle(.bordered)
         }
-      } else if isOwnProfile {
+      } else if isProfileTab {
         Button(action: { isShowingProfileEditor = true }) {
           Text("Edit Profile")
             .frame(maxWidth: .infinity)
@@ -237,7 +237,7 @@ struct ProfileView: View {
         .font(.title3)
         .fontWeight(.bold)
         .padding(.top, 40)
-      Text("Your posts will show up here.")
+      Text(isCurrentUser ? "Your posts will show up here." : "No posts here.")
         .padding()
       Button {
         Task { await viewModel.loadPosts(reset: true) }

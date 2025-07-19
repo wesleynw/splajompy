@@ -73,26 +73,10 @@ struct ReelsPostView: View {
         }
         .buttonStyle(.plain)
 
-        if let postText = post.post.text, !postText.isEmpty {
-          VStack(alignment: .leading, spacing: 4) {
-            Text(postText)
-              .font(.callout)
-              .foregroundColor(.primary)
-              .lineLimit(isTextExpanded ? nil : 10)
-              .multilineTextAlignment(.leading)
-
-            if postText.count > 50 {  // Show button only if text is long
-              Button(action: {
-                withAnimation(.easeInOut(duration: 0.2)) {
-                  isTextExpanded.toggle()
-                }
-              }) {
-                Text(isTextExpanded ? "Show less" : "Show more")
-                  .font(.caption)
-                  .foregroundColor(.gray)
-              }
-            }
-          }
+        if let content = post.post.richContent {
+          ContentTextView(attributedText: content)
+            .font(.callout)
+            .foregroundColor(.primary)
         }
 
         Text(

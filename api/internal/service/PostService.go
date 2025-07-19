@@ -215,7 +215,7 @@ func (s *PostService) AddLikeToPost(ctx context.Context, currentUser models.Publ
 		return err
 	}
 
-	text := fmt.Sprintf("@%s liked your post", currentUser.Username)
+	text := fmt.Sprintf("@%s liked your post.", currentUser.Username)
 	facets, err := repositories.GenerateFacets(ctx, s.userRepository, text)
 	if err != nil {
 		return err

@@ -10,7 +10,7 @@ struct CurrentProfileView: View {
         userId: currentUser.userId,
         username: currentUser.username,
         postManager: postManager,
-        isOwnProfile: true
+        isProfileTab: true
       )
       .toolbar {
         NavigationLink(
