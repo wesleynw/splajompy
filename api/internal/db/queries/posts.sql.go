@@ -421,3 +421,19 @@ func (q *Queries) InsertPost(ctx context.Context, arg InsertPostParams) (Post, e
 	)
 	return i, err
 }
+
+const insertVote = `-- name: InsertVote :exec
+INSERT INTO poll_vote (post_id, user_id, option_index)
+VALUES ($1, $2, $3)
+`
+
+type InsertVoteParams struct {
+	PostID      int32 `json:"postId"`
+	UserID      int32 `json:"userId"`
+	OptionIndex int32 `json:"optionIndex"`
+}
+
+func (q *Queries) InsertVote(ctx context.Context, arg InsertVoteParams) error {
+	_, err := q.db.Exec(ctx, insertVote, arg.PostID, arg.UserID, arg.OptionIndex)
+	return err
+}

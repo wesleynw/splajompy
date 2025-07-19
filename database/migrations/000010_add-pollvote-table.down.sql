@@ -1,0 +1,3 @@
+DROP TABLE IF EXISTS poll_vote;
+
+ALTER TABLE posts DROP COLUMN IF EXISTS attributes;

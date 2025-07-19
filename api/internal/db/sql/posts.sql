@@ -107,3 +107,7 @@ GROUP BY option_index;
 SELECT option_index
 FROM poll_vote
 WHERE post_id = $1 AND user_id = $2;
+
+-- name: InsertVote :exec
+INSERT INTO poll_vote (post_id, user_id, option_index)
+VALUES ($1, $2, $3);

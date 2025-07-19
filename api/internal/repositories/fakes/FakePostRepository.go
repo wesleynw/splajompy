@@ -319,6 +319,22 @@ func (r *FakePostRepository) GetUserVoteInPoll(ctx context.Context, postId int, 
 	return nil, nil
 }
 
+func (r *FakePostRepository) InsertVote(ctx context.Context, postId int, userId int, optionIndex int) error {
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
+
+	if _, exists := r.posts[postId]; !exists {
+		return errors.New("post not found")
+	}
+
+	if r.pollVotes[postId] == nil {
+		r.pollVotes[postId] = make(map[int]int32)
+	}
+
+	r.pollVotes[postId][userId] = int32(optionIndex)
+	return nil
+}
+
 func (r *FakePostRepository) SetPollVote(userId int, postId int, optionIndex int32) error {
 	r.mutex.Lock()
 	defer r.mutex.Unlock()

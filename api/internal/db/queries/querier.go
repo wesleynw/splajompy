@@ -59,6 +59,7 @@ type Querier interface {
 	InsertImage(ctx context.Context, arg InsertImageParams) (Image, error)
 	InsertNotification(ctx context.Context, arg InsertNotificationParams) error
 	InsertPost(ctx context.Context, arg InsertPostParams) (Post, error)
+	InsertVote(ctx context.Context, arg InsertVoteParams) error
 	MarkAllNotificationsAsReadForUser(ctx context.Context, userID int32) error
 	MarkNotificationAsReadById(ctx context.Context, notificationID int32) error
 	RemoveLike(ctx context.Context, arg RemoveLikeParams) error

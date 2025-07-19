@@ -26,6 +26,7 @@ type PostRepository interface {
 	GetPostIdsForMutualFeed(ctx context.Context, userId int, limit int, offset int) ([]queries.GetPostIdsForMutualFeedRow, error)
 	GetPollVotesGrouped(ctx context.Context, postId int) ([]queries.GetPollVotesGroupedRow, error)
 	GetUserVoteInPoll(ctx context.Context, postId int, userId int) (*int, error)
+	InsertVote(ctx context.Context, postId int, userId int, optionIndex int) error
 }
 
 type DBPostRepository struct {
@@ -185,6 +186,15 @@ func (r DBPostRepository) GetUserVoteInPoll(ctx context.Context, postId int, use
 	}
 	result := int(vote)
 	return &result, nil
+}
+
+// InsertVote adds a vote for a poll option
+func (r DBPostRepository) InsertVote(ctx context.Context, postId int, userId int, optionIndex int) error {
+	return r.querier.InsertVote(ctx, queries.InsertVoteParams{
+		PostID:      int32(postId),
+		UserID:      int32(userId),
+		OptionIndex: int32(optionIndex),
+	})
 }
 
 // NewDBPostRepository creates a new post repository instance

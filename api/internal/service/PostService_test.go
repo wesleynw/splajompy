@@ -272,7 +272,7 @@ func TestRemoveLikeFromPost(t *testing.T) {
 	assert.Len(t, likes, 0)
 }
 
-func TestGetPollDetails_ReturnsDetails(t *testing.T) {
+func TestGetPostWithPoll_ReturnsEmptyPoll(t *testing.T) {
 	svc, postRepo, userRepo, _, _, _, currentUser := setupTest(t)
 	ctx := context.Background()
 
@@ -292,8 +292,9 @@ func TestGetPollDetails_ReturnsDetails(t *testing.T) {
 	updatedPost, err := svc.GetPostById(ctx, currentUser, post.PostID)
 	require.NoError(t, err)
 
-	poll, err := svc.GetPollDetails(ctx, currentUser, post.PostID, updatedPost.Post.Attributes.Poll)
-	require.NoError(t, err)
+	require.NotNil(t, updatedPost)
+	require.NotNil(t, updatedPost.Poll)
+	poll := updatedPost.Poll
 
 	assert.NotNil(t, poll)
 	assert.Equal(t, poll.Title, "is this test passing?")
@@ -303,6 +304,83 @@ func TestGetPollDetails_ReturnsDetails(t *testing.T) {
 	assert.Equal(t, poll.Options[1].Title, "no")
 	assert.Equal(t, poll.Options[0].VoteTotal, 0)
 	assert.Equal(t, poll.Options[1].VoteTotal, 0)
+}
+
+func TestVoteOnPoll_NegativeOptionIndex_ReturnsError(t *testing.T) {
+	svc, postRepo, userRepo, _, _, _, currentUser := setupTest(t)
+	ctx := context.Background()
+
+	user, err := userRepo.CreateUser(ctx, "test1", "testuser@splajompy.com", "password123")
+	require.NoError(t, err)
+
+	attributes := db.Attributes{Poll: db.Poll{
+		Title: "is this test passing?",
+		Options: []string{
+			"yes", "no",
+		},
+	}}
+
+	post, err := postRepo.InsertPost(ctx, user.UserID, "Test post for vote on saving", nil, &attributes)
+	require.NoError(t, err)
+
+	err = svc.VoteOnPoll(ctx, currentUser, post.PostID+1, -10)
+	assert.Error(t, err)
+}
+
+func TestVoteOnPoll_Nonexistent_ReturnsError(t *testing.T) {
+	svc, postRepo, userRepo, _, _, _, currentUser := setupTest(t)
+	ctx := context.Background()
+
+	user, err := userRepo.CreateUser(ctx, "test1", "testuser@splajompy.com", "password123")
+	require.NoError(t, err)
+
+	attributes := db.Attributes{Poll: db.Poll{
+		Title: "is this test passing?",
+		Options: []string{
+			"yes", "no",
+		},
+	}}
+
+	post, err := postRepo.InsertPost(ctx, user.UserID, "Test post for vote on saving", nil, &attributes)
+	require.NoError(t, err)
+
+	err = svc.VoteOnPoll(ctx, currentUser, post.PostID+1, 2)
+	assert.Error(t, err)
+}
+
+func TestVoteOnPoll_InvalidOptionIndex_ReturnsError(t *testing.T) {
+	svc, postRepo, userRepo, _, _, _, currentUser := setupTest(t)
+	ctx := context.Background()
+
+	user, err := userRepo.CreateUser(ctx, "test1", "testuser@splajompy.com", "password123")
+	require.NoError(t, err)
+
+	attributes := db.Attributes{Poll: db.Poll{
+		Title: "is this test passing?",
+		Options: []string{
+			"yes", "no",
+		},
+	}}
+
+	post, err := postRepo.InsertPost(ctx, user.UserID, "Test post for vote on saving", nil, &attributes)
+	require.NoError(t, err)
+
+	err = svc.VoteOnPoll(ctx, currentUser, post.PostID, 2)
+	assert.Error(t, err)
+
+	updatedPost, err := svc.GetPostById(ctx, currentUser, post.PostID)
+	require.NoError(t, err)
+
+	require.NotNil(t, updatedPost)
+	require.NotNil(t, updatedPost.Poll)
+
+	assert.Equal(t, updatedPost.Poll.Title, "is this test passing?")
+	assert.Equal(t, updatedPost.Poll.VoteTotal, 0)
+	assert.Nil(t, updatedPost.Poll.CurrentUserVote)
+	assert.Equal(t, updatedPost.Poll.Options[0].Title, "yes")
+	assert.Equal(t, updatedPost.Poll.Options[1].Title, "no")
+	assert.Equal(t, updatedPost.Poll.Options[0].VoteTotal, 0)
+	assert.Equal(t, updatedPost.Poll.Options[1].VoteTotal, 0)
 }
 
 func TestVoteOnPoll_SavesVote(t *testing.T) {
@@ -328,5 +406,62 @@ func TestVoteOnPoll_SavesVote(t *testing.T) {
 	updatedPost, err := svc.GetPostById(ctx, currentUser, post.PostID)
 	require.NoError(t, err)
 
-	assert.NotNil(t, updatedPost.Poll)
+	require.NotNil(t, updatedPost)
+	require.NotNil(t, updatedPost.Poll)
+
+	assert.Equal(t, updatedPost.Poll.Title, "is this test passing?")
+	assert.Equal(t, updatedPost.Poll.VoteTotal, 1)
+	assert.Equal(t, *updatedPost.Poll.CurrentUserVote, 0)
+	assert.Equal(t, updatedPost.Poll.Options[0].Title, "yes")
+	assert.Equal(t, updatedPost.Poll.Options[1].Title, "no")
+	assert.Equal(t, updatedPost.Poll.Options[0].VoteTotal, 1)
+	assert.Equal(t, updatedPost.Poll.Options[1].VoteTotal, 0)
+}
+
+func TestVoteOnPoll_SavesVote_Multi(t *testing.T) {
+	svc, postRepo, userRepo, _, _, _, currentUser := setupTest(t)
+	ctx := context.Background()
+
+	user0, err := userRepo.CreateUser(ctx, "test0", "testuser0@splajompy.com", "password123")
+	require.NoError(t, err)
+	user1, err := userRepo.CreateUser(ctx, "test1", "testuser1@splajompy.com", "password123")
+	require.NoError(t, err)
+	user2, err := userRepo.CreateUser(ctx, "test2", "testuser2@splajompy.com", "password123")
+	require.NoError(t, err)
+
+	poll := db.Poll{
+		Title: "is this test passing?",
+		Options: []string{
+			"yes", "no",
+		},
+	}
+
+	post, err := postRepo.InsertPost(ctx, user0.UserID, "Test post for vote on saving", nil, &db.Attributes{Poll: poll})
+	require.NoError(t, err)
+
+	err = svc.VoteOnPoll(ctx, currentUser, post.PostID, 1)
+	require.NoError(t, err)
+
+	err = svc.VoteOnPoll(ctx, user0, post.PostID, 0)
+	require.NoError(t, err)
+
+	err = svc.VoteOnPoll(ctx, user1, post.PostID, 0)
+	require.NoError(t, err)
+
+	err = svc.VoteOnPoll(ctx, user2, post.PostID, 0)
+	require.NoError(t, err)
+
+	updatedPost, err := svc.GetPostById(ctx, currentUser, post.PostID)
+	require.NoError(t, err)
+
+	require.NotNil(t, updatedPost)
+	require.NotNil(t, updatedPost.Poll)
+
+	assert.Equal(t, updatedPost.Poll.Title, "is this test passing?")
+	assert.Equal(t, updatedPost.Poll.VoteTotal, 4)
+	assert.Equal(t, *updatedPost.Poll.CurrentUserVote, 1)
+	assert.Equal(t, updatedPost.Poll.Options[0].Title, "yes")
+	assert.Equal(t, updatedPost.Poll.Options[1].Title, "no")
+	assert.Equal(t, updatedPost.Poll.Options[0].VoteTotal, 3)
+	assert.Equal(t, updatedPost.Poll.Options[1].VoteTotal, 1)
 }
