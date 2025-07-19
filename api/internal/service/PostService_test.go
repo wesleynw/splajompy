@@ -50,20 +50,20 @@ func TestNewPost(t *testing.T) {
 	err := svc.NewPost(ctx, user, text, imageKeymap)
 	assert.NoError(t, err)
 
-	postIds, err := postRepo.GetPostIdsForUser(ctx, int(user.UserID), 10, 0)
+	postIds, err := postRepo.GetPostIdsForUser(ctx, user.UserID, 10, 0)
 	assert.NoError(t, err)
 	assert.Len(t, postIds, 1)
 
-	post, err := postRepo.GetPostById(ctx, int(postIds[0]))
+	post, err := postRepo.GetPostById(ctx, postIds[0])
 	assert.NoError(t, err)
 	assert.Equal(t, text, post.Text)
 	assert.Equal(t, user.UserID, int(post.UserID))
 
 	assert.Len(t, post.Facets, 1)
 	assert.Equal(t, "mention", post.Facets[0].Type)
-	assert.Equal(t, int(user.UserID), post.Facets[0].UserId)
+	assert.Equal(t, user.UserID, post.Facets[0].UserId)
 
-	destinationKey := repositories.GetDestinationKey("test", user.UserID, int(post.PostID), imageKeymap[0].S3Key)
+	destinationKey := repositories.GetDestinationKey("test", user.UserID, post.PostID, imageKeymap[0].S3Key)
 	imageData, exists := bucketRepo.GetObject(destinationKey)
 	assert.True(t, exists)
 	assert.Equal(t, []byte("test image data"), imageData)
@@ -71,7 +71,7 @@ func TestNewPost(t *testing.T) {
 	_, exists = bucketRepo.GetObject(imageKeymap[0].S3Key)
 	assert.False(t, exists)
 
-	images, err := postRepo.GetImagesForPost(ctx, int(post.PostID))
+	images, err := postRepo.GetImagesForPost(ctx, post.PostID)
 	assert.NoError(t, err)
 	assert.Len(t, images, 1)
 	assert.Equal(t, destinationKey, images[0].ImageBlobUrl)
@@ -100,15 +100,15 @@ func TestGetPostById(t *testing.T) {
 	ctx := context.Background()
 
 	postContent := "Test post content"
-	post, err := postRepo.InsertPost(ctx, int(user.UserID), postContent, nil, nil)
+	post, err := postRepo.InsertPost(ctx, user.UserID, postContent, nil, nil)
 	require.NoError(t, err)
 
 	imageUrl := "test/posts/1/images/123.jpg"
 	bucketRepo.SetObject(imageUrl, []byte("test image data"))
-	_, err = postRepo.InsertImage(ctx, int(post.PostID), 500, 500, imageUrl, 0)
+	_, err = postRepo.InsertImage(ctx, post.PostID, 500, 500, imageUrl, 0)
 	require.NoError(t, err)
 
-	detailedPost, err := svc.GetPostById(ctx, user, int(post.PostID))
+	detailedPost, err := svc.GetPostById(ctx, user, post.PostID)
 	assert.NoError(t, err)
 	assert.NotNil(t, detailedPost)
 
@@ -126,7 +126,7 @@ func TestGetAllPosts(t *testing.T) {
 	ctx := context.Background()
 
 	for i := 0; i < 5; i++ {
-		_, err := postRepo.InsertPost(ctx, int(user.UserID), "Post content "+string(rune(i+48)), nil, nil)
+		_, err := postRepo.InsertPost(ctx, user.UserID, "Post content "+string(rune(i+48)), nil, nil)
 		require.NoError(t, err)
 	}
 
@@ -156,20 +156,20 @@ func TestGetPostsByUserId(t *testing.T) {
 	require.NoError(t, err)
 
 	for i := 0; i < 3; i++ {
-		_, err := postRepo.InsertPost(ctx, int(user.UserID), "User 1 post "+string(rune(i+48)), nil, nil)
+		_, err := postRepo.InsertPost(ctx, user.UserID, "User 1 post "+string(rune(i+48)), nil, nil)
 		require.NoError(t, err)
 	}
 
 	for i := 0; i < 2; i++ {
-		_, err := postRepo.InsertPost(ctx, int(user2.UserID), "User 2 post "+string(rune(i+48)), nil, nil)
+		_, err := postRepo.InsertPost(ctx, user2.UserID, "User 2 post "+string(rune(i+48)), nil, nil)
 		require.NoError(t, err)
 	}
 
-	posts, err := svc.GetPostsByUserId(ctx, user, int(user.UserID), 10, 0)
+	posts, err := svc.GetPostsByUserId(ctx, user, user.UserID, 10, 0)
 	assert.NoError(t, err)
 	assert.Len(t, *posts, 3)
 
-	posts, err = svc.GetPostsByUserId(ctx, user, int(user2.UserID), 10, 0)
+	posts, err = svc.GetPostsByUserId(ctx, user, user2.UserID, 10, 0)
 	assert.NoError(t, err)
 	assert.Len(t, *posts, 2)
 }
@@ -179,25 +179,25 @@ func TestDeletePost(t *testing.T) {
 
 	ctx := context.Background()
 
-	post, err := postRepo.InsertPost(ctx, int(user.UserID), "Test post for deletion", nil, nil)
+	post, err := postRepo.InsertPost(ctx, user.UserID, "Test post for deletion", nil, nil)
 	require.NoError(t, err)
 
-	err = svc.DeletePost(ctx, user, int(post.PostID))
+	err = svc.DeletePost(ctx, user, post.PostID)
 	assert.NoError(t, err)
 
-	_, err = postRepo.GetPostById(ctx, int(post.PostID))
+	_, err = postRepo.GetPostById(ctx, post.PostID)
 	assert.Error(t, err)
 
 	otherUser, err := userRepo.CreateUser(ctx, "otheruser", "other@example.com", "password")
 	require.NoError(t, err)
 
-	post2, err := postRepo.InsertPost(ctx, int(otherUser.UserID), "Other user's post", nil, nil)
+	post2, err := postRepo.InsertPost(ctx, otherUser.UserID, "Other user's post", nil, nil)
 	require.NoError(t, err)
 
-	err = svc.DeletePost(ctx, user, int(post2.PostID))
+	err = svc.DeletePost(ctx, user, post2.PostID)
 	assert.Error(t, err)
 
-	_, err = postRepo.GetPostById(ctx, int(post2.PostID))
+	_, err = postRepo.GetPostById(ctx, post2.PostID)
 	assert.NoError(t, err)
 }
 
@@ -210,15 +210,15 @@ func TestAddLikeToPost(t *testing.T) {
 	secondUser, err := userRepo.CreateUser(ctx, "otherUser", "otheruser@splajompy.com", "password")
 	require.NoError(t, err)
 
-	post0, err := postRepo.InsertPost(ctx, int(postOwner.UserID), "Test post for liking", nil, nil)
+	post0, err := postRepo.InsertPost(ctx, postOwner.UserID, "Test post for liking", nil, nil)
 	require.NoError(t, err)
 
-	err = svc.AddLikeToPost(ctx, postOwner, int(post0.PostID))
+	err = svc.AddLikeToPost(ctx, postOwner, post0.PostID)
 	assert.NoError(t, err)
-	err = svc.AddLikeToPost(ctx, secondUser, int(post0.PostID))
+	err = svc.AddLikeToPost(ctx, secondUser, post0.PostID)
 	assert.NoError(t, err)
 
-	likes, err := likeRepo.GetLikesForPost(ctx, int(post0.PostID))
+	likes, err := likeRepo.GetLikesForPost(ctx, post0.PostID)
 	assert.NoError(t, err)
 	assert.Len(t, likes, 2)
 
@@ -248,26 +248,26 @@ func TestRemoveLikeFromPost(t *testing.T) {
 	post0, err := postRepo.InsertPost(ctx, postOwner.UserID, "Test post for liking", nil, nil)
 	require.NoError(t, err)
 
-	err = svc.AddLikeToPost(ctx, postOwner, int(post0.PostID))
+	err = svc.AddLikeToPost(ctx, postOwner, post0.PostID)
 	assert.NoError(t, err)
-	err = svc.AddLikeToPost(ctx, secondUser, int(post0.PostID))
+	err = svc.AddLikeToPost(ctx, secondUser, post0.PostID)
 	assert.NoError(t, err)
 
-	likes, err := likeRepo.GetLikesForPost(ctx, int(post0.PostID))
+	likes, err := likeRepo.GetLikesForPost(ctx, post0.PostID)
 	assert.NoError(t, err)
 	assert.Len(t, likes, 2)
 
-	err = svc.RemoveLikeFromPost(ctx, postOwner, int(post0.PostID))
+	err = svc.RemoveLikeFromPost(ctx, postOwner, post0.PostID)
 	assert.NoError(t, err)
 
-	likes, err = likeRepo.GetLikesForPost(ctx, int(post0.PostID))
+	likes, err = likeRepo.GetLikesForPost(ctx, post0.PostID)
 	assert.NoError(t, err)
 	assert.Len(t, likes, 1)
 
-	err = svc.RemoveLikeFromPost(ctx, secondUser, int(post0.PostID))
+	err = svc.RemoveLikeFromPost(ctx, secondUser, post0.PostID)
 	assert.NoError(t, err)
 
-	likes, err = likeRepo.GetLikesForPost(ctx, int(post0.PostID))
+	likes, err = likeRepo.GetLikesForPost(ctx, post0.PostID)
 	assert.NoError(t, err)
 	assert.Len(t, likes, 0)
 }
