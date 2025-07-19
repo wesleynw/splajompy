@@ -55,28 +55,31 @@ struct PollView: View {
           }
         }
         .padding(12)
+        .frame(maxWidth: .infinity)
         .background {
-          ZStack(alignment: .leading) {
-            RoundedRectangle(cornerRadius: 12)
-              .fill(Color.secondary.opacity(0.2).gradient)
+          GeometryReader { geometry in
+            ZStack(alignment: .leading) {
+              RoundedRectangle(cornerRadius: 12)
+                .fill(Color.secondary.opacity(0.2).gradient)
 
+              RoundedRectangle(cornerRadius: 12)
+                .fill(
+                  isSelected
+                    ? Color.blue.opacity(0.5).gradient
+                    : Color.blue.opacity(0.2).gradient
+                )
+                .frame(width: geometry.size.width * CGFloat(percentage) / 100.0)
+                .animation(
+                  .spring(response: 0.4, dampingFraction: 0.75),
+                  value: percentage
+                )
+            }
+          }
+        }
+        .overlay {
+          if isSelected {
             RoundedRectangle(cornerRadius: 12)
-              .fill(
-                isSelected
-                  ? Color.blue.opacity(0.5).gradient
-                  : Color.blue.opacity(0.2).gradient
-              )
-              .containerRelativeFrame(
-                .horizontal,
-                count: 100,
-                span: percentage,
-                spacing: 0
-              )
-              .scaleEffect(x: hasVoted ? 1.0 : 0.0, anchor: .leading)
-              .animation(
-                .spring(response: 0.4, dampingFraction: 0.75),
-                value: hasVoted
-              )
+              .stroke(Color.blue.gradient.opacity(0.5), lineWidth: 2)
           }
         }
       }
@@ -86,19 +89,27 @@ struct PollView: View {
 }
 
 #Preview {
-  let poll: Poll = Poll(
+  @Previewable @State var poll: Poll = Poll(
     title: "Test Poll",
-    voteTotal: 10,
+    voteTotal: 0,
     currentUserVote: nil,
     options: [
-      PollOption(title: "Option A", voteTotal: 3),
-      PollOption(title: "Option B", voteTotal: 2),
-      PollOption(title: "Option C", voteTotal: 5),
+      PollOption(title: "Option A", voteTotal: 0),
+      PollOption(title: "Option B", voteTotal: 0),
+      PollOption(title: "Option C", voteTotal: 0),
     ],
   )
 
-  PollView(
-    poll: poll,
-    onVote: { option in print("voted for option \(option)") }
-  )
+  VStack {
+    PollView(
+      poll: poll,
+      onVote: { option in
+        poll.options[option].voteTotal += 1
+        poll.voteTotal += 1
+        poll.currentUserVote = option
+      }
+    )
+    .padding()
+  }
+  .padding()
 }

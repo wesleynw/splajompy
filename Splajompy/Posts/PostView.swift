@@ -107,7 +107,7 @@ struct PostView: View {
       }
       
       if let poll = post.poll {
-        PollView(poll: poll, onVote: { option in print("voted: \(option)") })
+        PollView(poll: poll, onVote: { option in Task { await postManager.voteInPoll(postId: post.id, optionIndex: option) } })
       }
 
       RelevantLikeView(

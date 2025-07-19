@@ -117,7 +117,7 @@ class PostManager: ObservableObject {
   }
   
   func voteInPoll(postId: Int, optionIndex: Int) async -> Void {
-    guard let post = getPost(id: postId) else { return }
+    guard let post = getPost(id: postId), post.poll?.currentUserVote == nil else { return }
     
     // optimistic update
     if let poll = post.poll, poll.options.count > optionIndex {
