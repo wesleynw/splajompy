@@ -97,7 +97,7 @@ struct PollView: View {
       PollOption(title: "Option A", voteTotal: 0),
       PollOption(title: "Option B", voteTotal: 0),
       PollOption(title: "Option C", voteTotal: 0),
-    ],
+    ]
   )
 
   VStack {
