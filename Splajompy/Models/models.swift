@@ -78,6 +78,11 @@ struct DetailedPost: Decodable, Equatable, Identifiable {
   }
 }
 
+struct PollCreationRequest: Encodable {
+  let title: String
+  let options: [String]
+}
+
 struct Poll: Decodable {
   let title: String
   var voteTotal: Int

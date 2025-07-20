@@ -1,10 +1,62 @@
 import PhotosUI
 import SwiftUI
 
+struct PollPreviewView: View {
+  let poll: PollCreationRequest
+  let onRemove: () -> Void
+  let onEdit: () -> Void
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: 10) {
+      HStack {
+        Image(systemName: "chart.bar.fill")
+          .foregroundColor(.blue)
+          .font(.body)
+
+        VStack(alignment: .leading, spacing: 2) {
+          Text(poll.title)
+            .font(.body)
+            .fontWeight(.semibold)
+            .multilineTextAlignment(.leading)
+
+          Text("\(poll.options.count) options")
+            .font(.caption)
+            .foregroundColor(.secondary)
+        }
+
+        Spacer()
+
+        Button("Edit") {
+          onEdit()
+        }
+        .font(.callout)
+        .fontWeight(.medium)
+        .foregroundColor(.blue)
+        .padding(.horizontal, 8)
+        .padding(.vertical, 4)
+        .background(Color.blue.opacity(0.1), in: RoundedRectangle(cornerRadius: 6))
+
+        Button {
+          onRemove()
+        } label: {
+          Image(systemName: "xmark.circle.fill")
+            .foregroundColor(.red)
+            .font(.title3)
+        }
+        .padding(.leading, 4)
+      }
+    }
+    .padding(16)
+    .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12))
+  }
+}
+
 struct NewPostView: View {
 
   @State private var text = NSAttributedString(string: "")
   @State private var facets: [Facet] = []
+  @State private var poll: PollCreationRequest?
+  @State private var showingPollCreation = false
 
   @StateObject private var viewModel: ViewModel
   @FocusState private var isFocused: Bool
@@ -27,7 +79,7 @@ struct NewPostView: View {
         Spacer()
 
         Button {
-          viewModel.submitPost(text: String(text.string)) {
+          viewModel.submitPost(text: String(text.string), poll: poll) {
             dismiss()
           }
         } label: {
@@ -91,6 +143,15 @@ struct NewPostView: View {
           .padding(.horizontal)
         }
 
+        if let poll = poll {
+          PollPreviewView(poll: poll) {
+            self.poll = nil
+          } onEdit: {
+            showingPollCreation = true
+          }
+          .padding(.horizontal)
+        }
+
         Divider()
 
         HStack {
@@ -101,6 +162,13 @@ struct NewPostView: View {
             matching: .images
           ) {
             Image(systemName: "photo.badge.plus")
+              .padding(.leading)
+          }
+
+          Button {
+            showingPollCreation = true
+          } label: {
+            Image(systemName: poll != nil ? "chart.bar.fill" : "chart.bar")
               .padding(.leading)
           }
 
@@ -121,11 +189,15 @@ struct NewPostView: View {
       }
       .padding()
     }
+    .sheet(isPresented: $showingPollCreation) {
+      PollCreationView(poll: $poll)
+    }
   }
 
   private var isPostButtonDisabled: Bool {
     (text.string.isEmpty
-      && viewModel.selectedImages.count == 0)
+      && viewModel.selectedImages.count == 0
+      && poll == nil)
       || viewModel.isLoading
   }
 }

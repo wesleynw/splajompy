@@ -11,6 +11,7 @@ struct ImageData: Encodable {
 struct CreatePostRequest: Encodable {
   let text: String
   let imageKeymap: [Int: ImageData]  // [displayOrder : ImageData]
+  let poll: PollCreationRequest?
 }
 
 struct PresignedUrlResponse: Codable {
@@ -22,7 +23,8 @@ struct PostCreationService {
   static func createPost(
     text: String,
     images: [UIImage],
-    items: [PhotosPickerItem]
+    items: [PhotosPickerItem],
+    poll: PollCreationRequest? = nil
   ) async -> AsyncResult<EmptyResponse> {
     do {
       let stagingFolder = UUID()
@@ -118,7 +120,8 @@ struct PostCreationService {
 
       let createPostRequest = CreatePostRequest(
         text: text,
-        imageKeymap: imageKeymap
+        imageKeymap: imageKeymap,
+        poll: poll
       )
       let jsonData = try JSONEncoder().encode(createPostRequest)
 

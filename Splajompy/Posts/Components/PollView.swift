@@ -36,13 +36,18 @@ struct PollView: View {
     let totalVotes: Int
     let onTap: () -> Void
 
+    @State private var tapped: Bool = false
+
     private var percentage: Int {
       guard totalVotes > 0 else { return 0 }
       return hasVoted ? (option.voteTotal * 100) / totalVotes : 0
     }
 
     var body: some View {
-      Button(action: onTap) {
+      Button(action: {
+        tapped.toggle()
+        onTap()
+      }) {
         HStack {
           Text(option.title)
             .font(.body)
@@ -84,6 +89,7 @@ struct PollView: View {
         }
       }
       .buttonStyle(.plain)
+      .sensoryFeedback(.impact, trigger: hasVoted ? false : tapped)
     }
   }
 }
