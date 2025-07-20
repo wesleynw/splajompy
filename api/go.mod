@@ -12,6 +12,7 @@ require (
 	github.com/resend/resend-go/v2 v2.21.0
 	github.com/stretchr/testify v1.10.0
 	golang.org/x/crypto v0.40.0
+	golang.org/x/mod v0.26.0
 )
 
 require (

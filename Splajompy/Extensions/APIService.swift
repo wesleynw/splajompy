@@ -43,6 +43,10 @@ public struct APIService {
       request.setValue("application/json", forHTTPHeaderField: "Content-Type")
     }
 
+    request.setValue(
+      Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String,
+      forHTTPHeaderField: "X-App-Version")
+
     return request
   }
 

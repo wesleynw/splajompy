@@ -5,11 +5,13 @@ import (
 	"errors"
 	"fmt"
 	"github.com/resend/resend-go/v2"
+	"golang.org/x/mod/semver"
 	"math"
 	"os"
 	"sort"
 	"splajompy.com/api/v2/internal/db"
 	"splajompy.com/api/v2/internal/db/queries"
+	"splajompy.com/api/v2/internal/middleware"
 	"splajompy.com/api/v2/internal/models"
 	"splajompy.com/api/v2/internal/repositories"
 	"splajompy.com/api/v2/internal/templates"
@@ -133,6 +135,15 @@ func (s *PostService) GetPostById(ctx context.Context, currentUser models.Public
 		if err != nil {
 			return nil, err
 		}
+	}
+
+	versionAny := ctx.Value(middleware.AppVersionKey)
+	version, ok := versionAny.(string)
+	if !ok || version == "unknown" || semver.Compare("v"+version, "v1.3.0") < 0 {
+		if post.Text != "" {
+			post.Text += "\n"
+		}
+		post.Text += "This post contains a poll. Please update your app to view it."
 	}
 
 	return &models.DetailedPost{

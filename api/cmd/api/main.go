@@ -61,6 +61,7 @@ func main() {
 	h.RegisterRoutes(mux)
 
 	wrappedMux := middleware.Logger(mux)
+	wrappedMux = middleware.AppVersion(wrappedMux)
 
 	log.Printf("Server starting on port %d\n", 8080)
 	if err := http.ListenAndServe(":8080", wrappedMux); err != nil {
