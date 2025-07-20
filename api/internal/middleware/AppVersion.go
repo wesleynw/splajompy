@@ -5,7 +5,9 @@ import (
 	"net/http"
 )
 
-const AppVersionKey = "app_version"
+type contextKey string
+
+const AppVersionKey contextKey = "app_version"
 
 func AppVersion(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
