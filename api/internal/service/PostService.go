@@ -5,10 +5,13 @@ import (
 	"errors"
 	"fmt"
 	"github.com/resend/resend-go/v2"
+	"golang.org/x/mod/semver"
 	"math"
 	"os"
 	"sort"
+	"splajompy.com/api/v2/internal/db"
 	"splajompy.com/api/v2/internal/db/queries"
+	"splajompy.com/api/v2/internal/middleware"
 	"splajompy.com/api/v2/internal/models"
 	"splajompy.com/api/v2/internal/repositories"
 	"splajompy.com/api/v2/internal/templates"
@@ -34,17 +37,24 @@ func NewPostService(postRepository repositories.PostRepository, userRepository r
 	}
 }
 
-func (s *PostService) NewPost(ctx context.Context, currentUser models.PublicUser, text string, imageKeymap map[int]models.ImageData) error {
+func (s *PostService) NewPost(ctx context.Context, currentUser models.PublicUser, text string, imageKeymap map[int]models.ImageData, poll *db.Poll) error {
 	facets, err := repositories.GenerateFacets(ctx, s.userRepository, text)
 	if err != nil {
 		return err
 	}
 
-	post, err := s.postRepository.InsertPost(ctx, currentUser.UserID, text, facets)
+	var attributes *db.Attributes
+	if poll != nil {
+		attributes = &db.Attributes{
+			Poll: *poll,
+		}
+	}
+
+	post, err := s.postRepository.InsertPost(ctx, currentUser.UserID, text, facets, attributes)
 	if err != nil {
 		return errors.New("unable to create post")
 	}
-	postId := int(post.PostID)
+	postId := post.PostID
 
 	environment := os.Getenv("ENVIRONMENT")
 
@@ -52,7 +62,7 @@ func (s *PostService) NewPost(ctx context.Context, currentUser models.PublicUser
 		destinationKey := repositories.GetDestinationKey(
 			environment,
 			currentUser.UserID,
-			int(post.PostID),
+			post.PostID,
 			imageData.S3Key,
 		)
 
@@ -66,7 +76,7 @@ func (s *PostService) NewPost(ctx context.Context, currentUser models.PublicUser
 			return errors.New("unable to create post")
 		}
 
-		_, err = s.postRepository.InsertImage(ctx, int(post.PostID), imageData.Height, imageData.Width, destinationKey, int(int32(displayOrder)))
+		_, err = s.postRepository.InsertImage(ctx, post.PostID, imageData.Height, imageData.Width, destinationKey, int(int32(displayOrder)))
 		if err != nil {
 			return errors.New("unable to create post")
 		}
@@ -95,8 +105,8 @@ func (s *PostService) NewPresignedStagingUrl(ctx context.Context, currentUser mo
 	return s.bucketRepository.GeneratePresignedURL(ctx, currentUser.UserID, extension, folder)
 }
 
-func (s *PostService) GetPostById(ctx context.Context, cUser models.PublicUser, postID int) (*models.DetailedPost, error) {
-	post, err := s.postRepository.GetPostById(ctx, postID)
+func (s *PostService) GetPostById(ctx context.Context, currentUser models.PublicUser, postId int) (*models.DetailedPost, error) {
+	post, err := s.postRepository.GetPostById(ctx, postId)
 	if err != nil {
 		return nil, err
 	}
@@ -106,9 +116,9 @@ func (s *PostService) GetPostById(ctx context.Context, cUser models.PublicUser, 
 		return nil, err
 	}
 
-	isLiked, _ := s.postRepository.IsPostLikedByUserId(ctx, cUser.UserID, int(post.PostID))
+	isLiked, _ := s.postRepository.IsPostLikedByUserId(ctx, currentUser.UserID, post.PostID)
 
-	images, _ := s.postRepository.GetImagesForPost(ctx, int(post.PostID))
+	images, _ := s.postRepository.GetImagesForPost(ctx, post.PostID)
 	if images == nil {
 		images = []queries.Image{}
 	}
@@ -116,8 +126,25 @@ func (s *PostService) GetPostById(ctx context.Context, cUser models.PublicUser, 
 		images[i].ImageBlobUrl = s.bucketRepository.GetObjectURL(images[i].ImageBlobUrl)
 	}
 
-	commentCount, _ := s.postRepository.GetCommentCountForPost(ctx, int(post.PostID))
-	relevantLikes, hasOtherLikes, _ := s.getRelevantLikes(ctx, cUser, postID)
+	commentCount, _ := s.postRepository.GetCommentCountForPost(ctx, post.PostID)
+	relevantLikes, hasOtherLikes, _ := s.getRelevantLikes(ctx, currentUser, postId)
+
+	var pollDetails *models.DetailedPoll
+	if post.Attributes != nil {
+		pollDetails, err = s.GetPollDetails(ctx, currentUser, postId, post.Attributes.Poll)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	versionAny := ctx.Value(middleware.AppVersionKey)
+	version, ok := versionAny.(string)
+	if pollDetails != nil && (!ok || version == "unknown" || semver.Compare("v"+version, "v1.3.0") < 0) {
+		if post.Text != "" {
+			post.Text += "\n\n"
+		}
+		post.Text += "This post contains a poll. Please update your app to view it."
+	}
 
 	return &models.DetailedPost{
 		Post:          *post,
@@ -127,6 +154,7 @@ func (s *PostService) GetPostById(ctx context.Context, cUser models.PublicUser, 
 		CommentCount:  commentCount,
 		RelevantLikes: relevantLikes,
 		HasOtherLikes: hasOtherLikes,
+		Poll:          pollDetails,
 	}, nil
 }
 
@@ -165,19 +193,19 @@ func (s *PostService) GetMutualFeed(ctx context.Context, currentUser models.Publ
 	}
 
 	// Extract just the post IDs from the rows
-	postIDs := make([]int32, len(postRows))
+	postIDs := make([]int, len(postRows))
 	for i, row := range postRows {
-		postIDs[i] = row.PostID
+		postIDs[i] = int(row.PostID)
 	}
 
 	return s.getPostsByPostIDs(ctx, currentUser, postIDs)
 }
 
-func (s *PostService) getPostsByPostIDs(ctx context.Context, currentUser models.PublicUser, postIDs []int32) (*[]models.DetailedPost, error) {
+func (s *PostService) getPostsByPostIDs(ctx context.Context, currentUser models.PublicUser, postIDs []int) (*[]models.DetailedPost, error) {
 	var posts = make([]models.DetailedPost, 0)
 
 	for i := range postIDs {
-		post, err := s.GetPostById(ctx, currentUser, int(postIDs[i]))
+		post, err := s.GetPostById(ctx, currentUser, postIDs[i])
 		if err != nil {
 			return nil, fmt.Errorf("unable to retrieve post %d", postIDs[i])
 		}
@@ -265,7 +293,7 @@ func (s *PostService) ReportPost(ctx context.Context, currentUser *models.Public
 		return err
 	}
 
-	images, err := s.postRepository.GetImagesForPost(ctx, int(post.PostID))
+	images, err := s.postRepository.GetImagesForPost(ctx, post.PostID)
 	if err != nil {
 		return err
 	}
@@ -291,6 +319,73 @@ func (s *PostService) ReportPost(ctx context.Context, currentUser *models.Public
 
 	_, err = s.emailService.Emails.Send(params)
 	return err
+}
+
+func (s *PostService) GetPollDetails(ctx context.Context, currentUser models.PublicUser, postId int, poll db.Poll) (*models.DetailedPoll, error) {
+	currentUserVote, err := s.postRepository.GetUserVoteInPoll(ctx, postId, currentUser.UserID)
+	if err != nil {
+		return nil, err
+	}
+
+	voteTotals, err := s.postRepository.GetPollVotesGrouped(ctx, postId)
+	if err != nil {
+		return nil, err
+	}
+
+	voteCountMap := make(map[int]int64)
+	totalVotes := int64(0)
+	for _, voteRow := range voteTotals {
+		voteCountMap[int(voteRow.OptionIndex)] = voteRow.Count
+		totalVotes += voteRow.Count
+	}
+
+	options := make([]models.DetailedPollOption, len(poll.Options))
+	for i, option := range poll.Options {
+		voteCount := voteCountMap[i]
+		options[i] = models.DetailedPollOption{
+			Title:     option,
+			VoteTotal: int(voteCount),
+		}
+	}
+
+	return &models.DetailedPoll{
+		Title:           poll.Title,
+		VoteTotal:       int(totalVotes),
+		CurrentUserVote: currentUserVote,
+		Options:         options,
+	}, nil
+}
+
+func (s *PostService) VoteOnPoll(ctx context.Context, currentUser models.PublicUser, postId int, optionIndex int) error {
+	post, err := s.postRepository.GetPostById(ctx, postId)
+	if err != nil {
+		return err
+	}
+
+	if optionIndex < 0 || len(post.Attributes.Poll.Options) <= optionIndex {
+		return errors.New("option index is out of range")
+	}
+
+	err = s.postRepository.InsertVote(ctx, postId, currentUser.UserID, optionIndex)
+	if err != nil {
+		return err
+	}
+
+	// send notification to poll owner (unless voting on own poll)
+	if currentUser.UserID != int(post.UserID) {
+		optionTitle := post.Attributes.Poll.Options[optionIndex]
+		text := fmt.Sprintf("@%s voted \"%s\" in your poll.", currentUser.Username, optionTitle)
+		facets, err := repositories.GenerateFacets(ctx, s.userRepository, text)
+		if err != nil {
+			return err
+		}
+		err = s.notificationRepository.InsertNotification(ctx, int(post.UserID), &postId, nil, &facets, text, models.NotificationTypePoll)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func seededRandom(seed int) float64 {

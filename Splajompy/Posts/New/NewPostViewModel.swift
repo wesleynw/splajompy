@@ -50,7 +50,7 @@ extension NewPostView {
       selectedItems.remove(at: index)
     }
 
-    func submitPost(text: String, dismiss: @escaping () -> Void) {
+    func submitPost(text: String, poll: PollCreationRequest? = nil, dismiss: @escaping () -> Void) {
       Task {
         let validation = PostCreationService.validatePostText(text: text)
         if !validation.isValid {
@@ -63,7 +63,7 @@ extension NewPostView {
         let result: AsyncResult<EmptyResponse>
 
         result = await PostCreationService.createPost(
-          text: text, images: selectedImages, items: selectedItems)
+          text: text, images: selectedImages, items: selectedItems, poll: poll)
 
         switch result {
         case .success:

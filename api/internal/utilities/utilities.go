@@ -21,7 +21,7 @@ func MapUserToPublicUser(user queries.User) models.PublicUser {
 // MapPost is a utility function to convert from queries.Post to models.Post.
 func MapPost(post queries.Post) models.Post {
 	return models.Post{
-		PostID:    post.PostID,
+		PostID:    int(post.PostID),
 		UserID:    post.UserID,
 		Text:      post.Text.String,
 		CreatedAt: post.CreatedAt.Time.UTC(),

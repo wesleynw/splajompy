@@ -8,3 +8,12 @@ type Facet struct {
 }
 
 type Facets []Facet
+
+type Attributes struct {
+	Poll Poll `json:"poll"`
+}
+
+type Poll struct {
+	Title   string   `json:"title"`
+	Options []string `json:"options"`
+}

@@ -62,7 +62,7 @@ func GeneratePostReportEmail(reporterUsername string, post models.Post, images [
 
 	data := PostReportEmailData{
 		ReporterUsername: reporterUsername,
-		PostID:           post.PostID,
+		PostID:           int32(post.PostID),
 		PostText:         post.Text,
 		PostCreatedAt:    post.CreatedAt.UTC(),
 		ReportedAt:       time.Now().UTC(),

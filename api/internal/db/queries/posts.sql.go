@@ -142,8 +142,40 @@ func (q *Queries) GetImagesByPostId(ctx context.Context, postID int32) ([]Image,
 	return items, nil
 }
 
+const getPollVotesGrouped = `-- name: GetPollVotesGrouped :many
+SELECT option_index, COUNT(*) AS count
+FROM poll_vote
+WHERE post_id = $1
+GROUP BY option_index
+`
+
+type GetPollVotesGroupedRow struct {
+	OptionIndex int32 `json:"optionIndex"`
+	Count       int64 `json:"count"`
+}
+
+func (q *Queries) GetPollVotesGrouped(ctx context.Context, postID int32) ([]GetPollVotesGroupedRow, error) {
+	rows, err := q.db.Query(ctx, getPollVotesGrouped, postID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetPollVotesGroupedRow
+	for rows.Next() {
+		var i GetPollVotesGroupedRow
+		if err := rows.Scan(&i.OptionIndex, &i.Count); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getPostById = `-- name: GetPostById :one
-SELECT post_id, user_id, text, created_at, facets
+SELECT post_id, user_id, text, created_at, facets, attributes
 FROM posts
 WHERE post_id = $1
 `
@@ -157,6 +189,7 @@ func (q *Queries) GetPostById(ctx context.Context, postID int32) (Post, error) {
 		&i.Text,
 		&i.CreatedAt,
 		&i.Facets,
+		&i.Attributes,
 	)
 	return i, err
 }
@@ -305,6 +338,24 @@ func (q *Queries) GetPostsIdsByUserId(ctx context.Context, arg GetPostsIdsByUser
 	return items, nil
 }
 
+const getUserVoteInPoll = `-- name: GetUserVoteInPoll :one
+SELECT option_index
+FROM poll_vote
+WHERE post_id = $1 AND user_id = $2
+`
+
+type GetUserVoteInPollParams struct {
+	PostID int32 `json:"postId"`
+	UserID int32 `json:"userId"`
+}
+
+func (q *Queries) GetUserVoteInPoll(ctx context.Context, arg GetUserVoteInPollParams) (int32, error) {
+	row := q.db.QueryRow(ctx, getUserVoteInPoll, arg.PostID, arg.UserID)
+	var option_index int32
+	err := row.Scan(&option_index)
+	return option_index, err
+}
+
 const insertImage = `-- name: InsertImage :one
 INSERT INTO images (post_id, height, width, image_blob_url, display_order)
 VALUES ($1, $2, $3, $4, $5)
@@ -340,19 +391,25 @@ func (q *Queries) InsertImage(ctx context.Context, arg InsertImageParams) (Image
 }
 
 const insertPost = `-- name: InsertPost :one
-INSERT INTO posts (user_id, text, facets)
-VALUES ($1, $2, $3)
-RETURNING post_id, user_id, text, created_at, facets
+INSERT INTO posts (user_id, text, facets, attributes)
+VALUES ($1, $2, $3, $4)
+RETURNING post_id, user_id, text, created_at, facets, attributes
 `
 
 type InsertPostParams struct {
-	UserID int32       `json:"userId"`
-	Text   pgtype.Text `json:"text"`
-	Facets db.Facets   `json:"facets"`
+	UserID     int32          `json:"userId"`
+	Text       pgtype.Text    `json:"text"`
+	Facets     db.Facets      `json:"facets"`
+	Attributes *db.Attributes `json:"attributes"`
 }
 
 func (q *Queries) InsertPost(ctx context.Context, arg InsertPostParams) (Post, error) {
-	row := q.db.QueryRow(ctx, insertPost, arg.UserID, arg.Text, arg.Facets)
+	row := q.db.QueryRow(ctx, insertPost,
+		arg.UserID,
+		arg.Text,
+		arg.Facets,
+		arg.Attributes,
+	)
 	var i Post
 	err := row.Scan(
 		&i.PostID,
@@ -360,6 +417,23 @@ func (q *Queries) InsertPost(ctx context.Context, arg InsertPostParams) (Post, e
 		&i.Text,
 		&i.CreatedAt,
 		&i.Facets,
+		&i.Attributes,
 	)
 	return i, err
+}
+
+const insertVote = `-- name: InsertVote :exec
+INSERT INTO poll_vote (post_id, user_id, option_index)
+VALUES ($1, $2, $3)
+`
+
+type InsertVoteParams struct {
+	PostID      int32 `json:"postId"`
+	UserID      int32 `json:"userId"`
+	OptionIndex int32 `json:"optionIndex"`
+}
+
+func (q *Queries) InsertVote(ctx context.Context, arg InsertVoteParams) error {
+	_, err := q.db.Exec(ctx, insertVote, arg.PostID, arg.UserID, arg.OptionIndex)
+	return err
 }

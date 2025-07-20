@@ -69,10 +69,28 @@ struct DetailedPost: Decodable, Equatable, Identifiable {
   var images: [ImageDTO]?
   let relevantLikes: [RelevantLike]
   let hasOtherLikes: Bool
+  var poll: Poll?
 
   var id: Int { post.postId }
 
   static func == (lhs: DetailedPost, rhs: DetailedPost) -> Bool {
     return lhs.post.postId == rhs.post.postId
   }
+}
+
+struct PollCreationRequest: Encodable {
+  let title: String
+  let options: [String]
+}
+
+struct Poll: Decodable {
+  let title: String
+  var voteTotal: Int
+  var currentUserVote: Int?
+  var options: [PollOption]
+}
+
+struct PollOption: Decodable {
+  let title: String
+  var voteTotal: Int
 }

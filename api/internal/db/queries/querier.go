@@ -35,6 +35,7 @@ type Querier interface {
 	GetMutualConnectionsForUser(ctx context.Context, arg GetMutualConnectionsForUserParams) ([]string, error)
 	GetNotificationById(ctx context.Context, notificationID int32) (Notification, error)
 	GetNotificationsForUserId(ctx context.Context, arg GetNotificationsForUserIdParams) ([]Notification, error)
+	GetPollVotesGrouped(ctx context.Context, postID int32) ([]GetPollVotesGroupedRow, error)
 	GetPostById(ctx context.Context, postID int32) (Post, error)
 	GetPostIdsByFollowing(ctx context.Context, arg GetPostIdsByFollowingParams) ([]int32, error)
 	GetPostIdsForMutualFeed(ctx context.Context, arg GetPostIdsForMutualFeedParams) ([]GetPostIdsForMutualFeedRow, error)
@@ -48,6 +49,7 @@ type Querier interface {
 	GetUserByIdentifier(ctx context.Context, email string) (User, error)
 	GetUserByUsername(ctx context.Context, username string) (User, error)
 	GetUserUnreadNotificationCount(ctx context.Context, userID int32) (int64, error)
+	GetUserVoteInPoll(ctx context.Context, arg GetUserVoteInPollParams) (int32, error)
 	GetUserWithPasswordById(ctx context.Context, userID int32) (User, error)
 	GetUserWithPasswordByIdentifier(ctx context.Context, email string) (User, error)
 	GetUsernameLike(ctx context.Context, arg GetUsernameLikeParams) ([]User, error)
@@ -57,6 +59,7 @@ type Querier interface {
 	InsertImage(ctx context.Context, arg InsertImageParams) (Image, error)
 	InsertNotification(ctx context.Context, arg InsertNotificationParams) error
 	InsertPost(ctx context.Context, arg InsertPostParams) (Post, error)
+	InsertVote(ctx context.Context, arg InsertVoteParams) error
 	MarkAllNotificationsAsReadForUser(ctx context.Context, userID int32) error
 	MarkNotificationAsReadById(ctx context.Context, notificationID int32) error
 	RemoveLike(ctx context.Context, arg RemoveLikeParams) error

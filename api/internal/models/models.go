@@ -15,6 +15,7 @@ const (
 	NotificationTypeComment      NotificationType = "comment"
 	NotificationTypeAnnouncement NotificationType = "announcement"
 	NotificationTypeFollowers    NotificationType = "followers"
+	NotificationTypePoll         NotificationType = "poll"
 )
 
 func (nt NotificationType) String() string {
@@ -23,7 +24,7 @@ func (nt NotificationType) String() string {
 
 func (nt NotificationType) IsValid() bool {
 	switch nt {
-	case NotificationTypeMention, NotificationTypeLike, NotificationTypeComment, NotificationTypeAnnouncement, NotificationTypeFollowers:
+	case NotificationTypeMention, NotificationTypeLike, NotificationTypeComment, NotificationTypeAnnouncement, NotificationTypeFollowers, NotificationTypePoll:
 		return true
 	default:
 		return false
@@ -55,11 +56,12 @@ type Notification struct {
 }
 
 type Post struct {
-	PostID    int32     `json:"postId"`
-	UserID    int32     `json:"userId"`
-	Text      string    `json:"text"`
-	CreatedAt time.Time `json:"createdAt"`
-	Facets    db.Facets `json:"facets"`
+	PostID     int            `json:"postId"`
+	UserID     int32          `json:"userId"`
+	Text       string         `json:"text"`
+	CreatedAt  time.Time      `json:"createdAt"`
+	Facets     db.Facets      `json:"facets"`
+	Attributes *db.Attributes `json:"attributes"`
 }
 
 type DetailedPost struct {
@@ -70,6 +72,19 @@ type DetailedPost struct {
 	CommentCount  int             `json:"commentCount"`
 	RelevantLikes []RelevantLike  `json:"relevantLikes"`
 	HasOtherLikes bool            `json:"hasOtherLikes"`
+	Poll          *DetailedPoll   `json:"poll"`
+}
+
+type DetailedPollOption struct {
+	Title     string `json:"title"`
+	VoteTotal int    `json:"voteTotal"`
+}
+
+type DetailedPoll struct {
+	Title           string               `json:"title"`
+	VoteTotal       int                  `json:"voteTotal"`
+	CurrentUserVote *int                 `json:"currentUserVote"`
+	Options         []DetailedPollOption `json:"options"`
 }
 
 type DetailedComment struct {

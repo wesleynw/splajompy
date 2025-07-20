@@ -11,6 +11,8 @@ struct NotificationIcon {
       return "megaphone"
     case "mention":
       return "at"
+    case "poll":
+      return "chart.bar"
     default:
       return "bell"
     }

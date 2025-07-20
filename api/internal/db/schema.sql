@@ -20,6 +20,7 @@ CREATE TABLE posts (
     text TEXT,
     created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     facets JSON,
+    attributes JSON,
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
 
@@ -101,4 +102,13 @@ created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
 CONSTRAINT unique_user_target_user_id_block UNIQUE(user_id, target_user_id),
 CONSTRAINT check_no_self_block CHECK (user_id != target_user_id)
+);
+
+CREATE TABLE IF NOT EXISTS poll_vote (
+    id SERIAL PRIMARY KEY,
+    post_id INT NOT NULL REFERENCES posts(post_id) ON DELETE CASCADE,
+    user_id INT NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+    option_index INT NOT NULL,
+    created_at TIMESTAMP DEFAULT NOW(),
+    UNIQUE(post_id, user_id)
 );

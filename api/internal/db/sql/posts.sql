@@ -45,8 +45,8 @@ FROM posts
 WHERE post_id = $1;
 
 -- name: InsertPost :one
-INSERT INTO posts (user_id, text, facets)
-VALUES ($1, $2, $3)
+INSERT INTO posts (user_id, text, facets, attributes)
+VALUES ($1, $2, $3, $4)
 RETURNING *;
 
 -- name: DeletePost :exec
@@ -96,3 +96,18 @@ SELECT post_id, user_id, relationship_type,
 FROM user_relationships
 ORDER BY (SELECT created_at FROM posts WHERE posts.post_id = user_relationships.post_id) DESC
 LIMIT $2 OFFSET $3;
+
+-- name: GetPollVotesGrouped :many
+SELECT option_index, COUNT(*) AS count
+FROM poll_vote
+WHERE post_id = $1
+GROUP BY option_index;
+
+-- name: GetUserVoteInPoll :one
+SELECT option_index
+FROM poll_vote
+WHERE post_id = $1 AND user_id = $2;
+
+-- name: InsertVote :exec
+INSERT INTO poll_vote (post_id, user_id, option_index)
+VALUES ($1, $2, $3);
