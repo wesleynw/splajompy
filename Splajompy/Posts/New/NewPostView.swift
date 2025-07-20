@@ -1,6 +1,6 @@
 import PhotosUI
-import SwiftUI
 import PostHog
+import SwiftUI
 
 struct PollPreviewView: View {
   let poll: PollCreationRequest

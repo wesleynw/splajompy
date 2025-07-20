@@ -60,6 +60,10 @@ class AuthManager: ObservableObject, Sendable {
   }
 
   func signOut() {
+    #if !DEBUG
+      PostHogSDK.shared.reset()
+    #endif
+
     KeychainHelper.standard.delete(service: "session-token", account: "self")
 
     UserDefaults.standard.removeObject(forKey: "CurrentUserID")
@@ -188,6 +192,15 @@ class AuthManager: ObservableObject, Sendable {
     switch result {
     case .success(let authResponse):
       saveUserData(authResponse.user, token: authResponse.token)
+      #if !DEBUG
+        PostHogSDK.shared.identify(
+          distinctId: String(authResponse.user.userId),
+          userProperties: [
+            "email": authResponse.user.email,
+            "username": authResponse.user.username,
+          ]
+        )
+      #endif
       PostHogSDK.shared.capture("user_signin_otc")
       return true
     case .error:
@@ -224,6 +237,15 @@ class AuthManager: ObservableObject, Sendable {
     switch result {
     case .success(let authResponse):
       saveUserData(authResponse.user, token: authResponse.token)
+      #if !DEBUG
+        PostHogSDK.shared.identify(
+          distinctId: String(authResponse.user.userId),
+          userProperties: [
+            "email": authResponse.user.email,
+            "username": authResponse.user.username,
+          ]
+        )
+      #endif
       PostHogSDK.shared.capture("user_signin")
       return (true, "")
     case .error(let error):
@@ -262,6 +284,15 @@ class AuthManager: ObservableObject, Sendable {
     switch result {
     case .success(let authResponse):
       saveUserData(authResponse.user, token: authResponse.token)
+      #if !DEBUG
+        PostHogSDK.shared.identify(
+          distinctId: String(authResponse.user.userId),
+          userProperties: [
+            "email": authResponse.user.email,
+            "username": authResponse.user.username,
+          ]
+        )
+      #endif
       PostHogSDK.shared.capture("user_register")
       return (true, "")
     case .error(let error):
