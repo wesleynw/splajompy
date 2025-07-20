@@ -31,6 +31,12 @@ struct PollCreationView: View {
             }
           }
 
+          #if os(iOS)
+            ToolbarItem(placement: .topBarTrailing) {
+              EditButton()
+            }
+          #endif
+
           ToolbarItem(
             placement: {
               #if os(iOS)
@@ -43,11 +49,6 @@ struct PollCreationView: View {
             saveButton
           }
 
-          #if os(iOS)
-            ToolbarItem(placement: .topBarTrailing) {
-              EditButton()
-            }
-          #endif
         }
     }
     .interactiveDismissDisabled()
