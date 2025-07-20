@@ -13,21 +13,41 @@ struct PollCreationView: View {
     NavigationView {
       formContent
         .navigationTitle("Create Poll")
-        .navigationBarTitleDisplayMode(.inline)
+        #if os(iOS)
+          .navigationBarTitleDisplayMode(.inline)
+        #endif
         .toolbar {
-          ToolbarItem(placement: .navigationBarLeading) {
+          ToolbarItem(
+            placement: {
+              #if os(iOS)
+                .navigationBarLeading
+              #else
+                .primaryAction
+              #endif
+            }()
+          ) {
             Button("Cancel") {
               dismiss()
             }
           }
 
-          ToolbarItem(placement: .navigationBarTrailing) {
+          ToolbarItem(
+            placement: {
+              #if os(iOS)
+                .navigationBarTrailing
+              #else
+                .primaryAction
+              #endif
+            }()
+          ) {
             saveButton
           }
 
-          ToolbarItem(placement: .topBarTrailing) {
-            EditButton()
-          }
+          #if os(iOS)
+            ToolbarItem(placement: .topBarTrailing) {
+              EditButton()
+            }
+          #endif
         }
     }
     .interactiveDismissDisabled()
@@ -43,7 +63,15 @@ struct PollCreationView: View {
   private var formContent: some View {
     Form {
       Section("Title") {
-        TextField("What's your favorite color?", text: $title)
+        VStack(alignment: .leading) {
+          TextField("What's your favorite color?", text: $title)
+          HStack {
+            Spacer()
+            Text("\(title.count)/100")
+              .font(.caption2)
+              .foregroundColor(title.count > 100 ? .orange : .secondary)
+          }
+        }
       }
 
       optionsSection
@@ -78,9 +106,10 @@ struct PollCreationView: View {
 
   private var isValidPoll: Bool {
     !title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+      && title.count <= 100
       && options.filter {
         !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-      }.count >= 2
+      }.count >= 2 && options.allSatisfy({ $0.count <= 25 })
   }
 
   private var saveButton: some View {
@@ -97,16 +126,16 @@ struct PollCreationView: View {
         text: Binding(
           get: { options[index] },
           set: { newValue in
-            options[index] = String(newValue.prefix(25))
+            options[index] = newValue
           }
         )
       )
       .focused($focusedField, equals: index)
 
-      if focusedField == index {
+      if focusedField == index || options[index].count > 25 {
         Text("\(options[index].count)/25")
           .font(.caption2)
-          .foregroundColor(options[index].count > 20 ? .orange : .secondary)
+          .foregroundColor(options[index].count > 25 ? .orange : .secondary)
       }
     }
   }
