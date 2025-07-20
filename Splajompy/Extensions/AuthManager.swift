@@ -194,7 +194,7 @@ class AuthManager: ObservableObject, Sendable {
       saveUserData(authResponse.user, token: authResponse.token)
       #if !DEBUG
         PostHogSDK.shared.identify(
-          distinctId: String(authResponse.user.userId),
+          String(authResponse.user.userId),
           userProperties: [
             "email": authResponse.user.email,
             "username": authResponse.user.username,
@@ -239,7 +239,7 @@ class AuthManager: ObservableObject, Sendable {
       saveUserData(authResponse.user, token: authResponse.token)
       #if !DEBUG
         PostHogSDK.shared.identify(
-          distinctId: String(authResponse.user.userId),
+          String(authResponse.user.userId),
           userProperties: [
             "email": authResponse.user.email,
             "username": authResponse.user.username,
@@ -286,7 +286,7 @@ class AuthManager: ObservableObject, Sendable {
       saveUserData(authResponse.user, token: authResponse.token)
       #if !DEBUG
         PostHogSDK.shared.identify(
-          distinctId: String(authResponse.user.userId),
+          String(authResponse.user.userId),
           userProperties: [
             "email": authResponse.user.email,
             "username": authResponse.user.username,
