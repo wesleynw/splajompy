@@ -9,18 +9,34 @@ updates:
     directory: "/api/" # Location of package manifests
     schedule:
       interval: "weekly"
+    groups:
+      go-dependencies:
+        patterns:
+          - "*"
 
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
+    groups:
+      github-actions-dependencies:
+        patterns:
+          - "*"
 
   - package-ecosystem: "swift"
     directory: "/"
     schedule:
       interval: "weekly"
+    groups:
+      swift-dependencies:
+        patterns:
+          - "*"
 
   - package-ecosystem: "docker"
     directory: "/api"
     schedule:
       interval: "weekly"
+    groups:
+      docker-dependencies:
+        patterns:
+          - "*"
