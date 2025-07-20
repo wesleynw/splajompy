@@ -141,7 +141,7 @@ func (s *PostService) GetPostById(ctx context.Context, currentUser models.Public
 	version, ok := versionAny.(string)
 	if !ok || version == "unknown" || semver.Compare("v"+version, "v1.3.0") < 0 {
 		if post.Text != "" {
-			post.Text += "\n"
+			post.Text += "\n\n"
 		}
 		post.Text += "This post contains a poll. Please update your app to view it."
 	}

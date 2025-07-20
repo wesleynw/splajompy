@@ -1,5 +1,6 @@
 import PhotosUI
 import SwiftUI
+import PostHog
 
 struct PollPreviewView: View {
   let poll: PollCreationRequest
@@ -165,11 +166,13 @@ struct NewPostView: View {
               .padding(.leading)
           }
 
-          Button {
-            showingPollCreation = true
-          } label: {
-            Image(systemName: poll != nil ? "chart.bar.fill" : "chart.bar")
-              .padding(.leading)
+          if PostHogSDK.shared.isFeatureEnabled("feat-add-polls") {
+            Button {
+              showingPollCreation = true
+            } label: {
+              Image(systemName: poll != nil ? "chart.bar.fill" : "chart.bar")
+                .padding(.leading)
+            }
           }
 
           Spacer()
