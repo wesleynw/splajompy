@@ -355,7 +355,26 @@ func (s *PostService) VoteOnPoll(ctx context.Context, currentUser models.PublicU
 		return errors.New("option index is out of range")
 	}
 
-	return s.postRepository.InsertVote(ctx, postId, currentUser.UserID, optionIndex)
+	err = s.postRepository.InsertVote(ctx, postId, currentUser.UserID, optionIndex)
+	if err != nil {
+		return err
+	}
+
+	// send notification to poll owner (unless voting on own poll)
+	if currentUser.UserID != int(post.UserID) {
+		optionTitle := post.Attributes.Poll.Options[optionIndex]
+		text := fmt.Sprintf("@%s voted \"%s\" in your poll.", currentUser.Username, optionTitle)
+		facets, err := repositories.GenerateFacets(ctx, s.userRepository, text)
+		if err != nil {
+			return err
+		}
+		err = s.notificationRepository.InsertNotification(ctx, int(post.UserID), &postId, nil, &facets, text, models.NotificationTypePoll)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func seededRandom(seed int) float64 {

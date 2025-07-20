@@ -15,6 +15,7 @@ const (
 	NotificationTypeComment      NotificationType = "comment"
 	NotificationTypeAnnouncement NotificationType = "announcement"
 	NotificationTypeFollowers    NotificationType = "followers"
+	NotificationTypePoll         NotificationType = "poll"
 )
 
 func (nt NotificationType) String() string {
@@ -23,7 +24,7 @@ func (nt NotificationType) String() string {
 
 func (nt NotificationType) IsValid() bool {
 	switch nt {
-	case NotificationTypeMention, NotificationTypeLike, NotificationTypeComment, NotificationTypeAnnouncement, NotificationTypeFollowers:
+	case NotificationTypeMention, NotificationTypeLike, NotificationTypeComment, NotificationTypeAnnouncement, NotificationTypeFollowers, NotificationTypePoll:
 		return true
 	default:
 		return false
