@@ -1,0 +1,22 @@
+services:
+  api:
+    build: .
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./:/app
+  instrumentation:
+    image: otel/autoinstrumentation-go
+    privileged: true
+    pid: "host"
+    environment:
+      - OTEL_EXPORTER_OTLP_ENDPOINT=${OTEL_EXPORTER_OTLP_ENDPOINT}
+      - OTEL_EXPORTER_OTLP_HEADERS=${OTEL_EXPORTER_OTLP_HEADERS}
+      - OTEL_GO_AUTO_TARGET_EXE=/main
+      - OTEL_SERVICE_NAME=splajompy-api
+      - OTEL_PROPAGATORS=tracecontext,baggage
+      - OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf
+    volumes:
+      - ./:/app
+      - /proc:/host/proc
+    
