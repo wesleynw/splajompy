@@ -3,6 +3,7 @@ package utilities
 import (
 	"context"
 	"errors"
+	"go.opentelemetry.io/contrib/instrumentation/host"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
@@ -59,6 +60,13 @@ func SetupOTelSDK(ctx context.Context) (shutdown func(context.Context) error, er
 	}
 	shutdownFuncs = append(shutdownFuncs, meterProvider.Shutdown)
 	otel.SetMeterProvider(meterProvider)
+
+	// Start host metrics instrumentation
+	err = host.Start()
+	if err != nil {
+		handleErr(err)
+		return
+	}
 
 	// Set up logger provider.
 	loggerProvider, err := newLoggerProvider()
