@@ -2,13 +2,11 @@ package main
 
 import (
 	"context"
-	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"log"
 	"net/http"
 	"os"
 	"splajompy.com/api/v2/internal/db/queries"
 	"splajompy.com/api/v2/internal/repositories"
-	"splajompy.com/api/v2/internal/utilities"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
@@ -21,19 +19,7 @@ import (
 
 func main() {
 	ctx := context.Background()
-	
-	// Setup OpenTelemetry SDK
-	shutdown, err := utilities.SetupOTelSDK(ctx)
-	if err != nil {
-		log.Fatalf("failed to setup OpenTelemetry SDK: %v", err)
-	}
-	defer func() {
-		if err := shutdown(ctx); err != nil {
-			log.Printf("failed to shutdown OpenTelemetry SDK: %v", err)
-		}
-	}()
-
-	err = godotenv.Load()
+	err := godotenv.Load()
 	if err != nil {
 		log.Printf("no .env file present")
 	}
@@ -74,14 +60,11 @@ func main() {
 	mux := http.NewServeMux()
 	h.RegisterRoutes(mux)
 
-	// Add HTTP instrumentation for the whole server.
-	httpHandler := otelhttp.NewHandler(mux, "/")
-	
-	wrappedHandler := middleware.Logger(httpHandler)
-	wrappedHandler = middleware.AppVersion(wrappedHandler)
+	wrappedMux := middleware.Logger(mux)
+	wrappedMux = middleware.AppVersion(wrappedMux)
 
 	log.Printf("Server starting on port %d\n", 8080)
-	if err := http.ListenAndServe(":8080", wrappedHandler); err != nil {
+	if err := http.ListenAndServe(":8080", wrappedMux); err != nil {
 		log.Fatalf("server failed to start: %v", err)
 	}
 }
