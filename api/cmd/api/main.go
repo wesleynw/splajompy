@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"github.com/exaring/otelpgx"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"log"
 	"net/http"
@@ -21,7 +22,12 @@ import (
 
 func main() {
 	ctx := context.Background()
-	
+
+	err := godotenv.Load()
+	if err != nil {
+		log.Printf("no .env file present")
+	}
+
 	// Setup OpenTelemetry SDK
 	shutdown, err := utilities.SetupOTelSDK(ctx)
 	if err != nil {
@@ -33,13 +39,15 @@ func main() {
 		}
 	}()
 
-	err = godotenv.Load()
+	connString := os.Getenv("DB_CONNECTION_STRING")
+	cfg, err := pgxpool.ParseConfig(connString)
 	if err != nil {
-		log.Printf("no .env file present")
+		log.Fatalf("failed to parse config: %v", err)
 	}
 
-	connString := os.Getenv("DB_CONNECTION_STRING")
-	conn, err := pgxpool.New(ctx, connString)
+	// instrument the sql driver
+	cfg.ConnConfig.Tracer = otelpgx.NewTracer()
+	conn, err := pgxpool.NewWithConfig(ctx, cfg)
 	if err != nil {
 		log.Fatalf("failed to connect to database: %v", err)
 	}
@@ -75,7 +83,7 @@ func main() {
 	h.RegisterRoutes(mux)
 
 	// Add HTTP instrumentation for the whole server.
-	httpHandler := otelhttp.NewHandler(mux, "/", 
+	httpHandler := otelhttp.NewHandler(mux, "/",
 		otelhttp.WithSpanNameFormatter(func(operation string, r *http.Request) string {
 			method := r.Method
 			path := r.URL.Path
@@ -85,7 +93,7 @@ func main() {
 			return method + " " + path
 		}),
 	)
-	
+
 	wrappedHandler := middleware.Logger(httpHandler)
 	wrappedHandler = middleware.AppVersion(wrappedHandler)
 
