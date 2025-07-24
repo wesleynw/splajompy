@@ -53,25 +53,29 @@ processors:
           - delete_key(attributes, "process.runtime.description")
           - delete_key(attributes, "process.runtime.name")
           - delete_key(attributes, "process.runtime.version")
-  transform/normalize_high_cardinality_routes:
-    # https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/transformprocessor
+  transform/generalize_span_name:
     error_mode: ignore
     trace_statements:
       - context: span
         statements:
-          # Normalize routes with IDs to reduce cardinality
-          - replace_pattern(attributes["http.route"], "^/post/\\d+$", "/post/{id}")
-          - replace_pattern(attributes["http.route"], "^/user/\\d+$", "/user/{id}")
-          - replace_pattern(attributes["http.route"], "^/user/\\d+/posts$", "/user/{id}/posts")
-          - replace_pattern(attributes["http.route"], "^/post/\\d+/report$", "/post/{id}/report")
-          - replace_pattern(attributes["http.route"], "^/post/\\d+/vote/\\d+$", "/post/{post_id}/vote/{option_index}")
-          - replace_pattern(attributes["http.route"], "^/follow/\\d+$", "/follow/{user_id}")
-          - replace_pattern(attributes["http.route"], "^/post/\\d+/liked$", "/post/{id}/liked")
-          - replace_pattern(attributes["http.route"], "^/notifications/\\d+/markRead$", "/notifications/{id}/markRead")
-          - replace_pattern(attributes["http.route"], "^/post/\\d+/comment$", "/post/{post_id}/comment")
-          - replace_pattern(attributes["http.route"], "^/post/\\d+/comment/\\d+/liked$", "/post/{post_id}/comment/{comment_id}/liked")
-          - replace_pattern(attributes["http.route"], "^/user/\\d+/block$", "/user/{user_id}/block")
-          - replace_pattern(attributes["http.route"], "^/post/\\d+/comments$", "/post/{id}/comments")
+          - replace_pattern(name, "\\?.*", "")
+          - replace_match(name, "GET /post/*", "GET /post/{id}")
+          - replace_match(name, "DELETE /post/*", "DELETE /post/{id}")
+          - replace_match(name, "POST /post/*/report", "POST /post/{id}/report")  
+          - replace_match(name, "POST /post/*/liked", "POST /post/{id}/liked")
+          - replace_match(name, "DELETE /post/*/liked", "DELETE /post/{id}/liked")
+          - replace_match(name, "GET /post/*/comments", "GET /post/{id}/comments")
+          - replace_match(name, "GET /user/*", "GET /user/{id}")
+          - replace_match(name, "GET /user/*/posts", "GET /user/{id}/posts")
+          - replace_match(name, "POST /post/*/vote/*", "POST /post/{post_id}/vote/{option_index}")
+          - replace_match(name, "POST /follow/*", "POST /follow/{user_id}")
+          - replace_match(name, "DELETE /follow/*", "DELETE /follow/{user_id}")
+          - replace_match(name, "POST /notifications/*/markRead", "POST /notifications/{id}/markRead")
+          - replace_match(name, "POST /post/*/comment", "POST /post/{post_id}/comment")
+          - replace_match(name, "POST /post/*/comment/*/liked", "POST /post/{post_id}/comment/{comment_id}/liked")
+          - replace_match(name, "DELETE /post/*/comment/*/liked", "DELETE /post/{post_id}/comment/{comment_id}/liked")
+          - replace_match(name, "POST /user/*/block", "POST /user/{user_id}/block")
+          - replace_match(name, "DELETE /user/*/block", "DELETE /user/{user_id}/block")
   transform/add_resource_attributes_as_metric_attributes:
     # https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/transformprocessor
     error_mode: ignore
@@ -109,7 +113,7 @@ service:
     traces:
       receivers: [otlp]
       processors:
-        [resourcedetection, transform/drop_unneeded_resource_attributes, transform/normalize_high_cardinality_routes, batch]
+        [resourcedetection, transform/drop_unneeded_resource_attributes, transform/generalize_span_name, batch]
       exporters: [otlphttp/grafana_cloud, grafanacloud]
     metrics:
       receivers: [otlp]
