@@ -75,7 +75,16 @@ func main() {
 	h.RegisterRoutes(mux)
 
 	// Add HTTP instrumentation for the whole server.
-	httpHandler := otelhttp.NewHandler(mux, "/")
+	httpHandler := otelhttp.NewHandler(mux, "/", 
+		otelhttp.WithSpanNameFormatter(func(operation string, r *http.Request) string {
+			method := r.Method
+			path := r.URL.Path
+			if path == "" {
+				path = "/"
+			}
+			return method + " " + path
+		}),
+	)
 	
 	wrappedHandler := middleware.Logger(httpHandler)
 	wrappedHandler = middleware.AppVersion(wrappedHandler)
