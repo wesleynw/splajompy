@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/resend/resend-go/v2"
 	"golang.org/x/mod/semver"
+	"golang.org/x/sync/errgroup"
 	"math"
 	"os"
 	"sort"
@@ -202,14 +203,23 @@ func (s *PostService) GetMutualFeed(ctx context.Context, currentUser models.Publ
 }
 
 func (s *PostService) getPostsByPostIDs(ctx context.Context, currentUser models.PublicUser, postIDs []int) (*[]models.DetailedPost, error) {
-	var posts = make([]models.DetailedPost, 0)
+	posts := make([]models.DetailedPost, len(postIDs))
 
-	for i := range postIDs {
-		post, err := s.GetPostById(ctx, currentUser, postIDs[i])
-		if err != nil {
-			return nil, fmt.Errorf("unable to retrieve post %d", postIDs[i])
-		}
-		posts = append(posts, *post)
+	g, ctx := errgroup.WithContext(ctx)
+
+	for i, postID := range postIDs {
+		g.Go(func() error {
+			post, err := s.GetPostById(ctx, currentUser, postID)
+			if err != nil {
+				return fmt.Errorf("unable to retrieve post %d", postID)
+			}
+			posts[i] = *post
+			return nil
+		})
+	}
+
+	if err := g.Wait(); err != nil {
+		return nil, err
 	}
 
 	return &posts, nil
