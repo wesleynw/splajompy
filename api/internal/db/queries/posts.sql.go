@@ -424,7 +424,7 @@ func (q *Queries) InsertPost(ctx context.Context, arg InsertPostParams) (Post, e
 
 const insertVote = `-- name: InsertVote :exec
 INSERT INTO poll_vote (post_id, user_id, option_index)
-VALUES ($1, $2, $3)
+VALUES ($1, $2, $3) ON CONFLICT DO NOTHING
 `
 
 type InsertVoteParams struct {
