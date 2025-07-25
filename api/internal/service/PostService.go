@@ -208,7 +208,6 @@ func (s *PostService) getPostsByPostIDs(ctx context.Context, currentUser models.
 	g, ctx := errgroup.WithContext(ctx)
 
 	for i, postID := range postIDs {
-		i, postID := i, postID
 		g.Go(func() error {
 			post, err := s.GetPostById(ctx, currentUser, postID)
 			if err != nil {
