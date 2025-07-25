@@ -110,4 +110,4 @@ WHERE post_id = $1 AND user_id = $2;
 
 -- name: InsertVote :exec
 INSERT INTO poll_vote (post_id, user_id, option_index)
-VALUES ($1, $2, $3);
+VALUES ($1, $2, $3) ON CONFLICT DO NOTHING;
