@@ -103,6 +103,8 @@ func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
 
 	// comments
 	handleFunc("GET /post/{id}/comments", h.GetCommentsByPost)
+
+	handleFunc("POST /request-feature", h.RequestFeature)
 }
 
 func (h *Handler) GetIntPathParam(r *http.Request, paramName string) (int, error) {

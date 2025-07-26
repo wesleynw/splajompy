@@ -18,7 +18,7 @@ func TestFollowUser(t *testing.T) {
 	user2, err := fakeUserRepo.CreateUser(ctx, "user2", "user2@splajompy.com", "password123")
 	require.NoError(t, err)
 
-	service := NewUserService(fakeUserRepo, fakeNotificationRepo)
+	service := NewUserService(fakeUserRepo, fakeNotificationRepo, nil)
 
 	err = service.FollowUser(ctx, user1, user2.UserID)
 	require.NoError(t, err)
@@ -42,7 +42,7 @@ func TestGetUserById_WithNoMutuals_ReturnsEmptyArray(t *testing.T) {
 	targetUser, err := fakeUserRepo.CreateUser(ctx, "target", "target@splajompy.com", "password123")
 	require.NoError(t, err)
 
-	service := NewUserService(fakeUserRepo, fakeNotificationRepo)
+	service := NewUserService(fakeUserRepo, fakeNotificationRepo, nil)
 
 	profile, err := service.GetUserById(ctx, requestingUser, targetUser.UserID)
 	require.NoError(t, err)

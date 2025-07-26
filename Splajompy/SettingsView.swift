@@ -52,6 +52,12 @@ struct SettingsView: View {
         }
 
         Section {
+          NavigationLink(destination: RequestFeatureView()) {
+            Label("Request a feature", systemImage: "lightbulb.max")
+          }
+        }
+
+        Section {
           HStack {
             Text("Version")
             Spacer()
@@ -72,7 +78,9 @@ struct SettingsView: View {
 }
 
 #Preview {
+  let authManager = AuthManager()
   NavigationStack {
     SettingsView()
+      .environmentObject(authManager)
   }
 }

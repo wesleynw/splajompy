@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/resend/resend-go/v2"
+	"splajompy.com/api/v2/internal/templates"
 
 	"splajompy.com/api/v2/internal/models"
 	"splajompy.com/api/v2/internal/repositories"
@@ -12,12 +14,14 @@ import (
 type UserService struct {
 	userRepository         repositories.UserRepository
 	notificationRepository repositories.NotificationRepository
+	emailService           *resend.Client
 }
 
-func NewUserService(userRepository repositories.UserRepository, notificationRepository repositories.NotificationRepository) *UserService {
+func NewUserService(userRepository repositories.UserRepository, notificationRepository repositories.NotificationRepository, emailClient *resend.Client) *UserService {
 	return &UserService{
 		userRepository:         userRepository,
 		notificationRepository: notificationRepository,
+		emailService:           emailClient,
 	}
 }
 
@@ -126,4 +130,26 @@ func (s *UserService) BlockUser(ctx context.Context, currentUser models.PublicUs
 
 func (s *UserService) UnblockUser(ctx context.Context, currentUser models.PublicUser, userId int) error {
 	return s.userRepository.UnblockUser(ctx, currentUser.UserID, userId)
+}
+
+func (s *UserService) RequestFeature(ctx context.Context, user models.PublicUser, text string) error {
+	requestingUser, err := s.userRepository.GetUserById(ctx, user.UserID)
+	if err != nil {
+		return err
+	}
+
+	html, err := templates.GenerateFeatureRequestEmail(requestingUser.Username, text)
+	if err != nil {
+		return err
+	}
+
+	params := &resend.SendEmailRequest{
+		From:    "Splajompy <no-reply@splajompy.com>",
+		To:      []string{"wesleynw@pm.me"},
+		Subject: fmt.Sprintf("@%s requested a feature", requestingUser.Username),
+		Html:    html,
+	}
+
+	_, err = s.emailService.Emails.Send(params)
+	return err
 }

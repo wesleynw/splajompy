@@ -30,6 +30,7 @@ protocol ProfileServiceProtocol: Sendable {
   func toggleBlocking(userId: Int, isBlocking: Bool) async -> AsyncResult<
     EmptyResponse
   >
+  func requestFeature(text: String) async -> AsyncResult<EmptyResponse>
 }
 
 struct ProfileService: ProfileServiceProtocol {
@@ -83,6 +84,18 @@ struct ProfileService: ProfileServiceProtocol {
       endpoint: "user/\(userId)/block",
       method: method
     )
+  }
+
+  func requestFeature(text: String) async -> AsyncResult<EmptyResponse> {
+    struct Container: Codable {
+      let text: String
+    }
+
+    let container = Container(text: text)
+    let jsonData = try! JSONEncoder().encode(container)
+
+    return await APIService.performRequest(
+      endpoint: "request-feature", method: "POST", queryItems: nil, body: jsonData)
   }
 }
 
@@ -328,5 +341,10 @@ struct MockProfileService: ProfileServiceProtocol {
     } else {
       return .error(APIErrorMessage(message: "User not found"))
     }
+  }
+
+  func requestFeature(text: String) async -> AsyncResult<EmptyResponse> {
+    try? await Task.sleep(nanoseconds: 500_000_000)
+    return .success(EmptyResponse())
   }
 }
