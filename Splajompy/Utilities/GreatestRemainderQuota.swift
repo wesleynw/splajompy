@@ -1,4 +1,5 @@
-/// Given a list of floating-point numbers that add to 100, uses the greatest remainder quota algorithm to return a fair list of those floats as integers.
+/// Given a list of floating-point numbers that add to 100, uses the greatest remainder quota
+/// algorithm to return a fair list of those floats as integers.
 ///
 /// - Parameter percentages: A list of floating point numbers.
 /// - Returns: A new list of integers, or `nil` if input doesn't sum to approximately 100.
