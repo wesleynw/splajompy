@@ -135,7 +135,7 @@ struct PostView: View {
         .font(.caption)
         .foregroundColor(.gray)
         Spacer()
-        HStack(spacing: 8) {
+        HStack(spacing: 0) {
           if !isStandalone {
             Menu(
               content: {
@@ -175,52 +175,24 @@ struct PostView: View {
                 }
               },
               label: {
-                #if os(iOS)
-                  Image(systemName: "ellipsis")
-                    .font(.system(size: 22))
-                    .frame(width: 48, height: 40)
-                    .background(
-                      RoundedRectangle(cornerRadius: 12).fill(
-                        .gray.opacity(0.15)
-                      )
-                    )
-                    .contentShape(RoundedRectangle(cornerRadius: 12))
-                #else
-                  Image(systemName: "ellipsis")
-                    .font(.system(size: 18))
-                    .frame(width: 32, height: 32)
-                    .background(
-                      RoundedRectangle(cornerRadius: 6).fill(.gray.opacity(0.1))
-                    )
-                    .contentShape(RoundedRectangle(cornerRadius: 6))
-                #endif
+                Image(systemName: "ellipsis")
+                  .font(.system(size: 22))
+                  .frame(width: 48, height: 40)
               }
             )
             .accessibilityLabel("More options")
+
+            Divider()
+              .padding(.vertical, 5)
+              .padding(.horizontal, 4)
 
             Button(action: {
               isShowingComments = true
             }) {
               ZStack {
-                #if os(iOS)
-                  Image(systemName: "bubble.middle.bottom")
-                    .font(.system(size: 22))
-                    .frame(width: 48, height: 40)
-                    .background(
-                      RoundedRectangle(cornerRadius: 12).fill(
-                        .gray.opacity(0.15)
-                      )
-                    )
-                    .contentShape(RoundedRectangle(cornerRadius: 12))
-                #else
-                  Image(systemName: "bubble.middle.bottom")
-                    .font(.system(size: 18))
-                    .frame(width: 32, height: 32)
-                    .background(
-                      RoundedRectangle(cornerRadius: 6).fill(.gray.opacity(0.1))
-                    )
-                    .contentShape(RoundedRectangle(cornerRadius: 6))
-                #endif
+                Image(systemName: "bubble.middle.bottom")
+                  .font(.system(size: 22))
+                  .frame(width: 48, height: 40)
 
                 if post.commentCount > 0 {
                   Text(post.commentCount > 9 ? "9+" : "\(post.commentCount)")
@@ -231,8 +203,11 @@ struct PostView: View {
               }
             }
             .buttonStyle(.plain)
-            .accessibilityLabel("Comment on post")
             .sensoryFeedback(.impact, trigger: isShowingComments)
+
+            Divider()
+              .padding(.vertical, 5)
+              .padding(.horizontal, 4)
           }
 
           Button(action: {
@@ -245,11 +220,7 @@ struct PostView: View {
                 post.isLiked ? Color.red.gradient : Color.primary.gradient
               )
               .frame(width: 48, height: 40)
-              .scaleEffect(post.isLiked ? 1.25 : 1.0)
-              .background(
-                RoundedRectangle(cornerRadius: 12).fill(.gray.opacity(0.15))
-              )
-              .contentShape(RoundedRectangle(cornerRadius: 12))
+              .scaleEffect(post.isLiked ? 1.1 : 1.0)
               .animation(
                 .spring(response: 0.4, dampingFraction: 0.6, blendDuration: 0),
                 value: post.isLiked
@@ -259,6 +230,10 @@ struct PostView: View {
           .accessibilityLabel("Like post")
           .sensoryFeedback(.impact, trigger: post.isLiked)
         }
+        .padding(3)
+        .background(
+          RoundedRectangle(cornerRadius: 12).fill(.gray.opacity(0.15))
+        )
       }
     }
     .padding(.vertical, 4)
