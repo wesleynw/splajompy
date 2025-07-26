@@ -126,9 +126,8 @@ struct HomeView: View {
         GeometryReader { proxy in
           ScrollView(.vertical) {
             LazyVStack(spacing: 0) {
-              ForEach(Array(posts.enumerated()), id: \.element.post.postId) {
-                index,
-                post in
+              ForEach(posts.indices, id: \.self) { index in
+                let post = posts[index]
                 ReelsPostView(
                   post: post,
                   postManager: postManager,
@@ -164,9 +163,8 @@ struct HomeView: View {
       } else {
         ScrollView {
           LazyVStack(spacing: 0) {
-            ForEach(Array(posts.enumerated()), id: \.element.post.postId) {
-              index,
-              post in
+            ForEach(posts.indices, id: \.self) { index in
+              let post = posts[index]
               VStack {
                 postRow(post: post, index: index)
                   .transition(.opacity)
@@ -174,13 +172,11 @@ struct HomeView: View {
               .geometryGroup()
             }
 
-            if viewModel.isLoadingMore {
-              HStack {
-                Spacer()
-                ProgressView()
-                  .padding()
-                Spacer()
-              }
+            HStack {
+              Spacer()
+              ProgressView()
+                .padding()
+              Spacer()
             }
           }
         }
@@ -189,7 +185,7 @@ struct HomeView: View {
             await viewModel.loadPosts(reset: true)
           }.value
         }
-        .animation(.easeInOut(duration: 0.2), value: posts.count)
+        .animation(.easeInOut(duration: 0.1), value: posts.count)
       }
     }
   }
@@ -203,6 +199,7 @@ struct HomeView: View {
       onPostDeleted: { viewModel.deletePost(on: post) }
     )
     .environmentObject(authManager)
+    .geometryGroup()
     .onAppear {
       handlePostAppear(post: post, index: index)
     }
@@ -210,7 +207,7 @@ struct HomeView: View {
 
   private func handlePostAppear(post: DetailedPost, index: Int) {
     if case .loaded(let currentPostIds) = viewModel.state,
-      post.id == currentPostIds.last && viewModel.canLoadMore
+      index >= currentPostIds.count - 3 && viewModel.canLoadMore
         && !viewModel.isLoadingMore
     {
       Task {
