@@ -50,10 +50,12 @@ struct SettingsView: View {
             Label("Terms of Service", systemImage: "doc.text")
           }
         }
-        
-//        Section {
-//          
-//        }
+
+        Section {
+          NavigationLink(destination: RequestFeatureView()) {
+            Label("Request a feature", systemImage: "lightbulb.max")
+          }
+        }
 
         Section {
           HStack {
@@ -76,7 +78,9 @@ struct SettingsView: View {
 }
 
 #Preview {
+  let authManager = AuthManager()
   NavigationStack {
     SettingsView()
+      .environmentObject(authManager)
   }
 }

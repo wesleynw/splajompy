@@ -144,7 +144,7 @@ func (s *UserService) RequestFeature(ctx context.Context, user models.PublicUser
 	}
 
 	params := &resend.SendEmailRequest{
-		From:    "Splajompy <no-reply@splajompy.com",
+		From:    "Splajompy <no-reply@splajompy.com>",
 		To:      []string{"wesleynw@pm.me"},
 		Subject: fmt.Sprintf("@%s requested a feature", requestingUser.Username),
 		Html:    html,

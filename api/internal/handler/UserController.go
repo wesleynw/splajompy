@@ -149,7 +149,7 @@ func (h *Handler) UnblockUser(w http.ResponseWriter, r *http.Request) {
 }
 
 type RequestFeaturePayload struct {
-	text string
+	Text string
 }
 
 func (h *Handler) RequestFeature(w http.ResponseWriter, r *http.Request) {
@@ -158,11 +158,18 @@ func (h *Handler) RequestFeature(w http.ResponseWriter, r *http.Request) {
 	var payload = new(RequestFeaturePayload)
 	if err := json.NewDecoder(r.Body).Decode(payload); err != nil {
 		utilities.HandleError(w, http.StatusBadRequest, "Invalid request payload")
+		return
 	}
 
-	err := h.userService.RequestFeature(r.Context(), *currentUser, payload.text)
+	if payload.Text == "" {
+		utilities.HandleError(w, http.StatusBadRequest, "Invalid request payload")
+		return
+	}
+
+	err := h.userService.RequestFeature(r.Context(), *currentUser, payload.Text)
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
+		return
 	}
 
 	utilities.HandleEmptySuccess(w)
