@@ -4,7 +4,8 @@
 /// - Parameter percentages: A list of floating point numbers.
 /// - Returns: A new list of integers, or `nil` if input doesn't sum to approximately 100.
 func calculateGreatestRemainderQuotaFromList(percentages: [Float]) -> [Int]? {
-  guard abs(percentages.reduce(0, +) - 100) <= 1 else { return nil }  // allow a little leeway for FP precision
+  // allow a little leeway for FP precision
+  guard abs(percentages.reduce(0, +) - 100) <= 1 else { return nil }
 
   var trucatedPercentages = percentages.map { Int($0) }
 
