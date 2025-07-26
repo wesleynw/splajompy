@@ -153,9 +153,12 @@ func (s *CommentService) AddLikeToCommentById(ctx context.Context, currentUser m
 			return err
 		}
 		err = s.notificationRepo.InsertNotification(ctx, int(comment.UserID), &postId, &commentId, &facets, text, models.NotificationTypeLike)
+		if err != nil {
+			return errors.New("unable to create a new comment notification")
+		}
 	}
 
-	return err
+	return nil
 }
 
 // RemoveLikeFromCommentById removes a like from a comment
