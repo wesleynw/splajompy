@@ -7,11 +7,7 @@ import (
 )
 
 func (h *Handler) GetUserById(w http.ResponseWriter, r *http.Request) {
-	currentUser, err := h.getAuthenticatedUser(r)
-	if err != nil {
-		utilities.HandleError(w, http.StatusUnauthorized, "Unauthorized")
-		return
-	}
+	currentUser := h.getAuthenticatedUser(r)
 
 	id, err := h.GetIntPathParam(r, "id")
 	if err != nil {
@@ -40,11 +36,7 @@ func (h *Handler) GetUserById(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) SearchUsers(w http.ResponseWriter, r *http.Request) {
-	currentUser, err := h.getAuthenticatedUser(r)
-	if err != nil {
-		utilities.HandleError(w, http.StatusUnauthorized, "Unauthorized")
-		return
-	}
+	currentUser := h.getAuthenticatedUser(r)
 
 	prefix := r.URL.Query().Get("prefix")
 	if prefix == "" {
@@ -62,11 +54,7 @@ func (h *Handler) SearchUsers(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) FollowUser(w http.ResponseWriter, r *http.Request) {
-	currentUser, err := h.getAuthenticatedUser(r)
-	if err != nil {
-		utilities.HandleError(w, http.StatusUnauthorized, "Unauthorized")
-		return
-	}
+	currentUser := h.getAuthenticatedUser(r)
 
 	userId, err := h.GetIntPathParam(r, "user_id")
 	if err != nil {
@@ -84,11 +72,7 @@ func (h *Handler) FollowUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) UnfollowUser(w http.ResponseWriter, r *http.Request) {
-	currentUser, err := h.getAuthenticatedUser(r)
-	if err != nil {
-		utilities.HandleError(w, http.StatusUnauthorized, "Unauthorized")
-		return
-	}
+	currentUser := h.getAuthenticatedUser(r)
 
 	userId, err := h.GetIntPathParam(r, "user_id")
 	if err != nil {
@@ -111,11 +95,7 @@ type UpdateProfileRequest struct {
 }
 
 func (h *Handler) UpdateProfile(w http.ResponseWriter, r *http.Request) {
-	currentUser, err := h.getAuthenticatedUser(r)
-	if err != nil {
-		utilities.HandleError(w, http.StatusUnauthorized, "Unauthorized")
-		return
-	}
+	currentUser := h.getAuthenticatedUser(r)
 
 	var request = new(UpdateProfileRequest)
 	if err := json.NewDecoder(r.Body).Decode(request); err != nil {
@@ -123,7 +103,7 @@ func (h *Handler) UpdateProfile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.userService.UpdateProfile(r.Context(), currentUser.UserID, &request.Name, &request.Bio)
+	err := h.userService.UpdateProfile(r.Context(), currentUser.UserID, &request.Name, &request.Bio)
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
 		return
@@ -133,11 +113,7 @@ func (h *Handler) UpdateProfile(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) BlockUser(w http.ResponseWriter, r *http.Request) {
-	currentUser, err := h.getAuthenticatedUser(r)
-	if err != nil {
-		utilities.HandleError(w, http.StatusUnauthorized, "Unauthorized")
-		return
-	}
+	currentUser := h.getAuthenticatedUser(r)
 
 	userId, err := h.GetIntPathParam(r, "user_id")
 	if err != nil {
@@ -155,11 +131,7 @@ func (h *Handler) BlockUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) UnblockUser(w http.ResponseWriter, r *http.Request) {
-	currentUser, err := h.getAuthenticatedUser(r)
-	if err != nil {
-		utilities.HandleError(w, http.StatusUnauthorized, "Unauthorized")
-		return
-	}
+	currentUser := h.getAuthenticatedUser(r)
 
 	userId, err := h.GetIntPathParam(r, "user_id")
 	if err != nil {

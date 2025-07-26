@@ -1,56 +1,11 @@
 package handler
 
 import (
-	"context"
 	"encoding/json"
-	"errors"
 	"net/http"
-	"splajompy.com/api/v2/internal/db/queries"
-	"strings"
-	"time"
-
-	"splajompy.com/api/v2/internal/models"
 	"splajompy.com/api/v2/internal/service"
 	"splajompy.com/api/v2/internal/utilities"
 )
-
-func (h *Handler) getAuthenticatedUser(r *http.Request) (*models.PublicUser, error) {
-	_, user, err := h.validateSessionToken(r.Context(), r.Header.Get("Authorization"))
-	return user, err
-}
-
-func (h *Handler) validateSessionToken(ctx context.Context, authHeader string) (*queries.Session, *models.PublicUser, error) {
-	if authHeader == "" {
-		return nil, nil, errors.New("authorization header required")
-	}
-
-	parts := strings.Split(authHeader, "Bearer ")
-	if len(parts) != 2 {
-		return nil, nil, errors.New("invalid authorization format")
-	}
-	token := strings.ReplaceAll(strings.TrimSpace(parts[1]), `\/`, `/`)
-
-	session, err := h.queries.GetSessionById(ctx, token)
-	if err != nil {
-		return nil, nil, errors.New("no session found")
-	}
-
-	if time.Now().Unix() >= session.ExpiresAt.Time.Unix() {
-		err = h.queries.DeleteSession(ctx, session.ID)
-		if err != nil {
-			return nil, nil, err
-		}
-		return nil, nil, errors.New("session expired")
-	}
-
-	dbUser, err := h.queries.GetUserById(ctx, session.UserID)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	var user = utilities.MapUserToPublicUser(dbUser)
-	return &session, &user, nil
-}
 
 type LoginRequest struct {
 	Identifier string `json:"identifier"`
@@ -130,7 +85,6 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 	utilities.HandleSuccess(w, response)
 }
 
-
 type GenerateOtcRequest struct {
 	Identifier string `json:"identifier"`
 }
@@ -183,25 +137,21 @@ type DeleteAccountRequest struct {
 //
 // Returns 200 with auth token on success, 400 for invalid credentials.
 func (h *Handler) DeleteAccount(w http.ResponseWriter, r *http.Request) {
-	currentUser, err := h.getAuthenticatedUser(r)
-	if err != nil {
-		utilities.HandleError(w, http.StatusUnauthorized, "Unauthorized")
-		return
-	}
-
 	var request DeleteAccountRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		utilities.HandleError(w, http.StatusBadRequest, "Invalid request body")
 		return
 	}
 
-	success, err := h.authService.VerifyPassword(r.Context(), currentUser.Username, request.Password)
+	user := h.getAuthenticatedUser(r)
+
+	success, err := h.authService.VerifyPassword(r.Context(), user.Username, request.Password)
 	if err != nil || !success {
 		utilities.HandleError(w, http.StatusUnauthorized, "Unauthorized")
 		return
 	}
 
-	err = h.authService.DeleteAccount(r.Context(), *currentUser)
+	err = h.authService.DeleteAccount(r.Context(), *user)
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
 		return

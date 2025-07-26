@@ -11,11 +11,7 @@ import (
 )
 
 func (h *Handler) CreateNewPost(w http.ResponseWriter, r *http.Request) {
-	currentUser, err := h.getAuthenticatedUser(r)
-	if err != nil {
-		utilities.HandleError(w, http.StatusUnauthorized, "Unauthorized")
-		return
-	}
+	currentUser := h.getAuthenticatedUser(r)
 
 	var requestBody struct {
 		Text        string         `json:"text"`
@@ -37,7 +33,7 @@ func (h *Handler) CreateNewPost(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	err = h.postService.NewPost(r.Context(), *currentUser, requestBody.Text, serviceImageKeymap, nil)
+	err := h.postService.NewPost(r.Context(), *currentUser, requestBody.Text, serviceImageKeymap, nil)
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
 		return
@@ -47,11 +43,7 @@ func (h *Handler) CreateNewPost(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) CreateNewPostV2(w http.ResponseWriter, r *http.Request) {
-	currentUser, err := h.getAuthenticatedUser(r)
-	if err != nil {
-		utilities.HandleError(w, http.StatusUnauthorized, "Unauthorized")
-		return
-	}
+	currentUser := h.getAuthenticatedUser(r)
 
 	var requestBody struct {
 		Text        string                   `json:"text"`
@@ -64,7 +56,7 @@ func (h *Handler) CreateNewPostV2(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.postService.NewPost(r.Context(), *currentUser, requestBody.Text, requestBody.ImageKeymap, requestBody.Poll)
+	err := h.postService.NewPost(r.Context(), *currentUser, requestBody.Text, requestBody.ImageKeymap, requestBody.Poll)
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
 		return
@@ -74,11 +66,7 @@ func (h *Handler) CreateNewPostV2(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) GetPresignedUrl(w http.ResponseWriter, r *http.Request) {
-	currentUser, err := h.getAuthenticatedUser(r)
-	if err != nil {
-		utilities.HandleError(w, http.StatusUnauthorized, "Unauthorized")
-		return
-	}
+	currentUser := h.getAuthenticatedUser(r)
 
 	extension := r.URL.Query().Get("extension")
 	if extension == "" {
@@ -98,11 +86,7 @@ func (h *Handler) GetPresignedUrl(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) GetPostById(w http.ResponseWriter, r *http.Request) {
-	currentUser, err := h.getAuthenticatedUser(r)
-	if err != nil {
-		utilities.HandleError(w, http.StatusUnauthorized, "Unauthorized")
-		return
-	}
+	currentUser := h.getAuthenticatedUser(r)
 
 	id, err := h.GetIntPathParam(r, "id")
 	if err != nil {
@@ -120,11 +104,7 @@ func (h *Handler) GetPostById(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) DeletePostById(w http.ResponseWriter, r *http.Request) {
-	currentUser, err := h.getAuthenticatedUser(r)
-	if err != nil {
-		utilities.HandleError(w, http.StatusUnauthorized, "Unauthorized")
-		return
-	}
+	currentUser := h.getAuthenticatedUser(r)
 
 	id, err := h.GetIntPathParam(r, "id")
 	if err != nil {
@@ -153,11 +133,7 @@ func (h *Handler) parsePagination(r *http.Request) (int, int) {
 }
 
 func (h *Handler) GetPostsByUserId(w http.ResponseWriter, r *http.Request) {
-	currentUser, err := h.getAuthenticatedUser(r)
-	if err != nil {
-		utilities.HandleError(w, http.StatusUnauthorized, "Unauthorized")
-		return
-	}
+	currentUser := h.getAuthenticatedUser(r)
 
 	id, err := h.GetIntPathParam(r, "id")
 	if err != nil {
@@ -176,11 +152,7 @@ func (h *Handler) GetPostsByUserId(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) GetAllPosts(w http.ResponseWriter, r *http.Request) {
-	currentUser, err := h.getAuthenticatedUser(r)
-	if err != nil {
-		utilities.HandleError(w, http.StatusUnauthorized, "Unauthorized")
-		return
-	}
+	currentUser := h.getAuthenticatedUser(r)
 
 	limit, offset := h.parsePagination(r)
 	posts, err := h.postService.GetAllPosts(r.Context(), *currentUser, limit, offset)
@@ -193,11 +165,7 @@ func (h *Handler) GetAllPosts(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) GetPostsByFollowing(w http.ResponseWriter, r *http.Request) {
-	currentUser, err := h.getAuthenticatedUser(r)
-	if err != nil {
-		utilities.HandleError(w, http.StatusUnauthorized, "Unauthorized")
-		return
-	}
+	currentUser := h.getAuthenticatedUser(r)
 
 	limit, offset := h.parsePagination(r)
 	posts, err := h.postService.GetPostsByFollowing(r.Context(), *currentUser, limit, offset)
@@ -213,11 +181,7 @@ func (h *Handler) GetPostsByFollowing(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) GetMutualFeed(w http.ResponseWriter, r *http.Request) {
-	currentUser, err := h.getAuthenticatedUser(r)
-	if err != nil {
-		utilities.HandleError(w, http.StatusUnauthorized, "Unauthorized")
-		return
-	}
+	currentUser := h.getAuthenticatedUser(r)
 
 	limit, offset := h.parsePagination(r)
 	posts, err := h.postService.GetMutualFeed(r.Context(), *currentUser, limit, offset)
@@ -233,11 +197,7 @@ func (h *Handler) GetMutualFeed(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) AddPostLike(w http.ResponseWriter, r *http.Request) {
-	currentUser, err := h.getAuthenticatedUser(r)
-	if err != nil {
-		utilities.HandleError(w, http.StatusUnauthorized, "Unauthorized")
-		return
-	}
+	currentUser := h.getAuthenticatedUser(r)
 
 	id, err := h.GetIntPathParam(r, "id")
 	if err != nil {
@@ -256,11 +216,7 @@ func (h *Handler) AddPostLike(w http.ResponseWriter, r *http.Request) {
 
 // RemovePostLike DELETE /post/{id}/liked endpoint
 func (h *Handler) RemovePostLike(w http.ResponseWriter, r *http.Request) {
-	currentUser, err := h.getAuthenticatedUser(r)
-	if err != nil {
-		utilities.HandleError(w, http.StatusUnauthorized, "Unauthorized")
-		return
-	}
+	currentUser := h.getAuthenticatedUser(r)
 
 	id, err := h.GetIntPathParam(r, "id")
 	if err != nil {
@@ -279,11 +235,7 @@ func (h *Handler) RemovePostLike(w http.ResponseWriter, r *http.Request) {
 
 // ReportPost POST /post/{id}/report
 func (h *Handler) ReportPost(w http.ResponseWriter, r *http.Request) {
-	currentUser, err := h.getAuthenticatedUser(r)
-	if err != nil {
-		utilities.HandleError(w, http.StatusUnauthorized, "Unauthorized")
-		return
-	}
+	currentUser := h.getAuthenticatedUser(r)
 
 	id, err := h.GetIntPathParam(r, "id")
 	if err != nil {
@@ -301,11 +253,7 @@ func (h *Handler) ReportPost(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) VoteOnPost(w http.ResponseWriter, r *http.Request) {
-	currentUser, err := h.getAuthenticatedUser(r)
-	if err != nil {
-		utilities.HandleError(w, http.StatusUnauthorized, "Unauthorized")
-		return
-	}
+	currentUser := h.getAuthenticatedUser(r)
 
 	postId, err := h.GetIntPathParam(r, "post_id")
 	if err != nil {

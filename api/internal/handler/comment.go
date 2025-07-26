@@ -8,18 +8,13 @@ import (
 )
 
 func (h *Handler) GetCommentsByPost(w http.ResponseWriter, r *http.Request) {
-	currentUser, err := h.getAuthenticatedUser(r)
-	if err != nil {
-		utilities.HandleError(w, http.StatusUnauthorized, "Unauthorized")
-		return
-	}
-
 	id, err := h.GetIntPathParam(r, "id")
 	if err != nil {
 		utilities.HandleError(w, http.StatusUnauthorized, "Missing parameter")
 		return
 	}
 
+	currentUser := h.getAuthenticatedUser(r)
 	comments, err := h.commentService.GetCommentsByPostId(r.Context(), *currentUser, id)
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
@@ -31,11 +26,7 @@ func (h *Handler) GetCommentsByPost(w http.ResponseWriter, r *http.Request) {
 
 // AddCommentToPostById POST /post/{id}/comment
 func (h *Handler) AddCommentToPostById(w http.ResponseWriter, r *http.Request) {
-	currentUser, err := h.getAuthenticatedUser(r)
-	if err != nil {
-		utilities.HandleError(w, http.StatusUnauthorized, "Unauthorized")
-		return
-	}
+	currentUser := h.getAuthenticatedUser(r)
 
 	postId, err := h.GetIntPathParam(r, "post_id")
 	if err != nil {
@@ -62,11 +53,7 @@ func (h *Handler) AddCommentToPostById(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) AddCommentLike(w http.ResponseWriter, r *http.Request) {
-	currentUser, err := h.getAuthenticatedUser(r)
-	if err != nil {
-		utilities.HandleError(w, http.StatusUnauthorized, "Unauthorized")
-		return
-	}
+	currentUser := h.getAuthenticatedUser(r)
 
 	postId, err := h.GetIntPathParam(r, "post_id")
 	if err != nil {
@@ -91,11 +78,7 @@ func (h *Handler) AddCommentLike(w http.ResponseWriter, r *http.Request) {
 
 // RemoveCommentLike DELETE /post/{post_id}/comment/{comment_id}/liked
 func (h *Handler) RemoveCommentLike(w http.ResponseWriter, r *http.Request) {
-	currentUser, err := h.getAuthenticatedUser(r)
-	if err != nil {
-		utilities.HandleError(w, http.StatusUnauthorized, "Unauthorized")
-		return
-	}
+	currentUser := h.getAuthenticatedUser(r)
 
 	postId, err := h.GetIntPathParam(r, "post_id")
 	if err != nil {

@@ -82,8 +82,12 @@ func main() {
 	mux := http.NewServeMux()
 	h.RegisterRoutes(mux)
 
+	wrappedHandler := middleware.AuthMiddleware(q)(mux)
+	wrappedHandler = middleware.Logger(wrappedHandler)
+	wrappedHandler = middleware.AppVersion(wrappedHandler)
+
 	// Add HTTP instrumentation for the whole server.
-	httpHandler := otelhttp.NewHandler(mux, "/",
+	httpHandler := otelhttp.NewHandler(wrappedHandler, "/",
 		otelhttp.WithSpanNameFormatter(func(operation string, r *http.Request) string {
 			method := r.Method
 			path := r.URL.Path
@@ -94,11 +98,8 @@ func main() {
 		}),
 	)
 
-	wrappedHandler := middleware.Logger(httpHandler)
-	wrappedHandler = middleware.AppVersion(wrappedHandler)
-
 	log.Printf("Server starting on port %d\n", 8080)
-	if err := http.ListenAndServe(":8080", wrappedHandler); err != nil {
+	if err := http.ListenAndServe(":8080", httpHandler); err != nil {
 		log.Fatalf("server failed to start: %v", err)
 	}
 }
