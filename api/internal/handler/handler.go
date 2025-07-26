@@ -4,6 +4,8 @@ import (
 	"errors"
 	"net/http"
 	"splajompy.com/api/v2/internal/db/queries"
+	"splajompy.com/api/v2/internal/models"
+	"splajompy.com/api/v2/internal/utilities"
 	"strconv"
 
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
@@ -114,4 +116,9 @@ func (h *Handler) GetIntPathParam(r *http.Request, paramName string) (int, error
 	}
 
 	return param, nil
+}
+
+func (h *Handler) getAuthenticatedUser(r *http.Request) *models.PublicUser {
+	user := r.Context().Value(utilities.UserContextKey).(models.PublicUser)
+	return &user
 }

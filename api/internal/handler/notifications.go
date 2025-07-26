@@ -10,11 +10,7 @@ import (
 
 // GET /notifications
 func (h *Handler) GetAllNotificationByUserId(w http.ResponseWriter, r *http.Request) {
-	currentUser, err := h.getAuthenticatedUser(r)
-	if err != nil {
-		utilities.HandleError(w, http.StatusUnauthorized, "Unauthorized")
-		return
-	}
+	currentUser := h.getAuthenticatedUser(r)
 
 	offset := 0
 	if offsetStr := r.URL.Query().Get("offset"); offsetStr != "" {
@@ -41,13 +37,9 @@ func (h *Handler) GetAllNotificationByUserId(w http.ResponseWriter, r *http.Requ
 
 // POST /notifications/markRead
 func (h *Handler) MarkAllNotificationsAsRead(w http.ResponseWriter, r *http.Request) {
-	currentUser, err := h.getAuthenticatedUser(r)
-	if err != nil {
-		utilities.HandleError(w, http.StatusUnauthorized, "Unauthorized")
-		return
-	}
+	currentUser := h.getAuthenticatedUser(r)
 
-	err = h.notificationService.MarkAllNotificationsAsReadForUserId(r.Context(), *currentUser)
+	err := h.notificationService.MarkAllNotificationsAsReadForUserId(r.Context(), *currentUser)
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
 		return
@@ -58,11 +50,7 @@ func (h *Handler) MarkAllNotificationsAsRead(w http.ResponseWriter, r *http.Requ
 
 // POST /notification/{id}/markRead
 func (h *Handler) MarkNotificationAsReadById(w http.ResponseWriter, r *http.Request) {
-	currentUser, err := h.getAuthenticatedUser(r)
-	if err != nil {
-		utilities.HandleError(w, http.StatusUnauthorized, "Unauthorized")
-		return
-	}
+	currentUser := h.getAuthenticatedUser(r)
 
 	id, err := h.GetIntPathParam(r, "id")
 	if err != nil {
@@ -81,11 +69,7 @@ func (h *Handler) MarkNotificationAsReadById(w http.ResponseWriter, r *http.Requ
 
 // GET /notifications/hasUnread
 func (h *Handler) HasUnreadNotifications(w http.ResponseWriter, r *http.Request) {
-	currentUser, err := h.getAuthenticatedUser(r)
-	if err != nil {
-		utilities.HandleError(w, http.StatusUnauthorized, "Unauthorized")
-		return
-	}
+	currentUser := h.getAuthenticatedUser(r)
 
 	hasNotifications, err := h.notificationService.UserHasUnreadNotifications(r.Context(), *currentUser)
 	if err != nil {
@@ -97,11 +81,7 @@ func (h *Handler) HasUnreadNotifications(w http.ResponseWriter, r *http.Request)
 }
 
 func (h *Handler) GetUnreadNotificationCount(w http.ResponseWriter, r *http.Request) {
-	currentUser, err := h.getAuthenticatedUser(r)
-	if err != nil {
-		utilities.HandleError(w, http.StatusUnauthorized, "Unauthorized")
-		return
-	}
+	currentUser := h.getAuthenticatedUser(r)
 
 	count, err := h.notificationService.GetUserUnreadNotificationCount(r.Context(), *currentUser)
 	if err != nil {
@@ -114,11 +94,7 @@ func (h *Handler) GetUnreadNotificationCount(w http.ResponseWriter, r *http.Requ
 
 // GET /notifications/unread
 func (h *Handler) GetUnreadNotificationsByUserId(w http.ResponseWriter, r *http.Request) {
-	currentUser, err := h.getAuthenticatedUser(r)
-	if err != nil {
-		utilities.HandleError(w, http.StatusUnauthorized, "Unauthorized")
-		return
-	}
+	currentUser := h.getAuthenticatedUser(r)
 
 	offset := 0
 	if offsetStr := r.URL.Query().Get("offset"); offsetStr != "" {
@@ -145,14 +121,11 @@ func (h *Handler) GetUnreadNotificationsByUserId(w http.ResponseWriter, r *http.
 
 // GET /notifications/read/time
 func (h *Handler) GetReadNotificationsByUserIdWithTimeOffset(w http.ResponseWriter, r *http.Request) {
-	currentUser, err := h.getAuthenticatedUser(r)
-	if err != nil {
-		utilities.HandleError(w, http.StatusUnauthorized, "Unauthorized")
-		return
-	}
+	currentUser := h.getAuthenticatedUser(r)
 
 	beforeTimeStr := r.URL.Query().Get("before_time")
 	var beforeTime time.Time
+	var err error
 	if beforeTimeStr != "" {
 		beforeTime, err = time.Parse(time.RFC3339, beforeTimeStr)
 		if err != nil {
@@ -181,14 +154,11 @@ func (h *Handler) GetReadNotificationsByUserIdWithTimeOffset(w http.ResponseWrit
 
 // GET /notifications/unread/time
 func (h *Handler) GetUnreadNotificationsByUserIdWithTimeOffset(w http.ResponseWriter, r *http.Request) {
-	currentUser, err := h.getAuthenticatedUser(r)
-	if err != nil {
-		utilities.HandleError(w, http.StatusUnauthorized, "Unauthorized")
-		return
-	}
+	currentUser := h.getAuthenticatedUser(r)
 
 	beforeTimeStr := r.URL.Query().Get("before_time")
 	var beforeTime time.Time
+	var err error
 	if beforeTimeStr != "" {
 		beforeTime, err = time.Parse(time.RFC3339, beforeTimeStr)
 		if err != nil {
