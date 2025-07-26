@@ -40,6 +40,7 @@
 		184A63CB2D88CBA100860D6B /* Splajompy.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Splajompy.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		184A63DB2D88CBA200860D6B /* SplajompyTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SplajompyTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		184A63E52D88CBA200860D6B /* SplajompyUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SplajompyUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		185BA36E2E345C7E00841A0F /* Splajompy.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; path = Splajompy.xctestplan; sourceTree = "<group>"; };
 		18A617CF2D9B2D6000B93F08 /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
 		18A617D02D9B2D6000B93F08 /* RegistrationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegistrationView.swift; sourceTree = "<group>"; };
 		18A617D22D9B2D6000B93F08 /* CommentsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommentsView.swift; sourceTree = "<group>"; };
@@ -73,6 +74,7 @@
 				Posts/PostView.swift,
 				Profile/ProfileViewModel.swift,
 				SplajompyApp.swift,
+				Tests/GreatestRemainderQuotaTests.swift,
 			);
 			platformFiltersByRelativePath = {
 				Extensions/ImageResize.swift = (ios, );
@@ -85,6 +87,13 @@
 				Utilities/MentionTextEditorViewModel.swift = (ios, );
 			};
 			target = 184A63CA2D88CBA000860D6B /* Splajompy */;
+		};
+		185BA36D2E345C1F00841A0F /* Exceptions for "Splajompy" folder in "SplajompyTests" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Tests/GreatestRemainderQuotaTests.swift,
+			);
+			target = 184A63DA2D88CBA200860D6B /* SplajompyTests */;
 		};
 		18A5873F2E204DD700436724 /* Exceptions for "Assets" folder in "Splajompy" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
@@ -100,6 +109,7 @@
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
 				181F41AC2D9B32AB00FCF763 /* Exceptions for "Splajompy" folder in "Splajompy" target */,
+				185BA36D2E345C1F00841A0F /* Exceptions for "Splajompy" folder in "SplajompyTests" target */,
 			);
 			path = Splajompy;
 			sourceTree = "<group>";
@@ -144,6 +154,7 @@
 		184A63C22D88CBA000860D6B = {
 			isa = PBXGroup;
 			children = (
+				185BA36E2E345C7E00841A0F /* Splajompy.xctestplan */,
 				187F00462D95DBE800BE80DF /* Assets */,
 				184A63CD2D88CBA100860D6B /* Splajompy */,
 				184A63CC2D88CBA100860D6B /* Products */,
@@ -583,7 +594,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.3.0;
+				MARKETING_VERSION = 1.3.1;
 				PRODUCT_BUNDLE_IDENTIFIER = splajompy.com.Splajompy.devW;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
@@ -628,7 +639,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.3.0;
+				MARKETING_VERSION = 1.3.1;
 				PRODUCT_BUNDLE_IDENTIFIER = splajompy.com.Splajompy;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;

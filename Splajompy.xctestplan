@@ -1,0 +1,24 @@
+{
+  "configurations" : [
+    {
+      "id" : "FDF7EF71-112B-4EBF-8D16-729FD621B79C",
+      "name" : "Configuration 1",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+
+  },
+  "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:Splajompy.xcodeproj",
+        "identifier" : "184A63DA2D88CBA200860D6B",
+        "name" : "SplajompyTests"
+      }
+    }
+  ],
+  "version" : 1
+}

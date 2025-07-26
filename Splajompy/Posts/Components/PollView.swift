@@ -4,6 +4,16 @@ struct PollView: View {
   var poll: Poll
   var onVote: (Int) -> Void
 
+  private var adjustedPercentages: [Int] {
+    guard poll.voteTotal > 0, poll.currentUserVote != nil else {
+      return Array(repeating: 0, count: poll.options.count)
+    }
+
+    let exactPercentages = poll.options.map { Float($0.voteTotal * 100) / Float(poll.voteTotal) }
+    return calculateGreatestRemainderQuotaFromList(percentages: exactPercentages)
+      ?? poll.options.map { ($0.voteTotal * 100) / poll.voteTotal }
+  }
+
   var body: some View {
     VStack(alignment: .leading) {
       Text(poll.title)
@@ -20,6 +30,7 @@ struct PollView: View {
             option: option,
             hasVoted: poll.currentUserVote != nil,
             totalVotes: poll.voteTotal,
+            percentage: adjustedPercentages[index],
             onTap: { onVote(index) }
           )
         }
@@ -34,14 +45,10 @@ struct PollView: View {
     let option: PollOption
     let hasVoted: Bool
     let totalVotes: Int
+    let percentage: Int
     let onTap: () -> Void
 
     @State private var tapped: Bool = false
-
-    private var percentage: Int {
-      guard totalVotes > 0 else { return 0 }
-      return hasVoted ? (option.voteTotal * 100) / totalVotes : 0
-    }
 
     var body: some View {
       Button(action: {
