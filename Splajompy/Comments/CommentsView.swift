@@ -103,10 +103,6 @@ struct CommentsView: View {
         }
       }
 
-      if isShowingInSheet {
-        Spacer()
-      }
-
       Divider()
 
       Button(action: {
@@ -121,7 +117,7 @@ struct CommentsView: View {
           Spacer()
         }
       }
-      .padding([.top, .leading, .trailing])
+      .padding()
       .buttonStyle(.plain)
     }
     .sheet(isPresented: $showingCommentSheet) {
@@ -283,7 +279,13 @@ struct LikeButton: View {
     }) {
       Image(systemName: isLiked ? "heart.fill" : "heart")
         .font(.system(size: 16))
+        .foregroundStyle(isLiked ? Color.red.gradient : Color.primary.gradient)
         .padding(6)
+        .scaleEffect(isLiked ? 1.1 : 1)
+        .animation(
+          .spring(response: 0.4, dampingFraction: 0.6, blendDuration: 0),
+          value: isLiked
+        )
     }
     .buttonStyle(.plain)
     .sensoryFeedback(.impact, trigger: isLiked)

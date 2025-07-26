@@ -152,7 +152,6 @@ struct AccountSettingsView: View {
           }
           .frame(maxWidth: .infinity)
           .padding()
-          .background(.gray)
           .containerShape(RoundedRectangle(cornerRadius: 10))
         }
       }

@@ -9,8 +9,11 @@ struct PostView: View {
   var isStandalone: Bool
 
   init(
-    post: DetailedPost, postManager: PostManager, showAuthor: Bool = true,
-    isStandalone: Bool = false, onLikeButtonTapped: @escaping () -> Void,
+    post: DetailedPost,
+    postManager: PostManager,
+    showAuthor: Bool = true,
+    isStandalone: Bool = false,
+    onLikeButtonTapped: @escaping () -> Void,
     onPostDeleted: @escaping () -> Void
   ) {
     self.post = post
@@ -110,8 +113,11 @@ struct PostView: View {
         PollView(
           poll: poll,
           onVote: { option in
-            Task { await postManager.voteInPoll(postId: post.id, optionIndex: option) }
-          })
+            Task {
+              await postManager.voteInPoll(postId: post.id, optionIndex: option)
+            }
+          }
+        )
       }
 
       RelevantLikeView(
@@ -174,7 +180,9 @@ struct PostView: View {
                     .font(.system(size: 22))
                     .frame(width: 48, height: 40)
                     .background(
-                      RoundedRectangle(cornerRadius: 12).fill(.gray.opacity(0.15))
+                      RoundedRectangle(cornerRadius: 12).fill(
+                        .gray.opacity(0.15)
+                      )
                     )
                     .contentShape(RoundedRectangle(cornerRadius: 12))
                 #else
@@ -199,7 +207,9 @@ struct PostView: View {
                     .font(.system(size: 22))
                     .frame(width: 48, height: 40)
                     .background(
-                      RoundedRectangle(cornerRadius: 12).fill(.gray.opacity(0.15))
+                      RoundedRectangle(cornerRadius: 12).fill(
+                        .gray.opacity(0.15)
+                      )
                     )
                     .contentShape(RoundedRectangle(cornerRadius: 12))
                 #else
@@ -229,25 +239,21 @@ struct PostView: View {
             onLikeButtonTapped()
             PostHogSDK.shared.capture("post_like")
           }) {
-            #if os(iOS)
-              Image(systemName: post.isLiked ? "heart.fill" : "heart")
-                .font(.system(size: 22))
-                .foregroundStyle(post.isLiked ? Color.red.gradient : Color.primary.gradient)
-                .frame(width: 48, height: 40)
-                .background(
-                  RoundedRectangle(cornerRadius: 12).fill(.gray.opacity(0.15))
-                )
-                .contentShape(RoundedRectangle(cornerRadius: 12))
-            #else
-              Image(systemName: post.isLiked ? "heart.fill" : "heart")
-                .font(.system(size: 18))
-                .foregroundColor(post.isLiked ? .red : .primary)
-                .frame(width: 32, height: 32)
-                .background(
-                  RoundedRectangle(cornerRadius: 6).fill(.gray.opacity(0.1))
-                )
-                .contentShape(RoundedRectangle(cornerRadius: 6))
-            #endif
+            Image(systemName: post.isLiked ? "heart.fill" : "heart")
+              .font(.system(size: 22))
+              .foregroundStyle(
+                post.isLiked ? Color.red.gradient : Color.primary.gradient
+              )
+              .frame(width: 48, height: 40)
+              .scaleEffect(post.isLiked ? 1.25 : 1.0)
+              .background(
+                RoundedRectangle(cornerRadius: 12).fill(.gray.opacity(0.15))
+              )
+              .contentShape(RoundedRectangle(cornerRadius: 12))
+              .animation(
+                .spring(response: 0.4, dampingFraction: 0.6, blendDuration: 0),
+                value: post.isLiked
+              )
           }
           .buttonStyle(.plain)
           .accessibilityLabel("Like post")
@@ -326,7 +332,10 @@ struct PostView: View {
 
   NavigationView {
     PostView(
-      post: detailedPost, postManager: postManager, onLikeButtonTapped: {}, onPostDeleted: {}
+      post: detailedPost,
+      postManager: postManager,
+      onLikeButtonTapped: {},
+      onPostDeleted: {}
     )
     .environmentObject(authManager)
   }
@@ -386,7 +395,10 @@ struct PostView: View {
 
   NavigationView {
     PostView(
-      post: detailedPost, postManager: postManager, onLikeButtonTapped: {}, onPostDeleted: {}
+      post: detailedPost,
+      postManager: postManager,
+      onLikeButtonTapped: {},
+      onPostDeleted: {}
     )
     .environmentObject(authManager)
   }

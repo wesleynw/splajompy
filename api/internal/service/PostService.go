@@ -236,12 +236,17 @@ func (s *PostService) AddLikeToPost(ctx context.Context, currentUser models.Publ
 		return err
 	}
 
-	text := fmt.Sprintf("@%s liked your post.", currentUser.Username)
-	facets, err := repositories.GenerateFacets(ctx, s.userRepository, text)
-	if err != nil {
-		return err
+	if currentUser.UserID != int(post.UserID) {
+		text := fmt.Sprintf("@%s liked your post.", currentUser.Username)
+		facets, err := repositories.GenerateFacets(ctx, s.userRepository, text)
+		if err != nil {
+			return err
+		}
+		err = s.notificationRepository.InsertNotification(ctx, int(post.UserID), &postId, nil, &facets, text, models.NotificationTypeLike)
+		if err != nil {
+			return err
+		}
 	}
-	err = s.notificationRepository.InsertNotification(ctx, int(post.UserID), &postId, nil, &facets, text, models.NotificationTypeLike)
 
 	return err
 }
