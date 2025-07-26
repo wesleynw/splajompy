@@ -28,9 +28,19 @@ struct RequestFeatureView: View {
     }
     .padding()
     .navigationTitle("Request a feature")
-    .navigationBarTitleDisplayMode(.inline)
+    #if os(iOS)
+      .navigationBarTitleDisplayMode(.inline)
+    #endif
     .toolbar {
-      ToolbarItem(placement: .topBarTrailing) {
+      ToolbarItem(
+        placement: {
+          #if os(iOS)
+            .topBarTrailing
+          #else
+            .primaryAction
+          #endif
+        }()
+      ) {
         Button {
           sendRequestedFeature()
         } label: {
@@ -41,7 +51,10 @@ struct RequestFeatureView: View {
               .fontWeight(.bold)
           }
         }
-        .disabled(featureText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isLoading)
+        .disabled(
+          featureText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            || isLoading
+        )
       }
     }
     .alert(hadSuccess ? "Thanks!" : "Error", isPresented: $showAlert) {
@@ -53,7 +66,9 @@ struct RequestFeatureView: View {
         }
       }
     } message: {
-      hadSuccess ? Text("Your request will be send to the developer.") : Text("Try again.")
+      hadSuccess
+        ? Text("Your request will be send to the developer.")
+        : Text("Try again.")
     }
   }
 
