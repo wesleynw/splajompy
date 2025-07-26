@@ -146,12 +146,14 @@ func (s *CommentService) AddLikeToCommentById(ctx context.Context, currentUser m
 		return errors.New("unable to find comment")
 	}
 
-	text := fmt.Sprintf("@%s liked your comment.", currentUser.Username)
-	facets, err := repositories.GenerateFacets(ctx, s.userRepo, text)
-	if err != nil {
-		return err
+	if currentUser.UserID != int(comment.UserID) {
+		text := fmt.Sprintf("@%s liked your comment.", currentUser.Username)
+		facets, err := repositories.GenerateFacets(ctx, s.userRepo, text)
+		if err != nil {
+			return err
+		}
+		err = s.notificationRepo.InsertNotification(ctx, int(comment.UserID), &postId, &commentId, &facets, text, models.NotificationTypeLike)
 	}
-	err = s.notificationRepo.InsertNotification(ctx, int(comment.UserID), &postId, &commentId, &facets, text, models.NotificationTypeLike)
 
 	return err
 }
