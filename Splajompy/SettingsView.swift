@@ -50,6 +50,10 @@ struct SettingsView: View {
             Label("Terms of Service", systemImage: "doc.text")
           }
         }
+        
+//        Section {
+//          
+//        }
 
         Section {
           HStack {
