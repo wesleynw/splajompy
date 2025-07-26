@@ -30,6 +30,19 @@ Migrations are handled with `golang-migrate`. To make changes to the DB, follow 
 [Database migrations in Go with golang-migrate](https://betterstack.com/community/guides/scaling-go/golang-migrate)
 
 ## Linting
+
+### Go Code
+Before pushing Go code changes, run golangci-lint to check for issues:
+```bash
+# Install golangci-lint (if not already installed)
+go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+
+# Run linting from the api directory
+cd api
+golangci-lint run
+```
+
+### Swift Code
 Before pushing Swift code changes, run the following command to format your code:
 ```bash
 xcrun swift-format --in-place --recursive .
