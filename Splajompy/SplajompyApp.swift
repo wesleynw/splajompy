@@ -13,7 +13,6 @@ struct SplajompyApp: App {
   @StateObject private var authManager = AuthManager()
   @StateObject private var postManager = PostManager()
   @AppStorage("appearance_mode") var appearanceMode: String = "Automatic"
-  @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding: Bool = false
 
   init() {
     let posthogApiKey = "phc_sSDHxTCqpjwoSDSOQiNAAgmybjEakfePBsaNHWaWy74"
@@ -109,9 +108,6 @@ struct SplajompyApp: App {
     .onOpenURL { url in
       handleDeepLink(url)
     }
-    .sheet(isPresented: .constant(!hasCompletedOnboarding)) {
-      onboardingSheet
-    }
   }
 
   @ViewBuilder
@@ -123,9 +119,6 @@ struct SplajompyApp: App {
     }
     .onOpenURL { url in
       handleDeepLink(url)
-    }
-    .sheet(isPresented: .constant(!hasCompletedOnboarding)) {
-      onboardingSheet
     }
   }
 
@@ -179,13 +172,6 @@ struct SplajompyApp: App {
         routeDestination(route)
       }
     }
-  }
-
-  private var onboardingSheet: some View {
-    OnboardingView {
-      hasCompletedOnboarding = true
-    }
-    .interactiveDismissDisabled()
   }
 
   private var colorScheme: ColorScheme? {
