@@ -44,12 +44,10 @@ struct RequestFeatureView: View {
         Button {
           sendRequestedFeature()
         } label: {
-          if isLoading {
-            ProgressView()
-          } else {
-            Text("Send")
-              .fontWeight(.bold)
-          }
+          ProgressView()
+            .opacity(isLoading ? 1 : 0)
+          Text("Send")
+            .fontWeight(.bold)
         }
         .disabled(
           featureText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
@@ -69,6 +67,9 @@ struct RequestFeatureView: View {
       hadSuccess
         ? Text("Your request will be send to the developer.")
         : Text("Try again.")
+    }
+    .onAppear {
+      isFocused = true
     }
   }
 
@@ -94,6 +95,6 @@ struct RequestFeatureView: View {
 
 #Preview {
   NavigationStack {
-    RequestFeatureView()
+    RequestFeatureView(profileService: MockProfileService())
   }
 }
