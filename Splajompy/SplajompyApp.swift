@@ -108,6 +108,7 @@ struct SplajompyApp: App {
     }
   }
 
+  #if os(macOS)
   @ViewBuilder
   private var splitView: some View {
     NavigationSplitView {
@@ -156,6 +157,7 @@ struct SplajompyApp: App {
       }
     }
   }
+  #endif
 
   private var colorScheme: ColorScheme? {
     switch appearanceMode {
