@@ -10,6 +10,7 @@ struct SplajompyApp: App {
     NavigationPath(),
     NavigationPath(),
   ]
+
   @StateObject private var authManager = AuthManager()
   @StateObject private var postManager = PostManager()
   @AppStorage("appearance_mode") var appearanceMode: String = "Automatic"
@@ -23,26 +24,23 @@ struct SplajompyApp: App {
 
   var body: some Scene {
     WindowGroup {
-      mainContentView
-        .onReceive(NotificationCenter.default.publisher(for: .userDidSignOut)) { _ in
-          handleUserSignOut()
+      Group {
+        if authManager.isAuthenticated {
+          authenticatedView
+        } else {
+          SplashScreenView()
         }
-        .environmentObject(authManager)
-        .preferredColorScheme(colorScheme)
+      }
+      .onReceive(NotificationCenter.default.publisher(for: .userDidSignOut)) {
+        _ in
+        handleUserSignOut()
+      }
+      .environmentObject(authManager)
+      .preferredColorScheme(colorScheme)
     }
     #if os(macOS)
-      .defaultSize(width: 1200, height: 800)
-      .windowResizability(.contentSize)
+      .defaultSize(width: 1250, height: 800)
     #endif
-  }
-
-  @ViewBuilder
-  private var mainContentView: some View {
-    if authManager.isAuthenticated {
-      authenticatedView
-    } else {
-      SplashScreenView()
-    }
   }
 
   @ViewBuilder
@@ -50,7 +48,7 @@ struct SplajompyApp: App {
     #if os(iOS)
       iOSTabView
     #else
-      macOSSplitView
+      splitView
     #endif
   }
 
@@ -111,65 +109,50 @@ struct SplajompyApp: App {
   }
 
   @ViewBuilder
-  private var macOSSplitView: some View {
+  private var splitView: some View {
     NavigationSplitView {
-      sidebarList
-    } detail: {
-      detailView
-    }
-    .onOpenURL { url in
-      handleDeepLink(url)
-    }
-  }
-
-  private var sidebarList: some View {
-    List {
-      Button(action: { selection = 0 }) {
-        Label("Home", systemImage: "house")
-      }
-      .foregroundColor(selection == 0 ? .primary : .secondary)
-
-      Button(action: { selection = 1 }) {
-        Label("Notifications", systemImage: "bell")
-      }
-      .foregroundColor(selection == 1 ? .primary : .secondary)
-
-      Button(action: { selection = 2 }) {
-        Label("Search", systemImage: "magnifyingglass")
-      }
-      .foregroundColor(selection == 2 ? .primary : .secondary)
-
-      Button(action: { selection = 3 }) {
-        Label("Profile", systemImage: "person.circle")
-      }
-      .foregroundColor(selection == 3 ? .primary : .secondary)
-    }
-    .navigationSplitViewColumnWidth(min: 180, ideal: 200)
-  }
-
-  private var detailView: some View {
-    NavigationStack(path: $navigationPaths[selection]) {
-      Group {
-        switch selection {
-        case 0:
-          HomeView(postManager: postManager)
-            .postHogScreenView()
-        case 1:
-          NotificationsView()
-            .postHogScreenView()
-        case 2:
-          SearchView()
-            .postHogScreenView()
-        case 3:
-          CurrentProfileView(postManager: postManager)
-            .postHogScreenView()
-        default:
-          HomeView(postManager: postManager)
-            .postHogScreenView()
+      List(selection: $selection) {
+        NavigationLink(value: 0) {
+          Label("Home", systemImage: "house")
+        }
+        NavigationLink(value: 1) {
+          Label("Notifications", systemImage: "bell")
+        }
+        NavigationLink(value: 2) {
+          Label("Search", systemImage: "magnifyingglass")
+        }
+        NavigationLink(value: 3) {
+          Label("Profile", systemImage: "person.circle")
         }
       }
-      .navigationDestination(for: Route.self) { route in
-        routeDestination(route)
+      .navigationSplitViewColumnWidth(175)
+    } detail: {
+      NavigationStack(path: $navigationPaths[selection]) {
+        Group {
+          switch selection {
+          case 0:
+            HomeView(postManager: postManager)
+              .postHogScreenView()
+          case 1:
+            NotificationsView()
+              .postHogScreenView()
+          case 2:
+            SearchView()
+              .postHogScreenView()
+          case 3:
+            CurrentProfileView(postManager: postManager)
+              .postHogScreenView()
+          default:
+            HomeView(postManager: postManager)
+              .postHogScreenView()
+          }
+        }
+        .navigationDestination(for: Route.self) { route in
+          routeDestination(route)
+        }
+        .onOpenURL { url in
+          handleDeepLink(url)
+        }
       }
     }
   }
@@ -189,7 +172,11 @@ struct SplajompyApp: App {
   private func routeDestination(_ route: Route) -> some View {
     switch route {
     case .profile(let id, let username):
-      ProfileView(userId: Int(id)!, username: username, postManager: postManager)
+      ProfileView(
+        userId: Int(id)!,
+        username: username,
+        postManager: postManager
+      )
     case .post(let id):
       StandalonePostView(postId: id, postManager: postManager)
     }
