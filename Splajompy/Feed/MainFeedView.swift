@@ -1,12 +1,11 @@
 import SwiftUI
 
-struct HomeView: View {
+struct MainFeedView: View {
   @State private var isShowingNewPostView = false
   @StateObject private var viewModel: FeedViewModel
   @EnvironmentObject var authManager: AuthManager
   @ObservedObject var postManager: PostManager
 
-  @AppStorage("mindlessMode") private var mindlessMode: Bool = false
   @AppStorage("selectedFeedType") private var selectedFeedType: FeedType = .all
 
   init(feedType: FeedType = .all, postManager: PostManager) {
@@ -122,71 +121,31 @@ struct HomeView: View {
 
   private func postList(posts: [DetailedPost]) -> some View {
     Group {
-      if mindlessMode {
-        GeometryReader { proxy in
-          ScrollView(.vertical) {
-            LazyVStack(spacing: 0) {
-              ForEach(posts.indices, id: \.self) { index in
-                let post = posts[index]
-                ReelsPostView(
-                  post: post,
-                  postManager: postManager,
-                  onLikeButtonTapped: { viewModel.toggleLike(on: post) },
-                  onPostDeleted: { viewModel.deletePost(on: post) },
-                  onCommentsButtonTapped: {
-                    // Handle comments
-                  }
-                )
-                .environmentObject(authManager)
-                .containerRelativeFrame([.horizontal, .vertical])
-                .padding(.bottom, proxy.safeAreaInsets.bottom / 2)
-                .onAppear {
-                  handlePostAppear(post: post, index: index)
-                }
-              }
+      ScrollView {
+        LazyVStack(spacing: 0) {
+          ForEach(posts.indices, id: \.self) { index in
+            let post = posts[index]
+            VStack {
+              postRow(post: post, index: index)
+                .transition(.opacity)
+            }
+            .geometryGroup()
+          }
 
-              if viewModel.isLoadingMore {
-                ProgressView()
-                  .containerRelativeFrame([.horizontal, .vertical])
-                  .padding(.bottom, proxy.safeAreaInsets.bottom / 2)
-                  .background(Color.black)
-              }
-            }
-            .scrollTargetLayout()
-          }
-          .scrollTargetBehavior(.paging)
-          .scrollIndicators(.hidden)
-          .refreshable {
-            await viewModel.loadPosts(reset: true)
+          HStack {
+            Spacer()
+            ProgressView()
+              .padding()
+            Spacer()
           }
         }
-      } else {
-        ScrollView {
-          LazyVStack(spacing: 0) {
-            ForEach(posts.indices, id: \.self) { index in
-              let post = posts[index]
-              VStack {
-                postRow(post: post, index: index)
-                  .transition(.opacity)
-              }
-              .geometryGroup()
-            }
-
-            HStack {
-              Spacer()
-              ProgressView()
-                .padding()
-              Spacer()
-            }
-          }
-        }
-        .refreshable {
-          await Task {
-            await viewModel.loadPosts(reset: true)
-          }.value
-        }
-        .animation(.easeInOut(duration: 0.1), value: posts.count)
       }
+      .refreshable {
+        await Task {
+          await viewModel.loadPosts(reset: true)
+        }.value
+      }
+      .animation(.easeInOut(duration: 0.1), value: posts.count)
     }
   }
 

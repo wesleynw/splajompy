@@ -4,7 +4,6 @@ import SwiftUI
 
 struct SettingsView: View {
   @EnvironmentObject private var authManager: AuthManager
-  @AppStorage("mindlessMode") private var mindlessMode: Bool = false
 
   let appVersion =
     Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? ""
@@ -35,10 +34,6 @@ struct SettingsView: View {
             Label("App Icon", systemImage: "square.grid.2x2")
           }
         #endif
-
-        Toggle(isOn: $mindlessMode) {
-          Label("Mindless Mode", systemImage: "infinity")
-        }
 
         StorageManager()
 

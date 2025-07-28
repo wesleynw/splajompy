@@ -56,7 +56,7 @@ struct SplajompyApp: App {
   private var iOSTabView: some View {
     TabView(selection: $selection) {
       NavigationStack(path: $navigationPaths[0]) {
-        HomeView(postManager: postManager)
+        MainFeedView(postManager: postManager)
           .postHogScreenView()
           .navigationDestination(for: Route.self) { route in
             routeDestination(route)
