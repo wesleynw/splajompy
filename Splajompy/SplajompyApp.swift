@@ -109,54 +109,54 @@ struct SplajompyApp: App {
   }
 
   #if os(macOS)
-  @ViewBuilder
-  private var splitView: some View {
-    NavigationSplitView {
-      List(selection: $selection) {
-        NavigationLink(value: 0) {
-          Label("Home", systemImage: "house")
-        }
-        NavigationLink(value: 1) {
-          Label("Notifications", systemImage: "bell")
-        }
-        NavigationLink(value: 2) {
-          Label("Search", systemImage: "magnifyingglass")
-        }
-        NavigationLink(value: 3) {
-          Label("Profile", systemImage: "person.circle")
-        }
-      }
-      .navigationSplitViewColumnWidth(175)
-    } detail: {
-      NavigationStack(path: $navigationPaths[selection]) {
-        Group {
-          switch selection {
-          case 0:
-            HomeView(postManager: postManager)
-              .postHogScreenView()
-          case 1:
-            NotificationsView()
-              .postHogScreenView()
-          case 2:
-            SearchView()
-              .postHogScreenView()
-          case 3:
-            CurrentProfileView(postManager: postManager)
-              .postHogScreenView()
-          default:
-            HomeView(postManager: postManager)
-              .postHogScreenView()
+    @ViewBuilder
+    private var splitView: some View {
+      NavigationSplitView {
+        List(selection: $selection) {
+          NavigationLink(value: 0) {
+            Label("Home", systemImage: "house")
+          }
+          NavigationLink(value: 1) {
+            Label("Notifications", systemImage: "bell")
+          }
+          NavigationLink(value: 2) {
+            Label("Search", systemImage: "magnifyingglass")
+          }
+          NavigationLink(value: 3) {
+            Label("Profile", systemImage: "person.circle")
           }
         }
-        .navigationDestination(for: Route.self) { route in
-          routeDestination(route)
-        }
-        .onOpenURL { url in
-          handleDeepLink(url)
+        .navigationSplitViewColumnWidth(175)
+      } detail: {
+        NavigationStack(path: $navigationPaths[selection]) {
+          Group {
+            switch selection {
+            case 0:
+              HomeView(postManager: postManager)
+                .postHogScreenView()
+            case 1:
+              NotificationsView()
+                .postHogScreenView()
+            case 2:
+              SearchView()
+                .postHogScreenView()
+            case 3:
+              CurrentProfileView(postManager: postManager)
+                .postHogScreenView()
+            default:
+              HomeView(postManager: postManager)
+                .postHogScreenView()
+            }
+          }
+          .navigationDestination(for: Route.self) { route in
+            routeDestination(route)
+          }
+          .onOpenURL { url in
+            handleDeepLink(url)
+          }
         }
       }
     }
-  }
   #endif
 
   private var colorScheme: ColorScheme? {
