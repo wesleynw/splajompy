@@ -43,6 +43,7 @@ func AuthMiddleware(q *queries.Queries) func(http.Handler) http.Handler {
 				return
 			}
 
+			// TODO: refresh tokens
 			//if time.Now().Unix() >= session.ExpiresAt.Time.Unix() {
 			//	err = q.DeleteSession(ctx, session.ID)
 			//	if err != nil {
