@@ -40,7 +40,7 @@
       shouldUseLaunchSchemeArgsEnv = "YES">
       <TestPlans>
          <TestPlanReference
-            reference = "container:Splajompy.xctestplan"
+            reference = "container:Splajompy/Splajompy.xctestplan"
             default = "YES">
          </TestPlanReference>
       </TestPlans>
