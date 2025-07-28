@@ -74,7 +74,6 @@ class AuthManager: ObservableObject, Sendable {
 
     UserDefaults.standard.removeObject(forKey: "mindlessMode")
     UserDefaults.standard.removeObject(forKey: "selectedFeedType")
-    // UserDefaults.standard.removeObject(forKey: "hasCompletedOnboarding") // do we want to remove this?
 
     KingfisherManager.shared.cache.clearMemoryCache()
     KingfisherManager.shared.cache.clearDiskCache()
