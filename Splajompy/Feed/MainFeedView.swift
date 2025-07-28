@@ -8,16 +8,15 @@ struct MainFeedView: View {
 
   @AppStorage("selectedFeedType") private var selectedFeedType: FeedType = .all
 
-  init(feedType: FeedType = .all, postManager: PostManager) {
+  init(postManager: PostManager) {
     self.postManager = postManager
     _viewModel = StateObject(
-      wrappedValue: FeedViewModel(feedType: feedType, postManager: postManager)
+      wrappedValue: FeedViewModel(feedType: .all, postManager: postManager)
     )
   }
 
   var body: some View {
     mainContent
-      .navigationTitle(selectedFeedType == .mutual ? "Home" : "All")
       .toolbarTitleMenu {
         Button {
           selectedFeedType = .mutual
@@ -40,13 +39,12 @@ struct MainFeedView: View {
           }
         }
       }
-      .toolbar {
-        #if os(iOS)
+      #if os(iOS)
+        .toolbar {
           addPostToolbarItem
-        #endif
-      }
+        }
+      #endif
       .task {
-        viewModel.feedType = selectedFeedType
         await viewModel.loadPosts()
       }
       .onChange(of: selectedFeedType) { _, newFeedType in
@@ -83,12 +81,6 @@ struct MainFeedView: View {
         )
       }
     }
-    #if os(iOS)
-      .navigationBarTitleDisplayMode(.inline)
-    #else
-      .contentMargins(.horizontal, 40, for: .scrollContent)
-      .safeAreaPadding(.horizontal, 20)
-    #endif
   }
 
   private var addPostToolbarItem: some ToolbarContent {
