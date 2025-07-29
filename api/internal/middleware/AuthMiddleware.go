@@ -8,7 +8,6 @@ import (
 	"splajompy.com/api/v2/internal/db/queries"
 	"splajompy.com/api/v2/internal/utilities"
 	"strings"
-	"time"
 )
 
 func AuthMiddleware(q *queries.Queries) func(http.Handler) http.Handler {
@@ -44,15 +43,16 @@ func AuthMiddleware(q *queries.Queries) func(http.Handler) http.Handler {
 				return
 			}
 
-			if time.Now().Unix() >= session.ExpiresAt.Time.Unix() {
-				err = q.DeleteSession(ctx, session.ID)
-				if err != nil {
-					http.Error(w, "failed to delete expired session", http.StatusInternalServerError)
-					return
-				}
-				http.Error(w, "session expired", http.StatusUnauthorized)
-				return
-			}
+			// TODO: refresh tokens
+			//if time.Now().Unix() >= session.ExpiresAt.Time.Unix() {
+			//	err = q.DeleteSession(ctx, session.ID)
+			//	if err != nil {
+			//		http.Error(w, "failed to delete expired session", http.StatusInternalServerError)
+			//		return
+			//	}
+			//	http.Error(w, "session expired", http.StatusUnauthorized)
+			//	return
+			//}
 
 			dbUser, err := q.GetUserById(ctx, session.UserID)
 			if err != nil {
