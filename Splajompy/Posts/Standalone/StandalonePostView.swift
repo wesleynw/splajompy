@@ -2,7 +2,7 @@ import SwiftUI
 
 struct StandalonePostView: View {
   let postId: Int
-  @ObservedObject var postManager: PostManager
+  var postManager: PostManager
 
   @StateObject private var viewModel: ViewModel
   @State private var postState: PostState = .idle

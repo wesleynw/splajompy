@@ -4,7 +4,7 @@ struct MainFeedView: View {
   @State private var isShowingNewPostView = false
   @StateObject private var viewModel: FeedViewModel
   @EnvironmentObject var authManager: AuthManager
-  @ObservedObject var postManager: PostManager
+  var postManager: PostManager
 
   @AppStorage("selectedFeedType") private var selectedFeedType: FeedType = .all
 
@@ -39,11 +39,6 @@ struct MainFeedView: View {
           }
         }
       }
-      #if os(iOS)
-        .toolbar {
-          addPostToolbarItem
-        }
-      #endif
       .task {
         await viewModel.loadPosts()
       }
@@ -56,6 +51,9 @@ struct MainFeedView: View {
       #if os(iOS)
         .sheet(isPresented: $isShowingNewPostView) {
           newPostSheet
+        }
+        .toolbar {
+          addPostToolbarItem
         }
       #endif
   }
@@ -72,7 +70,7 @@ struct MainFeedView: View {
         if postIds.isEmpty {
           emptyMessage
         } else {
-          postList(posts: viewModel.posts)
+          postList
         }
       case .failed(let error):
         ErrorScreen(
@@ -111,33 +109,30 @@ struct MainFeedView: View {
     }
   #endif
 
-  private func postList(posts: [DetailedPost]) -> some View {
+  private var postList: some View {
     Group {
       ScrollView {
         LazyVStack(spacing: 0) {
-          ForEach(posts.indices, id: \.self) { index in
-            let post = posts[index]
+          ForEach(viewModel.posts.indices, id: \.self) { index in
+            let post = viewModel.posts[index]
             VStack {
               postRow(post: post, index: index)
-                .transition(.opacity)
             }
-            .geometryGroup()
           }
 
-          HStack {
-            Spacer()
-            ProgressView()
-              .padding()
-            Spacer()
+          if viewModel.canLoadMore {
+            HStack {
+              Spacer()
+              ProgressView()
+                .padding()
+              Spacer()
+            }
           }
         }
       }
       .refreshable {
-        await Task {
-          await viewModel.loadPosts(reset: true)
-        }.value
+        await viewModel.loadPosts(reset: true)
       }
-      .animation(.easeInOut(duration: 0.1), value: posts.count)
     }
   }
 
@@ -150,10 +145,9 @@ struct MainFeedView: View {
       onPostDeleted: { viewModel.deletePost(on: post) }
     )
     .environmentObject(authManager)
-    .geometryGroup()
-    .onAppear {
-      handlePostAppear(post: post, index: index)
-    }
+    //    .onAppear {
+    //      handlePostAppear(post: post, index: index)
+    //    }
   }
 
   private func handlePostAppear(post: DetailedPost, index: Int) {

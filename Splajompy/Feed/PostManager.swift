@@ -2,7 +2,7 @@ import SwiftUI
 
 // TODO: I think it would make sense to have a utility funtion for optimistic updates, takes in an update, reversion, and server action?
 @MainActor
-class PostManager: ObservableObject {
+class PostManager {
   private let postService: PostServiceProtocol
 
   // MARK: - State Management Properties

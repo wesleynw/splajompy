@@ -12,7 +12,7 @@ struct SplajompyApp: App {
   ]
 
   @StateObject private var authManager = AuthManager()
-  @StateObject private var postManager = PostManager()
+  private var postManager = PostManager()
   @AppStorage("appearance_mode") var appearanceMode: String = "Automatic"
 
   init() {
