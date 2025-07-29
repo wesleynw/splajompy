@@ -110,44 +110,35 @@ struct MainFeedView: View {
   #endif
 
   private var postList: some View {
-    Group {
-      ScrollView {
-        LazyVStack(spacing: 0) {
-          ForEach(viewModel.posts.indices, id: \.self) { index in
-            let post = viewModel.posts[index]
-            VStack {
-              postRow(post: post, index: index)
-            }
+    ScrollView {
+      LazyVStack(spacing: 0) {
+        ForEach(viewModel.posts.indices, id: \.self) { index in
+          let post = viewModel.posts[index]
+          VStack {
+            PostView(
+              post: post,
+              postManager: postManager,
+              showAuthor: true,
+              onLikeButtonTapped: { viewModel.toggleLike(on: post) },
+              onPostDeleted: { viewModel.deletePost(on: post) }
+            )
           }
+        }
 
-          if viewModel.canLoadMore {
-            HStack {
-              Spacer()
-              ProgressView()
-                .padding()
-              Spacer()
-            }
+        if viewModel.canLoadMore {
+          HStack {
+            Spacer()
+            ProgressView()
+              .padding()
+            Spacer()
           }
         }
       }
-      .refreshable {
-        await viewModel.loadPosts(reset: true)
-      }
     }
-  }
-
-  private func postRow(post: DetailedPost, index: Int) -> some View {
-    PostView(
-      post: post,
-      postManager: postManager,
-      showAuthor: true,
-      onLikeButtonTapped: { viewModel.toggleLike(on: post) },
-      onPostDeleted: { viewModel.deletePost(on: post) }
-    )
     .environmentObject(authManager)
-    //    .onAppear {
-    //      handlePostAppear(post: post, index: index)
-    //    }
+    .refreshable {
+      await viewModel.loadPosts(reset: true)
+    }
   }
 
   private func handlePostAppear(post: DetailedPost, index: Int) {
@@ -165,7 +156,6 @@ struct MainFeedView: View {
     VStack {
       Spacer()
       ProgressView()
-        .scaleEffect(1.5)
         .padding()
       Spacer()
     }
