@@ -183,7 +183,7 @@ struct ImageGallery: View {
   ) -> some View {
     Group {
       if index < images.count, let url = URL(string: images[index].imageBlobUrl) {
-        OptimizedKFImage(
+        CustomAsyncImage(
           url,
           contentMode: .fill,
           targetSize: CGSize(width: width, height: height)
@@ -220,9 +220,8 @@ struct ImageGallery: View {
         let aspectRatio = CGFloat(images[0].width) / CGFloat(images[0].height)
         let calculatedHeight = containerWidth / aspectRatio
 
-        OptimizedKFImage(url, contentMode: .fit)
+        CustomAsyncImage(url, contentMode: .fit)
           .frame(height: calculatedHeight)
-          .clipShape(.rect(cornerRadius: 6))
           .onTapGesture {
             selectedImageIndex = 0
           }

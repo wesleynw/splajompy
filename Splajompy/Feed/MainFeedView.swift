@@ -17,6 +17,8 @@ struct MainFeedView: View {
 
   var body: some View {
     mainContent
+      .navigationTitle(selectedFeedType == .mutual ? "Home" : "All")
+      .navigationBarTitleDisplayMode(.inline)
       .toolbarTitleMenu {
         Button {
           selectedFeedType = .mutual
@@ -114,16 +116,17 @@ struct MainFeedView: View {
       LazyVStack(spacing: 0) {
         ForEach(viewModel.posts.indices, id: \.self) { index in
           let post = viewModel.posts[index]
-          VStack {
-            PostView(
-              post: post,
-              postManager: postManager,
-              showAuthor: true,
-              onLikeButtonTapped: { viewModel.toggleLike(on: post) },
-              onPostDeleted: { viewModel.deletePost(on: post) }
-            )
-            .geometryGroup()
-          }
+          PostView(
+            post: post,
+            postManager: postManager,
+            showAuthor: true,
+            onLikeButtonTapped: { viewModel.toggleLike(on: post) },
+            onPostDeleted: { viewModel.deletePost(on: post) }
+          )
+          //          .onAppear {
+          //            handlePostAppear(post: post, index: index)
+          //          }
+          .geometryGroup()
         }
 
         if viewModel.canLoadMore {
