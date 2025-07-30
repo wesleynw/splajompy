@@ -122,6 +122,7 @@ struct MainFeedView: View {
               onLikeButtonTapped: { viewModel.toggleLike(on: post) },
               onPostDeleted: { viewModel.deletePost(on: post) }
             )
+            .geometryGroup()
           }
         }
 
