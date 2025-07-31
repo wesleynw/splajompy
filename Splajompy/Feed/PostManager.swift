@@ -5,18 +5,14 @@ import SwiftUI
 class PostManager: ObservableObject {
   private let postService: PostServiceProtocol
 
-  // MARK: - State Management Properties
   @Published private(set) var posts: [Int: DetailedPost] = [:]
   @Published private(set) var isLoadingPost: [Int: Bool] = [:]
 
-  private let maxCacheSize = 200
   private var cacheAccessOrder: [Int] = []
 
   init(postService: PostServiceProtocol = PostService()) {
     self.postService = postService
   }
-
-  // MARK: - State Management Methods
 
   func getPost(id: Int) -> DetailedPost? {
     updateAccessOrder(for: id)
@@ -38,7 +34,6 @@ class PostManager: ObservableObject {
   func cachePost(_ post: DetailedPost) {
     posts[post.id] = post
     updateAccessOrder(for: post.id)
-    enforceMaxCacheSize()
   }
 
   func cachePosts(_ newPosts: [DetailedPost]) {
@@ -46,7 +41,6 @@ class PostManager: ObservableObject {
       posts[post.id] = post
       updateAccessOrder(for: post.id)
     }
-    enforceMaxCacheSize()
   }
 
   func updatePost(id: Int, updates: @escaping (inout DetailedPost) -> Void) {
@@ -67,8 +61,6 @@ class PostManager: ObservableObject {
     isLoadingPost.removeAll()
     cacheAccessOrder.removeAll()
   }
-
-  // MARK: - Business Operations
 
   func loadPost(id: Int) async {
     let isLoading = self.isLoading(postId: id)
@@ -185,18 +177,8 @@ class PostManager: ObservableObject {
     return result
   }
 
-  // MARK: - Private Helper Methods
-
   private func updateAccessOrder(for id: Int) {
     cacheAccessOrder.removeAll { $0 == id }
     cacheAccessOrder.append(id)
-  }
-
-  private func enforceMaxCacheSize() {
-    while posts.count > maxCacheSize && !cacheAccessOrder.isEmpty {
-      let oldestId = cacheAccessOrder.removeFirst()
-      posts.removeValue(forKey: oldestId)
-      isLoadingPost.removeValue(forKey: oldestId)
-    }
   }
 }

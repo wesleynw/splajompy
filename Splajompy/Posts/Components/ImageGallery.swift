@@ -221,17 +221,22 @@ struct ImageGallery: View {
   private func singleImageCell() -> some View {
     Group {
       if let url = URL(string: images[0].imageBlobUrl) {
+        let imageData = images[0]
+        let aspectRatio = CGFloat(imageData.width) / CGFloat(imageData.height)
+        let displayWidth = screenWidth - 32  // Accounting for typical padding
+        let expectedHeight = displayWidth / aspectRatio
+
         LazyImage(url: url) {
           state in
           if let image = state.image {
             image.resizable()
           } else {
             ProgressView()
-              .frame(maxWidth: .infinity, maxHeight: .infinity)
+              .frame(maxWidth: .infinity, maxHeight: expectedHeight)
           }
         }
         .processors([.resize(width: screenWidth), .roundedCorners(radius: 8)])
-        .aspectRatio(contentMode: .fit)
+        .aspectRatio(aspectRatio, contentMode: .fit)
         .onTapGesture {
           selectedImageIndex = 0
         }
