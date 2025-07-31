@@ -1,5 +1,4 @@
 import Foundation
-import Kingfisher
 
 enum FeedType: String, CaseIterable {
   case home
