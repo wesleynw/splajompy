@@ -1,4 +1,4 @@
-import Kingfisher
+import NukeUI
 import SwiftUI
 
 struct ImageGallery: View {
@@ -183,13 +183,18 @@ struct ImageGallery: View {
   ) -> some View {
     Group {
       if index < images.count, let url = URL(string: images[index].imageBlobUrl) {
-        CustomAsyncImage(
-          url,
-          contentMode: .fill,
-          targetSize: CGSize(width: width, height: height)
-        )
+        LazyImage(url: url) {
+          state in
+          if let image = state.image {
+            image.resizable()
+          } else {
+            ProgressView()
+              .frame(maxWidth: .infinity, maxHeight: .infinity)
+          }
+        }
+        .processors([.resize(width: screenWidth)])
+        .aspectRatio(contentMode: .fill)
         .frame(width: width, height: height)
-        .clipped()
         .clipShape(
           .rect(
             topLeadingRadius: topLeading,
@@ -198,7 +203,6 @@ struct ImageGallery: View {
             topTrailingRadius: topTrailing
           )
         )
-        .contentShape(Rectangle())
         .onTapGesture {
           selectedImageIndex = index
         }
@@ -206,27 +210,31 @@ struct ImageGallery: View {
     }
   }
 
-  private var containerWidth: CGFloat {
+  private var screenWidth: CGFloat {
     #if os(iOS)
-      return UIScreen.main.bounds.width - 32
+      return UIScreen.main.bounds.width
     #else
-      return 400  // Default width for macOS, or use GeometryReader
+      return NSScreen.main?.frame.width ?? 400
     #endif
   }
 
   private func singleImageCell() -> some View {
     Group {
       if let url = URL(string: images[0].imageBlobUrl) {
-        let aspectRatio = CGFloat(images[0].width) / CGFloat(images[0].height)
-        let calculatedHeight = containerWidth / aspectRatio
-
-        CustomAsyncImage(url, contentMode: .fit)
-          .frame(height: calculatedHeight)
-          .onTapGesture {
-            selectedImageIndex = 0
+        LazyImage(url: url) {
+          state in
+          if let image = state.image {
+            image.resizable()
+          } else {
+            ProgressView()
+              .frame(maxWidth: .infinity, maxHeight: .infinity)
           }
-      } else {
-        Color.clear
+        }
+        .processors([.resize(width: screenWidth), .roundedCorners(radius: 8)])
+        .aspectRatio(contentMode: .fit)
+        .onTapGesture {
+          selectedImageIndex = 0
+        }
       }
     }
   }
@@ -248,23 +256,32 @@ struct FullscreenImagePager: View {
     self.onDismiss = onDismiss
   }
 
+  private var screenWidth: CGFloat {
+    #if os(iOS)
+      return UIScreen.main.bounds.width
+    #else
+      return NSScreen.main?.frame.width ?? 400
+    #endif
+  }
+
   var body: some View {
     ZStack {
       TabView(selection: $currentIndex) {
         ForEach(Array(imageUrls.enumerated()), id: \.1) { index, url in
           if let url = URL(string: url) {
-            KFImage(url)
-              .cacheOriginalImage()
-              .resizable()
-              .placeholder {
+            LazyImage(url: url) {
+              state in
+              if let image = state.image {
+                image.resizable()
+              } else {
                 ProgressView()
-                  .progressViewStyle(CircularProgressViewStyle())
+                  .frame(maxWidth: .infinity, maxHeight: .infinity)
               }
-              .scaledToFit()
-              .tag(index)
-              #if os(iOS)
-                .zoomable(minZoomScale: 1, doubleTapZoomScale: 2)
-              #endif
+            }
+            .processors([.resize(width: screenWidth)])
+            .aspectRatio(contentMode: .fit)
+            .zoomable(minZoomScale: 1, doubleTapZoomScale: 2)
+            .tag(index)
           }
         }
       }
@@ -275,15 +292,19 @@ struct FullscreenImagePager: View {
 
       VStack {
         HStack {
-          Text("\(currentIndex + 1) / \(imageUrls.count)")
-            .foregroundColor(.white)
-            .font(.subheadline)
-            .fontWeight(.bold)
-            .padding(8)
-            .background(Color.black.opacity(0.6))
-            .cornerRadius(8)
-            .padding()
+          if imageUrls.count > 1 {
+            Text("\(currentIndex + 1) / \(imageUrls.count)")
+              .foregroundColor(.white)
+              .font(.subheadline)
+              .fontWeight(.bold)
+              .padding(8)
+              .background(Color.black.opacity(0.6))
+              .cornerRadius(8)
+              .padding()
+          }
+
           Spacer()
+
           Button(action: onDismiss) {
             Image(systemName: "xmark")
               .font(.system(size: 20, weight: .bold))

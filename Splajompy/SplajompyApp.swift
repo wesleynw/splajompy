@@ -1,3 +1,4 @@
+import Nuke
 import PostHog
 import SwiftUI
 
@@ -20,6 +21,11 @@ struct SplajompyApp: App {
     let config = PostHogConfig(apiKey: posthogApiKey)
     config.captureScreenViews = false
     PostHogSDK.shared.setup(config)
+
+    var cacheConfig = ImagePipeline.Configuration.withDataCache(
+      name: "media-cache", sizeLimit: 2000)
+    cacheConfig.dataCachePolicy = .storeEncodedImages  // cache processed images
+    ImagePipeline.shared = ImagePipeline(configuration: cacheConfig)
   }
 
   var body: some Scene {
