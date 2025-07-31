@@ -280,7 +280,9 @@ struct FullscreenImagePager: View {
             }
             .processors([.resize(width: screenWidth)])
             .aspectRatio(contentMode: .fit)
-            .zoomable(minZoomScale: 1, doubleTapZoomScale: 2)
+            #if os(iOS)
+              .zoomable(minZoomScale: 1, doubleTapZoomScale: 2)
+            #endif
             .tag(index)
           }
         }

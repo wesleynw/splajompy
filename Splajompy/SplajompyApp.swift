@@ -138,7 +138,7 @@ struct SplajompyApp: App {
           Group {
             switch selection {
             case 0:
-              HomeView(postManager: postManager)
+              MainFeedView(postManager: postManager)
                 .postHogScreenView()
             case 1:
               NotificationsView()
@@ -150,7 +150,7 @@ struct SplajompyApp: App {
               CurrentProfileView(postManager: postManager)
                 .postHogScreenView()
             default:
-              HomeView(postManager: postManager)
+              MainFeedView(postManager: postManager)
                 .postHogScreenView()
             }
           }

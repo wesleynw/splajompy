@@ -18,7 +18,6 @@ struct MainFeedView: View {
   var body: some View {
     mainContent
       .navigationTitle(selectedFeedType == .mutual ? "Home" : "All")
-      .navigationBarTitleDisplayMode(.inline)
       .toolbarTitleMenu {
         Button {
           selectedFeedType = .mutual
@@ -51,6 +50,7 @@ struct MainFeedView: View {
         }
       }
       #if os(iOS)
+        .navigationBarTitleDisplayMode(.inline)
         .sheet(isPresented: $isShowingNewPostView) {
           newPostSheet
         }
