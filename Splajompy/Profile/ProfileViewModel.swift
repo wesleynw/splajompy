@@ -16,7 +16,7 @@ extension ProfileView {
     private let fetchLimit = 10
     private var currentPostsTask: Task<Void, Never>? = nil
     private var currentProfileTask: Task<Void, Never>? = nil
-    var postManager: PostManager
+    @ObservedObject var postManager: PostManager
 
     @Published var state: ProfileState = .idle
     @Published var isLoadingFollowButton = false

@@ -17,7 +17,7 @@ extension StandalonePostView {
     }
 
     private var postId: Int
-    private var postManager: PostManager
+    @ObservedObject private var postManager: PostManager
 
     init(postId: Int, postManager: PostManager) {
       self.postId = postId

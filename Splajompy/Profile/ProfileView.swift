@@ -4,7 +4,7 @@ struct ProfileView: View {
   let username: String
   let userId: Int
   let isProfileTab: Bool
-  var postManager: PostManager
+  @ObservedObject var postManager: PostManager
 
   @State private var isShowingProfileEditor: Bool = false
   @StateObject private var viewModel: ViewModel

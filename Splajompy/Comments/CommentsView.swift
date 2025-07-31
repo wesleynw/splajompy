@@ -5,7 +5,7 @@ struct CommentsView: View {
   var isShowingInSheet: Bool
   var postId: Int
 
-  var postManager: PostManager
+  @ObservedObject var postManager: PostManager
 
   @StateObject private var viewModel: ViewModel
   @State private var showingCommentSheet = false

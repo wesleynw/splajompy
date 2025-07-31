@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct CurrentProfileView: View {
-  var postManager: PostManager
+  @ObservedObject var postManager: PostManager
   @EnvironmentObject private var authManager: AuthManager
 
   var body: some View {

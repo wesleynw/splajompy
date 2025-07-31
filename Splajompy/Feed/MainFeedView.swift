@@ -4,7 +4,7 @@ struct MainFeedView: View {
   @State private var isShowingNewPostView = false
   @StateObject private var viewModel: FeedViewModel
   @EnvironmentObject var authManager: AuthManager
-  var postManager: PostManager
+  @ObservedObject var postManager: PostManager
 
   @AppStorage("selectedFeedType") private var selectedFeedType: FeedType = .all
 
