@@ -1,18 +1,17 @@
 import SwiftUI
 
-struct HomeView: View {
+struct MainFeedView: View {
   @State private var isShowingNewPostView = false
   @StateObject private var viewModel: FeedViewModel
   @EnvironmentObject var authManager: AuthManager
   @ObservedObject var postManager: PostManager
 
-  @AppStorage("mindlessMode") private var mindlessMode: Bool = false
   @AppStorage("selectedFeedType") private var selectedFeedType: FeedType = .all
 
-  init(feedType: FeedType = .all, postManager: PostManager) {
+  init(postManager: PostManager) {
     self.postManager = postManager
     _viewModel = StateObject(
-      wrappedValue: FeedViewModel(feedType: feedType, postManager: postManager)
+      wrappedValue: FeedViewModel(feedType: .all, postManager: postManager)
     )
   }
 
@@ -41,13 +40,7 @@ struct HomeView: View {
           }
         }
       }
-      .toolbar {
-        #if os(iOS)
-          addPostToolbarItem
-        #endif
-      }
       .task {
-        viewModel.feedType = selectedFeedType
         await viewModel.loadPosts()
       }
       .onChange(of: selectedFeedType) { _, newFeedType in
@@ -57,8 +50,12 @@ struct HomeView: View {
         }
       }
       #if os(iOS)
+        .navigationBarTitleDisplayMode(.inline)
         .sheet(isPresented: $isShowingNewPostView) {
           newPostSheet
+        }
+        .toolbar {
+          addPostToolbarItem
         }
       #endif
   }
@@ -75,7 +72,7 @@ struct HomeView: View {
         if postIds.isEmpty {
           emptyMessage
         } else {
-          postList(posts: viewModel.posts)
+          postList
         }
       case .failed(let error):
         ErrorScreen(
@@ -84,12 +81,6 @@ struct HomeView: View {
         )
       }
     }
-    #if os(iOS)
-      .navigationBarTitleDisplayMode(.inline)
-    #else
-      .contentMargins(.horizontal, 40, for: .scrollContent)
-      .safeAreaPadding(.horizontal, 20)
-    #endif
   }
 
   private var addPostToolbarItem: some ToolbarContent {
@@ -120,88 +111,37 @@ struct HomeView: View {
     }
   #endif
 
-  private func postList(posts: [DetailedPost]) -> some View {
-    Group {
-      if mindlessMode {
-        GeometryReader { proxy in
-          ScrollView(.vertical) {
-            LazyVStack(spacing: 0) {
-              ForEach(posts.indices, id: \.self) { index in
-                let post = posts[index]
-                ReelsPostView(
-                  post: post,
-                  postManager: postManager,
-                  onLikeButtonTapped: { viewModel.toggleLike(on: post) },
-                  onPostDeleted: { viewModel.deletePost(on: post) },
-                  onCommentsButtonTapped: {
-                    // Handle comments
-                  }
-                )
-                .environmentObject(authManager)
-                .containerRelativeFrame([.horizontal, .vertical])
-                .padding(.bottom, proxy.safeAreaInsets.bottom / 2)
-                .onAppear {
-                  handlePostAppear(post: post, index: index)
-                }
-              }
+  private var postList: some View {
+    ScrollView {
+      LazyVStack(spacing: 0) {
+        ForEach(viewModel.posts.indices, id: \.self) { index in
+          let post = viewModel.posts[index]
+          PostView(
+            post: post,
+            postManager: postManager,
+            showAuthor: true,
+            onLikeButtonTapped: { viewModel.toggleLike(on: post) },
+            onPostDeleted: { viewModel.deletePost(on: post) }
+          )
+          .onAppear {
+            handlePostAppear(post: post, index: index)
+          }
+          .geometryGroup()
+        }
 
-              if viewModel.isLoadingMore {
-                ProgressView()
-                  .containerRelativeFrame([.horizontal, .vertical])
-                  .padding(.bottom, proxy.safeAreaInsets.bottom / 2)
-                  .background(Color.black)
-              }
-            }
-            .scrollTargetLayout()
-          }
-          .scrollTargetBehavior(.paging)
-          .scrollIndicators(.hidden)
-          .refreshable {
-            await viewModel.loadPosts(reset: true)
+        if viewModel.canLoadMore {
+          HStack {
+            Spacer()
+            ProgressView()
+              .padding()
+            Spacer()
           }
         }
-      } else {
-        ScrollView {
-          LazyVStack(spacing: 0) {
-            ForEach(posts.indices, id: \.self) { index in
-              let post = posts[index]
-              VStack {
-                postRow(post: post, index: index)
-                  .transition(.opacity)
-              }
-              .geometryGroup()
-            }
-
-            HStack {
-              Spacer()
-              ProgressView()
-                .padding()
-              Spacer()
-            }
-          }
-        }
-        .refreshable {
-          await Task {
-            await viewModel.loadPosts(reset: true)
-          }.value
-        }
-        .animation(.easeInOut(duration: 0.1), value: posts.count)
       }
     }
-  }
-
-  private func postRow(post: DetailedPost, index: Int) -> some View {
-    PostView(
-      post: post,
-      postManager: postManager,
-      showAuthor: true,
-      onLikeButtonTapped: { viewModel.toggleLike(on: post) },
-      onPostDeleted: { viewModel.deletePost(on: post) }
-    )
     .environmentObject(authManager)
-    .geometryGroup()
-    .onAppear {
-      handlePostAppear(post: post, index: index)
+    .refreshable {
+      await viewModel.loadPosts(reset: true)
     }
   }
 
@@ -220,7 +160,6 @@ struct HomeView: View {
     VStack {
       Spacer()
       ProgressView()
-        .scaleEffect(1.5)
         .padding()
       Spacer()
     }

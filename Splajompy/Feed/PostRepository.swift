@@ -1,5 +1,4 @@
 import Foundation
-import Kingfisher
 
 enum FeedType: String, CaseIterable {
   case home
@@ -65,10 +64,6 @@ struct PostService: PostServiceProtocol {
       queryItems: queryItems
     )
 
-    if case .success(let posts) = result {
-      prefetchImages(for: posts)
-    }
-
     return result
   }
 
@@ -111,17 +106,6 @@ struct PostService: PostServiceProtocol {
       endpoint: "post/\(postId)/report",
       method: "POST"
     )
-  }
-
-  private func prefetchImages(for posts: [DetailedPost]) {
-    let urls = posts.compactMap { post in
-      post.images?.compactMap { URL(string: $0.imageBlobUrl) }
-    }.flatMap { $0 }
-
-    guard !urls.isEmpty else { return }
-
-    let prefetcher = ImagePrefetcher(urls: urls)
-    prefetcher.start()
   }
 
   func voteOnPostPoll(postId: Int, optionIndex: Int) async -> AsyncResult<

@@ -72,7 +72,6 @@ class AuthManager: ObservableObject, Sendable {
     UserDefaults.standard.removeObject(forKey: "CurrentUserCreatedAt")
     UserDefaults.standard.removeObject(forKey: "CurrentUserName")
 
-    UserDefaults.standard.removeObject(forKey: "mindlessMode")
     UserDefaults.standard.removeObject(forKey: "selectedFeedType")
 
     KingfisherManager.shared.cache.clearMemoryCache()

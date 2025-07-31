@@ -22,7 +22,7 @@ enum FeedState {
 
   private var offset = 0
   private let fetchLimit = 10
-  var postManager: PostManager
+  @ObservedObject var postManager: PostManager
 
   init(feedType: FeedType, userId: Int? = nil, postManager: PostManager) {
     self.feedType = feedType

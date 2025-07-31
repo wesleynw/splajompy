@@ -1,4 +1,4 @@
-import Kingfisher
+import NukeUI
 import SwiftUI
 
 struct NotificationImageView: View {
@@ -37,17 +37,22 @@ struct NotificationImageView: View {
   }
 
   var body: some View {
-    KFImage(URL(string: url))
-      .serialize(as: .PNG)  // store as .png to save alpha channel
-      .placeholder {
-        Rectangle()
-          .fill(Color.gray.opacity(0.3))
-          .frame(width: Self.targetSize, height: Self.targetSize)
+    if let url = URL(string: url) {
+      LazyImage(url: url) {
+        state in
+        if let image = state.image {
+          image.resizable()
+        } else {
+          ProgressView()
+            .frame(maxWidth: Self.targetSize, maxHeight: Self.targetSize)
+        }
       }
-      .downsampling(size: processorSize)
-      .resizable()
-      .aspectRatio(contentMode: .fill)
+      .processors([
+        .resize(size: processorSize),
+        .roundedCorners(radius: 20),
+      ])
       .frame(width: Self.targetSize, height: Self.targetSize)
-      .cornerRadius(5)
+      .aspectRatio(contentMode: .fill)
+    }
   }
 }

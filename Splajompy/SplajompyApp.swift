@@ -1,3 +1,4 @@
+import Nuke
 import PostHog
 import SwiftUI
 
@@ -12,7 +13,7 @@ struct SplajompyApp: App {
   ]
 
   @StateObject private var authManager = AuthManager()
-  @StateObject private var postManager = PostManager()
+  private var postManager = PostManager()
   @AppStorage("appearance_mode") var appearanceMode: String = "Automatic"
 
   init() {
@@ -20,6 +21,11 @@ struct SplajompyApp: App {
     let config = PostHogConfig(apiKey: posthogApiKey)
     config.captureScreenViews = false
     PostHogSDK.shared.setup(config)
+
+    var cacheConfig = ImagePipeline.Configuration.withDataCache(
+      name: "media-cache", sizeLimit: 2000)
+    cacheConfig.dataCachePolicy = .storeEncodedImages  // cache processed images
+    ImagePipeline.shared = ImagePipeline(configuration: cacheConfig)
   }
 
   var body: some Scene {
@@ -56,7 +62,7 @@ struct SplajompyApp: App {
   private var iOSTabView: some View {
     TabView(selection: $selection) {
       NavigationStack(path: $navigationPaths[0]) {
-        HomeView(postManager: postManager)
+        MainFeedView(postManager: postManager)
           .postHogScreenView()
           .navigationDestination(for: Route.self) { route in
             routeDestination(route)
@@ -132,7 +138,7 @@ struct SplajompyApp: App {
           Group {
             switch selection {
             case 0:
-              HomeView(postManager: postManager)
+              MainFeedView(postManager: postManager)
                 .postHogScreenView()
             case 1:
               NotificationsView()
@@ -144,7 +150,7 @@ struct SplajompyApp: App {
               CurrentProfileView(postManager: postManager)
                 .postHogScreenView()
             default:
-              HomeView(postManager: postManager)
+              MainFeedView(postManager: postManager)
                 .postHogScreenView()
             }
           }
