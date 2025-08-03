@@ -22,6 +22,8 @@ type NotificationRepository interface {
 	GetUserUnreadNotificationCount(ctx context.Context, userId int) (int, error)
 	GetReadNotificationsForUserIdWithTimeOffset(ctx context.Context, userId int, beforeTime time.Time, limit int) ([]*models.Notification, error)
 	GetUnreadNotificationsForUserIdWithTimeOffset(ctx context.Context, userId int, beforeTime time.Time, limit int) ([]*models.Notification, error)
+	FindUnreadLikeNotification(ctx context.Context, userId int, postId int, commentId *int) (*models.Notification, error)
+	DeleteNotificationById(ctx context.Context, notificationId int) error
 }
 
 type DBNotificationRepository struct {
@@ -157,6 +159,37 @@ func (r DBNotificationRepository) GetUnreadNotificationsForUserIdWithTimeOffset(
 	}
 
 	return result, nil
+}
+
+// FindUnreadLikeNotification finds an unread like notification for a user
+func (r DBNotificationRepository) FindUnreadLikeNotification(ctx context.Context, userId int, postId int, commentId *int) (*models.Notification, error) {
+	var notification queries.Notification
+	var err error
+
+	if commentId == nil {
+		notification, err = r.querier.FindUnreadLikeNotificationForPost(ctx, queries.FindUnreadLikeNotificationForPostParams{
+			UserID: int32(userId),
+			PostID: pgtype.Int4{Int32: int32(postId), Valid: true},
+		})
+	} else {
+		notification, err = r.querier.FindUnreadLikeNotificationForComment(ctx, queries.FindUnreadLikeNotificationForCommentParams{
+			UserID:    int32(userId),
+			PostID:    pgtype.Int4{Int32: int32(postId), Valid: true},
+			CommentID: pgtype.Int4{Int32: int32(*commentId), Valid: true},
+		})
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	mapped := utilities.MapNotification(notification)
+	return &mapped, nil
+}
+
+// DeleteNotificationById deletes a notification by its ID
+func (r DBNotificationRepository) DeleteNotificationById(ctx context.Context, notificationId int) error {
+	return r.querier.DeleteNotificationById(ctx, int32(notificationId))
 }
 
 // NewDBNotificationRepository creates a new notification repository

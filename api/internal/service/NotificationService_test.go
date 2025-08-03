@@ -246,3 +246,64 @@ func TestGetUserUnreadNotificationsCount(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, 1, count)
 }
+
+func TestFindUnreadLikeNotification_PostNotification(t *testing.T) {
+	_, fakeRepo := setupNotificationService()
+	ctx := context.Background()
+
+	notification := queries.Notification{
+		UserID:           1,
+		PostID:           pgtype.Int4{Int32: 123, Valid: true},
+		Message:          "@user liked your post.",
+		NotificationType: "like",
+		Viewed:           false,
+		CreatedAt:        pgtype.Timestamp{Time: time.Now(), Valid: true},
+	}
+	fakeRepo.AddNotification(notification)
+
+	result, err := fakeRepo.FindUnreadLikeNotification(ctx, 1, 123, nil)
+	require.NoError(t, err)
+	require.NotNil(t, result)
+	assert.Equal(t, "@user liked your post.", result.Message)
+}
+
+func TestFindUnreadLikeNotification_CommentNotification(t *testing.T) {
+	_, fakeRepo := setupNotificationService()
+	ctx := context.Background()
+
+	commentID := 456
+	notification := queries.Notification{
+		UserID:           1,
+		PostID:           pgtype.Int4{Int32: 123, Valid: true},
+		CommentID:        pgtype.Int4{Int32: int32(commentID), Valid: true},
+		Message:          "@user liked your comment.",
+		NotificationType: "like",
+		Viewed:           false,
+		CreatedAt:        pgtype.Timestamp{Time: time.Now(), Valid: true},
+	}
+	fakeRepo.AddNotification(notification)
+
+	result, err := fakeRepo.FindUnreadLikeNotification(ctx, 1, 123, &commentID)
+	require.NoError(t, err)
+	require.NotNil(t, result)
+	assert.Equal(t, "@user liked your comment.", result.Message)
+}
+
+func TestDeleteNotificationById_Success(t *testing.T) {
+	_, fakeRepo := setupNotificationService()
+	ctx := context.Background()
+
+	err := fakeRepo.InsertNotification(ctx, 1, nil, nil, nil, "Test notification", models.NotificationTypeLike)
+	require.NoError(t, err)
+
+	assert.Equal(t, 1, fakeRepo.GetNotificationCount(1))
+
+	notifications, err := fakeRepo.GetNotificationsForUserId(ctx, 1, 0, 10)
+	require.NoError(t, err)
+	require.Len(t, notifications, 1)
+
+	err = fakeRepo.DeleteNotificationById(ctx, notifications[0].NotificationID)
+	require.NoError(t, err)
+
+	assert.Equal(t, 0, fakeRepo.GetNotificationCount(1))
+}

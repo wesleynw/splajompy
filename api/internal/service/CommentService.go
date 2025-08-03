@@ -8,6 +8,7 @@ import (
 	"splajompy.com/api/v2/internal/models"
 	"splajompy.com/api/v2/internal/repositories"
 	"splajompy.com/api/v2/internal/utilities"
+	"time"
 )
 
 type CommentService struct {
@@ -161,11 +162,28 @@ func (s *CommentService) AddLikeToCommentById(ctx context.Context, currentUser m
 	return nil
 }
 
-// RemoveLikeFromCommentById removes a like from a comment
-func (s *CommentService) RemoveLikeFromCommentById(ctx context.Context, currentUser models.PublicUser, postID int, commentID int) error {
-	err := s.commentRepo.RemoveLikeFromComment(ctx, currentUser.UserID, postID, commentID)
+// RemoveLikeFromCommentById removes the current user's like from a comment and
+// deletes related notifications created within the last 5 minutes.
+func (s *CommentService) RemoveLikeFromCommentById(ctx context.Context, user models.PublicUser, postId int, commentId int) error {
+	err := s.commentRepo.RemoveLikeFromComment(ctx, user.UserID, postId, commentId)
 	if err != nil {
 		return errors.New("unable to remove like from comment")
 	}
+
+	comment, err := s.commentRepo.GetCommentById(ctx, commentId)
+	if err != nil {
+		return errors.New("unable to find comment")
+	}
+
+	notification, err := s.notificationRepo.FindUnreadLikeNotification(ctx, int(comment.UserID), postId, &commentId)
+	if err == nil && notification != nil {
+		if time.Since(notification.CreatedAt) <= 5*time.Minute {
+			err = s.notificationRepo.DeleteNotificationById(ctx, notification.NotificationID)
+			if err != nil {
+				return errors.New("unable to remove liked comment")
+			}
+		}
+	}
+
 	return nil
 }

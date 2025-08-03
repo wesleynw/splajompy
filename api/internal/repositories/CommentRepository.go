@@ -7,6 +7,7 @@ import (
 	"splajompy.com/api/v2/internal/db/queries"
 )
 
+// CommentRepository TODO: make the repository return a clone of queries.Comment that uses int rather than int32
 type CommentRepository interface {
 	AddCommentToPost(ctx context.Context, userId int, postId int, content string, facets db.Facets) (queries.Comment, error)
 	GetCommentById(ctx context.Context, commentId int) (queries.Comment, error)

@@ -2,14 +2,17 @@ package service
 
 import (
 	"context"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"os"
 	"splajompy.com/api/v2/internal/db"
+	"splajompy.com/api/v2/internal/db/queries"
 	"splajompy.com/api/v2/internal/models"
 	"splajompy.com/api/v2/internal/repositories"
 	"splajompy.com/api/v2/internal/repositories/fakes"
 	"testing"
+	"time"
 )
 
 func setupTest(t *testing.T) (*PostService, *fakes.FakePostRepository, *fakes.FakeUserRepository, *fakes.FakeLikeRepository, *fakes.FakeNotificationRepository, *fakes.FakeBucketRepository, models.PublicUser) {
@@ -464,4 +467,75 @@ func TestVoteOnPoll_SavesVote_Multi(t *testing.T) {
 	assert.Equal(t, updatedPost.Poll.Options[1].Title, "no")
 	assert.Equal(t, updatedPost.Poll.Options[0].VoteTotal, 3)
 	assert.Equal(t, updatedPost.Poll.Options[1].VoteTotal, 1)
+}
+
+func TestRemoveLikeFromPost_DeletesRecentNotification(t *testing.T) {
+	svc, _, userRepo, likeRepo, notificationRepo, _, user := setupTest(t)
+	ctx := context.Background()
+
+	otherUser, err := userRepo.CreateUser(ctx, "otheruser", "other@example.com", "password")
+	require.NoError(t, err)
+
+	post, err := svc.postRepository.InsertPost(ctx, otherUser.UserID, "Test post", nil, nil)
+	require.NoError(t, err)
+
+	err = likeRepo.AddLike(ctx, user.UserID, post.PostID, true)
+	require.NoError(t, err)
+
+	err = notificationRepo.InsertNotification(ctx, otherUser.UserID, &post.PostID, nil, nil, "@testuser liked your post.", models.NotificationTypeLike)
+	require.NoError(t, err)
+
+	err = svc.RemoveLikeFromPost(ctx, user, post.PostID)
+	require.NoError(t, err)
+
+	assert.Equal(t, 0, notificationRepo.GetNotificationCount(otherUser.UserID))
+}
+
+func TestRemoveLikeFromPost_KeepsOldNotification(t *testing.T) {
+	svc, _, userRepo, likeRepo, notificationRepo, _, user := setupTest(t)
+	ctx := context.Background()
+
+	otherUser, err := userRepo.CreateUser(ctx, "otheruser", "other@example.com", "password")
+	require.NoError(t, err)
+
+	post, err := svc.postRepository.InsertPost(ctx, otherUser.UserID, "Test post", nil, nil)
+	require.NoError(t, err)
+
+	err = likeRepo.AddLike(ctx, user.UserID, post.PostID, true)
+	require.NoError(t, err)
+
+	oldTime := time.Now().Add(-10 * time.Minute)
+	notification := queries.Notification{
+		UserID:           int32(otherUser.UserID),
+		PostID:           pgtype.Int4{Int32: int32(post.PostID), Valid: true},
+		Message:          "@testuser liked your post.",
+		NotificationType: "like",
+		Viewed:           false,
+		CreatedAt:        pgtype.Timestamp{Time: oldTime, Valid: true},
+	}
+	notificationRepo.AddNotification(notification)
+
+	err = svc.RemoveLikeFromPost(ctx, user, post.PostID)
+	require.NoError(t, err)
+
+	assert.Equal(t, 1, notificationRepo.GetNotificationCount(otherUser.UserID))
+}
+
+func TestRemoveLikeFromPost_NoNotificationExists(t *testing.T) {
+	svc, _, userRepo, likeRepo, notificationRepo, _, user := setupTest(t)
+	ctx := context.Background()
+
+	otherUser, err := userRepo.CreateUser(ctx, "otheruser", "other@example.com", "password")
+	require.NoError(t, err)
+
+	post, err := svc.postRepository.InsertPost(ctx, otherUser.UserID, "Test post", nil, nil)
+	require.NoError(t, err)
+
+	err = likeRepo.AddLike(ctx, user.UserID, post.PostID, true)
+	require.NoError(t, err)
+
+	err = svc.RemoveLikeFromPost(ctx, user, post.PostID)
+	require.NoError(t, err)
+
+	assert.Equal(t, 0, notificationRepo.GetNotificationCount(otherUser.UserID))
 }

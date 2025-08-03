@@ -16,9 +16,12 @@ type Querier interface {
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
 	CreateVerificationCode(ctx context.Context, arg CreateVerificationCodeParams) error
 	DeleteFollow(ctx context.Context, arg DeleteFollowParams) error
+	DeleteNotificationById(ctx context.Context, notificationID int32) error
 	DeletePost(ctx context.Context, postID int32) error
 	DeleteSession(ctx context.Context, id string) error
 	DeleteUserById(ctx context.Context, userID int32) error
+	FindUnreadLikeNotificationForComment(ctx context.Context, arg FindUnreadLikeNotificationForCommentParams) (Notification, error)
+	FindUnreadLikeNotificationForPost(ctx context.Context, arg FindUnreadLikeNotificationForPostParams) (Notification, error)
 	GetAllImagesByUserId(ctx context.Context, userID int32) ([]Image, error)
 	GetAllPostIds(ctx context.Context, arg GetAllPostIdsParams) ([]int32, error)
 	GetBioByUserId(ctx context.Context, userID int32) (string, error)

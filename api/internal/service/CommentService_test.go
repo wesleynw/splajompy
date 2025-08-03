@@ -2,8 +2,10 @@ package service
 
 import (
 	"context"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"splajompy.com/api/v2/internal/db/queries"
 	"splajompy.com/api/v2/internal/models"
 	"splajompy.com/api/v2/internal/repositories/fakes"
 	"testing"
@@ -154,4 +156,88 @@ func TestCommentCreatedTimestamp(t *testing.T) {
 
 	assert.True(t, comment.CreatedAt.After(beforeCreation))
 	assert.True(t, comment.CreatedAt.Before(afterCreation))
+}
+
+func TestRemoveLikeFromComment_DeletesRecentNotification(t *testing.T) {
+	svc, commentRepo, postRepo, notificationRepo, userRepo, user := setupCommentTest(t)
+	ctx := context.Background()
+
+	otherUser, err := userRepo.CreateUser(ctx, "otheruser", "other@example.com", "password")
+	require.NoError(t, err)
+
+	post, err := postRepo.InsertPost(ctx, user.UserID, "Test post", nil, nil)
+	require.NoError(t, err)
+
+	comment, err := commentRepo.AddCommentToPost(ctx, otherUser.UserID, post.PostID, "Test comment", nil)
+	require.NoError(t, err)
+
+	commentID := int(comment.CommentID)
+	err = commentRepo.AddLikeToComment(ctx, user.UserID, post.PostID, commentID)
+	require.NoError(t, err)
+
+	err = notificationRepo.InsertNotification(ctx, otherUser.UserID, &post.PostID, &commentID, nil, "@testUser liked your comment.", models.NotificationTypeLike)
+	require.NoError(t, err)
+
+	err = svc.RemoveLikeFromCommentById(ctx, user, post.PostID, commentID)
+	require.NoError(t, err)
+
+	assert.Equal(t, 0, notificationRepo.GetNotificationCount(otherUser.UserID))
+}
+
+func TestRemoveLikeFromComment_KeepsOldNotification(t *testing.T) {
+	svc, commentRepo, postRepo, notificationRepo, userRepo, user := setupCommentTest(t)
+	ctx := context.Background()
+
+	otherUser, err := userRepo.CreateUser(ctx, "otheruser", "other@example.com", "password")
+	require.NoError(t, err)
+
+	post, err := postRepo.InsertPost(ctx, user.UserID, "Test post", nil, nil)
+	require.NoError(t, err)
+
+	comment, err := commentRepo.AddCommentToPost(ctx, otherUser.UserID, post.PostID, "Test comment", nil)
+	require.NoError(t, err)
+
+	commentID := int(comment.CommentID)
+	err = commentRepo.AddLikeToComment(ctx, user.UserID, post.PostID, commentID)
+	require.NoError(t, err)
+
+	oldTime := time.Now().Add(-10 * time.Minute)
+	notification := queries.Notification{
+		UserID:           int32(otherUser.UserID),
+		PostID:           pgtype.Int4{Int32: int32(post.PostID), Valid: true},
+		CommentID:        pgtype.Int4{Int32: comment.CommentID, Valid: true},
+		Message:          "@testUser liked your comment.",
+		NotificationType: "like",
+		Viewed:           false,
+		CreatedAt:        pgtype.Timestamp{Time: oldTime, Valid: true},
+	}
+	notificationRepo.AddNotification(notification)
+
+	err = svc.RemoveLikeFromCommentById(ctx, user, post.PostID, int(comment.CommentID))
+	require.NoError(t, err)
+
+	assert.Equal(t, 1, notificationRepo.GetNotificationCount(otherUser.UserID))
+}
+
+func TestRemoveLikeFromComment_NoNotificationExists(t *testing.T) {
+	svc, commentRepo, postRepo, notificationRepo, userRepo, user := setupCommentTest(t)
+	ctx := context.Background()
+
+	otherUser, err := userRepo.CreateUser(ctx, "otheruser", "other@example.com", "password")
+	require.NoError(t, err)
+
+	post, err := postRepo.InsertPost(ctx, user.UserID, "Test post", nil, nil)
+	require.NoError(t, err)
+
+	comment, err := commentRepo.AddCommentToPost(ctx, otherUser.UserID, post.PostID, "Test comment", nil)
+	require.NoError(t, err)
+
+	commentID := int(comment.CommentID)
+	err = commentRepo.AddLikeToComment(ctx, user.UserID, post.PostID, commentID)
+	require.NoError(t, err)
+
+	err = svc.RemoveLikeFromCommentById(ctx, user, post.PostID, int(comment.CommentID))
+	require.NoError(t, err)
+
+	assert.Equal(t, 0, notificationRepo.GetNotificationCount(otherUser.UserID))
 }
