@@ -362,3 +362,48 @@ func (f *FakeNotificationRepository) GetUnreadNotificationsForUserIdWithTimeOffs
 
 	return result, nil
 }
+
+func (f *FakeNotificationRepository) FindUnreadLikeNotification(ctx context.Context, userId int, postId int, commentId *int) (*models.Notification, error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+
+	userNotifications, exists := f.notifications[userId]
+	if !exists {
+		return nil, nil
+	}
+
+	for _, notification := range userNotifications {
+		if notification.NotificationType == "like" && !notification.Viewed {
+			if commentId == nil {
+				if notification.PostID.Valid && int(notification.PostID.Int32) == postId && !notification.CommentID.Valid {
+					mapped := utilities.MapNotification(notification)
+					return &mapped, nil
+				}
+			} else {
+				if notification.PostID.Valid && int(notification.PostID.Int32) == postId &&
+					notification.CommentID.Valid && int(notification.CommentID.Int32) == *commentId {
+					mapped := utilities.MapNotification(notification)
+					return &mapped, nil
+				}
+			}
+		}
+	}
+
+	return nil, nil
+}
+
+func (f *FakeNotificationRepository) DeleteNotificationById(ctx context.Context, notificationId int) error {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+
+	for userId, userNotifications := range f.notifications {
+		for i, notification := range userNotifications {
+			if notification.NotificationID == int32(notificationId) {
+				f.notifications[userId] = append(userNotifications[:i], userNotifications[i+1:]...)
+				return nil
+			}
+		}
+	}
+
+	return nil
+}

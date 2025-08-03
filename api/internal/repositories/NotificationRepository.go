@@ -22,6 +22,8 @@ type NotificationRepository interface {
 	GetUserUnreadNotificationCount(ctx context.Context, userId int) (int, error)
 	GetReadNotificationsForUserIdWithTimeOffset(ctx context.Context, userId int, beforeTime time.Time, limit int) ([]*models.Notification, error)
 	GetUnreadNotificationsForUserIdWithTimeOffset(ctx context.Context, userId int, beforeTime time.Time, limit int) ([]*models.Notification, error)
+	FindUnreadLikeNotification(ctx context.Context, userId int, postId int, commentId *int) (*models.Notification, error)
+	DeleteNotificationById(ctx context.Context, notificationId int) error
 }
 
 type DBNotificationRepository struct {
@@ -157,6 +159,33 @@ func (r DBNotificationRepository) GetUnreadNotificationsForUserIdWithTimeOffset(
 	}
 
 	return result, nil
+}
+
+// FindUnreadLikeNotification finds an unread like notification for a user
+func (r DBNotificationRepository) FindUnreadLikeNotification(ctx context.Context, userId int, postId int, commentId *int) (*models.Notification, error) {
+	var commentIdParam int32
+	if commentId != nil {
+		commentIdParam = int32(*commentId)
+	} else {
+		commentIdParam = 0
+	}
+
+	notification, err := r.querier.FindUnreadLikeNotification(ctx, queries.FindUnreadLikeNotificationParams{
+		UserID:  int32(userId),
+		Column2: commentIdParam,
+		PostID:  pgtype.Int4{Int32: int32(postId), Valid: true},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	mapped := utilities.MapNotification(notification)
+	return &mapped, nil
+}
+
+// DeleteNotificationById deletes a notification by its ID
+func (r DBNotificationRepository) DeleteNotificationById(ctx context.Context, notificationId int) error {
+	return r.querier.DeleteNotificationById(ctx, int32(notificationId))
 }
 
 // NewDBNotificationRepository creates a new notification repository
