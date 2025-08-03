@@ -60,13 +60,25 @@ WHERE user_id = $1 AND viewed = FALSE AND created_at < $2
 ORDER BY created_at DESC
 LIMIT $3;
 
--- name: FindUnreadLikeNotification :one
+-- name: FindUnreadLikeNotificationForPost :one
 SELECT *
 FROM notifications 
 WHERE user_id = $1 
   AND notification_type = 'like'
   AND viewed = FALSE
-  AND (($2 IS TRUE AND post_id = $3) OR ($2 IS FALSE AND post_id = $3 AND comment_id = $4))
+  AND post_id = $2
+  AND comment_id IS NULL
+ORDER BY created_at DESC
+LIMIT 1;
+
+-- name: FindUnreadLikeNotificationForComment :one
+SELECT *
+FROM notifications 
+WHERE user_id = $1 
+  AND notification_type = 'like'
+  AND viewed = FALSE
+  AND post_id = $2
+  AND comment_id = $3
 ORDER BY created_at DESC
 LIMIT 1;
 

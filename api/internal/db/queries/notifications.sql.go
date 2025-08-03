@@ -22,31 +22,61 @@ func (q *Queries) DeleteNotificationById(ctx context.Context, notificationID int
 	return err
 }
 
-const findUnreadLikeNotification = `-- name: FindUnreadLikeNotification :one
+const findUnreadLikeNotificationForComment = `-- name: FindUnreadLikeNotificationForComment :one
 SELECT notification_id, user_id, post_id, comment_id, message, link, viewed, facets, notification_type, created_at
 FROM notifications 
 WHERE user_id = $1 
   AND notification_type = 'like'
   AND viewed = FALSE
-  AND (($2 IS TRUE AND post_id = $3) OR ($2 IS FALSE AND post_id = $3 AND comment_id = $4))
+  AND post_id = $2
+  AND comment_id = $3
 ORDER BY created_at DESC
 LIMIT 1
 `
 
-type FindUnreadLikeNotificationParams struct {
+type FindUnreadLikeNotificationForCommentParams struct {
 	UserID    int32       `json:"userId"`
-	Column2   interface{} `json:"column2"`
 	PostID    pgtype.Int4 `json:"postId"`
 	CommentID pgtype.Int4 `json:"commentId"`
 }
 
-func (q *Queries) FindUnreadLikeNotification(ctx context.Context, arg FindUnreadLikeNotificationParams) (Notification, error) {
-	row := q.db.QueryRow(ctx, findUnreadLikeNotification,
-		arg.UserID,
-		arg.Column2,
-		arg.PostID,
-		arg.CommentID,
+func (q *Queries) FindUnreadLikeNotificationForComment(ctx context.Context, arg FindUnreadLikeNotificationForCommentParams) (Notification, error) {
+	row := q.db.QueryRow(ctx, findUnreadLikeNotificationForComment, arg.UserID, arg.PostID, arg.CommentID)
+	var i Notification
+	err := row.Scan(
+		&i.NotificationID,
+		&i.UserID,
+		&i.PostID,
+		&i.CommentID,
+		&i.Message,
+		&i.Link,
+		&i.Viewed,
+		&i.Facets,
+		&i.NotificationType,
+		&i.CreatedAt,
 	)
+	return i, err
+}
+
+const findUnreadLikeNotificationForPost = `-- name: FindUnreadLikeNotificationForPost :one
+SELECT notification_id, user_id, post_id, comment_id, message, link, viewed, facets, notification_type, created_at
+FROM notifications 
+WHERE user_id = $1 
+  AND notification_type = 'like'
+  AND viewed = FALSE
+  AND post_id = $2
+  AND comment_id IS NULL
+ORDER BY created_at DESC
+LIMIT 1
+`
+
+type FindUnreadLikeNotificationForPostParams struct {
+	UserID int32       `json:"userId"`
+	PostID pgtype.Int4 `json:"postId"`
+}
+
+func (q *Queries) FindUnreadLikeNotificationForPost(ctx context.Context, arg FindUnreadLikeNotificationForPostParams) (Notification, error) {
+	row := q.db.QueryRow(ctx, findUnreadLikeNotificationForPost, arg.UserID, arg.PostID)
 	var i Notification
 	err := row.Scan(
 		&i.NotificationID,

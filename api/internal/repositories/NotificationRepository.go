@@ -163,18 +163,22 @@ func (r DBNotificationRepository) GetUnreadNotificationsForUserIdWithTimeOffset(
 
 // FindUnreadLikeNotification finds an unread like notification for a user
 func (r DBNotificationRepository) FindUnreadLikeNotification(ctx context.Context, userId int, postId int, commentId *int) (*models.Notification, error) {
-	var commentIdParam int32
-	if commentId != nil {
-		commentIdParam = int32(*commentId)
+	var notification queries.Notification
+	var err error
+
+	if commentId == nil {
+		notification, err = r.querier.FindUnreadLikeNotificationForPost(ctx, queries.FindUnreadLikeNotificationForPostParams{
+			UserID: int32(userId),
+			PostID: pgtype.Int4{Int32: int32(postId), Valid: true},
+		})
 	} else {
-		commentIdParam = 0
+		notification, err = r.querier.FindUnreadLikeNotificationForComment(ctx, queries.FindUnreadLikeNotificationForCommentParams{
+			UserID:    int32(userId),
+			PostID:    pgtype.Int4{Int32: int32(postId), Valid: true},
+			CommentID: pgtype.Int4{Int32: int32(*commentId), Valid: true},
+		})
 	}
 
-	notification, err := r.querier.FindUnreadLikeNotification(ctx, queries.FindUnreadLikeNotificationParams{
-		UserID:  int32(userId),
-		Column2: commentIdParam,
-		PostID:  pgtype.Int4{Int32: int32(postId), Valid: true},
-	})
 	if err != nil {
 		return nil, err
 	}
