@@ -59,3 +59,18 @@ FROM notifications
 WHERE user_id = $1 AND viewed = FALSE AND created_at < $2
 ORDER BY created_at DESC
 LIMIT $3;
+
+-- name: FindUnreadLikeNotification :one
+SELECT *
+FROM notifications 
+WHERE user_id = $1 
+  AND notification_type = 'like'
+  AND viewed = FALSE
+  AND (($2::int IS NULL AND post_id = $3 AND comment_id IS NULL) OR 
+       ($2::int IS NOT NULL AND post_id = $3 AND comment_id = $2))
+ORDER BY created_at DESC
+LIMIT 1;
+
+-- name: DeleteNotificationById :exec
+DELETE FROM notifications 
+WHERE notification_id = $1;

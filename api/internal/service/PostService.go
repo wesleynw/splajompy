@@ -16,6 +16,7 @@ import (
 	"splajompy.com/api/v2/internal/models"
 	"splajompy.com/api/v2/internal/repositories"
 	"splajompy.com/api/v2/internal/templates"
+	"time"
 )
 
 type PostService struct {
@@ -251,9 +252,30 @@ func (s *PostService) AddLikeToPost(ctx context.Context, currentUser models.Publ
 	return err
 }
 
+// RemoveLikeFromPost removes the current user's like from a post and deletes
+// related notifications created within the last 5 minutes.
 func (s *PostService) RemoveLikeFromPost(ctx context.Context, currentUser models.PublicUser, postId int) error {
 	err := s.likeRepository.RemoveLike(ctx, currentUser.UserID, postId, true)
-	return err
+	if err != nil {
+		return err
+	}
+
+	post, err := s.postRepository.GetPostById(ctx, postId)
+	if err != nil {
+		return err
+	}
+
+	notification, err := s.notificationRepository.FindUnreadLikeNotification(ctx, int(post.UserID), postId, nil)
+	if err == nil && notification != nil {
+		if time.Since(notification.CreatedAt) <= 5*time.Minute {
+			err = s.notificationRepository.DeleteNotificationById(ctx, notification.NotificationID)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
 }
 
 func (s *PostService) DeletePost(ctx context.Context, currentUser models.PublicUser, postId int) error {

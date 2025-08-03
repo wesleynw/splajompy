@@ -12,6 +12,52 @@ import (
 	db "splajompy.com/api/v2/internal/db"
 )
 
+const deleteNotificationById = `-- name: DeleteNotificationById :exec
+DELETE FROM notifications 
+WHERE notification_id = $1
+`
+
+func (q *Queries) DeleteNotificationById(ctx context.Context, notificationID int32) error {
+	_, err := q.db.Exec(ctx, deleteNotificationById, notificationID)
+	return err
+}
+
+const findUnreadLikeNotification = `-- name: FindUnreadLikeNotification :one
+SELECT notification_id, user_id, post_id, comment_id, message, link, viewed, facets, notification_type, created_at
+FROM notifications 
+WHERE user_id = $1 
+  AND notification_type = 'like'
+  AND viewed = FALSE
+  AND (($2::int IS NULL AND post_id = $3 AND comment_id IS NULL) OR 
+       ($2::int IS NOT NULL AND post_id = $3 AND comment_id = $2))
+ORDER BY created_at DESC
+LIMIT 1
+`
+
+type FindUnreadLikeNotificationParams struct {
+	UserID  int32       `json:"userId"`
+	Column2 int32       `json:"column2"`
+	PostID  pgtype.Int4 `json:"postId"`
+}
+
+func (q *Queries) FindUnreadLikeNotification(ctx context.Context, arg FindUnreadLikeNotificationParams) (Notification, error) {
+	row := q.db.QueryRow(ctx, findUnreadLikeNotification, arg.UserID, arg.Column2, arg.PostID)
+	var i Notification
+	err := row.Scan(
+		&i.NotificationID,
+		&i.UserID,
+		&i.PostID,
+		&i.CommentID,
+		&i.Message,
+		&i.Link,
+		&i.Viewed,
+		&i.Facets,
+		&i.NotificationType,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
 const getNotificationById = `-- name: GetNotificationById :one
 SELECT notification_id, user_id, post_id, comment_id, message, link, viewed, facets, notification_type, created_at
 FROM notifications
