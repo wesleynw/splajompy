@@ -28,20 +28,25 @@ FROM notifications
 WHERE user_id = $1 
   AND notification_type = 'like'
   AND viewed = FALSE
-  AND (($2::int IS NULL AND post_id = $3 AND comment_id IS NULL) OR 
-       ($2::int IS NOT NULL AND post_id = $3 AND comment_id = $2))
+  AND (($2 IS TRUE AND post_id = $3) OR ($2 IS FALSE AND post_id = $3 AND comment_id = $4))
 ORDER BY created_at DESC
 LIMIT 1
 `
 
 type FindUnreadLikeNotificationParams struct {
-	UserID  int32       `json:"userId"`
-	Column2 int32       `json:"column2"`
-	PostID  pgtype.Int4 `json:"postId"`
+	UserID    int32       `json:"userId"`
+	Column2   interface{} `json:"column2"`
+	PostID    pgtype.Int4 `json:"postId"`
+	CommentID pgtype.Int4 `json:"commentId"`
 }
 
 func (q *Queries) FindUnreadLikeNotification(ctx context.Context, arg FindUnreadLikeNotificationParams) (Notification, error) {
-	row := q.db.QueryRow(ctx, findUnreadLikeNotification, arg.UserID, arg.Column2, arg.PostID)
+	row := q.db.QueryRow(ctx, findUnreadLikeNotification,
+		arg.UserID,
+		arg.Column2,
+		arg.PostID,
+		arg.CommentID,
+	)
 	var i Notification
 	err := row.Scan(
 		&i.NotificationID,

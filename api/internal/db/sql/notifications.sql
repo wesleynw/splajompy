@@ -66,8 +66,7 @@ FROM notifications
 WHERE user_id = $1 
   AND notification_type = 'like'
   AND viewed = FALSE
-  AND (($2::int IS NULL AND post_id = $3 AND comment_id IS NULL) OR 
-       ($2::int IS NOT NULL AND post_id = $3 AND comment_id = $2))
+  AND (($2 IS TRUE AND post_id = $3) OR ($2 IS FALSE AND post_id = $3 AND comment_id = $4))
 ORDER BY created_at DESC
 LIMIT 1;
 
