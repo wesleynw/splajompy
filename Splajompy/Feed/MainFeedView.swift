@@ -123,10 +123,11 @@ struct MainFeedView: View {
             onLikeButtonTapped: { viewModel.toggleLike(on: post) },
             onPostDeleted: { viewModel.deletePost(on: post) }
           )
+          .id(post.id)
+          .geometryGroup()
           .onAppear {
             handlePostAppear(post: post, index: index)
           }
-          .geometryGroup()
         }
 
         if viewModel.canLoadMore {
