@@ -202,12 +202,8 @@ extension NotificationsView {
           if !existingNotifications.contains(where: {
             $0.notificationId == movedNotification.notificationId
           }) {
-            existingNotifications.insert(
-              movedNotification,
-              at: existingNotifications.firstIndex(where: {
-                $0.createdAt < movedNotification.createdAt
-              }) ?? 0)
-            updatedSections[section] = existingNotifications
+            existingNotifications.append(movedNotification)
+            updatedSections[section] = sortNotificationsByDate(existingNotifications)
           }
         } else {
           updatedSections[section] = [movedNotification]
@@ -254,12 +250,8 @@ extension NotificationsView {
             if !existingNotifications.contains(where: {
               $0.notificationId == unreadNotification.notificationId
             }) {
-              existingNotifications.insert(
-                unreadNotification,
-                at: existingNotifications.firstIndex(where: {
-                  $0.createdAt < unreadNotification.createdAt
-                }) ?? 0)
-              updatedSections[section] = existingNotifications
+              existingNotifications.append(unreadNotification)
+              updatedSections[section] = sortNotificationsByDate(existingNotifications)
             }
           } else {
             updatedSections[section] = [unreadNotification]
