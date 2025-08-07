@@ -6,7 +6,10 @@ struct NotificationRow: View {
 
   private func relativeDate(from createdAt: String) -> String {
     let date = sharedISO8601Formatter.date(from: createdAt) ?? Date()
-    return sharedRelativeDateTimeFormatter.localizedString(for: date, relativeTo: Date())
+    return sharedRelativeDateTimeFormatter.localizedString(
+      for: date,
+      relativeTo: Date()
+    )
   }
 
   var body: some View {
@@ -38,14 +41,9 @@ struct NotificationRow: View {
 
           Spacer(minLength: 0)
 
-          if let blobUrl = notification.imageBlob,
-            let imageWidth = notification.imageWidth,
-            let imageHeight = notification.imageHeight
-          {
+          if let blobUrl = notification.imageBlob {
             NotificationImageView(
-              url: blobUrl,
-              width: imageWidth,
-              height: imageHeight
+              url: blobUrl
             )
             .frame(width: 40, height: 40)
           }
