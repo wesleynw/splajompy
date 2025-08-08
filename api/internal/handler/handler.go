@@ -89,6 +89,7 @@ func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
 	handleFunc("POST /post/{post_id}/comment", h.AddCommentToPostById)
 	handleFunc("POST /post/{post_id}/comment/{comment_id}/liked", h.AddCommentLike)
 	handleFunc("DELETE /post/{post_id}/comment/{comment_id}/liked", h.RemoveCommentLike)
+	handleFunc("DELETE /comment/{comment_id}", h.DeleteComment)
 
 	// blocking
 	handleFunc("POST /user/{user_id}/block", h.BlockUser)

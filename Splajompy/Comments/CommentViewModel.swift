@@ -73,5 +73,18 @@ extension CommentsView {
         print("Error adding comment: \(error.localizedDescription)")
       }
     }
+    
+    func deleteComment(_ comment: DetailedComment) async {
+      let result = await service.deleteComment(commentId: comment.commentId)
+      
+      switch result {
+      case .success:
+        if let index = comments.firstIndex(where: { $0.commentId == comment.commentId }) {
+          comments.remove(at: index)
+        }
+      case .error(let error):
+        print("Error deleting comment: \(error.localizedDescription)")
+      }
+    }
   }
 }

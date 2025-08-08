@@ -44,6 +44,8 @@ protocol CommentServiceProtocol: Sendable {
   func addComment(postId: Int, text: String) async -> AsyncResult<
     DetailedComment
   >
+  
+  func deleteComment(commentId: Int) async -> AsyncResult<EmptyResponse>
 }
 
 struct CommentService: CommentServiceProtocol {
@@ -80,6 +82,13 @@ struct CommentService: CommentServiceProtocol {
       endpoint: "post/\(postId)/comment",
       method: "POST",
       body: jsonData
+    )
+  }
+  
+  func deleteComment(commentId: Int) async -> AsyncResult<EmptyResponse> {
+    return await APIService.performRequest(
+      endpoint: "comment/\(commentId)",
+      method: "DELETE"
     )
   }
 }

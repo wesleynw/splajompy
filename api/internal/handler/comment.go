@@ -100,3 +100,22 @@ func (h *Handler) RemoveCommentLike(w http.ResponseWriter, r *http.Request) {
 
 	utilities.HandleEmptySuccess(w)
 }
+
+// DeleteComment DELETE /comment/{comment_id}
+func (h *Handler) DeleteComment(w http.ResponseWriter, r *http.Request) {
+	currentUser := h.getAuthenticatedUser(r)
+
+	commentId, err := h.GetIntPathParam(r, "comment_id")
+	if err != nil {
+		utilities.HandleError(w, http.StatusBadRequest, "Missing parameter")
+		return
+	}
+
+	err = h.commentService.DeleteComment(r.Context(), *currentUser, commentId)
+	if err != nil {
+		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
+		return
+	}
+
+	utilities.HandleEmptySuccess(w)
+}

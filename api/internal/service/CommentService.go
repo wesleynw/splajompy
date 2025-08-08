@@ -187,3 +187,17 @@ func (s *CommentService) RemoveLikeFromCommentById(ctx context.Context, user mod
 
 	return nil
 }
+
+// DeleteComment deletes a comment by ID if the current user owns it
+func (s *CommentService) DeleteComment(ctx context.Context, currentUser models.PublicUser, commentId int) error {
+	comment, err := s.commentRepo.GetCommentById(ctx, commentId)
+	if err != nil {
+		return errors.New("unable to find comment")
+	}
+
+	if int(comment.UserID) != currentUser.UserID {
+		return errors.New("unable to delete comment")
+	}
+
+	return s.commentRepo.DeleteComment(ctx, commentId)
+}

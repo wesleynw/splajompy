@@ -44,6 +44,16 @@ func (q *Queries) AddCommentToPost(ctx context.Context, arg AddCommentToPostPara
 	return i, err
 }
 
+const deleteComment = `-- name: DeleteComment :exec
+DELETE FROM comments
+WHERE comment_id = $1
+`
+
+func (q *Queries) DeleteComment(ctx context.Context, commentID int32) error {
+	_, err := q.db.Exec(ctx, deleteComment, commentID)
+	return err
+}
+
 const getCommentById = `-- name: GetCommentById :one
 SELECT comment_id, post_id, user_id, text, facets, created_at
 FROM comments

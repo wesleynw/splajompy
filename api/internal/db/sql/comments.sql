@@ -28,3 +28,7 @@ ORDER BY comments.created_at DESC;
 INSERT INTO comments (post_id, user_id, text, facets)
 VALUES ($1, $2, $3, $4)
 RETURNING *;
+
+-- name: DeleteComment :exec
+DELETE FROM comments
+WHERE comment_id = $1;
