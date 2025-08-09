@@ -303,8 +303,8 @@ class AuthManager: ObservableObject, Sendable {
       return "Username cannot be empty"
     }
 
-    if username.count < 3 {
-      return "Username must be at least 3 characters"
+    if username.count < 1 {
+      return "Username must be at least 1 character"
     }
 
     let alphanumericRegex = "^[a-zA-Z0-9]+$"
