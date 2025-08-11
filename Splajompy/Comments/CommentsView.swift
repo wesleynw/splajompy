@@ -219,7 +219,7 @@ struct CommentRow: View {
   let deleteComment: () -> Void
 
   let formatter = RelativeDateTimeFormatter()
-  
+
   @EnvironmentObject private var authManager: AuthManager
 
   private var commentDate: Date {

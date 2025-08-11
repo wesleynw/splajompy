@@ -21,7 +21,7 @@ struct DetailedComment: Identifiable, Decodable, Equatable {
   var isLiked: Bool
 
   var id: Int { commentId }
-  
+
   static func == (lhs: DetailedComment, rhs: DetailedComment) -> Bool {
     return lhs.commentId == rhs.commentId
   }
@@ -48,7 +48,7 @@ protocol CommentServiceProtocol: Sendable {
   func addComment(postId: Int, text: String) async -> AsyncResult<
     DetailedComment
   >
-  
+
   func deleteComment(commentId: Int) async -> AsyncResult<EmptyResponse>
 }
 
@@ -88,7 +88,7 @@ struct CommentService: CommentServiceProtocol {
       body: jsonData
     )
   }
-  
+
   func deleteComment(commentId: Int) async -> AsyncResult<EmptyResponse> {
     return await APIService.performRequest(
       endpoint: "comment/\(commentId)",

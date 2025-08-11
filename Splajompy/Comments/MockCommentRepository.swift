@@ -69,7 +69,7 @@ class MockCommentService: CommentServiceProtocol, @unchecked Sendable {
 
     return .success(newComment)
   }
-  
+
   func deleteComment(commentId: Int) async -> AsyncResult<EmptyResponse> {
     for (postId, var comments) in mockComments {
       if let index = comments.firstIndex(where: { $0.commentId == commentId }) {
@@ -190,7 +190,7 @@ class MockCommentService_Empty: CommentServiceProtocol, @unchecked Sendable {
 
     return .success(newComment)
   }
-  
+
   func deleteComment(commentId: Int) async -> AsyncResult<EmptyResponse> {
     return .success(EmptyResponse())
   }
@@ -218,7 +218,7 @@ class MockCommentService_Loading: CommentServiceProtocol, @unchecked Sendable {
     try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000_000))
     return await mockService.addComment(postId: postId, text: text)
   }
-  
+
   func deleteComment(commentId: Int) async -> AsyncResult<EmptyResponse> {
     try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000_000))
     return await mockService.deleteComment(commentId: commentId)
@@ -246,7 +246,7 @@ class MockCommentService_Error: CommentServiceProtocol, @unchecked Sendable {
         domain: "MockError", code: 400,
         userInfo: [NSLocalizedDescriptionKey: "Failed to add comment"]))
   }
-  
+
   func deleteComment(commentId: Int) async -> AsyncResult<EmptyResponse> {
     return .error(
       NSError(
