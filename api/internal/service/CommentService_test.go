@@ -241,3 +241,26 @@ func TestRemoveLikeFromComment_NoNotificationExists(t *testing.T) {
 
 	assert.Equal(t, 0, notificationRepo.GetNotificationCount(otherUser.UserID))
 }
+
+func TestDeleteComment_UnauthorizedUser(t *testing.T) {
+	svc, _, postRepo, _, userRepo, user := setupCommentTest(t)
+	ctx := context.Background()
+
+	post, err := postRepo.InsertPost(ctx, user.UserID, "Test post for deletion", nil, nil)
+	require.NoError(t, err)
+
+	otherUser, err := userRepo.CreateUser(ctx, "otherUser", "other@example.com", "password")
+	require.NoError(t, err)
+
+	comment, err := svc.AddCommentToPost(ctx, otherUser, post.PostID, "Comment to delete")
+	require.NoError(t, err)
+
+	err = svc.DeleteComment(ctx, user, comment.CommentID)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "unable to delete comment")
+
+	comments, err := svc.GetCommentsByPostId(ctx, user, post.PostID)
+	assert.NoError(t, err)
+	assert.Len(t, comments, 1)
+	assert.Equal(t, comment.CommentID, comments[0].CommentID)
+}

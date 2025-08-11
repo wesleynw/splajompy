@@ -94,6 +94,14 @@ struct CommentsView: View {
               comment: comment,
               toggleLike: {
                 viewModel.toggleLike(for: comment)
+              },
+              deleteComment: {
+                Task {
+                  await viewModel.deleteComment(comment)
+                  postManager.updatePost(id: postId) { post in
+                    post.commentCount -= 1
+                  }
+                }
               }
             )
             .listRowSeparator(.hidden)
@@ -101,6 +109,7 @@ struct CommentsView: View {
             .listRowBackground(Color.clear)
           }
         }
+        .animation(.easeInOut(duration: 0.3), value: viewModel.comments)
       }
 
       Divider()
@@ -141,6 +150,13 @@ struct CommentsView: View {
     }
     .presentationDragIndicator(.visible)
     .postHogScreenView("CommentsView", ["post": postId])
+    .alert("Error", isPresented: .constant(viewModel.errorMessage != nil)) {
+      Button("OK") {
+        viewModel.errorMessage = nil
+      }
+    } message: {
+      Text(viewModel.errorMessage ?? "")
+    }
   }
 }
 
@@ -200,8 +216,11 @@ struct AddCommentSheet: View {
 struct CommentRow: View {
   let comment: DetailedComment
   let toggleLike: () -> Void
+  let deleteComment: () -> Void
 
   let formatter = RelativeDateTimeFormatter()
+
+  @EnvironmentObject private var authManager: AuthManager
 
   private var commentDate: Date {
     let dateFormatter = ISO8601DateFormatter()
@@ -242,8 +261,29 @@ struct CommentRow: View {
 
         Spacer()
 
-        LikeButton(isLiked: comment.isLiked, action: toggleLike)
-          .allowsHitTesting(true)
+        HStack(spacing: 0) {
+          if let currentUser = authManager.getCurrentUser() {
+            if currentUser.userId == comment.user.userId {
+              Menu(
+                content: {
+                  Button(role: .destructive, action: { deleteComment() }) {
+                    Label("Delete", systemImage: "trash")
+                      .foregroundColor(.red)
+                  }
+                },
+                label: {
+                  Image(systemName: "ellipsis")
+                    .font(.system(size: 16))
+                    .frame(width: 32, height: 32)
+                }
+              )
+              .buttonStyle(.plain)
+            }
+          }
+
+          LikeButton(isLiked: comment.isLiked, action: toggleLike)
+            .allowsHitTesting(true)
+        }
       }
       .allowsHitTesting(true)
     }

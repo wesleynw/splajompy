@@ -15,6 +15,7 @@ type Querier interface {
 	CreateSession(ctx context.Context, arg CreateSessionParams) error
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
 	CreateVerificationCode(ctx context.Context, arg CreateVerificationCodeParams) error
+	DeleteComment(ctx context.Context, commentID int32) error
 	DeleteFollow(ctx context.Context, arg DeleteFollowParams) error
 	DeleteNotificationById(ctx context.Context, notificationID int32) error
 	DeletePost(ctx context.Context, postID int32) error

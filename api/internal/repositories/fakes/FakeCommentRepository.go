@@ -119,6 +119,22 @@ func (f *FakeCommentRepository) RemoveLikeFromComment(ctx context.Context, userI
 	return nil
 }
 
+func (f *FakeCommentRepository) DeleteComment(ctx context.Context, commentId int) error {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+
+	for postId, comments := range f.comments {
+		for i, comment := range comments {
+			if comment.CommentID == int32(commentId) {
+				f.comments[postId] = append(comments[:i], comments[i+1:]...)
+				return nil
+			}
+		}
+	}
+
+	return errors.New("comment not found")
+}
+
 func (f *FakeCommentRepository) GetUserById(ctx context.Context, userId int) (queries.User, error) {
 	f.mu.Lock()
 	defer f.mu.Unlock()

@@ -10,7 +10,7 @@ struct Comment: Identifiable, Decodable {
   var id: Int { commentId }
 }
 
-struct DetailedComment: Identifiable, Decodable {
+struct DetailedComment: Identifiable, Decodable, Equatable {
   let commentId: Int
   let postId: Int
   let userId: Int
@@ -21,6 +21,10 @@ struct DetailedComment: Identifiable, Decodable {
   var isLiked: Bool
 
   var id: Int { commentId }
+
+  static func == (lhs: DetailedComment, rhs: DetailedComment) -> Bool {
+    return lhs.commentId == rhs.commentId
+  }
 
   // TODO: the null coalescing here is dumb
   var richContent: AttributedString {
@@ -44,6 +48,8 @@ protocol CommentServiceProtocol: Sendable {
   func addComment(postId: Int, text: String) async -> AsyncResult<
     DetailedComment
   >
+
+  func deleteComment(commentId: Int) async -> AsyncResult<EmptyResponse>
 }
 
 struct CommentService: CommentServiceProtocol {
@@ -80,6 +86,13 @@ struct CommentService: CommentServiceProtocol {
       endpoint: "post/\(postId)/comment",
       method: "POST",
       body: jsonData
+    )
+  }
+
+  func deleteComment(commentId: Int) async -> AsyncResult<EmptyResponse> {
+    return await APIService.performRequest(
+      endpoint: "comment/\(commentId)",
+      method: "DELETE"
     )
   }
 }
