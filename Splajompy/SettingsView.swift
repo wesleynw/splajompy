@@ -4,11 +4,6 @@ import SwiftUI
 struct SettingsView: View {
   @EnvironmentObject private var authManager: AuthManager
 
-  let appVersion =
-    Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? ""
-  let buildNumber =
-    Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? ""
-
   var body: some View {
     VStack {
       List {
@@ -52,15 +47,11 @@ struct SettingsView: View {
         }
 
         Section {
-          HStack {
-            Text("Version")
-            Spacer()
-            Text("\(appVersion) (Build \(buildNumber))")
-              .font(.footnote)
-              .fontWeight(.bold)
-              .foregroundColor(.secondary)
+          NavigationLink(destination: AboutView()) {
+            Label("About", systemImage: "info.circle")
           }
         }
+
       }
       #if os(macOS)
         .contentMargins(.horizontal, 20, for: .scrollContent)
