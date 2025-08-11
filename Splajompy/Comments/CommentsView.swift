@@ -109,6 +109,7 @@ struct CommentsView: View {
             .listRowBackground(Color.clear)
           }
         }
+        .animation(.easeInOut(duration: 0.3), value: viewModel.comments)
       }
 
       Divider()
@@ -149,6 +150,13 @@ struct CommentsView: View {
     }
     .presentationDragIndicator(.visible)
     .postHogScreenView("CommentsView", ["post": postId])
+    .alert("Error", isPresented: .constant(viewModel.errorMessage != nil)) {
+      Button("OK") {
+        viewModel.errorMessage = nil
+      }
+    } message: {
+      Text(viewModel.errorMessage ?? "")
+    }
   }
 }
 
@@ -269,7 +277,7 @@ struct CommentRow: View {
                     .frame(width: 32, height: 32)
                 }
               )
-              .accessibilityLabel("More options")
+              .buttonStyle(.plain)
             }
           }
 

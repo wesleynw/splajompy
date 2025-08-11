@@ -10,7 +10,7 @@ struct Comment: Identifiable, Decodable {
   var id: Int { commentId }
 }
 
-struct DetailedComment: Identifiable, Decodable {
+struct DetailedComment: Identifiable, Decodable, Equatable {
   let commentId: Int
   let postId: Int
   let userId: Int
@@ -21,6 +21,10 @@ struct DetailedComment: Identifiable, Decodable {
   var isLiked: Bool
 
   var id: Int { commentId }
+  
+  static func == (lhs: DetailedComment, rhs: DetailedComment) -> Bool {
+    return lhs.commentId == rhs.commentId
+  }
 
   // TODO: the null coalescing here is dumb
   var richContent: AttributedString {

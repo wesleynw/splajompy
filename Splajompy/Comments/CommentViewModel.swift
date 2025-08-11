@@ -7,6 +7,7 @@ extension CommentsView {
 
     @Published var comments = [DetailedComment]()
     @Published var isLoading = true
+    @Published var errorMessage: String?
 
     init(
       postId: Int,
@@ -75,15 +76,16 @@ extension CommentsView {
     }
     
     func deleteComment(_ comment: DetailedComment) async {
-      let result = await service.deleteComment(commentId: comment.commentId)
-      
-      switch result {
-      case .success:
-        if let index = comments.firstIndex(where: { $0.commentId == comment.commentId }) {
-          comments.remove(at: index)
+      if let index = comments.firstIndex(where: { $0.commentId == comment.commentId }) {
+        comments.remove(at: index)
+        
+        let result = await service.deleteComment(commentId: comment.commentId)
+        
+        if case .error(let error) = result {
+          print("Error deleting comment: \(error.localizedDescription)")
+          comments.insert(comment, at: index)
+          errorMessage = "Failed to delete comment"
         }
-      case .error(let error):
-        print("Error deleting comment: \(error.localizedDescription)")
       }
     }
   }
