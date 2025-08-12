@@ -109,7 +109,7 @@ struct ProfileView: View {
         if viewModel.posts.isEmpty {
           emptyMessage
         } else {
-          ForEach(viewModel.posts) { post in
+          ForEach(Array(viewModel.posts.enumerated()), id: \.element.id) { index, post in
             PostView(
               post: post,
               postManager: postManager,
@@ -119,11 +119,7 @@ struct ProfileView: View {
             )
             .geometryGroup()
             .onAppear {
-              if post == viewModel.posts.last && viewModel.canLoadMorePosts {
-                Task {
-                  await viewModel.loadPosts()
-                }
-              }
+              handlePostAppear(post: post, index: index)
             }
           }
 
@@ -141,6 +137,14 @@ struct ProfileView: View {
     .environmentObject(authManager)
     .refreshable {
       await viewModel.loadProfile()
+    }
+  }
+
+  private func handlePostAppear(post: DetailedPost, index: Int) {
+    if index >= viewModel.posts.count - 3 && viewModel.canLoadMorePosts {
+      Task {
+        await viewModel.loadPosts()
+      }
     }
   }
 
