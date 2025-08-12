@@ -40,8 +40,10 @@ struct MainFeedView: View {
           }
         }
       }
-      .task {
-        await viewModel.loadPosts()
+      .onAppear {
+        Task {
+          await viewModel.loadPosts()
+        }
       }
       .onChange(of: selectedFeedType) { _, newFeedType in
         Task {
