@@ -136,12 +136,15 @@ struct ProfileView: View {
     }
     .environmentObject(authManager)
     .refreshable {
-      await viewModel.loadProfile()
+      await viewModel.loadPosts(reset: true)
     }
   }
 
   private func handlePostAppear(post: DetailedPost, index: Int) {
-    if index >= viewModel.posts.count - 3 && viewModel.canLoadMorePosts {
+    if case .loaded = viewModel.state,
+      index >= viewModel.posts.count - 3 && viewModel.canLoadMorePosts
+        && !viewModel.isLoadingMorePosts
+    {
       Task {
         await viewModel.loadPosts()
       }

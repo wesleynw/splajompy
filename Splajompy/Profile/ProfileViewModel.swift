@@ -80,49 +80,41 @@ extension ProfileView {
     func loadPosts(reset: Bool = false) async {
       guard case .loaded(let profile, _) = state else { return }
 
-      currentPostsTask?.cancel()
+      if reset {
+        postsOffset = 0
+      } else {
+        guard canLoadMorePosts && !isLoadingMorePosts else { return }
+        isLoadingMorePosts = true
+      }
 
-      currentPostsTask = Task {
-        if reset {
-          postsOffset = 0
-        } else {
-          isLoadingMorePosts = true
-        }
-
-        guard !Task.isCancelled else { return }
-
-        let result =
-          await postManager.loadFeed(
-            feedType: .profile,
-            userId: userId,
-            offset: postsOffset,
-            limit: fetchLimit
-          )
-
-        guard !Task.isCancelled else { return }
-
-        switch result {
-        case .success(let fetchedPosts):
-          postManager.cachePosts(fetchedPosts)
-          let newPostIds = fetchedPosts.map { $0.id }
-
-          if reset {
-            postIds = newPostIds
-          } else {
-            postIds.append(contentsOf: newPostIds)
-          }
-
-          state = .loaded(profile, postIds)
-          canLoadMorePosts = fetchedPosts.count >= fetchLimit
-          postsOffset += fetchedPosts.count
-        case .error(let error):
-          state = .failed(error)
-        }
-
+      defer {
         isLoadingMorePosts = false
       }
 
-      await currentPostsTask?.value
+      let result = await postManager.loadFeed(
+        feedType: .profile,
+        userId: userId,
+        offset: postsOffset,
+        limit: fetchLimit
+      )
+
+      switch result {
+      case .success(let fetchedPosts):
+        postManager.cachePosts(fetchedPosts)
+        let newPostIds = fetchedPosts.map { $0.id }
+
+        if reset {
+          postIds = newPostIds
+        } else {
+          postIds.append(contentsOf: newPostIds)
+        }
+
+        postsOffset += fetchedPosts.count
+        state = .loaded(profile, postIds)
+        canLoadMorePosts = fetchedPosts.count >= fetchLimit
+      case .error(let error):
+        state = .failed(error)
+      }
     }
 
     func toggleLike(on post: DetailedPost) {
