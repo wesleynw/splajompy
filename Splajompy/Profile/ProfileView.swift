@@ -25,7 +25,9 @@ struct ProfileView: View {
     self.username = username
     self.isProfileTab = isProfileTab
     self.postManager = postManager
-    _viewModel = StateObject(wrappedValue: ViewModel(userId: userId, postManager: postManager))
+    _viewModel = StateObject(
+      wrappedValue: ViewModel(userId: userId, postManager: postManager)
+    )
   }
 
   init(
@@ -44,15 +46,11 @@ struct ProfileView: View {
 
   var body: some View {
     mainContent
-      #if os(macOS)
-        .contentMargins(.horizontal, 40, for: .scrollContent)
-        .safeAreaPadding(.horizontal, 20)
-      #endif
+      .navigationTitle("@" + self.username)
       .sheet(isPresented: $isShowingProfileEditor) {
         ProfileEditorView(viewModel: viewModel)
           .interactiveDismissDisabled()
       }
-      .navigationTitle("@" + self.username)
       .toolbar {
         if !isProfileTab && !isCurrentUser {
           Menu {
@@ -92,12 +90,7 @@ struct ProfileView: View {
     case .idle, .loading:
       loadingPlaceholder
     case .loaded(let user, _):
-      ScrollView {
-        profileList(user: user, posts: viewModel.posts)
-      }
-      .refreshable {
-        await viewModel.loadProfile()
-      }
+      profileList(user: user)
     case .failed(let error):
       ErrorScreen(
         errorString: error.localizedDescription,
@@ -106,17 +99,17 @@ struct ProfileView: View {
     }
   }
 
-  private func profileList(user: UserProfile, posts: [DetailedPost])
+  private func profileList(user: UserProfile)
     -> some View
   {
-    LazyVStack(spacing: 0) {
-      profileHeader(user: user)
+    ScrollView {
+      LazyVStack(spacing: 0) {
+        profileHeader(user: user)
 
-      if posts.isEmpty {
-        emptyMessage
-      } else {
-        ForEach(posts) { post in
-          VStack {
+        if viewModel.posts.isEmpty {
+          emptyMessage
+        } else {
+          ForEach(viewModel.posts) { post in
             PostView(
               post: post,
               postManager: postManager,
@@ -124,29 +117,31 @@ struct ProfileView: View {
               onLikeButtonTapped: { viewModel.toggleLike(on: post) },
               onPostDeleted: { viewModel.deletePost(on: post) }
             )
-          }
-          .geometryGroup()
-          .environmentObject(authManager)
-          .onAppear {
-            if post == posts.last && viewModel.canLoadMorePosts {
-              Task {
-                await viewModel.loadPosts()
+            .geometryGroup()
+            .onAppear {
+              if post == viewModel.posts.last && viewModel.canLoadMorePosts {
+                Task {
+                  await viewModel.loadPosts()
+                }
               }
             }
           }
-        }
 
-        if viewModel.isLoadingMorePosts {
-          HStack {
-            Spacer()
-            ProgressView()
-              .padding()
-            Spacer()
+          if viewModel.canLoadMorePosts {
+            HStack {
+              Spacer()
+              ProgressView()
+                .padding()
+              Spacer()
+            }
           }
         }
       }
     }
-    .animation(.easeInOut(duration: 0.2), value: posts.count)
+    .environmentObject(authManager)
+    .refreshable {
+      await viewModel.loadProfile()
+    }
   }
 
   private func profileHeader(user: UserProfile) -> some View {
@@ -160,9 +155,7 @@ struct ProfileView: View {
               .lineLimit(1)
           }
         }
-
         Spacer()
-
       }
 
       if !user.bio.isEmpty {
@@ -233,27 +226,8 @@ struct ProfileView: View {
   private var emptyMessage: some View {
     VStack {
       Spacer()
-      Text("No posts yet.")
-        .font(.title3)
-        .fontWeight(.bold)
-        .padding(.top, 40)
       Text(isCurrentUser ? "Your posts will show up here." : "No posts here.")
         .padding()
-      Button {
-        Task { await viewModel.loadPosts(reset: true) }
-      } label: {
-        HStack {
-          if case .loading = viewModel.state {
-            ProgressView()
-              .scaleEffect(0.8)
-          } else {
-            Image(systemName: "arrow.clockwise")
-          }
-          Text("Reload")
-        }
-      }
-      .padding()
-      .buttonStyle(.bordered)
       Spacer()
     }
   }
