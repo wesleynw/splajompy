@@ -15,35 +15,60 @@ struct AboutView: View {
               .resizable()
               .aspectRatio(contentMode: .fit)
               .frame(width: 80, height: 80)
-            
+
             Text("Splajompy")
               .font(.title2)
               .fontWeight(.semibold)
-            
-            Text("A free and open-source social media platform built with privacy and community in mind.")
-              .font(.subheadline)
-              .foregroundColor(.secondary)
-              .multilineTextAlignment(.center)
-              .padding(.horizontal)
+
+            Text(
+              "Splajompy is free and open-source. You may view the code, contribute, or report issues on GitHub."
+            )
+            .font(.subheadline)
+            .foregroundColor(.secondary)
+            .multilineTextAlignment(.center)
+            .padding(.horizontal)
           }
-          .frame(maxWidth: .infinity)
-          .padding(.vertical, 20)
+          .padding()
         }
-        
+
         Section {
-          Link(destination: URL(string: "https://github.com/wesleynw/splajompy")!) {
+          Link(
+            destination: URL(string: "https://github.com/wesleynw/splajompy")!
+          ) {
             HStack {
-              Label("Source Code", systemImage: "chevron.left.forwardslash.chevron.right")
+              Label(
+                "Source Code",
+                systemImage: "chevron.left.forwardslash.chevron.right"
+              )
               Spacer()
               Image(systemName: "arrow.up.right.square")
                 .foregroundColor(.secondary)
                 .font(.caption)
             }
           }
-        } footer: {
-          Text("Splajompy is open-source software. View the code, contribute, or report issues on GitHub.")
         }
-        
+
+        Section {
+          Link(destination: URL(string: "https://splajompy.com/privacy")!) {
+            HStack {
+              Label("Privacy Policy", systemImage: "lock.shield")
+              Spacer()
+              Image(systemName: "arrow.up.right.square")
+                .foregroundColor(.secondary)
+                .font(.caption)
+            }
+          }
+          Link(destination: URL(string: "https://splajompy.com/tos")!) {
+            HStack {
+              Label("Terms of Service", systemImage: "doc.text")
+              Spacer()
+              Image(systemName: "arrow.up.right.square")
+                .foregroundColor(.secondary)
+                .font(.caption)
+            }
+          }
+        }
+
         Section {
           HStack {
             Text("Version")

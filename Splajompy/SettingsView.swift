@@ -32,15 +32,6 @@ struct SettingsView: View {
         StorageManager()
 
         Section {
-          Link(destination: URL(string: "https://splajompy.com/privacy")!) {
-            Label("Privacy Policy", systemImage: "lock.shield")
-          }
-          Link(destination: URL(string: "https://splajompy.com/tos")!) {
-            Label("Terms of Service", systemImage: "doc.text")
-          }
-        }
-
-        Section {
           NavigationLink(destination: RequestFeatureView()) {
             Label("Request a feature", systemImage: "lightbulb.max")
           }
