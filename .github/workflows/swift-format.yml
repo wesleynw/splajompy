@@ -8,7 +8,7 @@ jobs:
   swift-format:
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Lint
         run: |
           xcrun swift-format lint . \
