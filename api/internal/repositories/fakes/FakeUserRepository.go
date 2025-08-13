@@ -461,3 +461,83 @@ func (r *FakeUserRepository) GetMutualConnectionsForUser(ctx context.Context, us
 
 	return nil, nil
 }
+
+func (r *FakeUserRepository) GetFollowersByUserId(ctx context.Context, userId int, limit int, offset int) ([]queries.GetFollowersByUserIdRow, error) {
+	r.mutex.RLock()
+	defer r.mutex.RUnlock()
+
+	var followers []queries.GetFollowersByUserIdRow
+	
+	// Find all users who follow the given userId
+	for followerId, following := range r.followRelations {
+		if following[int32(userId)] {
+			if user, exists := r.users[followerId]; exists {
+				var name pgtype.Text
+				if user.Name != "" {
+					name = pgtype.Text{String: user.Name, Valid: true}
+				}
+				
+				followers = append(followers, queries.GetFollowersByUserIdRow{
+					UserID:    followerId,
+					Email:     user.Email,
+					Username:  user.Username,
+					CreatedAt: pgtype.Timestamp{Time: user.CreatedAt, Valid: true},
+					Name:      name,
+				})
+			}
+		}
+	}
+	
+	// Simple pagination
+	start := offset
+	end := offset + limit
+	if start >= len(followers) {
+		return []queries.GetFollowersByUserIdRow{}, nil
+	}
+	if end > len(followers) {
+		end = len(followers)
+	}
+	
+	return followers[start:end], nil
+}
+
+func (r *FakeUserRepository) GetFollowingByUserId(ctx context.Context, userId int, limit int, offset int) ([]queries.GetFollowingByUserIdRow, error) {
+	r.mutex.RLock()
+	defer r.mutex.RUnlock()
+
+	var following []queries.GetFollowingByUserIdRow
+	
+	// Get the users that the given userId is following
+	if userFollowing, exists := r.followRelations[int32(userId)]; exists {
+		for followingId, isFollowing := range userFollowing {
+			if isFollowing {
+				if user, exists := r.users[followingId]; exists {
+					var name pgtype.Text
+					if user.Name != "" {
+						name = pgtype.Text{String: user.Name, Valid: true}
+					}
+					
+					following = append(following, queries.GetFollowingByUserIdRow{
+						UserID:    followingId,
+						Email:     user.Email,
+						Username:  user.Username,
+						CreatedAt: pgtype.Timestamp{Time: user.CreatedAt, Valid: true},
+						Name:      name,
+					})
+				}
+			}
+		}
+	}
+	
+	// Simple pagination
+	start := offset
+	end := offset + limit
+	if start >= len(following) {
+		return []queries.GetFollowingByUserIdRow{}, nil
+	}
+	if end > len(following) {
+		end = len(following)
+	}
+	
+	return following[start:end], nil
+}

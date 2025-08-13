@@ -96,6 +96,8 @@ func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
 	handleFunc("DELETE /user/{user_id}/block", h.UnblockUser)
 
 	handleFunc("GET /user/{id}", h.GetUserById)
+	handleFunc("GET /user/{id}/followers", h.GetFollowersByUserId)
+	handleFunc("GET /user/{id}/following", h.GetFollowingByUserId)
 	handleFunc("GET /posts/following", h.GetPostsByFollowing)
 	handleFunc("GET /posts/all", h.GetAllPosts)
 	handleFunc("GET /posts/mutual", h.GetMutualFeed)

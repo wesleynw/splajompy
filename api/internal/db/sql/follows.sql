@@ -27,3 +27,19 @@ WHERE EXISTS (
   WHERE f.follower_id = $2
     AND following_id = u.user_id
 );
+
+-- name: GetFollowersByUserId :many
+SELECT u.user_id, u.email, u.username, u.created_at, u.name
+FROM users u
+INNER JOIN follows f ON u.user_id = f.follower_id
+WHERE f.following_id = $1
+ORDER BY f.created_at DESC
+LIMIT $2 OFFSET $3;
+
+-- name: GetFollowingByUserId :many
+SELECT u.user_id, u.email, u.username, u.created_at, u.name
+FROM users u
+INNER JOIN follows f ON u.user_id = f.following_id
+WHERE f.follower_id = $1
+ORDER BY f.created_at DESC
+LIMIT $2 OFFSET $3;

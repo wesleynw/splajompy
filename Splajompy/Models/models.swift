@@ -6,6 +6,20 @@ struct User: Decodable {
   let username: String
   let createdAt: Date
   let name: String?
+  var isFollowing: Bool?
+}
+
+struct DetailedUser: Decodable {
+  let userId: Int
+  let email: String
+  let username: String
+  let createdAt: Date
+  let name: String?
+  let bio: String
+  let isFollower: Bool
+  var isFollowing: Bool
+  let isBlocking: Bool
+  let mutuals: [String]
 }
 
 struct ImageDTO: Decodable {

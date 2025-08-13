@@ -153,3 +153,75 @@ func (s *UserService) RequestFeature(ctx context.Context, user models.PublicUser
 	_, err = s.emailService.Emails.Send(params)
 	return err
 }
+
+func (s *UserService) GetFollowersByUserId(ctx context.Context, currentUser models.PublicUser, userId int, offset int, limit int) (*[]models.DetailedUser, error) {
+	
+	followers, err := s.userRepository.GetFollowersByUserId(ctx, userId, limit, offset)
+	if err != nil {
+		return nil, err
+	}
+
+	detailedUsers := make([]models.DetailedUser, 0)
+	for _, follower := range followers {
+		var name string
+		if follower.Name.Valid {
+			name = follower.Name.String
+		}
+		
+		// Check if current user is following this follower
+		isFollowing, _ := s.userRepository.IsUserFollowingUser(ctx, currentUser.UserID, int(follower.UserID))
+		isFollower, _ := s.userRepository.IsUserFollowingUser(ctx, int(follower.UserID), currentUser.UserID)
+		isBlocking, _ := s.userRepository.IsUserBlockingUser(ctx, currentUser.UserID, int(follower.UserID))
+		
+		detailedUsers = append(detailedUsers, models.DetailedUser{
+			UserID:      int(follower.UserID),
+			Email:       follower.Email,
+			Username:    follower.Username,
+			CreatedAt:   follower.CreatedAt.Time,
+			Name:        name,
+			Bio:         "", // Not needed for followers list
+			IsFollowing: isFollowing,
+			IsFollower:  isFollower,
+			IsBlocking:  isBlocking,
+			Mutuals:     []string{}, // Could add if needed
+		})
+	}
+
+	return &detailedUsers, nil
+}
+
+func (s *UserService) GetFollowingByUserId(ctx context.Context, currentUser models.PublicUser, userId int, offset int, limit int) (*[]models.DetailedUser, error) {
+	
+	following, err := s.userRepository.GetFollowingByUserId(ctx, userId, limit, offset)
+	if err != nil {
+		return nil, err
+	}
+
+	detailedUsers := make([]models.DetailedUser, 0)
+	for _, follow := range following {
+		var name string
+		if follow.Name.Valid {
+			name = follow.Name.String
+		}
+		
+		// Check if current user is following this user
+		isFollowing, _ := s.userRepository.IsUserFollowingUser(ctx, currentUser.UserID, int(follow.UserID))
+		isFollower, _ := s.userRepository.IsUserFollowingUser(ctx, int(follow.UserID), currentUser.UserID)
+		isBlocking, _ := s.userRepository.IsUserBlockingUser(ctx, currentUser.UserID, int(follow.UserID))
+		
+		detailedUsers = append(detailedUsers, models.DetailedUser{
+			UserID:      int(follow.UserID),
+			Email:       follow.Email,
+			Username:    follow.Username,
+			CreatedAt:   follow.CreatedAt.Time,
+			Name:        name,
+			Bio:         "", // Not needed for following list
+			IsFollowing: isFollowing,
+			IsFollower:  isFollower,
+			IsBlocking:  isBlocking,
+			Mutuals:     []string{}, // Could add if needed
+		})
+	}
+
+	return &detailedUsers, nil
+}

@@ -37,6 +37,8 @@ type UserRepository interface {
 	IsUserBlockingUser(ctx context.Context, blockerId int, blockedId int) (bool, error)
 	DeleteAccount(ctx context.Context, userId int) error
 	GetMutualConnectionsForUser(ctx context.Context, currentUserId int, targetUserId int) ([]string, error)
+	GetFollowersByUserId(ctx context.Context, userId int, limit int, offset int) ([]queries.GetFollowersByUserIdRow, error)
+	GetFollowingByUserId(ctx context.Context, userId int, limit int, offset int) ([]queries.GetFollowingByUserIdRow, error)
 }
 
 type DBUserRepository struct {
@@ -227,6 +229,22 @@ func (r DBUserRepository) GetMutualConnectionsForUser(ctx context.Context, curre
 	return r.querier.GetMutualConnectionsForUser(ctx, queries.GetMutualConnectionsForUserParams{
 		FollowerID:   int32(currentUserId),
 		FollowerID_2: int32(targetUserId),
+	})
+}
+
+func (r DBUserRepository) GetFollowersByUserId(ctx context.Context, userId int, limit int, offset int) ([]queries.GetFollowersByUserIdRow, error) {
+	return r.querier.GetFollowersByUserId(ctx, queries.GetFollowersByUserIdParams{
+		FollowingID: int32(userId),
+		Limit:       int32(limit),
+		Offset:      int32(offset),
+	})
+}
+
+func (r DBUserRepository) GetFollowingByUserId(ctx context.Context, userId int, limit int, offset int) ([]queries.GetFollowingByUserIdRow, error) {
+	return r.querier.GetFollowingByUserId(ctx, queries.GetFollowingByUserIdParams{
+		FollowerID: int32(userId),
+		Limit:      int32(limit),
+		Offset:     int32(offset),
 	})
 }
 
