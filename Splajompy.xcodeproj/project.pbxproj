@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 77;
+	objectVersion = 90;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -131,7 +131,6 @@
 /* Begin PBXFrameworksBuildPhase section */
 		184A63C82D88CBA000860D6B /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
 			files = (
 				180DEE642E39AE0F00A4D29D /* NukeUI in Frameworks */,
 				180DEE662E39AE0F00A4D29D /* NukeVideo in Frameworks */,
@@ -140,21 +139,16 @@
 				18E435E82DB29069003A0999 /* Kingfisher in Frameworks */,
 				187974BA2DDC1EE300BA0F37 /* PostHog in Frameworks */,
 			);
-			runOnlyForDeploymentPostprocessing = 0;
 		};
 		184A63D82D88CBA200860D6B /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
 			files = (
 			);
-			runOnlyForDeploymentPostprocessing = 0;
 		};
 		184A63E22D88CBA200860D6B /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
 			files = (
 			);
-			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
@@ -279,8 +273,6 @@
 			);
 			buildRules = (
 			);
-			dependencies = (
-			);
 			fileSystemSynchronizedGroups = (
 				184A63CD2D88CBA100860D6B /* Splajompy */,
 				187F00462D95DBE800BE80DF /* Assets */,
@@ -312,8 +304,6 @@
 				184A63DD2D88CBA200860D6B /* PBXTargetDependency */,
 			);
 			name = SplajompyTests;
-			packageProductDependencies = (
-			);
 			productName = SplajompyTests;
 			productReference = 184A63DB2D88CBA200860D6B /* SplajompyTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
@@ -332,8 +322,6 @@
 				184A63E72D88CBA200860D6B /* PBXTargetDependency */,
 			);
 			name = SplajompyUITests;
-			packageProductDependencies = (
-			);
 			productName = SplajompyUITests;
 			productReference = 184A63E52D88CBA200860D6B /* SplajompyUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
@@ -375,7 +363,7 @@
 				187974B82DDC1EE300BA0F37 /* XCRemoteSwiftPackageReference "posthog-ios" */,
 				180DEE5E2E39AD6400A4D29D /* XCRemoteSwiftPackageReference "Nuke" */,
 			);
-			preferredProjectObjectVersion = 77;
+			preferredProjectObjectVersion = 90;
 			productRefGroup = 184A63CC2D88CBA100860D6B /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -390,31 +378,24 @@
 /* Begin PBXResourcesBuildPhase section */
 		184A63C92D88CBA000860D6B /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
 			files = (
 			);
-			runOnlyForDeploymentPostprocessing = 0;
 		};
 		184A63D92D88CBA200860D6B /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
 			files = (
 			);
-			runOnlyForDeploymentPostprocessing = 0;
 		};
 		184A63E32D88CBA200860D6B /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
 			files = (
 			);
-			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		184A63C72D88CBA000860D6B /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
 			files = (
 				18A617E92D9B2D6000B93F08 /* FeedViewModel.swift in Sources */,
 				18A617EA2D9B2D6000B93F08 /* AuthManager.swift in Sources */,
@@ -425,21 +406,16 @@
 				18A617F02D9B2D6000B93F08 /* LoginView.swift in Sources */,
 				18A617F12D9B2D6000B93F08 /* PostView.swift in Sources */,
 			);
-			runOnlyForDeploymentPostprocessing = 0;
 		};
 		184A63D72D88CBA200860D6B /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
 			files = (
 			);
-			runOnlyForDeploymentPostprocessing = 0;
 		};
 		184A63E12D88CBA200860D6B /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
 			files = (
 			);
-			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
@@ -457,7 +433,7 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
-		184A63ED2D88CBA200860D6B /* Debug */ = {
+		184A63ED2D88CBA200860D6B /* Debug configuration for PBXProject "Splajompy" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -520,7 +496,7 @@
 			};
 			name = Debug;
 		};
-		184A63EE2D88CBA200860D6B /* Release */ = {
+		184A63EE2D88CBA200860D6B /* Release configuration for PBXProject "Splajompy" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -576,7 +552,7 @@
 			};
 			name = Release;
 		};
-		184A63F02D88CBA200860D6B /* Debug */ = {
+		184A63F02D88CBA200860D6B /* Debug configuration for PBXNativeTarget "Splajompy" */ = {
 			isa = XCBuildConfiguration;
 			baseConfigurationReferenceAnchor = 184A63CD2D88CBA100860D6B /* Splajompy */;
 			baseConfigurationReferenceRelativePath = Configuration/Debug.xcconfig;
@@ -621,7 +597,7 @@
 			};
 			name = Debug;
 		};
-		184A63F12D88CBA200860D6B /* Release */ = {
+		184A63F12D88CBA200860D6B /* Release configuration for PBXNativeTarget "Splajompy" */ = {
 			isa = XCBuildConfiguration;
 			baseConfigurationReferenceAnchor = 184A63CD2D88CBA100860D6B /* Splajompy */;
 			baseConfigurationReferenceRelativePath = Configuration/Release.xcconfig;
@@ -666,7 +642,7 @@
 			};
 			name = Release;
 		};
-		184A63F32D88CBA200860D6B /* Debug */ = {
+		184A63F32D88CBA200860D6B /* Debug configuration for PBXNativeTarget "SplajompyTests" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
@@ -690,7 +666,7 @@
 			};
 			name = Debug;
 		};
-		184A63F42D88CBA200860D6B /* Release */ = {
+		184A63F42D88CBA200860D6B /* Release configuration for PBXNativeTarget "SplajompyTests" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
@@ -714,7 +690,7 @@
 			};
 			name = Release;
 		};
-		184A63F62D88CBA200860D6B /* Debug */ = {
+		184A63F62D88CBA200860D6B /* Debug configuration for PBXNativeTarget "SplajompyUITests" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
@@ -730,7 +706,7 @@
 			};
 			name = Debug;
 		};
-		184A63F72D88CBA200860D6B /* Release */ = {
+		184A63F72D88CBA200860D6B /* Release configuration for PBXNativeTarget "SplajompyUITests" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
@@ -752,37 +728,33 @@
 		184A63C62D88CBA000860D6B /* Build configuration list for PBXProject "Splajompy" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				184A63ED2D88CBA200860D6B /* Debug */,
-				184A63EE2D88CBA200860D6B /* Release */,
+				184A63ED2D88CBA200860D6B /* Debug configuration for PBXProject "Splajompy" */,
+				184A63EE2D88CBA200860D6B /* Release configuration for PBXProject "Splajompy" */,
 			);
-			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
 		184A63EF2D88CBA200860D6B /* Build configuration list for PBXNativeTarget "Splajompy" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				184A63F02D88CBA200860D6B /* Debug */,
-				184A63F12D88CBA200860D6B /* Release */,
+				184A63F02D88CBA200860D6B /* Debug configuration for PBXNativeTarget "Splajompy" */,
+				184A63F12D88CBA200860D6B /* Release configuration for PBXNativeTarget "Splajompy" */,
 			);
-			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
 		184A63F22D88CBA200860D6B /* Build configuration list for PBXNativeTarget "SplajompyTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				184A63F32D88CBA200860D6B /* Debug */,
-				184A63F42D88CBA200860D6B /* Release */,
+				184A63F32D88CBA200860D6B /* Debug configuration for PBXNativeTarget "SplajompyTests" */,
+				184A63F42D88CBA200860D6B /* Release configuration for PBXNativeTarget "SplajompyTests" */,
 			);
-			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
 		184A63F52D88CBA200860D6B /* Build configuration list for PBXNativeTarget "SplajompyUITests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				184A63F62D88CBA200860D6B /* Debug */,
-				184A63F72D88CBA200860D6B /* Release */,
+				184A63F62D88CBA200860D6B /* Debug configuration for PBXNativeTarget "SplajompyUITests" */,
+				184A63F72D88CBA200860D6B /* Release configuration for PBXNativeTarget "SplajompyUITests" */,
 			);
-			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
