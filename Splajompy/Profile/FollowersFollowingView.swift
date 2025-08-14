@@ -19,9 +19,23 @@ struct FollowersFollowingView: View {
     TabView(selection: $selectedTab) {
       userListView(users: followers, isLoading: isLoadingFollowers)
         .tag(0)
+        .onAppear {
+          if followers.isEmpty {
+            Task {
+              await loadFollowers()
+            }
+          }
+        }
       
       userListView(users: following, isLoading: isLoadingFollowing)
         .tag(1)
+        .onAppear {
+          if following.isEmpty {
+            Task {
+              await loadFollowing()
+            }
+          }
+        }
     }
 #if os(iOS)
     .tabViewStyle(.page(indexDisplayMode: .never))
@@ -169,28 +183,59 @@ struct UserRowView: View {
       
       Spacer()
       
-      // Follow/Unfollow button
       Button(action: {
-        isLoading = true
-        onFollowToggle(user)
-        isLoading = false
+        Task {
+          isLoading = true
+          onFollowToggle(user)
+          isLoading = false
+        }
       }) {
         if isLoading {
           ProgressView()
             .scaleEffect(0.8)
         } else {
           Text(user.isFollowing ? "Unfollow" : "Follow")
+            .font(.caption)
+            .fontWeight(.medium)
         }
       }
-#if os(iOS)
-      .buttonStyle(user.isFollowing ? .bordered : .borderedProminent)
-#else
-      .buttonStyle(.bordered)
-#endif
       .font(.caption)
+      .fontWeight(.medium)
+      .frame(width: 70)
+      .padding(.vertical, 6)
+      .background(user.isFollowing ? Color.clear : .blue)
+      .foregroundColor(user.isFollowing ? .blue : .white)
+      .overlay(
+        RoundedRectangle(cornerRadius: 6)
+          .stroke(user.isFollowing ? Color.blue : Color.clear, lineWidth: 1)
+      )
+      .animation(.spring(duration: 0.15, bounce: 0.3), value: user.isFollowing)
+      .clipShape(RoundedRectangle(cornerRadius: 6))
       .disabled(isLoading)
     }
     .padding(.horizontal, 16)
     .padding(.vertical, 12)
   }
+}
+
+#Preview {
+  @Previewable @State var user = DetailedUser(
+    userId: 1,
+    email: "john@example.com",
+    username: "johndoe",
+    createdAt: Date(),
+    name: "John Doe",
+    bio: "iOS Developer",
+    isFollower: true,
+    isFollowing: false,
+    isBlocking: false,
+    mutuals: ["alice", "bob"]
+  )
+  
+  return UserRowView(
+    user: user,
+    onFollowToggle: { _ in
+      user.isFollowing.toggle()
+    }
+  )
 }
