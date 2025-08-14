@@ -1,50 +1,38 @@
 import SwiftUI
 
 struct FollowersFollowingView: View {
-  let userId: Int
-  @State private var selectedTab: Int
-  @State private var followers: [DetailedUser] = []
-  @State private var following: [DetailedUser] = []
-  @State private var isLoadingFollowers = false
-  @State private var isLoadingFollowing = false
-  
-  private let profileService: ProfileServiceProtocol = ProfileService()
-  
+  @StateObject private var viewModel: FollowersFollowingViewModel
+  @State private var selectedTabIndex: Int
+
   init(userId: Int, initialTab: Int = 0) {
-    self.userId = userId
-    self._selectedTab = State(initialValue: initialTab)
+    let initialTabType: FollowersFollowingTab = initialTab == 0 ? .followers : .following
+    _viewModel = StateObject(
+      wrappedValue: FollowersFollowingViewModel(userId: userId, initialTab: initialTabType))
+    _selectedTabIndex = State(initialValue: initialTab)
   }
-  
+
   var body: some View {
-    TabView(selection: $selectedTab) {
-      userListView(users: followers, isLoading: isLoadingFollowers)
-        .tag(0)
-        .onAppear {
-          if followers.isEmpty {
+    Group {
+      switch viewModel.state {
+      case .idle:
+        loadingView
+          .onAppear {
             Task {
-              await loadFollowers()
+              await viewModel.loadData()
             }
           }
-        }
-      
-      userListView(users: following, isLoading: isLoadingFollowing)
-        .tag(1)
-        .onAppear {
-          if following.isEmpty {
-            Task {
-              await loadFollowing()
-            }
-          }
-        }
+      case .loading:
+        loadingView
+      case .loaded:
+        loadedContent
+      case .failed(let error):
+        errorView(error: error)
+      }
     }
-#if os(iOS)
-    .tabViewStyle(.page(indexDisplayMode: .never))
-    .navigationBarTitleDisplayMode(.inline)
-#endif
     .navigationTitle("Connections")
     .toolbar {
       ToolbarItem(placement: .principal) {
-        Picker("Tab", selection: $selectedTab) {
+        Picker("Tab", selection: $selectedTabIndex) {
           Text("Followers").tag(0)
           Text("Following").tag(1)
         }
@@ -52,14 +40,53 @@ struct FollowersFollowingView: View {
         .frame(maxWidth: 200)
       }
     }
-    .onAppear {
-      Task {
-        await loadFollowers()
-        await loadFollowing()
-      }
+    #if os(iOS)
+      .navigationBarTitleDisplayMode(.inline)
+    #endif
+  }
+
+  @ViewBuilder
+  private var loadedContent: some View {
+    TabView(selection: $selectedTabIndex) {
+      userListView(users: viewModel.followers, isLoading: viewModel.isLoadingFollowers)
+        .tag(0)
+
+      userListView(users: viewModel.following, isLoading: viewModel.isLoadingFollowing)
+        .tag(1)
+    }
+    #if os(iOS)
+      .tabViewStyle(.page(indexDisplayMode: .never))
+    #endif
+    .onChange(of: selectedTabIndex) { _, newValue in
+      viewModel.selectedTab = newValue == 0 ? .followers : .following
     }
   }
-  
+
+  private var loadingView: some View {
+    VStack {
+      Spacer()
+      ProgressView()
+        .scaleEffect(1.5)
+      Spacer()
+    }
+  }
+
+  private func errorView(error: Error) -> some View {
+    VStack {
+      Spacer()
+      Text("Failed to load connections")
+        .foregroundColor(.secondary)
+      Button("Retry") {
+        Task {
+          await viewModel.loadData()
+        }
+      }
+      .buttonStyle(.bordered)
+      .padding()
+      Spacer()
+    }
+  }
+
   private func userListView(users: [DetailedUser], isLoading: Bool) -> some View {
     Group {
       if isLoading && users.isEmpty {
@@ -80,83 +107,22 @@ struct FollowersFollowingView: View {
         ScrollView {
           LazyVStack(spacing: 0) {
             ForEach(users, id: \.userId) { user in
-              UserRowView(user: user, onFollowToggle: { user in
-                Task {
-                  await toggleFollow(for: user)
-                }
-              })
+              UserRowView(
+                user: user,
+                onFollowToggle: { user in
+                  Task {
+                    await viewModel.toggleFollow(for: user)
+                  }
+                })
             }
           }
         }
         .refreshable {
           Task {
-            if selectedTab == 0 {
-              await loadFollowers()
-            } else {
-              await loadFollowing()
-            }
+            await viewModel.refreshCurrentTab()
           }
         }
       }
-    }
-  }
-  
-  private func loadFollowers() async {
-    isLoadingFollowers = true
-    let result = await profileService.getFollowers(userId: userId, offset: 0, limit: 50)
-    switch result {
-    case .success(let users):
-      followers = users
-    case .error(let error):
-      print("Failed to load followers: \(error)")
-    }
-    isLoadingFollowers = false
-  }
-  
-  private func loadFollowing() async {
-    isLoadingFollowing = true
-    let result = await profileService.getFollowing(userId: userId, offset: 0, limit: 50)
-    switch result {
-    case .success(let users):
-      following = users
-    case .error(let error):
-      print("Failed to load following: \(error)")
-    }
-    isLoadingFollowing = false
-  }
-  
-  private func toggleFollow(for user: DetailedUser) async {
-    let isCurrentlyFollowing = user.isFollowing
-    let newFollowingState = !isCurrentlyFollowing
-    
-    // Optimistic update
-    updateUserFollowState(userId: user.userId, isFollowing: newFollowingState)
-    
-    let result = await profileService.toggleFollowing(
-      userId: user.userId, 
-      isFollowing: isCurrentlyFollowing
-    )
-    
-    switch result {
-    case .success:
-      // Optimistic update was correct, no need to change anything
-      break
-    case .error(let error):
-      // Revert the optimistic update on error
-      updateUserFollowState(userId: user.userId, isFollowing: isCurrentlyFollowing)
-      print("Failed to toggle follow: \(error)")
-    }
-  }
-  
-  private func updateUserFollowState(userId: Int, isFollowing: Bool) {
-    // Update in followers array
-    if let index = followers.firstIndex(where: { $0.userId == userId }) {
-      followers[index].isFollowing = isFollowing
-    }
-    
-    // Update in following array
-    if let index = following.firstIndex(where: { $0.userId == userId }) {
-      following[index].isFollowing = isFollowing
     }
   }
 }
@@ -165,7 +131,7 @@ struct UserRowView: View {
   let user: DetailedUser
   let onFollowToggle: (DetailedUser) -> Void
   @State private var isLoading = false
-  
+
   var body: some View {
     HStack(spacing: 8) {
       // Name and username horizontally
@@ -180,9 +146,9 @@ struct UserRowView: View {
           .foregroundColor(.secondary)
           .lineLimit(1)
       }
-      
+
       Spacer()
-      
+
       Button(action: {
         Task {
           isLoading = true
@@ -231,7 +197,7 @@ struct UserRowView: View {
     isBlocking: false,
     mutuals: ["alice", "bob"]
   )
-  
+
   return UserRowView(
     user: user,
     onFollowToggle: { _ in

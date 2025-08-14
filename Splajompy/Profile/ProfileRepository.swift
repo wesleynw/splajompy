@@ -103,7 +103,7 @@ struct ProfileService: ProfileServiceProtocol {
   func getFollowers(userId: Int, offset: Int, limit: Int) async -> AsyncResult<[DetailedUser]> {
     let queryItems = [
       URLQueryItem(name: "offset", value: "\(offset)"),
-      URLQueryItem(name: "limit", value: "\(limit)")
+      URLQueryItem(name: "limit", value: "\(limit)"),
     ]
     return await APIService.performRequest(
       endpoint: "user/\(userId)/followers",
@@ -114,7 +114,7 @@ struct ProfileService: ProfileServiceProtocol {
   func getFollowing(userId: Int, offset: Int, limit: Int) async -> AsyncResult<[DetailedUser]> {
     let queryItems = [
       URLQueryItem(name: "offset", value: "\(offset)"),
-      URLQueryItem(name: "limit", value: "\(limit)")
+      URLQueryItem(name: "limit", value: "\(limit)"),
     ]
     return await APIService.performRequest(
       endpoint: "user/\(userId)/following",
@@ -377,7 +377,7 @@ struct MockProfileService: ProfileServiceProtocol {
     let allUsers = Array(store.users.values)
     let startIndex = min(offset, allUsers.count)
     let endIndex = min(offset + limit, allUsers.count)
-    
+
     let paginatedUsers = Array(allUsers[startIndex..<endIndex]).map { profile in
       DetailedUser(
         userId: profile.userId,
@@ -400,7 +400,7 @@ struct MockProfileService: ProfileServiceProtocol {
     let allUsers = Array(store.users.values)
     let startIndex = min(offset, allUsers.count)
     let endIndex = min(offset + limit, allUsers.count)
-    
+
     let paginatedUsers = Array(allUsers[startIndex..<endIndex]).map { profile in
       DetailedUser(
         userId: profile.userId,
