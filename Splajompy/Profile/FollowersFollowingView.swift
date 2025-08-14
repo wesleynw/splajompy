@@ -5,14 +5,19 @@ struct FollowersFollowingView: View {
   @State private var selectedTabIndex: Int
 
   init(userId: Int, initialTab: Int = 0) {
-    let initialTabType: FollowersFollowingTab = initialTab == 0 ? .followers : .following
+    let initialTabType: FollowersFollowingTab =
+      initialTab == 0 ? .followers : .following
     _viewModel = StateObject(
-      wrappedValue: FollowersFollowingViewModel(userId: userId, initialTab: initialTabType))
+      wrappedValue: FollowersFollowingViewModel(
+        userId: userId,
+        initialTab: initialTabType
+      )
+    )
     _selectedTabIndex = State(initialValue: initialTab)
   }
 
   var body: some View {
-    Group {
+    VStack(spacing: 0) {
       switch viewModel.state {
       case .idle:
         loadingView
@@ -29,7 +34,6 @@ struct FollowersFollowingView: View {
         errorView(error: error)
       }
     }
-    .navigationTitle("Connections")
     .toolbar {
       ToolbarItem(placement: .principal) {
         Picker("Tab", selection: $selectedTabIndex) {
@@ -48,11 +52,17 @@ struct FollowersFollowingView: View {
   @ViewBuilder
   private var loadedContent: some View {
     TabView(selection: $selectedTabIndex) {
-      userListView(users: viewModel.followers, isLoading: viewModel.isLoadingFollowers)
-        .tag(0)
+      userListView(
+        users: viewModel.followers,
+        isLoading: viewModel.isLoadingFollowers
+      )
+      .tag(0)
 
-      userListView(users: viewModel.following, isLoading: viewModel.isLoadingFollowing)
-        .tag(1)
+      userListView(
+        users: viewModel.following,
+        isLoading: viewModel.isLoadingFollowing
+      )
+      .tag(1)
     }
     #if os(iOS)
       .tabViewStyle(.page(indexDisplayMode: .never))
@@ -113,7 +123,8 @@ struct FollowersFollowingView: View {
                   Task {
                     await viewModel.toggleFollow(for: user)
                   }
-                })
+                }
+              )
             }
           }
         }
@@ -134,7 +145,6 @@ struct UserRowView: View {
 
   var body: some View {
     HStack(spacing: 8) {
-      // Name and username horizontally
       HStack(spacing: 6) {
         if let name = user.name, !name.isEmpty {
           Text(name)

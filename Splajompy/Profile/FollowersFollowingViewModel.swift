@@ -1,4 +1,3 @@
-import Foundation
 import SwiftUI
 
 enum FollowersFollowingState {
@@ -36,8 +35,8 @@ enum FollowersFollowingTab {
   func loadData() async {
     state = .loading
 
-    async let followersResult = loadFollowers()
-    async let followingResult = loadFollowing()
+    async let followersResult: () = loadFollowers()
+    async let followingResult: () = loadFollowing()
 
     await followersResult
     await followingResult
@@ -47,7 +46,7 @@ enum FollowersFollowingTab {
 
   func loadFollowers() async {
     isLoadingFollowers = true
-    let result = await profileService.getFollowers(userId: userId, offset: 0, limit: 50)
+    let result = await profileService.getFollowers(userId: userId, offset: 0, limit: 20)
 
     switch result {
     case .success(let users):
@@ -63,7 +62,7 @@ enum FollowersFollowingTab {
 
   func loadFollowing() async {
     isLoadingFollowing = true
-    let result = await profileService.getFollowing(userId: userId, offset: 0, limit: 50)
+    let result = await profileService.getFollowing(userId: userId, offset: 0, limit: 20)
 
     switch result {
     case .success(let users):
@@ -90,7 +89,6 @@ enum FollowersFollowingTab {
     let isCurrentlyFollowing = user.isFollowing
     let newFollowingState = !isCurrentlyFollowing
 
-    // Optimistic update
     updateUserFollowState(userId: user.userId, isFollowing: newFollowingState)
 
     let result = await profileService.toggleFollowing(
@@ -100,22 +98,18 @@ enum FollowersFollowingTab {
 
     switch result {
     case .success:
-      // Optimistic update was correct, no need to change anything
       break
     case .error(let error):
-      // Revert the optimistic update on error
       updateUserFollowState(userId: user.userId, isFollowing: isCurrentlyFollowing)
       print("Failed to toggle follow: \(error)")
     }
   }
 
   private func updateUserFollowState(userId: Int, isFollowing: Bool) {
-    // Update in followers array
     if let index = followers.firstIndex(where: { $0.userId == userId }) {
       followers[index].isFollowing = isFollowing
     }
 
-    // Update in following array
     if let index = following.firstIndex(where: { $0.userId == userId }) {
       following[index].isFollowing = isFollowing
     }
