@@ -20,8 +20,11 @@ enum FollowersFollowingTab {
   @Published var following: [DetailedUser] = []
   @Published var isLoadingFollowers = false
   @Published var isLoadingFollowing = false
+  @Published var hasMoreFollowers = true
+  @Published var hasMoreFollowing = true
 
   private let profileService: ProfileServiceProtocol
+  private let pageSize = 20
 
   init(
     userId: Int, initialTab: FollowersFollowingTab = .followers,
@@ -46,11 +49,12 @@ enum FollowersFollowingTab {
 
   func loadFollowers() async {
     isLoadingFollowers = true
-    let result = await profileService.getFollowers(userId: userId, offset: 0, limit: 20)
+    let result = await profileService.getFollowers(userId: userId, offset: 0, limit: pageSize)
 
     switch result {
     case .success(let users):
       followers = users
+      hasMoreFollowers = users.count == pageSize
     case .error(let error):
       if case .idle = state {
         state = .failed(error)
@@ -62,16 +66,51 @@ enum FollowersFollowingTab {
 
   func loadFollowing() async {
     isLoadingFollowing = true
-    let result = await profileService.getFollowing(userId: userId, offset: 0, limit: 20)
+    let result = await profileService.getFollowing(userId: userId, offset: 0, limit: pageSize)
 
     switch result {
     case .success(let users):
       following = users
+      hasMoreFollowing = users.count == pageSize
     case .error(let error):
       if case .idle = state {
         state = .failed(error)
       }
       print("Failed to load following: \(error)")
+    }
+    isLoadingFollowing = false
+  }
+
+  func loadMoreFollowers() async {
+    guard hasMoreFollowers && !isLoadingFollowers else { return }
+
+    isLoadingFollowers = true
+    let result = await profileService.getFollowers(
+      userId: userId, offset: followers.count, limit: pageSize)
+
+    switch result {
+    case .success(let users):
+      followers.append(contentsOf: users)
+      hasMoreFollowers = users.count == pageSize
+    case .error(let error):
+      print("Failed to load more followers: \(error)")
+    }
+    isLoadingFollowers = false
+  }
+
+  func loadMoreFollowing() async {
+    guard hasMoreFollowing && !isLoadingFollowing else { return }
+
+    isLoadingFollowing = true
+    let result = await profileService.getFollowing(
+      userId: userId, offset: following.count, limit: pageSize)
+
+    switch result {
+    case .success(let users):
+      following.append(contentsOf: users)
+      hasMoreFollowing = users.count == pageSize
+    case .error(let error):
+      print("Failed to load more following: \(error)")
     }
     isLoadingFollowing = false
   }
