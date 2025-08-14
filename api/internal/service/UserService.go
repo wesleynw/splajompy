@@ -4,7 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+
 	"github.com/resend/resend-go/v2"
+	"golang.org/x/sync/errgroup"
 	"splajompy.com/api/v2/internal/templates"
 
 	"splajompy.com/api/v2/internal/models"
@@ -152,4 +154,59 @@ func (s *UserService) RequestFeature(ctx context.Context, user models.PublicUser
 
 	_, err = s.emailService.Emails.Send(params)
 	return err
+}
+
+// GetFollowersByUserId retrieves users that are following the specified user.
+func (s *UserService) GetFollowersByUserId(ctx context.Context, currentUser models.PublicUser, userId int, offset int, limit int) (*[]models.DetailedUser, error) {
+	followers, err := s.userRepository.GetFollowersByUserId(ctx, userId, limit, offset)
+	if err != nil {
+		return nil, err
+	}
+
+	userIDs := make([]int, len(followers))
+	for i, follower := range followers {
+		userIDs[i] = int(follower.UserID)
+	}
+
+	return s.fetchDetailedUsersFromIDs(ctx, currentUser, userIDs)
+}
+
+// GetFollowingByUserId retrieves users that the specified user is following.
+func (s *UserService) GetFollowingByUserId(ctx context.Context, currentUser models.PublicUser, userId int, offset int, limit int) (*[]models.DetailedUser, error) {
+	following, err := s.userRepository.GetFollowingByUserId(ctx, userId, limit, offset)
+	if err != nil {
+		return nil, err
+	}
+
+	userIDs := make([]int, len(following))
+	for i, follow := range following {
+		userIDs[i] = int(follow.UserID)
+	}
+
+	return s.fetchDetailedUsersFromIDs(ctx, currentUser, userIDs)
+}
+
+// fetchDetailedUsersFromIDs concurrently fetches detailed user information for the given user IDs.
+// It uses an errgroup to parallelize the individual GetUserById calls and returns all results
+// once complete, or the first error encountered.
+func (s *UserService) fetchDetailedUsersFromIDs(ctx context.Context, currentUser models.PublicUser, userIDs []int) (*[]models.DetailedUser, error) {
+	detailedUsers := make([]models.DetailedUser, len(userIDs))
+	g, ctx := errgroup.WithContext(ctx)
+
+	for i, userID := range userIDs {
+		g.Go(func() error {
+			user, err := s.GetUserById(ctx, currentUser, userID)
+			if err != nil {
+				return err
+			}
+			detailedUsers[i] = *user
+			return nil
+		})
+	}
+
+	if err := g.Wait(); err != nil {
+		return nil, err
+	}
+
+	return &detailedUsers, nil
 }

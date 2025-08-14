@@ -31,6 +31,8 @@ protocol ProfileServiceProtocol: Sendable {
     EmptyResponse
   >
   func requestFeature(text: String) async -> AsyncResult<EmptyResponse>
+  func getFollowers(userId: Int, offset: Int, limit: Int) async -> AsyncResult<[DetailedUser]>
+  func getFollowing(userId: Int, offset: Int, limit: Int) async -> AsyncResult<[DetailedUser]>
 }
 
 struct ProfileService: ProfileServiceProtocol {
@@ -96,6 +98,28 @@ struct ProfileService: ProfileServiceProtocol {
 
     return await APIService.performRequest(
       endpoint: "request-feature", method: "POST", queryItems: nil, body: jsonData)
+  }
+
+  func getFollowers(userId: Int, offset: Int, limit: Int) async -> AsyncResult<[DetailedUser]> {
+    let queryItems = [
+      URLQueryItem(name: "offset", value: "\(offset)"),
+      URLQueryItem(name: "limit", value: "\(limit)"),
+    ]
+    return await APIService.performRequest(
+      endpoint: "user/\(userId)/followers",
+      queryItems: queryItems
+    )
+  }
+
+  func getFollowing(userId: Int, offset: Int, limit: Int) async -> AsyncResult<[DetailedUser]> {
+    let queryItems = [
+      URLQueryItem(name: "offset", value: "\(offset)"),
+      URLQueryItem(name: "limit", value: "\(limit)"),
+    ]
+    return await APIService.performRequest(
+      endpoint: "user/\(userId)/following",
+      queryItems: queryItems
+    )
   }
 }
 
@@ -346,5 +370,51 @@ struct MockProfileService: ProfileServiceProtocol {
   func requestFeature(text: String) async -> AsyncResult<EmptyResponse> {
     try? await Task.sleep(nanoseconds: 500_000_000)
     return .success(EmptyResponse())
+  }
+
+  func getFollowers(userId: Int, offset: Int, limit: Int) async -> AsyncResult<[DetailedUser]> {
+    try? await Task.sleep(nanoseconds: 300_000_000)
+    let allUsers = Array(store.users.values)
+    let startIndex = min(offset, allUsers.count)
+    let endIndex = min(offset + limit, allUsers.count)
+
+    let paginatedUsers = Array(allUsers[startIndex..<endIndex]).map { profile in
+      DetailedUser(
+        userId: profile.userId,
+        email: profile.email,
+        username: profile.username,
+        createdAt: Date(),
+        name: profile.name,
+        bio: profile.bio,
+        isFollower: profile.isFollower,
+        isFollowing: profile.isFollowing,
+        isBlocking: profile.isBlocking,
+        mutuals: profile.mutuals
+      )
+    }
+    return .success(paginatedUsers)
+  }
+
+  func getFollowing(userId: Int, offset: Int, limit: Int) async -> AsyncResult<[DetailedUser]> {
+    try? await Task.sleep(nanoseconds: 300_000_000)
+    let allUsers = Array(store.users.values)
+    let startIndex = min(offset, allUsers.count)
+    let endIndex = min(offset + limit, allUsers.count)
+
+    let paginatedUsers = Array(allUsers[startIndex..<endIndex]).map { profile in
+      DetailedUser(
+        userId: profile.userId,
+        email: profile.email,
+        username: profile.username,
+        createdAt: Date(),
+        name: profile.name,
+        bio: profile.bio,
+        isFollower: profile.isFollower,
+        isFollowing: profile.isFollowing,
+        isBlocking: profile.isBlocking,
+        mutuals: profile.mutuals
+      )
+    }
+    return .success(paginatedUsers)
   }
 }

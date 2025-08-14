@@ -7,6 +7,8 @@ package queries
 
 import (
 	"context"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const deleteFollow = `-- name: DeleteFollow :exec
@@ -22,6 +24,104 @@ type DeleteFollowParams struct {
 func (q *Queries) DeleteFollow(ctx context.Context, arg DeleteFollowParams) error {
 	_, err := q.db.Exec(ctx, deleteFollow, arg.FollowingID, arg.FollowerID)
 	return err
+}
+
+const getFollowersByUserId = `-- name: GetFollowersByUserId :many
+SELECT u.user_id, u.email, u.username, u.created_at, u.name
+FROM users u
+INNER JOIN follows f ON u.user_id = f.follower_id
+WHERE f.following_id = $1
+ORDER BY f.created_at DESC
+LIMIT $2 OFFSET $3
+`
+
+type GetFollowersByUserIdParams struct {
+	FollowingID int32 `json:"followingId"`
+	Limit       int32 `json:"limit"`
+	Offset      int32 `json:"offset"`
+}
+
+type GetFollowersByUserIdRow struct {
+	UserID    int32            `json:"userId"`
+	Email     string           `json:"email"`
+	Username  string           `json:"username"`
+	CreatedAt pgtype.Timestamp `json:"createdAt"`
+	Name      pgtype.Text      `json:"name"`
+}
+
+func (q *Queries) GetFollowersByUserId(ctx context.Context, arg GetFollowersByUserIdParams) ([]GetFollowersByUserIdRow, error) {
+	rows, err := q.db.Query(ctx, getFollowersByUserId, arg.FollowingID, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetFollowersByUserIdRow
+	for rows.Next() {
+		var i GetFollowersByUserIdRow
+		if err := rows.Scan(
+			&i.UserID,
+			&i.Email,
+			&i.Username,
+			&i.CreatedAt,
+			&i.Name,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getFollowingByUserId = `-- name: GetFollowingByUserId :many
+SELECT u.user_id, u.email, u.username, u.created_at, u.name
+FROM users u
+INNER JOIN follows f ON u.user_id = f.following_id
+WHERE f.follower_id = $1
+ORDER BY f.created_at DESC
+LIMIT $2 OFFSET $3
+`
+
+type GetFollowingByUserIdParams struct {
+	FollowerID int32 `json:"followerId"`
+	Limit      int32 `json:"limit"`
+	Offset     int32 `json:"offset"`
+}
+
+type GetFollowingByUserIdRow struct {
+	UserID    int32            `json:"userId"`
+	Email     string           `json:"email"`
+	Username  string           `json:"username"`
+	CreatedAt pgtype.Timestamp `json:"createdAt"`
+	Name      pgtype.Text      `json:"name"`
+}
+
+func (q *Queries) GetFollowingByUserId(ctx context.Context, arg GetFollowingByUserIdParams) ([]GetFollowingByUserIdRow, error) {
+	rows, err := q.db.Query(ctx, getFollowingByUserId, arg.FollowerID, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetFollowingByUserIdRow
+	for rows.Next() {
+		var i GetFollowingByUserIdRow
+		if err := rows.Scan(
+			&i.UserID,
+			&i.Email,
+			&i.Username,
+			&i.CreatedAt,
+			&i.Name,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const getIsUserFollowingUser = `-- name: GetIsUserFollowingUser :one

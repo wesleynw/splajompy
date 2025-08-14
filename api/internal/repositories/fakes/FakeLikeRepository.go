@@ -65,7 +65,7 @@ func (r *FakeLikeRepository) GetPostLikesFromFollowers(ctx context.Context, post
 		if liked {
 			likes = append(likes, queries.GetPostLikesFromFollowersRow{
 				UserID:   userID,
-				Username: "user" + string(rune(userID+48)), // Simple username based on ID
+				Username: "user" + string(userID+48), // Simple username based on ID
 			})
 		}
 	}
@@ -89,7 +89,6 @@ func (r *FakeLikeRepository) HasLikesFromOthers(ctx context.Context, postId int,
 		userIDMap[id] = true
 	}
 
-	// Check if there are likes from users not in userIds
 	for userID, liked := range r.Likes[postID] {
 		if liked && !userIDMap[userID] {
 			return true, nil

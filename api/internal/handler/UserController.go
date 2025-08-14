@@ -148,6 +148,46 @@ func (h *Handler) UnblockUser(w http.ResponseWriter, r *http.Request) {
 	utilities.HandleEmptySuccess(w)
 }
 
+func (h *Handler) GetFollowersByUserId(w http.ResponseWriter, r *http.Request) {
+	currentUser := h.getAuthenticatedUser(r)
+
+	userId, err := h.GetIntPathParam(r, "id")
+	if err != nil {
+		utilities.HandleError(w, http.StatusBadRequest, "Missing user ID parameter")
+		return
+	}
+
+	limit, offset := h.parsePagination(r)
+
+	followers, err := h.userService.GetFollowersByUserId(r.Context(), *currentUser, userId, offset, limit)
+	if err != nil {
+		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
+		return
+	}
+
+	utilities.HandleSuccess(w, followers)
+}
+
+func (h *Handler) GetFollowingByUserId(w http.ResponseWriter, r *http.Request) {
+	currentUser := h.getAuthenticatedUser(r)
+
+	userId, err := h.GetIntPathParam(r, "id")
+	if err != nil {
+		utilities.HandleError(w, http.StatusBadRequest, "Missing user ID parameter")
+		return
+	}
+
+	limit, offset := h.parsePagination(r)
+
+	following, err := h.userService.GetFollowingByUserId(r.Context(), *currentUser, userId, offset, limit)
+	if err != nil {
+		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
+		return
+	}
+
+	utilities.HandleSuccess(w, following)
+}
+
 type RequestFeaturePayload struct {
 	Text string
 }

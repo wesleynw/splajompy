@@ -209,6 +209,20 @@ struct ProfileView: View {
           .buttonStyle(.bordered)
         }
       } else if isProfileTab {
+        HStack(spacing: 12) {
+          NavigationLink(destination: FollowersFollowingView(userId: userId, initialTab: 0)) {
+            Text("Followers")
+              .frame(maxWidth: .infinity)
+          }
+          .buttonStyle(.bordered)
+
+          NavigationLink(destination: FollowersFollowingView(userId: userId, initialTab: 1)) {
+            Text("Following")
+              .frame(maxWidth: .infinity)
+          }
+          .buttonStyle(.bordered)
+        }
+
         Button(action: { isShowingProfileEditor = true }) {
           Text("Edit Profile")
             .frame(maxWidth: .infinity)
