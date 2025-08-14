@@ -3,10 +3,11 @@ package handler
 import (
 	"errors"
 	"net/http"
+	"strconv"
+
 	"splajompy.com/api/v2/internal/db/queries"
 	"splajompy.com/api/v2/internal/models"
 	"splajompy.com/api/v2/internal/utilities"
-	"strconv"
 
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"splajompy.com/api/v2/internal/service"

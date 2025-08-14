@@ -4,7 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+
 	"github.com/resend/resend-go/v2"
+	"golang.org/x/sync/errgroup"
 	"splajompy.com/api/v2/internal/templates"
 
 	"splajompy.com/api/v2/internal/models"
@@ -154,73 +156,56 @@ func (s *UserService) RequestFeature(ctx context.Context, user models.PublicUser
 	return err
 }
 
+// GetFollowersByUserId retrieves users that are following the specified user.
 func (s *UserService) GetFollowersByUserId(ctx context.Context, currentUser models.PublicUser, userId int, offset int, limit int) (*[]models.DetailedUser, error) {
-	
 	followers, err := s.userRepository.GetFollowersByUserId(ctx, userId, limit, offset)
 	if err != nil {
 		return nil, err
 	}
 
-	detailedUsers := make([]models.DetailedUser, 0)
-	for _, follower := range followers {
-		var name string
-		if follower.Name.Valid {
-			name = follower.Name.String
-		}
-		
-		// Check if current user is following this follower
-		isFollowing, _ := s.userRepository.IsUserFollowingUser(ctx, currentUser.UserID, int(follower.UserID))
-		isFollower, _ := s.userRepository.IsUserFollowingUser(ctx, int(follower.UserID), currentUser.UserID)
-		isBlocking, _ := s.userRepository.IsUserBlockingUser(ctx, currentUser.UserID, int(follower.UserID))
-		
-		detailedUsers = append(detailedUsers, models.DetailedUser{
-			UserID:      int(follower.UserID),
-			Email:       follower.Email,
-			Username:    follower.Username,
-			CreatedAt:   follower.CreatedAt.Time,
-			Name:        name,
-			Bio:         "", // Not needed for followers list
-			IsFollowing: isFollowing,
-			IsFollower:  isFollower,
-			IsBlocking:  isBlocking,
-			Mutuals:     []string{}, // Could add if needed
-		})
+	userIDs := make([]int, len(followers))
+	for i, follower := range followers {
+		userIDs[i] = int(follower.UserID)
 	}
 
-	return &detailedUsers, nil
+	return s.fetchDetailedUsersFromIDs(ctx, currentUser, userIDs)
 }
 
+// GetFollowingByUserId retrieves users that the specified user is following.
 func (s *UserService) GetFollowingByUserId(ctx context.Context, currentUser models.PublicUser, userId int, offset int, limit int) (*[]models.DetailedUser, error) {
-	
 	following, err := s.userRepository.GetFollowingByUserId(ctx, userId, limit, offset)
 	if err != nil {
 		return nil, err
 	}
 
-	detailedUsers := make([]models.DetailedUser, 0)
-	for _, follow := range following {
-		var name string
-		if follow.Name.Valid {
-			name = follow.Name.String
-		}
-		
-		// Check if current user is following this user
-		isFollowing, _ := s.userRepository.IsUserFollowingUser(ctx, currentUser.UserID, int(follow.UserID))
-		isFollower, _ := s.userRepository.IsUserFollowingUser(ctx, int(follow.UserID), currentUser.UserID)
-		isBlocking, _ := s.userRepository.IsUserBlockingUser(ctx, currentUser.UserID, int(follow.UserID))
-		
-		detailedUsers = append(detailedUsers, models.DetailedUser{
-			UserID:      int(follow.UserID),
-			Email:       follow.Email,
-			Username:    follow.Username,
-			CreatedAt:   follow.CreatedAt.Time,
-			Name:        name,
-			Bio:         "", // Not needed for following list
-			IsFollowing: isFollowing,
-			IsFollower:  isFollower,
-			IsBlocking:  isBlocking,
-			Mutuals:     []string{}, // Could add if needed
+	userIDs := make([]int, len(following))
+	for i, follow := range following {
+		userIDs[i] = int(follow.UserID)
+	}
+
+	return s.fetchDetailedUsersFromIDs(ctx, currentUser, userIDs)
+}
+
+// fetchDetailedUsersFromIDs concurrently fetches detailed user information for the given user IDs.
+// It uses an errgroup to parallelize the individual GetUserById calls and returns all results
+// once complete, or the first error encountered.
+func (s *UserService) fetchDetailedUsersFromIDs(ctx context.Context, currentUser models.PublicUser, userIDs []int) (*[]models.DetailedUser, error) {
+	detailedUsers := make([]models.DetailedUser, len(userIDs))
+	g, ctx := errgroup.WithContext(ctx)
+
+	for i, userID := range userIDs {
+		g.Go(func() error {
+			user, err := s.GetUserById(ctx, currentUser, userID)
+			if err != nil {
+				return err
+			}
+			detailedUsers[i] = *user
+			return nil
 		})
+	}
+
+	if err := g.Wait(); err != nil {
+		return nil, err
 	}
 
 	return &detailedUsers, nil

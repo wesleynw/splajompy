@@ -168,12 +168,7 @@ enum FollowersFollowingTab {
     }
 
     if let index = following.firstIndex(where: { $0.userId == userId }) {
-      if !isFollowing {
-        following.remove(at: index)
-        totalFollowingLoaded -= 1
-      } else {
-        following[index].isFollowing = isFollowing
-      }
+      following[index].isFollowing = isFollowing
     }
   }
 }

@@ -34,6 +34,13 @@ struct FollowersFollowingView: View {
         errorView(error: error)
       }
     }
+    .onAppear {
+      if case .loaded = viewModel.state {
+        Task {
+          await viewModel.loadData()
+        }
+      }
+    }
     .toolbar {
       ToolbarItem(placement: .principal) {
         Picker("Tab", selection: $selectedTabIndex) {
@@ -173,6 +180,13 @@ struct UserRowView: View {
 
   var body: some View {
     HStack(spacing: 8) {
+      userInfoView
+
+      Spacer()
+
+      followButton
+    }
+    .background(
       NavigationLink(
         destination: ProfileView(
           userId: user.userId,
@@ -180,14 +194,9 @@ struct UserRowView: View {
           postManager: PostManager()
         )
       ) {
-        userInfoView
+        Color.clear
       }
-      .buttonStyle(.plain)
-
-      Spacer()
-
-      followButton
-    }
+    )
     .padding(.horizontal, 16)
     .padding(.vertical, 12)
     .onChange(of: user.isFollowing) { _, newValue in
