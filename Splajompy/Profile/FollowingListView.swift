@@ -60,8 +60,7 @@ struct FollowingListView: View {
     }
   }
 
-  private func userListView(users: [DetailedUser], isLoading: Bool) -> some View
-  {
+  private func userListView(users: [DetailedUser], isLoading: Bool) -> some View {
     Group {
       if isLoading && users.isEmpty {
         VStack {
