@@ -210,13 +210,7 @@ struct ProfileView: View {
         }
       } else if isProfileTab {
         HStack(spacing: 12) {
-          NavigationLink(destination: FollowersFollowingView(userId: userId, initialTab: 0)) {
-            Text("Followers")
-              .frame(maxWidth: .infinity)
-          }
-          .buttonStyle(.bordered)
-
-          NavigationLink(destination: FollowersFollowingView(userId: userId, initialTab: 1)) {
+          NavigationLink(destination: FollowingListView(userId: userId)) {
             Text("Following")
               .frame(maxWidth: .infinity)
           }

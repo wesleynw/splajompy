@@ -1,19 +1,14 @@
 import SwiftUI
 
-struct FollowersFollowingView: View {
-  @StateObject private var viewModel: FollowersFollowingViewModel
-  @State private var selectedTabIndex: Int
+struct FollowingListView: View {
+  @StateObject private var viewModel: FollowingListViewModel
 
-  init(userId: Int, initialTab: Int = 0) {
-    let initialTabType: FollowersFollowingTab =
-      initialTab == 0 ? .followers : .following
+  init(userId: Int) {
     _viewModel = StateObject(
-      wrappedValue: FollowersFollowingViewModel(
-        userId: userId,
-        initialTab: initialTabType
+      wrappedValue: FollowingListViewModel(
+        userId: userId
       )
     )
-    _selectedTabIndex = State(initialValue: initialTab)
   }
 
   var body: some View {
@@ -21,62 +16,23 @@ struct FollowersFollowingView: View {
       switch viewModel.state {
       case .idle:
         loadingView
-          .onAppear {
-            Task {
-              await viewModel.loadData()
-            }
-          }
       case .loading:
         loadingView
-      case .loaded:
-        loadedContent
+      case .loaded(let users):
+        userListView(users: users, isLoading: viewModel.isFetchingMore)
       case .failed(let error):
         errorView(error: error)
       }
     }
     .onAppear {
-      if case .loaded = viewModel.state {
-        Task {
-          await viewModel.loadData()
-        }
+      Task {
+        await viewModel.loadFollowing(reset: true)
       }
     }
-    .toolbar {
-      ToolbarItem(placement: .principal) {
-        Picker("Tab", selection: $selectedTabIndex) {
-          Text("Followers").tag(0)
-          Text("Following").tag(1)
-        }
-        .pickerStyle(.segmented)
-        .frame(maxWidth: 200)
-      }
-    }
+    .navigationTitle("Following")
     #if os(iOS)
       .navigationBarTitleDisplayMode(.inline)
     #endif
-  }
-
-  @ViewBuilder
-  private var loadedContent: some View {
-    TabView(selection: $selectedTabIndex) {
-      userListView(
-        users: viewModel.followers,
-        isLoading: viewModel.isLoadingFollowers
-      )
-      .tag(0)
-
-      userListView(
-        users: viewModel.following,
-        isLoading: viewModel.isLoadingFollowing
-      )
-      .tag(1)
-    }
-    #if os(iOS)
-      .tabViewStyle(.page(indexDisplayMode: .never))
-    #endif
-    .onChange(of: selectedTabIndex) { _, newValue in
-      viewModel.selectedTab = newValue == 0 ? .followers : .following
-    }
   }
 
   private var loadingView: some View {
@@ -95,7 +51,7 @@ struct FollowersFollowingView: View {
         .foregroundColor(.secondary)
       Button("Retry") {
         Task {
-          await viewModel.loadData()
+          await viewModel.loadFollowing(reset: true)
         }
       }
       .buttonStyle(.bordered)
@@ -135,11 +91,7 @@ struct FollowersFollowingView: View {
               .onAppear {
                 if user.userId == users.last?.userId {
                   Task {
-                    if viewModel.selectedTab == .followers {
-                      await viewModel.loadMoreFollowers()
-                    } else {
-                      await viewModel.loadMoreFollowing()
-                    }
+                    await viewModel.loadFollowing()
                   }
                 }
               }
@@ -158,7 +110,7 @@ struct FollowersFollowingView: View {
         }
         .refreshable {
           Task {
-            await viewModel.refreshCurrentTab()
+            await viewModel.loadFollowing(reset: true)
           }
         }
       }
@@ -170,12 +122,10 @@ struct UserRowView: View {
   let user: DetailedUser
   let onFollowToggle: (DetailedUser) -> Void
   @State private var isLoading = false
-  @State private var localFollowState: Bool
 
   init(user: DetailedUser, onFollowToggle: @escaping (DetailedUser) -> Void) {
     self.user = user
     self.onFollowToggle = onFollowToggle
-    self._localFollowState = State(initialValue: user.isFollowing)
   }
 
   var body: some View {
@@ -199,9 +149,6 @@ struct UserRowView: View {
     )
     .padding(.horizontal, 16)
     .padding(.vertical, 12)
-    .onChange(of: user.isFollowing) { _, newValue in
-      localFollowState = newValue
-    }
   }
 
   private var userInfoView: some View {
@@ -231,7 +178,7 @@ struct UserRowView: View {
         ProgressView()
           .scaleEffect(0.8)
       } else {
-        Text(localFollowState ? "Unfollow" : "Follow")
+        Text(user.isFollowing ? "Unfollow" : "Follow")
           .font(.caption)
           .fontWeight(.medium)
       }
@@ -240,13 +187,13 @@ struct UserRowView: View {
     .fontWeight(.medium)
     .frame(width: 70)
     .padding(.vertical, 6)
-    .background(localFollowState ? Color.clear : .blue)
-    .foregroundColor(localFollowState ? .blue : .white)
+    .background(user.isFollowing ? Color.clear : .blue)
+    .foregroundColor(user.isFollowing ? .blue : .white)
     .overlay(
       RoundedRectangle(cornerRadius: 6)
-        .stroke(localFollowState ? Color.blue : Color.clear, lineWidth: 1)
+        .stroke(user.isFollowing ? Color.blue : Color.clear, lineWidth: 1)
     )
-    .animation(.spring(duration: 0.15, bounce: 0.3), value: localFollowState)
+    .animation(.spring(duration: 0.15, bounce: 0.3), value: user.isFollowing)
     .clipShape(RoundedRectangle(cornerRadius: 6))
     .disabled(isLoading)
     .buttonStyle(.plain)
