@@ -1,11 +1,11 @@
 import SwiftUI
 
 struct FollowingListView: View {
-  @StateObject private var viewModel: FollowersFollowingViewModel
+  @StateObject private var viewModel: FollowingListViewModel
 
   init(userId: Int) {
     _viewModel = StateObject(
-      wrappedValue: FollowersFollowingViewModel(
+      wrappedValue: FollowingListViewModel(
         userId: userId
       )
     )
@@ -16,37 +16,23 @@ struct FollowingListView: View {
       switch viewModel.state {
       case .idle:
         loadingView
-          .onAppear {
-            Task {
-              await viewModel.loadData()
-            }
-          }
       case .loading:
         loadingView
-      case .loaded:
-        loadedContent
+      case .loaded(let users):
+        userListView(users: users, isLoading: viewModel.isFetchingMore)
       case .failed(let error):
         errorView(error: error)
       }
     }
     .onAppear {
-      if case .loaded = viewModel.state {
-        Task {
-          await viewModel.loadData()
-        }
+      Task {
+        await viewModel.loadFollowing(reset: true)
       }
     }
+    .navigationTitle("Following")
     #if os(iOS)
       .navigationBarTitleDisplayMode(.inline)
     #endif
-  }
-
-  @ViewBuilder
-  private var loadedContent: some View {
-    userListView(
-      users: viewModel.following,
-      isLoading: viewModel.isLoadingFollowing
-    )
   }
 
   private var loadingView: some View {
@@ -65,7 +51,7 @@ struct FollowingListView: View {
         .foregroundColor(.secondary)
       Button("Retry") {
         Task {
-          await viewModel.loadData()
+          await viewModel.loadFollowing(reset: true)
         }
       }
       .buttonStyle(.bordered)
@@ -106,11 +92,7 @@ struct FollowingListView: View {
               .onAppear {
                 if user.userId == users.last?.userId {
                   Task {
-                    if viewModel.selectedTab == .followers {
-                      await viewModel.loadMoreFollowers()
-                    } else {
-                      await viewModel.loadMoreFollowing()
-                    }
+                    await viewModel.loadFollowing()
                   }
                 }
               }
@@ -129,7 +111,7 @@ struct FollowingListView: View {
         }
         .refreshable {
           Task {
-            await viewModel.refreshCurrentTab()
+            await viewModel.loadFollowing(reset: true)
           }
         }
       }
