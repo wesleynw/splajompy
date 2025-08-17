@@ -160,8 +160,8 @@ final class MockPostStore: @unchecked Sendable {
           ImageDTO(
             imageId: 1001,
             postId: 2001,
-            height: 800,
-            width: 1200,
+            height: 1000,
+            width: 800,
             imageBlobUrl: coffeeImageUrl,
             displayOrder: 0
           )
@@ -331,7 +331,7 @@ final class MockPostStore: @unchecked Sendable {
           userId: 1,
           text:
             "building splajompy has been such an incredible journey 🚀 excited to share what's coming next",
-          createdAt: baseDate.addingTimeInterval(-1800),
+          createdAt: baseDate.addingTimeInterval(0),
           facets: nil
         ),
         user: User(
@@ -349,6 +349,39 @@ final class MockPostStore: @unchecked Sendable {
           RelevantLike(username: "giuseppe", userId: 113),
         ],
         hasOtherLikes: true
+      ),
+      1998: DetailedPost(
+        post: Post(
+          postId: 1998,
+          userId: 30,
+          text: "What's your favorite way to start the morning? ☀️",
+          createdAt: baseDate.addingTimeInterval(-1),
+          facets: nil
+        ),
+        user: User(
+          userId: 30,
+          email: "showrunner@example.com",
+          username: "giuseppe",
+          createdAt: baseDate.addingTimeInterval(-5_184_000),
+          name: "DROP TABLE users; --"
+        ),
+        isLiked: false,
+        commentCount: 2,
+        images: nil,
+        relevantLikes: [
+          RelevantLike(username: "wesley", userId: 6)
+        ],
+        hasOtherLikes: true,
+        poll: Poll(
+          title: "Morning routine poll",
+          voteTotal: 12,
+          currentUserVote: 1,
+          options: [
+            PollOption(title: "Coffee first ☕", voteTotal: 7),
+            PollOption(title: "Exercise 💪", voteTotal: 3),
+            PollOption(title: "Check phone 📱", voteTotal: 2),
+          ]
+        )
       ),
 
       2000: DetailedPost(
@@ -395,6 +428,7 @@ final class MockPostStore: @unchecked Sendable {
         relevantLikes: [],
         hasOtherLikes: false
       ),
+
     ]
   }
 
@@ -402,12 +436,12 @@ final class MockPostStore: @unchecked Sendable {
     return posts.values.filter {
       $0.user.userId == userId && !deletedPostIds.contains($0.post.postId)
     }
-    .sorted { $0.post.postId > $1.post.postId }
+    .sorted { $0.post.createdAt > $1.post.createdAt }
   }
 
   func getAllPosts() -> [DetailedPost] {
     return posts.values.filter { !deletedPostIds.contains($0.post.postId) }
-      .sorted { $0.post.postId > $1.post.postId }
+      .sorted { $0.post.createdAt > $1.post.createdAt }
   }
 }
 
