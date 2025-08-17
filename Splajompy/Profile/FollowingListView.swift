@@ -2,13 +2,15 @@ import SwiftUI
 
 struct FollowingListView: View {
   @StateObject private var viewModel: FollowingListViewModel
+  @ObservedObject var postManager: PostManager
 
-  init(userId: Int) {
+  init(userId: Int, postManager: PostManager) {
     _viewModel = StateObject(
       wrappedValue: FollowingListViewModel(
         userId: userId
       )
     )
+    self.postManager = postManager
   }
 
   var body: some View {
@@ -19,7 +21,7 @@ struct FollowingListView: View {
       case .loading:
         loadingView
       case .loaded(let users):
-        userListView(users: users, isLoading: viewModel.isFetchingMore)
+        userListView(users: users, isLoading: viewModel.isFetchingMore, postManager: postManager)
       case .failed(let error):
         errorView(error: error)
       }
@@ -60,7 +62,9 @@ struct FollowingListView: View {
     }
   }
 
-  private func userListView(users: [DetailedUser], isLoading: Bool) -> some View {
+  private func userListView(users: [DetailedUser], isLoading: Bool, postManager: PostManager)
+    -> some View
+  {
     Group {
       if isLoading && users.isEmpty {
         VStack {
@@ -86,7 +90,8 @@ struct FollowingListView: View {
                   Task {
                     await viewModel.toggleFollow(for: user)
                   }
-                }
+                },
+                postManager: postManager
               )
               .onAppear {
                 if user.userId == users.last?.userId {
@@ -121,32 +126,28 @@ struct FollowingListView: View {
 struct UserRowView: View {
   let user: DetailedUser
   let onFollowToggle: (DetailedUser) -> Void
+  @ObservedObject var postManager: PostManager
   @State private var isLoading = false
 
-  init(user: DetailedUser, onFollowToggle: @escaping (DetailedUser) -> Void) {
+  init(
+    user: DetailedUser, onFollowToggle: @escaping (DetailedUser) -> Void, postManager: PostManager
+  ) {
     self.user = user
     self.onFollowToggle = onFollowToggle
+    self.postManager = postManager
   }
 
   var body: some View {
     HStack(spacing: 8) {
-      userInfoView
+      NavigationLink(value: Route.profile(id: String(user.userId), username: user.username)) {
+        userInfoView
 
-      Spacer()
+        Spacer()
+      }
+      .buttonStyle(.plain)
 
       followButton
     }
-    .background(
-      NavigationLink(
-        destination: ProfileView(
-          userId: user.userId,
-          username: user.username,
-          postManager: PostManager()
-        )
-      ) {
-        Color.clear
-      }
-    )
     .padding(.horizontal, 16)
     .padding(.vertical, 12)
   }
@@ -218,6 +219,7 @@ struct UserRowView: View {
     user: user,
     onFollowToggle: { _ in
       user.isFollowing.toggle()
-    }
+    },
+    postManager: PostManager()
   )
 }

@@ -109,7 +109,9 @@ struct ProfileView: View {
         if viewModel.posts.isEmpty {
           emptyMessage
         } else {
-          ForEach(Array(viewModel.posts.enumerated()), id: \.element.id) { index, post in
+          ForEach(Array(viewModel.posts.enumerated()), id: \.element.id) {
+            index,
+            post in
             PostView(
               post: post,
               postManager: postManager,
@@ -208,20 +210,21 @@ struct ProfileView: View {
           }
           .buttonStyle(.bordered)
         }
-      } else if isProfileTab {
+      } else if isProfileTab && isCurrentUser {
         HStack(spacing: 12) {
-          NavigationLink(destination: FollowingListView(userId: userId)) {
+          Button(action: { isShowingProfileEditor = true }) {
+            Text("Edit Profile")
+              .frame(maxWidth: .infinity)
+          }
+          .buttonStyle(.bordered)
+
+          NavigationLink(value: Route.followingList(userId: userId)) {
             Text("Following")
               .frame(maxWidth: .infinity)
           }
           .buttonStyle(.bordered)
         }
 
-        Button(action: { isShowingProfileEditor = true }) {
-          Text("Edit Profile")
-            .frame(maxWidth: .infinity)
-        }
-        .buttonStyle(.bordered)
       }
     }
     .frame(maxWidth: .infinity, alignment: .leading)
