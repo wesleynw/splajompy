@@ -104,9 +104,6 @@ struct CommentsView: View {
                 }
               }
             )
-            .listRowSeparator(.hidden)
-            .listRowInsets(EdgeInsets())
-            .listRowBackground(Color.clear)
           }
         }
         .animation(.easeInOut(duration: 0.3), value: viewModel.comments)
@@ -294,7 +291,6 @@ struct CommentRow: View {
       .padding(.horizontal, 24)
     #endif
     .contentShape(Rectangle())
-    .onLongPressGesture(minimumDuration: .infinity) {}
     .overlay(
       Rectangle()
         .stroke(Color.gray.opacity(0.2), lineWidth: 1)
