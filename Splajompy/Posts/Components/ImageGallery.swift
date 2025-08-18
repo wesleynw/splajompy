@@ -203,6 +203,7 @@ struct ImageGallery: View {
             topTrailingRadius: topTrailing
           )
         )
+        .contentShape(.rect)
         .onTapGesture {
           selectedImageIndex = index
         }
