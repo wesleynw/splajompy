@@ -4,7 +4,10 @@ struct MiniNotificationView: View {
   let text: String
 
   private var processedText: AttributedString {
-    let markdown = generateAttributedStringUsingFacets(text, facets: [])
+    let lines = text.components(separatedBy: .newlines)
+    let nonEmptyLines = lines.filter { !$0.trimmingCharacters(in: .whitespaces).isEmpty }
+    let cleanedText = nonEmptyLines.joined(separator: "\n")
+    let markdown = generateAttributedStringUsingFacets(cleanedText, facets: [])
     return try! AttributedString(
       markdown: markdown,
       options: AttributedString.MarkdownParsingOptions(
