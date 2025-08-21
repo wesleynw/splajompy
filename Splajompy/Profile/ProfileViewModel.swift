@@ -137,7 +137,9 @@ extension ProfileView {
 
     func updateProfile(name: String, bio: String) {
       Task {
-        let result = await profileService.updateProfile(name: name, bio: bio)
+        let result = await profileService.updateProfile(
+          name: name.trimmingCharacters(in: .whitespacesAndNewlines),
+          bio: bio.trimmingCharacters(in: .whitespacesAndNewlines))
         switch result {
         case .success(_):
           if case .loaded(var profile, let postIds) = state {
