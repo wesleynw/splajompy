@@ -56,7 +56,6 @@ func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
 
 	// posts
 	handleFunc("GET /post/presignedUrl", h.GetPresignedUrl)
-	handleFunc("POST /post/new", h.CreateNewPost)
 	handleFunc("POST /v2/post/new", h.CreateNewPostV2)
 	handleFunc("GET /post/{id}", h.GetPostById)
 	handleFunc("GET /user/{id}/posts", h.GetPostsByUserId)
