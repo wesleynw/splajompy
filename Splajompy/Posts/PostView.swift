@@ -136,52 +136,52 @@ struct PostView: View {
         .foregroundColor(.gray)
         Spacer()
         HStack(spacing: 0) {
-          if !isStandalone {
-            Menu(
-              content: {
-                if let currentUser = authManager.getCurrentUser() {
-                  if currentUser.userId == post.user.userId {
-                    Button(role: .destructive, action: { onPostDeleted() }) {
-                      Label("Delete", systemImage: "trash")
+          Menu(
+            content: {
+              if let currentUser = authManager.getCurrentUser() {
+                if currentUser.userId == post.user.userId {
+                  Button(role: .destructive, action: { onPostDeleted() }) {
+                    Label("Delete", systemImage: "trash")
+                      .foregroundColor(.red)
+                  }
+                } else {
+                  Button(
+                    role: .destructive,
+                    action: {
+                      Task {
+                        isReporting = true
+                        let _ = await PostService().reportPost(
+                          postId: post.post.postId
+                        )
+                        isReporting = false
+                        showReportAlert = true
+                      }
+                    }
+                  ) {
+                    if isReporting {
+                      HStack {
+                        Text("Reporting...")
+                        Spacer()
+                        ProgressView()
+                      }
+                    } else {
+                      Label("Report", systemImage: "exclamationmark.triangle")
                         .foregroundColor(.red)
                     }
-                  } else {
-                    Button(
-                      role: .destructive,
-                      action: {
-                        Task {
-                          isReporting = true
-                          let _ = await PostService().reportPost(
-                            postId: post.post.postId
-                          )
-                          isReporting = false
-                          showReportAlert = true
-                        }
-                      }
-                    ) {
-                      if isReporting {
-                        HStack {
-                          Text("Reporting...")
-                          Spacer()
-                          ProgressView()
-                        }
-                      } else {
-                        Label("Report", systemImage: "exclamationmark.triangle")
-                          .foregroundColor(.red)
-                      }
-                    }
-                    .disabled(isReporting)
                   }
+                  .disabled(isReporting)
                 }
-              },
-              label: {
-                Image(systemName: "ellipsis")
-                  .font(.system(size: 22))
-                  .frame(width: 48, height: 40)
               }
-            )
-            .accessibilityLabel("More options")
+            },
+            label: {
+              Image(systemName: "ellipsis")
+                .font(.system(size: 22))
+                .frame(width: 48, height: 40)
+            }
+          )
+          .accessibilityLabel("More options")
 
+          if !isStandalone {
             Divider()
               .padding(.vertical, 5)
               .padding(.horizontal, 4)
@@ -226,10 +226,9 @@ struct PostView: View {
                 value: post.isLiked
               )
           }
-          .buttonStyle(.plain)
-          .accessibilityLabel("Like post")
           .sensoryFeedback(.impact, trigger: post.isLiked)
         }
+        .buttonStyle(.plain)
         .padding(3)
         .background(
           RoundedRectangle(cornerRadius: 12).fill(.gray.opacity(0.15))
