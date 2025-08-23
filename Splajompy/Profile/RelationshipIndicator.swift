@@ -5,14 +5,7 @@ struct RelationshipIndicator: View {
 
   var body: some View {
     VStack(spacing: 4) {
-      if isFriend {
-        friendRow()
-        if hasMutuals {
-          Divider()
-            .padding(2)
-          mutualsRow()
-        }
-      } else if hasMutuals {
+      if hasMutuals {
         mutualsRow()
       } else {
         noConnectionRow()
@@ -21,27 +14,6 @@ struct RelationshipIndicator: View {
     .padding(12)
     .background(Color.gray.opacity(0.1))
     .cornerRadius(12)
-  }
-
-  @ViewBuilder
-  private func friendRow() -> some View {
-    HStack(spacing: 0) {
-      Image(systemName: "person.fill.checkmark")
-        .font(.system(size: 16))
-        .foregroundColor(.green)
-        .frame(width: 24, alignment: .center)
-
-      VStack(alignment: .leading, spacing: 4) {
-        Text("Friend")
-          .font(.subheadline)
-          .fontWeight(.medium)
-          .foregroundColor(.primary)
-          .lineLimit(2)
-      }
-      .padding(.leading, 12)
-
-      Spacer()
-    }
   }
 
   @ViewBuilder
