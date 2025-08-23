@@ -51,8 +51,6 @@ struct SearchView: View {
       Text("Search for Splajompians")
         .font(.title3)
         .fontWeight(.bold)
-      Text("Type a username to find others.")
-        .foregroundColor(.gray)
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity)
   }

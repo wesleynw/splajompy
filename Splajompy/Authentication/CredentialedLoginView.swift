@@ -4,8 +4,13 @@ struct CredentialedLoginView: View {
   @Binding var isPresenting: Bool
   @Environment(\.dismiss) var dismiss
 
-  @Binding var identifier: String
+  @State private var identifier: String
   @State private var password = ""
+
+  init(isPresenting: Binding<Bool>, identifier: String) {
+    self._isPresenting = isPresenting
+    self._identifier = State(initialValue: identifier)
+  }
 
   @State var showError: Bool = false
   @State var errorMessage: String = ""
@@ -19,26 +24,6 @@ struct CredentialedLoginView: View {
     NavigationStack {
       VStack {
         VStack(alignment: .leading, spacing: 5) {
-          TextField("Username or Email", text: $identifier)
-            .padding(12)
-            .background(
-              RoundedRectangle(cornerRadius: 8)
-                .stroke(
-                  isIdentifierFieldFocused
-                    ? Color.primary : Color.gray.opacity(0.75),
-                  lineWidth: 2
-                )
-            )
-            .cornerRadius(8)
-            .textContentType(.username)
-            #if os(iOS)
-              .autocapitalization(.none)
-            #endif
-            .autocorrectionDisabled()
-            .focused($isIdentifierFieldFocused)
-            .onAppear { isIdentifierFieldFocused = true }
-            .padding(.bottom, 10)
-
           SecureField("Password", text: $password)
             .padding(12)
             .background(
@@ -56,6 +41,7 @@ struct CredentialedLoginView: View {
             #endif
             .autocorrectionDisabled()
             .focused($isPasswordFieldFocused)
+            .onAppear { isPasswordFieldFocused = true }
         }
         .padding(.bottom, 10)
 
@@ -64,7 +50,7 @@ struct CredentialedLoginView: View {
         Button(action: {
           Task {
             let (success, err) = await authManager.signInWithPassword(
-              identifier: identifier,
+              identifier: identifier.lowercased(),
               password: password
             )
             if !success {
@@ -80,7 +66,7 @@ struct CredentialedLoginView: View {
               Text("Continue")
                 .font(.system(size: 16, weight: .bold))
                 .foregroundColor(
-                  identifier.isEmpty ? Color.white.opacity(0.4) : Color.white
+                  password.isEmpty ? Color.white.opacity(0.4) : Color.white
                 )
                 .padding()
               Spacer()
@@ -96,37 +82,16 @@ struct CredentialedLoginView: View {
             }
           }
           .background(
-            identifier.isEmpty ? Color.gray.opacity(0.3) : Color.accentColor
+            password.isEmpty ? Color.gray.opacity(0.3) : Color.accentColor
           )
           .cornerRadius(10)
         }
-        .disabled(authManager.isLoading || identifier.isEmpty)
+        .disabled(authManager.isLoading || password.isEmpty)
         .padding(.bottom, 8)
-
-        Button {
-          dismiss()
-        } label: {
-          HStack {
-            Spacer()
-            Text("Log in with email")
-              .font(.system(size: 16, weight: .bold))
-              .padding()
-            Spacer()
-          }
-          .background(Color.clear)
-          .overlay(
-            RoundedRectangle(cornerRadius: 10)
-              .stroke(Color.primary, lineWidth: 2)
-          )
-          .frame(maxWidth: .infinity)
-          .cornerRadius(10)
-        }
-        .buttonStyle(.plain)
       }
       .padding(.horizontal, 24)
       .padding(.vertical, 32)
       .navigationTitle("Sign In")
-      .navigationBarBackButtonHidden()
       .toolbar {
         ToolbarItem(
           placement: {
@@ -153,8 +118,7 @@ struct CredentialedLoginView: View {
 
 #Preview {
   @Previewable @State var isPresenting = true
-  @Previewable @State var identifier = "wesleynw@pm.me"
 
-  CredentialedLoginView(isPresenting: $isPresenting, identifier: $identifier)
+  CredentialedLoginView(isPresenting: $isPresenting, identifier: "wesley@splajompy.com")
     .environmentObject(AuthManager())
 }

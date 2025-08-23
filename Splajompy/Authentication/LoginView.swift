@@ -18,10 +18,7 @@ struct LoginView: View {
         VStack(alignment: .leading, spacing: 5) {
           TextField(
             "Username or Email",
-            text: Binding(
-              get: { identifier },
-              set: { identifier = $0.lowercased() }
-            )
+            text: $identifier
           )
           .padding(12)
           .background(
@@ -46,7 +43,7 @@ struct LoginView: View {
 
         Button(action: {
           Task {
-            let success = await authManager.requestOneTimeCode(for: identifier)
+            let success = await authManager.requestOneTimeCode(for: identifier.lowercased())
             if success {
               hasRequestedCode = true
             } else {
@@ -83,29 +80,6 @@ struct LoginView: View {
         }
         .disabled(authManager.isLoading || identifier.isEmpty)
         .padding(.bottom, 8)
-
-        NavigationLink {
-          CredentialedLoginView(
-            isPresenting: $isPresenting,
-            identifier: $identifier
-          )
-        } label: {
-          HStack {
-            Spacer()
-            Text("Log in with password")
-              .font(.system(size: 16, weight: .bold))
-              .padding()
-            Spacer()
-          }
-          .background(Color.clear)
-          .overlay(
-            RoundedRectangle(cornerRadius: 10)
-              .stroke(Color.primary, lineWidth: 2)
-          )
-          .frame(maxWidth: .infinity)
-          .cornerRadius(10)
-        }
-        .buttonStyle(.plain)
       }
       .padding(.horizontal, 24)
       .padding(.vertical, 32)
@@ -124,7 +98,7 @@ struct LoginView: View {
         }
       }
       .navigationDestination(isPresented: $hasRequestedCode) {
-        OneTimeCodeView(identifier: identifier, isPresenting: $isPresenting)
+        OneTimeCodeView(identifier: identifier.lowercased(), isPresenting: $isPresenting)
           .environmentObject(authManager)
       }
     }
