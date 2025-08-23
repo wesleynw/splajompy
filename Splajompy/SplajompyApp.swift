@@ -12,7 +12,7 @@ struct SplajompyApp: App {
     NavigationPath(),
   ]
 
-  @StateObject private var authManager = AuthManager()
+  @StateObject private var authManager = AuthManager.shared
   private var postManager = PostManager()
   @AppStorage("appearance_mode") var appearanceMode: String = "Automatic"
 

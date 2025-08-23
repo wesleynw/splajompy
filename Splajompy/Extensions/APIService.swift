@@ -71,7 +71,14 @@ public struct APIService {
     let request = await createRequest(for: url, method: method, body: body)
 
     do {
-      let (data, _) = try await URLSession.shared.data(for: request)
+      let (data, response) = try await URLSession.shared.data(for: request)
+
+      if let httpResponse = response as? HTTPURLResponse {
+        if httpResponse.statusCode == 401 {
+          await AuthManager.shared.signOut()
+          return .error(APIErrorMessage(message: "Session expired. Please sign in again."))
+        }
+      }
 
       let decoder = JSONDecoder()
 
