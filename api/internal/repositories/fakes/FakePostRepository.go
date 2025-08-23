@@ -3,12 +3,14 @@ package fakes
 import (
 	"context"
 	"errors"
+	"sort"
+	"sync"
+	"time"
+
 	"splajompy.com/api/v2/internal/db"
 	"splajompy.com/api/v2/internal/db/queries"
 	"splajompy.com/api/v2/internal/models"
 	"splajompy.com/api/v2/internal/repositories"
-	"sync"
-	"time"
 )
 
 type FakePostRepository struct {
@@ -356,16 +358,32 @@ func (r *FakePostRepository) GetAllPostIdsCursor(ctx context.Context, limit int,
 	r.mutex.RLock()
 	defer r.mutex.RUnlock()
 
-	var filteredIds []int
+	// Convert map to slice for sorting
+	type postWithId struct {
+		id   int
+		post *models.Post
+	}
+	var posts []postWithId
 	for id, post := range r.posts {
 		if beforeTimestamp == nil || post.CreatedAt.Before(*beforeTimestamp) {
-			filteredIds = append(filteredIds, id)
+			posts = append(posts, postWithId{id: id, post: &post})
 		}
 	}
 
-	if len(filteredIds) > limit {
-		filteredIds = filteredIds[:limit]
+	// Sort by CreatedAt DESC to match database behavior
+	sort.Slice(posts, func(i, j int) bool {
+		return posts[i].post.CreatedAt.After(posts[j].post.CreatedAt)
+	})
+
+	// Extract IDs and apply limit
+	var filteredIds []int
+	for i, post := range posts {
+		if i >= limit {
+			break
+		}
+		filteredIds = append(filteredIds, post.id)
 	}
+
 	return filteredIds, nil
 }
 

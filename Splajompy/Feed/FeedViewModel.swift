@@ -71,6 +71,9 @@ enum FeedState {
       // Update cursor timestamp to the oldest post in the batch
       if let oldestPost = fetchedPosts.last {
         lastPostTimestamp = oldestPost.post.createdAt
+      } else {
+        // If no posts fetched, we've reached the end
+        canLoadMore = false
       }
       
     case .error(let error):

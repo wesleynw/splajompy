@@ -497,12 +497,15 @@ struct MockPostService: PostServiceProtocol {
       allPosts = store.getAllPosts()
     }
 
+    // Sort posts by createdAt DESC to match database behavior
+    let sortedPosts = allPosts.sorted { $0.post.createdAt > $1.post.createdAt }
+    
     // Filter by timestamp if provided
     let filteredPosts: [DetailedPost]
     if let beforeTimestamp = beforeTimestamp {
-      filteredPosts = allPosts.filter { $0.post.createdAt < beforeTimestamp }
+      filteredPosts = sortedPosts.filter { $0.post.createdAt < beforeTimestamp }
     } else {
-      filteredPosts = allPosts
+      filteredPosts = sortedPosts
     }
 
     let paginatedPosts = Array(filteredPosts.prefix(limit))
