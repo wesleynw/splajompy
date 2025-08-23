@@ -50,6 +50,9 @@ struct LoginView: View {
               Spacer()
               Text("Continue")
                 .font(.system(size: 16, weight: .bold))
+                .foregroundColor(
+                  identifier.isEmpty ? Color.primary.opacity(0.4) : Color.white
+                )
                 .padding()
               Spacer()
             }
@@ -64,7 +67,7 @@ struct LoginView: View {
             }
           }
           .background(
-            identifier.isEmpty ? Color.gray.opacity(0.3) : Color.accentColor
+            identifier.isEmpty ? Color.secondary.opacity(0.3) : Color.accentColor
           )
           .cornerRadius(10)
         }

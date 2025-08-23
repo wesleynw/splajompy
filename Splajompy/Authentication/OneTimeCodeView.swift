@@ -55,12 +55,15 @@ struct OneTimeCodeView: View {
             Spacer()
             Text("Continue")
               .font(.system(size: 16, weight: .bold))
+              .foregroundColor(
+                oneTimeCode.isEmpty ? Color.primary.opacity(0.4) : Color.white
+              )
               .padding()
             Spacer()
           }
         }
         .background(
-          oneTimeCode.isEmpty ? Color.gray.opacity(0.3) : Color.accentColor
+          oneTimeCode.isEmpty ? Color.secondary.opacity(0.3) : Color.accentColor
         )
         .cornerRadius(10)
       }

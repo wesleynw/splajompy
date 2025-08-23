@@ -66,6 +66,9 @@ struct CredentialedLoginView: View {
               Spacer()
               Text("Continue")
                 .font(.system(size: 16, weight: .bold))
+                .foregroundColor(
+                  password.isEmpty ? Color.primary.opacity(0.4) : Color.white
+                )
                 .padding()
               Spacer()
             }
@@ -80,7 +83,7 @@ struct CredentialedLoginView: View {
             }
           }
           .background(
-            password.isEmpty ? Color.gray.opacity(0.3) : Color.accentColor
+            password.isEmpty ? Color.secondary.opacity(0.3) : Color.accentColor
           )
           .cornerRadius(10)
         }
@@ -94,7 +97,8 @@ struct CredentialedLoginView: View {
               Task {
                 let success = await authManager.requestOneTimeCode(for: identifier)
                 if !success {
-                  errorMessage = "Failed to send code. Try again with a different Username or Email."
+                  errorMessage =
+                    "Failed to send code. Try again with a different Username or Email."
                   showError = true
                 }
               }
@@ -137,7 +141,8 @@ struct CredentialedLoginView: View {
       .alert(isPresented: $showError) {
         Alert(
           title: Text("Sign In Failed"),
-          message: Text(errorMessage.isEmpty ? "Try again with a different Username or Email." : errorMessage),
+          message: Text(
+            errorMessage.isEmpty ? "Try again with a different Username or Email." : errorMessage),
           dismissButton: .default(Text("OK"))
         )
       }
