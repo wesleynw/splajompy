@@ -5,7 +5,7 @@ struct LoginView: View {
   @Environment(\.dismiss) var dismiss
 
   @State private var identifier = ""
-  @State private var hasRequestedCode: Bool = false
+  @State private var shouldShowPasswordView: Bool = false
   @State private var showError: Bool = false
 
   @FocusState private var isIdentifierFieldFocused: Bool
@@ -42,14 +42,7 @@ struct LoginView: View {
         Spacer()
 
         Button(action: {
-          Task {
-            let success = await authManager.requestOneTimeCode(for: identifier.lowercased())
-            if success {
-              hasRequestedCode = true
-            } else {
-              showError = true
-            }
-          }
+          shouldShowPasswordView = true
         }
         ) {
           ZStack {
@@ -57,9 +50,6 @@ struct LoginView: View {
               Spacer()
               Text("Continue")
                 .font(.system(size: 16, weight: .bold))
-                .foregroundColor(
-                  identifier.isEmpty ? Color.white.opacity(0.4) : Color.white
-                )
                 .padding()
               Spacer()
             }
@@ -78,7 +68,7 @@ struct LoginView: View {
           )
           .cornerRadius(10)
         }
-        .disabled(authManager.isLoading || identifier.isEmpty)
+        .disabled(identifier.isEmpty)
         .padding(.bottom, 8)
       }
       .padding(.horizontal, 24)
@@ -97,8 +87,8 @@ struct LoginView: View {
           CloseButton(onClose: { isPresenting = false })
         }
       }
-      .navigationDestination(isPresented: $hasRequestedCode) {
-        OneTimeCodeView(identifier: identifier.lowercased(), isPresenting: $isPresenting)
+      .navigationDestination(isPresented: $shouldShowPasswordView) {
+        CredentialedLoginView(isPresenting: $isPresenting, identifier: identifier.lowercased())
           .environmentObject(authManager)
       }
     }

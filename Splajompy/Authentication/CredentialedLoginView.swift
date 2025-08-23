@@ -6,6 +6,7 @@ struct CredentialedLoginView: View {
 
   @State private var identifier: String
   @State private var password = ""
+  @State private var hasRequestedCode: Bool = false
 
   init(isPresenting: Binding<Bool>, identifier: String) {
     self._isPresenting = isPresenting
@@ -65,9 +66,6 @@ struct CredentialedLoginView: View {
               Spacer()
               Text("Continue")
                 .font(.system(size: 16, weight: .bold))
-                .foregroundColor(
-                  password.isEmpty ? Color.white.opacity(0.4) : Color.white
-                )
                 .padding()
               Spacer()
             }
@@ -88,6 +86,37 @@ struct CredentialedLoginView: View {
         }
         .disabled(authManager.isLoading || password.isEmpty)
         .padding(.bottom, 8)
+
+        NavigationLink {
+          OneTimeCodeView(identifier: identifier, isPresenting: $isPresenting)
+            .environmentObject(authManager)
+            .onAppear {
+              Task {
+                let success = await authManager.requestOneTimeCode(for: identifier)
+                if !success {
+                  errorMessage = "Failed to send code. Try again with a different Username or Email."
+                  showError = true
+                }
+              }
+            }
+        } label: {
+          HStack {
+            Spacer()
+            Text("Email me a code instead")
+              .font(.system(size: 16, weight: .bold))
+              .padding()
+            Spacer()
+          }
+          .background(Color.clear)
+          .overlay(
+            RoundedRectangle(cornerRadius: 10)
+              .stroke(Color.primary, lineWidth: 2)
+          )
+          .frame(maxWidth: .infinity)
+          .cornerRadius(10)
+        }
+        .buttonStyle(.plain)
+        .disabled(authManager.isLoading)
       }
       .padding(.horizontal, 24)
       .padding(.vertical, 32)
@@ -108,7 +137,7 @@ struct CredentialedLoginView: View {
       .alert(isPresented: $showError) {
         Alert(
           title: Text("Sign In Failed"),
-          message: Text("Try again with a different Username or Email."),
+          message: Text(errorMessage.isEmpty ? "Try again with a different Username or Email." : errorMessage),
           dismissButton: .default(Text("OK"))
         )
       }
