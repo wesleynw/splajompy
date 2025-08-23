@@ -35,7 +35,6 @@ struct PostService: PostServiceProtocol {
     return await APIService.performRequest(endpoint: "post/\(postId)")
   }
 
-
   func getPostsForFeedCursor(
     feedType: FeedType,
     userId: Int? = nil,
@@ -56,17 +55,18 @@ struct PostService: PostServiceProtocol {
     case .mutual:
       urlBase = "v2/posts/mutual"
     }
-    
+
     var queryItems = [
-      URLQueryItem(name: "limit", value: "\(limit)"),
+      URLQueryItem(name: "limit", value: "\(limit)")
     ]
-    
+
     if let beforeTimestamp = beforeTimestamp {
       let formatter = ISO8601DateFormatter()
       formatter.formatOptions = [.withInternetDateTime, .withTimeZone]
-      queryItems.append(URLQueryItem(name: "before", value: formatter.string(from: beforeTimestamp)))
+      queryItems.append(
+        URLQueryItem(name: "before", value: formatter.string(from: beforeTimestamp)))
     }
-    
+
     let result: AsyncResult<[DetailedPost]> = await APIService.performRequest(
       endpoint: urlBase,
       queryItems: queryItems
@@ -470,7 +470,6 @@ struct MockPostService: PostServiceProtocol {
     }
   }
 
-
   func getPostsForFeedCursor(
     feedType: FeedType,
     userId: Int? = nil,
@@ -499,7 +498,7 @@ struct MockPostService: PostServiceProtocol {
 
     // Sort posts by createdAt DESC to match database behavior
     let sortedPosts = allPosts.sorted { $0.post.createdAt > $1.post.createdAt }
-    
+
     // Filter by timestamp if provided
     let filteredPosts: [DetailedPost]
     if let beforeTimestamp = beforeTimestamp {

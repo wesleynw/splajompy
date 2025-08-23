@@ -67,12 +67,12 @@ extension ProfileView {
       case (.success(let userProfile), .success(let fetchedPosts)):
         postManager.cachePosts(fetchedPosts)
         postIds = fetchedPosts.map { $0.id }
-        
+
         // Update cursor timestamp to the oldest post in the batch
         if let oldestPost = fetchedPosts.last {
           lastPostTimestamp = oldestPost.post.createdAt
         }
-        
+
         canLoadMorePosts = fetchedPosts.count >= fetchLimit
         state = .loaded(userProfile, postIds)
       case (.success(let userProfile), .error(_)):
@@ -119,7 +119,7 @@ extension ProfileView {
         if let oldestPost = fetchedPosts.last {
           lastPostTimestamp = oldestPost.post.createdAt
         }
-        
+
         state = .loaded(profile, postIds)
         canLoadMorePosts = fetchedPosts.count >= fetchLimit
       case .error(let error):

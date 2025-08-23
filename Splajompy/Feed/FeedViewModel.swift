@@ -65,9 +65,9 @@ enum FeedState {
         postIds.append(contentsOf: newPostIds)
         state = .loaded(postIds)
       }
-      
+
       canLoadMore = fetchedPosts.count >= fetchLimit
-      
+
       // Update cursor timestamp to the oldest post in the batch
       if let oldestPost = fetchedPosts.last {
         lastPostTimestamp = oldestPost.post.createdAt
@@ -75,7 +75,7 @@ enum FeedState {
         // If no posts fetched, we've reached the end
         canLoadMore = false
       }
-      
+
     case .error(let error):
       state = .failed(error)
     }
