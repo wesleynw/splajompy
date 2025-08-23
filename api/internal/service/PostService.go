@@ -425,6 +425,49 @@ func (s *PostService) VoteOnPoll(ctx context.Context, currentUser models.PublicU
 	return nil
 }
 
+type FeedType string
+
+const (
+	FeedTypeAll      FeedType = "all"
+	FeedTypeFollowing FeedType = "following"
+	FeedTypeMutual    FeedType = "mutual"
+	FeedTypeProfile   FeedType = "profile"
+)
+
+func (s *PostService) GetPostsWithTimeOffset(ctx context.Context, currentUser models.PublicUser, feedType FeedType, userId *int, limit int, beforeTimestamp *time.Time) (*[]models.DetailedPost, error) {
+	var postIDs []int
+	var err error
+
+	switch feedType {
+	case FeedTypeAll:
+		postIDs, err = s.postRepository.GetAllPostIdsCursor(ctx, limit, beforeTimestamp, currentUser.UserID)
+	case FeedTypeFollowing:
+		postIDs, err = s.postRepository.GetPostIdsForFollowingCursor(ctx, currentUser.UserID, limit, beforeTimestamp)
+	case FeedTypeMutual:
+		postRows, mutualErr := s.postRepository.GetPostIdsForMutualFeedCursor(ctx, currentUser.UserID, limit, beforeTimestamp)
+		if mutualErr != nil {
+			return nil, mutualErr
+		}
+		postIDs = make([]int, len(postRows))
+		for i, row := range postRows {
+			postIDs[i] = int(row.PostID)
+		}
+	case FeedTypeProfile:
+		if userId == nil {
+			return nil, errors.New("userId required for profile feed")
+		}
+		postIDs, err = s.postRepository.GetPostIdsByUserIdCursor(ctx, *userId, limit, beforeTimestamp)
+	default:
+		return nil, errors.New("invalid feed type")
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	return s.getPostsByPostIDs(ctx, currentUser, postIDs)
+}
+
 func seededRandom(seed int) float64 {
 	var x = math.Sin(float64(seed)) * 1000
 	return x - math.Floor(x)

@@ -20,7 +20,7 @@ enum FeedState {
     postManager.getPostsById(postIds)
   }
 
-  private var offset = 0
+  private var lastPostTimestamp: Date?
   private let fetchLimit = 10
   @ObservedObject var postManager: PostManager
 
@@ -38,7 +38,7 @@ enum FeedState {
       } else if case .idle = state {
         state = .loading
       }
-      offset = 0
+      lastPostTimestamp = nil
     } else {
       isLoadingMore = true
     }
@@ -50,7 +50,7 @@ enum FeedState {
     let result = await postManager.loadFeed(
       feedType: feedType,
       userId: userId,
-      offset: offset,
+      beforeTimestamp: lastPostTimestamp,
       limit: fetchLimit
     )
 
@@ -65,8 +65,14 @@ enum FeedState {
         postIds.append(contentsOf: newPostIds)
         state = .loaded(postIds)
       }
+      
       canLoadMore = fetchedPosts.count >= fetchLimit
-      offset += fetchedPosts.count
+      
+      // Update cursor timestamp to the oldest post in the batch
+      if let oldestPost = fetchedPosts.last {
+        lastPostTimestamp = oldestPost.post.createdAt
+      }
+      
     case .error(let error):
       state = .failed(error)
     }

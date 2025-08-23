@@ -2,9 +2,13 @@ package handler
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
-	"splajompy.com/api/v2/internal/db"
 	"strconv"
+	"time"
+
+	"splajompy.com/api/v2/internal/db"
+	"splajompy.com/api/v2/internal/service"
 
 	"splajompy.com/api/v2/internal/models"
 	"splajompy.com/api/v2/internal/utilities"
@@ -132,6 +136,25 @@ func (h *Handler) parsePagination(r *http.Request) (int, int) {
 	return limit, offset
 }
 
+func (h *Handler) parseTimeBasedPagination(r *http.Request) (int, *time.Time, error) {
+	limit := 10
+	if l, err := strconv.Atoi(r.URL.Query().Get("limit")); err == nil && l > 0 {
+		limit = l
+	}
+
+	var beforeTimestamp *time.Time
+	beforeStr := r.URL.Query().Get("before")
+	if beforeStr != "" {
+		timestamp, err := time.Parse(time.RFC3339, beforeStr)
+		if err != nil {
+			return 0, nil, errors.New("invalid timestamp format, expected RFC3339")
+		}
+		beforeTimestamp = &timestamp
+	}
+
+	return limit, beforeTimestamp, nil
+}
+
 func (h *Handler) GetPostsByUserId(w http.ResponseWriter, r *http.Request) {
 	currentUser := h.getAuthenticatedUser(r)
 
@@ -193,6 +216,30 @@ func (h *Handler) GetMutualFeed(w http.ResponseWriter, r *http.Request) {
 	if posts == nil {
 		posts = &[]models.DetailedPost{}
 	}
+	utilities.HandleSuccess(w, posts)
+}
+
+func (h *Handler) GetPostsByUserIdWithTimeOffset(w http.ResponseWriter, r *http.Request) {
+	currentUser := h.getAuthenticatedUser(r)
+
+	userId, err := h.GetIntPathParam(r, "id")
+	if err != nil {
+		utilities.HandleError(w, http.StatusBadRequest, "Missing ID parameter")
+		return
+	}
+
+	limit, beforeTimestamp, err := h.parseTimeBasedPagination(r)
+	if err != nil {
+		utilities.HandleError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	posts, err := h.postService.GetPostsWithTimeOffset(r.Context(), *currentUser, service.FeedTypeProfile, &userId, limit, beforeTimestamp)
+	if err != nil {
+		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
+		return
+	}
+
 	utilities.HandleSuccess(w, posts)
 }
 
@@ -274,4 +321,64 @@ func (h *Handler) VoteOnPost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utilities.HandleEmptySuccess(w)
+}
+
+func (h *Handler) GetAllPostsWithTimeOffset(w http.ResponseWriter, r *http.Request) {
+	currentUser := h.getAuthenticatedUser(r)
+
+	limit, beforeTimestamp, err := h.parseTimeBasedPagination(r)
+	if err != nil {
+		utilities.HandleError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	posts, err := h.postService.GetPostsWithTimeOffset(r.Context(), *currentUser, service.FeedTypeAll, nil, limit, beforeTimestamp)
+	if err != nil {
+		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
+		return
+	}
+
+	utilities.HandleSuccess(w, posts)
+}
+
+func (h *Handler) GetPostsByFollowingWithTimeOffset(w http.ResponseWriter, r *http.Request) {
+	currentUser := h.getAuthenticatedUser(r)
+
+	limit, beforeTimestamp, err := h.parseTimeBasedPagination(r)
+	if err != nil {
+		utilities.HandleError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	posts, err := h.postService.GetPostsWithTimeOffset(r.Context(), *currentUser, service.FeedTypeFollowing, nil, limit, beforeTimestamp)
+	if err != nil {
+		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
+		return
+	}
+
+	if posts == nil {
+		posts = &[]models.DetailedPost{}
+	}
+	utilities.HandleSuccess(w, posts)
+}
+
+func (h *Handler) GetMutualFeedWithTimeOffset(w http.ResponseWriter, r *http.Request) {
+	currentUser := h.getAuthenticatedUser(r)
+
+	limit, beforeTimestamp, err := h.parseTimeBasedPagination(r)
+	if err != nil {
+		utilities.HandleError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	posts, err := h.postService.GetPostsWithTimeOffset(r.Context(), *currentUser, service.FeedTypeMutual, nil, limit, beforeTimestamp)
+	if err != nil {
+		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
+		return
+	}
+
+	if posts == nil {
+		posts = &[]models.DetailedPost{}
+	}
+	utilities.HandleSuccess(w, posts)
 }
