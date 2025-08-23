@@ -18,10 +18,7 @@ struct LoginView: View {
         VStack(alignment: .leading, spacing: 5) {
           TextField(
             "Username or Email",
-            text: Binding(
-              get: { identifier },
-              set: { identifier = $0.lowercased() }
-            )
+            text: $identifier
           )
           .padding(12)
           .background(
@@ -46,7 +43,7 @@ struct LoginView: View {
 
         Button(action: {
           Task {
-            let success = await authManager.requestOneTimeCode(for: identifier)
+            let success = await authManager.requestOneTimeCode(for: identifier.lowercased())
             if success {
               hasRequestedCode = true
             } else {
@@ -124,7 +121,7 @@ struct LoginView: View {
         }
       }
       .navigationDestination(isPresented: $hasRequestedCode) {
-        OneTimeCodeView(identifier: identifier, isPresenting: $isPresenting)
+        OneTimeCodeView(identifier: identifier.lowercased(), isPresenting: $isPresenting)
           .environmentObject(authManager)
       }
     }

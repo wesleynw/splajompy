@@ -64,7 +64,7 @@ struct CredentialedLoginView: View {
         Button(action: {
           Task {
             let (success, err) = await authManager.signInWithPassword(
-              identifier: identifier,
+              identifier: identifier.lowercased(),
               password: password
             )
             if !success {

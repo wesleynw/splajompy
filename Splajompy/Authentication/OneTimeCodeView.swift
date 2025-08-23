@@ -12,6 +12,11 @@ struct OneTimeCodeView: View {
 
   var body: some View {
     VStack(alignment: .leading) {
+      Text("You should receive a verification email momentarily.")
+        .font(.body)
+        .foregroundColor(.secondary)
+        .padding(.bottom, 20)
+
       TextField("Code", text: $oneTimeCode)
         .padding(12)
         .background(
