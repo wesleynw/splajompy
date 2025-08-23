@@ -3,6 +3,8 @@ package repositories
 import (
 	"context"
 	"errors"
+	"time"
+
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 	"splajompy.com/api/v2/internal/db"
@@ -23,7 +25,11 @@ type PostRepository interface {
 	GetAllPostIds(ctx context.Context, limit int, offset int, currentUserId int) ([]int, error)
 	GetPostIdsForFollowing(ctx context.Context, userId int, limit int, offset int) ([]int, error)
 	GetPostIdsForUser(ctx context.Context, userId int, limit int, offset int) ([]int, error)
+	GetPostIdsByUserIdCursor(ctx context.Context, userId int, limit int, beforeTimestamp *time.Time) ([]int, error)
 	GetPostIdsForMutualFeed(ctx context.Context, userId int, limit int, offset int) ([]queries.GetPostIdsForMutualFeedRow, error)
+	GetAllPostIdsCursor(ctx context.Context, limit int, beforeTimestamp *time.Time, currentUserId int) ([]int, error)
+	GetPostIdsForFollowingCursor(ctx context.Context, userId int, limit int, beforeTimestamp *time.Time) ([]int, error)
+	GetPostIdsForMutualFeedCursor(ctx context.Context, userId int, limit int, beforeTimestamp *time.Time) ([]queries.GetPostIdsForMutualFeedCursorRow, error)
 	GetPollVotesGrouped(ctx context.Context, postId int) ([]queries.GetPollVotesGroupedRow, error)
 	GetUserVoteInPoll(ctx context.Context, postId int, userId int) (*int, error)
 	InsertVote(ctx context.Context, postId int, userId int, optionIndex int) error
@@ -196,6 +202,89 @@ func (r DBPostRepository) InsertVote(ctx context.Context, postId int, userId int
 		UserID:      int32(userId),
 		OptionIndex: int32(optionIndex),
 	})
+}
+
+// GetAllPostIdsCursor retrieves IDs of all posts using cursor-based pagination
+func (r DBPostRepository) GetAllPostIdsCursor(ctx context.Context, limit int, beforeTimestamp *time.Time, currentUserId int) ([]int, error) {
+	var timestamp pgtype.Timestamp
+	if beforeTimestamp != nil {
+		timestamp = pgtype.Timestamp{Time: *beforeTimestamp, Valid: true}
+	}
+
+	postIds32, err := r.querier.GetAllPostIdsCursor(ctx, queries.GetAllPostIdsCursorParams{
+		Limit:   int32(limit),
+		Column2: timestamp,
+		UserID:  int32(currentUserId),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	postIds := make([]int, len(postIds32))
+	for i, id := range postIds32 {
+		postIds[i] = int(id)
+	}
+	return postIds, nil
+}
+
+// GetPostIdsForFollowingCursor retrieves post IDs from users a specified user follows using cursor-based pagination
+func (r DBPostRepository) GetPostIdsForFollowingCursor(ctx context.Context, userId int, limit int, beforeTimestamp *time.Time) ([]int, error) {
+	var timestamp pgtype.Timestamp
+	if beforeTimestamp != nil {
+		timestamp = pgtype.Timestamp{Time: *beforeTimestamp, Valid: true}
+	}
+
+	postIds32, err := r.querier.GetPostIdsByFollowingCursor(ctx, queries.GetPostIdsByFollowingCursorParams{
+		UserID:  int32(userId),
+		Limit:   int32(limit),
+		Column3: timestamp,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	postIds := make([]int, len(postIds32))
+	for i, id := range postIds32 {
+		postIds[i] = int(id)
+	}
+	return postIds, nil
+}
+
+// GetPostIdsForMutualFeedCursor retrieves post IDs for mutual feed
+func (r DBPostRepository) GetPostIdsForMutualFeedCursor(ctx context.Context, userId int, limit int, beforeTimestamp *time.Time) ([]queries.GetPostIdsForMutualFeedCursorRow, error) {
+	var timestamp pgtype.Timestamp
+	if beforeTimestamp != nil {
+		timestamp = pgtype.Timestamp{Time: *beforeTimestamp, Valid: true}
+	}
+
+	return r.querier.GetPostIdsForMutualFeedCursor(ctx, queries.GetPostIdsForMutualFeedCursorParams{
+		FollowerID: int32(userId),
+		Limit:      int32(limit),
+		Column3:    timestamp,
+	})
+}
+
+// GetPostIdsByUserIdCursor retrieves post IDs for a specific user
+func (r DBPostRepository) GetPostIdsByUserIdCursor(ctx context.Context, userId int, limit int, beforeTimestamp *time.Time) ([]int, error) {
+	var timestamp pgtype.Timestamp
+	if beforeTimestamp != nil {
+		timestamp = pgtype.Timestamp{Time: *beforeTimestamp, Valid: true}
+	}
+
+	postIds32, err := r.querier.GetPostIdsByUserIdCursor(ctx, queries.GetPostIdsByUserIdCursorParams{
+		UserID:  int32(userId),
+		Limit:   int32(limit),
+		Column3: timestamp,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	postIds := make([]int, len(postIds32))
+	for i, id := range postIds32 {
+		postIds[i] = int(id)
+	}
+	return postIds, nil
 }
 
 // NewDBPostRepository creates a new post repository instance

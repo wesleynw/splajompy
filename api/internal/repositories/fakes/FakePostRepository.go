@@ -3,12 +3,14 @@ package fakes
 import (
 	"context"
 	"errors"
+	"sort"
+	"sync"
+	"time"
+
 	"splajompy.com/api/v2/internal/db"
 	"splajompy.com/api/v2/internal/db/queries"
 	"splajompy.com/api/v2/internal/models"
 	"splajompy.com/api/v2/internal/repositories"
-	"sync"
-	"time"
 )
 
 type FakePostRepository struct {
@@ -349,4 +351,86 @@ func (r *FakePostRepository) SetPollVote(userId int, postId int, optionIndex int
 
 	r.pollVotes[postId][userId] = optionIndex
 	return nil
+}
+
+// GetAllPostIdsCursor retrieves post IDs using cursor-based pagination
+func (r *FakePostRepository) GetAllPostIdsCursor(ctx context.Context, limit int, beforeTimestamp *time.Time, currentUserId int) ([]int, error) {
+	r.mutex.RLock()
+	defer r.mutex.RUnlock()
+
+	// Convert map to slice for sorting
+	type postWithId struct {
+		id   int
+		post *models.Post
+	}
+	var posts []postWithId
+	for id, post := range r.posts {
+		if beforeTimestamp == nil || post.CreatedAt.Before(*beforeTimestamp) {
+			posts = append(posts, postWithId{id: id, post: &post})
+		}
+	}
+
+	// Sort by CreatedAt DESC to match database behavior
+	sort.Slice(posts, func(i, j int) bool {
+		return posts[i].post.CreatedAt.After(posts[j].post.CreatedAt)
+	})
+
+	// Extract IDs and apply limit
+	var filteredIds []int
+	for i, post := range posts {
+		if i >= limit {
+			break
+		}
+		filteredIds = append(filteredIds, post.id)
+	}
+
+	return filteredIds, nil
+}
+
+// GetPostIdsForFollowingCursor retrieves post IDs from followed users using cursor-based pagination
+func (r *FakePostRepository) GetPostIdsForFollowingCursor(ctx context.Context, userId int, limit int, beforeTimestamp *time.Time) ([]int, error) {
+	// For simplicity, this fake implementation returns the same as GetAllPostIdsCursor
+	return r.GetAllPostIdsCursor(ctx, limit, beforeTimestamp, userId)
+}
+
+// GetPostIdsForMutualFeedCursor retrieves post IDs for mutual feed using cursor-based pagination
+func (r *FakePostRepository) GetPostIdsForMutualFeedCursor(ctx context.Context, userId int, limit int, beforeTimestamp *time.Time) ([]queries.GetPostIdsForMutualFeedCursorRow, error) {
+	r.mutex.RLock()
+	defer r.mutex.RUnlock()
+
+	var rows []queries.GetPostIdsForMutualFeedCursorRow
+	for _, post := range r.posts {
+		if beforeTimestamp == nil || post.CreatedAt.Before(*beforeTimestamp) {
+			row := queries.GetPostIdsForMutualFeedCursorRow{
+				PostID:           int32(post.PostID),
+				UserID:           post.UserID,
+				RelationshipType: "friend",
+				MutualUsernames:  nil,
+			}
+			rows = append(rows, row)
+		}
+	}
+
+	if len(rows) > limit {
+		rows = rows[:limit]
+	}
+	return rows, nil
+}
+
+// GetPostIdsByUserIdCursor retrieves post IDs for a specific user using cursor-based pagination
+func (r *FakePostRepository) GetPostIdsByUserIdCursor(ctx context.Context, userId int, limit int, beforeTimestamp *time.Time) ([]int, error) {
+	r.mutex.RLock()
+	defer r.mutex.RUnlock()
+
+	var filteredIds []int
+	for id, post := range r.posts {
+		if int(post.UserID) == userId && (beforeTimestamp == nil || post.CreatedAt.Before(*beforeTimestamp)) {
+			filteredIds = append(filteredIds, id)
+		}
+	}
+
+	if len(filteredIds) > limit {
+		filteredIds = filteredIds[:limit]
+	}
+	return filteredIds, nil
 }

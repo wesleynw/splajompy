@@ -103,6 +103,12 @@ func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
 	handleFunc("GET /posts/all", h.GetAllPosts)
 	handleFunc("GET /posts/mutual", h.GetMutualFeed)
 
+	// post routes with time-based offset
+	handleFunc("GET /v2/posts/following", h.GetPostsByFollowingWithTimeOffset)
+	handleFunc("GET /v2/posts/all", h.GetAllPostsWithTimeOffset)
+	handleFunc("GET /v2/posts/mutual", h.GetMutualFeedWithTimeOffset)
+	handleFunc("GET /v2/user/{id}/posts", h.GetPostsByUserIdWithTimeOffset)
+
 	handleFunc("GET /users/search", h.SearchUsers)
 
 	// comments

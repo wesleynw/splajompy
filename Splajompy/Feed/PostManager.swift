@@ -159,14 +159,14 @@ class PostManager: ObservableObject {
     }
   }
 
-  func loadFeed(feedType: FeedType, userId: Int? = nil, offset: Int, limit: Int)
+  func loadFeed(feedType: FeedType, userId: Int? = nil, beforeTimestamp: Date?, limit: Int)
     async
     -> AsyncResult<[DetailedPost]>
   {
-    let result = await postService.getPostsForFeed(
+    let result = await postService.getPostsForFeedCursor(
       feedType: feedType,
       userId: userId,
-      offset: offset,
+      beforeTimestamp: beforeTimestamp,
       limit: limit
     )
 

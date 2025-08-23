@@ -9,10 +9,10 @@ enum FeedType: String, CaseIterable {
 
 protocol PostServiceProtocol: Sendable {
   func getPostById(postId: Int) async -> AsyncResult<DetailedPost>
-  func getPostsForFeed(
+  func getPostsForFeedCursor(
     feedType: FeedType,
     userId: Int?,
-    offset: Int,
+    beforeTimestamp: Date?,
     limit: Int
   ) async -> AsyncResult<[DetailedPost]>
   func toggleLike(postId: Int, isLiked: Bool) async -> AsyncResult<
@@ -35,30 +35,38 @@ struct PostService: PostServiceProtocol {
     return await APIService.performRequest(endpoint: "post/\(postId)")
   }
 
-  func getPostsForFeed(
+  func getPostsForFeedCursor(
     feedType: FeedType,
     userId: Int? = nil,
-    offset: Int,
+    beforeTimestamp: Date?,
     limit: Int
   ) async -> AsyncResult<[DetailedPost]> {
     let urlBase: String
     switch feedType {
     case .home:
-      urlBase = "posts/following"
+      urlBase = "v2/posts/following"
     case .all:
-      urlBase = "posts/all"
+      urlBase = "v2/posts/all"
     case .profile:
       guard let userId = userId else {
         return .error(URLError(.badURL))
       }
-      urlBase = "user/\(userId)/posts"
+      urlBase = "v2/user/\(userId)/posts"
     case .mutual:
-      urlBase = "posts/mutual"
+      urlBase = "v2/posts/mutual"
     }
-    let queryItems = [
-      URLQueryItem(name: "offset", value: "\(offset)"),
-      URLQueryItem(name: "limit", value: "\(limit)"),
+
+    var queryItems = [
+      URLQueryItem(name: "limit", value: "\(limit)")
     ]
+
+    if let beforeTimestamp = beforeTimestamp {
+      let formatter = ISO8601DateFormatter()
+      formatter.formatOptions = [.withInternetDateTime, .withTimeZone]
+      queryItems.append(
+        URLQueryItem(name: "before", value: formatter.string(from: beforeTimestamp)))
+    }
+
     let result: AsyncResult<[DetailedPost]> = await APIService.performRequest(
       endpoint: urlBase,
       queryItems: queryItems
@@ -462,10 +470,10 @@ struct MockPostService: PostServiceProtocol {
     }
   }
 
-  func getPostsForFeed(
+  func getPostsForFeedCursor(
     feedType: FeedType,
     userId: Int? = nil,
-    offset: Int,
+    beforeTimestamp: Date?,
     limit: Int
   ) async -> AsyncResult<[DetailedPost]> {
     try? await Task.sleep(nanoseconds: 500_000_000)
@@ -488,7 +496,18 @@ struct MockPostService: PostServiceProtocol {
       allPosts = store.getAllPosts()
     }
 
-    let paginatedPosts = Array(allPosts.dropFirst(offset).prefix(limit))
+    // Sort posts by createdAt DESC to match database behavior
+    let sortedPosts = allPosts.sorted { $0.post.createdAt > $1.post.createdAt }
+
+    // Filter by timestamp if provided
+    let filteredPosts: [DetailedPost]
+    if let beforeTimestamp = beforeTimestamp {
+      filteredPosts = sortedPosts.filter { $0.post.createdAt < beforeTimestamp }
+    } else {
+      filteredPosts = sortedPosts
+    }
+
+    let paginatedPosts = Array(filteredPosts.prefix(limit))
     return .success(paginatedPosts)
   }
 
