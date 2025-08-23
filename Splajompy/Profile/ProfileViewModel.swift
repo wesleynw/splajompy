@@ -14,8 +14,6 @@ extension ProfileView {
     private var profileService: ProfileServiceProtocol
     private var lastPostTimestamp: Date?
     private let fetchLimit = 10
-    private var currentPostsTask: Task<Void, Never>? = nil
-    private var currentProfileTask: Task<Void, Never>? = nil
     @ObservedObject var postManager: PostManager
 
     @Published var state: ProfileState = .idle
