@@ -80,29 +80,6 @@ struct LoginView: View {
         }
         .disabled(authManager.isLoading || identifier.isEmpty)
         .padding(.bottom, 8)
-
-        NavigationLink {
-          CredentialedLoginView(
-            isPresenting: $isPresenting,
-            identifier: $identifier
-          )
-        } label: {
-          HStack {
-            Spacer()
-            Text("Log in with password")
-              .font(.system(size: 16, weight: .bold))
-              .padding()
-            Spacer()
-          }
-          .background(Color.clear)
-          .overlay(
-            RoundedRectangle(cornerRadius: 10)
-              .stroke(Color.primary, lineWidth: 2)
-          )
-          .frame(maxWidth: .infinity)
-          .cornerRadius(10)
-        }
-        .buttonStyle(.plain)
       }
       .padding(.horizontal, 24)
       .padding(.vertical, 32)
