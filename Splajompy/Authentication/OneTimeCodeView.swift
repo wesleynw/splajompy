@@ -56,42 +56,19 @@ struct OneTimeCodeView: View {
             Text("Continue")
               .font(.system(size: 16, weight: .bold))
               .foregroundColor(
-                oneTimeCode.isEmpty ? Color.white.opacity(0.4) : Color.white
+                oneTimeCode.isEmpty ? Color.primary.opacity(0.4) : Color.white
               )
               .padding()
             Spacer()
           }
         }
         .background(
-          oneTimeCode.isEmpty ? Color.gray.opacity(0.3) : Color.accentColor
+          oneTimeCode.isEmpty ? Color.secondary.opacity(0.3) : Color.accentColor
         )
         .cornerRadius(10)
       }
       .disabled(authManager.isLoading || oneTimeCode.isEmpty)
       .padding(.bottom, 8)
-
-      NavigationLink {
-        CredentialedLoginView(
-          isPresenting: $isPresenting,
-          identifier: identifier
-        )
-      } label: {
-        HStack {
-          Spacer()
-          Text("Use password instead")
-            .font(.system(size: 16, weight: .bold))
-            .padding()
-          Spacer()
-        }
-        .background(Color.clear)
-        .overlay(
-          RoundedRectangle(cornerRadius: 10)
-            .stroke(Color.primary, lineWidth: 2)
-        )
-        .frame(maxWidth: .infinity)
-        .cornerRadius(10)
-      }
-      .buttonStyle(.plain)
     }
     .padding()
     .navigationTitle("Check your email")
