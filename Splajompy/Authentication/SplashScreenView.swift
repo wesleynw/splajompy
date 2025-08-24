@@ -121,7 +121,7 @@ struct SplashScreenView: View {
       }
     #else
       .sheet(isPresented: $isLoginViewPresenting) {
-        CredentialedLoginView(isPresenting: $isLoginViewPresenting, identifier: "")
+        CredentialedLoginView(isPresenting: $isLoginViewPresenting)
       }
       .sheet(isPresented: $isRegisterViewPresenting) {
         RegisterView(isPresenting: $isRegisterViewPresenting)
