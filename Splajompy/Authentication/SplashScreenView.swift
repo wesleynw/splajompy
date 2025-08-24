@@ -114,14 +114,14 @@ struct SplashScreenView: View {
     }
     #if os(iOS)
       .fullScreenCover(isPresented: $isLoginViewPresenting) {
-        LoginView(isPresenting: $isLoginViewPresenting)
+        CredentialedLoginView(isPresenting: $isLoginViewPresenting)
       }
       .fullScreenCover(isPresented: $isRegisterViewPresenting) {
         RegisterView(isPresenting: $isRegisterViewPresenting)
       }
     #else
       .sheet(isPresented: $isLoginViewPresenting) {
-        LoginView(isPresenting: $isLoginViewPresenting)
+        CredentialedLoginView(isPresenting: $isLoginViewPresenting, identifier: "")
       }
       .sheet(isPresented: $isRegisterViewPresenting) {
         RegisterView(isPresenting: $isRegisterViewPresenting)

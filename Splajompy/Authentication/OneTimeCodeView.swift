@@ -61,6 +61,15 @@ struct OneTimeCodeView: View {
               .padding()
             Spacer()
           }
+
+          if authManager.isLoading {
+            HStack {
+              Spacer()
+              ProgressView()
+                .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                .padding(.trailing, 16)
+            }
+          }
         }
         .background(
           oneTimeCode.isEmpty ? Color.secondary.opacity(0.3) : Color.accentColor

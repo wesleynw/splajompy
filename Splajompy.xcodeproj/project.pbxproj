@@ -18,7 +18,6 @@
 		18A617EC2D9B2D6000B93F08 /* SplajompyApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18A617E52D9B2D6000B93F08 /* SplajompyApp.swift */; };
 		18A617ED2D9B2D6000B93F08 /* ProfileViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18A617E22D9B2D6000B93F08 /* ProfileViewModel.swift */; };
 		18A617EE2D9B2D6000B93F08 /* models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18A617DC2D9B2D6000B93F08 /* models.swift */; };
-		18A617F02D9B2D6000B93F08 /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18A617CF2D9B2D6000B93F08 /* LoginView.swift */; };
 		18A617F12D9B2D6000B93F08 /* PostView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18A617DF2D9B2D6000B93F08 /* PostView.swift */; };
 		18E435E82DB29069003A0999 /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = 18E435E72DB29069003A0999 /* Kingfisher */; };
 /* End PBXBuildFile section */
@@ -66,7 +65,6 @@
 		181F41AC2D9B32AB00FCF763 /* Exceptions for "Splajompy" folder in "Splajompy" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				Authentication/LoginView.swift,
 				Configuration/Debug.xcconfig,
 				Configuration/Release.xcconfig,
 				Extensions/AuthManager.swift,
@@ -403,7 +401,6 @@
 				18A617EC2D9B2D6000B93F08 /* SplajompyApp.swift in Sources */,
 				18A617ED2D9B2D6000B93F08 /* ProfileViewModel.swift in Sources */,
 				18A617EE2D9B2D6000B93F08 /* models.swift in Sources */,
-				18A617F02D9B2D6000B93F08 /* LoginView.swift in Sources */,
 				18A617F12D9B2D6000B93F08 /* PostView.swift in Sources */,
 			);
 		};
