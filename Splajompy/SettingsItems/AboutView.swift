@@ -40,10 +40,6 @@ struct AboutView: View {
                 "Source Code",
                 systemImage: "chevron.left.forwardslash.chevron.right"
               )
-              Spacer()
-              Image(systemName: "arrow.up.right.square")
-                .foregroundColor(.secondary)
-                .font(.caption)
             }
           }
         }
@@ -53,18 +49,12 @@ struct AboutView: View {
             HStack {
               Label("Privacy Policy", systemImage: "lock.shield")
               Spacer()
-              Image(systemName: "arrow.up.right.square")
-                .foregroundColor(.secondary)
-                .font(.caption)
             }
           }
           Link(destination: URL(string: "https://splajompy.com/tos")!) {
             HStack {
               Label("Terms of Service", systemImage: "doc.text")
               Spacer()
-              Image(systemName: "arrow.up.right.square")
-                .foregroundColor(.secondary)
-                .font(.caption)
             }
           }
         }

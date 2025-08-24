@@ -4,13 +4,13 @@ struct CredentialedLoginView: View {
   @Binding var isPresenting: Bool
   @Environment(\.dismiss) var dismiss
 
-  @State private var identifier: String
+  @State private var identifier: String = ""
   @State private var password = ""
   @State private var hasRequestedCode: Bool = false
+  @State private var shouldShowEmailView: Bool = false
 
-  init(isPresenting: Binding<Bool>, identifier: String) {
+  init(isPresenting: Binding<Bool>) {
     self._isPresenting = isPresenting
-    self._identifier = State(initialValue: identifier)
   }
 
   @State var showError: Bool = false
@@ -24,6 +24,33 @@ struct CredentialedLoginView: View {
   var body: some View {
     NavigationStack {
       VStack {
+        VStack(alignment: .leading, spacing: 5) {
+          TextField("Username or Email", text: $identifier)
+            .padding(12)
+            .background(
+              RoundedRectangle(cornerRadius: 8)
+                .stroke(
+                  isIdentifierFieldFocused
+                    ? Color.primary : Color.gray.opacity(0.75),
+                  lineWidth: 2
+                )
+            )
+            .cornerRadius(8)
+            .textContentType(.username)
+            #if os(iOS)
+              .autocorrectionDisabled()
+            #endif
+            .focused($isIdentifierFieldFocused)
+            .onAppear {
+              if identifier.isEmpty {
+                isIdentifierFieldFocused = true
+              } else {
+                isPasswordFieldFocused = true
+              }
+            }
+        }
+        .padding(.bottom, 10)
+
         VStack(alignment: .leading, spacing: 5) {
           SecureField("Password", text: $password)
             .padding(12)
@@ -42,11 +69,24 @@ struct CredentialedLoginView: View {
             #endif
             .autocorrectionDisabled()
             .focused($isPasswordFieldFocused)
-            .onAppear { isPasswordFieldFocused = true }
         }
         .padding(.bottom, 10)
 
         Spacer()
+
+        Button(action: {
+          shouldShowEmailView = true
+        }) {
+          HStack {
+            Spacer()
+            Text("Email me a code instead")
+              .font(.system(size: 16, weight: .bold))
+              .padding()
+            Spacer()
+          }
+          .frame(maxWidth: .infinity)
+        }
+        .disabled(authManager.isLoading)
 
         Button(action: {
           Task {
@@ -87,43 +127,13 @@ struct CredentialedLoginView: View {
           )
           .cornerRadius(10)
         }
-        .disabled(authManager.isLoading || password.isEmpty)
+        .disabled(
+          authManager.isLoading || password.isEmpty || identifier.isEmpty
+        )
         .padding(.bottom, 8)
 
-        NavigationLink {
-          OneTimeCodeView(identifier: identifier, isPresenting: $isPresenting)
-            .environmentObject(authManager)
-            .onAppear {
-              Task {
-                let success = await authManager.requestOneTimeCode(for: identifier)
-                if !success {
-                  errorMessage =
-                    "Failed to send code. Try again with a different Username or Email."
-                  showError = true
-                }
-              }
-            }
-        } label: {
-          HStack {
-            Spacer()
-            Text("Email me a code instead")
-              .font(.system(size: 16, weight: .bold))
-              .padding()
-            Spacer()
-          }
-          .background(Color.clear)
-          .overlay(
-            RoundedRectangle(cornerRadius: 10)
-              .stroke(Color.primary, lineWidth: 2)
-          )
-          .frame(maxWidth: .infinity)
-          .cornerRadius(10)
-        }
-        .buttonStyle(.plain)
-        .disabled(authManager.isLoading)
       }
-      .padding(.horizontal, 24)
-      .padding(.vertical, 32)
+      .padding()
       .navigationTitle("Sign In")
       .toolbar {
         ToolbarItem(
@@ -138,11 +148,17 @@ struct CredentialedLoginView: View {
           CloseButton(onClose: { isPresenting = false })
         }
       }
+      .navigationDestination(isPresented: $shouldShowEmailView) {
+        EmailInputView(identifier: $identifier, isPresenting: $isPresenting)
+          .environmentObject(authManager)
+      }
       .alert(isPresented: $showError) {
         Alert(
           title: Text("Sign In Failed"),
           message: Text(
-            errorMessage.isEmpty ? "Try again with a different Username or Email." : errorMessage),
+            errorMessage.isEmpty
+              ? "Try again with a different Username or Email." : errorMessage
+          ),
           dismissButton: .default(Text("OK"))
         )
       }
@@ -153,6 +169,6 @@ struct CredentialedLoginView: View {
 #Preview {
   @Previewable @State var isPresenting = true
 
-  CredentialedLoginView(isPresenting: $isPresenting, identifier: "wesley@splajompy.com")
+  CredentialedLoginView(isPresenting: $isPresenting)
     .environmentObject(AuthManager())
 }
