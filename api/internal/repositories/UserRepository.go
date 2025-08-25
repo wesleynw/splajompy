@@ -3,11 +3,12 @@ package repositories
 import (
 	"context"
 	"errors"
-	"github.com/jackc/pgx/v5"
 	"regexp"
+	"time"
+
+	"github.com/jackc/pgx/v5"
 	"splajompy.com/api/v2/internal/db"
 	"splajompy.com/api/v2/internal/utilities"
-	"time"
 
 	"github.com/jackc/pgx/v5/pgtype"
 	"splajompy.com/api/v2/internal/db/queries"

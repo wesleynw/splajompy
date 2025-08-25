@@ -3,11 +3,12 @@ package fakes
 import (
 	"context"
 	"errors"
+	"sync"
+	"time"
+
 	"github.com/jackc/pgx/v5/pgtype"
 	"splajompy.com/api/v2/internal/db"
 	"splajompy.com/api/v2/internal/db/queries"
-	"sync"
-	"time"
 )
 
 type FakeCommentRepository struct {
