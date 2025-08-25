@@ -134,7 +134,7 @@ struct RegisterView: View {
           )
       )
       .cornerRadius(8)
-      .textContentType(.password)
+      .textContentType(.newPassword)
       #if os(iOS)
         .autocapitalization(.none)
         .autocorrectionDisabled()
