@@ -17,8 +17,12 @@ struct NotificationRow: View {
       NavigationLink(value: Route.post(id: postId)) {
         notificationContent
       }
-    } else if let userId = notification.targetUserId, let username = notification.targetUserUsername {
-      NavigationLink(value: Route.profile(id: String(userId), username: username)) {
+    } else if let userId = notification.targetUserId,
+      let username = notification.targetUserUsername
+    {
+      NavigationLink(
+        value: Route.profile(id: String(userId), username: username)
+      ) {
         notificationContent
       }
     } else {
