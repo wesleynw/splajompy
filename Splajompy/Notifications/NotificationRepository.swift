@@ -5,6 +5,8 @@ struct Notification: Identifiable, Decodable, Equatable {
   let userId: Int
   let postId: Int?
   let commentId: Int?
+  let targetUserId: Int?
+  let targetUserUsername: String?
   let message: String
   let link: String?
   var viewed: Bool

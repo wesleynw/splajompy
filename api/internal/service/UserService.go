@@ -86,7 +86,7 @@ func (s *UserService) FollowUser(ctx context.Context, currentUser models.PublicU
 
 	text := fmt.Sprintf("@%s started following you.", currentUser.Username)
 	if facets, _ := repositories.GenerateFacets(ctx, s.userRepository, text); facets != nil {
-		err := s.notificationRepository.InsertNotification(ctx, user.UserID, nil, nil, &facets, text, models.NotificationTypeFollowers)
+		err := s.notificationRepository.InsertNotification(ctx, user.UserID, nil, nil, &facets, text, models.NotificationTypeFollowers, &currentUser.UserID)
 		if err != nil {
 			return err
 		}

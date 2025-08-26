@@ -58,6 +58,7 @@ type Notification struct {
 	UserID           int              `json:"userId"`
 	PostID           *int             `json:"postId"`
 	CommentID        *int             `json:"commentId"`
+	TargetUserID     *int             `json:"targetUserId"`
 	Message          string           `json:"message"`
 	Link             pgtype.Text      `json:"link"`
 	Viewed           bool             `json:"viewed"`

@@ -176,7 +176,7 @@ func TestRemoveLikeFromComment_DeletesRecentNotification(t *testing.T) {
 	err = commentRepo.AddLikeToComment(ctx, user.UserID, post.PostID, commentID)
 	require.NoError(t, err)
 
-	err = notificationRepo.InsertNotification(ctx, otherUser.UserID, &post.PostID, &commentID, nil, "@testUser liked your comment.", models.NotificationTypeLike)
+	err = notificationRepo.InsertNotification(ctx, otherUser.UserID, &post.PostID, &commentID, nil, "@testUser liked your comment.", models.NotificationTypeLike, nil)
 	require.NoError(t, err)
 
 	err = svc.RemoveLikeFromCommentById(ctx, user, post.PostID, commentID)

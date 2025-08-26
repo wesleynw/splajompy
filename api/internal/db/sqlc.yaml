@@ -30,6 +30,10 @@ sql:
             go_type:
               type: "int"
               pointer: true
+          - column: "notifications.target_user_id"
+            go_type:
+              type: "int"
+              pointer: true
           - column: "posts.attributes"
             "go_type": {
                 import: "splajompy.com/api/v2/internal/db" ,

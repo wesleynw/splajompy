@@ -12,7 +12,6 @@ type ContextKey string
 
 const UserContextKey ContextKey = "user"
 
-
 func MapUserToPublicUser(user queries.User) models.PublicUser {
 	return models.PublicUser{
 		UserID:    user.UserID,
@@ -50,6 +49,7 @@ func MapNotification(notification queries.Notification) models.Notification {
 		UserID:           notification.UserID,
 		PostID:           postId,
 		CommentID:        commentId,
+		TargetUserId:     notification.TargetUserID,
 		Message:          notification.Message,
 		Link:             notification.Link.String,
 		Viewed:           notification.Viewed,
