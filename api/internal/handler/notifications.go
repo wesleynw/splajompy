@@ -8,7 +8,7 @@ import (
 	"splajompy.com/api/v2/internal/utilities"
 )
 
-// GET /notifications
+// GetAllNotificationByUserId GET /notifications
 func (h *Handler) GetAllNotificationByUserId(w http.ResponseWriter, r *http.Request) {
 	currentUser := h.getAuthenticatedUser(r)
 
@@ -35,7 +35,7 @@ func (h *Handler) GetAllNotificationByUserId(w http.ResponseWriter, r *http.Requ
 	utilities.HandleSuccess(w, notifications)
 }
 
-// POST /notifications/markRead
+// MarkAllNotificationsAsRead POST /notifications/markRead
 func (h *Handler) MarkAllNotificationsAsRead(w http.ResponseWriter, r *http.Request) {
 	currentUser := h.getAuthenticatedUser(r)
 
@@ -48,7 +48,7 @@ func (h *Handler) MarkAllNotificationsAsRead(w http.ResponseWriter, r *http.Requ
 	utilities.HandleEmptySuccess(w)
 }
 
-// POST /notification/{id}/markRead
+// MarkNotificationAsReadById POST /notification/{id}/markRead
 func (h *Handler) MarkNotificationAsReadById(w http.ResponseWriter, r *http.Request) {
 	currentUser := h.getAuthenticatedUser(r)
 
@@ -67,7 +67,7 @@ func (h *Handler) MarkNotificationAsReadById(w http.ResponseWriter, r *http.Requ
 	utilities.HandleEmptySuccess(w)
 }
 
-// GET /notifications/hasUnread
+// HasUnreadNotifications GET /notifications/hasUnread
 func (h *Handler) HasUnreadNotifications(w http.ResponseWriter, r *http.Request) {
 	currentUser := h.getAuthenticatedUser(r)
 
@@ -92,7 +92,7 @@ func (h *Handler) GetUnreadNotificationCount(w http.ResponseWriter, r *http.Requ
 	utilities.HandleSuccess(w, count)
 }
 
-// GET /notifications/unread
+// GetUnreadNotificationsByUserId GET /notifications/unread
 func (h *Handler) GetUnreadNotificationsByUserId(w http.ResponseWriter, r *http.Request) {
 	currentUser := h.getAuthenticatedUser(r)
 
@@ -119,7 +119,7 @@ func (h *Handler) GetUnreadNotificationsByUserId(w http.ResponseWriter, r *http.
 	utilities.HandleSuccess(w, notifications)
 }
 
-// GET /notifications/read/time
+// GetReadNotificationsByUserIdWithTimeOffset GET /notifications/read/time
 func (h *Handler) GetReadNotificationsByUserIdWithTimeOffset(w http.ResponseWriter, r *http.Request) {
 	currentUser := h.getAuthenticatedUser(r)
 
@@ -152,7 +152,7 @@ func (h *Handler) GetReadNotificationsByUserIdWithTimeOffset(w http.ResponseWrit
 	utilities.HandleSuccess(w, notifications)
 }
 
-// GET /notifications/unread/time
+// GetUnreadNotificationsByUserIdWithTimeOffset GET /notifications/unread/time
 func (h *Handler) GetUnreadNotificationsByUserIdWithTimeOffset(w http.ResponseWriter, r *http.Request) {
 	currentUser := h.getAuthenticatedUser(r)
 

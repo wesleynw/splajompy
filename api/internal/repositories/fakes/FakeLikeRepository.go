@@ -3,19 +3,20 @@ package fakes
 import (
 	"context"
 	"errors"
+	"strconv"
 	"sync"
 
 	"splajompy.com/api/v2/internal/db/queries"
 )
 
 type FakeLikeRepository struct {
-	Likes map[int32]map[int32]bool // postID -> userID -> liked
+	Likes map[int]map[int]bool // postID -> userID -> liked
 	mutex sync.RWMutex
 }
 
 func NewFakeLikeRepository() *FakeLikeRepository {
 	return &FakeLikeRepository{
-		Likes: make(map[int32]map[int32]bool),
+		Likes: make(map[int]map[int]bool),
 	}
 }
 
@@ -23,11 +24,11 @@ func (r *FakeLikeRepository) AddLike(_ context.Context, userId int, postId int, 
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
 
-	postID := int32(postId)
-	userID := int32(userId)
+	postID := postId
+	userID := userId
 
 	if r.Likes[postID] == nil {
-		r.Likes[postID] = make(map[int32]bool)
+		r.Likes[postID] = make(map[int]bool)
 	}
 
 	r.Likes[postID][userID] = true
@@ -38,8 +39,8 @@ func (r *FakeLikeRepository) RemoveLike(ctx context.Context, userId int, postId 
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
 
-	postID := int32(postId)
-	userID := int32(userId)
+	postID := postId
+	userID := userId
 
 	if r.Likes[postID] == nil {
 		return errors.New("like does not exist")
@@ -49,12 +50,12 @@ func (r *FakeLikeRepository) RemoveLike(ctx context.Context, userId int, postId 
 	return nil
 }
 
-// Updated to match the expected interface signature
+// GetPostLikesFromFollowers Updated to match the expected interface signature
 func (r *FakeLikeRepository) GetPostLikesFromFollowers(ctx context.Context, postId int, followerId int) ([]queries.GetPostLikesFromFollowersRow, error) {
 	r.mutex.RLock()
 	defer r.mutex.RUnlock()
 
-	postID := int32(postId)
+	postID := postId
 
 	if r.Likes[postID] == nil {
 		return []queries.GetPostLikesFromFollowersRow{}, nil
@@ -65,7 +66,7 @@ func (r *FakeLikeRepository) GetPostLikesFromFollowers(ctx context.Context, post
 		if liked {
 			likes = append(likes, queries.GetPostLikesFromFollowersRow{
 				UserID:   userID,
-				Username: "user" + string(userID+48), // Simple username based on ID
+				Username: "user" + strconv.Itoa(userID), // Simple username based on ID
 			})
 		}
 	}
@@ -73,18 +74,18 @@ func (r *FakeLikeRepository) GetPostLikesFromFollowers(ctx context.Context, post
 	return likes, nil
 }
 
-func (r *FakeLikeRepository) HasLikesFromOthers(ctx context.Context, postId int, userIds []int32) (bool, error) {
+func (r *FakeLikeRepository) HasLikesFromOthers(ctx context.Context, postId int, userIds []int) (bool, error) {
 	r.mutex.RLock()
 	defer r.mutex.RUnlock()
 
-	postID := int32(postId)
+	postID := postId
 
 	if r.Likes[postID] == nil {
 		return false, nil
 	}
 
 	// Create a map for quick lookup
-	userIDMap := make(map[int32]bool)
+	userIDMap := make(map[int]bool)
 	for _, id := range userIds {
 		userIDMap[id] = true
 	}
@@ -102,7 +103,7 @@ func (r *FakeLikeRepository) GetLikesForPost(ctx context.Context, postId int) ([
 	r.mutex.RLock()
 	defer r.mutex.RUnlock()
 
-	postID := int32(postId)
+	postID := postId
 
 	if r.Likes[postID] == nil {
 		return []queries.Like{}, nil

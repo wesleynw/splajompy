@@ -19,8 +19,8 @@ RETURNING comment_id, post_id, user_id, text, facets, created_at
 `
 
 type AddCommentToPostParams struct {
-	PostID int32     `json:"postId"`
-	UserID int32     `json:"userId"`
+	PostID int       `json:"postId"`
+	UserID int       `json:"userId"`
 	Text   string    `json:"text"`
 	Facets db.Facets `json:"facets"`
 }
@@ -49,7 +49,7 @@ DELETE FROM comments
 WHERE comment_id = $1
 `
 
-func (q *Queries) DeleteComment(ctx context.Context, commentID int32) error {
+func (q *Queries) DeleteComment(ctx context.Context, commentID int) error {
 	_, err := q.db.Exec(ctx, deleteComment, commentID)
 	return err
 }
@@ -61,7 +61,7 @@ WHERE comment_id = $1
 LIMIT 1
 `
 
-func (q *Queries) GetCommentById(ctx context.Context, commentID int32) (Comment, error) {
+func (q *Queries) GetCommentById(ctx context.Context, commentID int) (Comment, error) {
 	row := q.db.QueryRow(ctx, getCommentById, commentID)
 	var i Comment
 	err := row.Scan(
@@ -97,9 +97,9 @@ ORDER BY comments.created_at DESC
 `
 
 type GetCommentsByPostIdRow struct {
-	CommentID int32            `json:"commentId"`
-	PostID    int32            `json:"postId"`
-	UserID    int32            `json:"userId"`
+	CommentID int              `json:"commentId"`
+	PostID    int              `json:"postId"`
+	UserID    int              `json:"userId"`
 	Text      string           `json:"text"`
 	Facets    db.Facets        `json:"facets"`
 	CreatedAt pgtype.Timestamp `json:"createdAt"`
@@ -107,7 +107,7 @@ type GetCommentsByPostIdRow struct {
 	Name      pgtype.Text      `json:"name"`
 }
 
-func (q *Queries) GetCommentsByPostId(ctx context.Context, postID int32) ([]GetCommentsByPostIdRow, error) {
+func (q *Queries) GetCommentsByPostId(ctx context.Context, postID int) ([]GetCommentsByPostIdRow, error) {
 	rows, err := q.db.Query(ctx, getCommentsByPostId, postID)
 	if err != nil {
 		return nil, err

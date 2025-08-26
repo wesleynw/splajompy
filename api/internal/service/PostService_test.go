@@ -61,7 +61,7 @@ func TestNewPost(t *testing.T) {
 	post, err := postRepo.GetPostById(ctx, postIds[0])
 	assert.NoError(t, err)
 	assert.Equal(t, text, post.Text)
-	assert.Equal(t, user.UserID, int(post.UserID))
+	assert.Equal(t, user.UserID, post.UserID)
 
 	assert.Len(t, post.Facets, 1)
 	assert.Equal(t, "mention", post.Facets[0].Type)
@@ -79,8 +79,8 @@ func TestNewPost(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Len(t, images, 1)
 	assert.Equal(t, destinationKey, images[0].ImageBlobUrl)
-	assert.Equal(t, int32(1000), images[0].Width)
-	assert.Equal(t, int32(750), images[0].Height)
+	assert.Equal(t, 1000, images[0].Width)
+	assert.Equal(t, 750, images[0].Height)
 }
 
 func TestNewPresignedStagingUrl(t *testing.T) {
@@ -228,10 +228,10 @@ func TestAddLikeToPost(t *testing.T) {
 
 	var foundPostOwner, foundSecondUser bool
 	for _, like := range likes {
-		if int(like.UserID) == postOwner.UserID {
+		if like.UserID == postOwner.UserID {
 			foundPostOwner = true
 		}
-		if int(like.UserID) == secondUser.UserID {
+		if like.UserID == secondUser.UserID {
 			foundSecondUser = true
 		}
 	}
@@ -507,8 +507,8 @@ func TestRemoveLikeFromPost_KeepsOldNotification(t *testing.T) {
 
 	oldTime := time.Now().Add(-10 * time.Minute)
 	notification := queries.Notification{
-		UserID:           int32(otherUser.UserID),
-		PostID:           pgtype.Int4{Int32: int32(post.PostID), Valid: true},
+		UserID:           otherUser.UserID,
+		PostID:           &post.PostID,
 		Message:          "@testuser liked your post.",
 		NotificationType: "like",
 		Viewed:           false,

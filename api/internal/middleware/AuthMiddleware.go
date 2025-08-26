@@ -64,7 +64,7 @@ func AuthMiddleware(q *queries.Queries) func(http.Handler) http.Handler {
 			publicUser := utilities.MapUserToPublicUser(dbUser)
 
 			span := trace.SpanFromContext(ctx)
-			span.SetAttributes(attribute.Int("user.id", int(session.UserID)))
+			span.SetAttributes(attribute.Int("user.id", session.UserID))
 
 			ctx = context.WithValue(ctx, utilities.UserContextKey, publicUser)
 			r = r.WithContext(ctx)

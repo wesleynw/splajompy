@@ -11,7 +11,7 @@ import (
 
 type PostReportEmailData struct {
 	ReporterUsername string
-	PostID           int32
+	PostID           int
 	PostText         string
 	PostCreatedAt    time.Time
 	ReportedAt       time.Time
@@ -63,7 +63,7 @@ func GeneratePostReportEmail(reporterUsername string, post models.Post, images [
 
 	data := PostReportEmailData{
 		ReporterUsername: reporterUsername,
-		PostID:           int32(post.PostID),
+		PostID:           post.PostID,
 		PostText:         post.Text,
 		PostCreatedAt:    post.CreatedAt.UTC(),
 		ReportedAt:       time.Now().UTC(),

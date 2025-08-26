@@ -57,7 +57,7 @@ type Notification struct {
 
 type Post struct {
 	PostID     int            `json:"postId"`
-	UserID     int32          `json:"userId"`
+	UserID     int            `json:"userId"`
 	Text       string         `json:"text"`
 	CreatedAt  time.Time      `json:"createdAt"`
 	Facets     db.Facets      `json:"facets"`
@@ -103,8 +103,8 @@ type DetailedNotification struct {
 	Post        *Post            `json:"post"`
 	Comment     *queries.Comment `json:"comment"`
 	ImageBlob   *string          `json:"imageBlob"`
-	ImageWidth  *int32           `json:"imageWidth"`
-	ImageHeight *int32           `json:"imageHeight"`
+	ImageWidth  *int             `json:"imageWidth"`
+	ImageHeight *int             `json:"imageHeight"`
 }
 
 // PublicUser Related to queries.GetUserByIdentifierRow

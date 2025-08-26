@@ -165,7 +165,7 @@ func (s *UserService) GetFollowersByUserId(ctx context.Context, currentUser mode
 
 	userIDs := make([]int, len(followers))
 	for i, follower := range followers {
-		userIDs[i] = int(follower.UserID)
+		userIDs[i] = follower.UserID
 	}
 
 	return s.fetchDetailedUsersFromIDs(ctx, currentUser, userIDs)
@@ -180,7 +180,7 @@ func (s *UserService) GetFollowingByUserId(ctx context.Context, currentUser mode
 
 	userIDs := make([]int, len(following))
 	for i, follow := range following {
-		userIDs[i] = int(follow.UserID)
+		userIDs[i] = follow.UserID
 	}
 
 	return s.fetchDetailedUsersFromIDs(ctx, currentUser, userIDs)

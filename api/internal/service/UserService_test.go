@@ -26,11 +26,11 @@ func TestFollowUser(t *testing.T) {
 
 	following := fakeUserRepo.GetFollowingForUser(user1.UserID)
 	assert.Equal(t, 1, len(following))
-	assert.Contains(t, following, int32(user2.UserID))
+	assert.Contains(t, following, user2.UserID)
 
 	followers := fakeUserRepo.GetFollowersForUser(user2.UserID)
 	assert.Equal(t, 1, len(followers))
-	assert.Contains(t, followers, int32(user1.UserID))
+	assert.Contains(t, followers, user1.UserID)
 }
 
 func TestGetUserById_WithNoMutuals_ReturnsEmptyArray(t *testing.T) {

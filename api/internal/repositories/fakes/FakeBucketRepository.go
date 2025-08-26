@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
-	"strings"
 	"sync"
 	"time"
 
@@ -134,9 +133,4 @@ func (r *FakeBucketRepository) SetCDNBaseURL(url string) {
 	defer r.mutex.Unlock()
 
 	r.cdnBaseURL = url
-}
-
-func GetDestinationKey(environment string, userID, postID int32, sourceKey string) string {
-	filename := sourceKey[strings.LastIndex(sourceKey, "/"):]
-	return fmt.Sprintf("%s/posts/%d/%d%s", environment, userID, postID, filename)
 }

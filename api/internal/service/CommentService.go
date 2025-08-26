@@ -50,9 +50,9 @@ func (s *CommentService) AddCommentToPost(ctx context.Context, currentUser model
 		return nil, errors.New("unable to create new comment")
 	}
 
-	commentId := int(comment.CommentID)
+	commentId := comment.CommentID
 
-	if currentUser.UserID != int(post.UserID) {
+	if currentUser.UserID != post.UserID {
 		text := fmt.Sprintf("@%s commented on your post.", currentUser.Username)
 		notificationFacets, err := repositories.GenerateFacets(ctx, s.userRepo, text)
 		if err != nil {
@@ -61,7 +61,7 @@ func (s *CommentService) AddCommentToPost(ctx context.Context, currentUser model
 
 		err = s.notificationRepo.InsertNotification(
 			ctx,
-			int(post.UserID),
+			post.UserID,
 			&postId,
 			&commentId,
 			&notificationFacets,
@@ -75,7 +75,7 @@ func (s *CommentService) AddCommentToPost(ctx context.Context, currentUser model
 
 	// also send notifications to mentioned users
 	for _, facet := range commentFacets {
-		if facet.UserId != int(post.UserID) && facet.UserId != currentUser.UserID {
+		if facet.UserId != post.UserID && facet.UserId != currentUser.UserID {
 			text := fmt.Sprintf("@%s mentioned you in a comment.", currentUser.Username)
 			notificationFacets, err := repositories.GenerateFacets(ctx, s.userRepo, text)
 			if err != nil {
@@ -105,7 +105,7 @@ func (s *CommentService) GetCommentsByPostId(ctx context.Context, currentUser mo
 	comments := make([]models.DetailedComment, 0, len(dbComments))
 	for _, dbComment := range dbComments {
 
-		user, err := s.userRepo.GetUserById(ctx, int(dbComment.UserID))
+		user, err := s.userRepo.GetUserById(ctx, dbComment.UserID)
 		if err != nil {
 			return nil, errors.New("unable to retrieve user associated with comment")
 		}
@@ -113,8 +113,8 @@ func (s *CommentService) GetCommentsByPostId(ctx context.Context, currentUser mo
 		isLiked, err := s.commentRepo.IsCommentLikedByUser(
 			ctx,
 			currentUser.UserID,
-			int(dbComment.PostID),
-			int(dbComment.CommentID),
+			dbComment.PostID,
+			dbComment.CommentID,
 		)
 		if err != nil {
 			return nil, errors.New("unable to retrieve comment liked information")
@@ -148,13 +148,13 @@ func (s *CommentService) AddLikeToCommentById(ctx context.Context, currentUser m
 		return errors.New("unable to find comment")
 	}
 
-	if currentUser.UserID != int(comment.UserID) {
+	if currentUser.UserID != comment.UserID {
 		text := fmt.Sprintf("@%s liked your comment.", currentUser.Username)
 		facets, err := repositories.GenerateFacets(ctx, s.userRepo, text)
 		if err != nil {
 			return err
 		}
-		err = s.notificationRepo.InsertNotification(ctx, int(comment.UserID), &postId, &commentId, &facets, text, models.NotificationTypeLike)
+		err = s.notificationRepo.InsertNotification(ctx, comment.UserID, &postId, &commentId, &facets, text, models.NotificationTypeLike)
 		if err != nil {
 			return errors.New("unable to create a new comment notification")
 		}
@@ -176,7 +176,7 @@ func (s *CommentService) RemoveLikeFromCommentById(ctx context.Context, user mod
 		return errors.New("unable to find comment")
 	}
 
-	notification, err := s.notificationRepo.FindUnreadLikeNotification(ctx, int(comment.UserID), postId, &commentId)
+	notification, err := s.notificationRepo.FindUnreadLikeNotification(ctx, comment.UserID, postId, &commentId)
 	if err == nil && notification != nil {
 		if time.Since(notification.CreatedAt) <= 5*time.Minute {
 			err = s.notificationRepo.DeleteNotificationById(ctx, notification.NotificationID)
@@ -196,7 +196,7 @@ func (s *CommentService) DeleteComment(ctx context.Context, currentUser models.P
 		return errors.New("unable to find comment")
 	}
 
-	if int(comment.UserID) != currentUser.UserID {
+	if comment.UserID != currentUser.UserID {
 		return errors.New("unable to delete comment")
 	}
 
