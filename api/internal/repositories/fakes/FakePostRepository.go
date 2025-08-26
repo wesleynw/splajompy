@@ -289,7 +289,7 @@ func (r *FakePostRepository) GetPollVotesGrouped(ctx context.Context, postId int
 	optionCounts := make(map[int]int64)
 
 	for _, optionIndex := range votes {
-		optionCounts[int(optionIndex)]++
+		optionCounts[optionIndex]++
 	}
 
 	var result []queries.GetPollVotesGroupedRow
@@ -313,7 +313,7 @@ func (r *FakePostRepository) GetUserVoteInPoll(ctx context.Context, postId int, 
 
 	votes := r.pollVotes[postId]
 	if optionIndex, exists := votes[userId]; exists {
-		result := int(optionIndex)
+		result := optionIndex
 		return &result, nil
 	}
 

@@ -245,7 +245,7 @@ func (r *FakeUserRepository) CreateUser(ctx context.Context, username string, em
 
 	now := time.Now()
 	user := models.PublicUser{
-		UserID:    int(userId),
+		UserID:    userId,
 		Email:     email,
 		Username:  username,
 		CreatedAt: now.UTC(),
@@ -467,7 +467,7 @@ func (r *FakeUserRepository) GetFollowersByUserId(ctx context.Context, userId in
 	defer r.mutex.RUnlock()
 
 	var followers []queries.GetFollowersByUserIdRow
-	
+
 	// Find all users who follow the given userId
 	for followerId, following := range r.followRelations {
 		if following[userId] {
@@ -476,9 +476,9 @@ func (r *FakeUserRepository) GetFollowersByUserId(ctx context.Context, userId in
 				if user.Name != "" {
 					name = pgtype.Text{String: user.Name, Valid: true}
 				}
-				
+
 				followers = append(followers, queries.GetFollowersByUserIdRow{
-					UserID:    int(followerId),
+					UserID:    followerId,
 					Email:     user.Email,
 					Username:  user.Username,
 					CreatedAt: pgtype.Timestamp{Time: user.CreatedAt, Valid: true},
@@ -487,7 +487,7 @@ func (r *FakeUserRepository) GetFollowersByUserId(ctx context.Context, userId in
 			}
 		}
 	}
-	
+
 	// Simple pagination
 	start := offset
 	end := offset + limit
@@ -497,7 +497,7 @@ func (r *FakeUserRepository) GetFollowersByUserId(ctx context.Context, userId in
 	if end > len(followers) {
 		end = len(followers)
 	}
-	
+
 	return followers[start:end], nil
 }
 
@@ -506,7 +506,7 @@ func (r *FakeUserRepository) GetFollowingByUserId(ctx context.Context, userId in
 	defer r.mutex.RUnlock()
 
 	var following []queries.GetFollowingByUserIdRow
-	
+
 	// Get the users that the given userId is following
 	if userFollowing, exists := r.followRelations[userId]; exists {
 		for followingId, isFollowing := range userFollowing {
@@ -516,9 +516,9 @@ func (r *FakeUserRepository) GetFollowingByUserId(ctx context.Context, userId in
 					if user.Name != "" {
 						name = pgtype.Text{String: user.Name, Valid: true}
 					}
-					
+
 					following = append(following, queries.GetFollowingByUserIdRow{
-						UserID:    int(followingId),
+						UserID:    followingId,
 						Email:     user.Email,
 						Username:  user.Username,
 						CreatedAt: pgtype.Timestamp{Time: user.CreatedAt, Valid: true},
@@ -528,7 +528,7 @@ func (r *FakeUserRepository) GetFollowingByUserId(ctx context.Context, userId in
 			}
 		}
 	}
-	
+
 	// Simple pagination
 	start := offset
 	end := offset + limit
@@ -538,6 +538,6 @@ func (r *FakeUserRepository) GetFollowingByUserId(ctx context.Context, userId in
 	if end > len(following) {
 		end = len(following)
 	}
-	
+
 	return following[start:end], nil
 }
