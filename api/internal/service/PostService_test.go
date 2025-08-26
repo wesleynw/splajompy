@@ -483,7 +483,7 @@ func TestRemoveLikeFromPost_DeletesRecentNotification(t *testing.T) {
 	err = likeRepo.AddLike(ctx, user.UserID, post.PostID, true)
 	require.NoError(t, err)
 
-	err = notificationRepo.InsertNotification(ctx, otherUser.UserID, &post.PostID, nil, nil, "@testuser liked your post.", models.NotificationTypeLike)
+	err = notificationRepo.InsertNotification(ctx, otherUser.UserID, &post.PostID, nil, nil, "@testuser liked your post.", models.NotificationTypeLike, nil)
 	require.NoError(t, err)
 
 	err = svc.RemoveLikeFromPost(ctx, user, post.PostID)

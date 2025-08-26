@@ -17,7 +17,8 @@ func setupNotificationService() (*NotificationService, *fakes.FakeNotificationRe
 	fakeNotificationsRepository := fakes.NewFakeNotificationRepository()
 	fakePostRepository := fakes.NewFakePostRepository()
 	fakeCommentRepository := fakes.NewFakeCommentRepository()
-	notificationService := NewNotificationService(fakeNotificationsRepository, fakePostRepository, fakeCommentRepository)
+	fakeUserRepository := fakes.NewFakeUserRepository()
+	notificationService := NewNotificationService(fakeNotificationsRepository, fakePostRepository, fakeCommentRepository, fakeUserRepository)
 	return notificationService, fakeNotificationsRepository
 }
 
@@ -296,7 +297,7 @@ func TestDeleteNotificationById_Success(t *testing.T) {
 	_, fakeRepo := setupNotificationService()
 	ctx := context.Background()
 
-	err := fakeRepo.InsertNotification(ctx, 1, nil, nil, nil, "Test notification", models.NotificationTypeLike)
+	err := fakeRepo.InsertNotification(ctx, 1, nil, nil, nil, "Test notification", models.NotificationTypeLike, nil)
 	require.NoError(t, err)
 
 	assert.Equal(t, 1, fakeRepo.GetNotificationCount(1))

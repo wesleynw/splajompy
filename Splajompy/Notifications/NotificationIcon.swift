@@ -13,6 +13,8 @@ struct NotificationIcon {
       return "at"
     case "poll":
       return "chart.bar"
+    case "followers":
+      return "person.badge.plus"
     default:
       return "bell"
     }

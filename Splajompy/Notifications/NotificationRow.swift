@@ -13,14 +13,20 @@ struct NotificationRow: View {
   }
 
   var body: some View {
-    Group {
-      if let postId = notification.postId {
-        NavigationLink(value: Route.post(id: postId)) {
-          notificationContent
-        }
-      } else {
+    if let postId = notification.postId {
+      NavigationLink(value: Route.post(id: postId)) {
         notificationContent
       }
+    } else if let userId = notification.targetUserId,
+      let username = notification.targetUserUsername
+    {
+      NavigationLink(
+        value: Route.profile(id: String(userId), username: username)
+      ) {
+        notificationContent
+      }
+    } else {
+      notificationContent
     }
   }
 
@@ -51,7 +57,9 @@ struct NotificationRow: View {
 
         if let comment = notification.comment {
           MiniNotificationView(text: comment.text)
-        } else if let post = notification.post, let text = post.text, !text.isEmpty {
+        } else if let post = notification.post, let text = post.text,
+          !text.isEmpty
+        {
           MiniNotificationView(text: text)
         }
       }

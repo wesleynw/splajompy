@@ -12,7 +12,7 @@ import (
 )
 
 type NotificationRepository interface {
-	InsertNotification(ctx context.Context, userId int, postId *int, commentId *int, facets *db.Facets, message string, notificationType models.NotificationType) error
+	InsertNotification(ctx context.Context, userId int, postId *int, commentId *int, facets *db.Facets, message string, notificationType models.NotificationType, targetUserId *int) error
 	GetNotificationsForUserId(ctx context.Context, userId int, offset int, limit int) ([]*models.Notification, error)
 	GetUnreadNotificationsForUserId(ctx context.Context, userId int, offset int, limit int) ([]*models.Notification, error)
 	GetNotificationById(ctx context.Context, notificationId int) (*models.Notification, error)
@@ -31,7 +31,7 @@ type DBNotificationRepository struct {
 }
 
 // InsertNotification adds a new notification for a user
-func (r DBNotificationRepository) InsertNotification(ctx context.Context, userId int, postId *int, commentId *int, facets *db.Facets, message string, notificationType models.NotificationType) error {
+func (r DBNotificationRepository) InsertNotification(ctx context.Context, userId int, postId *int, commentId *int, facets *db.Facets, message string, notificationType models.NotificationType, targetUserId *int) error {
 	params := queries.InsertNotificationParams{
 		UserID:           userId,
 		Message:          message,
@@ -46,6 +46,9 @@ func (r DBNotificationRepository) InsertNotification(ctx context.Context, userId
 	}
 	if facets != nil {
 		params.Facets = *facets
+	}
+	if targetUserId != nil {
+		params.TargetUserID = targetUserId
 	}
 	return r.querier.InsertNotification(ctx, params)
 }

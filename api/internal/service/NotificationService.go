@@ -15,13 +15,15 @@ type NotificationService struct {
 	notificationRepository repositories.NotificationRepository
 	postRepository         repositories.PostRepository
 	commentRepository      repositories.CommentRepository
+	userRepository         repositories.UserRepository
 }
 
-func NewNotificationService(notificationRepository repositories.NotificationRepository, postRepository repositories.PostRepository, commentRepository repositories.CommentRepository) *NotificationService {
+func NewNotificationService(notificationRepository repositories.NotificationRepository, postRepository repositories.PostRepository, commentRepository repositories.CommentRepository, userRepository repositories.UserRepository) *NotificationService {
 	return &NotificationService{
 		notificationRepository: notificationRepository,
 		postRepository:         postRepository,
 		commentRepository:      commentRepository,
+		userRepository:         userRepository,
 	}
 }
 
@@ -214,6 +216,14 @@ func (s *NotificationService) buildDetailedNotifications(ctx context.Context, no
 				return nil, errors.New("unable to retrieve comment")
 			}
 			detailedNotification.Comment = &comment
+		}
+
+		if notification.TargetUserId != nil {
+			user, err := s.userRepository.GetUserById(ctx, *notification.TargetUserId)
+			if err != nil {
+				return nil, errors.New("unable to retrieve user")
+			}
+			detailedNotification.TargetUserUsername = &user.Username
 		}
 
 		detailedNotifications = append(detailedNotifications, detailedNotification)

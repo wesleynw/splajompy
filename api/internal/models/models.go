@@ -47,6 +47,7 @@ type Notification struct {
 	UserID           int              `json:"userId"`
 	PostID           *int             `json:"postId"`
 	CommentID        *int             `json:"commentId"`
+	TargetUserId     *int             `json:"targetUserId"`
 	Message          string           `json:"message"`
 	Link             string           `json:"link"`
 	Viewed           bool             `json:"viewed"`
@@ -100,11 +101,12 @@ type DetailedComment struct {
 
 type DetailedNotification struct {
 	Notification
-	Post        *Post            `json:"post"`
-	Comment     *queries.Comment `json:"comment"`
-	ImageBlob   *string          `json:"imageBlob"`
-	ImageWidth  *int             `json:"imageWidth"`
-	ImageHeight *int             `json:"imageHeight"`
+	Post               *Post            `json:"post"`
+	Comment            *queries.Comment `json:"comment"`
+	ImageBlob          *string          `json:"imageBlob"`
+	ImageWidth         *int             `json:"imageWidth"`
+	ImageHeight        *int             `json:"imageHeight"`
+	TargetUserUsername *string          `json:"targetUserUsername"`
 }
 
 // PublicUser Related to queries.GetUserByIdentifierRow

@@ -23,7 +23,7 @@ func (q *Queries) DeleteNotificationById(ctx context.Context, notificationID int
 }
 
 const findUnreadLikeNotificationForComment = `-- name: FindUnreadLikeNotificationForComment :one
-SELECT notification_id, user_id, post_id, comment_id, message, link, viewed, facets, notification_type, created_at
+SELECT notification_id, user_id, post_id, comment_id, target_user_id, message, link, viewed, facets, notification_type, created_at
 FROM notifications 
 WHERE user_id = $1 
   AND notification_type = 'like'
@@ -48,6 +48,7 @@ func (q *Queries) FindUnreadLikeNotificationForComment(ctx context.Context, arg 
 		&i.UserID,
 		&i.PostID,
 		&i.CommentID,
+		&i.TargetUserID,
 		&i.Message,
 		&i.Link,
 		&i.Viewed,
@@ -59,7 +60,7 @@ func (q *Queries) FindUnreadLikeNotificationForComment(ctx context.Context, arg 
 }
 
 const findUnreadLikeNotificationForPost = `-- name: FindUnreadLikeNotificationForPost :one
-SELECT notification_id, user_id, post_id, comment_id, message, link, viewed, facets, notification_type, created_at
+SELECT notification_id, user_id, post_id, comment_id, target_user_id, message, link, viewed, facets, notification_type, created_at
 FROM notifications 
 WHERE user_id = $1 
   AND notification_type = 'like'
@@ -83,6 +84,7 @@ func (q *Queries) FindUnreadLikeNotificationForPost(ctx context.Context, arg Fin
 		&i.UserID,
 		&i.PostID,
 		&i.CommentID,
+		&i.TargetUserID,
 		&i.Message,
 		&i.Link,
 		&i.Viewed,
@@ -94,7 +96,7 @@ func (q *Queries) FindUnreadLikeNotificationForPost(ctx context.Context, arg Fin
 }
 
 const getNotificationById = `-- name: GetNotificationById :one
-SELECT notification_id, user_id, post_id, comment_id, message, link, viewed, facets, notification_type, created_at
+SELECT notification_id, user_id, post_id, comment_id, target_user_id, message, link, viewed, facets, notification_type, created_at
 FROM notifications
 WHERE notification_id = $1
 LIMIT 1
@@ -108,6 +110,7 @@ func (q *Queries) GetNotificationById(ctx context.Context, notificationID int) (
 		&i.UserID,
 		&i.PostID,
 		&i.CommentID,
+		&i.TargetUserID,
 		&i.Message,
 		&i.Link,
 		&i.Viewed,
@@ -119,7 +122,7 @@ func (q *Queries) GetNotificationById(ctx context.Context, notificationID int) (
 }
 
 const getNotificationsForUserId = `-- name: GetNotificationsForUserId :many
-SELECT notification_id, user_id, post_id, comment_id, message, link, viewed, facets, notification_type, created_at
+SELECT notification_id, user_id, post_id, comment_id, target_user_id, message, link, viewed, facets, notification_type, created_at
 FROM notifications 
 WHERE user_id = $1
 ORDER BY created_at DESC
@@ -147,6 +150,7 @@ func (q *Queries) GetNotificationsForUserId(ctx context.Context, arg GetNotifica
 			&i.UserID,
 			&i.PostID,
 			&i.CommentID,
+			&i.TargetUserID,
 			&i.Message,
 			&i.Link,
 			&i.Viewed,
@@ -165,7 +169,7 @@ func (q *Queries) GetNotificationsForUserId(ctx context.Context, arg GetNotifica
 }
 
 const getReadNotificationsForUserIdWithTimeOffset = `-- name: GetReadNotificationsForUserIdWithTimeOffset :many
-SELECT notification_id, user_id, post_id, comment_id, message, link, viewed, facets, notification_type, created_at
+SELECT notification_id, user_id, post_id, comment_id, target_user_id, message, link, viewed, facets, notification_type, created_at
 FROM notifications 
 WHERE user_id = $1 AND viewed = TRUE AND created_at < $2
 ORDER BY created_at DESC
@@ -192,6 +196,7 @@ func (q *Queries) GetReadNotificationsForUserIdWithTimeOffset(ctx context.Contex
 			&i.UserID,
 			&i.PostID,
 			&i.CommentID,
+			&i.TargetUserID,
 			&i.Message,
 			&i.Link,
 			&i.Viewed,
@@ -210,7 +215,7 @@ func (q *Queries) GetReadNotificationsForUserIdWithTimeOffset(ctx context.Contex
 }
 
 const getUnreadNotificationsForUserId = `-- name: GetUnreadNotificationsForUserId :many
-SELECT notification_id, user_id, post_id, comment_id, message, link, viewed, facets, notification_type, created_at
+SELECT notification_id, user_id, post_id, comment_id, target_user_id, message, link, viewed, facets, notification_type, created_at
 FROM notifications 
 WHERE user_id = $1 AND viewed = FALSE
 ORDER BY created_at DESC
@@ -238,6 +243,7 @@ func (q *Queries) GetUnreadNotificationsForUserId(ctx context.Context, arg GetUn
 			&i.UserID,
 			&i.PostID,
 			&i.CommentID,
+			&i.TargetUserID,
 			&i.Message,
 			&i.Link,
 			&i.Viewed,
@@ -256,7 +262,7 @@ func (q *Queries) GetUnreadNotificationsForUserId(ctx context.Context, arg GetUn
 }
 
 const getUnreadNotificationsForUserIdWithTimeOffset = `-- name: GetUnreadNotificationsForUserIdWithTimeOffset :many
-SELECT notification_id, user_id, post_id, comment_id, message, link, viewed, facets, notification_type, created_at
+SELECT notification_id, user_id, post_id, comment_id, target_user_id, message, link, viewed, facets, notification_type, created_at
 FROM notifications 
 WHERE user_id = $1 AND viewed = FALSE AND created_at < $2
 ORDER BY created_at DESC
@@ -283,6 +289,7 @@ func (q *Queries) GetUnreadNotificationsForUserIdWithTimeOffset(ctx context.Cont
 			&i.UserID,
 			&i.PostID,
 			&i.CommentID,
+			&i.TargetUserID,
 			&i.Message,
 			&i.Link,
 			&i.Viewed,
@@ -314,8 +321,8 @@ func (q *Queries) GetUserUnreadNotificationCount(ctx context.Context, userID int
 }
 
 const insertNotification = `-- name: InsertNotification :exec
-INSERT INTO notifications (user_id, post_id, comment_id, message, facets, link, notification_type)
-VALUES ($1, $2, $3, $4, $5, $6, $7)
+INSERT INTO notifications (user_id, post_id, comment_id, message, facets, link, notification_type, target_user_id)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
 `
 
 type InsertNotificationParams struct {
@@ -326,6 +333,7 @@ type InsertNotificationParams struct {
 	Facets           db.Facets   `json:"facets"`
 	Link             pgtype.Text `json:"link"`
 	NotificationType string      `json:"notificationType"`
+	TargetUserID     *int        `json:"targetUserId"`
 }
 
 func (q *Queries) InsertNotification(ctx context.Context, arg InsertNotificationParams) error {
@@ -337,6 +345,7 @@ func (q *Queries) InsertNotification(ctx context.Context, arg InsertNotification
 		arg.Facets,
 		arg.Link,
 		arg.NotificationType,
+		arg.TargetUserID,
 	)
 	return err
 }
