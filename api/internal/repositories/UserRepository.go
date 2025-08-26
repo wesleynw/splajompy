@@ -48,7 +48,7 @@ type DBUserRepository struct {
 
 // GetUserById retrieves a user by their ID
 func (r DBUserRepository) GetUserById(ctx context.Context, userId int) (models.PublicUser, error) {
-	user, err := r.querier.GetUserById(ctx, int32(userId))
+	user, err := r.querier.GetUserById(ctx, userId)
 	if err != nil {
 		return models.PublicUser{}, err
 	}
@@ -78,13 +78,13 @@ func (r DBUserRepository) GetUserByIdentifier(ctx context.Context, identifier st
 
 // GetBioForUser retrieves a user's bio
 func (r DBUserRepository) GetBioForUser(ctx context.Context, userId int) (string, error) {
-	return r.querier.GetBioByUserId(ctx, int32(userId))
+	return r.querier.GetBioByUserId(ctx, userId)
 }
 
 // UpdateBio updates a user's bio
 func (r DBUserRepository) UpdateBio(ctx context.Context, userId int, bio string) error {
 	return r.querier.UpdateUserBio(ctx, queries.UpdateUserBioParams{
-		UserID: int32(userId),
+		UserID: userId,
 		Text:   bio,
 	})
 }
@@ -92,24 +92,24 @@ func (r DBUserRepository) UpdateBio(ctx context.Context, userId int, bio string)
 // IsUserFollowingUser checks if a user is following another user
 func (r DBUserRepository) IsUserFollowingUser(ctx context.Context, followerId int, followingId int) (bool, error) {
 	return r.querier.GetIsUserFollowingUser(ctx, queries.GetIsUserFollowingUserParams{
-		FollowerID:  int32(followerId),
-		FollowingID: int32(followingId),
+		FollowerID:  followerId,
+		FollowingID: followingId,
 	})
 }
 
 // FollowUser makes a user follow another user
 func (r DBUserRepository) FollowUser(ctx context.Context, followerId int, followingId int) error {
 	return r.querier.InsertFollow(ctx, queries.InsertFollowParams{
-		FollowerID:  int32(followerId),
-		FollowingID: int32(followingId),
+		FollowerID:  followerId,
+		FollowingID: followingId,
 	})
 }
 
 // UnfollowUser makes a user unfollow another user
 func (r DBUserRepository) UnfollowUser(ctx context.Context, followerId int, followingId int) error {
 	return r.querier.DeleteFollow(ctx, queries.DeleteFollowParams{
-		FollowerID:  int32(followerId),
-		FollowingID: int32(followingId),
+		FollowerID:  followerId,
+		FollowingID: followingId,
 	})
 }
 
@@ -117,8 +117,8 @@ func (r DBUserRepository) UnfollowUser(ctx context.Context, followerId int, foll
 func (r DBUserRepository) GetUsersWithUsernameLike(ctx context.Context, prefix string, limit int, currentUserId int) ([]models.PublicUser, error) {
 	users, err := r.querier.GetUsernameLike(ctx, queries.GetUsernameLikeParams{
 		Username:     prefix + "%",
-		Limit:        int32(limit),
-		TargetUserID: int32(currentUserId),
+		Limit:        limit,
+		TargetUserID: currentUserId,
 	})
 	if err != nil {
 		return nil, err
@@ -135,7 +135,7 @@ func (r DBUserRepository) GetUsersWithUsernameLike(ctx context.Context, prefix s
 // UpdateUserName updates a user's name
 func (r DBUserRepository) UpdateUserName(ctx context.Context, userId int, newName string) error {
 	return r.querier.UpdateUserName(ctx, queries.UpdateUserNameParams{
-		UserID: int32(userId),
+		UserID: userId,
 		Name:   pgtype.Text{String: newName, Valid: true},
 	})
 }
@@ -167,7 +167,7 @@ func (r DBUserRepository) CreateUser(ctx context.Context, username string, email
 // GetVerificationCode retrieves a verification code for a user
 func (r DBUserRepository) GetVerificationCode(ctx context.Context, userId int, code string) (queries.VerificationCode, error) {
 	return r.querier.GetVerificationCode(ctx, queries.GetVerificationCodeParams{
-		UserID: int32(userId),
+		UserID: userId,
 		Code:   code,
 	})
 }
@@ -175,7 +175,7 @@ func (r DBUserRepository) GetVerificationCode(ctx context.Context, userId int, c
 // CreateVerificationCode creates a verification code for a user
 func (r DBUserRepository) CreateVerificationCode(ctx context.Context, userId int, code string, expiresAt time.Time) error {
 	return r.querier.CreateVerificationCode(ctx, queries.CreateVerificationCodeParams{
-		UserID:    int32(userId),
+		UserID:    userId,
 		Code:      code,
 		ExpiresAt: pgtype.Timestamp{Time: expiresAt, Valid: true},
 	})
@@ -195,57 +195,57 @@ func (r DBUserRepository) GetUserPasswordByIdentifier(ctx context.Context, ident
 func (r DBUserRepository) CreateSession(ctx context.Context, sessionId string, userId int, expiresAt time.Time) error {
 	return r.querier.CreateSession(ctx, queries.CreateSessionParams{
 		ID:        sessionId,
-		UserID:    int32(userId),
+		UserID:    userId,
 		ExpiresAt: pgtype.Timestamp{Time: expiresAt, Valid: true},
 	})
 }
 
 func (r DBUserRepository) BlockUser(ctx context.Context, currentUserId int, targetUserId int) error {
 	return r.querier.BlockUser(ctx, queries.BlockUserParams{
-		UserID:       int32(currentUserId),
-		TargetUserID: int32(targetUserId),
+		UserID:       currentUserId,
+		TargetUserID: targetUserId,
 	})
 }
 
 func (r DBUserRepository) UnblockUser(ctx context.Context, currentUserId int, targetUserId int) error {
 	return r.querier.UnblockUser(ctx, queries.UnblockUserParams{
-		UserID:       int32(currentUserId),
-		TargetUserID: int32(targetUserId),
+		UserID:       currentUserId,
+		TargetUserID: targetUserId,
 	})
 }
 
 func (r DBUserRepository) IsUserBlockingUser(ctx context.Context, blockerId int, blockedId int) (bool, error) {
 	return r.querier.GetIsUserBlockingUser(ctx, queries.GetIsUserBlockingUserParams{
-		UserID:       int32(blockerId),
-		TargetUserID: int32(blockedId),
+		UserID:       blockerId,
+		TargetUserID: blockedId,
 	})
 }
 
 func (r DBUserRepository) DeleteAccount(ctx context.Context, userId int) error {
-	return r.querier.DeleteUserById(ctx, int32(userId))
+	return r.querier.DeleteUserById(ctx, userId)
 }
 
 // GetMutualConnectionsForUser retrieves mutual connections between current user and target user
 func (r DBUserRepository) GetMutualConnectionsForUser(ctx context.Context, currentUserId int, targetUserId int) ([]string, error) {
 	return r.querier.GetMutualConnectionsForUser(ctx, queries.GetMutualConnectionsForUserParams{
-		FollowerID:   int32(currentUserId),
-		FollowerID_2: int32(targetUserId),
+		FollowerID:   currentUserId,
+		FollowerID_2: targetUserId,
 	})
 }
 
 func (r DBUserRepository) GetFollowersByUserId(ctx context.Context, userId int, limit int, offset int) ([]queries.GetFollowersByUserIdRow, error) {
 	return r.querier.GetFollowersByUserId(ctx, queries.GetFollowersByUserIdParams{
-		FollowingID: int32(userId),
-		Limit:       int32(limit),
-		Offset:      int32(offset),
+		FollowingID: userId,
+		Limit:       limit,
+		Offset:      offset,
 	})
 }
 
 func (r DBUserRepository) GetFollowingByUserId(ctx context.Context, userId int, limit int, offset int) ([]queries.GetFollowingByUserIdRow, error) {
 	return r.querier.GetFollowingByUserId(ctx, queries.GetFollowingByUserIdParams{
-		FollowerID: int32(userId),
-		Limit:      int32(limit),
-		Offset:     int32(offset),
+		FollowerID: userId,
+		Limit:      limit,
+		Offset:     offset,
 	})
 }
 

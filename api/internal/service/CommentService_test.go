@@ -172,7 +172,7 @@ func TestRemoveLikeFromComment_DeletesRecentNotification(t *testing.T) {
 	comment, err := commentRepo.AddCommentToPost(ctx, otherUser.UserID, post.PostID, "Test comment", nil)
 	require.NoError(t, err)
 
-	commentID := int(comment.CommentID)
+	commentID := comment.CommentID
 	err = commentRepo.AddLikeToComment(ctx, user.UserID, post.PostID, commentID)
 	require.NoError(t, err)
 
@@ -198,15 +198,15 @@ func TestRemoveLikeFromComment_KeepsOldNotification(t *testing.T) {
 	comment, err := commentRepo.AddCommentToPost(ctx, otherUser.UserID, post.PostID, "Test comment", nil)
 	require.NoError(t, err)
 
-	commentID := int(comment.CommentID)
+	commentID := comment.CommentID
 	err = commentRepo.AddLikeToComment(ctx, user.UserID, post.PostID, commentID)
 	require.NoError(t, err)
 
 	oldTime := time.Now().Add(-10 * time.Minute)
 	notification := queries.Notification{
-		UserID:           int32(otherUser.UserID),
-		PostID:           pgtype.Int4{Int32: int32(post.PostID), Valid: true},
-		CommentID:        pgtype.Int4{Int32: comment.CommentID, Valid: true},
+		UserID:           otherUser.UserID,
+		PostID:           &post.PostID,
+		CommentID:        &comment.CommentID,
 		Message:          "@testUser liked your comment.",
 		NotificationType: "like",
 		Viewed:           false,
@@ -214,7 +214,7 @@ func TestRemoveLikeFromComment_KeepsOldNotification(t *testing.T) {
 	}
 	notificationRepo.AddNotification(notification)
 
-	err = svc.RemoveLikeFromCommentById(ctx, user, post.PostID, int(comment.CommentID))
+	err = svc.RemoveLikeFromCommentById(ctx, user, post.PostID, comment.CommentID)
 	require.NoError(t, err)
 
 	assert.Equal(t, 1, notificationRepo.GetNotificationCount(otherUser.UserID))
@@ -233,11 +233,11 @@ func TestRemoveLikeFromComment_NoNotificationExists(t *testing.T) {
 	comment, err := commentRepo.AddCommentToPost(ctx, otherUser.UserID, post.PostID, "Test comment", nil)
 	require.NoError(t, err)
 
-	commentID := int(comment.CommentID)
+	commentID := comment.CommentID
 	err = commentRepo.AddLikeToComment(ctx, user.UserID, post.PostID, commentID)
 	require.NoError(t, err)
 
-	err = svc.RemoveLikeFromCommentById(ctx, user, post.PostID, int(comment.CommentID))
+	err = svc.RemoveLikeFromCommentById(ctx, user, post.PostID, comment.CommentID)
 	require.NoError(t, err)
 
 	assert.Equal(t, 0, notificationRepo.GetNotificationCount(otherUser.UserID))

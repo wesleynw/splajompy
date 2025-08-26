@@ -7,8 +7,6 @@ package queries
 
 import (
 	"context"
-
-	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const addLike = `-- name: AddLike :exec
@@ -17,10 +15,10 @@ VALUES ($1, $2, $3, $4)
 `
 
 type AddLikeParams struct {
-	PostID    int32       `json:"postId"`
-	CommentID pgtype.Int4 `json:"commentId"`
-	UserID    int32       `json:"userId"`
-	IsPost    bool        `json:"isPost"`
+	PostID    int  `json:"postId"`
+	CommentID *int `json:"commentId"`
+	UserID    int  `json:"userId"`
+	IsPost    bool `json:"isPost"`
 }
 
 func (q *Queries) AddLike(ctx context.Context, arg AddLikeParams) error {
@@ -49,10 +47,10 @@ SELECT EXISTS (
 `
 
 type GetIsLikedByUserParams struct {
-	UserID    int32       `json:"userId"`
-	PostID    int32       `json:"postId"`
-	CommentID pgtype.Int4 `json:"commentId"`
-	Column4   bool        `json:"column4"`
+	UserID    int  `json:"userId"`
+	PostID    int  `json:"postId"`
+	CommentID *int `json:"commentId"`
+	Column4   bool `json:"column4"`
 }
 
 func (q *Queries) GetIsLikedByUser(ctx context.Context, arg GetIsLikedByUserParams) (bool, error) {
@@ -78,8 +76,8 @@ SELECT EXISTS (
 `
 
 type GetIsPostLikedByUserParams struct {
-	UserID int32 `json:"userId"`
-	PostID int32 `json:"postId"`
+	UserID int `json:"userId"`
+	PostID int `json:"postId"`
 }
 
 func (q *Queries) GetIsPostLikedByUser(ctx context.Context, arg GetIsPostLikedByUserParams) (bool, error) {
@@ -102,13 +100,13 @@ WHERE post_id = $1 AND comment_id IS NULL AND
 `
 
 type GetPostLikesFromFollowersParams struct {
-	PostID     int32 `json:"postId"`
-	FollowerID int32 `json:"followerId"`
+	PostID     int `json:"postId"`
+	FollowerID int `json:"followerId"`
 }
 
 type GetPostLikesFromFollowersRow struct {
 	Username string `json:"username"`
-	UserID   int32  `json:"userId"`
+	UserID   int    `json:"userId"`
 }
 
 func (q *Queries) GetPostLikesFromFollowers(ctx context.Context, arg GetPostLikesFromFollowersParams) ([]GetPostLikesFromFollowersRow, error) {
@@ -141,8 +139,8 @@ SELECT EXISTS (
 `
 
 type HasLikesFromOthersParams struct {
-	PostID  int32   `json:"postId"`
-	Column2 []int32 `json:"column2"`
+	PostID  int   `json:"postId"`
+	Column2 []int `json:"column2"`
 }
 
 func (q *Queries) HasLikesFromOthers(ctx context.Context, arg HasLikesFromOthersParams) (bool, error) {
@@ -161,10 +159,10 @@ AND ($3 = TRUE OR comment_id = $4)
 `
 
 type RemoveLikeParams struct {
-	PostID    int32       `json:"postId"`
-	UserID    int32       `json:"userId"`
-	IsPost    bool        `json:"isPost"`
-	CommentID pgtype.Int4 `json:"commentId"`
+	PostID    int  `json:"postId"`
+	UserID    int  `json:"userId"`
+	IsPost    bool `json:"isPost"`
+	CommentID *int `json:"commentId"`
 }
 
 func (q *Queries) RemoveLike(ctx context.Context, arg RemoveLikeParams) error {

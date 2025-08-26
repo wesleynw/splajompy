@@ -83,7 +83,7 @@ func (s *AuthService) Register(ctx context.Context, email string, username strin
 		return nil, err
 	}
 
-	sessionId, err := s.createSessionToken(ctx, int(user.UserID))
+	sessionId, err := s.createSessionToken(ctx, user.UserID)
 	if err != nil {
 		return nil, err
 	}
@@ -179,7 +179,7 @@ func (s *AuthService) VerifyOTCCode(ctx context.Context, identifier string, code
 		return nil, err
 	}
 
-	dbCode, err := s.userRepository.GetVerificationCode(ctx, int(user.UserID), code)
+	dbCode, err := s.userRepository.GetVerificationCode(ctx, user.UserID, code)
 	if err != nil {
 		return nil, err
 	}
@@ -188,7 +188,7 @@ func (s *AuthService) VerifyOTCCode(ctx context.Context, identifier string, code
 		return nil, errors.New("code expired")
 	}
 
-	token, err := s.createSessionToken(ctx, int(user.UserID))
+	token, err := s.createSessionToken(ctx, user.UserID)
 	if err != nil {
 		return nil, ErrGeneral
 	}
@@ -210,7 +210,7 @@ func (s *AuthService) ProcessOTC(ctx context.Context, identifier string) error {
 		return err
 	}
 
-	err = s.userRepository.CreateVerificationCode(ctx, int(user.UserID), code, time.Now().UTC().Add(time.Minute*10))
+	err = s.userRepository.CreateVerificationCode(ctx, user.UserID, code, time.Now().UTC().Add(time.Minute*10))
 	if err != nil {
 		return err
 	}

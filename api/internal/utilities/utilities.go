@@ -12,9 +12,10 @@ type ContextKey string
 
 const UserContextKey ContextKey = "user"
 
+
 func MapUserToPublicUser(user queries.User) models.PublicUser {
 	return models.PublicUser{
-		UserID:    int(user.UserID),
+		UserID:    user.UserID,
 		Username:  user.Username,
 		Email:     user.Email,
 		Name:      user.Name.String,
@@ -25,7 +26,7 @@ func MapUserToPublicUser(user queries.User) models.PublicUser {
 // MapPost is a utility function to convert from queries.Post to models.Post.
 func MapPost(post queries.Post) models.Post {
 	return models.Post{
-		PostID:    int(post.PostID),
+		PostID:    post.PostID,
 		UserID:    post.UserID,
 		Text:      post.Text.String,
 		CreatedAt: post.CreatedAt.Time.UTC(),
@@ -36,20 +37,17 @@ func MapPost(post queries.Post) models.Post {
 // MapNotification is a utility function to convert from queries.Notification to models.Notification.
 func MapNotification(notification queries.Notification) models.Notification {
 	var postId *int
-	if notification.PostID.Valid {
-		id := int(notification.PostID.Int32)
-		postId = &id
+	if notification.PostID != nil {
+		postId = notification.PostID
 	}
-
 	var commentId *int
-	if notification.CommentID.Valid {
-		id := int(notification.CommentID.Int32)
-		commentId = &id
+	if notification.CommentID != nil {
+		commentId = notification.CommentID
 	}
 
 	return models.Notification{
-		NotificationID:   int(notification.NotificationID),
-		UserID:           int(notification.UserID),
+		NotificationID:   notification.NotificationID,
+		UserID:           notification.UserID,
 		PostID:           postId,
 		CommentID:        commentId,
 		Message:          notification.Message,
@@ -64,9 +62,9 @@ func MapNotification(notification queries.Notification) models.Notification {
 // MapComment is a utility function to convert from the queries.Comment returned from the DB, to the usable models.DetailedComment type.
 func MapComment(comment queries.Comment, user models.PublicUser, isLiked bool) models.DetailedComment {
 	return models.DetailedComment{
-		CommentID: int(comment.CommentID),
-		PostID:    int(comment.PostID),
-		UserID:    int(comment.UserID),
+		CommentID: comment.CommentID,
+		PostID:    comment.PostID,
+		UserID:    comment.UserID,
 		Text:      comment.Text,
 		Facets:    comment.Facets,
 		CreatedAt: comment.CreatedAt.Time,

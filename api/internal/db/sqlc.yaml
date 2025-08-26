@@ -12,6 +12,24 @@ sql:
         emit_interface: true
         json_tags_case_style: "camel"
         overrides:
+          - db_type: "pg_catalog.int4"
+            go_type: "int"
+          - db_type: "serial"
+            go_type: "int"
+          - db_type: "integer"
+            go_type: "int"
+          - column: "likes.comment_id"
+            go_type:
+              type: "int"
+              pointer: true
+          - column: "notifications.post_id"
+            go_type:
+              type: "int"
+              pointer: true
+          - column: "notifications.comment_id"
+            go_type:
+              type: "int"
+              pointer: true
           - column: "posts.attributes"
             "go_type": {
                 import: "splajompy.com/api/v2/internal/db" ,
