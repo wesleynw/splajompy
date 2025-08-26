@@ -113,56 +113,29 @@ func (r DBPostRepository) GetCommentCountForPost(ctx context.Context, postId int
 
 // GetAllPostIds retrieves IDs of all posts with pagination
 func (r DBPostRepository) GetAllPostIds(ctx context.Context, limit int, offset int, currentUserId int) ([]int, error) {
-	postIds32, err := r.querier.GetAllPostIds(ctx, queries.GetAllPostIdsParams{
+	return r.querier.GetAllPostIds(ctx, queries.GetAllPostIdsParams{
 		Limit:  limit,
 		Offset: offset,
 		UserID: currentUserId,
 	})
-	if err != nil {
-		return nil, err
-	}
-
-	postIds := make([]int, len(postIds32))
-	for i, id := range postIds32 {
-		postIds[i] = id
-	}
-	return postIds, nil
 }
 
 // GetPostIdsForFollowing retrieves post IDs from users a specified user follows
 func (r DBPostRepository) GetPostIdsForFollowing(ctx context.Context, userId int, limit int, offset int) ([]int, error) {
-	postIds32, err := r.querier.GetPostIdsByFollowing(ctx, queries.GetPostIdsByFollowingParams{
+	return r.querier.GetPostIdsByFollowing(ctx, queries.GetPostIdsByFollowingParams{
 		UserID: userId,
 		Limit:  limit,
 		Offset: offset,
 	})
-	if err != nil {
-		return nil, err
-	}
-
-	postIds := make([]int, len(postIds32))
-	for i, id := range postIds32 {
-		postIds[i] = id
-	}
-	return postIds, nil
 }
 
 // GetPostIdsForUser retrieves all post IDs for a specific user
 func (r DBPostRepository) GetPostIdsForUser(ctx context.Context, userId int, limit int, offset int) ([]int, error) {
-	postIds32, err := r.querier.GetPostsIdsByUserId(ctx, queries.GetPostsIdsByUserIdParams{
+	return r.querier.GetPostsIdsByUserId(ctx, queries.GetPostsIdsByUserIdParams{
 		UserID: userId,
 		Limit:  limit,
 		Offset: offset,
 	})
-	if err != nil {
-		return nil, err
-	}
-
-	postIds := make([]int, len(postIds32))
-	for i, id := range postIds32 {
-		postIds[i] = id
-	}
-	return postIds, nil
 }
 
 // GetPostIdsForMutualFeed retrieves post IDs for mutual feed with relationship metadata
@@ -211,20 +184,11 @@ func (r DBPostRepository) GetAllPostIdsCursor(ctx context.Context, limit int, be
 		timestamp = pgtype.Timestamp{Time: *beforeTimestamp, Valid: true}
 	}
 
-	postIds32, err := r.querier.GetAllPostIdsCursor(ctx, queries.GetAllPostIdsCursorParams{
+	return r.querier.GetAllPostIdsCursor(ctx, queries.GetAllPostIdsCursorParams{
 		Limit:   limit,
 		Column2: timestamp,
 		UserID:  currentUserId,
 	})
-	if err != nil {
-		return nil, err
-	}
-
-	postIds := make([]int, len(postIds32))
-	for i, id := range postIds32 {
-		postIds[i] = id
-	}
-	return postIds, nil
 }
 
 // GetPostIdsForFollowingCursor retrieves post IDs from users a specified user follows using cursor-based pagination
@@ -234,20 +198,11 @@ func (r DBPostRepository) GetPostIdsForFollowingCursor(ctx context.Context, user
 		timestamp = pgtype.Timestamp{Time: *beforeTimestamp, Valid: true}
 	}
 
-	postIds32, err := r.querier.GetPostIdsByFollowingCursor(ctx, queries.GetPostIdsByFollowingCursorParams{
+	return r.querier.GetPostIdsByFollowingCursor(ctx, queries.GetPostIdsByFollowingCursorParams{
 		UserID:  userId,
 		Limit:   limit,
 		Column3: timestamp,
 	})
-	if err != nil {
-		return nil, err
-	}
-
-	postIds := make([]int, len(postIds32))
-	for i, id := range postIds32 {
-		postIds[i] = id
-	}
-	return postIds, nil
 }
 
 // GetPostIdsForMutualFeedCursor retrieves post IDs for mutual feed
@@ -271,20 +226,11 @@ func (r DBPostRepository) GetPostIdsByUserIdCursor(ctx context.Context, userId i
 		timestamp = pgtype.Timestamp{Time: *beforeTimestamp, Valid: true}
 	}
 
-	postIds32, err := r.querier.GetPostIdsByUserIdCursor(ctx, queries.GetPostIdsByUserIdCursorParams{
+	return r.querier.GetPostIdsByUserIdCursor(ctx, queries.GetPostIdsByUserIdCursorParams{
 		UserID:  userId,
 		Limit:   limit,
 		Column3: timestamp,
 	})
-	if err != nil {
-		return nil, err
-	}
-
-	postIds := make([]int, len(postIds32))
-	for i, id := range postIds32 {
-		postIds[i] = id
-	}
-	return postIds, nil
 }
 
 // NewDBPostRepository creates a new post repository instance
