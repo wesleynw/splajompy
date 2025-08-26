@@ -17,7 +17,8 @@ func setupNotificationService() (*NotificationService, *fakes.FakeNotificationRe
 	fakeNotificationsRepository := fakes.NewFakeNotificationRepository()
 	fakePostRepository := fakes.NewFakePostRepository()
 	fakeCommentRepository := fakes.NewFakeCommentRepository()
-	notificationService := NewNotificationService(fakeNotificationsRepository, fakePostRepository, fakeCommentRepository)
+	fakeUserRepository := fakes.NewFakeUserRepository()
+	notificationService := NewNotificationService(fakeNotificationsRepository, fakePostRepository, fakeCommentRepository, fakeUserRepository)
 	return notificationService, fakeNotificationsRepository
 }
 
