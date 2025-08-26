@@ -3,6 +3,7 @@ package utilities
 import (
 	"context"
 	"errors"
+
 	"go.opentelemetry.io/contrib/instrumentation/host"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp"

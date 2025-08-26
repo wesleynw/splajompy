@@ -2,12 +2,13 @@ package middleware
 
 import (
 	"context"
+	"net/http"
+	"strings"
+
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
-	"net/http"
 	"splajompy.com/api/v2/internal/db/queries"
 	"splajompy.com/api/v2/internal/utilities"
-	"strings"
 )
 
 func AuthMiddleware(q *queries.Queries) func(http.Handler) http.Handler {

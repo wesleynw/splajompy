@@ -2,13 +2,14 @@ package fakes
 
 import (
 	"context"
+	"sync"
+	"time"
+
 	"github.com/jackc/pgx/v5/pgtype"
 	"splajompy.com/api/v2/internal/db"
 	"splajompy.com/api/v2/internal/db/queries"
 	"splajompy.com/api/v2/internal/models"
 	"splajompy.com/api/v2/internal/utilities"
-	"sync"
-	"time"
 )
 
 // FakeNotificationRepository provides a fake implementation for testing

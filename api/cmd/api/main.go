@@ -2,11 +2,12 @@ package main
 
 import (
 	"context"
-	"github.com/exaring/otelpgx"
-	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"log"
 	"net/http"
 	"os"
+
+	"github.com/exaring/otelpgx"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"splajompy.com/api/v2/internal/db/queries"
 	"splajompy.com/api/v2/internal/repositories"
 	"splajompy.com/api/v2/internal/utilities"

@@ -4,19 +4,20 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/resend/resend-go/v2"
-	"golang.org/x/mod/semver"
-	"golang.org/x/sync/errgroup"
 	"math"
 	"os"
 	"sort"
+	"time"
+
+	"github.com/resend/resend-go/v2"
+	"golang.org/x/mod/semver"
+	"golang.org/x/sync/errgroup"
 	"splajompy.com/api/v2/internal/db"
 	"splajompy.com/api/v2/internal/db/queries"
 	"splajompy.com/api/v2/internal/middleware"
 	"splajompy.com/api/v2/internal/models"
 	"splajompy.com/api/v2/internal/repositories"
 	"splajompy.com/api/v2/internal/templates"
-	"time"
 )
 
 type PostService struct {
@@ -428,7 +429,7 @@ func (s *PostService) VoteOnPoll(ctx context.Context, currentUser models.PublicU
 type FeedType string
 
 const (
-	FeedTypeAll      FeedType = "all"
+	FeedTypeAll       FeedType = "all"
 	FeedTypeFollowing FeedType = "following"
 	FeedTypeMutual    FeedType = "mutual"
 	FeedTypeProfile   FeedType = "profile"

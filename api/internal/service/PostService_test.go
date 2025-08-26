@@ -2,17 +2,18 @@ package service
 
 import (
 	"context"
+	"os"
+	"testing"
+	"time"
+
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"os"
 	"splajompy.com/api/v2/internal/db"
 	"splajompy.com/api/v2/internal/db/queries"
 	"splajompy.com/api/v2/internal/models"
 	"splajompy.com/api/v2/internal/repositories"
 	"splajompy.com/api/v2/internal/repositories/fakes"
-	"testing"
-	"time"
 )
 
 func setupTest(t *testing.T) (*PostService, *fakes.FakePostRepository, *fakes.FakeUserRepository, *fakes.FakeLikeRepository, *fakes.FakeNotificationRepository, *fakes.FakeBucketRepository, models.PublicUser) {

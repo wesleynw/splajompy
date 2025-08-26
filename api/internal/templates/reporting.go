@@ -3,9 +3,10 @@ package templates
 import (
 	"bytes"
 	"html/template"
+	"time"
+
 	"splajompy.com/api/v2/internal/db/queries"
 	"splajompy.com/api/v2/internal/models"
-	"time"
 )
 
 type PostReportEmailData struct {

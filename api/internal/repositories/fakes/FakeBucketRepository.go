@@ -4,11 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/google/uuid"
 	"net/url"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type FakeBucketRepository struct {
