@@ -74,6 +74,7 @@ type Querier interface {
 	MarkNotificationAsReadById(ctx context.Context, notificationID int) error
 	RemoveLike(ctx context.Context, arg RemoveLikeParams) error
 	UnblockUser(ctx context.Context, arg UnblockUserParams) error
+	UpdateSessionExpiry(ctx context.Context, arg UpdateSessionExpiryParams) error
 	UpdateUserBio(ctx context.Context, arg UpdateUserBioParams) error
 	UpdateUserName(ctx context.Context, arg UpdateUserNameParams) error
 	UserHasUnreadNotifications(ctx context.Context, userID int) (bool, error)
