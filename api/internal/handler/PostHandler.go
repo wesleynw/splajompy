@@ -14,37 +14,6 @@ import (
 	"splajompy.com/api/v2/internal/utilities"
 )
 
-func (h *Handler) CreateNewPost(w http.ResponseWriter, r *http.Request) {
-	currentUser := h.getAuthenticatedUser(r)
-
-	var requestBody struct {
-		Text        string         `json:"text"`
-		ImageKeymap map[int]string `json:"imageKeymap"`
-	}
-
-	if err := json.NewDecoder(r.Body).Decode(&requestBody); err != nil {
-		utilities.HandleError(w, http.StatusBadRequest, "Bad request format")
-		return
-	}
-
-	// Convert old string format to service ImageData with default dimensions
-	serviceImageKeymap := make(map[int]models.ImageData)
-	for displayOrder, s3Key := range requestBody.ImageKeymap {
-		serviceImageKeymap[displayOrder] = models.ImageData{
-			S3Key:  s3Key,
-			Width:  500,
-			Height: 500,
-		}
-	}
-
-	err := h.postService.NewPost(r.Context(), *currentUser, requestBody.Text, serviceImageKeymap, nil)
-	if err != nil {
-		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
-		return
-	}
-
-	utilities.HandleEmptySuccess(w)
-}
 
 func (h *Handler) CreateNewPostV2(w http.ResponseWriter, r *http.Request) {
 	currentUser := h.getAuthenticatedUser(r)

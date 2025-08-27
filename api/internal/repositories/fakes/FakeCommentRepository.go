@@ -3,6 +3,7 @@ package fakes
 import (
 	"context"
 	"errors"
+	"strconv"
 	"sync"
 	"time"
 
@@ -188,5 +189,5 @@ func (f *FakeCommentRepository) ClearComments() {
 }
 
 func (f *FakeCommentRepository) getLikeKey(userId int, postId int, commentId int) string {
-	return string(rune(userId)) + "-" + string(rune(postId)) + "-" + string(rune(commentId))
+	return strconv.Itoa(userId) + "-" + strconv.Itoa(postId) + "-" + strconv.Itoa(commentId)
 }

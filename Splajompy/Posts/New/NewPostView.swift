@@ -35,7 +35,10 @@ struct PollPreviewView: View {
         .foregroundColor(.blue)
         .padding(.horizontal, 8)
         .padding(.vertical, 4)
-        .background(Color.blue.opacity(0.1), in: RoundedRectangle(cornerRadius: 6))
+        .background(
+          Color.blue.opacity(0.1),
+          in: RoundedRectangle(cornerRadius: 6)
+        )
 
         Button {
           onRemove()
@@ -166,13 +169,11 @@ struct NewPostView: View {
               .padding(.leading)
           }
 
-          if PostHogSDK.shared.isFeatureEnabled("feat-add-polls") {
-            Button {
-              showingPollCreation = true
-            } label: {
-              Image(systemName: poll != nil ? "chart.bar.fill" : "chart.bar")
-                .padding(.leading)
-            }
+          Button {
+            showingPollCreation = true
+          } label: {
+            Image(systemName: poll != nil ? "chart.bar.fill" : "chart.bar")
+              .padding(.leading)
           }
 
           Spacer()

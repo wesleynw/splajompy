@@ -60,10 +60,6 @@ class AuthManager: ObservableObject, Sendable {
   }
 
   func signOut() {
-    #if !DEBUG
-      PostHogSDK.shared.reset()
-    #endif
-
     KeychainHelper.standard.delete(service: "session-token", account: "self")
 
     UserDefaults.standard.removeObject(forKey: "CurrentUserID")
