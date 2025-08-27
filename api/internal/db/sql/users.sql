@@ -77,6 +77,11 @@ SELECT *
 FROM sessions
 WHERE id = $1;
 
+-- name: UpdateSessionExpiry :exec
+UPDATE sessions 
+SET expires_at = $2 
+WHERE id = $1;
+
 -- name: CreateVerificationCode :exec
 INSERT INTO "verificationCodes" (code, user_id, expires_at)
 VALUES ($1, $2, $3)

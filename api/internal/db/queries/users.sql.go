@@ -373,6 +373,22 @@ func (q *Queries) UnblockUser(ctx context.Context, arg UnblockUserParams) error 
 	return err
 }
 
+const updateSessionExpiry = `-- name: UpdateSessionExpiry :exec
+UPDATE sessions 
+SET expires_at = $2 
+WHERE id = $1
+`
+
+type UpdateSessionExpiryParams struct {
+	ID        string           `json:"id"`
+	ExpiresAt pgtype.Timestamp `json:"expiresAt"`
+}
+
+func (q *Queries) UpdateSessionExpiry(ctx context.Context, arg UpdateSessionExpiryParams) error {
+	_, err := q.db.Exec(ctx, updateSessionExpiry, arg.ID, arg.ExpiresAt)
+	return err
+}
+
 const updateUserBio = `-- name: UpdateUserBio :exec
 INSERT INTO bios (user_id, text)
 VALUES ($1, $2)
