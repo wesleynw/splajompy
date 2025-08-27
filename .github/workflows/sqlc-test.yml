@@ -1,4 +1,7 @@
 name: sqlc-diff
+permissions:
+  contents: read
+
 on:
   push:
     branches:
