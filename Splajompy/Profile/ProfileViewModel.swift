@@ -12,10 +12,8 @@ extension ProfileView {
   @MainActor class ViewModel: ObservableObject {
     private let userId: Int
     private var profileService: ProfileServiceProtocol
-    private var postsOffset = 0
+    private var lastPostTimestamp: Date?
     private let fetchLimit = 10
-    private var currentPostsTask: Task<Void, Never>? = nil
-    private var currentProfileTask: Task<Void, Never>? = nil
     @ObservedObject var postManager: PostManager
 
     @Published var state: ProfileState = .idle
@@ -56,7 +54,7 @@ extension ProfileView {
       async let postsResult = postManager.loadFeed(
         feedType: .profile,
         userId: userId,
-        offset: 0,
+        beforeTimestamp: nil,
         limit: fetchLimit
       )
 
@@ -67,7 +65,12 @@ extension ProfileView {
       case (.success(let userProfile), .success(let fetchedPosts)):
         postManager.cachePosts(fetchedPosts)
         postIds = fetchedPosts.map { $0.id }
-        postsOffset = fetchedPosts.count
+
+        // Update cursor timestamp to the oldest post in the batch
+        if let oldestPost = fetchedPosts.last {
+          lastPostTimestamp = oldestPost.post.createdAt
+        }
+
         canLoadMorePosts = fetchedPosts.count >= fetchLimit
         state = .loaded(userProfile, postIds)
       case (.success(let userProfile), .error(_)):
@@ -82,7 +85,7 @@ extension ProfileView {
       guard case .loaded(let profile, _) = state else { return }
 
       if reset {
-        postsOffset = 0
+        lastPostTimestamp = nil
       } else {
         guard canLoadMorePosts && !isLoadingMorePosts else { return }
         isLoadingMorePosts = true
@@ -95,7 +98,7 @@ extension ProfileView {
       let result = await postManager.loadFeed(
         feedType: .profile,
         userId: userId,
-        offset: postsOffset,
+        beforeTimestamp: lastPostTimestamp,
         limit: fetchLimit
       )
 
@@ -110,7 +113,11 @@ extension ProfileView {
           postIds.append(contentsOf: newPostIds)
         }
 
-        postsOffset += fetchedPosts.count
+        // Update cursor timestamp to the oldest post in the batch
+        if let oldestPost = fetchedPosts.last {
+          lastPostTimestamp = oldestPost.post.createdAt
+        }
+
         state = .loaded(profile, postIds)
         canLoadMorePosts = fetchedPosts.count >= fetchLimit
       case .error(let error):
@@ -137,7 +144,9 @@ extension ProfileView {
 
     func updateProfile(name: String, bio: String) {
       Task {
-        let result = await profileService.updateProfile(name: name, bio: bio)
+        let result = await profileService.updateProfile(
+          name: name.trimmingCharacters(in: .whitespacesAndNewlines),
+          bio: bio.trimmingCharacters(in: .whitespacesAndNewlines))
         switch result {
         case .success(_):
           if case .loaded(var profile, let postIds) = state {

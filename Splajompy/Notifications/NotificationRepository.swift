@@ -5,13 +5,15 @@ struct Notification: Identifiable, Decodable, Equatable {
   let userId: Int
   let postId: Int?
   let commentId: Int?
+  let targetUserId: Int?
+  let targetUserUsername: String?
   let message: String
   let link: String?
   var viewed: Bool
   let createdAt: String
   let imageBlob: String?
-  let imageWidth: Int32?
-  let imageHeight: Int32?
+  let imageWidth: Int?
+  let imageHeight: Int?
   let facets: [Facet]?
   let notificationType: String
 

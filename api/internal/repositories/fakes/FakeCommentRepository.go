@@ -3,18 +3,19 @@ package fakes
 import (
 	"context"
 	"errors"
+	"sync"
+	"time"
+
 	"github.com/jackc/pgx/v5/pgtype"
 	"splajompy.com/api/v2/internal/db"
 	"splajompy.com/api/v2/internal/db/queries"
-	"sync"
-	"time"
 )
 
 type FakeCommentRepository struct {
 	comments       map[int][]queries.Comment
 	commentLikes   map[string]bool
 	users          map[int]queries.User
-	commentCounter int32
+	commentCounter int
 	mu             sync.Mutex
 }
 
@@ -34,8 +35,8 @@ func (f *FakeCommentRepository) AddCommentToPost(ctx context.Context, userId int
 	f.commentCounter++
 	comment := queries.Comment{
 		CommentID: f.commentCounter,
-		PostID:    int32(postId),
-		UserID:    int32(userId),
+		PostID:    postId,
+		UserID:    userId,
 		Text:      content,
 		CreatedAt: pgtype.Timestamp{
 			Time:  time.Now(),
@@ -57,7 +58,7 @@ func (f *FakeCommentRepository) GetCommentById(_ context.Context, commentId int)
 
 	for _, comments := range f.comments {
 		for _, comment := range comments {
-			if comment.CommentID == int32(commentId) {
+			if comment.CommentID == commentId {
 				return comment, nil
 			}
 		}
@@ -125,7 +126,7 @@ func (f *FakeCommentRepository) DeleteComment(ctx context.Context, commentId int
 
 	for postId, comments := range f.comments {
 		for i, comment := range comments {
-			if comment.CommentID == int32(commentId) {
+			if comment.CommentID == commentId {
 				f.comments[postId] = append(comments[:i], comments[i+1:]...)
 				return nil
 			}
@@ -142,7 +143,7 @@ func (f *FakeCommentRepository) GetUserById(ctx context.Context, userId int) (qu
 	user, exists := f.users[userId]
 	if !exists {
 		user = queries.User{
-			UserID:    int32(userId),
+			UserID:    userId,
 			Email:     "user-" + string(rune(userId)) + "@example.com",
 			Username:  "user-" + string(rune(userId)),
 			CreatedAt: pgtype.Timestamp{Time: time.Now(), Valid: true},
@@ -165,7 +166,7 @@ func (f *FakeCommentRepository) AddComment(comment queries.Comment) {
 	f.mu.Lock()
 	defer f.mu.Unlock()
 
-	postId := int(comment.PostID)
+	postId := comment.PostID
 	if _, exists := f.comments[postId]; !exists {
 		f.comments[postId] = []queries.Comment{}
 	}

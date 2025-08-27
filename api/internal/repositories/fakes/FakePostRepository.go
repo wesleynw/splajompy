@@ -3,12 +3,14 @@ package fakes
 import (
 	"context"
 	"errors"
+	"sort"
+	"sync"
+	"time"
+
 	"splajompy.com/api/v2/internal/db"
 	"splajompy.com/api/v2/internal/db/queries"
 	"splajompy.com/api/v2/internal/models"
 	"splajompy.com/api/v2/internal/repositories"
-	"sync"
-	"time"
 )
 
 type FakePostRepository struct {
@@ -16,10 +18,10 @@ type FakePostRepository struct {
 	images       map[int][]queries.Image
 	postLikes    map[int]map[int]bool
 	commentCount map[int]int
-	pollVotes    map[int]map[int]int32
+	pollVotes    map[int]map[int]int
 	mutex        sync.RWMutex
 	nextPostId   int
-	nextImageId  int32
+	nextImageId  int
 }
 
 func NewFakePostRepository() *FakePostRepository {
@@ -30,7 +32,7 @@ func NewFakePostRepository() *FakePostRepository {
 		images:       make(map[int][]queries.Image),
 		postLikes:    make(map[int]map[int]bool),
 		commentCount: make(map[int]int),
-		pollVotes:    make(map[int]map[int]int32),
+		pollVotes:    make(map[int]map[int]int),
 		nextPostId:   1,
 		nextImageId:  1,
 	}
@@ -46,7 +48,7 @@ func (r *FakePostRepository) InsertPost(ctx context.Context, userId int, content
 	now := time.Now()
 	post := models.Post{
 		PostID:     postId,
-		UserID:     int32(userId),
+		UserID:     userId,
 		Text:       content,
 		Facets:     facets,
 		Attributes: attributes,
@@ -56,7 +58,7 @@ func (r *FakePostRepository) InsertPost(ctx context.Context, userId int, content
 	r.posts[postId] = post
 	r.postLikes[postId] = make(map[int]bool)
 	r.images[postId] = make([]queries.Image, 0)
-	r.pollVotes[postId] = make(map[int]int32)
+	r.pollVotes[postId] = make(map[int]int)
 
 	return &post, nil
 }
@@ -122,11 +124,10 @@ func (r *FakePostRepository) GetAllImagesForUser(ctx context.Context, userId int
 	defer r.mutex.RUnlock()
 
 	var allImages []queries.Image
-	userIdInt32 := int32(userId)
 
 	// Iterate through all posts to find ones by this user
 	for _, post := range r.posts {
-		if post.UserID == userIdInt32 {
+		if post.UserID == userId {
 			// Get images for this post
 			if images, exists := r.images[post.PostID]; exists {
 				allImages = append(allImages, images...)
@@ -151,11 +152,11 @@ func (r *FakePostRepository) InsertImage(ctx context.Context, postId int, height
 
 	image := queries.Image{
 		ImageID:      imageId,
-		PostID:       int32(id),
-		Height:       int32(height),
-		Width:        int32(width),
+		PostID:       id,
+		Height:       height,
+		Width:        width,
 		ImageBlobUrl: url,
-		DisplayOrder: int32(displayOrder),
+		DisplayOrder: displayOrder,
 	}
 
 	r.images[id] = append(r.images[id], image)
@@ -172,7 +173,7 @@ func (r *FakePostRepository) GetCommentCountForPost(ctx context.Context, postId 
 		return 0, errors.New("post not found")
 	}
 
-	return int(r.commentCount[id]), nil
+	return r.commentCount[id], nil
 }
 
 func (r *FakePostRepository) SetCommentCount(postId int, count int) {
@@ -201,7 +202,7 @@ func (r *FakePostRepository) GetPostIdsForUser(ctx context.Context, userId int, 
 
 	var userPostIds []int
 	for id, post := range r.posts {
-		if int(post.UserID) == userId {
+		if post.UserID == userId {
 			userPostIds = append(userPostIds, id)
 		}
 	}
@@ -254,7 +255,7 @@ func (r *FakePostRepository) GetPostIdsForMutualFeed(ctx context.Context, userId
 	var rows []queries.GetPostIdsForMutualFeedRow
 	for _, post := range r.posts {
 		row := queries.GetPostIdsForMutualFeedRow{
-			PostID:           int32(post.PostID),
+			PostID:           post.PostID,
 			UserID:           post.UserID,
 			RelationshipType: "friend",
 			MutualUsernames:  nil,
@@ -285,7 +286,7 @@ func (r *FakePostRepository) GetPollVotesGrouped(ctx context.Context, postId int
 	}
 
 	votes := r.pollVotes[postId]
-	optionCounts := make(map[int32]int64)
+	optionCounts := make(map[int]int64)
 
 	for _, optionIndex := range votes {
 		optionCounts[optionIndex]++
@@ -312,7 +313,7 @@ func (r *FakePostRepository) GetUserVoteInPoll(ctx context.Context, postId int, 
 
 	votes := r.pollVotes[postId]
 	if optionIndex, exists := votes[userId]; exists {
-		result := int(optionIndex)
+		result := optionIndex
 		return &result, nil
 	}
 
@@ -328,14 +329,14 @@ func (r *FakePostRepository) InsertVote(ctx context.Context, postId int, userId 
 	}
 
 	if r.pollVotes[postId] == nil {
-		r.pollVotes[postId] = make(map[int]int32)
+		r.pollVotes[postId] = make(map[int]int)
 	}
 
-	r.pollVotes[postId][userId] = int32(optionIndex)
+	r.pollVotes[postId][userId] = optionIndex
 	return nil
 }
 
-func (r *FakePostRepository) SetPollVote(userId int, postId int, optionIndex int32) error {
+func (r *FakePostRepository) SetPollVote(userId int, postId int, optionIndex int) error {
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
 
@@ -344,9 +345,91 @@ func (r *FakePostRepository) SetPollVote(userId int, postId int, optionIndex int
 	}
 
 	if r.pollVotes[postId] == nil {
-		r.pollVotes[postId] = make(map[int]int32)
+		r.pollVotes[postId] = make(map[int]int)
 	}
 
 	r.pollVotes[postId][userId] = optionIndex
 	return nil
+}
+
+// GetAllPostIdsCursor retrieves post IDs using cursor-based pagination
+func (r *FakePostRepository) GetAllPostIdsCursor(ctx context.Context, limit int, beforeTimestamp *time.Time, currentUserId int) ([]int, error) {
+	r.mutex.RLock()
+	defer r.mutex.RUnlock()
+
+	// Convert map to slice for sorting
+	type postWithId struct {
+		id   int
+		post *models.Post
+	}
+	var posts []postWithId
+	for id, post := range r.posts {
+		if beforeTimestamp == nil || post.CreatedAt.Before(*beforeTimestamp) {
+			posts = append(posts, postWithId{id: id, post: &post})
+		}
+	}
+
+	// Sort by CreatedAt DESC to match database behavior
+	sort.Slice(posts, func(i, j int) bool {
+		return posts[i].post.CreatedAt.After(posts[j].post.CreatedAt)
+	})
+
+	// Extract IDs and apply limit
+	var filteredIds []int
+	for i, post := range posts {
+		if i >= limit {
+			break
+		}
+		filteredIds = append(filteredIds, post.id)
+	}
+
+	return filteredIds, nil
+}
+
+// GetPostIdsForFollowingCursor retrieves post IDs from followed users using cursor-based pagination
+func (r *FakePostRepository) GetPostIdsForFollowingCursor(ctx context.Context, userId int, limit int, beforeTimestamp *time.Time) ([]int, error) {
+	// For simplicity, this fake implementation returns the same as GetAllPostIdsCursor
+	return r.GetAllPostIdsCursor(ctx, limit, beforeTimestamp, userId)
+}
+
+// GetPostIdsForMutualFeedCursor retrieves post IDs for mutual feed using cursor-based pagination
+func (r *FakePostRepository) GetPostIdsForMutualFeedCursor(ctx context.Context, userId int, limit int, beforeTimestamp *time.Time) ([]queries.GetPostIdsForMutualFeedCursorRow, error) {
+	r.mutex.RLock()
+	defer r.mutex.RUnlock()
+
+	var rows []queries.GetPostIdsForMutualFeedCursorRow
+	for _, post := range r.posts {
+		if beforeTimestamp == nil || post.CreatedAt.Before(*beforeTimestamp) {
+			row := queries.GetPostIdsForMutualFeedCursorRow{
+				PostID:           post.PostID,
+				UserID:           post.UserID,
+				RelationshipType: "friend",
+				MutualUsernames:  nil,
+			}
+			rows = append(rows, row)
+		}
+	}
+
+	if len(rows) > limit {
+		rows = rows[:limit]
+	}
+	return rows, nil
+}
+
+// GetPostIdsByUserIdCursor retrieves post IDs for a specific user using cursor-based pagination
+func (r *FakePostRepository) GetPostIdsByUserIdCursor(ctx context.Context, userId int, limit int, beforeTimestamp *time.Time) ([]int, error) {
+	r.mutex.RLock()
+	defer r.mutex.RUnlock()
+
+	var filteredIds []int
+	for id, post := range r.posts {
+		if post.UserID == userId && (beforeTimestamp == nil || post.CreatedAt.Before(*beforeTimestamp)) {
+			filteredIds = append(filteredIds, id)
+		}
+	}
+
+	if len(filteredIds) > limit {
+		filteredIds = filteredIds[:limit]
+	}
+	return filteredIds, nil
 }

@@ -2,12 +2,11 @@ package repositories
 
 import (
 	"context"
-	"github.com/jackc/pgx/v5/pgtype"
+
 	"splajompy.com/api/v2/internal/db"
 	"splajompy.com/api/v2/internal/db/queries"
 )
 
-// CommentRepository TODO: make the repository return a clone of queries.Comment that uses int rather than int32
 type CommentRepository interface {
 	AddCommentToPost(ctx context.Context, userId int, postId int, content string, facets db.Facets) (queries.Comment, error)
 	GetCommentById(ctx context.Context, commentId int) (queries.Comment, error)
@@ -26,28 +25,28 @@ type DBCommentRepository struct {
 // AddCommentToPost adds a new comment to a post
 func (r DBCommentRepository) AddCommentToPost(ctx context.Context, userId int, postId int, content string, facets db.Facets) (queries.Comment, error) {
 	return r.querier.AddCommentToPost(ctx, queries.AddCommentToPostParams{
-		PostID: int32(postId),
-		UserID: int32(userId),
+		PostID: postId,
+		UserID: userId,
 		Text:   content,
 		Facets: facets,
 	})
 }
 
 func (r DBCommentRepository) GetCommentById(ctx context.Context, commentId int) (queries.Comment, error) {
-	return r.querier.GetCommentById(ctx, int32(commentId))
+	return r.querier.GetCommentById(ctx, commentId)
 }
 
 // GetCommentsByPostId retrieves all comments for a specific post
 func (r DBCommentRepository) GetCommentsByPostId(ctx context.Context, postId int) ([]queries.GetCommentsByPostIdRow, error) {
-	return r.querier.GetCommentsByPostId(ctx, int32(postId))
+	return r.querier.GetCommentsByPostId(ctx, postId)
 }
 
 // IsCommentLikedByUser checks if a comment is liked by a specific user
 func (r DBCommentRepository) IsCommentLikedByUser(ctx context.Context, userId int, postId int, commentId int) (bool, error) {
 	return r.querier.GetIsLikedByUser(ctx, queries.GetIsLikedByUserParams{
-		UserID:    int32(userId),
-		PostID:    int32(postId),
-		CommentID: pgtype.Int4{Int32: int32(commentId), Valid: true},
+		UserID:    userId,
+		PostID:    postId,
+		CommentID: &commentId,
 		Column4:   false,
 	})
 }
@@ -55,9 +54,9 @@ func (r DBCommentRepository) IsCommentLikedByUser(ctx context.Context, userId in
 // AddLikeToComment adds a like to a comment
 func (r DBCommentRepository) AddLikeToComment(ctx context.Context, userId int, postId int, commentId int) error {
 	return r.querier.AddLike(ctx, queries.AddLikeParams{
-		PostID:    int32(postId),
-		CommentID: pgtype.Int4{Int32: int32(commentId), Valid: true},
-		UserID:    int32(userId),
+		PostID:    postId,
+		CommentID: &commentId,
+		UserID:    userId,
 		IsPost:    false,
 	})
 }
@@ -65,21 +64,21 @@ func (r DBCommentRepository) AddLikeToComment(ctx context.Context, userId int, p
 // RemoveLikeFromComment removes a like from a comment
 func (r DBCommentRepository) RemoveLikeFromComment(ctx context.Context, userId int, postId int, commentId int) error {
 	return r.querier.RemoveLike(ctx, queries.RemoveLikeParams{
-		PostID:    int32(postId),
-		CommentID: pgtype.Int4{Int32: int32(commentId), Valid: true},
-		UserID:    int32(userId),
+		PostID:    postId,
+		CommentID: &commentId,
+		UserID:    userId,
 		IsPost:    false,
 	})
 }
 
 // DeleteComment deletes a comment by ID
 func (r DBCommentRepository) DeleteComment(ctx context.Context, commentId int) error {
-	return r.querier.DeleteComment(ctx, int32(commentId))
+	return r.querier.DeleteComment(ctx, commentId)
 }
 
 // GetUserById retrieves a user by their ID
 func (r DBCommentRepository) GetUserById(ctx context.Context, userId int) (queries.User, error) {
-	return r.querier.GetUserById(ctx, int32(userId))
+	return r.querier.GetUserById(ctx, userId)
 }
 
 // NewDBCommentRepository creates a new comment repository

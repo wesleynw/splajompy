@@ -4,8 +4,14 @@ struct CredentialedLoginView: View {
   @Binding var isPresenting: Bool
   @Environment(\.dismiss) var dismiss
 
-  @Binding var identifier: String
+  @State private var identifier: String = ""
   @State private var password = ""
+  @State private var hasRequestedCode: Bool = false
+  @State private var shouldShowEmailView: Bool = false
+
+  init(isPresenting: Binding<Bool>) {
+    self._isPresenting = isPresenting
+  }
 
   @State var showError: Bool = false
   @State var errorMessage: String = ""
@@ -32,13 +38,20 @@ struct CredentialedLoginView: View {
             .cornerRadius(8)
             .textContentType(.username)
             #if os(iOS)
-              .autocapitalization(.none)
+              .autocorrectionDisabled()
             #endif
-            .autocorrectionDisabled()
             .focused($isIdentifierFieldFocused)
-            .onAppear { isIdentifierFieldFocused = true }
-            .padding(.bottom, 10)
+            .onAppear {
+              if identifier.isEmpty {
+                isIdentifierFieldFocused = true
+              } else {
+                isPasswordFieldFocused = true
+              }
+            }
+        }
+        .padding(.bottom, 10)
 
+        VStack(alignment: .leading, spacing: 5) {
           SecureField("Password", text: $password)
             .padding(12)
             .background(
@@ -62,9 +75,23 @@ struct CredentialedLoginView: View {
         Spacer()
 
         Button(action: {
+          shouldShowEmailView = true
+        }) {
+          HStack {
+            Spacer()
+            Text("Email me a code instead")
+              .font(.system(size: 16, weight: .bold))
+              .padding()
+            Spacer()
+          }
+          .frame(maxWidth: .infinity)
+        }
+        .disabled(authManager.isLoading)
+
+        Button(action: {
           Task {
             let (success, err) = await authManager.signInWithPassword(
-              identifier: identifier,
+              identifier: identifier.lowercased(),
               password: password
             )
             if !success {
@@ -80,7 +107,7 @@ struct CredentialedLoginView: View {
               Text("Continue")
                 .font(.system(size: 16, weight: .bold))
                 .foregroundColor(
-                  identifier.isEmpty ? Color.white.opacity(0.4) : Color.white
+                  password.isEmpty ? Color.primary.opacity(0.4) : Color.white
                 )
                 .padding()
               Spacer()
@@ -96,37 +123,18 @@ struct CredentialedLoginView: View {
             }
           }
           .background(
-            identifier.isEmpty ? Color.gray.opacity(0.3) : Color.accentColor
+            password.isEmpty ? Color.secondary.opacity(0.3) : Color.accentColor
           )
           .cornerRadius(10)
         }
-        .disabled(authManager.isLoading || identifier.isEmpty)
+        .disabled(
+          authManager.isLoading || password.isEmpty || identifier.isEmpty
+        )
         .padding(.bottom, 8)
 
-        Button {
-          dismiss()
-        } label: {
-          HStack {
-            Spacer()
-            Text("Log in with email")
-              .font(.system(size: 16, weight: .bold))
-              .padding()
-            Spacer()
-          }
-          .background(Color.clear)
-          .overlay(
-            RoundedRectangle(cornerRadius: 10)
-              .stroke(Color.primary, lineWidth: 2)
-          )
-          .frame(maxWidth: .infinity)
-          .cornerRadius(10)
-        }
-        .buttonStyle(.plain)
       }
-      .padding(.horizontal, 24)
-      .padding(.vertical, 32)
+      .padding()
       .navigationTitle("Sign In")
-      .navigationBarBackButtonHidden()
       .toolbar {
         ToolbarItem(
           placement: {
@@ -140,10 +148,17 @@ struct CredentialedLoginView: View {
           CloseButton(onClose: { isPresenting = false })
         }
       }
+      .navigationDestination(isPresented: $shouldShowEmailView) {
+        EmailInputView(identifier: $identifier, isPresenting: $isPresenting)
+          .environmentObject(authManager)
+      }
       .alert(isPresented: $showError) {
         Alert(
           title: Text("Sign In Failed"),
-          message: Text("Try again with a different Username or Email."),
+          message: Text(
+            errorMessage.isEmpty
+              ? "Try again with a different Username or Email." : errorMessage
+          ),
           dismissButton: .default(Text("OK"))
         )
       }
@@ -153,8 +168,7 @@ struct CredentialedLoginView: View {
 
 #Preview {
   @Previewable @State var isPresenting = true
-  @Previewable @State var identifier = "wesleynw@pm.me"
 
-  CredentialedLoginView(isPresenting: $isPresenting, identifier: $identifier)
+  CredentialedLoginView(isPresenting: $isPresenting)
     .environmentObject(AuthManager())
 }

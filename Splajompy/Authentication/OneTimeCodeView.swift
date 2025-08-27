@@ -12,6 +12,11 @@ struct OneTimeCodeView: View {
 
   var body: some View {
     VStack(alignment: .leading) {
+      Text("You should receive a verification email momentarily.")
+        .font(.body)
+        .foregroundColor(.secondary)
+        .padding(.bottom, 20)
+
       TextField("Code", text: $oneTimeCode)
         .padding(12)
         .background(
@@ -51,14 +56,23 @@ struct OneTimeCodeView: View {
             Text("Continue")
               .font(.system(size: 16, weight: .bold))
               .foregroundColor(
-                oneTimeCode.isEmpty ? Color.white.opacity(0.4) : Color.white
+                oneTimeCode.isEmpty ? Color.primary.opacity(0.4) : Color.white
               )
               .padding()
             Spacer()
           }
+
+          if authManager.isLoading {
+            HStack {
+              Spacer()
+              ProgressView()
+                .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                .padding(.trailing, 16)
+            }
+          }
         }
         .background(
-          oneTimeCode.isEmpty ? Color.gray.opacity(0.3) : Color.accentColor
+          oneTimeCode.isEmpty ? Color.secondary.opacity(0.3) : Color.accentColor
         )
         .cornerRadius(10)
       }

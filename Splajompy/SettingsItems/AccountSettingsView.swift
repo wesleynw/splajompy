@@ -75,87 +75,89 @@ struct AccountSettingsView: View {
       .navigationBarTitleDisplayMode(.inline)
     #endif
     .sheet(isPresented: $isShowingDeleteAccountSheet) {
-      VStack(spacing: 24) {
-        VStack(spacing: 16) {
-          Image(systemName: "exclamationmark.triangle.fill")
-            .font(.system(size: 50))
-            .foregroundColor(.red)
-
-          Text("Delete Account")
-            .font(.title2)
-            .fontWeight(.bold)
-
-          Text(
-            "Enter your password to confirm account deletion. This action cannot be undone."
-          )
-          .font(.body)
-          .multilineTextAlignment(.center)
-          .foregroundColor(.secondary)
-        }
-
-        VStack(alignment: .leading, spacing: 8) {
-          SecureField("Password", text: $deleteAccountPassword)
-            .padding(12)
-            .background(
-              RoundedRectangle(cornerRadius: 8)
-                .stroke(Color.gray.opacity(0.75), lineWidth: 1)
-            )
-            .textContentType(.password)
-            #if os(iOS)
-              .autocapitalization(.none)
-            #endif
-            .autocorrectionDisabled()
-
-          if !deleteAccountError.isEmpty {
-            Text(deleteAccountError)
-              .font(.caption)
+      ScrollView {
+        VStack(spacing: 24) {
+          VStack(spacing: 16) {
+            Image(systemName: "exclamationmark.triangle.fill")
+              .font(.system(size: 50))
               .foregroundColor(.red)
+
+            Text("Delete Account")
+              .font(.title2)
+              .fontWeight(.bold)
+
+            Text(
+              "Enter your password to confirm account deletion. This action cannot be undone."
+            )
+            .font(.body)
+            .multilineTextAlignment(.center)
+            .foregroundColor(.secondary)
           }
-        }
 
-        Spacer()
-
-        VStack(spacing: 12) {
-          Button(action: {
-            Task {
-              let (success, error) = await authManager.deleteAccount(
-                password: deleteAccountPassword
+          VStack(alignment: .leading, spacing: 8) {
+            SecureField("Password", text: $deleteAccountPassword)
+              .padding(12)
+              .background(
+                RoundedRectangle(cornerRadius: 8)
+                  .stroke(Color.gray.opacity(0.75), lineWidth: 1)
               )
-              if !success {
-                deleteAccountError = error
-              } else {
-                isShowingDeleteAccountSheet = false
-              }
+              .textContentType(.password)
+              #if os(iOS)
+                .autocapitalization(.none)
+              #endif
+              .autocorrectionDisabled()
+
+            if !deleteAccountError.isEmpty {
+              Text(deleteAccountError)
+                .font(.caption)
+                .foregroundColor(.red)
             }
-          }) {
-            HStack {
-              if authManager.isLoading {
-                ProgressView()
-                  .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                  .scaleEffect(0.8)
+          }
+
+          Spacer(minLength: 24)
+
+          VStack(spacing: 12) {
+            Button(action: {
+              Task {
+                let (success, error) = await authManager.deleteAccount(
+                  password: deleteAccountPassword
+                )
+                if !success {
+                  deleteAccountError = error
+                } else {
+                  isShowingDeleteAccountSheet = false
+                }
               }
-              Text("Delete Account")
-                .fontWeight(.semibold)
+            }) {
+              HStack {
+                if authManager.isLoading {
+                  ProgressView()
+                    .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                    .scaleEffect(0.8)
+                }
+                Text("Delete Account")
+                  .fontWeight(.semibold)
+              }
+              .frame(maxWidth: .infinity)
+              .padding()
+              .background(Color.red)
+              .foregroundColor(.white)
+              .containerShape(RoundedRectangle(cornerRadius: 10))
+            }
+            .disabled(deleteAccountPassword.isEmpty || authManager.isLoading)
+
+            Button("Cancel") {
+              isShowingDeleteAccountSheet = false
+              deleteAccountPassword = ""
+              deleteAccountError = ""
             }
             .frame(maxWidth: .infinity)
             .padding()
-            .background(Color.red)
-            .foregroundColor(.white)
             .containerShape(RoundedRectangle(cornerRadius: 10))
           }
-          .disabled(deleteAccountPassword.isEmpty || authManager.isLoading)
-
-          Button("Cancel") {
-            isShowingDeleteAccountSheet = false
-            deleteAccountPassword = ""
-            deleteAccountError = ""
-          }
-          .frame(maxWidth: .infinity)
-          .padding()
-          .containerShape(RoundedRectangle(cornerRadius: 10))
         }
+        .padding(24)
       }
-      .padding(24)
     }
   }
 

@@ -15,23 +15,24 @@ type Querier interface {
 	CreateSession(ctx context.Context, arg CreateSessionParams) error
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
 	CreateVerificationCode(ctx context.Context, arg CreateVerificationCodeParams) error
-	DeleteComment(ctx context.Context, commentID int32) error
+	DeleteComment(ctx context.Context, commentID int) error
 	DeleteFollow(ctx context.Context, arg DeleteFollowParams) error
-	DeleteNotificationById(ctx context.Context, notificationID int32) error
-	DeletePost(ctx context.Context, postID int32) error
+	DeleteNotificationById(ctx context.Context, notificationID int) error
+	DeletePost(ctx context.Context, postID int) error
 	DeleteSession(ctx context.Context, id string) error
-	DeleteUserById(ctx context.Context, userID int32) error
+	DeleteUserById(ctx context.Context, userID int) error
 	FindUnreadLikeNotificationForComment(ctx context.Context, arg FindUnreadLikeNotificationForCommentParams) (Notification, error)
 	FindUnreadLikeNotificationForPost(ctx context.Context, arg FindUnreadLikeNotificationForPostParams) (Notification, error)
-	GetAllImagesByUserId(ctx context.Context, userID int32) ([]Image, error)
-	GetAllPostIds(ctx context.Context, arg GetAllPostIdsParams) ([]int32, error)
-	GetBioByUserId(ctx context.Context, userID int32) (string, error)
-	GetCommentById(ctx context.Context, commentID int32) (Comment, error)
-	GetCommentCountByPostID(ctx context.Context, postID int32) (int64, error)
-	GetCommentsByPostId(ctx context.Context, postID int32) ([]GetCommentsByPostIdRow, error)
+	GetAllImagesByUserId(ctx context.Context, userID int) ([]Image, error)
+	GetAllPostIds(ctx context.Context, arg GetAllPostIdsParams) ([]int, error)
+	GetAllPostIdsCursor(ctx context.Context, arg GetAllPostIdsCursorParams) ([]int, error)
+	GetBioByUserId(ctx context.Context, userID int) (string, error)
+	GetCommentById(ctx context.Context, commentID int) (Comment, error)
+	GetCommentCountByPostID(ctx context.Context, postID int) (int64, error)
+	GetCommentsByPostId(ctx context.Context, postID int) ([]GetCommentsByPostIdRow, error)
 	GetFollowersByUserId(ctx context.Context, arg GetFollowersByUserIdParams) ([]GetFollowersByUserIdRow, error)
 	GetFollowingByUserId(ctx context.Context, arg GetFollowingByUserIdParams) ([]GetFollowingByUserIdRow, error)
-	GetImagesByPostId(ctx context.Context, postID int32) ([]Image, error)
+	GetImagesByPostId(ctx context.Context, postID int) ([]Image, error)
 	GetIsEmailInUse(ctx context.Context, email string) (bool, error)
 	GetIsLikedByUser(ctx context.Context, arg GetIsLikedByUserParams) (bool, error)
 	GetIsPostLikedByUser(ctx context.Context, arg GetIsPostLikedByUserParams) (bool, error)
@@ -39,24 +40,27 @@ type Querier interface {
 	GetIsUserFollowingUser(ctx context.Context, arg GetIsUserFollowingUserParams) (bool, error)
 	GetIsUsernameInUse(ctx context.Context, username string) (bool, error)
 	GetMutualConnectionsForUser(ctx context.Context, arg GetMutualConnectionsForUserParams) ([]string, error)
-	GetNotificationById(ctx context.Context, notificationID int32) (Notification, error)
+	GetNotificationById(ctx context.Context, notificationID int) (Notification, error)
 	GetNotificationsForUserId(ctx context.Context, arg GetNotificationsForUserIdParams) ([]Notification, error)
-	GetPollVotesGrouped(ctx context.Context, postID int32) ([]GetPollVotesGroupedRow, error)
-	GetPostById(ctx context.Context, postID int32) (Post, error)
-	GetPostIdsByFollowing(ctx context.Context, arg GetPostIdsByFollowingParams) ([]int32, error)
+	GetPollVotesGrouped(ctx context.Context, postID int) ([]GetPollVotesGroupedRow, error)
+	GetPostById(ctx context.Context, postID int) (Post, error)
+	GetPostIdsByFollowing(ctx context.Context, arg GetPostIdsByFollowingParams) ([]int, error)
+	GetPostIdsByFollowingCursor(ctx context.Context, arg GetPostIdsByFollowingCursorParams) ([]int, error)
+	GetPostIdsByUserIdCursor(ctx context.Context, arg GetPostIdsByUserIdCursorParams) ([]int, error)
 	GetPostIdsForMutualFeed(ctx context.Context, arg GetPostIdsForMutualFeedParams) ([]GetPostIdsForMutualFeedRow, error)
+	GetPostIdsForMutualFeedCursor(ctx context.Context, arg GetPostIdsForMutualFeedCursorParams) ([]GetPostIdsForMutualFeedCursorRow, error)
 	GetPostLikesFromFollowers(ctx context.Context, arg GetPostLikesFromFollowersParams) ([]GetPostLikesFromFollowersRow, error)
-	GetPostsIdsByUserId(ctx context.Context, arg GetPostsIdsByUserIdParams) ([]int32, error)
+	GetPostsIdsByUserId(ctx context.Context, arg GetPostsIdsByUserIdParams) ([]int, error)
 	GetReadNotificationsForUserIdWithTimeOffset(ctx context.Context, arg GetReadNotificationsForUserIdWithTimeOffsetParams) ([]Notification, error)
 	GetSessionById(ctx context.Context, id string) (Session, error)
 	GetUnreadNotificationsForUserId(ctx context.Context, arg GetUnreadNotificationsForUserIdParams) ([]Notification, error)
 	GetUnreadNotificationsForUserIdWithTimeOffset(ctx context.Context, arg GetUnreadNotificationsForUserIdWithTimeOffsetParams) ([]Notification, error)
-	GetUserById(ctx context.Context, userID int32) (User, error)
+	GetUserById(ctx context.Context, userID int) (User, error)
 	GetUserByIdentifier(ctx context.Context, email string) (User, error)
 	GetUserByUsername(ctx context.Context, username string) (User, error)
-	GetUserUnreadNotificationCount(ctx context.Context, userID int32) (int64, error)
-	GetUserVoteInPoll(ctx context.Context, arg GetUserVoteInPollParams) (int32, error)
-	GetUserWithPasswordById(ctx context.Context, userID int32) (User, error)
+	GetUserUnreadNotificationCount(ctx context.Context, userID int) (int64, error)
+	GetUserVoteInPoll(ctx context.Context, arg GetUserVoteInPollParams) (int, error)
+	GetUserWithPasswordById(ctx context.Context, userID int) (User, error)
 	GetUserWithPasswordByIdentifier(ctx context.Context, email string) (User, error)
 	GetUsernameLike(ctx context.Context, arg GetUsernameLikeParams) ([]User, error)
 	GetVerificationCode(ctx context.Context, arg GetVerificationCodeParams) (VerificationCode, error)
@@ -66,13 +70,14 @@ type Querier interface {
 	InsertNotification(ctx context.Context, arg InsertNotificationParams) error
 	InsertPost(ctx context.Context, arg InsertPostParams) (Post, error)
 	InsertVote(ctx context.Context, arg InsertVoteParams) error
-	MarkAllNotificationsAsReadForUser(ctx context.Context, userID int32) error
-	MarkNotificationAsReadById(ctx context.Context, notificationID int32) error
+	MarkAllNotificationsAsReadForUser(ctx context.Context, userID int) error
+	MarkNotificationAsReadById(ctx context.Context, notificationID int) error
 	RemoveLike(ctx context.Context, arg RemoveLikeParams) error
 	UnblockUser(ctx context.Context, arg UnblockUserParams) error
+	UpdateSessionExpiry(ctx context.Context, arg UpdateSessionExpiryParams) error
 	UpdateUserBio(ctx context.Context, arg UpdateUserBioParams) error
 	UpdateUserName(ctx context.Context, arg UpdateUserNameParams) error
-	UserHasUnreadNotifications(ctx context.Context, userID int32) (bool, error)
+	UserHasUnreadNotifications(ctx context.Context, userID int) (bool, error)
 }
 
 var _ Querier = (*Queries)(nil)

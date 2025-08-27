@@ -4,11 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/google/uuid"
 	"net/url"
-	"strings"
 	"sync"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type FakeBucketRepository struct {
@@ -133,9 +133,4 @@ func (r *FakeBucketRepository) SetCDNBaseURL(url string) {
 	defer r.mutex.Unlock()
 
 	r.cdnBaseURL = url
-}
-
-func GetDestinationKey(environment string, userID, postID int32, sourceKey string) string {
-	filename := sourceKey[strings.LastIndex(sourceKey, "/"):]
-	return fmt.Sprintf("%s/posts/%d/%d%s", environment, userID, postID, filename)
 }

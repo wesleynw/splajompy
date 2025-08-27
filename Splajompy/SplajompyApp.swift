@@ -12,18 +12,22 @@ struct SplajompyApp: App {
     NavigationPath(),
   ]
 
-  @StateObject private var authManager = AuthManager()
+  @StateObject private var authManager = AuthManager.shared
   private var postManager = PostManager()
   @AppStorage("appearance_mode") var appearanceMode: String = "Automatic"
 
   init() {
-    let posthogApiKey = "phc_sSDHxTCqpjwoSDSOQiNAAgmybjEakfePBsaNHWaWy74"
-    let config = PostHogConfig(apiKey: posthogApiKey)
-    config.captureScreenViews = false
-    PostHogSDK.shared.setup(config)
+    #if !DEBUG
+      let posthogApiKey = "phc_sSDHxTCqpjwoSDSOQiNAAgmybjEakfePBsaNHWaWy74"
+      let config = PostHogConfig(apiKey: posthogApiKey)
+      config.captureScreenViews = false
+      PostHogSDK.shared.setup(config)
+    #endif
 
     var cacheConfig = ImagePipeline.Configuration.withDataCache(
-      name: "media-cache", sizeLimit: 2000)
+      name: "media-cache",
+      sizeLimit: 2000
+    )
     cacheConfig.dataCachePolicy = .storeEncodedImages  // cache processed images
     ImagePipeline.shared = ImagePipeline(configuration: cacheConfig)
   }

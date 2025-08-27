@@ -22,24 +22,26 @@ struct RegisterView: View {
 
   var body: some View {
     NavigationStack {
-      VStack {
-        VStack(alignment: .leading, spacing: 5) {
-          usernameField
-          usernameErrorView
-          emailField
-          emailErrorView
-          passwordField
-          passwordErrorView
-          generalErrorView
+      ScrollView {
+        VStack {
+          VStack(alignment: .leading, spacing: 5) {
+            usernameField
+            usernameErrorView
+            emailField
+            emailErrorView
+            passwordField
+            passwordErrorView
+            generalErrorView
+          }
+          .padding(.bottom, 10)
+
+          Spacer(minLength: 24)
+
+          bottomSection
         }
-        .padding(.bottom, 10)
-
-        Spacer()
-
-        bottomSection
+        .padding(.horizontal, 24)
+        .padding(.vertical, 32)
       }
-      .padding(.horizontal, 24)
-      .padding(.vertical, 32)
       .navigationTitle("Register")
       .navigationBarBackButtonHidden()
       .toolbar {
@@ -132,7 +134,7 @@ struct RegisterView: View {
           )
       )
       .cornerRadius(8)
-      .textContentType(.password)
+      .textContentType(.newPassword)
       #if os(iOS)
         .autocapitalization(.none)
         .autocorrectionDisabled()
@@ -177,8 +179,8 @@ struct RegisterView: View {
 
   private var bottomSection: some View {
     VStack(spacing: 12) {
-      termsText
       continueButton
+      termsText
     }
     .padding(.bottom, 8)
   }

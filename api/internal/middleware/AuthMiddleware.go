@@ -2,12 +2,16 @@ package middleware
 
 import (
 	"context"
+	"fmt"
+	"net/http"
+	"strings"
+	"time"
+
+	"github.com/jackc/pgx/v5/pgtype"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
-	"net/http"
 	"splajompy.com/api/v2/internal/db/queries"
 	"splajompy.com/api/v2/internal/utilities"
-	"strings"
 )
 
 func AuthMiddleware(q *queries.Queries) func(http.Handler) http.Handler {
@@ -54,6 +58,22 @@ func AuthMiddleware(q *queries.Queries) func(http.Handler) http.Handler {
 			//	return
 			//}
 
+			// extend session if it's getting old (more than 30 days since creation)
+			thirtyDaysAgo := time.Now().Add(-time.Hour * 24 * 30)
+			if session.ExpiresAt.Time.Before(thirtyDaysAgo) {
+				newExpiry := time.Now().Add(time.Hour * 24 * 90)
+				err = q.UpdateSessionExpiry(ctx, queries.UpdateSessionExpiryParams{
+					ID: session.ID,
+					ExpiresAt: pgtype.Timestamp{
+						Time:  newExpiry,
+						Valid: true,
+					},
+				})
+				if err != nil {
+					fmt.Printf("Failed to extend session: %v\n", err)
+				}
+			}
+
 			dbUser, err := q.GetUserById(ctx, session.UserID)
 			if err != nil {
 				http.Error(w, "user not found", http.StatusUnauthorized)
@@ -63,7 +83,7 @@ func AuthMiddleware(q *queries.Queries) func(http.Handler) http.Handler {
 			publicUser := utilities.MapUserToPublicUser(dbUser)
 
 			span := trace.SpanFromContext(ctx)
-			span.SetAttributes(attribute.Int("user.id", int(session.UserID)))
+			span.SetAttributes(attribute.Int("user.id", session.UserID))
 
 			ctx = context.WithValue(ctx, utilities.UserContextKey, publicUser)
 			r = r.WithContext(ctx)

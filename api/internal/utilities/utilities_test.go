@@ -10,12 +10,12 @@ import (
 	"splajompy.com/api/v2/internal/db/queries"
 )
 
-func TestMapNotification_WithInvalidPostIDAndCommentID(t *testing.T) {
+func TestMapNotification_WithZeroPostIDAndCommentID(t *testing.T) {
 	notification := queries.Notification{
 		NotificationID: 123,
 		UserID:         456,
-		PostID:         pgtype.Int4{Int32: 0, Valid: false},
-		CommentID:      pgtype.Int4{Int32: 0, Valid: false},
+		PostID:         nil,
+		CommentID:      nil,
 		Message:        "Test notification",
 		Link:           pgtype.Text{String: "https://example.com", Valid: true},
 		Viewed:         false,
@@ -25,8 +25,8 @@ func TestMapNotification_WithInvalidPostIDAndCommentID(t *testing.T) {
 
 	result := MapNotification(notification)
 
-	assert.Nil(t, result.PostID, "PostID should be nil when pgtype.Int4.Valid is false")
-	assert.Nil(t, result.CommentID, "CommentID should be nil when pgtype.Int4.Valid is false")
+	assert.Nil(t, result.PostID, "PostID should be nil when it's nil")
+	assert.Nil(t, result.CommentID, "CommentID should be nil when it's nil")
 
 	assert.Equal(t, 123, result.NotificationID)
 	assert.NotNil(t, result.UserID, "UserID should not be nil when it has a valid value")
@@ -37,13 +37,15 @@ func TestMapNotification_WithInvalidPostIDAndCommentID(t *testing.T) {
 }
 
 func TestMapNotification_WithValidPostIDAndCommentID(t *testing.T) {
-	// Test that when pgtype.Int4 fields have Valid=true, values are mapped correctly
+	// Test that when int fields have non-zero values, they are mapped correctly
 
+	postID := 789
+	commentID := 101112
 	notification := queries.Notification{
 		NotificationID: 123,
 		UserID:         456,
-		PostID:         pgtype.Int4{Int32: 789, Valid: true},
-		CommentID:      pgtype.Int4{Int32: 101112, Valid: true},
+		PostID:         &postID,
+		CommentID:      &commentID,
 		Message:        "Test notification",
 		Link:           pgtype.Text{String: "https://example.com", Valid: true},
 		Viewed:         true,

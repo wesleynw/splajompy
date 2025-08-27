@@ -13,27 +13,27 @@ import (
 )
 
 type FakeUserRepository struct {
-	users             map[int32]models.PublicUser
-	usersByUsername   map[string]int32
-	usersByEmail      map[string]int32
-	userBios          map[int32]string
-	passwords         map[int32]string
-	followRelations   map[int32]map[int32]bool
-	verificationCodes map[int32]map[string]queries.VerificationCode
+	users             map[int]models.PublicUser
+	usersByUsername   map[string]int
+	usersByEmail      map[string]int
+	userBios          map[int]string
+	passwords         map[int]string
+	followRelations   map[int]map[int]bool
+	verificationCodes map[int]map[string]queries.VerificationCode
 	sessions          map[string]queries.Session
 	mutex             sync.RWMutex
-	nextUserId        int32
+	nextUserId        int
 }
 
 func NewFakeUserRepository() *FakeUserRepository {
 	return &FakeUserRepository{
-		users:             make(map[int32]models.PublicUser),
-		usersByUsername:   make(map[string]int32),
-		usersByEmail:      make(map[string]int32),
-		userBios:          make(map[int32]string),
-		passwords:         make(map[int32]string),
-		followRelations:   make(map[int32]map[int32]bool),
-		verificationCodes: make(map[int32]map[string]queries.VerificationCode),
+		users:             make(map[int]models.PublicUser),
+		usersByUsername:   make(map[string]int),
+		usersByEmail:      make(map[string]int),
+		userBios:          make(map[int]string),
+		passwords:         make(map[int]string),
+		followRelations:   make(map[int]map[int]bool),
+		verificationCodes: make(map[int]map[string]queries.VerificationCode),
 		sessions:          make(map[string]queries.Session),
 		nextUserId:        1,
 	}
@@ -43,7 +43,7 @@ func (r *FakeUserRepository) GetUserById(ctx context.Context, userId int) (model
 	r.mutex.RLock()
 	defer r.mutex.RUnlock()
 
-	id := int32(userId)
+	id := userId
 	user, exists := r.users[id]
 	if !exists {
 		return models.PublicUser{}, errors.New("user not found")
@@ -85,7 +85,7 @@ func (r *FakeUserRepository) GetBioForUser(ctx context.Context, userId int) (str
 	r.mutex.RLock()
 	defer r.mutex.RUnlock()
 
-	id := int32(userId)
+	id := userId
 	if _, exists := r.users[id]; !exists {
 		return "", errors.New("user not found")
 	}
@@ -102,7 +102,7 @@ func (r *FakeUserRepository) UpdateBio(ctx context.Context, userId int, bio stri
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
 
-	id := int32(userId)
+	id := userId
 	if _, exists := r.users[id]; !exists {
 		return errors.New("user not found")
 	}
@@ -115,12 +115,12 @@ func (r *FakeUserRepository) IsUserFollowingUser(ctx context.Context, followerId
 	r.mutex.RLock()
 	defer r.mutex.RUnlock()
 
-	fId := int32(followerId)
+	fId := followerId
 	if _, exists := r.users[fId]; !exists {
 		return false, errors.New("follower not found")
 	}
 
-	tId := int32(followingId)
+	tId := followingId
 	if _, exists := r.users[tId]; !exists {
 		return false, errors.New("following user not found")
 	}
@@ -137,18 +137,18 @@ func (r *FakeUserRepository) FollowUser(_ context.Context, followerId int, follo
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
 
-	fId := int32(followerId)
+	fId := followerId
 	if _, exists := r.users[fId]; !exists {
 		return errors.New("follower not found")
 	}
 
-	tId := int32(followingId)
+	tId := followingId
 	if _, exists := r.users[tId]; !exists {
 		return errors.New("following user not found")
 	}
 
 	if r.followRelations[fId] == nil {
-		r.followRelations[fId] = make(map[int32]bool)
+		r.followRelations[fId] = make(map[int]bool)
 	}
 
 	r.followRelations[fId][tId] = true
@@ -159,12 +159,12 @@ func (r *FakeUserRepository) UnfollowUser(ctx context.Context, followerId int, f
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
 
-	fId := int32(followerId)
+	fId := followerId
 	if _, exists := r.users[fId]; !exists {
 		return errors.New("follower not found")
 	}
 
-	tId := int32(followingId)
+	tId := followingId
 	if _, exists := r.users[tId]; !exists {
 		return errors.New("following user not found")
 	}
@@ -198,7 +198,7 @@ func (r *FakeUserRepository) UpdateUserName(ctx context.Context, userId int, new
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
 
-	id := int32(userId)
+	id := userId
 	user, exists := r.users[id]
 	if !exists {
 		return errors.New("user not found")
@@ -245,7 +245,7 @@ func (r *FakeUserRepository) CreateUser(ctx context.Context, username string, em
 
 	now := time.Now()
 	user := models.PublicUser{
-		UserID:    int(userId),
+		UserID:    userId,
 		Email:     email,
 		Username:  username,
 		CreatedAt: now.UTC(),
@@ -256,7 +256,7 @@ func (r *FakeUserRepository) CreateUser(ctx context.Context, username string, em
 	r.usersByUsername[username] = userId
 	r.usersByEmail[email] = userId
 	r.passwords[userId] = password
-	r.followRelations[userId] = make(map[int32]bool)
+	r.followRelations[userId] = make(map[int]bool)
 
 	return user, nil
 }
@@ -265,7 +265,7 @@ func (r *FakeUserRepository) GetVerificationCode(ctx context.Context, userId int
 	r.mutex.RLock()
 	defer r.mutex.RUnlock()
 
-	id := int32(userId)
+	id := userId
 	if _, exists := r.users[id]; !exists {
 		return queries.VerificationCode{}, errors.New("user not found")
 	}
@@ -287,7 +287,7 @@ func (r *FakeUserRepository) CreateVerificationCode(ctx context.Context, userId 
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
 
-	id := int32(userId)
+	id := userId
 	if _, exists := r.users[id]; !exists {
 		return errors.New("user not found")
 	}
@@ -297,7 +297,7 @@ func (r *FakeUserRepository) CreateVerificationCode(ctx context.Context, userId 
 	}
 
 	r.verificationCodes[id][code] = queries.VerificationCode{
-		UserID:    id,
+		UserID:    userId,
 		Code:      code,
 		ExpiresAt: pgtype.Timestamp{Time: expiresAt, Valid: true},
 	}
@@ -309,7 +309,7 @@ func (r *FakeUserRepository) GetUserPasswordByIdentifier(ctx context.Context, id
 	r.mutex.RLock()
 	defer r.mutex.RUnlock()
 
-	var userId int32
+	var userId int
 	var exists bool
 
 	// Check if identifier is an email
@@ -332,14 +332,14 @@ func (r *FakeUserRepository) CreateSession(ctx context.Context, sessionId string
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
 
-	id := int32(userId)
+	id := userId
 	if _, exists := r.users[id]; !exists {
 		return errors.New("user not found")
 	}
 
 	r.sessions[sessionId] = queries.Session{
 		ID:        sessionId,
-		UserID:    id,
+		UserID:    userId,
 		ExpiresAt: pgtype.Timestamp{Time: expiresAt, Valid: true},
 	}
 
@@ -367,15 +367,15 @@ func (r *FakeUserRepository) SetUserBio(userId int, bio string) {
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
 
-	r.userBios[int32(userId)] = bio
+	r.userBios[userId] = bio
 }
 
-func (r *FakeUserRepository) GetFollowersForUser(userId int) []int32 {
+func (r *FakeUserRepository) GetFollowersForUser(userId int) []int {
 	r.mutex.RLock()
 	defer r.mutex.RUnlock()
 
-	var followers []int32
-	id := int32(userId)
+	var followers []int
+	id := userId
 
 	for followerId, following := range r.followRelations {
 		if following[id] {
@@ -386,17 +386,17 @@ func (r *FakeUserRepository) GetFollowersForUser(userId int) []int32 {
 	return followers
 }
 
-func (r *FakeUserRepository) GetFollowingForUser(userId int) []int32 {
+func (r *FakeUserRepository) GetFollowingForUser(userId int) []int {
 	r.mutex.RLock()
 	defer r.mutex.RUnlock()
 
-	id := int32(userId)
+	id := userId
 	following, exists := r.followRelations[id]
 	if !exists {
-		return []int32{}
+		return []int{}
 	}
 
-	var followingIds []int32
+	var followingIds []int
 	for followingId, isFollowing := range following {
 		if isFollowing {
 			followingIds = append(followingIds, followingId)
@@ -422,7 +422,7 @@ func (r *FakeUserRepository) DeleteAccount(ctx context.Context, userId int) erro
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
 
-	id := int32(userId)
+	id := userId
 	user, exists := r.users[id]
 	if !exists {
 		return errors.New("user not found")
@@ -447,7 +447,7 @@ func (r *FakeUserRepository) DeleteAccount(ctx context.Context, userId int) erro
 
 	// Clean up sessions
 	for sessionId, session := range r.sessions {
-		if session.UserID == id {
+		if session.UserID == userId {
 			delete(r.sessions, sessionId)
 		}
 	}
@@ -467,16 +467,16 @@ func (r *FakeUserRepository) GetFollowersByUserId(ctx context.Context, userId in
 	defer r.mutex.RUnlock()
 
 	var followers []queries.GetFollowersByUserIdRow
-	
+
 	// Find all users who follow the given userId
 	for followerId, following := range r.followRelations {
-		if following[int32(userId)] {
+		if following[userId] {
 			if user, exists := r.users[followerId]; exists {
 				var name pgtype.Text
 				if user.Name != "" {
 					name = pgtype.Text{String: user.Name, Valid: true}
 				}
-				
+
 				followers = append(followers, queries.GetFollowersByUserIdRow{
 					UserID:    followerId,
 					Email:     user.Email,
@@ -487,7 +487,7 @@ func (r *FakeUserRepository) GetFollowersByUserId(ctx context.Context, userId in
 			}
 		}
 	}
-	
+
 	// Simple pagination
 	start := offset
 	end := offset + limit
@@ -497,7 +497,7 @@ func (r *FakeUserRepository) GetFollowersByUserId(ctx context.Context, userId in
 	if end > len(followers) {
 		end = len(followers)
 	}
-	
+
 	return followers[start:end], nil
 }
 
@@ -506,9 +506,9 @@ func (r *FakeUserRepository) GetFollowingByUserId(ctx context.Context, userId in
 	defer r.mutex.RUnlock()
 
 	var following []queries.GetFollowingByUserIdRow
-	
+
 	// Get the users that the given userId is following
-	if userFollowing, exists := r.followRelations[int32(userId)]; exists {
+	if userFollowing, exists := r.followRelations[userId]; exists {
 		for followingId, isFollowing := range userFollowing {
 			if isFollowing {
 				if user, exists := r.users[followingId]; exists {
@@ -516,7 +516,7 @@ func (r *FakeUserRepository) GetFollowingByUserId(ctx context.Context, userId in
 					if user.Name != "" {
 						name = pgtype.Text{String: user.Name, Valid: true}
 					}
-					
+
 					following = append(following, queries.GetFollowingByUserIdRow{
 						UserID:    followingId,
 						Email:     user.Email,
@@ -528,7 +528,7 @@ func (r *FakeUserRepository) GetFollowingByUserId(ctx context.Context, userId in
 			}
 		}
 	}
-	
+
 	// Simple pagination
 	start := offset
 	end := offset + limit
@@ -538,6 +538,6 @@ func (r *FakeUserRepository) GetFollowingByUserId(ctx context.Context, userId in
 	if end > len(following) {
 		end = len(following)
 	}
-	
+
 	return following[start:end], nil
 }

@@ -17,7 +17,7 @@ DELETE FROM posts
 WHERE post_id = $1
 `
 
-func (q *Queries) DeletePost(ctx context.Context, postID int32) error {
+func (q *Queries) DeletePost(ctx context.Context, postID int) error {
 	_, err := q.db.Exec(ctx, deletePost, postID)
 	return err
 }
@@ -29,7 +29,7 @@ JOIN posts ON images.post_id = posts.post_id
 WHERE posts.user_id = $1
 `
 
-func (q *Queries) GetAllImagesByUserId(ctx context.Context, userID int32) ([]Image, error) {
+func (q *Queries) GetAllImagesByUserId(ctx context.Context, userID int) ([]Image, error) {
 	rows, err := q.db.Query(ctx, getAllImagesByUserId, userID)
 	if err != nil {
 		return nil, err
@@ -70,20 +70,58 @@ OFFSET $2
 `
 
 type GetAllPostIdsParams struct {
-	Limit  int32 `json:"limit"`
-	Offset int32 `json:"offset"`
-	UserID int32 `json:"userId"`
+	Limit  int `json:"limit"`
+	Offset int `json:"offset"`
+	UserID int `json:"userId"`
 }
 
-func (q *Queries) GetAllPostIds(ctx context.Context, arg GetAllPostIdsParams) ([]int32, error) {
+func (q *Queries) GetAllPostIds(ctx context.Context, arg GetAllPostIdsParams) ([]int, error) {
 	rows, err := q.db.Query(ctx, getAllPostIds, arg.Limit, arg.Offset, arg.UserID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []int32
+	var items []int
 	for rows.Next() {
-		var post_id int32
+		var post_id int
+		if err := rows.Scan(&post_id); err != nil {
+			return nil, err
+		}
+		items = append(items, post_id)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getAllPostIdsCursor = `-- name: GetAllPostIdsCursor :many
+SELECT post_id
+FROM posts
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM block
+    WHERE block.user_id = $3 AND target_user_id = posts.user_id
+) AND ($2::timestamp IS NULL OR posts.created_at < $2::timestamp)
+ORDER BY posts.created_at DESC
+LIMIT $1
+`
+
+type GetAllPostIdsCursorParams struct {
+	Limit   int              `json:"limit"`
+	Column2 pgtype.Timestamp `json:"column2"`
+	UserID  int              `json:"userId"`
+}
+
+func (q *Queries) GetAllPostIdsCursor(ctx context.Context, arg GetAllPostIdsCursorParams) ([]int, error) {
+	rows, err := q.db.Query(ctx, getAllPostIdsCursor, arg.Limit, arg.Column2, arg.UserID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []int
+	for rows.Next() {
+		var post_id int
 		if err := rows.Scan(&post_id); err != nil {
 			return nil, err
 		}
@@ -101,7 +139,7 @@ FROM comments
 WHERE post_id = $1
 `
 
-func (q *Queries) GetCommentCountByPostID(ctx context.Context, postID int32) (int64, error) {
+func (q *Queries) GetCommentCountByPostID(ctx context.Context, postID int) (int64, error) {
 	row := q.db.QueryRow(ctx, getCommentCountByPostID, postID)
 	var count int64
 	err := row.Scan(&count)
@@ -115,7 +153,7 @@ WHERE images.post_id = $1
 ORDER BY display_order ASC
 `
 
-func (q *Queries) GetImagesByPostId(ctx context.Context, postID int32) ([]Image, error) {
+func (q *Queries) GetImagesByPostId(ctx context.Context, postID int) ([]Image, error) {
 	rows, err := q.db.Query(ctx, getImagesByPostId, postID)
 	if err != nil {
 		return nil, err
@@ -150,11 +188,11 @@ GROUP BY option_index
 `
 
 type GetPollVotesGroupedRow struct {
-	OptionIndex int32 `json:"optionIndex"`
+	OptionIndex int   `json:"optionIndex"`
 	Count       int64 `json:"count"`
 }
 
-func (q *Queries) GetPollVotesGrouped(ctx context.Context, postID int32) ([]GetPollVotesGroupedRow, error) {
+func (q *Queries) GetPollVotesGrouped(ctx context.Context, postID int) ([]GetPollVotesGroupedRow, error) {
 	rows, err := q.db.Query(ctx, getPollVotesGrouped, postID)
 	if err != nil {
 		return nil, err
@@ -180,7 +218,7 @@ FROM posts
 WHERE post_id = $1
 `
 
-func (q *Queries) GetPostById(ctx context.Context, postID int32) (Post, error) {
+func (q *Queries) GetPostById(ctx context.Context, postID int) (Post, error) {
 	row := q.db.QueryRow(ctx, getPostById, postID)
 	var i Post
 	err := row.Scan(
@@ -212,20 +250,96 @@ OFFSET $3
 `
 
 type GetPostIdsByFollowingParams struct {
-	UserID int32 `json:"userId"`
-	Limit  int32 `json:"limit"`
-	Offset int32 `json:"offset"`
+	UserID int `json:"userId"`
+	Limit  int `json:"limit"`
+	Offset int `json:"offset"`
 }
 
-func (q *Queries) GetPostIdsByFollowing(ctx context.Context, arg GetPostIdsByFollowingParams) ([]int32, error) {
+func (q *Queries) GetPostIdsByFollowing(ctx context.Context, arg GetPostIdsByFollowingParams) ([]int, error) {
 	rows, err := q.db.Query(ctx, getPostIdsByFollowing, arg.UserID, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []int32
+	var items []int
 	for rows.Next() {
-		var post_id int32
+		var post_id int
+		if err := rows.Scan(&post_id); err != nil {
+			return nil, err
+		}
+		items = append(items, post_id)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getPostIdsByFollowingCursor = `-- name: GetPostIdsByFollowingCursor :many
+SELECT post_id
+FROM posts
+WHERE (posts.user_id = $1 OR EXISTS (
+  SELECT 1
+  FROM follows
+  WHERE follows.follower_id = $1 AND following_id = posts.user_id
+)) AND NOT EXISTS (
+    SELECT 1
+    FROM block
+    WHERE user_id = $1 AND target_user_id = posts.user_id
+) AND ($3::timestamp IS NULL OR posts.created_at < $3::timestamp)
+ORDER BY posts.created_at DESC
+LIMIT $2
+`
+
+type GetPostIdsByFollowingCursorParams struct {
+	UserID  int              `json:"userId"`
+	Limit   int              `json:"limit"`
+	Column3 pgtype.Timestamp `json:"column3"`
+}
+
+func (q *Queries) GetPostIdsByFollowingCursor(ctx context.Context, arg GetPostIdsByFollowingCursorParams) ([]int, error) {
+	rows, err := q.db.Query(ctx, getPostIdsByFollowingCursor, arg.UserID, arg.Limit, arg.Column3)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []int
+	for rows.Next() {
+		var post_id int
+		if err := rows.Scan(&post_id); err != nil {
+			return nil, err
+		}
+		items = append(items, post_id)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getPostIdsByUserIdCursor = `-- name: GetPostIdsByUserIdCursor :many
+SELECT post_id
+FROM posts
+WHERE user_id = $1 AND ($3::timestamp IS NULL OR posts.created_at < $3::timestamp)
+ORDER BY created_at DESC
+LIMIT $2
+`
+
+type GetPostIdsByUserIdCursorParams struct {
+	UserID  int              `json:"userId"`
+	Limit   int              `json:"limit"`
+	Column3 pgtype.Timestamp `json:"column3"`
+}
+
+func (q *Queries) GetPostIdsByUserIdCursor(ctx context.Context, arg GetPostIdsByUserIdCursorParams) ([]int, error) {
+	rows, err := q.db.Query(ctx, getPostIdsByUserIdCursor, arg.UserID, arg.Limit, arg.Column3)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []int
+	for rows.Next() {
+		var post_id int
 		if err := rows.Scan(&post_id); err != nil {
 			return nil, err
 		}
@@ -266,14 +380,14 @@ LIMIT $2 OFFSET $3
 `
 
 type GetPostIdsForMutualFeedParams struct {
-	FollowerID int32 `json:"followerId"`
-	Limit      int32 `json:"limit"`
-	Offset     int32 `json:"offset"`
+	FollowerID int `json:"followerId"`
+	Limit      int `json:"limit"`
+	Offset     int `json:"offset"`
 }
 
 type GetPostIdsForMutualFeedRow struct {
-	PostID           int32       `json:"postId"`
-	UserID           int32       `json:"userId"`
+	PostID           int         `json:"postId"`
+	UserID           int         `json:"userId"`
 	RelationshipType string      `json:"relationshipType"`
 	MutualUsernames  interface{} `json:"mutualUsernames"`
 }
@@ -303,6 +417,73 @@ func (q *Queries) GetPostIdsForMutualFeed(ctx context.Context, arg GetPostIdsFor
 	return items, nil
 }
 
+const getPostIdsForMutualFeedCursor = `-- name: GetPostIdsForMutualFeedCursor :many
+WITH user_relationships AS (
+  SELECT posts.post_id, posts.user_id,
+    CASE 
+      WHEN posts.user_id = $1 THEN 'own'
+      WHEN f.follower_id IS NOT NULL THEN 'friend'
+      ELSE 'mutual'
+    END as relationship_type
+  FROM posts
+  LEFT JOIN follows f ON f.follower_id = $1 AND f.following_id = posts.user_id
+  WHERE (posts.user_id = $1 OR f.follower_id IS NOT NULL OR 
+         EXISTS (SELECT 1 FROM follows f1 
+                 INNER JOIN follows f2 ON f1.following_id = f2.follower_id 
+                 WHERE f1.follower_id = $1 AND f2.following_id = posts.user_id))
+    AND NOT EXISTS (SELECT 1 FROM block WHERE user_id = $1 AND target_user_id = posts.user_id)
+    AND ($3::timestamp IS NULL OR posts.created_at < $3::timestamp)
+)
+SELECT post_id, user_id, relationship_type, 
+  CASE WHEN relationship_type = 'mutual' THEN 
+    (SELECT ARRAY_AGG(u.username) FROM follows f1 
+     INNER JOIN follows f2 ON f1.following_id = f2.follower_id 
+     INNER JOIN users u ON f2.follower_id = u.user_id 
+     WHERE f1.follower_id = $1 AND f2.following_id = user_relationships.user_id LIMIT 5)
+  ELSE NULL END as mutual_usernames
+FROM user_relationships
+ORDER BY (SELECT created_at FROM posts WHERE posts.post_id = user_relationships.post_id) DESC
+LIMIT $2
+`
+
+type GetPostIdsForMutualFeedCursorParams struct {
+	FollowerID int              `json:"followerId"`
+	Limit      int              `json:"limit"`
+	Column3    pgtype.Timestamp `json:"column3"`
+}
+
+type GetPostIdsForMutualFeedCursorRow struct {
+	PostID           int         `json:"postId"`
+	UserID           int         `json:"userId"`
+	RelationshipType string      `json:"relationshipType"`
+	MutualUsernames  interface{} `json:"mutualUsernames"`
+}
+
+func (q *Queries) GetPostIdsForMutualFeedCursor(ctx context.Context, arg GetPostIdsForMutualFeedCursorParams) ([]GetPostIdsForMutualFeedCursorRow, error) {
+	rows, err := q.db.Query(ctx, getPostIdsForMutualFeedCursor, arg.FollowerID, arg.Limit, arg.Column3)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetPostIdsForMutualFeedCursorRow
+	for rows.Next() {
+		var i GetPostIdsForMutualFeedCursorRow
+		if err := rows.Scan(
+			&i.PostID,
+			&i.UserID,
+			&i.RelationshipType,
+			&i.MutualUsernames,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getPostsIdsByUserId = `-- name: GetPostsIdsByUserId :many
 SELECT post_id
 FROM posts
@@ -313,20 +494,20 @@ LIMIT $3
 `
 
 type GetPostsIdsByUserIdParams struct {
-	UserID int32 `json:"userId"`
-	Offset int32 `json:"offset"`
-	Limit  int32 `json:"limit"`
+	UserID int `json:"userId"`
+	Offset int `json:"offset"`
+	Limit  int `json:"limit"`
 }
 
-func (q *Queries) GetPostsIdsByUserId(ctx context.Context, arg GetPostsIdsByUserIdParams) ([]int32, error) {
+func (q *Queries) GetPostsIdsByUserId(ctx context.Context, arg GetPostsIdsByUserIdParams) ([]int, error) {
 	rows, err := q.db.Query(ctx, getPostsIdsByUserId, arg.UserID, arg.Offset, arg.Limit)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []int32
+	var items []int
 	for rows.Next() {
-		var post_id int32
+		var post_id int
 		if err := rows.Scan(&post_id); err != nil {
 			return nil, err
 		}
@@ -345,13 +526,13 @@ WHERE post_id = $1 AND user_id = $2
 `
 
 type GetUserVoteInPollParams struct {
-	PostID int32 `json:"postId"`
-	UserID int32 `json:"userId"`
+	PostID int `json:"postId"`
+	UserID int `json:"userId"`
 }
 
-func (q *Queries) GetUserVoteInPoll(ctx context.Context, arg GetUserVoteInPollParams) (int32, error) {
+func (q *Queries) GetUserVoteInPoll(ctx context.Context, arg GetUserVoteInPollParams) (int, error) {
 	row := q.db.QueryRow(ctx, getUserVoteInPoll, arg.PostID, arg.UserID)
-	var option_index int32
+	var option_index int
 	err := row.Scan(&option_index)
 	return option_index, err
 }
@@ -363,11 +544,11 @@ RETURNING image_id, post_id, height, width, image_blob_url, display_order
 `
 
 type InsertImageParams struct {
-	PostID       int32  `json:"postId"`
-	Height       int32  `json:"height"`
-	Width        int32  `json:"width"`
+	PostID       int    `json:"postId"`
+	Height       int    `json:"height"`
+	Width        int    `json:"width"`
 	ImageBlobUrl string `json:"imageBlobUrl"`
-	DisplayOrder int32  `json:"displayOrder"`
+	DisplayOrder int    `json:"displayOrder"`
 }
 
 func (q *Queries) InsertImage(ctx context.Context, arg InsertImageParams) (Image, error) {
@@ -397,7 +578,7 @@ RETURNING post_id, user_id, text, created_at, facets, attributes
 `
 
 type InsertPostParams struct {
-	UserID     int32          `json:"userId"`
+	UserID     int            `json:"userId"`
 	Text       pgtype.Text    `json:"text"`
 	Facets     db.Facets      `json:"facets"`
 	Attributes *db.Attributes `json:"attributes"`
@@ -428,9 +609,9 @@ VALUES ($1, $2, $3) ON CONFLICT DO NOTHING
 `
 
 type InsertVoteParams struct {
-	PostID      int32 `json:"postId"`
-	UserID      int32 `json:"userId"`
-	OptionIndex int32 `json:"optionIndex"`
+	PostID      int `json:"postId"`
+	UserID      int `json:"userId"`
+	OptionIndex int `json:"optionIndex"`
 }
 
 func (q *Queries) InsertVote(ctx context.Context, arg InsertVoteParams) error {

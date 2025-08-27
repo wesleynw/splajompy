@@ -2,19 +2,20 @@ package fakes
 
 import (
 	"context"
+	"sync"
+	"time"
+
 	"github.com/jackc/pgx/v5/pgtype"
 	"splajompy.com/api/v2/internal/db"
 	"splajompy.com/api/v2/internal/db/queries"
 	"splajompy.com/api/v2/internal/models"
 	"splajompy.com/api/v2/internal/utilities"
-	"sync"
-	"time"
 )
 
 // FakeNotificationRepository provides a fake implementation for testing
 type FakeNotificationRepository struct {
 	notifications      map[int][]queries.Notification
-	nextNotificationID int32
+	nextNotificationID int
 	mu                 sync.Mutex
 }
 
@@ -28,25 +29,9 @@ func NewFakeNotificationRepository() *FakeNotificationRepository {
 }
 
 // InsertNotification adds a new notification
-func (f *FakeNotificationRepository) InsertNotification(ctx context.Context, userId int, postId *int, commentId *int, facets *db.Facets, message string, notificationType models.NotificationType) error {
+func (f *FakeNotificationRepository) InsertNotification(ctx context.Context, userId int, postId *int, commentId *int, facets *db.Facets, message string, notificationType models.NotificationType, targetUserId *int) error {
 	f.mu.Lock()
 	defer f.mu.Unlock()
-
-	var postIdValue pgtype.Int4
-	if postId != nil {
-		postIdValue = pgtype.Int4{
-			Int32: int32(*postId),
-			Valid: true,
-		}
-	}
-
-	var commentIdValue pgtype.Int4
-	if commentId != nil {
-		commentIdValue = pgtype.Int4{
-			Int32: int32(*commentId),
-			Valid: true,
-		}
-	}
 
 	var facetsValue db.Facets
 	if facets != nil {
@@ -55,10 +40,10 @@ func (f *FakeNotificationRepository) InsertNotification(ctx context.Context, use
 
 	notification := queries.Notification{
 		NotificationID:   f.nextNotificationID,
-		UserID:           int32(userId),
-		PostID:           postIdValue,
+		UserID:           userId,
+		PostID:           postId,
 		Message:          message,
-		CommentID:        commentIdValue,
+		CommentID:        commentId,
 		Facets:           facetsValue,
 		NotificationType: notificationType.String(),
 		Viewed:           false,
@@ -114,7 +99,7 @@ func (f *FakeNotificationRepository) GetNotificationById(ctx context.Context, no
 	// Search for the notification across all users
 	for _, userNotifications := range f.notifications {
 		for _, notification := range userNotifications {
-			if notification.NotificationID == int32(notificationId) {
+			if notification.NotificationID == notificationId {
 				mapped := utilities.MapNotification(notification)
 				return &mapped, nil
 			}
@@ -133,7 +118,7 @@ func (f *FakeNotificationRepository) MarkNotificationAsRead(ctx context.Context,
 	// Find and update the notification
 	for userId, userNotifications := range f.notifications {
 		for i, notification := range userNotifications {
-			if notification.NotificationID == int32(notificationId) {
+			if notification.NotificationID == notificationId {
 				userNotifications[i].Viewed = true
 				f.notifications[userId] = userNotifications
 				return nil
@@ -244,7 +229,7 @@ func (f *FakeNotificationRepository) AddNotification(notification queries.Notifi
 	f.mu.Lock()
 	defer f.mu.Unlock()
 
-	userId := int(notification.UserID)
+	userId := notification.UserID
 
 	if _, exists := f.notifications[userId]; !exists {
 		f.notifications[userId] = []queries.Notification{}
@@ -375,13 +360,12 @@ func (f *FakeNotificationRepository) FindUnreadLikeNotification(ctx context.Cont
 	for _, notification := range userNotifications {
 		if notification.NotificationType == "like" && !notification.Viewed {
 			if commentId == nil {
-				if notification.PostID.Valid && int(notification.PostID.Int32) == postId && !notification.CommentID.Valid {
+				if notification.PostID != nil && *notification.PostID == postId && notification.CommentID == nil {
 					mapped := utilities.MapNotification(notification)
 					return &mapped, nil
 				}
 			} else {
-				if notification.PostID.Valid && int(notification.PostID.Int32) == postId &&
-					notification.CommentID.Valid && int(notification.CommentID.Int32) == *commentId {
+				if notification.PostID != nil && *notification.PostID == postId && notification.CommentID != nil && *notification.CommentID == *commentId {
 					mapped := utilities.MapNotification(notification)
 					return &mapped, nil
 				}
@@ -398,7 +382,7 @@ func (f *FakeNotificationRepository) DeleteNotificationById(ctx context.Context,
 
 	for userId, userNotifications := range f.notifications {
 		for i, notification := range userNotifications {
-			if notification.NotificationID == int32(notificationId) {
+			if notification.NotificationID == notificationId {
 				f.notifications[userId] = append(userNotifications[:i], userNotifications[i+1:]...)
 				return nil
 			}

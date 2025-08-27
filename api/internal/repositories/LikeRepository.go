@@ -2,7 +2,7 @@ package repositories
 
 import (
 	"context"
-	"github.com/jackc/pgx/v5/pgtype"
+
 	"splajompy.com/api/v2/internal/db/queries"
 )
 
@@ -10,7 +10,7 @@ type LikeRepository interface {
 	AddLike(ctx context.Context, userId int, postId int, isPost bool) error
 	RemoveLike(ctx context.Context, userId int, postId int, isPost bool) error
 	GetPostLikesFromFollowers(ctx context.Context, postId int, followerId int) ([]queries.GetPostLikesFromFollowersRow, error)
-	HasLikesFromOthers(ctx context.Context, postId int, userIds []int32) (bool, error)
+	HasLikesFromOthers(ctx context.Context, postId int, userIds []int) (bool, error)
 }
 
 type DBLikeRepository struct {
@@ -21,18 +21,19 @@ type DBLikeRepository struct {
 func (r DBLikeRepository) AddLike(ctx context.Context, userId int, postId int, isPost bool) error {
 	// For posts, commentId should be null; for comments, we need a valid commentId
 	// Since the interface only supports liking posts at this level, we'll set commentId to null
-	var commentId pgtype.Int4
+	var commentId *int
 	if !isPost {
 		// This shouldn't happen with the current interface, but it's here for future extensibility
-		commentId = pgtype.Int4{Int32: 0, Valid: true}
+		val := 0
+		commentId = &val
 	} else {
-		commentId = pgtype.Int4{Int32: 0, Valid: false}
+		commentId = nil
 	}
 
 	return r.querier.AddLike(ctx, queries.AddLikeParams{
-		PostID:    int32(postId),
+		PostID:    postId,
 		CommentID: commentId,
-		UserID:    int32(userId),
+		UserID:    userId,
 		IsPost:    isPost,
 	})
 }
@@ -41,17 +42,18 @@ func (r DBLikeRepository) AddLike(ctx context.Context, userId int, postId int, i
 func (r DBLikeRepository) RemoveLike(ctx context.Context, userId int, postId int, isPost bool) error {
 	// For posts, commentId should be null; for comments we need a valid commentId
 	// Since the interface only supports unliking posts at this level, we'll set commentId to null
-	var commentId pgtype.Int4
+	var commentId *int
 	if !isPost {
 		// This shouldn't happen with the current interface, but it's here for future extensibility
-		commentId = pgtype.Int4{Int32: 0, Valid: true}
+		val := 0
+		commentId = &val
 	} else {
-		commentId = pgtype.Int4{Int32: 0, Valid: false}
+		commentId = nil
 	}
 
 	return r.querier.RemoveLike(ctx, queries.RemoveLikeParams{
-		PostID:    int32(postId),
-		UserID:    int32(userId),
+		PostID:    postId,
+		UserID:    userId,
 		IsPost:    isPost,
 		CommentID: commentId,
 	})
@@ -60,15 +62,15 @@ func (r DBLikeRepository) RemoveLike(ctx context.Context, userId int, postId int
 // GetPostLikesFromFollowers retrieves likes on a post from users followed by a specific user
 func (r DBLikeRepository) GetPostLikesFromFollowers(ctx context.Context, postId int, followerId int) ([]queries.GetPostLikesFromFollowersRow, error) {
 	return r.querier.GetPostLikesFromFollowers(ctx, queries.GetPostLikesFromFollowersParams{
-		PostID:     int32(postId),
-		FollowerID: int32(followerId),
+		PostID:     postId,
+		FollowerID: followerId,
 	})
 }
 
 // HasLikesFromOthers checks if a post has likes from users not in the provided list
-func (r DBLikeRepository) HasLikesFromOthers(ctx context.Context, postId int, userIds []int32) (bool, error) {
+func (r DBLikeRepository) HasLikesFromOthers(ctx context.Context, postId int, userIds []int) (bool, error) {
 	return r.querier.HasLikesFromOthers(ctx, queries.HasLikesFromOthersParams{
-		PostID:  int32(postId),
+		PostID:  postId,
 		Column2: userIds,
 	})
 }

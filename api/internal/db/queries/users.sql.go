@@ -18,8 +18,8 @@ ON CONFLICT DO NOTHING
 `
 
 type BlockUserParams struct {
-	UserID       int32 `json:"userId"`
-	TargetUserID int32 `json:"targetUserId"`
+	UserID       int `json:"userId"`
+	TargetUserID int `json:"targetUserId"`
 }
 
 func (q *Queries) BlockUser(ctx context.Context, arg BlockUserParams) error {
@@ -34,7 +34,7 @@ VALUES ($1, $2, $3)
 
 type CreateSessionParams struct {
 	ID        string           `json:"id"`
-	UserID    int32            `json:"userId"`
+	UserID    int              `json:"userId"`
 	ExpiresAt pgtype.Timestamp `json:"expiresAt"`
 }
 
@@ -78,7 +78,7 @@ SET code = $1, expires_at = $3
 
 type CreateVerificationCodeParams struct {
 	Code      string           `json:"code"`
-	UserID    int32            `json:"userId"`
+	UserID    int              `json:"userId"`
 	ExpiresAt pgtype.Timestamp `json:"expiresAt"`
 }
 
@@ -102,7 +102,7 @@ DELETE FROM users
 WHERE user_id = $1
 `
 
-func (q *Queries) DeleteUserById(ctx context.Context, userID int32) error {
+func (q *Queries) DeleteUserById(ctx context.Context, userID int) error {
 	_, err := q.db.Exec(ctx, deleteUserById, userID)
 	return err
 }
@@ -114,7 +114,7 @@ WHERE user_id = $1
 LIMIT 1
 `
 
-func (q *Queries) GetBioByUserId(ctx context.Context, userID int32) (string, error) {
+func (q *Queries) GetBioByUserId(ctx context.Context, userID int) (string, error) {
 	row := q.db.QueryRow(ctx, getBioByUserId, userID)
 	var text string
 	err := row.Scan(&text)
@@ -145,8 +145,8 @@ SELECT EXISTS (
 `
 
 type GetIsUserBlockingUserParams struct {
-	UserID       int32 `json:"userId"`
-	TargetUserID int32 `json:"targetUserId"`
+	UserID       int `json:"userId"`
+	TargetUserID int `json:"targetUserId"`
 }
 
 func (q *Queries) GetIsUserBlockingUser(ctx context.Context, arg GetIsUserBlockingUserParams) (bool, error) {
@@ -191,7 +191,7 @@ WHERE user_id = $1
 LIMIT 1
 `
 
-func (q *Queries) GetUserById(ctx context.Context, userID int32) (User, error) {
+func (q *Queries) GetUserById(ctx context.Context, userID int) (User, error) {
 	row := q.db.QueryRow(ctx, getUserById, userID)
 	var i User
 	err := row.Scan(
@@ -254,7 +254,7 @@ WHERE user_id = $1
 LIMIT 1
 `
 
-func (q *Queries) GetUserWithPasswordById(ctx context.Context, userID int32) (User, error) {
+func (q *Queries) GetUserWithPasswordById(ctx context.Context, userID int) (User, error) {
 	row := q.db.QueryRow(ctx, getUserWithPasswordById, userID)
 	var i User
 	err := row.Scan(
@@ -303,8 +303,8 @@ LIMIT $2
 
 type GetUsernameLikeParams struct {
 	Username     string `json:"username"`
-	Limit        int32  `json:"limit"`
-	TargetUserID int32  `json:"targetUserId"`
+	Limit        int    `json:"limit"`
+	TargetUserID int    `json:"targetUserId"`
 }
 
 func (q *Queries) GetUsernameLike(ctx context.Context, arg GetUsernameLikeParams) ([]User, error) {
@@ -342,7 +342,7 @@ LIMIT 1
 `
 
 type GetVerificationCodeParams struct {
-	UserID int32  `json:"userId"`
+	UserID int    `json:"userId"`
 	Code   string `json:"code"`
 }
 
@@ -364,12 +364,28 @@ WHERE user_id = $1 AND target_user_id = $2
 `
 
 type UnblockUserParams struct {
-	UserID       int32 `json:"userId"`
-	TargetUserID int32 `json:"targetUserId"`
+	UserID       int `json:"userId"`
+	TargetUserID int `json:"targetUserId"`
 }
 
 func (q *Queries) UnblockUser(ctx context.Context, arg UnblockUserParams) error {
 	_, err := q.db.Exec(ctx, unblockUser, arg.UserID, arg.TargetUserID)
+	return err
+}
+
+const updateSessionExpiry = `-- name: UpdateSessionExpiry :exec
+UPDATE sessions 
+SET expires_at = $2 
+WHERE id = $1
+`
+
+type UpdateSessionExpiryParams struct {
+	ID        string           `json:"id"`
+	ExpiresAt pgtype.Timestamp `json:"expiresAt"`
+}
+
+func (q *Queries) UpdateSessionExpiry(ctx context.Context, arg UpdateSessionExpiryParams) error {
+	_, err := q.db.Exec(ctx, updateSessionExpiry, arg.ID, arg.ExpiresAt)
 	return err
 }
 
@@ -381,7 +397,7 @@ DO UPDATE SET text = $2
 `
 
 type UpdateUserBioParams struct {
-	UserID int32  `json:"userId"`
+	UserID int    `json:"userId"`
 	Text   string `json:"text"`
 }
 
@@ -397,7 +413,7 @@ WHERE user_id = $1
 `
 
 type UpdateUserNameParams struct {
-	UserID int32       `json:"userId"`
+	UserID int         `json:"userId"`
 	Name   pgtype.Text `json:"name"`
 }
 

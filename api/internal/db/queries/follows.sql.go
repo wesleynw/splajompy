@@ -17,8 +17,8 @@ WHERE following_id = $1 AND follower_id = $2
 `
 
 type DeleteFollowParams struct {
-	FollowingID int32 `json:"followingId"`
-	FollowerID  int32 `json:"followerId"`
+	FollowingID int `json:"followingId"`
+	FollowerID  int `json:"followerId"`
 }
 
 func (q *Queries) DeleteFollow(ctx context.Context, arg DeleteFollowParams) error {
@@ -36,13 +36,13 @@ LIMIT $2 OFFSET $3
 `
 
 type GetFollowersByUserIdParams struct {
-	FollowingID int32 `json:"followingId"`
-	Limit       int32 `json:"limit"`
-	Offset      int32 `json:"offset"`
+	FollowingID int `json:"followingId"`
+	Limit       int `json:"limit"`
+	Offset      int `json:"offset"`
 }
 
 type GetFollowersByUserIdRow struct {
-	UserID    int32            `json:"userId"`
+	UserID    int              `json:"userId"`
 	Email     string           `json:"email"`
 	Username  string           `json:"username"`
 	CreatedAt pgtype.Timestamp `json:"createdAt"`
@@ -85,13 +85,13 @@ LIMIT $2 OFFSET $3
 `
 
 type GetFollowingByUserIdParams struct {
-	FollowerID int32 `json:"followerId"`
-	Limit      int32 `json:"limit"`
-	Offset     int32 `json:"offset"`
+	FollowerID int `json:"followerId"`
+	Limit      int `json:"limit"`
+	Offset     int `json:"offset"`
 }
 
 type GetFollowingByUserIdRow struct {
-	UserID    int32            `json:"userId"`
+	UserID    int              `json:"userId"`
 	Email     string           `json:"email"`
 	Username  string           `json:"username"`
 	CreatedAt pgtype.Timestamp `json:"createdAt"`
@@ -133,8 +133,8 @@ SELECT EXISTS (
 `
 
 type GetIsUserFollowingUserParams struct {
-	FollowerID  int32 `json:"followerId"`
-	FollowingID int32 `json:"followingId"`
+	FollowerID  int `json:"followerId"`
+	FollowingID int `json:"followingId"`
 }
 
 func (q *Queries) GetIsUserFollowingUser(ctx context.Context, arg GetIsUserFollowingUserParams) (bool, error) {
@@ -161,8 +161,8 @@ WHERE EXISTS (
 `
 
 type GetMutualConnectionsForUserParams struct {
-	FollowerID   int32 `json:"followerId"`
-	FollowerID_2 int32 `json:"followerId2"`
+	FollowerID   int `json:"followerId"`
+	FollowerID_2 int `json:"followerId2"`
 }
 
 func (q *Queries) GetMutualConnectionsForUser(ctx context.Context, arg GetMutualConnectionsForUserParams) ([]string, error) {
@@ -191,8 +191,8 @@ VALUES ($1, $2)
 `
 
 type InsertFollowParams struct {
-	FollowerID  int32 `json:"followerId"`
-	FollowingID int32 `json:"followingId"`
+	FollowerID  int `json:"followerId"`
+	FollowingID int `json:"followingId"`
 }
 
 func (q *Queries) InsertFollow(ctx context.Context, arg InsertFollowParams) error {

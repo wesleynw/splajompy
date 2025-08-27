@@ -2,11 +2,12 @@ package main
 
 import (
 	"context"
-	"github.com/exaring/otelpgx"
-	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"log"
 	"net/http"
 	"os"
+
+	"github.com/exaring/otelpgx"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"splajompy.com/api/v2/internal/db/queries"
 	"splajompy.com/api/v2/internal/repositories"
 	"splajompy.com/api/v2/internal/utilities"
@@ -74,7 +75,7 @@ func main() {
 	postService := service.NewPostService(postRepository, userRepository, likeRepository, notificationsRepository, bucketRepository, resentClient)
 	commentService := service.NewCommentService(commentRepository, postRepository, notificationsRepository, userRepository)
 	userService := service.NewUserService(userRepository, notificationsRepository, resentClient)
-	notificationService := service.NewNotificationService(notificationsRepository, postRepository, commentRepository)
+	notificationService := service.NewNotificationService(notificationsRepository, postRepository, commentRepository, userRepository)
 	authManager := service.NewAuthService(userRepository, postRepository, bucketRepository, resentClient)
 
 	h := handler.NewHandler(q, postService, commentService, userService, notificationService, authManager)

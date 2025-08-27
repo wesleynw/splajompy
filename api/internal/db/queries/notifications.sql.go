@@ -17,13 +17,13 @@ DELETE FROM notifications
 WHERE notification_id = $1
 `
 
-func (q *Queries) DeleteNotificationById(ctx context.Context, notificationID int32) error {
+func (q *Queries) DeleteNotificationById(ctx context.Context, notificationID int) error {
 	_, err := q.db.Exec(ctx, deleteNotificationById, notificationID)
 	return err
 }
 
 const findUnreadLikeNotificationForComment = `-- name: FindUnreadLikeNotificationForComment :one
-SELECT notification_id, user_id, post_id, comment_id, message, link, viewed, facets, notification_type, created_at
+SELECT notification_id, user_id, post_id, comment_id, target_user_id, message, link, viewed, facets, notification_type, created_at
 FROM notifications 
 WHERE user_id = $1 
   AND notification_type = 'like'
@@ -35,9 +35,9 @@ LIMIT 1
 `
 
 type FindUnreadLikeNotificationForCommentParams struct {
-	UserID    int32       `json:"userId"`
-	PostID    pgtype.Int4 `json:"postId"`
-	CommentID pgtype.Int4 `json:"commentId"`
+	UserID    int  `json:"userId"`
+	PostID    *int `json:"postId"`
+	CommentID *int `json:"commentId"`
 }
 
 func (q *Queries) FindUnreadLikeNotificationForComment(ctx context.Context, arg FindUnreadLikeNotificationForCommentParams) (Notification, error) {
@@ -48,6 +48,7 @@ func (q *Queries) FindUnreadLikeNotificationForComment(ctx context.Context, arg 
 		&i.UserID,
 		&i.PostID,
 		&i.CommentID,
+		&i.TargetUserID,
 		&i.Message,
 		&i.Link,
 		&i.Viewed,
@@ -59,7 +60,7 @@ func (q *Queries) FindUnreadLikeNotificationForComment(ctx context.Context, arg 
 }
 
 const findUnreadLikeNotificationForPost = `-- name: FindUnreadLikeNotificationForPost :one
-SELECT notification_id, user_id, post_id, comment_id, message, link, viewed, facets, notification_type, created_at
+SELECT notification_id, user_id, post_id, comment_id, target_user_id, message, link, viewed, facets, notification_type, created_at
 FROM notifications 
 WHERE user_id = $1 
   AND notification_type = 'like'
@@ -71,8 +72,8 @@ LIMIT 1
 `
 
 type FindUnreadLikeNotificationForPostParams struct {
-	UserID int32       `json:"userId"`
-	PostID pgtype.Int4 `json:"postId"`
+	UserID int  `json:"userId"`
+	PostID *int `json:"postId"`
 }
 
 func (q *Queries) FindUnreadLikeNotificationForPost(ctx context.Context, arg FindUnreadLikeNotificationForPostParams) (Notification, error) {
@@ -83,6 +84,7 @@ func (q *Queries) FindUnreadLikeNotificationForPost(ctx context.Context, arg Fin
 		&i.UserID,
 		&i.PostID,
 		&i.CommentID,
+		&i.TargetUserID,
 		&i.Message,
 		&i.Link,
 		&i.Viewed,
@@ -94,13 +96,13 @@ func (q *Queries) FindUnreadLikeNotificationForPost(ctx context.Context, arg Fin
 }
 
 const getNotificationById = `-- name: GetNotificationById :one
-SELECT notification_id, user_id, post_id, comment_id, message, link, viewed, facets, notification_type, created_at
+SELECT notification_id, user_id, post_id, comment_id, target_user_id, message, link, viewed, facets, notification_type, created_at
 FROM notifications
 WHERE notification_id = $1
 LIMIT 1
 `
 
-func (q *Queries) GetNotificationById(ctx context.Context, notificationID int32) (Notification, error) {
+func (q *Queries) GetNotificationById(ctx context.Context, notificationID int) (Notification, error) {
 	row := q.db.QueryRow(ctx, getNotificationById, notificationID)
 	var i Notification
 	err := row.Scan(
@@ -108,6 +110,7 @@ func (q *Queries) GetNotificationById(ctx context.Context, notificationID int32)
 		&i.UserID,
 		&i.PostID,
 		&i.CommentID,
+		&i.TargetUserID,
 		&i.Message,
 		&i.Link,
 		&i.Viewed,
@@ -119,7 +122,7 @@ func (q *Queries) GetNotificationById(ctx context.Context, notificationID int32)
 }
 
 const getNotificationsForUserId = `-- name: GetNotificationsForUserId :many
-SELECT notification_id, user_id, post_id, comment_id, message, link, viewed, facets, notification_type, created_at
+SELECT notification_id, user_id, post_id, comment_id, target_user_id, message, link, viewed, facets, notification_type, created_at
 FROM notifications 
 WHERE user_id = $1
 ORDER BY created_at DESC
@@ -128,9 +131,9 @@ OFFSET $3
 `
 
 type GetNotificationsForUserIdParams struct {
-	UserID int32 `json:"userId"`
-	Limit  int32 `json:"limit"`
-	Offset int32 `json:"offset"`
+	UserID int `json:"userId"`
+	Limit  int `json:"limit"`
+	Offset int `json:"offset"`
 }
 
 func (q *Queries) GetNotificationsForUserId(ctx context.Context, arg GetNotificationsForUserIdParams) ([]Notification, error) {
@@ -147,6 +150,7 @@ func (q *Queries) GetNotificationsForUserId(ctx context.Context, arg GetNotifica
 			&i.UserID,
 			&i.PostID,
 			&i.CommentID,
+			&i.TargetUserID,
 			&i.Message,
 			&i.Link,
 			&i.Viewed,
@@ -165,7 +169,7 @@ func (q *Queries) GetNotificationsForUserId(ctx context.Context, arg GetNotifica
 }
 
 const getReadNotificationsForUserIdWithTimeOffset = `-- name: GetReadNotificationsForUserIdWithTimeOffset :many
-SELECT notification_id, user_id, post_id, comment_id, message, link, viewed, facets, notification_type, created_at
+SELECT notification_id, user_id, post_id, comment_id, target_user_id, message, link, viewed, facets, notification_type, created_at
 FROM notifications 
 WHERE user_id = $1 AND viewed = TRUE AND created_at < $2
 ORDER BY created_at DESC
@@ -173,9 +177,9 @@ LIMIT $3
 `
 
 type GetReadNotificationsForUserIdWithTimeOffsetParams struct {
-	UserID    int32            `json:"userId"`
+	UserID    int              `json:"userId"`
 	CreatedAt pgtype.Timestamp `json:"createdAt"`
-	Limit     int32            `json:"limit"`
+	Limit     int              `json:"limit"`
 }
 
 func (q *Queries) GetReadNotificationsForUserIdWithTimeOffset(ctx context.Context, arg GetReadNotificationsForUserIdWithTimeOffsetParams) ([]Notification, error) {
@@ -192,6 +196,7 @@ func (q *Queries) GetReadNotificationsForUserIdWithTimeOffset(ctx context.Contex
 			&i.UserID,
 			&i.PostID,
 			&i.CommentID,
+			&i.TargetUserID,
 			&i.Message,
 			&i.Link,
 			&i.Viewed,
@@ -210,7 +215,7 @@ func (q *Queries) GetReadNotificationsForUserIdWithTimeOffset(ctx context.Contex
 }
 
 const getUnreadNotificationsForUserId = `-- name: GetUnreadNotificationsForUserId :many
-SELECT notification_id, user_id, post_id, comment_id, message, link, viewed, facets, notification_type, created_at
+SELECT notification_id, user_id, post_id, comment_id, target_user_id, message, link, viewed, facets, notification_type, created_at
 FROM notifications 
 WHERE user_id = $1 AND viewed = FALSE
 ORDER BY created_at DESC
@@ -219,9 +224,9 @@ OFFSET $3
 `
 
 type GetUnreadNotificationsForUserIdParams struct {
-	UserID int32 `json:"userId"`
-	Limit  int32 `json:"limit"`
-	Offset int32 `json:"offset"`
+	UserID int `json:"userId"`
+	Limit  int `json:"limit"`
+	Offset int `json:"offset"`
 }
 
 func (q *Queries) GetUnreadNotificationsForUserId(ctx context.Context, arg GetUnreadNotificationsForUserIdParams) ([]Notification, error) {
@@ -238,6 +243,7 @@ func (q *Queries) GetUnreadNotificationsForUserId(ctx context.Context, arg GetUn
 			&i.UserID,
 			&i.PostID,
 			&i.CommentID,
+			&i.TargetUserID,
 			&i.Message,
 			&i.Link,
 			&i.Viewed,
@@ -256,7 +262,7 @@ func (q *Queries) GetUnreadNotificationsForUserId(ctx context.Context, arg GetUn
 }
 
 const getUnreadNotificationsForUserIdWithTimeOffset = `-- name: GetUnreadNotificationsForUserIdWithTimeOffset :many
-SELECT notification_id, user_id, post_id, comment_id, message, link, viewed, facets, notification_type, created_at
+SELECT notification_id, user_id, post_id, comment_id, target_user_id, message, link, viewed, facets, notification_type, created_at
 FROM notifications 
 WHERE user_id = $1 AND viewed = FALSE AND created_at < $2
 ORDER BY created_at DESC
@@ -264,9 +270,9 @@ LIMIT $3
 `
 
 type GetUnreadNotificationsForUserIdWithTimeOffsetParams struct {
-	UserID    int32            `json:"userId"`
+	UserID    int              `json:"userId"`
 	CreatedAt pgtype.Timestamp `json:"createdAt"`
-	Limit     int32            `json:"limit"`
+	Limit     int              `json:"limit"`
 }
 
 func (q *Queries) GetUnreadNotificationsForUserIdWithTimeOffset(ctx context.Context, arg GetUnreadNotificationsForUserIdWithTimeOffsetParams) ([]Notification, error) {
@@ -283,6 +289,7 @@ func (q *Queries) GetUnreadNotificationsForUserIdWithTimeOffset(ctx context.Cont
 			&i.UserID,
 			&i.PostID,
 			&i.CommentID,
+			&i.TargetUserID,
 			&i.Message,
 			&i.Link,
 			&i.Viewed,
@@ -306,7 +313,7 @@ FROM notifications
 WHERE user_id = $1 AND viewed = FALSE
 `
 
-func (q *Queries) GetUserUnreadNotificationCount(ctx context.Context, userID int32) (int64, error) {
+func (q *Queries) GetUserUnreadNotificationCount(ctx context.Context, userID int) (int64, error) {
 	row := q.db.QueryRow(ctx, getUserUnreadNotificationCount, userID)
 	var count int64
 	err := row.Scan(&count)
@@ -314,18 +321,19 @@ func (q *Queries) GetUserUnreadNotificationCount(ctx context.Context, userID int
 }
 
 const insertNotification = `-- name: InsertNotification :exec
-INSERT INTO notifications (user_id, post_id, comment_id, message, facets, link, notification_type)
-VALUES ($1, $2, $3, $4, $5, $6, $7)
+INSERT INTO notifications (user_id, post_id, comment_id, message, facets, link, notification_type, target_user_id)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
 `
 
 type InsertNotificationParams struct {
-	UserID           int32       `json:"userId"`
-	PostID           pgtype.Int4 `json:"postId"`
-	CommentID        pgtype.Int4 `json:"commentId"`
+	UserID           int         `json:"userId"`
+	PostID           *int        `json:"postId"`
+	CommentID        *int        `json:"commentId"`
 	Message          string      `json:"message"`
 	Facets           db.Facets   `json:"facets"`
 	Link             pgtype.Text `json:"link"`
 	NotificationType string      `json:"notificationType"`
+	TargetUserID     *int        `json:"targetUserId"`
 }
 
 func (q *Queries) InsertNotification(ctx context.Context, arg InsertNotificationParams) error {
@@ -337,6 +345,7 @@ func (q *Queries) InsertNotification(ctx context.Context, arg InsertNotification
 		arg.Facets,
 		arg.Link,
 		arg.NotificationType,
+		arg.TargetUserID,
 	)
 	return err
 }
@@ -347,7 +356,7 @@ SET viewed = TRUE
 WHERE user_id = $1
 `
 
-func (q *Queries) MarkAllNotificationsAsReadForUser(ctx context.Context, userID int32) error {
+func (q *Queries) MarkAllNotificationsAsReadForUser(ctx context.Context, userID int) error {
 	_, err := q.db.Exec(ctx, markAllNotificationsAsReadForUser, userID)
 	return err
 }
@@ -358,7 +367,7 @@ SET viewed = TRUE
 WHERE notification_id = $1
 `
 
-func (q *Queries) MarkNotificationAsReadById(ctx context.Context, notificationID int32) error {
+func (q *Queries) MarkNotificationAsReadById(ctx context.Context, notificationID int) error {
 	_, err := q.db.Exec(ctx, markNotificationAsReadById, notificationID)
 	return err
 }
@@ -371,7 +380,7 @@ SELECT EXISTS (
 )
 `
 
-func (q *Queries) UserHasUnreadNotifications(ctx context.Context, userID int32) (bool, error) {
+func (q *Queries) UserHasUnreadNotifications(ctx context.Context, userID int) (bool, error) {
 	row := q.db.QueryRow(ctx, userHasUnreadNotifications, userID)
 	var exists bool
 	err := row.Scan(&exists)

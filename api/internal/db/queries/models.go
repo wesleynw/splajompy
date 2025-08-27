@@ -10,54 +10,55 @@ import (
 )
 
 type Bio struct {
-	ID     int32  `json:"id"`
-	UserID int32  `json:"userId"`
+	ID     int    `json:"id"`
+	UserID int    `json:"userId"`
 	Text   string `json:"text"`
 }
 
 type Block struct {
-	ID           int32            `json:"id"`
-	UserID       int32            `json:"userId"`
-	TargetUserID int32            `json:"targetUserId"`
+	ID           int              `json:"id"`
+	UserID       int              `json:"userId"`
+	TargetUserID int              `json:"targetUserId"`
 	CreatedAt    pgtype.Timestamp `json:"createdAt"`
 }
 
 type Comment struct {
-	CommentID int32            `json:"commentId"`
-	PostID    int32            `json:"postId"`
-	UserID    int32            `json:"userId"`
+	CommentID int              `json:"commentId"`
+	PostID    int              `json:"postId"`
+	UserID    int              `json:"userId"`
 	Text      string           `json:"text"`
 	Facets    db.Facets        `json:"facets"`
 	CreatedAt pgtype.Timestamp `json:"createdAt"`
 }
 
 type Follow struct {
-	FollowerID  int32            `json:"followerId"`
-	FollowingID int32            `json:"followingId"`
+	FollowerID  int              `json:"followerId"`
+	FollowingID int              `json:"followingId"`
 	CreatedAt   pgtype.Timestamp `json:"createdAt"`
 }
 
 type Image struct {
-	ImageID      int32  `json:"imageId"`
-	PostID       int32  `json:"postId"`
-	Height       int32  `json:"height"`
-	Width        int32  `json:"width"`
+	ImageID      int    `json:"imageId"`
+	PostID       int    `json:"postId"`
+	Height       int    `json:"height"`
+	Width        int    `json:"width"`
 	ImageBlobUrl string `json:"imageBlobUrl"`
-	DisplayOrder int32  `json:"displayOrder"`
+	DisplayOrder int    `json:"displayOrder"`
 }
 
 type Like struct {
-	PostID    int32       `json:"postId"`
-	CommentID pgtype.Int4 `json:"commentId"`
-	UserID    int32       `json:"userId"`
-	IsPost    bool        `json:"isPost"`
+	PostID    int  `json:"postId"`
+	CommentID *int `json:"commentId"`
+	UserID    int  `json:"userId"`
+	IsPost    bool `json:"isPost"`
 }
 
 type Notification struct {
-	NotificationID   int32            `json:"notificationId"`
-	UserID           int32            `json:"userId"`
-	PostID           pgtype.Int4      `json:"postId"`
-	CommentID        pgtype.Int4      `json:"commentId"`
+	NotificationID   int              `json:"notificationId"`
+	UserID           int              `json:"userId"`
+	PostID           *int             `json:"postId"`
+	CommentID        *int             `json:"commentId"`
+	TargetUserID     *int             `json:"targetUserId"`
 	Message          string           `json:"message"`
 	Link             pgtype.Text      `json:"link"`
 	Viewed           bool             `json:"viewed"`
@@ -67,16 +68,16 @@ type Notification struct {
 }
 
 type PollVote struct {
-	ID          int32            `json:"id"`
-	PostID      int32            `json:"postId"`
-	UserID      int32            `json:"userId"`
-	OptionIndex int32            `json:"optionIndex"`
+	ID          int              `json:"id"`
+	PostID      int              `json:"postId"`
+	UserID      int              `json:"userId"`
+	OptionIndex int              `json:"optionIndex"`
 	CreatedAt   pgtype.Timestamp `json:"createdAt"`
 }
 
 type Post struct {
-	PostID     int32            `json:"postId"`
-	UserID     int32            `json:"userId"`
+	PostID     int              `json:"postId"`
+	UserID     int              `json:"userId"`
 	Text       pgtype.Text      `json:"text"`
 	CreatedAt  pgtype.Timestamp `json:"createdAt"`
 	Facets     db.Facets        `json:"facets"`
@@ -85,12 +86,12 @@ type Post struct {
 
 type Session struct {
 	ID        string           `json:"id"`
-	UserID    int32            `json:"userId"`
+	UserID    int              `json:"userId"`
 	ExpiresAt pgtype.Timestamp `json:"expiresAt"`
 }
 
 type User struct {
-	UserID    int32            `json:"userId"`
+	UserID    int              `json:"userId"`
 	Email     string           `json:"email"`
 	Password  string           `json:"password"`
 	Username  string           `json:"username"`
@@ -99,8 +100,8 @@ type User struct {
 }
 
 type VerificationCode struct {
-	ID        int32            `json:"id"`
+	ID        int              `json:"id"`
 	Code      string           `json:"code"`
-	UserID    int32            `json:"userId"`
+	UserID    int              `json:"userId"`
 	ExpiresAt pgtype.Timestamp `json:"expiresAt"`
 }

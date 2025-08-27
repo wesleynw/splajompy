@@ -2,21 +2,23 @@ package service
 
 import (
 	"context"
+	"testing"
+	"time"
+
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"splajompy.com/api/v2/internal/db/queries"
 	"splajompy.com/api/v2/internal/models"
 	"splajompy.com/api/v2/internal/repositories/fakes"
-	"testing"
-	"time"
 )
 
 func setupNotificationService() (*NotificationService, *fakes.FakeNotificationRepository) {
 	fakeNotificationsRepository := fakes.NewFakeNotificationRepository()
 	fakePostRepository := fakes.NewFakePostRepository()
 	fakeCommentRepository := fakes.NewFakeCommentRepository()
-	notificationService := NewNotificationService(fakeNotificationsRepository, fakePostRepository, fakeCommentRepository)
+	fakeUserRepository := fakes.NewFakeUserRepository()
+	notificationService := NewNotificationService(fakeNotificationsRepository, fakePostRepository, fakeCommentRepository, fakeUserRepository)
 	return notificationService, fakeNotificationsRepository
 }
 
@@ -32,9 +34,9 @@ func createTestUser() models.PublicUser {
 
 func createTestNotification(userID int, notificationID int, message string, viewed bool) queries.Notification {
 	return queries.Notification{
-		NotificationID: int32(notificationID),
-		UserID:         int32(userID),
-		PostID:         pgtype.Int4{Int32: 0, Valid: false},
+		NotificationID: notificationID,
+		UserID:         userID,
+		PostID:         nil,
 		Message:        message,
 		Viewed:         viewed,
 		CreatedAt:      pgtype.Timestamp{Time: time.Now(), Valid: true},
@@ -103,7 +105,7 @@ func TestMarkNotificationAsReadById(t *testing.T) {
 	require.NoError(t, err)
 	assert.True(t, hasUnread)
 
-	notificationId := int(notification.NotificationID)
+	notificationId := notification.NotificationID
 
 	err = service.MarkNotificationAsReadById(ctx, user, notificationId)
 
@@ -251,9 +253,10 @@ func TestFindUnreadLikeNotification_PostNotification(t *testing.T) {
 	_, fakeRepo := setupNotificationService()
 	ctx := context.Background()
 
+	postID := 123
 	notification := queries.Notification{
 		UserID:           1,
-		PostID:           pgtype.Int4{Int32: 123, Valid: true},
+		PostID:           &postID,
 		Message:          "@user liked your post.",
 		NotificationType: "like",
 		Viewed:           false,
@@ -272,10 +275,11 @@ func TestFindUnreadLikeNotification_CommentNotification(t *testing.T) {
 	ctx := context.Background()
 
 	commentID := 456
+	postID := 123
 	notification := queries.Notification{
 		UserID:           1,
-		PostID:           pgtype.Int4{Int32: 123, Valid: true},
-		CommentID:        pgtype.Int4{Int32: int32(commentID), Valid: true},
+		PostID:           &postID,
+		CommentID:        &commentID,
 		Message:          "@user liked your comment.",
 		NotificationType: "like",
 		Viewed:           false,
@@ -293,7 +297,7 @@ func TestDeleteNotificationById_Success(t *testing.T) {
 	_, fakeRepo := setupNotificationService()
 	ctx := context.Background()
 
-	err := fakeRepo.InsertNotification(ctx, 1, nil, nil, nil, "Test notification", models.NotificationTypeLike)
+	err := fakeRepo.InsertNotification(ctx, 1, nil, nil, nil, "Test notification", models.NotificationTypeLike, nil)
 	require.NoError(t, err)
 
 	assert.Equal(t, 1, fakeRepo.GetNotificationCount(1))
