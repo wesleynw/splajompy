@@ -83,7 +83,9 @@ struct NewPostView: View {
         Spacer()
 
         Button {
-          viewModel.submitPost(text: String(text.string), poll: poll) {
+          viewModel.submitPost(
+            text: String(text.string.trimmingCharacters(in: .whitespacesAndNewlines)), poll: poll
+          ) {
             dismiss()
           }
         } label: {
@@ -199,7 +201,7 @@ struct NewPostView: View {
   }
 
   private var isPostButtonDisabled: Bool {
-    (text.string.isEmpty
+    (text.string.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
       && viewModel.selectedImages.count == 0
       && poll == nil)
       || viewModel.isLoading
