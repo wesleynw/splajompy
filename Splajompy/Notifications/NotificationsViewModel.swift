@@ -21,7 +21,11 @@ extension NotificationsView {
     private var lastUnreadNotificationTime: String?
     private let limit = 30
 
-    private let service = NotificationService()
+    private let service: NotificationServiceProtocol
+
+    init(notificationService: NotificationServiceProtocol = NotificationService()) {
+      self.service = notificationService
+    }
 
     private func sortNotificationsByDate(_ notifications: [Notification]) -> [Notification] {
       return notifications.sorted { notification1, notification2 in

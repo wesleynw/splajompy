@@ -1,9 +1,13 @@
 import SwiftUI
 
 struct NotificationsView: View {
-  @StateObject private var viewModel = ViewModel()
+  @StateObject private var viewModel: ViewModel
   @EnvironmentObject private var authManager: AuthManager
   @State private var refreshId = UUID()
+
+  init(viewModel: ViewModel = ViewModel()) {
+    self._viewModel = StateObject(wrappedValue: viewModel)
+  }
 
   var body: some View {
     Group {
@@ -113,7 +117,7 @@ struct NotificationsView: View {
             }
             .font(.caption)
             .foregroundColor(.blue)
-            .buttonStyle(BorderlessButtonStyle())
+            .padding(5)
           }
         }
       }
@@ -123,28 +127,31 @@ struct NotificationsView: View {
           if let notifications = sections[section], !notifications.isEmpty {
             Section(header: Text(section.rawValue)) {
               ForEach(notifications, id: \.notificationId) { notification in
-                NotificationRow(notification: notification, refreshId: refreshId)
-                  .onAppear {
-                    var lastSectionWithNotifications: NotificationDateSection? =
-                      nil
-                    for sectionCase in NotificationDateSection.allCases.reversed() {
-                      if let sectionNotifications = sections[sectionCase],
-                        !sectionNotifications.isEmpty
-                      {
-                        lastSectionWithNotifications = sectionCase
-                        break
-                      }
-                    }
-
-                    if section == lastSectionWithNotifications
-                      && notification.notificationId
-                        == notifications.last?.notificationId
+                NotificationRow(
+                  notification: notification,
+                  refreshId: refreshId
+                )
+                .onAppear {
+                  var lastSectionWithNotifications: NotificationDateSection? =
+                    nil
+                  for sectionCase in NotificationDateSection.allCases.reversed() {
+                    if let sectionNotifications = sections[sectionCase],
+                      !sectionNotifications.isEmpty
                     {
-                      Task {
-                        await viewModel.loadMoreNotifications()
-                      }
+                      lastSectionWithNotifications = sectionCase
+                      break
                     }
                   }
+
+                  if section == lastSectionWithNotifications
+                    && notification.notificationId
+                      == notifications.last?.notificationId
+                  {
+                    Task {
+                      await viewModel.loadMoreNotifications()
+                    }
+                  }
+                }
               }
             }
           }
@@ -173,6 +180,11 @@ struct NotificationsView: View {
 }
 
 #Preview {
-  NotificationsView()
-    .environmentObject(AuthManager())
+  NavigationStack {
+    NotificationsView(
+      viewModel: NotificationsView.ViewModel(
+        notificationService: MockNotificationService()
+      )
+    )
+  }
 }
