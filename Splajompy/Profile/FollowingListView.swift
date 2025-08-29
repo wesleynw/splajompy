@@ -21,7 +21,11 @@ struct FollowingListView: View {
       case .loading:
         loadingView
       case .loaded(let users):
-        userListView(users: users, isLoading: viewModel.isFetchingMore, postManager: postManager)
+        userListView(
+          users: users,
+          isLoading: viewModel.isFetchingMore,
+          postManager: postManager
+        )
       case .failed(let error):
         errorView(error: error)
       }
@@ -62,7 +66,11 @@ struct FollowingListView: View {
     }
   }
 
-  private func userListView(users: [DetailedUser], isLoading: Bool, postManager: PostManager)
+  private func userListView(
+    users: [DetailedUser],
+    isLoading: Bool,
+    postManager: PostManager
+  )
     -> some View
   {
     Group {
@@ -130,7 +138,9 @@ struct UserRowView: View {
   @State private var isLoading = false
 
   init(
-    user: DetailedUser, onFollowToggle: @escaping (DetailedUser) -> Void, postManager: PostManager
+    user: DetailedUser,
+    onFollowToggle: @escaping (DetailedUser) -> Void,
+    postManager: PostManager
   ) {
     self.user = user
     self.onFollowToggle = onFollowToggle
@@ -139,7 +149,9 @@ struct UserRowView: View {
 
   var body: some View {
     HStack(spacing: 8) {
-      NavigationLink(value: Route.profile(id: String(user.userId), username: user.username)) {
+      NavigationLink(
+        value: Route.profile(id: String(user.userId), username: user.username)
+      ) {
         userInfoView
 
         Spacer()
@@ -184,25 +196,20 @@ struct UserRowView: View {
           .fontWeight(.medium)
       }
     }
-    .font(.caption)
-    .fontWeight(.medium)
     .frame(width: 70)
     .padding(.vertical, 6)
-    .background(user.isFollowing ? Color.clear : .blue)
-    .foregroundColor(user.isFollowing ? .blue : .white)
-    .overlay(
-      RoundedRectangle(cornerRadius: 6)
-        .stroke(user.isFollowing ? Color.blue : Color.clear, lineWidth: 1)
+    .background(
+      user.isFollowing ? Color.gray.opacity(0.2).gradient : Color.blue.gradient
     )
+    .foregroundColor(user.isFollowing ? .blue : .white)
     .animation(.spring(duration: 0.15, bounce: 0.3), value: user.isFollowing)
     .clipShape(RoundedRectangle(cornerRadius: 6))
     .disabled(isLoading)
-    .buttonStyle(.plain)
   }
 }
 
 #Preview {
-  @Previewable @State var user = DetailedUser(
+  @Previewable @State var user0 = DetailedUser(
     userId: 1,
     email: "john@example.com",
     username: "johndoe",
@@ -215,11 +222,34 @@ struct UserRowView: View {
     mutuals: ["alice", "bob"]
   )
 
-  return UserRowView(
-    user: user,
-    onFollowToggle: { _ in
-      user.isFollowing.toggle()
-    },
-    postManager: PostManager()
+  @Previewable @State var user1 = DetailedUser(
+    userId: 1,
+    email: "john@example.com",
+    username: "johndoe",
+    createdAt: Date(),
+    name: "John Doe",
+    bio: "iOS Developer",
+    isFollower: true,
+    isFollowing: true,
+    isBlocking: false,
+    mutuals: ["alice", "bob"]
   )
+
+  NavigationStack {
+    UserRowView(
+      user: user0,
+      onFollowToggle: { _ in
+        user0.isFollowing.toggle()
+      },
+      postManager: PostManager()
+    )
+
+    UserRowView(
+      user: user1,
+      onFollowToggle: { _ in
+        user1.isFollowing.toggle()
+      },
+      postManager: PostManager()
+    )
+  }
 }
