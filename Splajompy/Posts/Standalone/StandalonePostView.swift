@@ -58,6 +58,7 @@ struct StandalonePostView: View {
     .task {
       await reloadPost()
     }
+    .navigationTitle("Post")
   }
 
   private func loadPost() async {
