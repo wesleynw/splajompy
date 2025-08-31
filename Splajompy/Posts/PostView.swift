@@ -43,8 +43,7 @@ struct PostView: View {
       Group {
         if !isStandalone {
           NavigationLink(
-            destination:
-              StandalonePostView(postId: post.id, postManager: postManager)
+            value: Route.post(id: post.id)
           ) {
             postContent
           }
