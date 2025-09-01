@@ -187,7 +187,7 @@ struct RegisterView: View {
 
   private var termsText: some View {
     Text(
-      "By continuing, you agree to our [Terms of Service](https://splajompy.com/terms) and [Privacy Policy](https://splajompy.com/privacy)."
+      "By continuing, you agree to our [Terms of Service](https://splajompy.com/tos) and [Privacy Policy](https://splajompy.com/privacy)."
     )
     .font(.caption)
     .foregroundColor(.secondary)
