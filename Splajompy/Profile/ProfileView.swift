@@ -4,11 +4,11 @@ struct ProfileView: View {
   let username: String
   let userId: Int
   let isProfileTab: Bool
-  @ObservedObject var postManager: PostManager
 
   @State private var isShowingProfileEditor: Bool = false
   @StateObject private var viewModel: ViewModel
   @EnvironmentObject private var authManager: AuthManager
+  @ObservedObject var postManager: PostManager
 
   private var isCurrentUser: Bool {
     guard let currentUser = authManager.getCurrentUser() else { return false }
@@ -19,83 +19,68 @@ struct ProfileView: View {
     userId: Int,
     username: String,
     postManager: PostManager,
-    isProfileTab: Bool = false
+    isProfileTab: Bool = false,
+    viewModel: ViewModel? = nil
   ) {
     self.userId = userId
     self.username = username
     self.isProfileTab = isProfileTab
     self.postManager = postManager
     _viewModel = StateObject(
-      wrappedValue: ViewModel(userId: userId, postManager: postManager)
+      wrappedValue: viewModel
+        ?? ViewModel(userId: userId, postManager: postManager)
     )
   }
 
-  init(
-    userId: Int,
-    username: String,
-    postManager: PostManager,
-    isProfileTab: Bool = false,
-    viewModel: ViewModel
-  ) {
-    self.userId = userId
-    self.username = username
-    self.isProfileTab = isProfileTab
-    self.postManager = postManager
-    _viewModel = StateObject(wrappedValue: viewModel)
-  }
-
   var body: some View {
-    mainContent
-      .navigationTitle("@" + self.username)
-      .sheet(isPresented: $isShowingProfileEditor) {
-        ProfileEditorView(viewModel: viewModel)
-          .interactiveDismissDisabled()
+    Group {
+      switch viewModel.profileState {
+      case .idle, .loading:
+        loadingPlaceholder
+      case .loaded(let user):
+        profileList(user: user)
+      case .failed(let error):
+        ErrorScreen(
+          errorString: error,
+          onRetry: { await viewModel.loadProfileAndPosts() }
+        )
       }
-      .toolbar {
-        if !isProfileTab && !isCurrentUser {
-          Menu {
-            if case .loaded(let user, _) = viewModel.state {
-              if user.isBlocking {
-                Button(role: .destructive, action: viewModel.toggleBlocking) {
-                  Label(
-                    "Unblock @\(user.username)",
-                    systemImage: "person.fill.checkmark"
-                  )
-                }
-              } else {
-                Button(role: .destructive, action: viewModel.toggleBlocking) {
-                  Label(
-                    "Block @\(user.username)",
-                    systemImage: "person.fill.xmark"
-                  )
-                }
+    }
+    .onAppear {
+      Task {
+        await viewModel.loadProfileAndPosts()
+      }
+    }
+    .navigationTitle("@" + self.username)
+    .sheet(isPresented: $isShowingProfileEditor) {
+      ProfileEditorView(viewModel: viewModel)
+        .interactiveDismissDisabled()
+    }
+    .toolbar {
+      if !isProfileTab && !isCurrentUser {
+        Menu {
+          if case .loaded(let user) = viewModel.profileState {
+            if user.isBlocking {
+              Button(role: .destructive, action: viewModel.toggleBlocking) {
+                Label(
+                  "Unblock @\(user.username)",
+                  systemImage: "person.fill.checkmark"
+                )
+              }
+            } else {
+              Button(role: .destructive, action: viewModel.toggleBlocking) {
+                Label(
+                  "Block @\(user.username)",
+                  systemImage: "person.fill.xmark"
+                )
               }
             }
-          } label: {
-            Image(systemName: "ellipsis.circle")
           }
-          .disabled(viewModel.isLoadingBlockButton)
+        } label: {
+          Image(systemName: "ellipsis.circle")
         }
+        .disabled(viewModel.isLoadingBlockButton)
       }
-      .onAppear {
-        Task {
-          await viewModel.loadProfile()
-        }
-      }
-  }
-
-  @ViewBuilder
-  private var mainContent: some View {
-    switch viewModel.state {
-    case .idle, .loading:
-      loadingPlaceholder
-    case .loaded(let user, _):
-      profileList(user: user)
-    case .failed(let error):
-      ErrorScreen(
-        errorString: error.localizedDescription,
-        onRetry: { await viewModel.loadProfile() }
-      )
     }
   }
 
@@ -106,33 +91,20 @@ struct ProfileView: View {
       LazyVStack(spacing: 0) {
         profileHeader(user: user)
 
-        if viewModel.posts.isEmpty {
-          emptyMessage
-        } else {
-          ForEach(Array(viewModel.posts.enumerated()), id: \.element.id) {
-            index,
-            post in
-            PostView(
-              post: post,
-              postManager: postManager,
-              showAuthor: false,
-              onLikeButtonTapped: { viewModel.toggleLike(on: post) },
-              onPostDeleted: { viewModel.deletePost(on: post) }
-            )
-            .geometryGroup()
-            .onAppear {
-              handlePostAppear(post: post, index: index)
-            }
+        switch viewModel.postsState {
+        case .idle, .loading:
+          loadingPlaceholder
+        case .loaded(let postIds):
+          if postIds.isEmpty {
+            emptyMessage
+          } else {
+            postsContent(postIds: postIds)
           }
-
-          if viewModel.canLoadMorePosts {
-            HStack {
-              Spacer()
-              ProgressView()
-                .padding()
-              Spacer()
-            }
-          }
+        case .failed(let error):
+          ErrorScreen(
+            errorString: error,
+            onRetry: { await viewModel.loadPosts(reset: true) }
+          )
         }
       }
     }
@@ -142,9 +114,39 @@ struct ProfileView: View {
     }
   }
 
-  private func handlePostAppear(post: DetailedPost, index: Int) {
-    if case .loaded = viewModel.state,
-      index >= viewModel.posts.count - 3 && viewModel.canLoadMorePosts
+  @ViewBuilder
+  private func postsContent(postIds: [Int]) -> some View {
+    let posts = postManager.getPostsById(postIds)
+    ForEach(Array(posts.enumerated()), id: \.element.id) {
+      index,
+      post in
+      PostView(
+        post: post,
+        postManager: postManager,
+        showAuthor: false,
+        onLikeButtonTapped: { viewModel.toggleLike(on: post) },
+        onPostDeleted: { viewModel.deletePost(on: post) }
+      )
+      .geometryGroup()
+      .onAppear {
+        handlePostAppear(post: post, index: index, totalCount: postIds.count)
+      }
+    }
+
+    if viewModel.canLoadMorePosts {
+      HStack {
+        Spacer()
+        ProgressView()
+          .padding()
+        Spacer()
+      }
+    }
+  }
+
+  private func handlePostAppear(post: DetailedPost, index: Int, totalCount: Int) {
+    if case .loaded = viewModel.profileState,
+      case .loaded(_) = viewModel.postsState,
+      index >= totalCount - 3 && viewModel.canLoadMorePosts
         && !viewModel.isLoadingMorePosts
     {
       Task {

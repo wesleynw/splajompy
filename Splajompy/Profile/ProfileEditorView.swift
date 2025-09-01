@@ -8,8 +8,8 @@ struct ProfileEditorView: View {
   @Environment(\.dismiss) var dismiss
 
   private var currentProfile: UserProfile? {
-    switch viewModel.state {
-    case .loaded(let profile, _):
+    switch viewModel.profileState {
+    case .loaded(let profile):
       return profile
     default:
       return nil
