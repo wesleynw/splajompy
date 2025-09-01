@@ -4,8 +4,15 @@ import SwiftUI
 enum ProfileState {
   case idle
   case loading
-  case loaded(UserProfile, [Int])
-  case failed(Error)
+  case loaded(UserProfile)
+  case failed(String)
+}
+
+enum PostsState {
+  case idle
+  case loading
+  case loaded([DetailedPost])
+  case failed(String)
 }
 
 extension ProfileView {
@@ -16,12 +23,12 @@ extension ProfileView {
     private let fetchLimit = 10
     @ObservedObject var postManager: PostManager
 
-    @Published var state: ProfileState = .idle
+    @Published var profileState: ProfileState = .idle
+    @Published var postsState: PostsState = .idle
     @Published var isLoadingFollowButton = false
     @Published var isLoadingBlockButton = false
     @Published var canLoadMorePosts: Bool = true
     @Published var isLoadingMorePosts: Bool = false
-    @Published var postIds: [Int] = []
 
     init(
       userId: Int,
@@ -33,22 +40,22 @@ extension ProfileView {
       self.profileService = profileService
     }
 
-    var posts: [DetailedPost] {
-      postManager.getPostsById(postIds)
-    }
-
-    func loadProfile() async {
-      // Only load posts if we don't have any yet
-      if case .loaded(_, let currentPostIds) = state, !currentPostIds.isEmpty {
+    func loadProfileAndPosts() async {
+      // only load posts if we don't have any yet
+      if case .loaded(let currentPosts) = postsState, !currentPosts.isEmpty {
+        profileState = .loading
         let result = await profileService.getProfile(userId: userId)
         switch result {
         case .success(let userProfile):
-          state = .loaded(userProfile, currentPostIds)
+          profileState = .loaded(userProfile)
         case .error(let error):
-          state = .failed(error)
+          profileState = .failed(error.localizedDescription)
         }
         return
       }
+
+      profileState = .loading
+      postsState = .loading
 
       async let profileResult = profileService.getProfile(userId: userId)
       async let postsResult = postManager.loadFeed(
@@ -61,38 +68,44 @@ extension ProfileView {
       let profile = await profileResult
       let posts = await postsResult
 
-      switch (profile, posts) {
-      case (.success(let userProfile), .success(let fetchedPosts)):
-        postManager.cachePosts(fetchedPosts)
-        postIds = fetchedPosts.map { $0.id }
+      switch profile {
+      case .success(let userProfile):
+        profileState = .loaded(userProfile)
+      case .error(let error):
+        profileState = .failed(error.localizedDescription)
+      }
 
-        // Update cursor timestamp to the oldest post in the batch
+      switch posts {
+      case .success(let fetchedPosts):
+        postManager.cachePosts(fetchedPosts)
+
+        // update cursor timestamp to the oldest post in the batch
         if let oldestPost = fetchedPosts.last {
           lastPostTimestamp = oldestPost.post.createdAt
         }
 
         canLoadMorePosts = fetchedPosts.count >= fetchLimit
-        state = .loaded(userProfile, postIds)
-      case (.success(let userProfile), .error(_)):
-        postIds = []
-        state = .loaded(userProfile, [])
-      case (.error(let error), _):
-        state = .failed(error)
+        postsState = .loaded(fetchedPosts)
+      case .error(let error):
+        postsState = .failed(error.localizedDescription)
       }
     }
 
     func loadPosts(reset: Bool = false) async {
-      guard case .loaded(let profile, _) = state else { return }
+      guard case .loaded(_) = profileState else { return }
 
       if reset {
         lastPostTimestamp = nil
       } else {
         guard canLoadMorePosts && !isLoadingMorePosts else { return }
+        guard case .loaded(_) = postsState else { return }
         isLoadingMorePosts = true
       }
 
       defer {
-        isLoadingMorePosts = false
+        if !reset {
+          isLoadingMorePosts = false
+        }
       }
 
       let result = await postManager.loadFeed(
@@ -104,24 +117,26 @@ extension ProfileView {
 
       switch result {
       case .success(let fetchedPosts):
-        postManager.cachePosts(fetchedPosts)
-        let newPostIds = fetchedPosts.map { $0.id }
-
+        let finalPosts: [DetailedPost]
         if reset {
-          postIds = newPostIds
+          finalPosts = fetchedPosts
         } else {
-          postIds.append(contentsOf: newPostIds)
+          if case .loaded(let currentPosts) = postsState {
+            finalPosts = currentPosts + fetchedPosts
+          } else {
+            finalPosts = fetchedPosts
+          }
         }
 
-        // Update cursor timestamp to the oldest post in the batch
+        // update cursor timestamp to the oldest post in the batch
         if let oldestPost = fetchedPosts.last {
           lastPostTimestamp = oldestPost.post.createdAt
         }
 
-        state = .loaded(profile, postIds)
+        postsState = .loaded(finalPosts)
         canLoadMorePosts = fetchedPosts.count >= fetchLimit
       case .error(let error):
-        state = .failed(error)
+        postsState = .failed(error.localizedDescription)
       }
     }
 
@@ -132,10 +147,13 @@ extension ProfileView {
     }
 
     func deletePost(on post: DetailedPost) {
-      guard case .loaded(let profile, _) = state else { return }
-      if let index = postIds.firstIndex(of: post.id) {
-        postIds.remove(at: index)
-        state = .loaded(profile, postIds)
+      guard case .loaded(_) = profileState else { return }
+      if case .loaded(let currentPosts) = postsState,
+        let index = currentPosts.firstIndex(where: { $0.id == post.id })
+      {
+        var updatedPosts = currentPosts
+        updatedPosts.remove(at: index)
+        postsState = .loaded(updatedPosts)
         Task {
           await postManager.deletePost(id: post.id)
         }
@@ -149,51 +167,53 @@ extension ProfileView {
           bio: bio.trimmingCharacters(in: .whitespacesAndNewlines))
         switch result {
         case .success(_):
-          if case .loaded(var profile, let postIds) = state {
+          if case .loaded(var profile) = profileState {
             profile.name = name
             profile.bio = bio
-            state = .loaded(profile, postIds)
+            profileState = .loaded(profile)
           }
-        case .error(_):
-          break
+        case .error(let error):
+          profileState = .failed(error.localizedDescription)
         }
       }
     }
 
     func toggleFollowing() {
-      guard case .loaded(let profile, let postIds) = state else { return }
+      guard case .loaded(let profile) = profileState else { return }
       Task {
         isLoadingFollowButton = true
         let result = await profileService.toggleFollowing(
           userId: userId,
           isFollowing: profile.isFollowing
         )
-        if case .error(let error) = result {
-          print("Error toggling following status: \(error.localizedDescription)")
-        } else {
+        switch result {
+        case .success(_):
           var updatedProfile = profile
           updatedProfile.isFollowing.toggle()
-          state = .loaded(updatedProfile, postIds)
+          profileState = .loaded(updatedProfile)
+        case .error(let error):
+          profileState = .failed(error.localizedDescription)
         }
         isLoadingFollowButton = false
       }
     }
 
     func toggleBlocking() {
-      guard case .loaded(let profile, let postIds) = state else { return }
+      guard case .loaded(let profile) = profileState else { return }
       Task {
         isLoadingBlockButton = true
         let result = await profileService.toggleBlocking(
           userId: userId,
           isBlocking: profile.isBlocking
         )
-        if case .error(let error) = result {
-          print("Error toggling blocking status: \(error.localizedDescription)")
-        } else {
+        switch result {
+        case .success(_):
           var updatedProfile = profile
           updatedProfile.isBlocking.toggle()
           updatedProfile.isFollower = false
-          state = .loaded(updatedProfile, postIds)
+          profileState = .loaded(updatedProfile)
+        case .error(let error):
+          profileState = .failed(error.localizedDescription)
         }
         isLoadingBlockButton = false
       }
