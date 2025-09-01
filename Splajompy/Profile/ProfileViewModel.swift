@@ -11,7 +11,7 @@ enum ProfileState {
 enum PostsState {
   case idle
   case loading
-  case loaded([DetailedPost])
+  case loaded([Int])
   case failed(String)
 }
 
@@ -42,7 +42,7 @@ extension ProfileView {
 
     func loadProfileAndPosts() async {
       // only load posts if we don't have any yet
-      if case .loaded(let currentPosts) = postsState, !currentPosts.isEmpty {
+      if case .loaded(let currentPostIds) = postsState, !currentPostIds.isEmpty {
         profileState = .loading
         let result = await profileService.getProfile(userId: userId)
         switch result {
@@ -78,6 +78,7 @@ extension ProfileView {
       switch posts {
       case .success(let fetchedPosts):
         postManager.cachePosts(fetchedPosts)
+        let postIds = fetchedPosts.map { $0.id }
 
         // update cursor timestamp to the oldest post in the batch
         if let oldestPost = fetchedPosts.last {
@@ -85,7 +86,7 @@ extension ProfileView {
         }
 
         canLoadMorePosts = fetchedPosts.count >= fetchLimit
-        postsState = .loaded(fetchedPosts)
+        postsState = .loaded(postIds)
       case .error(let error):
         postsState = .failed(error.localizedDescription)
       }
@@ -117,14 +118,14 @@ extension ProfileView {
 
       switch result {
       case .success(let fetchedPosts):
-        let finalPosts: [DetailedPost]
+        let finalPostIds: [Int]
         if reset {
-          finalPosts = fetchedPosts
+          finalPostIds = fetchedPosts.map { $0.id }
         } else {
-          if case .loaded(let currentPosts) = postsState {
-            finalPosts = currentPosts + fetchedPosts
+          if case .loaded(let currentIds) = postsState {
+            finalPostIds = currentIds + fetchedPosts.map { $0.id }
           } else {
-            finalPosts = fetchedPosts
+            finalPostIds = fetchedPosts.map { $0.id }
           }
         }
 
@@ -133,7 +134,7 @@ extension ProfileView {
           lastPostTimestamp = oldestPost.post.createdAt
         }
 
-        postsState = .loaded(finalPosts)
+        postsState = .loaded(finalPostIds)
         canLoadMorePosts = fetchedPosts.count >= fetchLimit
       case .error(let error):
         postsState = .failed(error.localizedDescription)
@@ -148,12 +149,12 @@ extension ProfileView {
 
     func deletePost(on post: DetailedPost) {
       guard case .loaded(_) = profileState else { return }
-      if case .loaded(let currentPosts) = postsState,
-        let index = currentPosts.firstIndex(where: { $0.id == post.id })
+      if case .loaded(let currentIds) = postsState,
+        let index = currentIds.firstIndex(of: post.id)
       {
-        var updatedPosts = currentPosts
-        updatedPosts.remove(at: index)
-        postsState = .loaded(updatedPosts)
+        var updatedIds = currentIds
+        updatedIds.remove(at: index)
+        postsState = .loaded(updatedIds)
         Task {
           await postManager.deletePost(id: post.id)
         }

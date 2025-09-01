@@ -94,11 +94,11 @@ struct ProfileView: View {
         switch viewModel.postsState {
         case .idle, .loading:
           loadingPlaceholder
-        case .loaded(let posts):
-          if posts.isEmpty {
+        case .loaded(let postIds):
+          if postIds.isEmpty {
             emptyMessage
           } else {
-            postsContent(posts: posts)
+            postsContent(postIds: postIds)
           }
         case .failed(let error):
           ErrorScreen(
@@ -115,7 +115,8 @@ struct ProfileView: View {
   }
 
   @ViewBuilder
-  private func postsContent(posts: [DetailedPost]) -> some View {
+  private func postsContent(postIds: [Int]) -> some View {
+    let posts = postManager.getPostsById(postIds)
     ForEach(Array(posts.enumerated()), id: \.element.id) {
       index,
       post in
@@ -128,7 +129,7 @@ struct ProfileView: View {
       )
       .geometryGroup()
       .onAppear {
-        handlePostAppear(post: post, index: index, totalCount: posts.count)
+        handlePostAppear(post: post, index: index, totalCount: postIds.count)
       }
     }
 
