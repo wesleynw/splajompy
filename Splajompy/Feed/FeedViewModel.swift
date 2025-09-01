@@ -38,12 +38,12 @@ enum FeedState {
         state = .loading
       }
       lastPostTimestamp = nil
-    } else if !isLoadingMore {
-      isLoadingMore = true
     }
 
     defer {
-      isLoadingMore = false
+      if !reset {
+        isLoadingMore = false
+      }
     }
 
     let result = await postManager.loadFeed(

@@ -66,9 +66,7 @@ struct MainFeedView: View {
   private var mainContent: some View {
     VStack {
       switch viewModel.state {
-      case .idle:
-        loadingPlaceholder
-      case .loading:
+      case .idle, .loading:
         loadingPlaceholder
       case .loaded(let postIds):
         if postIds.isEmpty {

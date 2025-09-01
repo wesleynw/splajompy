@@ -100,9 +100,6 @@ extension ProfileView {
       } else {
         guard canLoadMorePosts else { return }
         guard case .loaded(_) = postsState else { return }
-        if !isLoadingMorePosts {
-          isLoadingMorePosts = true
-        }
       }
 
       defer {
