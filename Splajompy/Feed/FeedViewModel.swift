@@ -31,7 +31,6 @@ enum FeedState {
   }
 
   func loadPosts(reset: Bool = false, useLoadingState: Bool = false) async {
-
     if reset {
       if useLoadingState == true {
         state = .loading
@@ -39,7 +38,7 @@ enum FeedState {
         state = .loading
       }
       lastPostTimestamp = nil
-    } else {
+    } else if !isLoadingMore {
       isLoadingMore = true
     }
 
@@ -100,6 +99,20 @@ enum FeedState {
       Task {
         await postManager.deletePost(id: post.id)
       }
+    }
+  }
+
+  func handlePostAppear(at index: Int) {
+    guard case .loaded(let currentPostIds) = state,
+      index >= currentPostIds.count - 3,
+      canLoadMore,
+      !isLoadingMore
+    else { return }
+
+    isLoadingMore = true
+
+    Task {
+      await loadPosts()
     }
   }
 }

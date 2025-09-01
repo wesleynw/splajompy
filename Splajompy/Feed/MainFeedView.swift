@@ -126,7 +126,7 @@ struct MainFeedView: View {
           )
           .geometryGroup()
           .onAppear {
-            handlePostAppear(post: post, index: index)
+            viewModel.handlePostAppear(at: index)
           }
         }
 
@@ -143,17 +143,6 @@ struct MainFeedView: View {
     .environmentObject(authManager)
     .refreshable {
       await viewModel.loadPosts(reset: true)
-    }
-  }
-
-  private func handlePostAppear(post: DetailedPost, index: Int) {
-    if case .loaded(let currentPostIds) = viewModel.state,
-      index >= currentPostIds.count - 3 && viewModel.canLoadMore
-        && !viewModel.isLoadingMore
-    {
-      Task {
-        await viewModel.loadPosts()
-      }
     }
   }
 
