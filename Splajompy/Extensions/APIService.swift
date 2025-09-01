@@ -87,8 +87,13 @@ public struct APIService {
         let dateString = try container.decode(String.self)
 
         let formatter = ISO8601DateFormatter()
-        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds, .withTimeZone]
 
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds, .withTimeZone]
+        if let date = formatter.date(from: dateString) {
+          return date
+        }
+
+        formatter.formatOptions = [.withInternetDateTime, .withTimeZone]
         if let date = formatter.date(from: dateString) {
           return date
         }
