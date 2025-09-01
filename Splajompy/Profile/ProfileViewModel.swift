@@ -98,9 +98,8 @@ extension ProfileView {
       if reset {
         lastPostTimestamp = nil
       } else {
-        guard canLoadMorePosts && !isLoadingMorePosts else { return }
+        guard canLoadMorePosts else { return }
         guard case .loaded(_) = postsState else { return }
-        isLoadingMorePosts = true
       }
 
       defer {
@@ -217,6 +216,21 @@ extension ProfileView {
           profileState = .failed(error.localizedDescription)
         }
         isLoadingBlockButton = false
+      }
+    }
+
+    func handlePostAppear(at index: Int, totalCount: Int) {
+      guard case .loaded(_) = profileState,
+        case .loaded(_) = postsState,
+        index >= totalCount - 3,
+        canLoadMorePosts,
+        !isLoadingMorePosts
+      else { return }
+
+      isLoadingMorePosts = true
+
+      Task {
+        await loadPosts()
       }
     }
   }

@@ -129,7 +129,7 @@ struct ProfileView: View {
       )
       .geometryGroup()
       .onAppear {
-        handlePostAppear(post: post, index: index, totalCount: postIds.count)
+        viewModel.handlePostAppear(at: index, totalCount: postIds.count)
       }
     }
 
@@ -139,18 +139,6 @@ struct ProfileView: View {
         ProgressView()
           .padding()
         Spacer()
-      }
-    }
-  }
-
-  private func handlePostAppear(post: DetailedPost, index: Int, totalCount: Int) {
-    if case .loaded = viewModel.profileState,
-      case .loaded(_) = viewModel.postsState,
-      index >= totalCount - 3 && viewModel.canLoadMorePosts
-        && !viewModel.isLoadingMorePosts
-    {
-      Task {
-        await viewModel.loadPosts()
       }
     }
   }

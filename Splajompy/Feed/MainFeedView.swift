@@ -66,9 +66,7 @@ struct MainFeedView: View {
   private var mainContent: some View {
     VStack {
       switch viewModel.state {
-      case .idle:
-        loadingPlaceholder
-      case .loading:
+      case .idle, .loading:
         loadingPlaceholder
       case .loaded(let postIds):
         if postIds.isEmpty {
@@ -126,7 +124,7 @@ struct MainFeedView: View {
           )
           .geometryGroup()
           .onAppear {
-            handlePostAppear(post: post, index: index)
+            viewModel.handlePostAppear(at: index)
           }
         }
 
@@ -143,17 +141,6 @@ struct MainFeedView: View {
     .environmentObject(authManager)
     .refreshable {
       await viewModel.loadPosts(reset: true)
-    }
-  }
-
-  private func handlePostAppear(post: DetailedPost, index: Int) {
-    if case .loaded(let currentPostIds) = viewModel.state,
-      index >= currentPostIds.count - 3 && viewModel.canLoadMore
-        && !viewModel.isLoadingMore
-    {
-      Task {
-        await viewModel.loadPosts()
-      }
     }
   }
 
