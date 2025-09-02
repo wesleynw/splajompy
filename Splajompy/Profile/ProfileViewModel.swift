@@ -41,16 +41,8 @@ extension ProfileView {
     }
 
     func loadProfileAndPosts() async {
-      // only load posts if we don't have any yet
-      if case .loaded(let currentPostIds) = postsState, !currentPostIds.isEmpty {
-        profileState = .loading
-        let result = await profileService.getProfile(userId: userId)
-        switch result {
-        case .success(let userProfile):
-          profileState = .loaded(userProfile)
-        case .error(let error):
-          profileState = .failed(error.localizedDescription)
-        }
+      // don't reload if we already have both profile and posts data
+      if case .loaded(_) = profileState, case .loaded(_) = postsState {
         return
       }
 
