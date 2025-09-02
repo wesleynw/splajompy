@@ -59,6 +59,7 @@ struct StandalonePostView: View {
       await reloadPost()
     }
     .navigationTitle("Post")
+    .navigationBarTitleDisplayMode(.inline)
   }
 
   private func loadPost() async {

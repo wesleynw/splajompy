@@ -224,8 +224,11 @@ struct ImageGallery: View {
       if let url = URL(string: images[0].imageBlobUrl) {
         let imageData = images[0]
         let aspectRatio = CGFloat(imageData.width) / CGFloat(imageData.height)
-        let displayWidth = screenWidth - 32  // Accounting for typical padding
+        let isVeryWide = aspectRatio > 2.5
+        let isVeryTall = aspectRatio < 0.4
+        let displayWidth = screenWidth - 32
         let expectedHeight = displayWidth / aspectRatio
+        let frameHeight: CGFloat? = isVeryTall ? 700 : isVeryWide ? 200 : nil
 
         LazyImage(url: url) {
           state in
@@ -233,11 +236,13 @@ struct ImageGallery: View {
             image.resizable()
           } else {
             ProgressView()
-              .frame(maxWidth: .infinity, maxHeight: expectedHeight)
+              .frame(maxWidth: .infinity, maxHeight: frameHeight ?? expectedHeight)
           }
         }
-        .processors([.resize(width: screenWidth), .roundedCorners(radius: 8)])
-        .aspectRatio(aspectRatio, contentMode: .fit)
+        .processors([.resize(width: screenWidth)])
+        .aspectRatio(aspectRatio, contentMode: (isVeryWide || isVeryTall) ? .fill : .fit)
+        .frame(width: displayWidth, height: frameHeight)
+        .clipShape(RoundedRectangle(cornerRadius: 8))
         .onTapGesture {
           selectedImageIndex = 0
         }
