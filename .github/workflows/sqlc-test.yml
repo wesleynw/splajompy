@@ -14,6 +14,6 @@ jobs:
       - uses: actions/checkout@v5
       - uses: sqlc-dev/setup-sqlc@v4
         with:
-          sqlc-version: "1.29.0"
+          sqlc-version: "1.30.0"
       - run: sqlc diff
         working-directory: "api/internal/db"
