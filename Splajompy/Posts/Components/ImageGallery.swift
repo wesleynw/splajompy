@@ -222,8 +222,8 @@ struct ImageGallery: View {
   private func singleImageCell() -> some View {
     Group {
       if let url = URL(string: images[0].imageBlobUrl) {
-        let imageData = images[0]
-        let aspectRatio = CGFloat(imageData.width) / CGFloat(imageData.height)
+        let image = images[0]
+        let aspectRatio = CGFloat(image.width) / CGFloat(image.height)
         let isVeryWide = aspectRatio > 2.5
         let isVeryTall = aspectRatio < 0.4
         let displayWidth = screenWidth - 32
