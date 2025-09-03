@@ -122,13 +122,17 @@ private struct PollFormContent<AddButton: View>: View {
   @FocusState.Binding var focusedField: Int?
   let addOptionButton: AddButton
 
-  @Environment(\.editMode) private var editMode
+  #if os(iOS)
+    @Environment(\.editMode) private var editMode
+  #endif
 
   var body: some View {
     Section("Title") {
       VStack(alignment: .leading) {
         TextField("What's your favorite color?", text: $title)
-          .disabled(editMode?.wrappedValue == .active)
+          #if os(iOS)
+            .disabled(editMode?.wrappedValue == .active)
+          #endif
         HStack {
           Spacer()
           Text("\(title.count)/100")
@@ -151,7 +155,9 @@ private struct PollFormContent<AddButton: View>: View {
             )
           )
           .focused($focusedField, equals: index)
-          .disabled(editMode?.wrappedValue.isEditing == true)
+          #if os(iOS)
+            .disabled(editMode?.wrappedValue.isEditing == true)
+          #endif
 
           if focusedField == index || options[index].text.count > 25 {
             Text("\(options[index].text.count)/25")
