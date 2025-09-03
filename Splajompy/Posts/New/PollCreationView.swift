@@ -46,7 +46,11 @@ struct PollCreationView: View {
               #endif
             }()
           ) {
-            saveButton
+            Button("Save") {
+              savePoll()
+            }
+            .fontWeight(.semibold)
+            .disabled(!isValidPoll)
           }
 
         }
@@ -76,13 +80,6 @@ struct PollCreationView: View {
 
       optionsSection
     }
-    .background(
-      Color.clear
-        .contentShape(Rectangle())
-        .onTapGesture {
-          focusedField = nil
-        }
-    )
   }
 
   private var optionsSection: some View {
@@ -107,13 +104,6 @@ struct PollCreationView: View {
       && options.filter {
         !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
       }.count >= 2 && options.allSatisfy({ $0.count <= 25 })
-  }
-
-  private var saveButton: some View {
-    Button("Save") {
-      savePoll()
-    }
-    .disabled(!isValidPoll)
   }
 
   private func optionRow(at index: Int) -> some View {
