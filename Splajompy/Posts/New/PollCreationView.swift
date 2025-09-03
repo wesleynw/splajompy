@@ -2,17 +2,17 @@ import SwiftUI
 
 struct PollCreationView: View {
   @Binding var poll: PollCreationRequest?
+
   @Environment(\.dismiss) private var dismiss
 
   @State private var title = ""
   @State private var options: [String] = [""]
-  @State private var optionIDs: [UUID] = [UUID()]
   @FocusState private var focusedField: Int?
 
   var body: some View {
     NavigationView {
       formContent
-        .navigationTitle("Create Poll")
+        .navigationTitle("New Poll")
         #if os(iOS)
           .navigationBarTitleDisplayMode(.inline)
         #endif
@@ -56,7 +56,6 @@ struct PollCreationView: View {
       if let existingPoll = poll {
         title = existingPoll.title
         options = existingPoll.options.isEmpty ? [""] : existingPoll.options
-        optionIDs = options.map { _ in UUID() }
       }
     }
   }
@@ -88,10 +87,7 @@ struct PollCreationView: View {
 
   private var optionsSection: some View {
     Section {
-      ForEach(Array(zip(optionIDs, options.enumerated())), id: \.0) {
-        id,
-        indexedOption in
-        let (index, _) = indexedOption
+      ForEach(options.indices, id: \.self) { index in
         optionRow(at: index)
       }
       .onMove(perform: moveOption)
@@ -145,7 +141,6 @@ struct PollCreationView: View {
     Button {
       withAnimation {
         options.append("")
-        optionIDs.append(UUID())
       }
       focusedField = options.count - 1
     } label: {
@@ -154,16 +149,16 @@ struct PollCreationView: View {
   }
 
   private func deleteOption(at offsets: IndexSet) {
-    guard options.count > 1 else { return }
+    guard options.count > 1, offsets.allSatisfy({ $0 < options.count }) else {
+      return
+    }
     withAnimation {
       options.remove(atOffsets: offsets)
-      optionIDs.remove(atOffsets: offsets)
     }
   }
 
   private func moveOption(from source: IndexSet, to destination: Int) {
     options.move(fromOffsets: source, toOffset: destination)
-    optionIDs.move(fromOffsets: source, toOffset: destination)
   }
 
   private func savePoll() {

@@ -228,7 +228,7 @@ struct ImageGallery: View {
         let isVeryTall = aspectRatio < 0.4
         let displayWidth = screenWidth - 32
         let expectedHeight = displayWidth / aspectRatio
-        let frameHeight: CGFloat? = isVeryTall ? 700 : isVeryWide ? 200 : nil
+        let frameHeight: CGFloat? = isVeryTall ? 500 : isVeryWide ? 200 : nil
 
         LazyImage(url: url) {
           state in
@@ -243,6 +243,7 @@ struct ImageGallery: View {
         .aspectRatio(aspectRatio, contentMode: (isVeryWide || isVeryTall) ? .fill : .fit)
         .frame(width: displayWidth, height: frameHeight)
         .clipShape(RoundedRectangle(cornerRadius: 8))
+        .contentShape(.rect)
         .onTapGesture {
           selectedImageIndex = 0
         }
