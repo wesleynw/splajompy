@@ -16,60 +16,59 @@ struct MentionTextEditor: View {
   }
 
   var body: some View {
-    ScrollView(.vertical) {
-      VStack(alignment: .leading, spacing: 0) {
-        if showSuggestionsOnTop {
-          Spacer()
-            .frame(
-              height: viewModel.isShowingSuggestions ? calculateHeight() + 8 : 0
-            )
-            .animation(
-              .easeInOut(duration: 0.2),
-              value: viewModel.isShowingSuggestions
-            )
-        }
-
-        ZStack(alignment: .topLeading) {
-          AttributedTextEditor(
-            text: $text,
-            height: $textViewHeight,
-            cursorPosition: $viewModel.cursorPosition,
-            onTextChange: { newText in
-              viewModel.processTextChange(newText)
-            },
-            onCursorPositionChange: { position in
-              viewModel.updateCursorPosition(position)
-            }
+    VStack(alignment: .leading, spacing: 0) {
+      if showSuggestionsOnTop {
+        Spacer()
+          .frame(
+            height: viewModel.isShowingSuggestions ? calculateHeight() + 8 : 0
           )
-          .frame(height: textViewHeight)
-          .frame(maxWidth: .infinity)
-          .focused($isFocused)
-          .background(
-            GeometryReader { geometry in
-              Color.clear
-                .onAppear {
-                  editorFrame = geometry.frame(in: .global)
-                }
-                .onChange(of: geometry.frame(in: .global)) { _, newFrame in
-                  editorFrame = newFrame
-                }
-            }
+          .animation(
+            .easeInOut(duration: 0.2),
+            value: viewModel.isShowingSuggestions
           )
+      }
 
-          if text.string.isEmpty {
-            Text("What's on your mind?")
-              .foregroundColor(Color(.placeholderText))
-              .padding(8)
+      ZStack(alignment: .topLeading) {
+        AttributedTextEditor(
+          text: $text,
+          height: $textViewHeight,
+          cursorPosition: $viewModel.cursorPosition,
+          onTextChange: { newText in
+            viewModel.processTextChange(newText)
+          },
+          onCursorPositionChange: { position in
+            viewModel.updateCursorPosition(position)
           }
-        }
+        )
+        .frame(height: textViewHeight)
+        .frame(maxWidth: .infinity)
+        .focused($isFocused)
+        .background(
+          GeometryReader { geometry in
+            Color.clear
+              .onAppear {
+                editorFrame = geometry.frame(in: .global)
+              }
+              .onChange(of: geometry.frame(in: .global)) { _, newFrame in
+                editorFrame = newFrame
+              }
+          }
+        )
 
-        if !showSuggestionsOnTop && viewModel.isShowingSuggestions {
-          suggestionView
+        if text.string.isEmpty {
+          Text("What's on your mind?")
+            .foregroundColor(Color(.placeholderText))
+            .padding(8)
         }
       }
-      .padding(.horizontal)
-      .frame(maxWidth: .infinity)
+      .padding()
+
+      if !showSuggestionsOnTop && viewModel.isShowingSuggestions {
+        suggestionView
+      }
     }
+    .padding(.horizontal)
+    .frame(maxWidth: .infinity)
     .overlay(
       Group {
         if showSuggestionsOnTop && viewModel.isShowingSuggestions {
