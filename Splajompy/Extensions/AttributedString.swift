@@ -4,7 +4,9 @@ func generateAttributedStringUsingFacets(_ input: String, facets: [Facet]) -> St
   var output = input
 
   for facet in facets.sorted(by: { $0.indexStart > $1.indexStart }) {
-    guard facet.indexStart < input.utf8.count,
+    guard facet.indexStart >= 0,
+      facet.indexEnd >= 0,
+      facet.indexStart < input.utf8.count,
       facet.indexEnd <= input.utf8.count,
       facet.indexStart < facet.indexEnd
     else { continue }
