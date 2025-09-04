@@ -127,7 +127,7 @@ private struct PollFormContent<AddButton: View>: View {
   #endif
 
   private func placeholder(for index: Int) -> String {
-    let placeholders = ["red", "green", "mauve", "vermilion", "periwinkle"]
+    let placeholders = ["Red", "Green", "Mauve", "Vermilion", "Periwinkle"]
     return index < placeholders.count ? placeholders[index] : "Option \(index + 1)"
   }
 
