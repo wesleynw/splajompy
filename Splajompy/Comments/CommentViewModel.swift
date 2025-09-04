@@ -1,9 +1,11 @@
 import Foundation
+import SwiftUI
 
 extension CommentsView {
   @MainActor class ViewModel: ObservableObject {
     private let postId: Int
     private var service: CommentServiceProtocol
+    @AppStorage("comment_sort_order") private var commentSortOrder: String = "Newest First"
 
     @Published var comments = [DetailedComment]()
     @Published var isLoading = true
@@ -26,7 +28,7 @@ extension CommentsView {
 
         switch result {
         case .success(let fetchedComments):
-          comments = fetchedComments
+          comments = sortComments(fetchedComments)
         case .error(let error):
           print("Error fetching comments: \(error.localizedDescription)")
         }
@@ -60,8 +62,31 @@ extension CommentsView {
       }
     }
 
+    private func parseCommentDate(_ createdAt: String) -> Date {
+      let dateFormatter = ISO8601DateFormatter()
+      dateFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+      return dateFormatter.date(from: createdAt) ?? Date()
+    }
+
+    private func sortComments(_ comments: [DetailedComment]) -> [DetailedComment] {
+      return comments.sorted { comment1, comment2 in
+        let date1 = parseCommentDate(comment1.createdAt)
+        let date2 = parseCommentDate(comment2.createdAt)
+
+        if commentSortOrder == "Oldest First" {
+          return date1 < date2
+        } else {
+          return date1 > date2
+        }
+      }
+    }
+
     private func addCommentToList(_ comment: DetailedComment) {
-      comments.insert(comment, at: 0)
+      if commentSortOrder == "Oldest First" {
+        comments.append(comment)
+      } else {
+        comments.insert(comment, at: 0)
+      }
     }
 
     func submitComment(text: String) async {
