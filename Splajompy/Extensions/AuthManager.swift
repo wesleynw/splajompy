@@ -303,10 +303,10 @@ class AuthManager: ObservableObject, Sendable {
       return "Username must be at least 1 character"
     }
 
-    let alphanumericRegex = "^[a-zA-Z0-9]+$"
+    let alphanumericRegex = "^[a-zA-Z0-9.]+$"
     let alphanumericPred = NSPredicate(format: "SELF MATCHES %@", alphanumericRegex)
     if !alphanumericPred.evaluate(with: username) {
-      return "Username can only contain letters and numbers"
+      return "Username can only contain letters, numbers, and periods"
     }
 
     return nil

@@ -152,7 +152,7 @@ func TestAuthService_ValidateRegistrationData(t *testing.T) {
 			email:    "test@example.com",
 			username: "user.name",
 			password: "password123",
-			expected: service.ErrUsernameInvalidFormat,
+			expected: nil,
 		},
 
 		// Password validation tests

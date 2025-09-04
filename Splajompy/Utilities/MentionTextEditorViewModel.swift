@@ -11,7 +11,7 @@ extension MentionTextEditor {
     private var service: ProfileServiceProtocol = ProfileService()
     private var mentionStartIndex: String.Index?
     private var mentionPrefix: String = ""
-    private let mentionPattern = "@([a-zA-Z0-9_]+)"
+    private let mentionPattern = "@([a-zA-Z0-9_.]+)"
 
     func updateAttributedText(_ text: NSAttributedString) {
       attributedText = text
