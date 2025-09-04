@@ -40,7 +40,7 @@ var (
 	ErrGeneral               = errors.New("general failure")
 	ErrUsernameTaken         = errors.New("this username is in use")
 	ErrEmailTaken            = errors.New("this email is in use")
-	ErrUsernameInvalidFormat = errors.New("username can only contain letters and numbers")
+	ErrUsernameInvalidFormat = errors.New("username can only contain letters, numbers, and periods")
 	ErrUsernameTooShort      = errors.New("username must be at least 1 character")
 	ErrPasswordTooShort      = errors.New("password must be at least 8 characters")
 	ErrInvalidEmail          = errors.New("please enter a valid email address")
@@ -103,7 +103,7 @@ func (s *AuthService) ValidateRegistrationData(email, username, password string)
 		return ErrUsernameTooShort
 	}
 
-	alphanumericRegex := regexp.MustCompile(`^[a-zA-Z0-9]+$`)
+	alphanumericRegex := regexp.MustCompile(`^[a-zA-Z0-9.]+$`)
 	if !alphanumericRegex.MatchString(username) {
 		return ErrUsernameInvalidFormat
 	}
