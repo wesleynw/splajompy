@@ -3,6 +3,7 @@ import SwiftUI
 
 struct SettingsView: View {
   @EnvironmentObject private var authManager: AuthManager
+  @AppStorage("comment_sort_order") private var commentSortOrder: String = "Newest First"
 
   var body: some View {
     VStack {
@@ -21,6 +22,17 @@ struct SettingsView: View {
 
         NavigationLink(destination: AppearanceSwitcher()) {
           Label("Appearance", systemImage: "circle.lefthalf.filled")
+        }
+
+        HStack {
+          Label("Comment Sort Order", systemImage: "arrow.up.arrow.down")
+          Spacer()
+          Picker("Comment Sort Order", selection: $commentSortOrder) {
+            Text("Newest First").tag("Newest First")
+            Text("Oldest First").tag("Oldest First")
+          }
+          .pickerStyle(.menu)
+          .labelsHidden()
         }
 
         #if os(iOS)
