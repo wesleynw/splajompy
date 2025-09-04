@@ -100,8 +100,8 @@ struct PostView: View {
         .buttonStyle(.plain)
       }
 
-      if let content = post.post.richContent {
-        ContentTextView(attributedText: content)
+      if let text = post.post.text, !text.isEmpty {
+        ContentTextView(text: text, facets: post.post.facets ?? [])
       }
 
       if let images = post.images, !images.isEmpty {

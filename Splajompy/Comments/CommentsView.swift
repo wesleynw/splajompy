@@ -195,7 +195,7 @@ struct CommentRow: View {
         }
       }
 
-      ContentTextView(attributedText: comment.richContent)
+      ContentTextView(text: comment.text, facets: comment.facets ?? [])
 
       HStack {
         Text(formatter.localizedString(for: commentDate, relativeTo: Date()))

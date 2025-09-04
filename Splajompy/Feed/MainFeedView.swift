@@ -135,6 +135,20 @@ struct MainFeedView: View {
               .padding()
             Spacer()
           }
+        } else {
+          VStack(spacing: 8) {
+            Text("Is that the very first post?")
+            Text("What came before that?")
+            Text("Nothing at all?")
+            HStack(spacing: 4) {
+              Text("It always just")
+              Text("Splajompy")
+                .fontWeight(.black)
+            }
+          }
+          .font(.title3)
+          .multilineTextAlignment(.center)
+          .padding()
         }
       }
     }
