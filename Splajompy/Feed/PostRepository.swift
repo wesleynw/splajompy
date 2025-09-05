@@ -5,6 +5,7 @@ enum FeedType: String, CaseIterable {
   case all
   case profile
   case mutual
+  case following
 }
 
 protocol PostServiceProtocol: Sendable {
@@ -54,6 +55,8 @@ struct PostService: PostServiceProtocol {
       urlBase = "v2/user/\(userId)/posts"
     case .mutual:
       urlBase = "v2/posts/mutual"
+    case .following:
+      urlBase = "v2/posts/following"
     }
 
     var queryItems = [
@@ -493,6 +496,8 @@ struct MockPostService: PostServiceProtocol {
       }
       allPosts = store.getPostsByUserId(userId)
     case .mutual:
+      allPosts = store.getAllPosts()
+    case .following:
       allPosts = store.getAllPosts()
     }
 
