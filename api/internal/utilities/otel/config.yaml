@@ -68,7 +68,7 @@ processors:
           - replace_match(name, "GET /user/*/posts", "GET /user/{id}/posts")
           - replace_match(name, "GET /user/*/followers", "GET /user/{id}/followers")
           - replace_match(name, "GET /user/*/following", "GET /user/{id}/following")
-          - replace_match(name, "GET /user/*", "GET /user/{id}")
+          - replace_pattern(name, "^GET /user/[^/]+$", "GET /user/{id}")
           - replace_match(name, "POST /post/*/vote/*", "POST /post/{post_id}/vote/{option_index}")
           - replace_match(name, "POST /follow/*", "POST /follow/{user_id}")
           - replace_match(name, "DELETE /follow/*", "DELETE /follow/{user_id}")
