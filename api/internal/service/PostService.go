@@ -85,19 +85,24 @@ func (s *PostService) NewPost(ctx context.Context, currentUser models.PublicUser
 		}
 	}
 
-	// send notifications to users mentioned in post
+	// send notifications to users who are mentioned in post
+	usersToNotify := map[int]bool{}
 	for _, facet := range facets {
 		if facet.UserId != currentUser.UserID {
-			text := fmt.Sprintf("@%s mentioned you in a post.", currentUser.Username)
-			notificationFacets, err := repositories.GenerateFacets(ctx, s.userRepository, text)
-			if err != nil {
-				return err
-			}
+			usersToNotify[facet.UserId] = true
+		}
+	}
 
-			err = s.notificationRepository.InsertNotification(ctx, facet.UserId, &postId, nil, &notificationFacets, text, models.NotificationTypeMention, nil)
-			if err != nil {
-				return errors.New("unable to create post")
-			}
+	for userId := range usersToNotify {
+		text := fmt.Sprintf("@%s mentioned you in a post.", currentUser.Username)
+		notificationFacets, err := repositories.GenerateFacets(ctx, s.userRepository, text)
+		if err != nil {
+			return err
+		}
+
+		err = s.notificationRepository.InsertNotification(ctx, userId, &postId, nil, &notificationFacets, text, models.NotificationTypeMention, nil)
+		if err != nil {
+			return errors.New("unable to create post")
 		}
 	}
 

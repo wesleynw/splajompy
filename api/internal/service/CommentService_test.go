@@ -265,3 +265,50 @@ func TestDeleteComment_UnauthorizedUser(t *testing.T) {
 	assert.Len(t, comments, 1)
 	assert.Equal(t, comment.CommentID, comments[0].CommentID)
 }
+
+func TestNewCommentWithMention_DoesntSelfNotify(t *testing.T) {
+	svc, _, postRepo, notificationRepo, userRepo, _ := setupCommentTest(t)
+	ctx := context.Background()
+
+	user0, err := userRepo.CreateUser(ctx, "user0", "user0@splajompy.com", "password123")
+	require.NoError(t, err)
+
+	post, err := postRepo.InsertPost(ctx, user0.UserID, "Test post", nil, nil)
+	require.NoError(t, err)
+
+	commentText := "mentioning myself in a comment @user0"
+	_, err = svc.AddCommentToPost(ctx, user0, post.PostID, commentText)
+	require.NoError(t, err)
+
+	notifications, err := notificationRepo.GetNotificationsForUserId(ctx, user0.UserID, 0, 10)
+	require.NoError(t, err)
+
+	assert.Len(t, notifications, 0)
+}
+
+func TestNewCommentWithMultipleMentions_DeduplicatesNotifications(t *testing.T) {
+	svc, _, postRepo, notificationRepo, userRepo, _ := setupCommentTest(t)
+	ctx := context.Background()
+
+	user0, err := userRepo.CreateUser(ctx, "user0", "user0@splajompy.com", "password123")
+	require.NoError(t, err)
+	user1, err := userRepo.CreateUser(ctx, "user1", "user1@splajompy.com", "password123")
+	require.NoError(t, err)
+	user2, err := userRepo.CreateUser(ctx, "user2", "user2@splajompy.com", "password123")
+	require.NoError(t, err)
+
+	post, err := postRepo.InsertPost(ctx, user0.UserID, "Test post", nil, nil)
+	require.NoError(t, err)
+
+	commentText := "mentioning multiple users in the comment @user1 @user1 @user1 @user2 @user2"
+	_, err = svc.AddCommentToPost(ctx, user0, post.PostID, commentText)
+	require.NoError(t, err)
+
+	user1Notifications, err := notificationRepo.GetNotificationsForUserId(ctx, user1.UserID, 0, 10)
+	require.NoError(t, err)
+	assert.Len(t, user1Notifications, 1)
+
+	user2Notifications, err := notificationRepo.GetNotificationsForUserId(ctx, user2.UserID, 0, 10)
+	require.NoError(t, err)
+	assert.Len(t, user2Notifications, 1)
+}

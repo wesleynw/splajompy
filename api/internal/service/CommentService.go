@@ -75,18 +75,23 @@ func (s *CommentService) AddCommentToPost(ctx context.Context, currentUser model
 	}
 
 	// also send notifications to mentioned users
+	usersToNotify := map[int]bool{}
 	for _, facet := range commentFacets {
 		if facet.UserId != post.UserID && facet.UserId != currentUser.UserID {
-			text := fmt.Sprintf("@%s mentioned you in a comment.", currentUser.Username)
-			notificationFacets, err := repositories.GenerateFacets(ctx, s.userRepo, text)
-			if err != nil {
-				return nil, errors.New("unable to generate facets")
-			}
+			usersToNotify[facet.UserId] = true
+		}
+	}
 
-			err = s.notificationRepo.InsertNotification(ctx, facet.UserId, &postId, &commentId, &notificationFacets, text, models.NotificationTypeMention, nil)
-			if err != nil {
-				return nil, errors.New("unable to create a new comment notification")
-			}
+	for userId := range usersToNotify {
+		text := fmt.Sprintf("@%s mentioned you in a comment.", currentUser.Username)
+		notificationFacets, err := repositories.GenerateFacets(ctx, s.userRepo, text)
+		if err != nil {
+			return nil, errors.New("unable to generate facets")
+		}
+
+		err = s.notificationRepo.InsertNotification(ctx, userId, &postId, &commentId, &notificationFacets, text, models.NotificationTypeMention, nil)
+		if err != nil {
+			return nil, errors.New("unable to create a new comment notification")
 		}
 	}
 
