@@ -17,7 +17,9 @@ struct MainFeedView: View {
 
   var body: some View {
     mainContent
-      .navigationTitle(selectedFeedType == .mutual ? "Home" : "All")
+      .navigationTitle(
+        selectedFeedType == .mutual ? "Home" : selectedFeedType == .following ? "Following" : "All"
+      )
       .toolbarTitleMenu {
         Button {
           selectedFeedType = .mutual
@@ -25,6 +27,16 @@ struct MainFeedView: View {
           HStack {
             Text("Home")
             if selectedFeedType == .mutual {
+              Image(systemName: "checkmark")
+            }
+          }
+        }
+        Button {
+          selectedFeedType = .following
+        } label: {
+          HStack {
+            Text("Following")
+            if selectedFeedType == .following {
               Image(systemName: "checkmark")
             }
           }
