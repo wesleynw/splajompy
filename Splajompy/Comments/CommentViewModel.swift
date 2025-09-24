@@ -8,15 +8,19 @@ extension CommentsView {
     @AppStorage("comment_sort_order") private var commentSortOrder: String = "Newest First"
 
     @Published var comments = [DetailedComment]()
-    @Published var isLoading = true
+    @Published var isLoading: Bool = false
     @Published var errorMessage: String?
+    @Published var showError: Bool = false
+    @ObservedObject var postManager: PostManager
 
     init(
       postId: Int,
-      service: CommentServiceProtocol = CommentService()
+      service: CommentServiceProtocol = CommentService(),
+      postManager: PostManager
     ) {
       self.postId = postId
       self.service = service
+      self.postManager = postManager
       loadComments()
     }
 
@@ -89,14 +93,33 @@ extension CommentsView {
       }
     }
 
-    func submitComment(text: String) async {
+    func submitComment(text: String) async -> Bool {
+      isLoading = true
+      defer {
+        isLoading = false
+      }
+      
+      let text = text.trimmingCharacters(
+        in: .whitespacesAndNewlines
+      )
+      guard !text.isEmpty else { return false }
+      
       let result = await service.addComment(postId: postId, text: text)
 
       switch result {
       case .success(let newComment):
         addCommentToList(newComment)
+        
+        postManager.updatePost(id: postId) { post in
+          post.commentCount += 1
+        }
+        
+        return true
       case .error(let error):
         print("Error adding comment: \(error.localizedDescription)")
+        self.errorMessage = error.localizedDescription
+        self.showError = true
+        return false
       }
     }
 
@@ -110,6 +133,7 @@ extension CommentsView {
           print("Error deleting comment: \(error.localizedDescription)")
           comments.insert(comment, at: index)
           errorMessage = "Failed to delete comment"
+          showError = true
         }
       }
     }

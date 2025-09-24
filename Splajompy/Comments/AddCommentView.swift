@@ -8,49 +8,81 @@ struct AddCommentSheet: View {
   let postManager: PostManager
 
   var body: some View {
-    VStack(spacing: 12) {
-      HStack {
-        Button("Cancel") {
-          dismiss()
-        }
+    NavigationStack {
+      VStack(spacing: 12) {
+        #if os(iOS)
+          MentionTextEditor(text: $text, showSuggestionsOnTop: false)
+        #endif
 
         Spacer()
-
-        Button("Comment") {
-          submitComment()
-        }
-        .disabled(
-          text.string.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+      }
+      .alert(isPresented: $viewModel.showError) {
+        Alert(
+          title: Text("Error"),
+          message: Text(viewModel.errorMessage ?? "Unknown error"),
+          dismissButton: .default(Text("OK")) {
+            viewModel.showError = false
+          }
         )
-        .fontWeight(.semibold)
-        .font(.headline)
       }
-      .padding([.top, .leading, .trailing])
+      .navigationTitle("Comment")
+      .navigationBarTitleDisplayMode(.inline)
+      .toolbar {
+        ToolbarItem(placement: .topBarLeading) {
+          if #available(iOS 26.0, *) {
+            Button(role: .close, action: { dismiss() })
+          } else {
+            Button {
+              dismiss()
+            } label: {
+              Image(systemName: "xmark.circle.fill")
+                .opacity(0.8)
+            }
+            .buttonStyle(.plain)
+          }
+        }
 
-      #if os(iOS)
-        MentionTextEditor(text: $text, showSuggestionsOnTop: false)
-      #endif
-
-      Spacer()
-    }
-    .presentationDragIndicator(.visible)
-  }
-
-  private func submitComment() {
-    let commentText = text.string.trimmingCharacters(
-      in: .whitespacesAndNewlines
-    )
-    guard !commentText.isEmpty else { return }
-
-    Task {
-      await viewModel.submitComment(text: commentText)
-
-      postManager.updatePost(id: postId) { post in
-        post.commentCount += 1
-      }
-
-      await MainActor.run {
-        dismiss()
+        ToolbarItem(placement: .topBarTrailing) {
+          if #available(iOS 26, *) {
+            Button {
+              Task {
+                let result = await viewModel.submitComment(text: text.string)
+                if result == true {
+                  dismiss()
+                }
+              }
+            } label: {
+              if viewModel.isLoading {
+                ProgressView()
+              } else {
+                Image(systemName: "arrow.up")
+              }
+            }
+            .disabled(
+              text.string.trimmingCharacters(in: .whitespacesAndNewlines)
+                .isEmpty
+                || viewModel.isLoading
+            )
+            .buttonStyle(.glassProminent)
+          } else {
+            Button {
+              Task {
+                let result = await viewModel.submitComment(text: text.string)
+                if result == true {
+                  dismiss()
+                }
+              }
+            } label: {
+              Image(systemName: "arrow.up.circle.fill")
+                .opacity(0.8)
+            }
+            .disabled(
+              text.string.trimmingCharacters(in: .whitespacesAndNewlines)
+                .isEmpty
+                || viewModel.isLoading
+            )
+          }
+        }
       }
     }
   }
@@ -62,7 +94,10 @@ struct AddCommentSheet: View {
   Color.clear
     .sheet(isPresented: .constant(true)) {
       AddCommentSheet(
-        viewModel: CommentsView.ViewModel(postId: 1),
+        viewModel: CommentsView.ViewModel(
+          postId: 1,
+          postManager: PostManager()
+        ),
         postId: 1,
         postManager: PostManager()
       )

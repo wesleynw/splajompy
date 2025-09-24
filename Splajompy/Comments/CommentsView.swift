@@ -16,7 +16,7 @@ struct CommentsView: View {
     self.postId = postId
     self.isShowingInSheet = isShowingInSheet
     self.postManager = postManager
-    _viewModel = StateObject(wrappedValue: ViewModel(postId: postId))
+    _viewModel = StateObject(wrappedValue: ViewModel(postId: postId, postManager: postManager))
   }
 
   init(
@@ -147,13 +147,6 @@ struct CommentsView: View {
     }
     .presentationDragIndicator(.visible)
     .postHogScreenView("CommentsView", ["post": postId])
-    .alert("Error", isPresented: .constant(viewModel.errorMessage != nil)) {
-      Button("OK") {
-        viewModel.errorMessage = nil
-      }
-    } message: {
-      Text(viewModel.errorMessage ?? "")
-    }
   }
 }
 
@@ -278,7 +271,8 @@ struct LikeButton: View {
 #Preview {
   let mockViewModel = CommentsView.ViewModel(
     postId: 1,
-    service: MockCommentService()
+    service: MockCommentService(),
+    postManager: PostManager()
   )
 
   let postManager = PostManager()
@@ -294,7 +288,8 @@ struct LikeButton: View {
 #Preview("Loading") {
   let mockViewModel = CommentsView.ViewModel(
     postId: 1,
-    service: MockCommentService_Loading()
+    service: MockCommentService_Loading(),
+    postManager: PostManager()
   )
 
   let postManager = PostManager()
@@ -310,7 +305,8 @@ struct LikeButton: View {
 #Preview("No Comments") {
   let mockViewModel = CommentsView.ViewModel(
     postId: 1,
-    service: MockCommentService_Empty()
+    service: MockCommentService_Empty(),
+    postManager: PostManager()
   )
 
   let postManager = PostManager()
@@ -326,7 +322,8 @@ struct LikeButton: View {
 #Preview("Error") {
   let mockViewModel = CommentsView.ViewModel(
     postId: 1,
-    service: MockCommentService_Error()
+    service: MockCommentService_Error(),
+    postManager: PostManager()
   )
 
   let postManager = PostManager()
