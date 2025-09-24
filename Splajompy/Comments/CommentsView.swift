@@ -2,8 +2,8 @@ import PostHog
 import SwiftUI
 
 struct CommentsView: View {
-  var isShowingInSheet: Bool
   var postId: Int
+  var isInSheet: Bool
 
   @ObservedObject var postManager: PostManager
 
@@ -12,55 +12,68 @@ struct CommentsView: View {
   @FocusState private var isTextFieldFocused: Bool
   @Environment(\.dismiss) private var dismiss
 
-  init(postId: Int, isShowingInSheet: Bool = true, postManager: PostManager) {
+  init(postId: Int, postManager: PostManager, isInSheet: Bool = true) {
     self.postId = postId
-    self.isShowingInSheet = isShowingInSheet
     self.postManager = postManager
-    _viewModel = StateObject(wrappedValue: ViewModel(postId: postId))
+    _viewModel = StateObject(
+      wrappedValue: ViewModel(postId: postId, postManager: postManager)
+    )
+    self.isInSheet = isInSheet
   }
 
   init(
     postId: Int,
     postManager: PostManager,
-    isShowingInSheet: Bool = true,
-    viewModel: ViewModel
+    viewModel: ViewModel,
+    isInSheet: Bool = true
   ) {
     self.postId = postId
-    self.isShowingInSheet = isShowingInSheet
     self.postManager = postManager
     _viewModel = StateObject(wrappedValue: viewModel)
+    self.isInSheet = isInSheet
   }
 
   var body: some View {
-    VStack(spacing: 0) {
-      if isShowingInSheet {
-        ZStack {
-          VStack(spacing: 8) {
-            Text("Comments")
-              .font(.headline)
-              .fontWeight(.bold)
-              .padding()
-          }
-          HStack {
-            Spacer()
-            Button(action: {
-              dismiss()
-            }) {
-              Image(systemName: "xmark.circle.fill")
-                .font(.system(size: 24))
-                .foregroundColor(Color.gray.opacity(0.7))
+    if isInSheet {
+      NavigationStack {
+        content
+          .navigationTitle("Comments")
+          #if os(iOS)
+            .navigationBarTitleDisplayMode(.inline)
+          #endif
+          .toolbar {
+            ToolbarItem(
+              placement: {
+                #if os(iOS)
+                  .topBarTrailing
+                #else
+                  .primaryAction
+                #endif
+              }()
+            ) {
+              if #available(iOS 26, *) {
+                Button(role: .cancel, action: { dismiss() })
+              } else {
+                Button {
+                  dismiss()
+                } label: {
+                  Image(systemName: "x.circle.fill")
+                    .opacity(0.75)
+                }
+                .buttonStyle(.plain)
+              }
             }
-            .padding(.top, 8)
-            .padding(.trailing, 16)
           }
-        }
-        .frame(maxWidth: .infinity)
-        .contentShape(Rectangle())
+      }
+    } else {
+      content
+    }
+  }
 
-        Rectangle()
-          .fill(Color.gray.opacity(0.2))
-          .frame(height: 1)
-      } else {
+  @ViewBuilder
+  var content: some View {
+    VStack(spacing: 0) {
+      if !isInSheet {
         HStack {
           Text("Comments")
             .fontWeight(.bold)
@@ -130,7 +143,6 @@ struct CommentsView: View {
       AddCommentSheet(
         viewModel: viewModel,
         postId: postId,
-        postManager: postManager
       )
     }
     .onTapGesture {
@@ -140,20 +152,13 @@ struct CommentsView: View {
     }
     .animation(.easeInOut, value: true)
     .onOpenURL { url in
-      if !isShowingInSheet {
+      if !isInSheet {
         return
       }
       dismiss()
     }
     .presentationDragIndicator(.visible)
     .postHogScreenView("CommentsView", ["post": postId])
-    .alert("Error", isPresented: .constant(viewModel.errorMessage != nil)) {
-      Button("OK") {
-        viewModel.errorMessage = nil
-      }
-    } message: {
-      Text(viewModel.errorMessage ?? "")
-    }
   }
 }
 
@@ -278,7 +283,8 @@ struct LikeButton: View {
 #Preview {
   let mockViewModel = CommentsView.ViewModel(
     postId: 1,
-    service: MockCommentService()
+    service: MockCommentService(),
+    postManager: PostManager()
   )
 
   let postManager = PostManager()
@@ -286,7 +292,6 @@ struct LikeButton: View {
   CommentsView(
     postId: 1,
     postManager: postManager,
-    isShowingInSheet: true,
     viewModel: mockViewModel
   )
 }
@@ -294,7 +299,8 @@ struct LikeButton: View {
 #Preview("Loading") {
   let mockViewModel = CommentsView.ViewModel(
     postId: 1,
-    service: MockCommentService_Loading()
+    service: MockCommentService_Loading(),
+    postManager: PostManager()
   )
 
   let postManager = PostManager()
@@ -302,7 +308,6 @@ struct LikeButton: View {
   CommentsView(
     postId: 1,
     postManager: postManager,
-    isShowingInSheet: true,
     viewModel: mockViewModel
   )
 }
@@ -310,7 +315,8 @@ struct LikeButton: View {
 #Preview("No Comments") {
   let mockViewModel = CommentsView.ViewModel(
     postId: 1,
-    service: MockCommentService_Empty()
+    service: MockCommentService_Empty(),
+    postManager: PostManager()
   )
 
   let postManager = PostManager()
@@ -318,7 +324,6 @@ struct LikeButton: View {
   CommentsView(
     postId: 1,
     postManager: postManager,
-    isShowingInSheet: true,
     viewModel: mockViewModel
   )
 }
@@ -326,7 +331,8 @@ struct LikeButton: View {
 #Preview("Error") {
   let mockViewModel = CommentsView.ViewModel(
     postId: 1,
-    service: MockCommentService_Error()
+    service: MockCommentService_Error(),
+    postManager: PostManager()
   )
 
   let postManager = PostManager()
@@ -334,7 +340,6 @@ struct LikeButton: View {
   CommentsView(
     postId: 1,
     postManager: postManager,
-    isShowingInSheet: true,
     viewModel: mockViewModel
   )
 }
