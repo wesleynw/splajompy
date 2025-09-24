@@ -37,7 +37,7 @@ struct StandalonePostView: View {
                 }
               }
             )
-            CommentsView(postId: postId, isShowingInSheet: false, postManager: postManager)
+            CommentsView(postId: postId, postManager: postManager, isInSheet: false)
           }
         } else {
           ErrorScreen(

@@ -5,7 +5,6 @@ struct AddCommentSheet: View {
   @State private var text = NSAttributedString(string: "")
   @Environment(\.dismiss) var dismiss
   let postId: Int
-  let postManager: PostManager
 
   var body: some View {
     NavigationStack {
@@ -25,65 +24,67 @@ struct AddCommentSheet: View {
           }
         )
       }
-      .navigationTitle("Comment")
-      .navigationBarTitleDisplayMode(.inline)
-      .toolbar {
-        ToolbarItem(placement: .topBarLeading) {
-          if #available(iOS 26.0, *) {
-            Button(role: .close, action: { dismiss() })
-          } else {
-            Button {
-              dismiss()
-            } label: {
-              Image(systemName: "xmark.circle.fill")
+      #if os(iOS)
+        .navigationTitle("Comment")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+          ToolbarItem(placement: .topBarLeading) {
+            if #available(iOS 26.0, *) {
+              Button(role: .close, action: { dismiss() })
+            } else {
+              Button {
+                dismiss()
+              } label: {
+                Image(systemName: "xmark.circle.fill")
                 .opacity(0.8)
+              }
+              .buttonStyle(.plain)
             }
-            .buttonStyle(.plain)
           }
-        }
 
-        ToolbarItem(placement: .topBarTrailing) {
-          if #available(iOS 26, *) {
-            Button {
-              Task {
-                let result = await viewModel.submitComment(text: text.string)
-                if result == true {
-                  dismiss()
+          ToolbarItem(placement: .topBarTrailing) {
+            if #available(iOS 26, *) {
+              Button {
+                Task {
+                  let result = await viewModel.submitComment(text: text.string)
+                  if result == true {
+                    dismiss()
+                  }
+                }
+              } label: {
+                if viewModel.isLoading {
+                  ProgressView()
+                } else {
+                  Image(systemName: "arrow.up")
                 }
               }
-            } label: {
-              if viewModel.isLoading {
-                ProgressView()
-              } else {
-                Image(systemName: "arrow.up")
-              }
-            }
-            .disabled(
-              text.string.trimmingCharacters(in: .whitespacesAndNewlines)
-                .isEmpty
-                || viewModel.isLoading
-            )
-            .buttonStyle(.glassProminent)
-          } else {
-            Button {
-              Task {
-                let result = await viewModel.submitComment(text: text.string)
-                if result == true {
-                  dismiss()
+              .disabled(
+                text.string.trimmingCharacters(in: .whitespacesAndNewlines)
+                  .isEmpty
+                  || viewModel.isLoading
+              )
+              .buttonStyle(.glassProminent)
+            } else {
+              Button {
+                Task {
+                  let result = await viewModel.submitComment(text: text.string)
+                  if result == true {
+                    dismiss()
+                  }
                 }
-              }
-            } label: {
-              Image(systemName: "arrow.up.circle.fill")
+              } label: {
+                Image(systemName: "arrow.up.circle.fill")
                 .opacity(0.8)
+              }
+              .disabled(
+                text.string.trimmingCharacters(in: .whitespacesAndNewlines)
+                  .isEmpty
+                  || viewModel.isLoading
+              )
             }
-            .disabled(
-              text.string.trimmingCharacters(in: .whitespacesAndNewlines)
-                .isEmpty
-                || viewModel.isLoading
-            )
           }
         }
-      }
+      #endif
     }
   }
 }
@@ -98,8 +99,7 @@ struct AddCommentSheet: View {
           postId: 1,
           postManager: PostManager()
         ),
-        postId: 1,
-        postManager: PostManager()
+        postId: 1
       )
     }
 }
