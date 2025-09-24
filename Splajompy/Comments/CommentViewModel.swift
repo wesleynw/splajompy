@@ -5,7 +5,8 @@ extension CommentsView {
   @MainActor class ViewModel: ObservableObject {
     private let postId: Int
     private var service: CommentServiceProtocol
-    @AppStorage("comment_sort_order") private var commentSortOrder: String = "Newest First"
+    @AppStorage("comment_sort_order") private var commentSortOrder: String =
+      "Newest First"
 
     @Published var comments = [DetailedComment]()
     @Published var isLoading: Bool = false
@@ -68,11 +69,15 @@ extension CommentsView {
 
     private func parseCommentDate(_ createdAt: String) -> Date {
       let dateFormatter = ISO8601DateFormatter()
-      dateFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+      dateFormatter.formatOptions = [
+        .withInternetDateTime, .withFractionalSeconds,
+      ]
       return dateFormatter.date(from: createdAt) ?? Date()
     }
 
-    private func sortComments(_ comments: [DetailedComment]) -> [DetailedComment] {
+    private func sortComments(_ comments: [DetailedComment])
+      -> [DetailedComment]
+    {
       return comments.sorted { comment1, comment2 in
         let date1 = parseCommentDate(comment1.createdAt)
         let date2 = parseCommentDate(comment2.createdAt)
@@ -98,22 +103,22 @@ extension CommentsView {
       defer {
         isLoading = false
       }
-      
+
       let text = text.trimmingCharacters(
         in: .whitespacesAndNewlines
       )
       guard !text.isEmpty else { return false }
-      
+
       let result = await service.addComment(postId: postId, text: text)
 
       switch result {
       case .success(let newComment):
         addCommentToList(newComment)
-        
+
         postManager.updatePost(id: postId) { post in
           post.commentCount += 1
         }
-        
+
         return true
       case .error(let error):
         print("Error adding comment: \(error.localizedDescription)")
@@ -124,7 +129,9 @@ extension CommentsView {
     }
 
     func deleteComment(_ comment: DetailedComment) async {
-      if let index = comments.firstIndex(where: { $0.commentId == comment.commentId }) {
+      if let index = comments.firstIndex(where: {
+        $0.commentId == comment.commentId
+      }) {
         comments.remove(at: index)
 
         let result = await service.deleteComment(commentId: comment.commentId)
