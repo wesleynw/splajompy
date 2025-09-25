@@ -39,14 +39,13 @@ struct AttributedTextEditor: UIViewRepresentable {
 
   func updateUIView(_ uiView: UITextView, context: Context) {
     if !uiView.attributedText.isEqual(to: text) {
-      let wasUpdatingFromViewModel = context.coordinator.isUpdatingFromViewModel
       context.coordinator.isUpdatingFromViewModel = true
       uiView.typingAttributes = [
         .font: UIFont.preferredFont(forTextStyle: .body),
         .foregroundColor: UIColor.label,
       ]
       uiView.attributedText = text
-      if wasUpdatingFromViewModel && cursorPosition <= text.length {
+      if cursorPosition <= text.length {
         uiView.selectedRange = NSRange(location: cursorPosition, length: 0)
       }
       context.coordinator.isUpdatingFromViewModel = false
@@ -78,13 +77,17 @@ struct AttributedTextEditor: UIViewRepresentable {
 
     func textViewDidChange(_ textView: UITextView) {
       if !isUpdatingFromViewModel {
-        if let attributedText = textView.attributedText {
-          if let lastChar = textView.text.last, lastChar == " " {
+        if let text = textView.text, !text.isEmpty {
+          let lastChar = text[text.index(before: text.endIndex)]
+          if lastChar == " " {
             textView.typingAttributes = [
               .font: UIFont.preferredFont(forTextStyle: .body),
               .foregroundColor: UIColor.label,
             ]
           }
+        }
+
+        if let attributedText = textView.attributedText {
           parent.text = attributedText
           parent.onTextChange?(attributedText)
         }
@@ -118,12 +121,33 @@ struct AttributedTextEditor: UIViewRepresentable {
     func textViewDidChangeSelection(_ textView: UITextView) {
       if !isUpdatingFromViewModel {
         let cursorPosition = textView.selectedRange.location
+
+        var isInMention = false
+        if cursorPosition > 1 {
+          let prevChar = textView.text[
+            textView.text.index(textView.text.startIndex, offsetBy: cursorPosition - 2)]
+          print("prev char: ", prevChar)
+          if prevChar != " " {
+            let attributes = textView.attributedText.attributes(
+              at: cursorPosition - 1, effectiveRange: nil)
+            if let foregroundColor = attributes[.foregroundColor] as? UIColor {
+              isInMention = foregroundColor == UIColor.systemBlue
+            }
+          }
+        }
+
+        if !isInMention {
+          textView.typingAttributes = [
+            .font: UIFont.preferredFont(forTextStyle: .body),
+            .foregroundColor: UIColor.label,
+          ]
+        }
+
         parent.cursorPosition = cursorPosition
         parent.onCursorPositionChange?(cursorPosition)
       }
     }
 
-    // Ensure layout updates when text view bounds change
     func textViewDidLayoutSubviews(_ textView: UITextView) {
       DispatchQueue.main.async {
         let availableWidth = textView.bounds.width
