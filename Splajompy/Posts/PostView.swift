@@ -134,7 +134,7 @@ struct PostView: View {
         .font(.caption)
         .foregroundColor(.gray)
         Spacer()
-        if #available(iOS 26, *) {
+        if #available(iOS 26, macOS 26, *) {
           GlassEffectContainer {
             postMenu
           }

@@ -51,7 +51,7 @@ struct CommentsView: View {
                 #endif
               }()
             ) {
-              if #available(iOS 26, *) {
+              if #available(iOS 26, macOS 26, *) {
                 Button(role: .cancel, action: { dismiss() })
               } else {
                 Button {
