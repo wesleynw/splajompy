@@ -40,14 +40,17 @@ struct AttributedTextEditor: UIViewRepresentable {
   func updateUIView(_ uiView: UITextView, context: Context) {
     if !uiView.attributedText.isEqual(to: text) {
       context.coordinator.isUpdatingFromViewModel = true
-      uiView.typingAttributes = [
-        .font: UIFont.preferredFont(forTextStyle: .body),
-        .foregroundColor: UIColor.label,
-      ]
       uiView.attributedText = text
       if cursorPosition <= text.length {
         uiView.selectedRange = NSRange(location: cursorPosition, length: 0)
       }
+
+      // Set typing attributes after setting text and cursor position
+      uiView.typingAttributes = [
+        .font: UIFont.preferredFont(forTextStyle: .body),
+        .foregroundColor: UIColor.label,
+      ]
+
       context.coordinator.isUpdatingFromViewModel = false
     }
 
@@ -77,16 +80,6 @@ struct AttributedTextEditor: UIViewRepresentable {
 
     func textViewDidChange(_ textView: UITextView) {
       if !isUpdatingFromViewModel {
-        if let text = textView.text, !text.isEmpty {
-          let lastChar = text[text.index(before: text.endIndex)]
-          if lastChar == " " {
-            textView.typingAttributes = [
-              .font: UIFont.preferredFont(forTextStyle: .body),
-              .foregroundColor: UIColor.label,
-            ]
-          }
-        }
-
         if let attributedText = textView.attributedText {
           parent.text = attributedText
           parent.onTextChange?(attributedText)
@@ -122,26 +115,30 @@ struct AttributedTextEditor: UIViewRepresentable {
       if !isUpdatingFromViewModel {
         let cursorPosition = textView.selectedRange.location
 
-        var isInMention = false
-        if cursorPosition > 1 {
-          let prevChar = textView.text[
-            textView.text.index(textView.text.startIndex, offsetBy: cursorPosition - 2)]
-          print("prev char: ", prevChar)
-          if prevChar != " " {
-            let attributes = textView.attributedText.attributes(
-              at: cursorPosition - 1, effectiveRange: nil)
-            if let foregroundColor = attributes[.foregroundColor] as? UIColor {
-              isInMention = foregroundColor == UIColor.systemBlue
+        // Always ensure normal typing attributes unless cursor is in the middle of a mention
+        var shouldUseNormalAttributes = true
+
+        if cursorPosition > 0 && cursorPosition < textView.attributedText.length {
+          let attributes = textView.attributedText.attributes(
+            at: cursorPosition, effectiveRange: nil)
+          if let foregroundColor = attributes[.foregroundColor] as? UIColor,
+            foregroundColor == UIColor.systemBlue
+          {
+            // Only keep blue if we're actually inside a mention (not at the end)
+            if let text = textView.text,
+              cursorPosition < text.count,
+              !CharacterSet.whitespacesAndNewlines.contains(
+                text[text.index(text.startIndex, offsetBy: cursorPosition)].unicodeScalars.first!)
+            {
+              shouldUseNormalAttributes = false
             }
           }
         }
 
-        if !isInMention {
-          textView.typingAttributes = [
-            .font: UIFont.preferredFont(forTextStyle: .body),
-            .foregroundColor: UIColor.label,
-          ]
-        }
+        textView.typingAttributes = [
+          .font: UIFont.preferredFont(forTextStyle: .body),
+          .foregroundColor: shouldUseNormalAttributes ? UIColor.label : UIColor.systemBlue,
+        ]
 
         parent.cursorPosition = cursorPosition
         parent.onCursorPositionChange?(cursorPosition)
