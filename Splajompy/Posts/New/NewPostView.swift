@@ -133,46 +133,38 @@ struct NewPostView: View {
         ToolbarItem(placement: .topBarTrailing) {
           if #available(iOS 26, *) {
             Button {
+              print("🔘 Button tapped!")
               viewModel.submitPost(
                 text: String(
                   text.string.trimmingCharacters(in: .whitespacesAndNewlines)
                 ),
-                poll: poll
-              ) {
-                dismiss()
-              }
+                poll: poll,
+                dismiss: { dismiss() }
+              )
             } label: {
               if viewModel.isLoading {
                 ProgressView()
               } else {
-                Image(systemName: "arrow.up")
+                Label("Post", systemImage: "arrow.up")
               }
             }
-            .disabled(
-              text.string.trimmingCharacters(in: .whitespacesAndNewlines)
-                .isEmpty
-                || viewModel.isLoading
-            )
-            .buttonStyle(.glassProminent)
+            .buttonStyle(.borderedProminent)
+            .disabled(isPostButtonDisabled)
           } else {
             Button {
+              print("🔘 Button tapped!")
               viewModel.submitPost(
                 text: String(
                   text.string.trimmingCharacters(in: .whitespacesAndNewlines)
                 ),
-                poll: poll
-              ) {
-                dismiss()
-              }
+                poll: poll,
+                dismiss: { dismiss() }
+              )
             } label: {
               Image(systemName: "arrow.up.circle.fill")
                 .opacity(0.8)
             }
-            .disabled(
-              text.string.trimmingCharacters(in: .whitespacesAndNewlines)
-                .isEmpty
-                || viewModel.isLoading
-            )
+            .disabled(isPostButtonDisabled)
           }
         }
       }
