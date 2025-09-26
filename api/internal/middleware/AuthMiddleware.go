@@ -58,9 +58,9 @@ func AuthMiddleware(q *queries.Queries) func(http.Handler) http.Handler {
 			//	return
 			//}
 
-			// extend session if it's getting old (more than 30 days since creation)
-			thirtyDaysAgo := time.Now().Add(-time.Hour * 24 * 30)
-			if session.ExpiresAt.Time.Before(thirtyDaysAgo) {
+			// extend session if it's getting old (expires within 30 days)
+			thirtyDaysFromNow := time.Now().Add(time.Hour * 24 * 30)
+			if session.ExpiresAt.Time.Before(thirtyDaysFromNow) {
 				newExpiry := time.Now().Add(time.Hour * 24 * 90)
 				err = q.UpdateSessionExpiry(ctx, queries.UpdateSessionExpiryParams{
 					ID: session.ID,

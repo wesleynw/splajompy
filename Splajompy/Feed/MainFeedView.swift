@@ -53,8 +53,10 @@ struct MainFeedView: View {
         }
       }
       .onAppear {
-        Task {
-          await viewModel.loadPosts()
+        if case .idle = viewModel.state {
+          Task {
+            await viewModel.loadPosts()
+          }
         }
       }
       .onChange(of: selectedFeedType) { _, newFeedType in

@@ -26,7 +26,7 @@ struct SplajompyApp: App {
 
     var cacheConfig = ImagePipeline.Configuration.withDataCache(
       name: "media-cache",
-      sizeLimit: 2000
+      sizeLimit: 500 * 1024 * 1024  // 500MB
     )
     cacheConfig.dataCachePolicy = .storeEncodedImages  // cache processed images
     ImagePipeline.shared = ImagePipeline(configuration: cacheConfig)

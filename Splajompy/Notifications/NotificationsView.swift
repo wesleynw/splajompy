@@ -92,8 +92,8 @@ struct NotificationsView: View {
                 } label: {
                   Label("Mark as Read", systemImage: "checkmark.circle")
                 }
+                .tint(.blue)
               }
-              .tint(.blue)
               .onAppear {
                 if notification.notificationId
                   == unreadNotifications.last?.notificationId
