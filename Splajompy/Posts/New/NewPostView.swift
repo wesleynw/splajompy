@@ -20,39 +20,8 @@ struct NewPostView: View {
   }
 
   var body: some View {
-    VStack(spacing: 0) {
-      HStack {
-        Button("Cancel") {
-          dismiss()
-        }
-
-        Spacer()
-
-        Button {
-          viewModel.submitPost(
-            text: String(
-              text.string.trimmingCharacters(in: .whitespacesAndNewlines)
-            ),
-            poll: poll
-          ) {
-            dismiss()
-          }
-        } label: {
-          if viewModel.isLoading {
-            ProgressView()
-          } else {
-            Text("Jomp").bold()
-          }
-        }
-        .disabled(
-          isPostButtonDisabled || text.string.count > 2500
-        )
-      }
-      .padding()
-
-      Divider()
-
-      VStack {
+    NavigationStack {
+      VStack(spacing: 0) {
         ScrollView {
           MentionTextEditor(
             text: $text
@@ -142,6 +111,61 @@ struct NewPostView: View {
           Text(errorText)
             .foregroundColor(.red)
             .font(.caption)
+        }
+      }
+      .navigationTitle("New Post")
+      .navigationBarTitleDisplayMode(.inline)
+      .toolbar {
+        ToolbarItem(placement: .topBarLeading) {
+          if #available(iOS 26.0, *) {
+            Button(role: .close, action: { dismiss() })
+          } else {
+            Button {
+              dismiss()
+            } label: {
+              Image(systemName: "xmark.circle.fill")
+                .opacity(0.8)
+            }
+            .buttonStyle(.plain)
+          }
+        }
+
+        ToolbarItem(placement: .topBarTrailing) {
+          if #available(iOS 26, *) {
+            Button {
+              print("🔘 Button tapped!")
+              viewModel.submitPost(
+                text: String(
+                  text.string.trimmingCharacters(in: .whitespacesAndNewlines)
+                ),
+                poll: poll,
+                dismiss: { dismiss() }
+              )
+            } label: {
+              if viewModel.isLoading {
+                ProgressView()
+              } else {
+                Label("Post", systemImage: "arrow.up")
+              }
+            }
+            .buttonStyle(.borderedProminent)
+            .disabled(isPostButtonDisabled)
+          } else {
+            Button {
+              print("🔘 Button tapped!")
+              viewModel.submitPost(
+                text: String(
+                  text.string.trimmingCharacters(in: .whitespacesAndNewlines)
+                ),
+                poll: poll,
+                dismiss: { dismiss() }
+              )
+            } label: {
+              Image(systemName: "arrow.up.circle.fill")
+                .opacity(0.8)
+            }
+            .disabled(isPostButtonDisabled)
+          }
         }
       }
     }

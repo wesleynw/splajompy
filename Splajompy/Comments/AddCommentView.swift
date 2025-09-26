@@ -55,7 +55,7 @@ struct AddCommentSheet: View {
                 if viewModel.isLoading {
                   ProgressView()
                 } else {
-                  Image(systemName: "arrow.up")
+                  Label("Comment", systemImage: "arrow.up")
                 }
               }
               .disabled(
