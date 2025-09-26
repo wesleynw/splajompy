@@ -16,89 +16,91 @@ struct ProfileEditorView: View {
   }
 
   var body: some View {
-    NavigationStack {
-      VStack(alignment: .leading) {
-        HStack {
-          Text("Display Name")
-            .font(.subheadline)
-            .fontWeight(.bold)
-            .foregroundStyle(.primary.opacity(0.7))
-          Spacer()
-          Text("\(name.count)/25")
-            .font(.subheadline)
-            .foregroundStyle(
-              name.count > 25
-                ? Color.red.opacity(0.7) : Color.primary.opacity(0.7)
-            )
-        }
-        Divider()
-        TextEditor(text: $name)
-          .frame(maxHeight: 100)
-        HStack {
-          Text("Bio")
-            .font(.subheadline)
-            .fontWeight(.bold)
-            .foregroundStyle(.primary.opacity(0.7))
-          Spacer()
-          Text("\(bio.count)/400")
-            .font(.subheadline)
-            .foregroundStyle(
-              bio.count > 400
-                ? Color.red.opacity(0.7) : Color.primary.opacity(0.7)
-            )
-        }
-        Divider()
-        TextEditor(text: $bio)
-      }
-      .padding()
-      .onAppear {
-        name = currentProfile?.name ?? ""
-        bio = currentProfile?.bio ?? ""
-      }
-      .navigationTitle("Edit Profile")
-      .navigationBarTitleDisplayMode(.inline)
-      .toolbar {
-        ToolbarItem(placement: .topBarLeading) {
-          if #available(iOS 26.0, *) {
-            Button(role: .close, action: { dismiss() })
-          } else {
-            Button {
-              dismiss()
-            } label: {
-              Image(systemName: "xmark.circle.fill")
-                .opacity(0.8)
-            }
-            .buttonStyle(.plain)
+    #if os(iOS)
+      NavigationStack {
+        VStack(alignment: .leading) {
+          HStack {
+            Text("Display Name")
+              .font(.subheadline)
+              .fontWeight(.bold)
+              .foregroundStyle(.primary.opacity(0.7))
+            Spacer()
+            Text("\(name.count)/25")
+              .font(.subheadline)
+              .foregroundStyle(
+                name.count > 25
+                  ? Color.red.opacity(0.7) : Color.primary.opacity(0.7)
+              )
           }
+          Divider()
+          TextEditor(text: $name)
+            .frame(maxHeight: 100)
+          HStack {
+            Text("Bio")
+              .font(.subheadline)
+              .fontWeight(.bold)
+              .foregroundStyle(.primary.opacity(0.7))
+            Spacer()
+            Text("\(bio.count)/400")
+              .font(.subheadline)
+              .foregroundStyle(
+                bio.count > 400
+                  ? Color.red.opacity(0.7) : Color.primary.opacity(0.7)
+              )
+          }
+          Divider()
+          TextEditor(text: $bio)
         }
-
-        ToolbarItem(placement: .topBarTrailing) {
-          if #available(iOS 26, *) {
-            Button {
-              viewModel.updateProfile(name: name, bio: bio)
-              dismiss()
-            } label: {
-              if viewModel.isLoading {
-                ProgressView()
-              } else {
-                Label("Comment", systemImage: "checkmark")
+        .padding()
+        .onAppear {
+          name = currentProfile?.name ?? ""
+          bio = currentProfile?.bio ?? ""
+        }
+        .navigationTitle("Edit Profile")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+          ToolbarItem(placement: .topBarLeading) {
+            if #available(iOS 26.0, *) {
+              Button(role: .close, action: { dismiss() })
+            } else {
+              Button {
+                dismiss()
+              } label: {
+                Image(systemName: "xmark.circle.fill")
+                  .opacity(0.8)
               }
+              .buttonStyle(.plain)
             }
-            .disabled(name.count > 25 || bio.count > 400)
-            .buttonStyle(.glassProminent)
-          } else {
-            Button {
-              viewModel.updateProfile(name: name, bio: bio)
-              dismiss()
-            } label: {
-              Image(systemName: "checkmark.circle")
-                .opacity(0.8)
+          }
+
+          ToolbarItem(placement: .topBarTrailing) {
+            if #available(iOS 26, *) {
+              Button {
+                viewModel.updateProfile(name: name, bio: bio)
+                dismiss()
+              } label: {
+                if viewModel.isLoading {
+                  ProgressView()
+                } else {
+                  Label("Comment", systemImage: "checkmark")
+                }
+              }
+              .disabled(name.count > 25 || bio.count > 400)
+              .buttonStyle(.glassProminent)
+            } else {
+              Button {
+                viewModel.updateProfile(name: name, bio: bio)
+                dismiss()
+              } label: {
+                Image(systemName: "checkmark.circle")
+                  .opacity(0.8)
+              }
+              .disabled(name.count > 25 || bio.count > 400)
             }
-            .disabled(name.count > 25 || bio.count > 400)
           }
         }
       }
-    }
+    #endif
   }
 }
 
