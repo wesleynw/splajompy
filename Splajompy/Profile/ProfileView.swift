@@ -240,3 +240,22 @@ struct ProfileView: View {
     }
   }
 }
+
+#Preview {
+  let postManager = PostManager(postService: MockPostService())
+
+  NavigationStack {
+    ProfileView(
+      userId: 1,
+      username: "test",
+      postManager: postManager,
+      isProfileTab: true,
+      viewModel: ProfileView.ViewModel(
+        userId: 1,
+        postManager: postManager,
+        profileService: MockProfileService()
+      )
+    )
+    .environmentObject(AuthManager())
+  }
+}

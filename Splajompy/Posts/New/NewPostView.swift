@@ -133,7 +133,6 @@ struct NewPostView: View {
         ToolbarItem(placement: .topBarTrailing) {
           if #available(iOS 26, *) {
             Button {
-              print("🔘 Button tapped!")
               viewModel.submitPost(
                 text: String(
                   text.string.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -152,7 +151,6 @@ struct NewPostView: View {
             .disabled(isPostButtonDisabled)
           } else {
             Button {
-              print("🔘 Button tapped!")
               viewModel.submitPost(
                 text: String(
                   text.string.trimmingCharacters(in: .whitespacesAndNewlines)

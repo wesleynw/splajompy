@@ -25,8 +25,9 @@ extension ProfileView {
 
     @Published var profileState: ProfileState = .idle
     @Published var postsState: PostsState = .idle
-    @Published var isLoadingFollowButton = false
-    @Published var isLoadingBlockButton = false
+    @Published var isLoading: Bool = false
+    @Published var isLoadingFollowButton: Bool = false
+    @Published var isLoadingBlockButton: Bool = false
     @Published var canLoadMorePosts: Bool = true
     @Published var isLoadingMorePosts: Bool = false
 
@@ -153,6 +154,11 @@ extension ProfileView {
     }
 
     func updateProfile(name: String, bio: String) {
+      isLoading = true
+      defer {
+        isLoading = false
+      }
+
       Task {
         let result = await profileService.updateProfile(
           name: name.trimmingCharacters(in: .whitespacesAndNewlines),

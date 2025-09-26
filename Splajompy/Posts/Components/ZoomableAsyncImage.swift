@@ -1,3 +1,4 @@
+import NukeUI
 import SwiftUI
 
 struct ZoomableAsyncImage: View {
@@ -19,11 +20,8 @@ struct ZoomableAsyncImage: View {
   }
 
   var body: some View {
-    AsyncImage(url: url) { phase in
-      switch phase {
-      case .empty:
-        ProgressView()
-      case .success(let image):
+    LazyImage(url: url) { state in
+      if let image = state.image {
         image
           .resizable()
           .scaledToFit()
@@ -82,7 +80,7 @@ struct ZoomableAsyncImage: View {
               }
             }
           )
-      case .failure:
+      } else if state.error != nil {
         Image(systemName: "photo")
           .font(.largeTitle)
           .foregroundColor(.white)
@@ -90,8 +88,9 @@ struct ZoomableAsyncImage: View {
           .onTapGesture {
             onTap()
           }
-      @unknown default:
-        EmptyView()
+      } else {
+        ProgressView()
+          .matchedGeometryEffect(id: imageID, in: namespace)
       }
     }
   }
