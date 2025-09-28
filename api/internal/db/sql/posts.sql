@@ -172,3 +172,18 @@ SELECT post_id, user_id, relationship_type,
 FROM user_relationships
 ORDER BY (SELECT created_at FROM posts WHERE posts.post_id = user_relationships.post_id) DESC
 LIMIT $2;
+
+-- name: PinPost :exec
+UPDATE users 
+SET pinned_post_id = $2 
+WHERE user_id = $1;
+
+-- name: UnpinPost :exec
+UPDATE users 
+SET pinned_post_id = NULL 
+WHERE user_id = $1;
+
+-- name: GetPinnedPostId :one
+SELECT pinned_post_id 
+FROM users 
+WHERE user_id = $1;

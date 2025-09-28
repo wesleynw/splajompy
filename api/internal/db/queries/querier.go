@@ -6,6 +6,8 @@ package queries
 
 import (
 	"context"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type Querier interface {
@@ -42,6 +44,7 @@ type Querier interface {
 	GetMutualConnectionsForUser(ctx context.Context, arg GetMutualConnectionsForUserParams) ([]string, error)
 	GetNotificationById(ctx context.Context, notificationID int) (Notification, error)
 	GetNotificationsForUserId(ctx context.Context, arg GetNotificationsForUserIdParams) ([]Notification, error)
+	GetPinnedPostId(ctx context.Context, userID int) (pgtype.Int4, error)
 	GetPollVotesGrouped(ctx context.Context, postID int) ([]GetPollVotesGroupedRow, error)
 	GetPostById(ctx context.Context, postID int) (Post, error)
 	GetPostIdsByFollowing(ctx context.Context, arg GetPostIdsByFollowingParams) ([]int, error)
@@ -72,8 +75,10 @@ type Querier interface {
 	InsertVote(ctx context.Context, arg InsertVoteParams) error
 	MarkAllNotificationsAsReadForUser(ctx context.Context, userID int) error
 	MarkNotificationAsReadById(ctx context.Context, notificationID int) error
+	PinPost(ctx context.Context, arg PinPostParams) error
 	RemoveLike(ctx context.Context, arg RemoveLikeParams) error
 	UnblockUser(ctx context.Context, arg UnblockUserParams) error
+	UnpinPost(ctx context.Context, userID int) error
 	UpdateSessionExpiry(ctx context.Context, arg UpdateSessionExpiryParams) error
 	UpdateUserBio(ctx context.Context, arg UpdateUserBioParams) error
 	UpdateUserName(ctx context.Context, arg UpdateUserNameParams) error

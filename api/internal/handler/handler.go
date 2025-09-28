@@ -75,6 +75,10 @@ func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
 	handleFunc("POST /post/{id}/liked", h.AddPostLike)
 	handleFunc("DELETE /post/{id}/liked", h.RemovePostLike)
 
+	// pinning
+	handleFunc("POST /posts/{id}/pin", h.PinPost)
+	handleFunc("DELETE /posts/pin", h.UnpinPost)
+
 	// notifications
 	handleFunc("GET /notifications", h.GetAllNotificationByUserId)
 	handleFunc("GET /notifications/unread", h.GetUnreadNotificationsByUserId)

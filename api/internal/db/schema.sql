@@ -4,7 +4,8 @@ CREATE TABLE users (
     password character varying(255) NOT NULL,
     username character varying(100) NOT NULL,
     created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    name text
+    name text,
+    pinned_post_id integer
 );
 
 CREATE TABLE bios (
@@ -113,3 +114,5 @@ CREATE TABLE IF NOT EXISTS poll_vote (
     created_at TIMESTAMP DEFAULT NOW(),
     UNIQUE(post_id, user_id)
 );
+
+ALTER TABLE users ADD CONSTRAINT fk_users_pinned_post FOREIGN KEY (pinned_post_id) REFERENCES posts(post_id) ON DELETE SET NULL;

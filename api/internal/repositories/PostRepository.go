@@ -33,6 +33,9 @@ type PostRepository interface {
 	GetPollVotesGrouped(ctx context.Context, postId int) ([]queries.GetPollVotesGroupedRow, error)
 	GetUserVoteInPoll(ctx context.Context, postId int, userId int) (*int, error)
 	InsertVote(ctx context.Context, postId int, userId int, optionIndex int) error
+	PinPost(ctx context.Context, userId int, postId int) error
+	UnpinPost(ctx context.Context, userId int) error
+	GetPinnedPostId(ctx context.Context, userId int) (*int, error)
 }
 
 type DBPostRepository struct {
@@ -231,6 +234,32 @@ func (r DBPostRepository) GetPostIdsByUserIdCursor(ctx context.Context, userId i
 		Limit:   limit,
 		Column3: timestamp,
 	})
+}
+
+// PinPost sets a post as pinned for a user
+func (r DBPostRepository) PinPost(ctx context.Context, userId int, postId int) error {
+	return r.querier.PinPost(ctx, queries.PinPostParams{
+		UserID:       userId,
+		PinnedPostID: pgtype.Int4{Int32: int32(postId), Valid: true},
+	})
+}
+
+// UnpinPost removes the pinned post for a user
+func (r DBPostRepository) UnpinPost(ctx context.Context, userId int) error {
+	return r.querier.UnpinPost(ctx, userId)
+}
+
+// GetPinnedPostId retrieves the pinned post ID for a user
+func (r DBPostRepository) GetPinnedPostId(ctx context.Context, userId int) (*int, error) {
+	pinnedPostId, err := r.querier.GetPinnedPostId(ctx, userId)
+	if err != nil {
+		return nil, err
+	}
+	if !pinnedPostId.Valid {
+		return nil, nil
+	}
+	result := int(pinnedPostId.Int32)
+	return &result, nil
 }
 
 // NewDBPostRepository creates a new post repository instance

@@ -19,6 +19,7 @@ type FakePostRepository struct {
 	postLikes    map[int]map[int]bool
 	commentCount map[int]int
 	pollVotes    map[int]map[int]int
+	pinnedPosts  map[int]int  // userId -> postId
 	mutex        sync.RWMutex
 	nextPostId   int
 	nextImageId  int
@@ -33,6 +34,7 @@ func NewFakePostRepository() *FakePostRepository {
 		postLikes:    make(map[int]map[int]bool),
 		commentCount: make(map[int]int),
 		pollVotes:    make(map[int]map[int]int),
+		pinnedPosts:  make(map[int]int),
 		nextPostId:   1,
 		nextImageId:  1,
 	}
@@ -432,4 +434,44 @@ func (r *FakePostRepository) GetPostIdsByUserIdCursor(ctx context.Context, userI
 		filteredIds = filteredIds[:limit]
 	}
 	return filteredIds, nil
+}
+
+// PinPost pins a post for a user
+func (r *FakePostRepository) PinPost(ctx context.Context, userId int, postId int) error {
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
+
+	// Check if post exists
+	if _, exists := r.posts[postId]; !exists {
+		return errors.New("post not found")
+	}
+
+	// Check if user owns the post
+	post := r.posts[postId]
+	if post.UserID != userId {
+		return errors.New("can only pin your own posts")
+	}
+
+	r.pinnedPosts[userId] = postId
+	return nil
+}
+
+// UnpinPost unpins the currently pinned post for a user
+func (r *FakePostRepository) UnpinPost(ctx context.Context, userId int) error {
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
+
+	delete(r.pinnedPosts, userId)
+	return nil
+}
+
+// GetPinnedPostId retrieves the pinned post ID for a user
+func (r *FakePostRepository) GetPinnedPostId(ctx context.Context, userId int) (*int, error) {
+	r.mutex.RLock()
+	defer r.mutex.RUnlock()
+
+	if postId, exists := r.pinnedPosts[userId]; exists {
+		return &postId, nil
+	}
+	return nil, nil
 }
