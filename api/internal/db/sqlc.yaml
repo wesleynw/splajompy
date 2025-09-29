@@ -34,6 +34,10 @@ sql:
             go_type:
               type: "int"
               pointer: true
+          - column: "users.pinned_post_id"
+            go_type:
+              type: "int"
+              pointer: true
           - column: "posts.attributes"
             "go_type": {
                 import: "splajompy.com/api/v2/internal/db" ,

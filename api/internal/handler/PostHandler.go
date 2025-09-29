@@ -14,7 +14,6 @@ import (
 	"splajompy.com/api/v2/internal/utilities"
 )
 
-
 func (h *Handler) CreateNewPostV2(w http.ResponseWriter, r *http.Request) {
 	currentUser := h.getAuthenticatedUser(r)
 
@@ -350,4 +349,44 @@ func (h *Handler) GetMutualFeedWithTimeOffset(w http.ResponseWriter, r *http.Req
 		posts = &[]models.DetailedPost{}
 	}
 	utilities.HandleSuccess(w, posts)
+}
+
+// PinPost POST /posts/{id}/pin
+func (h *Handler) PinPost(w http.ResponseWriter, r *http.Request) {
+	currentUser := h.getAuthenticatedUser(r)
+
+	postId, err := h.GetIntPathParam(r, "id")
+	if err != nil {
+		utilities.HandleError(w, http.StatusBadRequest, "Invalid post ID")
+		return
+	}
+
+	err = h.postService.PinPost(r.Context(), *currentUser, postId)
+	if err != nil {
+		if err.Error() == "post not found" {
+			utilities.HandleError(w, http.StatusNotFound, "Post not found")
+			return
+		}
+		if err.Error() == "can only pin your own posts" {
+			utilities.HandleError(w, http.StatusForbidden, "You can only pin your own posts")
+			return
+		}
+		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
+		return
+	}
+
+	utilities.HandleEmptySuccess(w)
+}
+
+// UnpinPost DELETE /posts/pin
+func (h *Handler) UnpinPost(w http.ResponseWriter, r *http.Request) {
+	currentUser := h.getAuthenticatedUser(r)
+
+	err := h.postService.UnpinPost(r.Context(), *currentUser)
+	if err != nil {
+		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
+		return
+	}
+
+	utilities.HandleEmptySuccess(w)
 }

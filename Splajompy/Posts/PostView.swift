@@ -78,26 +78,44 @@ struct PostView: View {
                     .fontWeight(.semibold)
                 }
               } else {
-                if let displayName = post.user.name, !displayName.isEmpty {
-                  Text(displayName)
-                    .font(.title2)
-                    .fontWeight(.black)
-                    .lineLimit(1)
-                  Text("@\(post.user.username)")
-                    .font(.subheadline)
-                    .fontWeight(.bold)
-                    .foregroundColor(.gray)
-                } else {
-                  Text("@\(post.user.username)")
-                    .font(.title3)
-                    .fontWeight(.black)
-                    .foregroundColor(.gray)
+                HStack {
+                  VStack(alignment: .leading, spacing: 2) {
+                    if let displayName = post.user.name, !displayName.isEmpty {
+                      Text(displayName)
+                        .font(.title2)
+                        .fontWeight(.black)
+                        .lineLimit(1)
+                      Text("@\(post.user.username)")
+                        .font(.subheadline)
+                        .fontWeight(.bold)
+                        .foregroundColor(.gray)
+                    } else {
+                      Text("@\(post.user.username)")
+                        .font(.title3)
+                        .fontWeight(.black)
+                        .foregroundColor(.gray)
+                    }
+                  }
                 }
               }
             }
           }
         }
         .buttonStyle(.plain)
+      }
+
+      if post.isPinned && !showAuthor {
+        HStack {
+          Image(systemName: "pin.fill")
+            .font(.callout)
+            .foregroundColor(.secondary)
+          Text("Pinned")
+            .font(.callout)
+            .fontWeight(.semibold)
+            .foregroundColor(.secondary)
+          Spacer()
+        }
+        .transition(.opacity)
       }
 
       if let text = post.post.text, !text.isEmpty {
@@ -123,6 +141,8 @@ struct PostView: View {
         relevantLikes: post.relevantLikes,
         hasOtherLikes: post.hasOtherLikes
       )
+      .animation(.easeInOut(duration: 0.3), value: post.relevantLikes.count)
+      .animation(.easeInOut(duration: 0.3), value: post.hasOtherLikes)
 
       HStack {
         Text(
@@ -144,6 +164,7 @@ struct PostView: View {
         }
       }
     }
+    .animation(.easeInOut(duration: 0.3), value: post.isPinned)
     .padding(.vertical, 4)
     #if os(iOS)
       .padding(.horizontal, 16)
@@ -166,6 +187,24 @@ struct PostView: View {
         content: {
           if let currentUser = authManager.getCurrentUser() {
             if currentUser.userId == post.user.userId {
+              if post.isPinned {
+                Button(action: {
+                  Task {
+                    await postManager.unpinPost()
+                  }
+                }) {
+                  Label("Unpin", systemImage: "pin.slash")
+                }
+              } else {
+                Button(action: {
+                  Task {
+                    await postManager.pinPost(id: post.id)
+                  }
+                }) {
+                  Label("Pin", systemImage: "pin")
+                }
+              }
+
               Button(role: .destructive, action: { onPostDeleted() }) {
                 Label("Delete", systemImage: "trash")
                   .foregroundColor(.red)
@@ -274,7 +313,7 @@ struct PostView: View {
     userId: 456,
     text:
       "This is a sample post with some text content. also here's a link: https://google.com, another link: splajompy.com",
-    createdAt: ISO8601DateFormatter().date(from: "2025-04-01T12:30:45Z")!,
+    createdAt: ISO8601DateFormatter().date(from: "2025-04-01T12:30:45.123Z")!,
     facets: nil
   )
 
@@ -282,7 +321,7 @@ struct PostView: View {
     userId: 456,
     email: "wesleynw@pm.me",
     username: "wesleynw",
-    createdAt: ISO8601DateFormatter().date(from: "2025-01-15T10:20:30Z")!,
+    createdAt: ISO8601DateFormatter().date(from: "2025-01-15T10:20:30.000Z")!,
     name: "John Doe"
   )
 
@@ -314,7 +353,8 @@ struct PostView: View {
     commentCount: 0,
     images: images,
     relevantLikes: [],
-    hasOtherLikes: false
+    hasOtherLikes: false,
+    isPinned: false
   )
 
   let authManager = AuthManager()
@@ -337,7 +377,7 @@ struct PostView: View {
     userId: 456,
     text:
       "This is a sample post with some text content. also here's a link: https://google.com, another link: splajompy.com",
-    createdAt: ISO8601DateFormatter().date(from: "2025-04-01T12:30:45Z")!,
+    createdAt: ISO8601DateFormatter().date(from: "2025-04-01T12:30:45.123Z")!,
     facets: nil
   )
 
@@ -345,7 +385,7 @@ struct PostView: View {
     userId: 456,
     email: "wesleynw@pm.me",
     username: "wesleynw",
-    createdAt: ISO8601DateFormatter().date(from: "2025-01-15T10:20:30Z")!,
+    createdAt: ISO8601DateFormatter().date(from: "2025-01-15T10:20:30.000Z")!,
     name: "John Doe"
   )
 
@@ -377,7 +417,8 @@ struct PostView: View {
     commentCount: 0,
     images: images,
     relevantLikes: [],
-    hasOtherLikes: false
+    hasOtherLikes: false,
+    isPinned: false
   )
 
   let authManager = AuthManager()

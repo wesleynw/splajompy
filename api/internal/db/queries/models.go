@@ -91,12 +91,13 @@ type Session struct {
 }
 
 type User struct {
-	UserID    int              `json:"userId"`
-	Email     string           `json:"email"`
-	Password  string           `json:"password"`
-	Username  string           `json:"username"`
-	CreatedAt pgtype.Timestamp `json:"createdAt"`
-	Name      pgtype.Text      `json:"name"`
+	UserID       int              `json:"userId"`
+	Email        string           `json:"email"`
+	Password     string           `json:"password"`
+	Username     string           `json:"username"`
+	CreatedAt    pgtype.Timestamp `json:"createdAt"`
+	Name         pgtype.Text      `json:"name"`
+	PinnedPostID *int             `json:"pinnedPostId"`
 }
 
 type VerificationCode struct {
