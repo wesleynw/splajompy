@@ -141,7 +141,8 @@ struct PostView: View {
         relevantLikes: post.relevantLikes,
         hasOtherLikes: post.hasOtherLikes
       )
-      .animation(.easeInOut(duration: 0.3), value: post.isLiked)
+      .animation(.easeInOut(duration: 0.3), value: post.relevantLikes.count)
+      .animation(.easeInOut(duration: 0.3), value: post.hasOtherLikes)
 
       HStack {
         Text(
@@ -359,7 +360,7 @@ struct PostView: View {
   let authManager = AuthManager()
   let postManager = PostManager()
 
-  NavigationView {
+  NavigationStack {
     PostView(
       post: detailedPost,
       postManager: postManager,

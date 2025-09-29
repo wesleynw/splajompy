@@ -510,18 +510,15 @@ func seededRandom(seed int) float64 {
 
 // PinPost pins a post for the current user
 func (s *PostService) PinPost(ctx context.Context, currentUser models.PublicUser, postId int) error {
-	// Get the post to verify ownership
 	post, err := s.postRepository.GetPostById(ctx, postId)
 	if err != nil {
 		return errors.New("post not found")
 	}
 
-	// Verify user owns the post
 	if post.UserID != currentUser.UserID {
 		return errors.New("can only pin your own posts")
 	}
 
-	// Pin the post
 	return s.postRepository.PinPost(ctx, currentUser.UserID, postId)
 }
 

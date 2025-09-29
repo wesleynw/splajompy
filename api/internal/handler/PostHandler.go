@@ -14,7 +14,6 @@ import (
 	"splajompy.com/api/v2/internal/utilities"
 )
 
-
 func (h *Handler) CreateNewPostV2(w http.ResponseWriter, r *http.Request) {
 	currentUser := h.getAuthenticatedUser(r)
 
