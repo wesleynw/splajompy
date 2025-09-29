@@ -18,7 +18,7 @@ struct RequestFeatureView: View {
 
   var body: some View {
     VStack {
-      TextField("Your feature here...", text: $featureText, axis: .vertical)
+      TextField("Your message here...", text: $featureText, axis: .vertical)
         .lineLimit(5...10)
         .padding()
         .focused($isFocused)
@@ -27,7 +27,7 @@ struct RequestFeatureView: View {
 
     }
     .padding()
-    .navigationTitle("Request a feature")
+    .navigationTitle("Support")
     #if os(iOS)
       .navigationBarTitleDisplayMode(.inline)
     #endif
@@ -44,10 +44,12 @@ struct RequestFeatureView: View {
         Button {
           sendRequestedFeature()
         } label: {
-          ProgressView()
-            .opacity(isLoading ? 1 : 0)
-          Text("Send")
-            .fontWeight(.bold)
+          if isLoading {
+            ProgressView()
+          } else {
+            Text("Send")
+              .fontWeight(.bold)
+          }
         }
         .disabled(
           featureText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
