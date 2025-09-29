@@ -34,6 +34,10 @@ extension CommentsView {
         switch result {
         case .success(let fetchedComments):
           comments = sortComments(fetchedComments)
+          postManager.updatePost(
+            id: postId,
+            updates: { post in post.commentCount = fetchedComments.count }
+          )
         case .error(let error):
           print("Error fetching comments: \(error.localizedDescription)")
         }
