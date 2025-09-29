@@ -178,13 +178,7 @@ class PostManager: ObservableObject {
   }
 
   func pinPost(id: Int) async {
-    // optimistic update
     guard let currentUserId = AuthManager.shared.getCurrentUser()?.userId else { return }
-
-    for (postId, _) in posts.filter({ $0.value.user.userId == currentUserId && $0.value.isPinned })
-    {
-      updatePost(id: postId) { $0.isPinned = false }
-    }
 
     updatePost(id: id) { $0.isPinned = true }
 
@@ -194,6 +188,11 @@ class PostManager: ObservableObject {
       print("PostManager: Failed to pin post \(id): \(error.localizedDescription)")
       updatePost(id: id) { $0.isPinned = false }
     }
+
+    for (postId, _) in posts.filter({ $0.value.user.userId == currentUserId && $0.value.isPinned })
+    {
+      updatePost(id: postId) { $0.isPinned = false }
+    }
   }
 
   func unpinPost() async {
@@ -202,7 +201,6 @@ class PostManager: ObservableObject {
     let pinnedPostId = posts.first { $0.value.user.userId == currentUserId && $0.value.isPinned }?
       .key
 
-    // Unpin all pinned posts by this user
     for (postId, _) in posts.filter({ $0.value.user.userId == currentUserId && $0.value.isPinned })
     {
       updatePost(id: postId) { $0.isPinned = false }
@@ -212,7 +210,6 @@ class PostManager: ObservableObject {
 
     if case .error(let error) = result {
       print("PostManager: Failed to unpin post: \(error.localizedDescription)")
-      // Revert by re-pinning the post that was unpinned
       if let postId = pinnedPostId {
         updatePost(id: postId) { $0.isPinned = true }
       }
