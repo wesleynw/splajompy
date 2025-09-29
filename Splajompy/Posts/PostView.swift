@@ -141,6 +141,7 @@ struct PostView: View {
         relevantLikes: post.relevantLikes,
         hasOtherLikes: post.hasOtherLikes
       )
+      .animation(.easeInOut(duration: 0.3), value: post.isLiked)
 
       HStack {
         Text(
