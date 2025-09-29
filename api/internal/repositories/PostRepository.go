@@ -240,7 +240,7 @@ func (r DBPostRepository) GetPostIdsByUserIdCursor(ctx context.Context, userId i
 func (r DBPostRepository) PinPost(ctx context.Context, userId int, postId int) error {
 	return r.querier.PinPost(ctx, queries.PinPostParams{
 		UserID:       userId,
-		PinnedPostID: pgtype.Int4{Int32: int32(postId), Valid: true},
+		PinnedPostID: &postId,
 	})
 }
 
@@ -251,15 +251,7 @@ func (r DBPostRepository) UnpinPost(ctx context.Context, userId int) error {
 
 // GetPinnedPostId retrieves the pinned post ID for a user
 func (r DBPostRepository) GetPinnedPostId(ctx context.Context, userId int) (*int, error) {
-	pinnedPostId, err := r.querier.GetPinnedPostId(ctx, userId)
-	if err != nil {
-		return nil, err
-	}
-	if !pinnedPostId.Valid {
-		return nil, nil
-	}
-	result := int(pinnedPostId.Int32)
-	return &result, nil
+	return r.querier.GetPinnedPostId(ctx, userId)
 }
 
 // NewDBPostRepository creates a new post repository instance

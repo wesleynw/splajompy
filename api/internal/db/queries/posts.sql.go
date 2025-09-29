@@ -186,9 +186,9 @@ FROM users
 WHERE user_id = $1
 `
 
-func (q *Queries) GetPinnedPostId(ctx context.Context, userID int) (pgtype.Int4, error) {
+func (q *Queries) GetPinnedPostId(ctx context.Context, userID int) (*int, error) {
 	row := q.db.QueryRow(ctx, getPinnedPostId, userID)
-	var pinned_post_id pgtype.Int4
+	var pinned_post_id *int
 	err := row.Scan(&pinned_post_id)
 	return pinned_post_id, err
 }
@@ -639,8 +639,8 @@ WHERE user_id = $1
 `
 
 type PinPostParams struct {
-	UserID       int         `json:"userId"`
-	PinnedPostID pgtype.Int4 `json:"pinnedPostId"`
+	UserID       int  `json:"userId"`
+	PinnedPostID *int `json:"pinnedPostId"`
 }
 
 func (q *Queries) PinPost(ctx context.Context, arg PinPostParams) error {

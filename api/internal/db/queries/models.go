@@ -97,7 +97,7 @@ type User struct {
 	Username     string           `json:"username"`
 	CreatedAt    pgtype.Timestamp `json:"createdAt"`
 	Name         pgtype.Text      `json:"name"`
-	PinnedPostID pgtype.Int4      `json:"pinnedPostId"`
+	PinnedPostID *int             `json:"pinnedPostId"`
 }
 
 type VerificationCode struct {
