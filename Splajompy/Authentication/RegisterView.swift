@@ -54,7 +54,21 @@ struct RegisterView: View {
             #endif
           }()
         ) {
-          CloseButton(onClose: { isPresenting = false })
+          #if os(iOS)
+            if #available(iOS 26.0, *) {
+              Button(role: .close, action: { isPresenting = false })
+            } else {
+              Button {
+                isPresenting = false
+              } label: {
+                Image(systemName: "xmark.circle.fill")
+                  .opacity(0.8)
+              }
+              .buttonStyle(.plain)
+            }
+          #else
+            CloseButton(onClose: { isPresenting = false })
+          #endif
         }
       }
       .animation(.easeInOut(duration: 0.25), value: usernameError.isEmpty)

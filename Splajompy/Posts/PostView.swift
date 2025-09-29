@@ -91,7 +91,6 @@ struct PostView: View {
                   Text("@\(post.user.username)")
                     .font(.title3)
                     .fontWeight(.black)
-                    .foregroundColor(.gray)
                 }
               }
             }
