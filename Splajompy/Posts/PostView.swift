@@ -13,8 +13,18 @@ struct PostView: View {
     postManager: PostManager,
     showAuthor: Bool = true,
     isStandalone: Bool = false,
-    onLikeButtonTapped: @escaping () -> Void,
-    onPostDeleted: @escaping () -> Void
+    onLikeButtonTapped: @escaping () -> Void = {
+      print("Unimplemented: PostView.onLikeButtonTapped")
+    },
+    onPostDeleted: @escaping () -> Void = {
+      print("Unimplemented: PostView.onPostDeleted")
+    },
+    onPostPinned: @escaping () -> Void = {
+      print("Unimplemented: PostView.onPostPinned")
+    },
+    onPostUnpinned: @escaping () -> Void = {
+      print("Unimplemented: PostView.onPostUnpinned")
+    }
   ) {
     self.post = post
     self.postManager = postManager
@@ -22,14 +32,14 @@ struct PostView: View {
     self.isStandalone = isStandalone
     self.onLikeButtonTapped = onLikeButtonTapped
     self.onPostDeleted = onPostDeleted
+    self.onPostPinned = onPostPinned
+    self.onPostUnpinned = onPostUnpinned
   }
 
-  var onLikeButtonTapped: () -> Void = {
-    print("Unimplemented: PostView.onLikeButtonTapped")
-  }
-  var onPostDeleted: () -> Void = {
-    print("Unimplemented: PostView.onPostDeleted")
-  }
+  var onLikeButtonTapped: () -> Void
+  var onPostDeleted: () -> Void
+  var onPostPinned: () -> Void
+  var onPostUnpinned: () -> Void
 
   @State private var isShowingComments = false
   @State private var isReporting = false
@@ -189,17 +199,13 @@ struct PostView: View {
             if currentUser.userId == post.user.userId {
               if post.isPinned {
                 Button(action: {
-                  Task {
-                    await postManager.unpinPost()
-                  }
+                  onPostUnpinned()
                 }) {
                   Label("Unpin", systemImage: "pin.slash")
                 }
               } else {
                 Button(action: {
-                  Task {
-                    await postManager.pinPost(id: post.id)
-                  }
+                  onPostPinned()
                 }) {
                   Label("Pin", systemImage: "pin")
                 }
@@ -365,7 +371,9 @@ struct PostView: View {
       post: detailedPost,
       postManager: postManager,
       onLikeButtonTapped: {},
-      onPostDeleted: {}
+      onPostDeleted: {},
+      onPostPinned: {},
+      onPostUnpinned: {},
     )
     .environmentObject(authManager)
   }
@@ -429,7 +437,9 @@ struct PostView: View {
       post: detailedPost,
       postManager: postManager,
       onLikeButtonTapped: {},
-      onPostDeleted: {}
+      onPostDeleted: {},
+      onPostPinned: {},
+      onPostUnpinned: {}
     )
     .environmentObject(authManager)
   }
