@@ -153,6 +153,24 @@ extension ProfileView {
       }
     }
 
+    func pinPost(_ post: DetailedPost) {
+      Task {
+        let success = await postManager.pinPost(id: post.id)
+        if success {
+          reorderPostsForPin(pinnedPostId: post.id)
+        }
+      }
+    }
+
+    func unpinPost(_ post: DetailedPost) {
+      Task {
+        let success = await postManager.unpinPost()
+        if success {
+          reorderPostsForUnpin(unpinnedPostId: post.id)
+        }
+      }
+    }
+
     func updateProfile(name: String, bio: String) {
       isLoading = true
       defer {
@@ -230,6 +248,44 @@ extension ProfileView {
       Task {
         await loadPosts()
       }
+    }
+
+    func reorderPostsForPin(pinnedPostId: Int) {
+      guard case .loaded(var currentIds) = postsState else { return }
+
+      // If the first post is different from the one being pinned,
+      // move it to its chronological position (it was previously pinned)
+      if let firstId = currentIds.first, firstId != pinnedPostId {
+        repositionPostChronologically(firstId, in: &currentIds)
+      }
+
+      // Move newly pinned post to top
+      currentIds.removeAll { $0 == pinnedPostId }
+      currentIds.insert(pinnedPostId, at: 0)
+
+      postsState = .loaded(currentIds)
+    }
+
+    func reorderPostsForUnpin(unpinnedPostId: Int) {
+      guard case .loaded(var currentIds) = postsState else { return }
+
+      if currentIds.contains(unpinnedPostId) {
+        repositionPostChronologically(unpinnedPostId, in: &currentIds)
+        postsState = .loaded(currentIds)
+      } else {
+        postsState = .loaded(currentIds.filter { $0 != unpinnedPostId })
+      }
+    }
+
+    private func repositionPostChronologically(_ postId: Int, in currentIds: inout [Int]) {
+      guard let post = postManager.getPost(id: postId) else { return }
+
+      currentIds.removeAll { $0 == postId }
+      let posts = postManager.getPostsById(currentIds)
+      let insertIndex =
+        posts.firstIndex { !$0.isPinned && $0.post.createdAt < post.post.createdAt }
+        ?? currentIds.count
+      currentIds.insert(postId, at: insertIndex)
     }
   }
 }

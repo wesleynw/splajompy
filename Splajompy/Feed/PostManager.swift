@@ -177,8 +177,14 @@ class PostManager: ObservableObject {
     return result
   }
 
-  func pinPost(id: Int) async {
-    guard let currentUserId = AuthManager.shared.getCurrentUser()?.userId else { return }
+  func pinPost(id: Int) async -> Bool {
+    guard posts[id] != nil else { return false }
+
+    let previouslyPinnedPostId = currentUserPinnedPostId()
+
+    if let previousId = previouslyPinnedPostId {
+      updatePost(id: previousId) { $0.isPinned = false }
+    }
 
     updatePost(id: id) { $0.isPinned = true }
 
@@ -187,33 +193,34 @@ class PostManager: ObservableObject {
     if case .error(let error) = result {
       print("PostManager: Failed to pin post \(id): \(error.localizedDescription)")
       updatePost(id: id) { $0.isPinned = false }
+      if let previousId = previouslyPinnedPostId {
+        updatePost(id: previousId) { $0.isPinned = true }
+      }
+      return false
     }
 
-    for (postId, _) in posts.filter({ $0.value.user.userId == currentUserId && $0.value.isPinned })
-    {
-      updatePost(id: postId) { $0.isPinned = false }
-    }
+    return true
   }
 
-  func unpinPost() async {
-    guard let currentUserId = AuthManager.shared.getCurrentUser()?.userId else { return }
+  func unpinPost() async -> Bool {
+    guard let postId = currentUserPinnedPostId() else { return false }
 
-    let pinnedPostId = posts.first { $0.value.user.userId == currentUserId && $0.value.isPinned }?
-      .key
-
-    for (postId, _) in posts.filter({ $0.value.user.userId == currentUserId && $0.value.isPinned })
-    {
-      updatePost(id: postId) { $0.isPinned = false }
-    }
+    updatePost(id: postId) { $0.isPinned = false }
 
     let result = await postService.unpinPost()
 
     if case .error(let error) = result {
       print("PostManager: Failed to unpin post: \(error.localizedDescription)")
-      if let postId = pinnedPostId {
-        updatePost(id: postId) { $0.isPinned = true }
-      }
+      updatePost(id: postId) { $0.isPinned = true }
+      return false
     }
+
+    return true
+  }
+
+  private func currentUserPinnedPostId() -> Int? {
+    guard let currentUserId = AuthManager.shared.getCurrentUser()?.userId else { return nil }
+    return posts.first { $0.value.user.userId == currentUserId && $0.value.isPinned }?.key
   }
 
   private func updateAccessOrder(for id: Int) {
