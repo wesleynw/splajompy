@@ -28,6 +28,11 @@ func (h *Handler) CreateNewPostV2(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if len(requestBody.Text) > 2500 {
+		utilities.HandleError(w, http.StatusBadRequest, "Post text exceeds maximum length of 2500 characters")
+		return
+	}
+
 	err := h.postService.NewPost(r.Context(), *currentUser, requestBody.Text, requestBody.ImageKeymap, requestBody.Poll)
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
