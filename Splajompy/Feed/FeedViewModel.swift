@@ -56,22 +56,19 @@ enum FeedState {
     switch result {
     case .success(let fetchedPosts):
       let newPostIds = fetchedPosts.map { $0.id }
+      let hasMorePosts = fetchedPosts.count >= fetchLimit
+      let lastTimestamp = fetchedPosts.last?.post.createdAt
 
       if reset {
         postIds = newPostIds
-        state = .loaded(newPostIds)
       } else {
         postIds.append(contentsOf: newPostIds)
-        state = .loaded(postIds)
       }
+      state = .loaded(postIds)
+      canLoadMore = hasMorePosts
+      lastPostTimestamp = lastTimestamp ?? lastPostTimestamp
 
-      canLoadMore = fetchedPosts.count >= fetchLimit
-
-      // Update cursor timestamp to the oldest post in the batch
-      if let oldestPost = fetchedPosts.last {
-        lastPostTimestamp = oldestPost.post.createdAt
-      } else {
-        // If no posts fetched, we've reached the end
+      if lastTimestamp == nil {
         canLoadMore = false
       }
 

@@ -20,7 +20,7 @@ class PostManager: ObservableObject {
   }
 
   func getPostsById(_ ids: [Int]) -> [DetailedPost] {
-    return ids.compactMap { getPost(id: $0) }
+    return ids.compactMap { posts[$0] }
   }
 
   func isLoading(postId: Int) -> Bool {
@@ -37,8 +37,13 @@ class PostManager: ObservableObject {
   }
 
   func cachePosts(_ newPosts: [DetailedPost]) {
+    let updates = newPosts.reduce(into: [Int: DetailedPost]()) { dict, post in
+      dict[post.id] = post
+    }
+
+    posts.merge(updates) { _, new in new }
+
     for post in newPosts {
-      posts[post.id] = post
       updateAccessOrder(for: post.id)
     }
   }
@@ -224,7 +229,9 @@ class PostManager: ObservableObject {
   }
 
   private func updateAccessOrder(for id: Int) {
-    cacheAccessOrder.removeAll { $0 == id }
+    if let index = cacheAccessOrder.firstIndex(of: id) {
+      cacheAccessOrder.remove(at: index)
+    }
     cacheAccessOrder.append(id)
   }
 }

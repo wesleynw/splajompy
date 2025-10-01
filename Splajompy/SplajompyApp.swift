@@ -90,28 +90,29 @@ struct SplajompyApp: App {
       }
       .tag(1)
 
-      if PostHogSDK.shared.isFeatureEnabled("secret-tab") && secretTableEnabled {
-        VStack {
-          Image(systemName: "laurel.leading.laurel.trailing")
-            .font(.largeTitle)
-          Text("This is the secret tab.")
-            .font(.title2)
-            .fontWeight(.bold)
-            .padding()
-          Text("Few can see the secret tab.")
-            .fontWeight(.bold)
-            .padding()
+      if secretTableEnabled {
+        if PostHogSDK.shared.isFeatureEnabled("secret-tab") {
+          VStack {
+            Image(systemName: "laurel.leading.laurel.trailing")
+              .font(.largeTitle)
+            Text("This is the secret page.")
+              .font(.title2)
+              .fontWeight(.bold)
+              .padding()
+            Text("Few can see the secret page.")
+              .fontWeight(.bold)
+              .padding()
 
-          Text("Please do not discuss the secret tab amongst yourselves.")
+            Text(
+              "Please do not discuss the secret tab amongst yourselves. You may disable the secret page in Settings should you find it a hinderance."
+            )
             .padding()
-
-          Text("You may disable the secret page in Settings.")
-            .padding()
-        }
-        .padding()
-        .multilineTextAlignment(.center)
-        .tabItem {
-          Label("Secret", systemImage: "fossil.shell")
+          }
+          .padding()
+          .multilineTextAlignment(.center)
+          .tabItem {
+            Label("Secret", systemImage: "fossil.shell")
+          }
         }
       }
 

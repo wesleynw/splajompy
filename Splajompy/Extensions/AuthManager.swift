@@ -1,5 +1,5 @@
 import Foundation
-import Kingfisher
+import Nuke
 import PostHog
 
 struct AuthResponse: Decodable {
@@ -42,7 +42,7 @@ class AuthManager: ObservableObject, Sendable {
     }
   }
 
-  func getAuthToken() -> String? {
+  nonisolated func getAuthToken() -> String? {
     guard
       let tokenData = KeychainHelper.standard.read(
         service: "session-token",
@@ -70,8 +70,8 @@ class AuthManager: ObservableObject, Sendable {
 
     UserDefaults.standard.removeObject(forKey: "selectedFeedType")
 
-    KingfisherManager.shared.cache.clearMemoryCache()
-    KingfisherManager.shared.cache.clearDiskCache()
+    ImageCache.shared.removeAll()
+    ImagePipeline.shared.cache.removeAll()
 
     NotificationCenter.default.post(name: .userDidSignOut, object: nil)
 

@@ -26,15 +26,16 @@ public struct APIService {
     Bundle.main.object(forInfoDictionaryKey: "API_URL") as? String
     ?? "http://api.splajompy.com"
 
-  @MainActor static func createRequest(
+  static func createRequest(
     for url: URL,
     method: String = "GET",
     body: Data? = nil
-  ) -> URLRequest {
+  ) async -> URLRequest {
     var request = URLRequest(url: url)
     request.httpMethod = method
 
-    if let token = AuthManager.shared.getAuthToken() {
+    let token = await AuthManager.shared.getAuthToken()
+    if let token = token {
       request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
     }
 
