@@ -117,7 +117,9 @@ struct ProfileView: View {
   }
 
   @ViewBuilder
-  private func postsContent(postIds: [Int], scrollProxy: ScrollViewProxy) -> some View {
+  private func postsContent(postIds: [Int], scrollProxy: ScrollViewProxy)
+    -> some View
+  {
     let posts = postManager.getPostsById(postIds)
     ForEach(Array(posts.enumerated()), id: \.element.id) {
       index,

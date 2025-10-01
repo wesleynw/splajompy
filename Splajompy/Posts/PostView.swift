@@ -172,11 +172,7 @@ struct PostView: View {
     }
     .animation(.easeInOut(duration: 0.3), value: post.isPinned)
     .padding(.vertical, 4)
-    #if os(iOS)
-      .padding(.horizontal, 16)
-    #else
-      .padding(.horizontal, 24)
-    #endif
+    .padding(.horizontal, 16)
     .sheet(isPresented: $isShowingComments) {
       CommentsView(postId: post.post.postId, postManager: postManager)
     }
@@ -193,17 +189,19 @@ struct PostView: View {
         content: {
           if let currentUser = authManager.getCurrentUser() {
             if currentUser.userId == post.user.userId {
-              if post.isPinned {
-                Button(action: {
-                  onPostUnpinned()
-                }) {
-                  Label("Unpin", systemImage: "pin.slash")
-                }
-              } else {
-                Button(action: {
-                  onPostPinned()
-                }) {
-                  Label("Pin", systemImage: "pin")
+              if !showAuthor {
+                if post.isPinned {
+                  Button(action: {
+                    onPostUnpinned()
+                  }) {
+                    Label("Unpin", systemImage: "pin.slash")
+                  }
+                } else {
+                  Button(action: {
+                    onPostPinned()
+                  }) {
+                    Label("Pin", systemImage: "pin")
+                  }
                 }
               }
 
