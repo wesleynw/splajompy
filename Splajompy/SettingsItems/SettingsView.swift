@@ -4,6 +4,7 @@ import SwiftUI
 struct SettingsView: View {
   @EnvironmentObject private var authManager: AuthManager
   @AppStorage("comment_sort_order") private var commentSortOrder: String = "Newest First"
+  @AppStorage("secret-tab-enabled") private var isSecretTabEnabled: Bool = true
 
   var body: some View {
     VStack {
@@ -41,6 +42,12 @@ struct SettingsView: View {
           }
         #endif
 
+        if PostHogSDK.shared.isFeatureEnabled("secret-tab") {
+          Toggle(isOn: $isSecretTabEnabled) {
+            Label("Secret Page", systemImage: "fossil.shell")
+          }
+        }
+
         StorageManager()
 
         Section {
@@ -56,10 +63,6 @@ struct SettingsView: View {
         }
 
       }
-      #if os(macOS)
-        .contentMargins(.horizontal, 20, for: .scrollContent)
-        .safeAreaPadding(.horizontal, 20)
-      #endif
     }
     .navigationTitle("Settings")
   }
