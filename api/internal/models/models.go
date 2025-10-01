@@ -74,6 +74,7 @@ type DetailedPost struct {
 	RelevantLikes []RelevantLike  `json:"relevantLikes"`
 	HasOtherLikes bool            `json:"hasOtherLikes"`
 	Poll          *DetailedPoll   `json:"poll"`
+	IsPinned      bool            `json:"isPinned"`
 }
 
 type DetailedPollOption struct {

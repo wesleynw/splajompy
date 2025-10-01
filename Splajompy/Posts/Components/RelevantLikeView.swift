@@ -62,6 +62,7 @@ struct RelevantLikeView: View {
       }
       .padding(.horizontal, 5)
       .padding(.vertical, 3)
+      .transition(.opacity)
     }
   }
 }

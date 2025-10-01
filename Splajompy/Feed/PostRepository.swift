@@ -27,6 +27,8 @@ protocol PostServiceProtocol: Sendable {
   func voteOnPostPoll(postId: Int, optionIndex: Int) async -> AsyncResult<
     EmptyResponse
   >
+  func pinPost(postId: Int) async -> AsyncResult<EmptyResponse>
+  func unpinPost() async -> AsyncResult<EmptyResponse>
 }
 
 struct PostService: PostServiceProtocol {
@@ -127,6 +129,20 @@ struct PostService: PostServiceProtocol {
       method: "POST"
     )
   }
+
+  func pinPost(postId: Int) async -> AsyncResult<EmptyResponse> {
+    return await APIService.performRequest(
+      endpoint: "posts/\(postId)/pin",
+      method: "POST"
+    )
+  }
+
+  func unpinPost() async -> AsyncResult<EmptyResponse> {
+    return await APIService.performRequest(
+      endpoint: "posts/pin",
+      method: "DELETE"
+    )
+  }
 }
 
 final class MockPostStore: @unchecked Sendable {
@@ -140,6 +156,7 @@ final class MockPostStore: @unchecked Sendable {
 
   var posts: [Int: DetailedPost]
   var deletedPostIds: Set<Int> = []
+  var pinnedPostId: Int? = 2001
 
   init() {
     let baseDate = Date()
@@ -181,7 +198,8 @@ final class MockPostStore: @unchecked Sendable {
           RelevantLike(username: "joel", userId: 25),
           RelevantLike(username: "giuseppe", userId: 112),
         ],
-        hasOtherLikes: false
+        hasOtherLikes: false,
+        isPinned: true
       ),
 
       2002: DetailedPost(
@@ -204,7 +222,8 @@ final class MockPostStore: @unchecked Sendable {
         commentCount: 1,
         images: nil,
         relevantLikes: [],
-        hasOtherLikes: false
+        hasOtherLikes: false,
+        isPinned: false
       ),
 
       2003: DetailedPost(
@@ -228,7 +247,8 @@ final class MockPostStore: @unchecked Sendable {
         commentCount: 0,
         images: nil,
         relevantLikes: [],
-        hasOtherLikes: false
+        hasOtherLikes: false,
+        isPinned: false
       ),
 
       2004: DetailedPost(
@@ -262,7 +282,8 @@ final class MockPostStore: @unchecked Sendable {
         relevantLikes: [
           RelevantLike(username: "splazackly", userId: 103)
         ],
-        hasOtherLikes: true
+        hasOtherLikes: true,
+        isPinned: false
       ),
 
       2005: DetailedPost(
@@ -287,7 +308,8 @@ final class MockPostStore: @unchecked Sendable {
         relevantLikes: [
           RelevantLike(username: "elena", userId: 97)
         ],
-        hasOtherLikes: true
+        hasOtherLikes: true,
+        isPinned: false
       ),
 
       2006: DetailedPost(
@@ -310,7 +332,8 @@ final class MockPostStore: @unchecked Sendable {
         commentCount: 0,
         images: nil,
         relevantLikes: [],
-        hasOtherLikes: false
+        hasOtherLikes: false,
+        isPinned: false
       ),
 
       2007: DetailedPost(
@@ -333,7 +356,8 @@ final class MockPostStore: @unchecked Sendable {
         commentCount: 1,
         images: nil,
         relevantLikes: [],
-        hasOtherLikes: true
+        hasOtherLikes: true,
+        isPinned: false
       ),
 
       2008: DetailedPost(
@@ -359,7 +383,8 @@ final class MockPostStore: @unchecked Sendable {
           RelevantLike(username: "wesley", userId: 6),
           RelevantLike(username: "giuseppe", userId: 113),
         ],
-        hasOtherLikes: true
+        hasOtherLikes: true,
+        isPinned: false
       ),
       1998: DetailedPost(
         post: Post(
@@ -392,7 +417,8 @@ final class MockPostStore: @unchecked Sendable {
             PollOption(title: "Exercise 💪", voteTotal: 3),
             PollOption(title: "Check phone 📱", voteTotal: 2),
           ]
-        )
+        ),
+        isPinned: false
       ),
 
       2000: DetailedPost(
@@ -415,7 +441,8 @@ final class MockPostStore: @unchecked Sendable {
         commentCount: 0,
         images: nil,
         relevantLikes: [],
-        hasOtherLikes: false
+        hasOtherLikes: false,
+        isPinned: false
       ),
 
       1999: DetailedPost(
@@ -437,7 +464,8 @@ final class MockPostStore: @unchecked Sendable {
         commentCount: 0,
         images: nil,
         relevantLikes: [],
-        hasOtherLikes: false
+        hasOtherLikes: false,
+        isPinned: false
       ),
 
     ]
@@ -577,6 +605,48 @@ struct MockPostService: PostServiceProtocol {
     EmptyResponse
   > {
     // TODO: implementation
+    return .success(EmptyResponse())
+  }
+
+  func pinPost(postId: Int) async -> AsyncResult<EmptyResponse> {
+    try? await Task.sleep(nanoseconds: 300_000_000)
+
+    if store.deletedPostIds.contains(postId) {
+      return .error(APIErrorMessage(message: "Post not found"))
+    }
+
+    if var post = store.posts[postId] {
+      // Update previous pinned post if any
+      if let previousPinnedId = store.pinnedPostId,
+        var previousPost = store.posts[previousPinnedId]
+      {
+        previousPost.isPinned = false
+        store.posts[previousPinnedId] = previousPost
+      }
+
+      // Pin new post
+      post.isPinned = true
+      store.posts[postId] = post
+      store.pinnedPostId = postId
+
+      return .success(EmptyResponse())
+    } else {
+      return .error(APIErrorMessage(message: "Post not found"))
+    }
+  }
+
+  func unpinPost() async -> AsyncResult<EmptyResponse> {
+    try? await Task.sleep(nanoseconds: 300_000_000)
+
+    if let pinnedId = store.pinnedPostId,
+      var post = store.posts[pinnedId]
+    {
+      post.isPinned = false
+      store.posts[pinnedId] = post
+      store.pinnedPostId = nil
+      return .success(EmptyResponse())
+    }
+
     return .success(EmptyResponse())
   }
 }

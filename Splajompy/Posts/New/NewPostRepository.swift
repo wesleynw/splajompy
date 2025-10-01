@@ -139,8 +139,8 @@ struct PostCreationService {
   static func validatePostText(text: String) -> (
     isValid: Bool, errorMessage: String?
   ) {
-    if text.count > 5000 {
-      return (false, "This post is \(text.count - 5000) characters too long.")
+    if text.count > 2500 {
+      return (false, "This post is \(text.count - 2500) characters too long.")
     }
     return (true, nil)
   }

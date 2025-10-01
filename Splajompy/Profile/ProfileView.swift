@@ -87,35 +87,37 @@ struct ProfileView: View {
   private func profileList(user: UserProfile)
     -> some View
   {
-    ScrollView {
-      LazyVStack(spacing: 0) {
-        profileHeader(user: user)
+    ScrollViewReader { proxy in
+      ScrollView {
+        LazyVStack(spacing: 0) {
+          profileHeader(user: user)
 
-        switch viewModel.postsState {
-        case .idle, .loading:
-          loadingPlaceholder
-        case .loaded(let postIds):
-          if postIds.isEmpty {
-            emptyMessage
-          } else {
-            postsContent(postIds: postIds)
+          switch viewModel.postsState {
+          case .idle, .loading:
+            loadingPlaceholder
+          case .loaded(let postIds):
+            if postIds.isEmpty {
+              emptyMessage
+            } else {
+              postsContent(postIds: postIds, scrollProxy: proxy)
+            }
+          case .failed(let error):
+            ErrorScreen(
+              errorString: error,
+              onRetry: { await viewModel.loadPosts(reset: true) }
+            )
           }
-        case .failed(let error):
-          ErrorScreen(
-            errorString: error,
-            onRetry: { await viewModel.loadPosts(reset: true) }
-          )
         }
       }
-    }
-    .environmentObject(authManager)
-    .refreshable {
-      await viewModel.loadPosts(reset: true)
+      .environmentObject(authManager)
+      .refreshable {
+        await viewModel.loadPosts(reset: true)
+      }
     }
   }
 
   @ViewBuilder
-  private func postsContent(postIds: [Int]) -> some View {
+  private func postsContent(postIds: [Int], scrollProxy: ScrollViewProxy) -> some View {
     let posts = postManager.getPostsById(postIds)
     ForEach(Array(posts.enumerated()), id: \.element.id) {
       index,
@@ -125,8 +127,20 @@ struct ProfileView: View {
         postManager: postManager,
         showAuthor: false,
         onLikeButtonTapped: { viewModel.toggleLike(on: post) },
-        onPostDeleted: { viewModel.deletePost(on: post) }
+        onPostDeleted: { viewModel.deletePost(on: post) },
+        onPostPinned: {
+          viewModel.pinPost(post)
+          DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            withAnimation {
+              scrollProxy.scrollTo(post.id, anchor: .top)
+            }
+          }
+        },
+        onPostUnpinned: {
+          viewModel.unpinPost(post)
+        }
       )
+      .id(post.id)
       .geometryGroup()
       .onAppear {
         viewModel.handlePostAppear(at: index, totalCount: postIds.count)

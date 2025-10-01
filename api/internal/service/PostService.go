@@ -145,6 +145,9 @@ func (s *PostService) GetPostById(ctx context.Context, currentUser models.Public
 		}
 	}
 
+	pinnedPostId, _ := s.postRepository.GetPinnedPostId(ctx, post.UserID)
+	isPinned := pinnedPostId != nil && *pinnedPostId == postId
+
 	versionAny := ctx.Value(middleware.AppVersionKey)
 	version, ok := versionAny.(string)
 	if pollDetails != nil && (!ok || version == "unknown" || semver.Compare("v"+version, "v1.3.0") < 0) {
@@ -163,6 +166,7 @@ func (s *PostService) GetPostById(ctx context.Context, currentUser models.Public
 		RelevantLikes: relevantLikes,
 		HasOtherLikes: hasOtherLikes,
 		Poll:          pollDetails,
+		IsPinned:      isPinned,
 	}, nil
 }
 
@@ -463,6 +467,31 @@ func (s *PostService) GetPostsWithTimeOffset(ctx context.Context, currentUser mo
 			return nil, errors.New("userId required for profile feed")
 		}
 		postIDs, err = s.postRepository.GetPostIdsByUserIdCursor(ctx, *userId, limit, beforeTimestamp)
+
+		if err == nil {
+			// get pinned post id for filtering (only for version >= 1.4.0)
+			versionAny := ctx.Value(middleware.AppVersionKey)
+			version, ok := versionAny.(string)
+			if ok && version != "unknown" && semver.Compare("v"+version, "v1.4.0") >= 0 {
+				pinnedPostId, _ := s.postRepository.GetPinnedPostId(ctx, *userId)
+
+				if pinnedPostId != nil {
+					// filter out pinned post from regular results
+					filteredIds := make([]int, 0, len(postIDs))
+					for _, id := range postIDs {
+						if id != *pinnedPostId {
+							filteredIds = append(filteredIds, id)
+						}
+					}
+					postIDs = filteredIds
+
+					// for first page, prepend pinned post
+					if beforeTimestamp == nil {
+						postIDs = append([]int{*pinnedPostId}, postIDs...)
+					}
+				}
+			}
+		}
 	default:
 		return nil, errors.New("invalid feed type")
 	}
@@ -477,4 +506,28 @@ func (s *PostService) GetPostsWithTimeOffset(ctx context.Context, currentUser mo
 func seededRandom(seed int) float64 {
 	var x = math.Sin(float64(seed)) * 1000
 	return x - math.Floor(x)
+}
+
+// PinPost pins a post for the current user
+func (s *PostService) PinPost(ctx context.Context, currentUser models.PublicUser, postId int) error {
+	post, err := s.postRepository.GetPostById(ctx, postId)
+	if err != nil {
+		return errors.New("post not found")
+	}
+
+	if post.UserID != currentUser.UserID {
+		return errors.New("can only pin your own posts")
+	}
+
+	return s.postRepository.PinPost(ctx, currentUser.UserID, postId)
+}
+
+// UnpinPost unpins the currently pinned post for the user
+func (s *PostService) UnpinPost(ctx context.Context, currentUser models.PublicUser) error {
+	return s.postRepository.UnpinPost(ctx, currentUser.UserID)
+}
+
+// GetPinnedPostId retrieves the pinned post ID for a user
+func (s *PostService) GetPinnedPostId(ctx context.Context, userId int) (*int, error) {
+	return s.postRepository.GetPinnedPostId(ctx, userId)
 }

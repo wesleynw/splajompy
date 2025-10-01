@@ -1,0 +1,1 @@
+ALTER TABLE users DROP COLUMN IF EXISTS pinned_post_id;

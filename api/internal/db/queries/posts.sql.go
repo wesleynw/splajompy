@@ -180,6 +180,19 @@ func (q *Queries) GetImagesByPostId(ctx context.Context, postID int) ([]Image, e
 	return items, nil
 }
 
+const getPinnedPostId = `-- name: GetPinnedPostId :one
+SELECT pinned_post_id 
+FROM users 
+WHERE user_id = $1
+`
+
+func (q *Queries) GetPinnedPostId(ctx context.Context, userID int) (*int, error) {
+	row := q.db.QueryRow(ctx, getPinnedPostId, userID)
+	var pinned_post_id *int
+	err := row.Scan(&pinned_post_id)
+	return pinned_post_id, err
+}
+
 const getPollVotesGrouped = `-- name: GetPollVotesGrouped :many
 SELECT option_index, COUNT(*) AS count
 FROM poll_vote
@@ -616,5 +629,32 @@ type InsertVoteParams struct {
 
 func (q *Queries) InsertVote(ctx context.Context, arg InsertVoteParams) error {
 	_, err := q.db.Exec(ctx, insertVote, arg.PostID, arg.UserID, arg.OptionIndex)
+	return err
+}
+
+const pinPost = `-- name: PinPost :exec
+UPDATE users 
+SET pinned_post_id = $2 
+WHERE user_id = $1
+`
+
+type PinPostParams struct {
+	UserID       int  `json:"userId"`
+	PinnedPostID *int `json:"pinnedPostId"`
+}
+
+func (q *Queries) PinPost(ctx context.Context, arg PinPostParams) error {
+	_, err := q.db.Exec(ctx, pinPost, arg.UserID, arg.PinnedPostID)
+	return err
+}
+
+const unpinPost = `-- name: UnpinPost :exec
+UPDATE users 
+SET pinned_post_id = NULL 
+WHERE user_id = $1
+`
+
+func (q *Queries) UnpinPost(ctx context.Context, userID int) error {
+	_, err := q.db.Exec(ctx, unpinPost, userID)
 	return err
 }

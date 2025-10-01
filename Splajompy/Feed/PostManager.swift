@@ -177,6 +177,52 @@ class PostManager: ObservableObject {
     return result
   }
 
+  func pinPost(id: Int) async -> Bool {
+    guard posts[id] != nil else { return false }
+
+    let previouslyPinnedPostId = currentUserPinnedPostId()
+
+    if let previousId = previouslyPinnedPostId {
+      updatePost(id: previousId) { $0.isPinned = false }
+    }
+
+    updatePost(id: id) { $0.isPinned = true }
+
+    let result = await postService.pinPost(postId: id)
+
+    if case .error(let error) = result {
+      print("PostManager: Failed to pin post \(id): \(error.localizedDescription)")
+      updatePost(id: id) { $0.isPinned = false }
+      if let previousId = previouslyPinnedPostId {
+        updatePost(id: previousId) { $0.isPinned = true }
+      }
+      return false
+    }
+
+    return true
+  }
+
+  func unpinPost() async -> Bool {
+    guard let postId = currentUserPinnedPostId() else { return false }
+
+    updatePost(id: postId) { $0.isPinned = false }
+
+    let result = await postService.unpinPost()
+
+    if case .error(let error) = result {
+      print("PostManager: Failed to unpin post: \(error.localizedDescription)")
+      updatePost(id: postId) { $0.isPinned = true }
+      return false
+    }
+
+    return true
+  }
+
+  private func currentUserPinnedPostId() -> Int? {
+    guard let currentUserId = AuthManager.shared.getCurrentUser()?.userId else { return nil }
+    return posts.first { $0.value.user.userId == currentUserId && $0.value.isPinned }?.key
+  }
+
   private func updateAccessOrder(for id: Int) {
     cacheAccessOrder.removeAll { $0 == id }
     cacheAccessOrder.append(id)

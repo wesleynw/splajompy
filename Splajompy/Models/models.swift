@@ -67,6 +67,7 @@ struct DetailedPost: Decodable, Equatable, Identifiable {
   let relevantLikes: [RelevantLike]
   let hasOtherLikes: Bool
   var poll: Poll?
+  var isPinned: Bool
 
   var id: Int { post.postId }
 
