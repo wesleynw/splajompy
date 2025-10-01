@@ -89,6 +89,28 @@ struct SplajompyApp: App {
       }
       .tag(1)
 
+      if PostHogSDK.shared.isFeatureEnabled("secret-tab") {
+        VStack {
+          Image(systemName: "laurel.leading.laurel.trailing")
+            .font(.largeTitle)
+          Text("This is the secret tab.")
+            .font(.title2)
+            .fontWeight(.bold)
+            .padding()
+          Text("Few can see the secret tab.")
+            .fontWeight(.bold)
+            .padding()
+
+          Text("Please do not discuss the secret tab amongst yourselves.")
+            .padding()
+        }
+        .padding()
+        .multilineTextAlignment(.center)
+        .tabItem {
+          Label("Secret", systemImage: "fossil.shell")
+        }
+      }
+
       NavigationStack(path: $navigationPaths[2]) {
         SearchView()
           .postHogScreenView()
