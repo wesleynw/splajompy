@@ -67,12 +67,11 @@ extension NewPostView {
 
         switch result {
         case .success:
-          errorDisplay = ""
           isLoading = false
           onPostCreated()
           dismiss()
         case .error(let error):
-          errorDisplay = "There was an error: \(error.localizedDescription)."
+          errorDisplay = error.localizedDescription
           isLoading = false
         }
       }
