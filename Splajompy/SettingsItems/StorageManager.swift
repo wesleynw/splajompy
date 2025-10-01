@@ -1,4 +1,3 @@
-import Kingfisher
 import Nuke
 import SwiftUI
 
@@ -9,10 +8,6 @@ struct StorageManager: View {
     Section {
       HStack {
         Button(action: {
-          // TODO: remove when users' KF caches clear out, should take like one or two weeks
-          ImageCache.default.clearMemoryCache()
-          ImageCache.default.clearDiskCache {}
-
           ImageCache.shared.removeAll()
           if let dataCache = ImagePipeline.shared.configuration.dataCache {
             dataCache.removeAll()
@@ -35,25 +30,13 @@ struct StorageManager: View {
   }
 
   private func updateCacheSize() {
-    ImageCache.default.calculateDiskStorageSize { result in
-      DispatchQueue.main.async {
-        switch result {
-        case .success(let kingfisherSize):
-          let nukeSize = self.getNukeCacheSize()
-          let totalSize = Int64(kingfisherSize) + Int64(nukeSize)
-          self.cacheSize = ByteCountFormatter.string(
-            fromByteCount: totalSize,
-            countStyle: .file
-          )
-        case .failure(_):
-          self.cacheSize = "Unknown"
-        }
-      }
+    let cache = try? DataCache(name: "media-cache")
+    if let cache = cache {
+      self.cacheSize = ByteCountFormatter.string(
+        fromByteCount: Int64(cache.totalSize),
+        countStyle: .file
+      )
     }
-  }
-
-  private func getNukeCacheSize() -> Int {
-    return ImageCache.shared.totalCost
   }
 }
 

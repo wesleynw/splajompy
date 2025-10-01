@@ -19,7 +19,6 @@
 		18A617ED2D9B2D6000B93F08 /* ProfileViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18A617E22D9B2D6000B93F08 /* ProfileViewModel.swift */; };
 		18A617EE2D9B2D6000B93F08 /* models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18A617DC2D9B2D6000B93F08 /* models.swift */; };
 		18A617F12D9B2D6000B93F08 /* PostView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18A617DF2D9B2D6000B93F08 /* PostView.swift */; };
-		18E435E82DB29069003A0999 /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = 18E435E72DB29069003A0999 /* Kingfisher */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -134,7 +133,6 @@
 				180DEE662E39AE0F00A4D29D /* NukeVideo in Frameworks */,
 				180DEE602E39AE0F00A4D29D /* Nuke in Frameworks */,
 				180DEE622E39AE0F00A4D29D /* NukeExtensions in Frameworks */,
-				18E435E82DB29069003A0999 /* Kingfisher in Frameworks */,
 				187974BA2DDC1EE300BA0F37 /* PostHog in Frameworks */,
 			);
 		};
@@ -277,7 +275,6 @@
 			);
 			name = Splajompy;
 			packageProductDependencies = (
-				18E435E72DB29069003A0999 /* Kingfisher */,
 				187974B92DDC1EE300BA0F37 /* PostHog */,
 				180DEE5F2E39AE0F00A4D29D /* Nuke */,
 				180DEE612E39AE0F00A4D29D /* NukeExtensions */,
@@ -357,7 +354,6 @@
 			mainGroup = 184A63C22D88CBA000860D6B;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				18E435E52DB28FF5003A0999 /* XCRemoteSwiftPackageReference "Kingfisher" */,
 				187974B82DDC1EE300BA0F37 /* XCRemoteSwiftPackageReference "posthog-ios" */,
 				180DEE5E2E39AD6400A4D29D /* XCRemoteSwiftPackageReference "Nuke" */,
 			);
@@ -785,14 +781,6 @@
 				minimumVersion = 3.25.1;
 			};
 		};
-		18E435E52DB28FF5003A0999 /* XCRemoteSwiftPackageReference "Kingfisher" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/onevcat/Kingfisher.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 8.3.2;
-			};
-		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -820,11 +808,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 187974B82DDC1EE300BA0F37 /* XCRemoteSwiftPackageReference "posthog-ios" */;
 			productName = PostHog;
-		};
-		18E435E72DB29069003A0999 /* Kingfisher */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 18E435E52DB28FF5003A0999 /* XCRemoteSwiftPackageReference "Kingfisher" */;
-			productName = Kingfisher;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
