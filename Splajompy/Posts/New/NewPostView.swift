@@ -173,10 +173,10 @@ struct NewPostView: View {
   }
 
   private var isPostButtonDisabled: Bool {
-    (text.string.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-      && viewModel.selectedImages.count == 0
-      && poll == nil)
-      || viewModel.isLoading
+    let trimmedText = text.string.trimmingCharacters(in: .whitespacesAndNewlines)
+    let hasContent = !trimmedText.isEmpty || viewModel.selectedImages.count > 0 || poll != nil
+
+    return !hasContent || trimmedText.count > 2500 || viewModel.isLoading
   }
 }
 

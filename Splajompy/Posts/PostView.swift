@@ -139,6 +139,7 @@ struct PostView: View {
       if let poll = post.poll {
         PollView(
           poll: poll,
+          authorId: post.user.userId,
           onVote: { option in
             Task {
               await postManager.voteInPoll(postId: post.id, optionIndex: option)

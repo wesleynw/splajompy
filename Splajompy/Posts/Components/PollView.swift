@@ -2,7 +2,9 @@ import SwiftUI
 
 struct PollView: View {
   var poll: Poll
+  var authorId: Int
   var onVote: (Int) -> Void
+  var currentUser = AuthManager.shared.getCurrentUser()
 
   private var adjustedPercentages: [Int] {
     guard poll.voteTotal > 0, poll.currentUserVote != nil else {
@@ -28,7 +30,7 @@ struct PollView: View {
           PollOptionView(
             isSelected: index == poll.currentUserVote,
             option: option,
-            hasVoted: poll.currentUserVote != nil,
+            showResults: poll.currentUserVote != nil || currentUser?.userId == authorId,
             totalVotes: poll.voteTotal,
             percentage: adjustedPercentages[index],
             onTap: { onVote(index) }
@@ -43,7 +45,7 @@ struct PollView: View {
   private struct PollOptionView: View {
     let isSelected: Bool
     let option: PollOption
-    let hasVoted: Bool
+    let showResults: Bool
     let totalVotes: Int
     let percentage: Int
     let onTap: () -> Void
@@ -60,7 +62,7 @@ struct PollView: View {
             .font(.body)
             .fontWeight(.semibold)
           Spacer()
-          if hasVoted {
+          if showResults {
             Text("\(percentage)%")
               .font(.callout)
               .foregroundColor(.secondary)
@@ -96,7 +98,7 @@ struct PollView: View {
         }
       }
       .buttonStyle(.plain)
-      .sensoryFeedback(.impact, trigger: hasVoted ? false : tapped)
+      .sensoryFeedback(.impact, trigger: showResults ? false : tapped)
     }
   }
 }
@@ -116,6 +118,7 @@ struct PollView: View {
   VStack {
     PollView(
       poll: poll,
+      authorId: 0,
       onVote: { option in
         poll.options[option].voteTotal += 1
         poll.voteTotal += 1
