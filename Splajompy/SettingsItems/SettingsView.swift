@@ -45,7 +45,7 @@ struct SettingsView: View {
 
         Section {
           NavigationLink(destination: RequestFeatureView()) {
-            Label("Request a feature", systemImage: "lightbulb.max")
+            Label("Support", systemImage: "lifepreserver")
           }
         }
 
