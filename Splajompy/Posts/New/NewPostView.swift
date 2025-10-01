@@ -6,7 +6,8 @@ struct NewPostView: View {
   @State private var text = NSAttributedString(string: "")
   @State private var facets: [Facet] = []
   @State private var poll: PollCreationRequest?
-  @State private var showingPollCreation = false
+  @State private var showingPollCreation: Bool = false
+  @State private var showErrorAlert: Bool = false
 
   @StateObject private var viewModel: ViewModel
   @FocusState private var isFocused: Bool
@@ -106,12 +107,16 @@ struct NewPostView: View {
             )
         }
         .padding()
-
-        if let errorText = viewModel.errorDisplay {
-          Text(errorText)
-            .foregroundColor(.red)
-            .font(.caption)
+      }
+      .alert(
+        "An error occurred", isPresented: .constant(viewModel.errorDisplay != nil),
+        actions: {
+          Button("OK") {
+            viewModel.errorDisplay = nil
+          }
         }
+      ) {
+        Text(viewModel.errorDisplay ?? "There was an error.")
       }
       .navigationTitle("New Post")
       .navigationBarTitleDisplayMode(.inline)
