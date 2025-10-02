@@ -455,12 +455,12 @@ FROM (
     UNION ALL
 
     SELECT users.user_id, users.username, users.name, 4 as tier,
-    GREATEST(public.similarity(users.username::text, $1), public.similarity(users.name::text, $1)) as score
+    GREATEST(similarity(users.username, $1), similarity(users.name, $1)) as score
     FROM users
-    WHERE (users.username::text % $1 OR users.name::text % $1)
+    WHERE (users.username % $1 OR users.name % $1)
     AND users.username NOT ILIKE '%' || $1 || '%'
     AND users.name NOT ILIKE '%' || $1 || '%'
-    AND (public.similarity(users.username::text, $1) > 0.3 OR public.similarity(users.name::text, $1) > 0.3)
+    AND (similarity(users.username, $1) > 0.3 OR similarity(users.name, $1) > 0.3)
     ) sub
 ORDER BY user_id, tier, score DESC
     )
