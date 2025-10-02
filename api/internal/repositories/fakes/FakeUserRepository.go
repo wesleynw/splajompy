@@ -176,7 +176,7 @@ func (r *FakeUserRepository) UnfollowUser(ctx context.Context, followerId int, f
 	return nil
 }
 
-func (r *FakeUserRepository) GetUsersWithUsernameLike(ctx context.Context, prefix string, limit int, currentUserId int) ([]models.PublicUser, error) {
+func (r *FakeUserRepository) SearchUsername(ctx context.Context, prefix string, limit int, currentUserId int) ([]models.PublicUser, error) {
 	r.mutex.RLock()
 	defer r.mutex.RUnlock()
 

@@ -24,7 +24,7 @@ type UserRepository interface {
 	IsUserFollowingUser(ctx context.Context, followerId int, followingId int) (bool, error)
 	FollowUser(ctx context.Context, followerId int, followingId int) error
 	UnfollowUser(ctx context.Context, followerId int, followingId int) error
-	GetUsersWithUsernameLike(ctx context.Context, prefix string, limit int, currentUserId int) ([]models.PublicUser, error)
+	SearchUsername(ctx context.Context, prefix string, limit int, currentUserId int) ([]models.PublicUser, error)
 	UpdateUserName(ctx context.Context, userId int, newName string) error
 	GetIsUsernameInUse(ctx context.Context, username string) (bool, error)
 	GetIsEmailInUse(ctx context.Context, email string) (bool, error)
@@ -113,10 +113,10 @@ func (r DBUserRepository) UnfollowUser(ctx context.Context, followerId int, foll
 	})
 }
 
-// GetUsersWithUsernameLike retrieves users with usernames matching a pattern
-func (r DBUserRepository) GetUsersWithUsernameLike(ctx context.Context, prefix string, limit int, currentUserId int) ([]models.PublicUser, error) {
-	users, err := r.querier.GetUsernameLike(ctx, queries.GetUsernameLikeParams{
-		Username:     prefix + "%",
+// SearchUsername retrieves users with usernames matching a pattern
+func (r DBUserRepository) SearchUsername(ctx context.Context, prefix string, limit int, currentUserId int) ([]models.PublicUser, error) {
+	users, err := r.querier.UserSearchWithHeuristics(ctx, queries.UserSearchWithHeuristicsParams{
+		Username:     prefix,
 		Limit:        limit,
 		TargetUserID: currentUserId,
 	})
@@ -126,6 +126,10 @@ func (r DBUserRepository) GetUsersWithUsernameLike(ctx context.Context, prefix s
 
 	publicUsers := make([]models.PublicUser, len(users))
 	for i, user := range users {
+		user, err := r.querier.GetUserById(ctx, user.UserID)
+		if err != nil {
+			return nil, err
+		}
 		publicUsers[i] = utilities.MapUserToPublicUser(user)
 	}
 

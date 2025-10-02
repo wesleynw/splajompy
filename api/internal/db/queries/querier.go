@@ -81,6 +81,7 @@ type Querier interface {
 	UpdateUserBio(ctx context.Context, arg UpdateUserBioParams) error
 	UpdateUserName(ctx context.Context, arg UpdateUserNameParams) error
 	UserHasUnreadNotifications(ctx context.Context, userID int) (bool, error)
+	UserSearchWithHeuristics(ctx context.Context, arg UserSearchWithHeuristicsParams) ([]UserSearchWithHeuristicsRow, error)
 }
 
 var _ Querier = (*Queries)(nil)
