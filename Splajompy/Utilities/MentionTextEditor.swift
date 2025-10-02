@@ -84,6 +84,9 @@ struct MentionTextEditor: View {
     .onAppear {
       isFocused = true
     }
+    .onChange(of: text) { oldValue, newValue in
+      viewModel.updateAttributedText(newValue)
+    }
   }
 
   private var suggestionView: some View {
