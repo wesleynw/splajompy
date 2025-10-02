@@ -45,7 +45,7 @@ func (h *Handler) SearchUsers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	users, err := h.userService.GetUserByUsernamePrefix(r.Context(), prefix, currentUser.UserID)
+	users, err := h.userService.GetUserByUsernameSearch(r.Context(), prefix, currentUser.UserID)
 	if err != nil {
 		utilities.HandleError(w, http.StatusNotFound, "This user doesn't exist")
 		return

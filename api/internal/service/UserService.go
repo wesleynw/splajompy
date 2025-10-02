@@ -57,8 +57,8 @@ func (s *UserService) GetUserById(ctx context.Context, cUser models.PublicUser, 
 	}, nil
 }
 
-func (s *UserService) GetUserByUsernamePrefix(ctx context.Context, prefix string, currentUserId int) (*[]models.PublicUser, error) {
-	users, err := s.userRepository.GetUsersWithUsernameLike(ctx, prefix, 10, currentUserId)
+func (s *UserService) GetUserByUsernameSearch(ctx context.Context, prefix string, currentUserId int) (*[]models.PublicUser, error) {
+	users, err := s.userRepository.SearchUsername(ctx, prefix, 10, currentUserId)
 	if err != nil {
 		return nil, err
 	}

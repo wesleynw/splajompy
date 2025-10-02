@@ -428,3 +428,89 @@ func (q *Queries) UpdateUserName(ctx context.Context, arg UpdateUserNameParams) 
 	_, err := q.db.Exec(ctx, updateUserName, arg.UserID, arg.Name)
 	return err
 }
+
+const userSearchWithHeuristics = `-- name: UserSearchWithHeuristics :many
+WITH results AS (
+    SELECT DISTINCT ON (user_id)
+    user_id, username, name, tier, score
+FROM (
+    SELECT users.user_id, users.username, users.name, 1 as tier, 1.0 as score
+    FROM users
+    WHERE users.username = $1 OR users.name = $1
+
+    UNION ALL
+
+    SELECT users.user_id, users.username, users.name, 2 as tier, 0.9 as score
+    FROM users
+    WHERE (users.username ILIKE $1 || '%' OR users.name ILIKE $1 || '%')
+    AND users.username != $1 AND users.name != $1
+
+    UNION ALL
+
+    SELECT users.user_id, users.username, users.name, 3 as tier, 0.7 as score
+    FROM users
+    WHERE (users.username ILIKE '%' || $1 || '%' OR users.name ILIKE '%' || $1 || '%')
+    AND users.username NOT ILIKE $1 || '%' AND users.name NOT ILIKE $1 || '%'
+
+    UNION ALL
+
+    SELECT users.user_id, users.username, users.name, 4 as tier,
+    GREATEST(similarity(users.username, $1), similarity(users.name, $1)) as score
+    FROM users
+    WHERE (users.username % $1 OR users.name % $1)
+    AND users.username NOT ILIKE '%' || $1 || '%'
+    AND users.name NOT ILIKE '%' || $1 || '%'
+    AND (similarity(users.username, $1) > 0.3 OR similarity(users.name, $1) > 0.3)
+    ) sub
+ORDER BY user_id, tier, score DESC
+    )
+SELECT r.user_id, r.username, r.name, r.tier, r.score
+FROM results r
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM block
+    WHERE block.user_id = r.user_id AND target_user_id = $3
+)
+ORDER BY r.tier, r.score DESC, r.username
+    LIMIT $2
+`
+
+type UserSearchWithHeuristicsParams struct {
+	Username     string `json:"username"`
+	Limit        int    `json:"limit"`
+	TargetUserID int    `json:"targetUserId"`
+}
+
+type UserSearchWithHeuristicsRow struct {
+	UserID   int         `json:"userId"`
+	Username string      `json:"username"`
+	Name     pgtype.Text `json:"name"`
+	Tier     int32       `json:"tier"`
+	Score    float64     `json:"score"`
+}
+
+func (q *Queries) UserSearchWithHeuristics(ctx context.Context, arg UserSearchWithHeuristicsParams) ([]UserSearchWithHeuristicsRow, error) {
+	rows, err := q.db.Query(ctx, userSearchWithHeuristics, arg.Username, arg.Limit, arg.TargetUserID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []UserSearchWithHeuristicsRow
+	for rows.Next() {
+		var i UserSearchWithHeuristicsRow
+		if err := rows.Scan(
+			&i.UserID,
+			&i.Username,
+			&i.Name,
+			&i.Tier,
+			&i.Score,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}

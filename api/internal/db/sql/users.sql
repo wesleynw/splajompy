@@ -124,3 +124,48 @@ SELECT EXISTS (
 -- name: DeleteUserById :exec
 DELETE FROM users
 WHERE user_id = $1;
+
+-- name: UserSearchWithHeuristics :many
+WITH results AS (
+    SELECT DISTINCT ON (user_id)
+    user_id, username, name, tier, score
+FROM (
+    SELECT users.user_id, users.username, users.name, 1 as tier, 1.0 as score
+    FROM users
+    WHERE users.username = $1 OR users.name = $1
+
+    UNION ALL
+
+    SELECT users.user_id, users.username, users.name, 2 as tier, 0.9 as score
+    FROM users
+    WHERE (users.username ILIKE $1 || '%' OR users.name ILIKE $1 || '%')
+    AND users.username != $1 AND users.name != $1
+
+    UNION ALL
+
+    SELECT users.user_id, users.username, users.name, 3 as tier, 0.7 as score
+    FROM users
+    WHERE (users.username ILIKE '%' || $1 || '%' OR users.name ILIKE '%' || $1 || '%')
+    AND users.username NOT ILIKE $1 || '%' AND users.name NOT ILIKE $1 || '%'
+
+    UNION ALL
+
+    SELECT users.user_id, users.username, users.name, 4 as tier,
+    GREATEST(similarity(users.username, $1), similarity(users.name, $1)) as score
+    FROM users
+    WHERE (users.username % $1 OR users.name % $1)
+    AND users.username NOT ILIKE '%' || $1 || '%'
+    AND users.name NOT ILIKE '%' || $1 || '%'
+    AND (similarity(users.username, $1) > 0.3 OR similarity(users.name, $1) > 0.3)
+    ) sub
+ORDER BY user_id, tier, score DESC
+    )
+SELECT r.user_id, r.username, r.name, r.tier, r.score
+FROM results r
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM block
+    WHERE block.user_id = r.user_id AND target_user_id = $3
+)
+ORDER BY r.tier, r.score DESC, r.username
+    LIMIT $2;
