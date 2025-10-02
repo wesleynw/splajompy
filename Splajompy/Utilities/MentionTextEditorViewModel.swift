@@ -24,15 +24,8 @@ extension MentionTextEditor {
     }
 
     func processTextChange(_ newText: NSAttributedString) {
-      let newString = newText.string
-
-      // Only recreate attributed text if the string content actually changed
-      if attributedText.string == newString {
-        return
-      }
-
-      let mutableText = NSMutableAttributedString(string: newString)
-      let fullRange = NSRange(location: 0, length: newString.count)
+      let mutableText = NSMutableAttributedString(string: newText.string)
+      let fullRange = NSRange(location: 0, length: newText.string.count)
 
       mutableText.addAttribute(
         .font,
@@ -45,7 +38,7 @@ extension MentionTextEditor {
         range: fullRange
       )
 
-      let mentions = extractMentions(from: newString)
+      let mentions = extractMentions(from: newText.string)
       for mention in mentions {
         let range = NSRange(
           location: mention.range.location,
