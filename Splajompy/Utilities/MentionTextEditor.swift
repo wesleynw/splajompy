@@ -19,14 +19,14 @@ struct MentionTextEditor: View {
         AttributedTextEditor(
           text: $text,
           cursorPosition: $cursorPosition,
-          cursorY: $cursorY,
+          cursorY: $cursorY
         )
         .frame(minHeight: 120)
         .frame(maxWidth: .infinity)
         .focused($isFocused)
-        //        .onChange(of: cursorPosition) { _, newPosition in
-        //          viewModel.updateCursorPosition(newPosition)
-        //        }
+        .onChange(of: cursorPosition) { _, newPosition in
+          viewModel.checkForMention(in: text.string, at: newPosition)
+        }
 
         if text.string.isEmpty {
           Text("What's on your mind?")
@@ -92,8 +92,9 @@ struct MentionTextEditor: View {
     .frame(maxWidth: .infinity, alignment: .leading)
     .contentShape(Rectangle())
     .onTapGesture {
-      viewModel.insertMention(user)
-      text = viewModel.attributedText
+      let result = viewModel.insertMention(user, in: text, at: cursorPosition)
+      text = result.text
+      cursorPosition = result.newCursorPosition
     }
   }
 }

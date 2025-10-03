@@ -4,7 +4,6 @@ struct AttributedTextEditor: UIViewRepresentable {
   @Binding var text: NSAttributedString
   @Binding var cursorPosition: Int
   @Binding var cursorY: CGFloat
-  var onTextChange: ((NSAttributedString) -> NSAttributedString)?
 
   func makeUIView(context: Context) -> UITextView {
     let textView = UITextView()
@@ -27,11 +26,13 @@ struct AttributedTextEditor: UIViewRepresentable {
   }
 
   func updateUIView(_ uiView: UITextView, context: Context) {
-    if uiView.attributedText != text {
+    // Only update if the change came from outside (e.g., mention insertion)
+    if !context.coordinator.isInternalUpdate && uiView.attributedText != text {
       let selection = uiView.selectedRange
       uiView.attributedText = text
       uiView.selectedRange = selection
     }
+    context.coordinator.isInternalUpdate = false
   }
 
   func makeCoordinator() -> Coordinator {
@@ -42,10 +43,11 @@ struct AttributedTextEditor: UIViewRepresentable {
     var text: Binding<NSAttributedString>
     var cursorPosition: Binding<Int>
     var cursorY: Binding<CGFloat>
+    var isInternalUpdate = false
 
     init(
       _ text: Binding<NSAttributedString>, _ cursorPosition: Binding<Int>,
-      _ cursorY: Binding<CGFloat>,
+      _ cursorY: Binding<CGFloat>
     ) {
       self.text = text
       self.cursorPosition = cursorPosition
@@ -53,7 +55,9 @@ struct AttributedTextEditor: UIViewRepresentable {
     }
 
     func textViewDidChange(_ textView: UITextView) {
-      self.text.wrappedValue = textView.attributedText
+      isInternalUpdate = true
+      let currentText = textView.attributedText ?? NSAttributedString()
+      self.text.wrappedValue = currentText
     }
 
     func textViewDidChangeSelection(_ textView: UITextView) {
