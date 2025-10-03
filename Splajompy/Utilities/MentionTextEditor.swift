@@ -1,59 +1,30 @@
 import SwiftUI
-import UIKit
 
 struct MentionTextEditor: View {
   @Binding var text: NSAttributedString
-  @StateObject private var viewModel: MentionViewModel
+  @State private var cursorPosition: Int = 0
+  @State private var cursorY: CGFloat = 0
   @FocusState private var isFocused: Bool
-  @State private var textViewHeight: CGFloat = 0
-  @State private var editorFrame: CGRect = .zero
-  let showSuggestionsOnTop: Bool
 
-  init(text: Binding<NSAttributedString>, showSuggestionsOnTop: Bool = false) {
+  @StateObject private var viewModel: MentionViewModel
+
+  init(text: Binding<NSAttributedString>) {
     self._text = text
     self._viewModel = StateObject(wrappedValue: MentionViewModel())
-    self.showSuggestionsOnTop = showSuggestionsOnTop
   }
 
   var body: some View {
     VStack(alignment: .leading, spacing: 0) {
-      if showSuggestionsOnTop {
-        Spacer()
-          .frame(
-            height: viewModel.isShowingSuggestions ? calculateHeight() + 8 : 0
-          )
-          .animation(
-            .easeInOut(duration: 0.2),
-            value: viewModel.isShowingSuggestions
-          )
-      }
-
       ZStack(alignment: .topLeading) {
         AttributedTextEditor(
           text: $text,
-          height: $textViewHeight,
-          cursorPosition: $viewModel.cursorPosition,
-          onTextChange: { newText in
-            viewModel.processTextChange(newText)
-          },
-          onCursorPositionChange: { position in
-            viewModel.updateCursorPosition(position)
-          }
+          cursorPosition: $cursorPosition,
+          cursorY: $cursorY,
+          viewModel: viewModel
         )
-        .frame(height: textViewHeight)
+        .frame(minHeight: 120)
         .frame(maxWidth: .infinity)
         .focused($isFocused)
-        .background(
-          GeometryReader { geometry in
-            Color.clear
-              .onAppear {
-                editorFrame = geometry.frame(in: .global)
-              }
-              .onChange(of: geometry.frame(in: .global)) { _, newFrame in
-                editorFrame = newFrame
-              }
-          }
-        )
 
         if text.string.isEmpty {
           Text("What's on your mind?")
@@ -62,30 +33,19 @@ struct MentionTextEditor: View {
         }
       }
       .padding()
-
-      if !showSuggestionsOnTop && viewModel.isShowingSuggestions {
-        suggestionView
+      .padding(.bottom, 200)
+      .overlay(alignment: .topLeading) {
+        if viewModel.isShowingSuggestions {
+          suggestionView
+            .offset(y: cursorY + 20)
+            .animation(.default, value: viewModel.isShowingSuggestions)
+        }
       }
     }
     .padding(.horizontal)
     .frame(maxWidth: .infinity)
-    .overlay(
-      Group {
-        if showSuggestionsOnTop && viewModel.isShowingSuggestions {
-          suggestionView
-            .offset(x: 16, y: editorFrame.minY - calculateHeight() - 8)
-            .animation(
-              .easeInOut(duration: 0.2),
-              value: viewModel.isShowingSuggestions
-            )
-        }
-      }
-    )
     .onAppear {
       isFocused = true
-    }
-    .onChange(of: text) { oldValue, newValue in
-      viewModel.updateAttributedText(newValue)
     }
   }
 
@@ -108,12 +68,8 @@ struct MentionTextEditor: View {
     .frame(height: calculateHeight())
     .frame(maxWidth: .infinity)
     .background(Color(.systemBackground))
-    .overlay(
-      RoundedRectangle(cornerRadius: 8)
-        .stroke(Color.gray.opacity(0.4), lineWidth: 1)
-    )
-    .cornerRadius(8)
-    .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
+    .clipShape(RoundedRectangle(cornerRadius: 8))
+    .shadow(color: .black.opacity(0.3), radius: 4, x: 0, y: 2)
   }
 
   private func calculateHeight() -> CGFloat {
@@ -134,8 +90,9 @@ struct MentionTextEditor: View {
     .frame(maxWidth: .infinity, alignment: .leading)
     .contentShape(Rectangle())
     .onTapGesture {
-      viewModel.insertMention(user)
-      text = viewModel.attributedText
+      let result = viewModel.insertMention(user, in: text, at: cursorPosition)
+      text = result.text
+      cursorPosition = result.newCursorPosition
     }
   }
 }

@@ -3,8 +3,6 @@ import SwiftUI
 extension MentionTextEditor {
   @MainActor
   class MentionViewModel: ObservableObject {
-    @Published var attributedText: NSAttributedString = NSAttributedString("")
-    @Published var cursorPosition: Int = 0
     @Published var mentionSuggestions: [User] = []
     @Published var isShowingSuggestions = false
 
@@ -12,48 +10,6 @@ extension MentionTextEditor {
     private var mentionStartIndex: String.Index?
     private var mentionPrefix: String = ""
     private let mentionPattern = "@([a-zA-Z0-9_.]+)"
-
-    func updateAttributedText(_ text: NSAttributedString) {
-      attributedText = text
-      checkForMentionAtCursor()
-    }
-
-    func updateCursorPosition(_ position: Int) {
-      cursorPosition = position
-      checkForMentionAtCursor()
-    }
-
-    func processTextChange(_ newText: NSAttributedString) {
-      let mutableText = NSMutableAttributedString(string: newText.string)
-      let fullRange = NSRange(location: 0, length: newText.string.count)
-
-      mutableText.addAttribute(
-        .font,
-        value: UIFont.preferredFont(forTextStyle: .body),
-        range: fullRange
-      )
-      mutableText.addAttribute(
-        .foregroundColor,
-        value: UIColor.label,
-        range: fullRange
-      )
-
-      let mentions = extractMentions(from: newText.string)
-      for mention in mentions {
-        let range = NSRange(
-          location: mention.range.location,
-          length: mention.range.length
-        )
-        mutableText.addAttribute(
-          .foregroundColor,
-          value: UIColor.systemBlue,
-          range: range
-        )
-      }
-
-      attributedText = mutableText
-      checkForMentionAtCursor()
-    }
 
     private struct Mention {
       let username: String
@@ -86,10 +42,9 @@ extension MentionTextEditor {
       return mentions
     }
 
-    private func checkForMentionAtCursor() {
-      let text = attributedText.string
-
+    func checkForMention(in text: String, at cursorPosition: Int) {
       guard cursorPosition > 0, cursorPosition <= text.utf16.count else {
+        clearMentionState()
         return
       }
 
@@ -179,8 +134,12 @@ extension MentionTextEditor {
       }
     }
 
-    func insertMention(_ user: User) {
-      guard let startIndex = mentionStartIndex else { return }
+    func insertMention(
+      _ user: User, in attributedText: NSAttributedString, at cursorPosition: Int
+    ) -> (text: NSAttributedString, newCursorPosition: Int) {
+      guard let startIndex = mentionStartIndex else {
+        return (attributedText, cursorPosition)
+      }
 
       let text = attributedText.string
 
@@ -192,14 +151,33 @@ extension MentionTextEditor {
         ) ?? text.endIndex
 
       let replaceRange = startIndex..<cursorIndex
-
       let replacement = "@\(user.username) "
 
       var newText = text
       newText.replaceSubrange(replaceRange, with: replacement)
 
-      let mutableAttributedText = NSMutableAttributedString(string: newText)
-      let fullRange = NSRange(location: 0, length: newText.utf16.count)
+      let newAttributedText = applyMentionStyling(to: newText)
+
+      let newCursorPosition =
+        text.distance(from: text.startIndex, to: startIndex)
+        + replacement.utf16.count
+
+      clearMentionState()
+
+      return (newAttributedText, newCursorPosition)
+    }
+
+    func isPositionInMention(in text: String, at position: Int) -> Bool {
+      let mentions = extractMentions(from: text)
+      return mentions.contains { mention in
+        NSLocationInRange(position, mention.range)
+      }
+    }
+
+    func applyMentionStyling(to text: String) -> NSAttributedString {
+      let mutableAttributedText = NSMutableAttributedString(string: text)
+      let fullRange = NSRange(location: 0, length: text.utf16.count)
+
       mutableAttributedText.addAttribute(
         .font,
         value: UIFont.preferredFont(forTextStyle: .body),
@@ -211,7 +189,7 @@ extension MentionTextEditor {
         range: fullRange
       )
 
-      let mentions = extractMentions(from: newText)
+      let mentions = extractMentions(from: text)
       for mention in mentions {
         mutableAttributedText.addAttribute(
           .foregroundColor,
@@ -220,14 +198,7 @@ extension MentionTextEditor {
         )
       }
 
-      attributedText = mutableAttributedText
-
-      let newCursorPosition =
-        text.distance(from: text.startIndex, to: startIndex)
-        + replacement.utf16.count
-      cursorPosition = newCursorPosition
-
-      clearMentionState()
+      return mutableAttributedText
     }
   }
 }

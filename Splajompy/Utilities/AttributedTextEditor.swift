@@ -1,12 +1,10 @@
 import SwiftUI
-import UIKit
 
 struct AttributedTextEditor: UIViewRepresentable {
   @Binding var text: NSAttributedString
-  @Binding var height: CGFloat
   @Binding var cursorPosition: Int
-  var onTextChange: ((NSAttributedString) -> Void)?
-  var onCursorPositionChange: ((Int) -> Void)?
+  @Binding var cursorY: CGFloat
+  var viewModel: MentionTextEditor.MentionViewModel?
 
   func makeUIView(context: Context) -> UITextView {
     let textView = UITextView()
@@ -15,122 +13,87 @@ struct AttributedTextEditor: UIViewRepresentable {
     textView.isEditable = true
     textView.isUserInteractionEnabled = true
     textView.autocorrectionType = .yes
-    textView.backgroundColor = .clear
     textView.typingAttributes = [
       .font: UIFont.preferredFont(forTextStyle: .body),
       .foregroundColor: UIColor.label,
     ]
     textView.attributedText = text
     textView.isScrollEnabled = false
-    textView.textContainerInset = UIEdgeInsets(top: 8, left: 0, bottom: 8, right: 0)
-    textView.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
-    textView.textContainer.lineFragmentPadding = 0
-
-    // Calculate initial height
-    DispatchQueue.main.async {
-      let availableWidth = UIScreen.main.bounds.width - 32  // Accounting for horizontal padding
-      let newSize = textView.sizeThatFits(
-        CGSize(width: availableWidth, height: CGFloat.greatestFiniteMagnitude))
-      height = newSize.height
-    }
+    textView.textContainer.lineBreakMode = .byWordWrapping
+    textView.translatesAutoresizingMaskIntoConstraints = true
+    textView.setContentCompressionResistancePriority(
+      .defaultLow,
+      for: .horizontal
+    )  // i don't think this is idiomatic, but it works for now
 
     return textView
   }
 
   func updateUIView(_ uiView: UITextView, context: Context) {
-    if !uiView.attributedText.isEqual(to: text) {
-      let wasUpdatingFromViewModel = context.coordinator.isUpdatingFromViewModel
-      context.coordinator.isUpdatingFromViewModel = true
-      uiView.typingAttributes = [
-        .font: UIFont.preferredFont(forTextStyle: .body),
-        .foregroundColor: UIColor.label,
-      ]
+    if !context.coordinator.isInternalUpdate && uiView.attributedText != text {
       uiView.attributedText = text
-      if wasUpdatingFromViewModel && cursorPosition <= text.length {
-        uiView.selectedRange = NSRange(location: cursorPosition, length: 0)
-      }
-      context.coordinator.isUpdatingFromViewModel = false
+      uiView.selectedRange = NSRange(location: cursorPosition, length: 0)
     }
-
-    // Update height based on content
-    DispatchQueue.main.async {
-      let availableWidth =
-        uiView.bounds.width > 0 ? uiView.bounds.width : UIScreen.main.bounds.width - 32
-      let newSize = uiView.sizeThatFits(
-        CGSize(width: availableWidth, height: CGFloat.greatestFiniteMagnitude))
-      if height != newSize.height {
-        height = newSize.height
-      }
-    }
+    context.coordinator.isInternalUpdate = false
   }
 
   func makeCoordinator() -> Coordinator {
-    Coordinator(self)
+    Coordinator($text, $cursorPosition, $cursorY, viewModel)
   }
 
   class Coordinator: NSObject, UITextViewDelegate {
-    var parent: AttributedTextEditor
-    var isUpdatingFromViewModel = false
+    var text: Binding<NSAttributedString>
+    var cursorPosition: Binding<Int>
+    var cursorY: Binding<CGFloat>
+    var viewModel: MentionTextEditor.MentionViewModel?
+    var isInternalUpdate = false
 
-    init(_ parent: AttributedTextEditor) {
-      self.parent = parent
+    init(
+      _ text: Binding<NSAttributedString>,
+      _ cursorPosition: Binding<Int>,
+      _ cursorY: Binding<CGFloat>,
+      _ viewModel: MentionTextEditor.MentionViewModel?
+    ) {
+      self.text = text
+      self.cursorPosition = cursorPosition
+      self.cursorY = cursorY
+      self.viewModel = viewModel
     }
 
     func textViewDidChange(_ textView: UITextView) {
-      if !isUpdatingFromViewModel {
-        if let attributedText = textView.attributedText {
-          if let lastChar = textView.text.last, lastChar == " " {
-            textView.typingAttributes = [
-              .font: UIFont.preferredFont(forTextStyle: .body),
-              .foregroundColor: UIColor.label,
-            ]
-          }
-          parent.text = attributedText
-          parent.onTextChange?(attributedText)
-        }
-
-        if let position = textView.position(
-          from: textView.beginningOfDocument,
-          offset: textView.selectedRange.location
-        ) {
-          let cursorPosition = textView.offset(
-            from: textView.beginningOfDocument,
-            to: position
-          )
-
-          parent.cursorPosition = cursorPosition
-          parent.onCursorPositionChange?(cursorPosition)
-        }
-      }
-
-      // Update height after text changes
-      DispatchQueue.main.async {
-        let availableWidth =
-          textView.bounds.width > 0 ? textView.bounds.width : UIScreen.main.bounds.width - 32
-        let newSize = textView.sizeThatFits(
-          CGSize(width: availableWidth, height: CGFloat.greatestFiniteMagnitude))
-        if self.parent.height != newSize.height {
-          self.parent.height = newSize.height
-        }
-      }
+      isInternalUpdate = true
+      let currentText = textView.attributedText ?? NSAttributedString()
+      self.text.wrappedValue = currentText
     }
 
     func textViewDidChangeSelection(_ textView: UITextView) {
-      if !isUpdatingFromViewModel {
-        let cursorPosition = textView.selectedRange.location
-        parent.cursorPosition = cursorPosition
-        parent.onCursorPositionChange?(cursorPosition)
-      }
-    }
+      if let selectedRange = textView.selectedTextRange {
+        let position = textView.offset(
+          from: textView.beginningOfDocument,
+          to: selectedRange.start
+        )
+        let rect = textView.caretRect(for: selectedRange.start)
 
-    // Ensure layout updates when text view bounds change
-    func textViewDidLayoutSubviews(_ textView: UITextView) {
-      DispatchQueue.main.async {
-        let availableWidth = textView.bounds.width
-        let newSize = textView.sizeThatFits(
-          CGSize(width: availableWidth, height: CGFloat.greatestFiniteMagnitude))
-        if self.parent.height != newSize.height {
-          self.parent.height = newSize.height
+        DispatchQueue.main.async {
+          self.cursorPosition.wrappedValue = position
+          self.cursorY.wrappedValue = rect.maxY
+
+          if let viewModel = self.viewModel {
+            let text = textView.text ?? ""
+            let isInMention = viewModel.isPositionInMention(
+              in: text,
+              at: position
+            )
+
+            if !isInMention {
+              textView.typingAttributes = [
+                .font: UIFont.preferredFont(forTextStyle: .body),
+                .foregroundColor: UIColor.label,
+              ]
+            }
+
+            viewModel.checkForMention(in: text, at: position)
+          }
         }
       }
     }
