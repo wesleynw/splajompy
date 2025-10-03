@@ -167,6 +167,13 @@ extension MentionTextEditor {
       return (newAttributedText, newCursorPosition)
     }
 
+    func isPositionInMention(in text: String, at position: Int) -> Bool {
+      let mentions = extractMentions(from: text)
+      return mentions.contains { mention in
+        NSLocationInRange(position, mention.range)
+      }
+    }
+
     func applyMentionStyling(to text: String) -> NSAttributedString {
       let mutableAttributedText = NSMutableAttributedString(string: text)
       let fullRange = NSRange(location: 0, length: text.utf16.count)

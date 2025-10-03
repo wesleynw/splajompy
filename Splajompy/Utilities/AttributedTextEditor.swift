@@ -78,9 +78,20 @@ struct AttributedTextEditor: UIViewRepresentable {
           self.cursorPosition.wrappedValue = position
           self.cursorY.wrappedValue = rect.maxY
 
-          // Check for mentions when cursor position changes
           if let viewModel = self.viewModel {
             let text = textView.text ?? ""
+            let isInMention = viewModel.isPositionInMention(
+              in: text,
+              at: position
+            )
+
+            if !isInMention {
+              textView.typingAttributes = [
+                .font: UIFont.preferredFont(forTextStyle: .body),
+                .foregroundColor: UIColor.label,
+              ]
+            }
+
             viewModel.checkForMention(in: text, at: position)
           }
         }
