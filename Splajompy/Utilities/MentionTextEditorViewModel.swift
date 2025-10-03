@@ -23,38 +23,6 @@ extension MentionTextEditor {
       checkForMentionAtCursor()
     }
 
-    func processTextChange(_ newText: NSAttributedString) {
-      let mutableText = NSMutableAttributedString(string: newText.string)
-      let fullRange = NSRange(location: 0, length: newText.string.count)
-
-      mutableText.addAttribute(
-        .font,
-        value: UIFont.preferredFont(forTextStyle: .body),
-        range: fullRange
-      )
-      mutableText.addAttribute(
-        .foregroundColor,
-        value: UIColor.label,
-        range: fullRange
-      )
-
-      let mentions = extractMentions(from: newText.string)
-      for mention in mentions {
-        let range = NSRange(
-          location: mention.range.location,
-          length: mention.range.length
-        )
-        mutableText.addAttribute(
-          .foregroundColor,
-          value: UIColor.systemBlue,
-          range: range
-        )
-      }
-
-      attributedText = mutableText
-      checkForMentionAtCursor()
-    }
-
     private struct Mention {
       let username: String
       let range: NSRange
@@ -180,6 +148,7 @@ extension MentionTextEditor {
     }
 
     func insertMention(_ user: User) {
+      return
       guard let startIndex = mentionStartIndex else { return }
 
       let text = attributedText.string

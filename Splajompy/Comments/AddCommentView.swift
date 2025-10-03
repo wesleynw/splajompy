@@ -10,7 +10,7 @@ struct AddCommentSheet: View {
     NavigationStack {
       VStack(spacing: 12) {
         #if os(iOS)
-          MentionTextEditor(text: $text, showSuggestionsOnTop: false)
+          MentionTextEditor(text: $text)
         #endif
 
         Spacer()
