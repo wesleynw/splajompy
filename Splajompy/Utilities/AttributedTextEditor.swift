@@ -64,17 +64,6 @@ struct AttributedTextEditor: UIViewRepresentable {
       isInternalUpdate = true
       let currentText = textView.attributedText ?? NSAttributedString()
       self.text.wrappedValue = currentText
-
-      // Check for mentions when text changes
-      if let viewModel = self.viewModel,
-        let selectedRange = textView.selectedTextRange
-      {
-        let position = textView.offset(
-          from: textView.beginningOfDocument,
-          to: selectedRange.start
-        )
-        viewModel.checkForMention(in: textView.text ?? "", at: position)
-      }
     }
 
     func textViewDidChangeSelection(_ textView: UITextView) {
