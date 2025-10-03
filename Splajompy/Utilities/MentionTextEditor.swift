@@ -19,14 +19,12 @@ struct MentionTextEditor: View {
         AttributedTextEditor(
           text: $text,
           cursorPosition: $cursorPosition,
-          cursorY: $cursorY
+          cursorY: $cursorY,
+          viewModel: viewModel
         )
         .frame(minHeight: 120)
         .frame(maxWidth: .infinity)
         .focused($isFocused)
-        .onChange(of: cursorPosition) { _, newPosition in
-          viewModel.checkForMention(in: text.string, at: newPosition)
-        }
 
         if text.string.isEmpty {
           Text("What's on your mind?")
