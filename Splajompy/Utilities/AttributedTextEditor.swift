@@ -35,30 +35,25 @@ struct AttributedTextEditor: UIViewRepresentable {
   }
 
   func makeCoordinator() -> Coordinator {
-    Coordinator($text, $cursorPosition, $cursorY, onTextChange: onTextChange)
+    Coordinator($text, $cursorPosition, $cursorY)
   }
 
   class Coordinator: NSObject, UITextViewDelegate {
     var text: Binding<NSAttributedString>
     var cursorPosition: Binding<Int>
     var cursorY: Binding<CGFloat>
-    var onTextChange: ((NSAttributedString) -> NSAttributedString)?
 
     init(
       _ text: Binding<NSAttributedString>, _ cursorPosition: Binding<Int>,
       _ cursorY: Binding<CGFloat>,
-      onTextChange: ((NSAttributedString) -> NSAttributedString)?
     ) {
       self.text = text
       self.cursorPosition = cursorPosition
       self.cursorY = cursorY
-      self.onTextChange = onTextChange
     }
 
     func textViewDidChange(_ textView: UITextView) {
-      guard let attributedText = textView.attributedText else { return }
-      let processedText = onTextChange?(attributedText) ?? attributedText
-      self.text.wrappedValue = processedText
+      self.text.wrappedValue = textView.attributedText
     }
 
     func textViewDidChangeSelection(_ textView: UITextView) {

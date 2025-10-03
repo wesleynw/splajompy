@@ -24,9 +24,9 @@ struct MentionTextEditor: View {
         .frame(minHeight: 120)
         .frame(maxWidth: .infinity)
         .focused($isFocused)
-        .onChange(of: cursorPosition) { _, newPosition in
-          viewModel.updateCursorPosition(newPosition)
-        }
+        //        .onChange(of: cursorPosition) { _, newPosition in
+        //          viewModel.updateCursorPosition(newPosition)
+        //        }
 
         if text.string.isEmpty {
           Text("What's on your mind?")
