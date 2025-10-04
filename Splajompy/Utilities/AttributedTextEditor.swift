@@ -37,7 +37,10 @@ struct AttributedTextEditor: UIViewRepresentable {
 
     // Ensure text container width matches the view width for proper wrapping
     let size = uiView.bounds.size
-    uiView.textContainer.size = CGSize(width: size.width, height: .greatestFiniteMagnitude)
+    let newSize = CGSize(width: size.width, height: .greatestFiniteMagnitude)
+    if uiView.textContainer.size.width != newSize.width {
+      uiView.textContainer.size = newSize
+    }
   }
 
   func makeCoordinator() -> Coordinator {

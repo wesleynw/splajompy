@@ -22,7 +22,7 @@ struct MentionTextEditor: View {
           cursorY: $cursorY,
           viewModel: viewModel
         )
-        .frame(minHeight: 120, maxHeight: 300)
+        .frame(minHeight: 120)
         .frame(maxWidth: .infinity)
         .focused($isFocused)
 
