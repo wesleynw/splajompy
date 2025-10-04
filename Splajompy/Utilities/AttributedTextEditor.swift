@@ -19,7 +19,6 @@ struct AttributedTextEditor: UIViewRepresentable {
     ]
     textView.attributedText = text
     textView.isScrollEnabled = false
-    textView.textContainer.lineBreakMode = .byWordWrapping
     textView.translatesAutoresizingMaskIntoConstraints = true
     textView.setContentCompressionResistancePriority(
       .defaultLow,
@@ -35,6 +34,13 @@ struct AttributedTextEditor: UIViewRepresentable {
       uiView.selectedRange = NSRange(location: cursorPosition, length: 0)
     }
     context.coordinator.isInternalUpdate = false
+
+    // Ensure text container width matches the view width for proper wrapping
+    let size = uiView.bounds.size
+    let newSize = CGSize(width: size.width, height: .greatestFiniteMagnitude)
+    if uiView.textContainer.size.width != newSize.width {
+      uiView.textContainer.size = newSize
+    }
   }
 
   func makeCoordinator() -> Coordinator {
