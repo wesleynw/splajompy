@@ -80,7 +80,6 @@ struct MentionTextEditor: View {
         }
       }
     }
-    .frame(height: calculateSuggestionHeight(suggestions: suggestions))
     .frame(maxWidth: .infinity)
     .background(Color(.systemBackground))
     .clipShape(RoundedRectangle(cornerRadius: 8))
@@ -88,11 +87,5 @@ struct MentionTextEditor: View {
       RoundedRectangle(cornerRadius: 8)
         .stroke(Color.primary.opacity(0.2), lineWidth: 1)
     )
-  }
-
-  private static func calculateSuggestionHeight(suggestions: [User]) -> CGFloat {
-    let rowHeight: CGFloat = 44
-    let count = suggestions.isEmpty ? 1 : min(suggestions.count, 5)
-    return CGFloat(count) * rowHeight
   }
 }
