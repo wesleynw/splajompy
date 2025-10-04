@@ -55,9 +55,15 @@ extension MentionTextEditor {
           limitedBy: text.endIndex
         ) ?? text.endIndex
 
-      if cursorPosition == 0
-        || (cursorIndex < text.endIndex
-          && (text[cursorIndex] == " " || text[cursorIndex] == "\n"))
+      if cursorPosition == 0 {
+        clearMentionState()
+        return
+      }
+
+      // Check if character before cursor is a space or newline (just finished typing)
+      let beforeCursorIndex = text.index(before: cursorIndex)
+      if cursorIndex > text.startIndex
+        && (text[beforeCursorIndex] == " " || text[beforeCursorIndex] == "\n")
       {
         clearMentionState()
         return
