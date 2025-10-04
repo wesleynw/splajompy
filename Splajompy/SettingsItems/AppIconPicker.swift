@@ -40,6 +40,22 @@ struct AppIconPickerView: View {
           selectedIcon = "AppIcon 1"
           setAppIcon("AppIcon 1")
         }
+
+      Image("Image_AppIcon 2")
+        .resizable()
+        .frame(width: 80, height: 80)
+        .cornerRadius(16)
+        .overlay(
+          RoundedRectangle(cornerRadius: 16)
+            .stroke(
+              selectedIcon == "AppIcon 2" ? Color.blue : Color.clear,
+              lineWidth: 3
+            )
+        )
+        .onTapGesture {
+          selectedIcon = "AppIcon 2"
+          setAppIcon("AppIcon 2")
+        }
     }
     .frame(maxWidth: .infinity)
     .padding()
@@ -56,4 +72,8 @@ struct AppIconPickerView: View {
       }
     }
   }
+}
+
+#Preview {
+  AppIconPickerView()
 }
