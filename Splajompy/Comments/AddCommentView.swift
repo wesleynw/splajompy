@@ -5,7 +5,10 @@ struct AddCommentSheet: View {
   @State private var text = NSAttributedString(string: "")
   @State private var cursorY: CGFloat = 0
   @State private var cursorPosition: Int = 0
-  @StateObject private var mentionViewModel = MentionTextEditor.MentionViewModel()
+  #if os(iOS)
+    @StateObject private var mentionViewModel =
+      MentionTextEditor.MentionViewModel()
+  #endif
   @Environment(\.dismiss) var dismiss
   let postId: Int
 
@@ -23,21 +26,27 @@ struct AddCommentSheet: View {
 
         Spacer()
       }
-      .overlay(alignment: .topLeading) {
-        if mentionViewModel.isShowingSuggestions {
-          MentionTextEditor.suggestionView(
-            suggestions: mentionViewModel.mentionSuggestions,
-            onInsert: { user in
-              let result = mentionViewModel.insertMention(user, in: text, at: cursorPosition)
-              text = result.text
-              cursorPosition = result.newCursorPosition
-            }
-          )
-          .offset(y: cursorY + 20)
-          .padding(.horizontal, 32)
-          .animation(.default, value: mentionViewModel.isShowingSuggestions)
+      #if os(iOS)
+        .overlay(alignment: .topLeading) {
+          if mentionViewModel.isShowingSuggestions {
+            MentionTextEditor.suggestionView(
+              suggestions: mentionViewModel.mentionSuggestions,
+              onInsert: { user in
+                let result = mentionViewModel.insertMention(
+                  user,
+                  in: text,
+                  at: cursorPosition
+                )
+                text = result.text
+                cursorPosition = result.newCursorPosition
+              }
+            )
+            .offset(y: cursorY + 20)
+            .padding(.horizontal, 32)
+            .animation(.default, value: mentionViewModel.isShowingSuggestions)
+          }
         }
-      }
+      #endif
       .alert(isPresented: $viewModel.showError) {
         Alert(
           title: Text("Error"),
