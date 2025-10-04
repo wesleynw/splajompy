@@ -3,6 +3,9 @@ import SwiftUI
 struct AddCommentSheet: View {
   @ObservedObject var viewModel: CommentsView.ViewModel
   @State private var text = NSAttributedString(string: "")
+  @State private var cursorY: CGFloat = 0
+  @State private var cursorPosition: Int = 0
+  @StateObject private var mentionViewModel = MentionTextEditor.MentionViewModel()
   @Environment(\.dismiss) var dismiss
   let postId: Int
 
@@ -10,10 +13,30 @@ struct AddCommentSheet: View {
     NavigationStack {
       VStack(spacing: 12) {
         #if os(iOS)
-          MentionTextEditor(text: $text)
+          MentionTextEditor(
+            text: $text,
+            viewModel: mentionViewModel,
+            cursorY: $cursorY,
+            cursorPosition: $cursorPosition
+          )
         #endif
 
         Spacer()
+      }
+      .overlay(alignment: .topLeading) {
+        if mentionViewModel.isShowingSuggestions {
+          MentionTextEditor.suggestionView(
+            suggestions: mentionViewModel.mentionSuggestions,
+            onInsert: { user in
+              let result = mentionViewModel.insertMention(user, in: text, at: cursorPosition)
+              text = result.text
+              cursorPosition = result.newCursorPosition
+            }
+          )
+          .offset(y: cursorY + 20)
+          .padding(.horizontal, 32)
+          .animation(.default, value: mentionViewModel.isShowingSuggestions)
+        }
       }
       .alert(isPresented: $viewModel.showError) {
         Alert(
