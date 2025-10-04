@@ -4,12 +4,13 @@ import SwiftUI
 
 struct NewPostView: View {
   @State private var text = NSAttributedString(string: "")
-  @State private var facets: [Facet] = []
   @State private var poll: PollCreationRequest?
   @State private var showingPollCreation: Bool = false
-  @State private var showErrorAlert: Bool = false
+  @State private var cursorY: CGFloat = 0
+  @State private var cursorPosition: Int = 0
 
   @StateObject private var viewModel: ViewModel
+  @StateObject private var mentionViewModel = MentionTextEditor.MentionViewModel()
   @FocusState private var isFocused: Bool
 
   @Environment(\.dismiss) private var dismiss
@@ -25,7 +26,10 @@ struct NewPostView: View {
       VStack(spacing: 0) {
         ScrollView {
           MentionTextEditor(
-            text: $text
+            text: $text,
+            viewModel: mentionViewModel,
+            cursorY: $cursorY,
+            cursorPosition: $cursorPosition
           )
 
           ScrollView(.horizontal, showsIndicators: false) {
@@ -75,6 +79,21 @@ struct NewPostView: View {
             } onEdit: {
               showingPollCreation = true
             }
+          }
+        }
+        .overlay(alignment: .topLeading) {
+          if mentionViewModel.isShowingSuggestions {
+            MentionTextEditor.suggestionView(
+              suggestions: mentionViewModel.mentionSuggestions,
+              onInsert: { user in
+                let result = mentionViewModel.insertMention(user, in: text, at: cursorPosition)
+                text = result.text
+                cursorPosition = result.newCursorPosition
+              }
+            )
+            .offset(y: cursorY + 20)
+            .padding(.horizontal, 32)
+            .animation(.default, value: mentionViewModel.isShowingSuggestions)
           }
         }
 

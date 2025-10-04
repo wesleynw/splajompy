@@ -4,6 +4,7 @@ struct AttributedTextEditor: UIViewRepresentable {
   @Binding var text: NSAttributedString
   @Binding var cursorPosition: Int
   @Binding var cursorY: CGFloat
+  @Binding var contentHeight: CGFloat
   var viewModel: MentionTextEditor.MentionViewModel?
 
   func makeUIView(context: Context) -> UITextView {
@@ -23,7 +24,7 @@ struct AttributedTextEditor: UIViewRepresentable {
     textView.setContentCompressionResistancePriority(
       .defaultLow,
       for: .horizontal
-    )  // i don't think this is idiomatic, but it works for now
+    )
 
     return textView
   }
@@ -35,11 +36,13 @@ struct AttributedTextEditor: UIViewRepresentable {
     }
     context.coordinator.isInternalUpdate = false
 
-    // Ensure text container width matches the view width for proper wrapping
-    let size = uiView.bounds.size
-    let newSize = CGSize(width: size.width, height: .greatestFiniteMagnitude)
-    if uiView.textContainer.size.width != newSize.width {
-      uiView.textContainer.size = newSize
+    let fixedWidth = uiView.bounds.width
+    let size = uiView.sizeThatFits(CGSize(width: fixedWidth, height: .greatestFiniteMagnitude))
+
+    DispatchQueue.main.async {
+      if abs(self.contentHeight - size.height) > 1 {
+        self.contentHeight = size.height
+      }
     }
   }
 
@@ -70,6 +73,7 @@ struct AttributedTextEditor: UIViewRepresentable {
       isInternalUpdate = true
       let currentText = textView.attributedText ?? NSAttributedString()
       self.text.wrappedValue = currentText
+      //      textView.invalidateIntrinsicContentSize()
     }
 
     func textViewDidChangeSelection(_ textView: UITextView) {
