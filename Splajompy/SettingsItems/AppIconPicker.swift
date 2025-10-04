@@ -53,8 +53,8 @@ struct AppIconPickerView: View {
             )
         )
         .onTapGesture {
-          selectedIcon = "AppIcon 2"
-          setAppIcon("AppIcon 2")
+          selectedIcon = "halloween_app_icon"
+          setAppIcon("halloween_app_icon")
         }
     }
     .frame(maxWidth: .infinity)
