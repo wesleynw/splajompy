@@ -60,7 +60,6 @@ extension MentionTextEditor {
         return
       }
 
-      // Check if character before cursor is a space or newline (just finished typing)
       let beforeCursorIndex = text.index(before: cursorIndex)
       if cursorIndex > text.startIndex
         && (text[beforeCursorIndex] == " " || text[beforeCursorIndex] == "\n")
@@ -69,41 +68,21 @@ extension MentionTextEditor {
         return
       }
 
-      if let wordStart = text[..<cursorIndex].lastIndex(where: {
-        $0 == "@" || $0 == " "
-      }) {
-        let potentialMentionStart =
-          text[wordStart] == "@" ? wordStart : text.index(after: wordStart)
+      let wordStartIndex =
+        text[..<cursorIndex].lastIndex(where: { $0.isWhitespace })
+        .map { text.index(after: $0) } ?? text.startIndex
 
-        if potentialMentionStart < text.endIndex
-          && text[potentialMentionStart] == "@"
-        {
-          if cursorIndex < text.endIndex && text[cursorIndex] == " "
-            && potentialMentionStart < cursorIndex
-          {
-            let mentionRange = potentialMentionStart..<cursorIndex
-            let mentionText = text[mentionRange]
-            if mentionText.count > 1 {
-              return
-            }
-          }
+      let currentWord = String(text[wordStartIndex..<cursorIndex])
 
-          let distanceFromMention = text.distance(
-            from: potentialMentionStart,
-            to: cursorIndex
-          )
-          if distanceFromMention <= 20 {
-            mentionStartIndex = potentialMentionStart
-            let searchRange = text[potentialMentionStart..<cursorIndex]
-            let newPrefix = String(searchRange.dropFirst())
+      if currentWord.hasPrefix("@"), currentWord.count <= 21 {
+        mentionStartIndex = wordStartIndex
+        let newPrefix = String(currentWord.dropFirst())
 
-            if newPrefix != mentionPrefix {
-              mentionPrefix = newPrefix
-              fetchSuggestions(prefix: mentionPrefix)
-            }
-            return
-          }
+        if newPrefix != mentionPrefix {
+          mentionPrefix = newPrefix
+          fetchSuggestions(prefix: mentionPrefix)
         }
+        return
       }
 
       clearMentionState()
