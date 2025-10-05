@@ -381,8 +381,8 @@ func (q *Queries) UnblockUser(ctx context.Context, arg UnblockUserParams) error 
 }
 
 const updateSessionExpiry = `-- name: UpdateSessionExpiry :exec
-UPDATE sessions 
-SET expires_at = $2 
+UPDATE sessions
+SET expires_at = $2
 WHERE id = $1
 `
 
@@ -443,24 +443,26 @@ FROM (
     SELECT users.user_id, users.username, users.name, 2 as tier, 0.9 as score
     FROM users
     WHERE (users.username ILIKE $1 || '%' OR users.name ILIKE $1 || '%')
-    AND users.username != $1 AND users.name != $1
+    AND users.username != $1
+    AND (users.name != $1 OR users.name IS NULL)
 
     UNION ALL
 
     SELECT users.user_id, users.username, users.name, 3 as tier, 0.7 as score
     FROM users
     WHERE (users.username ILIKE '%' || $1 || '%' OR users.name ILIKE '%' || $1 || '%')
-    AND users.username NOT ILIKE $1 || '%' AND users.name NOT ILIKE $1 || '%'
+    AND users.username NOT ILIKE $1 || '%'
+    AND (users.name NOT ILIKE $1 || '%' OR users.name IS NULL)
 
     UNION ALL
 
     SELECT users.user_id, users.username, users.name, 4 as tier,
-    GREATEST(similarity(users.username, $1), similarity(users.name, $1)) as score
+    GREATEST(similarity(users.username, $1), similarity(COALESCE(users.name, ''), $1)) as score
     FROM users
     WHERE (users.username % $1 OR users.name % $1)
     AND users.username NOT ILIKE '%' || $1 || '%'
-    AND users.name NOT ILIKE '%' || $1 || '%'
-    AND (similarity(users.username, $1) > 0.3 OR similarity(users.name, $1) > 0.3)
+    AND (users.name NOT ILIKE '%' || $1 || '%' OR users.name IS NULL)
+    AND (similarity(users.username, $1) > 0.3 OR similarity(COALESCE(users.name, ''), $1) > 0.3)
     ) sub
 ORDER BY user_id, tier, score DESC
     )
