@@ -14,39 +14,43 @@ struct AddCommentSheet: View {
 
   var body: some View {
     NavigationStack {
-      VStack(spacing: 12) {
-        #if os(iOS)
-          MentionTextEditor(
-            text: $text,
-            viewModel: mentionViewModel,
-            cursorY: $cursorY,
-            cursorPosition: $cursorPosition
-          )
-        #endif
-
-        Spacer()
-      }
-      #if os(iOS)
-        .overlay(alignment: .topLeading) {
-          if mentionViewModel.isShowingSuggestions {
-            MentionTextEditor.suggestionView(
-              suggestions: mentionViewModel.mentionSuggestions,
-              onInsert: { user in
-                let result = mentionViewModel.insertMention(
-                  user,
-                  in: text,
-                  at: cursorPosition
-                )
-                text = result.text
-                cursorPosition = result.newCursorPosition
-              }
+      ScrollView {
+        VStack(spacing: 12) {
+          #if os(iOS)
+            MentionTextEditor(
+              text: $text,
+              viewModel: mentionViewModel,
+              cursorY: $cursorY,
+              cursorPosition: $cursorPosition
             )
-            .offset(y: cursorY + 20)
-            .padding(.horizontal, 32)
-            .animation(.default, value: mentionViewModel.isShowingSuggestions)
-          }
+          #endif
+
+          Spacer()
         }
-      #endif
+        // to allow mentions overlay to be visible when at bottom of text view
+        .padding(.bottom, 250)
+        #if os(iOS)
+          .overlay(alignment: .topLeading) {
+            if mentionViewModel.isShowingSuggestions {
+              MentionTextEditor.suggestionView(
+                suggestions: mentionViewModel.mentionSuggestions,
+                onInsert: { user in
+                  let result = mentionViewModel.insertMention(
+                    user,
+                    in: text,
+                    at: cursorPosition
+                  )
+                  text = result.text
+                  cursorPosition = result.newCursorPosition
+                }
+              )
+              .offset(y: cursorY + 20)
+              .padding(.horizontal, 32)
+              .animation(.default, value: mentionViewModel.isShowingSuggestions)
+            }
+          }
+        #endif
+      }
       .alert(isPresented: $viewModel.showError) {
         Alert(
           title: Text("Error"),
