@@ -104,7 +104,7 @@ struct SplajompyApp: App {
               .padding()
 
             Text(
-              "Please do not discuss the secret tab amongst yourselves. You may disable the secret page in Settings should you find it a hinderance."
+              "Please do not discuss the secret page amongst yourselves. You may disable the secret page in Settings should you find it a hinderance."
             )
             .padding()
           }
