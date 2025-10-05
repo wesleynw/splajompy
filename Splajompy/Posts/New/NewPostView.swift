@@ -10,7 +10,8 @@ struct NewPostView: View {
   @State private var cursorPosition: Int = 0
 
   @StateObject private var viewModel: ViewModel
-  @StateObject private var mentionViewModel = MentionTextEditor.MentionViewModel()
+  @StateObject private var mentionViewModel =
+    MentionTextEditor.MentionViewModel()
   @FocusState private var isFocused: Bool
 
   @Environment(\.dismiss) private var dismiss
@@ -25,75 +26,82 @@ struct NewPostView: View {
     NavigationStack {
       VStack(spacing: 0) {
         ScrollView {
-          MentionTextEditor(
-            text: $text,
-            viewModel: mentionViewModel,
-            cursorY: $cursorY,
-            cursorPosition: $cursorPosition
-          )
-
-          ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 12) {
-              ForEach(0..<viewModel.selectedImages.count, id: \.self) { i in
-                ZStack(alignment: .topTrailing) {
-                  Image(uiImage: viewModel.selectedImages[i])
-                    .resizable()
-                    .scaledToFill()
-                    .frame(width: 100, height: 100)
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
-                    .overlay(
-                      RoundedRectangle(cornerRadius: 12)
-                        .stroke(Color.gray.opacity(0.3), lineWidth: 1)
-                    )
-
-                  Button {
-                    viewModel.removeImage(index: i)
-                  } label: {
-                    ZStack {
-                      Circle()
-                        .fill(Color.white)
-                        .frame(width: 22, height: 22)
-                        .shadow(
-                          color: Color.black.opacity(0.2),
-                          radius: 2,
-                          x: 0,
-                          y: 1
-                        )
-
-                      Image(systemName: "xmark")
-                        .font(.system(size: 10, weight: .bold))
-                        .foregroundColor(.gray)
-                    }
-                  }
-                  .padding(6)
-                }
-                .padding(4)
-              }
-            }
-            .padding(.horizontal)
-          }
-
-          if let poll = poll {
-            PollPreviewView(poll: poll) {
-              self.poll = nil
-            } onEdit: {
-              showingPollCreation = true
-            }
-          }
-        }
-        .overlay(alignment: .topLeading) {
-          if mentionViewModel.isShowingSuggestions {
-            MentionTextEditor.suggestionView(
-              suggestions: mentionViewModel.mentionSuggestions,
-              onInsert: { user in
-                let result = mentionViewModel.insertMention(user, in: text, at: cursorPosition)
-                text = result.text
-                cursorPosition = result.newCursorPosition
-              }
+          VStack {
+            MentionTextEditor(
+              text: $text,
+              viewModel: mentionViewModel,
+              cursorY: $cursorY,
+              cursorPosition: $cursorPosition
             )
-            .offset(y: cursorY + 20)
-            .padding(.horizontal, 32)
-            .animation(.default, value: mentionViewModel.isShowingSuggestions)
+
+            ScrollView(.horizontal, showsIndicators: false) {
+              HStack(spacing: 12) {
+                ForEach(0..<viewModel.selectedImages.count, id: \.self) { i in
+                  ZStack(alignment: .topTrailing) {
+                    Image(uiImage: viewModel.selectedImages[i])
+                      .resizable()
+                      .scaledToFill()
+                      .frame(width: 100, height: 100)
+                      .clipShape(RoundedRectangle(cornerRadius: 12))
+                      .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                          .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                      )
+
+                    Button {
+                      viewModel.removeImage(index: i)
+                    } label: {
+                      ZStack {
+                        Circle()
+                          .fill(Color.white)
+                          .frame(width: 22, height: 22)
+                          .shadow(
+                            color: Color.black.opacity(0.2),
+                            radius: 2,
+                            x: 0,
+                            y: 1
+                          )
+
+                        Image(systemName: "xmark")
+                          .font(.system(size: 10, weight: .bold))
+                          .foregroundColor(.gray)
+                      }
+                    }
+                    .padding(6)
+                  }
+                  .padding(4)
+                }
+              }
+              .padding(.horizontal)
+            }
+
+            if let poll = poll {
+              PollPreviewView(poll: poll) {
+                self.poll = nil
+              } onEdit: {
+                showingPollCreation = true
+              }
+            }
+          }
+          .padding(.bottom, 250)  // to allow mentions overlay to be visible when at bottom of text view
+          .overlay(alignment: .topLeading) {
+            if mentionViewModel.isShowingSuggestions {
+              MentionTextEditor.suggestionView(
+                suggestions: mentionViewModel.mentionSuggestions,
+                onInsert: { user in
+                  let result = mentionViewModel.insertMention(
+                    user,
+                    in: text,
+                    at: cursorPosition
+                  )
+                  text = result.text
+                  cursorPosition = result.newCursorPosition
+                }
+              )
+              .offset(y: cursorY + 20)
+              .padding(.horizontal, 32)
+              .animation(.default, value: mentionViewModel.isShowingSuggestions)
+            }
           }
         }
 
@@ -128,7 +136,8 @@ struct NewPostView: View {
         .padding()
       }
       .alert(
-        "An error occurred", isPresented: .constant(viewModel.errorDisplay != nil),
+        "An error occurred",
+        isPresented: .constant(viewModel.errorDisplay != nil),
         actions: {
           Button("OK") {
             viewModel.errorDisplay = nil
@@ -197,8 +206,11 @@ struct NewPostView: View {
   }
 
   private var isPostButtonDisabled: Bool {
-    let trimmedText = text.string.trimmingCharacters(in: .whitespacesAndNewlines)
-    let hasContent = !trimmedText.isEmpty || viewModel.selectedImages.count > 0 || poll != nil
+    let trimmedText = text.string.trimmingCharacters(
+      in: .whitespacesAndNewlines
+    )
+    let hasContent =
+      !trimmedText.isEmpty || viewModel.selectedImages.count > 0 || poll != nil
 
     return !hasContent || trimmedText.count > 2500 || viewModel.isLoading
   }
