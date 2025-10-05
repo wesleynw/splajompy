@@ -83,7 +83,8 @@ struct NewPostView: View {
               }
             }
           }
-          .padding(.bottom, 250)  // to allow mentions overlay to be visible when at bottom of text view
+          // to allow mentions overlay to be visible when at bottom of text view
+          .padding(.bottom, 250)
           .overlay(alignment: .topLeading) {
             if mentionViewModel.isShowingSuggestions {
               MentionTextEditor.suggestionView(
