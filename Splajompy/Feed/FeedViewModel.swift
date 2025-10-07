@@ -15,7 +15,10 @@ enum FeedState {
   @Published var state: FeedState = .idle
   @Published var isLoadingMore: Bool = false
   @Published var postIds: [Int] = []
-  @Published var posts: [DetailedPost] = []
+
+  var posts: [DetailedPost] {
+    postManager.getPostsById(postIds)
+  }
 
   private var lastPostTimestamp: Date?
   private let fetchLimit = 10
@@ -58,10 +61,8 @@ enum FeedState {
 
       if reset {
         postIds = newPostIds
-        posts = fetchedPosts
       } else {
         postIds.append(contentsOf: newPostIds)
-        posts.append(contentsOf: fetchedPosts)
       }
       state = .loaded(postIds)
       canLoadMore = hasMorePosts
@@ -91,7 +92,6 @@ enum FeedState {
   func deletePost(on post: DetailedPost) {
     if let index = postIds.firstIndex(of: post.id) {
       postIds.remove(at: index)
-      posts.remove(at: index)
       state = .loaded(postIds)
       Task {
         await postManager.deletePost(id: post.id)
