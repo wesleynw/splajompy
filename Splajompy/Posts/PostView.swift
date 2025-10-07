@@ -46,24 +46,25 @@ struct PostView: View {
   @State private var showReportAlert = false
   @EnvironmentObject private var authManager: AuthManager
 
+  // Cached formatter to avoid recreation on every render
+  private static let dateFormatter = RelativeDateTimeFormatter()
+
   var body: some View {
-    Group {
+    VStack(spacing: 0) {
       Divider()
 
-      Group {
-        if !isStandalone {
-          NavigationLink(
-            value: Route.post(id: post.id)
-          ) {
-            postContent
-          }
-          .buttonStyle(.plain)
-        } else {
+      if !isStandalone {
+        NavigationLink(value: Route.post(id: post.id)) {
           postContent
         }
+        .buttonStyle(.plain)
+        .padding(.horizontal, 2)
+        .padding(.vertical, 4)
+      } else {
+        postContent
+          .padding(.horizontal, 2)
+          .padding(.vertical, 4)
       }
-      .padding(.horizontal, 2)
-      .padding(.vertical, 4)
 
       Divider()
     }
@@ -72,41 +73,7 @@ struct PostView: View {
   private var postContent: some View {
     VStack(alignment: .leading, spacing: 12) {
       if showAuthor {
-        HStack(alignment: .top) {
-          NavigationLink(
-            value: Route.profile(
-              id: String(post.user.userId),
-              username: post.user.username
-            )
-          ) {
-            VStack(alignment: .leading, spacing: 2) {
-              if post.user.username == "ads" {
-                HStack {
-                  Image(systemName: "medal")
-                  Text("Sponsored")
-                    .font(.subheadline)
-                    .fontWeight(.semibold)
-                }
-              } else {
-                if let displayName = post.user.name, !displayName.isEmpty {
-                  Text(displayName)
-                    .font(.title2)
-                    .fontWeight(.black)
-                    .lineLimit(1)
-                  Text("@\(post.user.username)")
-                    .font(.subheadline)
-                    .fontWeight(.bold)
-                    .foregroundColor(.gray)
-                } else {
-                  Text("@\(post.user.username)")
-                    .font(.title3)
-                    .fontWeight(.black)
-                }
-              }
-            }
-          }
-        }
-        .buttonStyle(.plain)
+        PostAuthorView(user: post.user)
       }
 
       if post.isPinned && !showAuthor {
@@ -147,12 +114,10 @@ struct PostView: View {
         relevantLikes: post.relevantLikes,
         hasOtherLikes: post.hasOtherLikes
       )
-      .animation(.easeInOut(duration: 0.3), value: post.relevantLikes.count)
-      .animation(.easeInOut(duration: 0.3), value: post.hasOtherLikes)
 
       HStack {
         Text(
-          RelativeDateTimeFormatter().localizedString(
+          Self.dateFormatter.localizedString(
             for: post.post.createdAt,
             relativeTo: Date.now
           )
@@ -160,19 +125,26 @@ struct PostView: View {
         .font(.caption)
         .foregroundColor(.gray)
         Spacer()
-        if #available(iOS 26, macOS 26, *) {
-          GlassEffectContainer {
-            postMenu
-          }
-          .glassEffect()
-        } else {
-          postMenu
-        }
+
+        PostMenuView(
+          post: post,
+          showAuthor: showAuthor,
+          isStandalone: isStandalone,
+          onLikeButtonTapped: onLikeButtonTapped,
+          onPostDeleted: onPostDeleted,
+          onPostPinned: onPostPinned,
+          onPostUnpinned: onPostUnpinned,
+          isShowingComments: $isShowingComments,
+          isReporting: $isReporting,
+          showReportAlert: $showReportAlert
+        )
       }
     }
-    .animation(.easeInOut(duration: 0.3), value: post.isPinned)
     .padding(.vertical, 4)
     .padding(.horizontal, 16)
+    .animation(.easeInOut(duration: 0.3), value: post.isPinned)
+    .animation(.easeInOut(duration: 0.3), value: post.relevantLikes.count)
+    .animation(.easeInOut(duration: 0.3), value: post.hasOtherLikes)
     .sheet(isPresented: $isShowingComments) {
       CommentsView(postId: post.post.postId, postManager: postManager)
     }
@@ -182,129 +154,6 @@ struct PostView: View {
       Text("Thanks. A notification has been sent to the developer.")
     }
   }
-
-  private var postMenu: some View {
-    HStack(spacing: 0) {
-      Menu(
-        content: {
-          if let currentUser = authManager.getCurrentUser() {
-            if currentUser.userId == post.user.userId {
-              if !showAuthor {
-                if post.isPinned {
-                  Button(action: {
-                    onPostUnpinned()
-                  }) {
-                    Label("Unpin", systemImage: "pin.slash")
-                  }
-                } else {
-                  Button(action: {
-                    onPostPinned()
-                  }) {
-                    Label("Pin", systemImage: "pin")
-                  }
-                }
-              }
-
-              Button(role: .destructive, action: { onPostDeleted() }) {
-                Label("Delete", systemImage: "trash")
-                  .foregroundColor(.red)
-              }
-            } else {
-              Button(
-                role: .destructive,
-                action: {
-                  Task {
-                    isReporting = true
-                    let _ = await PostService().reportPost(
-                      postId: post.post.postId
-                    )
-                    isReporting = false
-                    showReportAlert = true
-                  }
-                }
-              ) {
-                if isReporting {
-                  HStack {
-                    Text("Reporting...")
-                    Spacer()
-                    ProgressView()
-                  }
-                } else {
-                  Label("Report", systemImage: "exclamationmark.triangle")
-                    .foregroundColor(.red)
-                }
-              }
-              .disabled(isReporting)
-            }
-          }
-        },
-        label: {
-          Image(systemName: "ellipsis")
-            .font(.system(size: 22))
-            .frame(width: 48, height: 40)
-        }
-      )
-
-      if !isStandalone {
-        Divider()
-          .padding(.vertical, 5)
-          .padding(.horizontal, 4)
-
-        Button(action: {
-          isShowingComments = true
-        }) {
-          ZStack {
-            Image(systemName: "bubble.middle.bottom")
-              .font(.system(size: 22))
-              .frame(width: 48, height: 40)
-
-            if post.commentCount > 0 {
-              Text(post.commentCount > 9 ? "9+" : "\(post.commentCount)")
-                .font(.caption2)
-                .fontWeight(.medium)
-                .padding(.bottom, 4)
-            }
-          }
-        }
-        .buttonStyle(.plain)
-        .sensoryFeedback(.impact, trigger: isShowingComments)
-
-        Divider()
-          .padding(.vertical, 5)
-          .padding(.horizontal, 4)
-      }
-
-      Button(action: {
-        onLikeButtonTapped()
-        PostHogSDK.shared.capture("post_like")
-      }) {
-        Image(systemName: post.isLiked ? "heart.fill" : "heart")
-          .font(.system(size: 22))
-          .foregroundStyle(
-            post.isLiked ? Color.red.gradient : Color.primary.gradient
-          )
-          .frame(width: 48, height: 40)
-          .scaleEffect(post.isLiked ? 1.1 : 1.0)
-          .animation(
-            .spring(response: 0.4, dampingFraction: 0.6, blendDuration: 0),
-            value: post.isLiked
-          )
-      }
-      .sensoryFeedback(.impact, trigger: post.isLiked)
-
-    }
-    .fixedSize()
-    .buttonStyle(.plain)
-    .padding(3)
-    .background {
-      if #available(iOS 26.0, *) {
-        Color.clear
-      } else {
-        RoundedRectangle(cornerRadius: 12).fill(.gray.opacity(0.15))
-      }
-    }
-  }
-
 }
 
 #Preview {

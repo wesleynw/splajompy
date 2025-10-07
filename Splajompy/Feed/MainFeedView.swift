@@ -128,7 +128,7 @@ struct MainFeedView: View {
   private var postList: some View {
     ScrollView {
       LazyVStack(spacing: 0) {
-        ForEach(Array(viewModel.posts.enumerated()), id: \.element.id) { index, post in
+        ForEach(viewModel.posts, id: \.id) { post in
           PostView(
             post: post,
             postManager: postManager,
@@ -136,9 +136,10 @@ struct MainFeedView: View {
             onLikeButtonTapped: { viewModel.toggleLike(on: post) },
             onPostDeleted: { viewModel.deletePost(on: post) }
           )
+          .id(post.id)
           .geometryGroup()
           .onAppear {
-            viewModel.handlePostAppear(at: index)
+            viewModel.handlePostAppear(for: post)
           }
         }
 

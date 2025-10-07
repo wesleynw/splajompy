@@ -6,8 +6,13 @@ struct ContentTextView: View {
   private let shouldShowGlitch: Bool
   private let glitchData: (processedText: String, triggerUsername: String)?
 
+  // Cache feature flag check to avoid repeated PostHog calls
+  private static var isEasterEggEnabled: Bool = {
+    PostHogSDK.shared.isFeatureEnabled("beetlejuice-easter-egg")
+  }()
+
   init(text: String, facets: [Facet]) {
-    let isEasterEggEnabled = PostHogSDK.shared.isFeatureEnabled("beetlejuice-easter-egg")
+    let isEasterEggEnabled = Self.isEasterEggEnabled
 
     let result =
       isEasterEggEnabled
