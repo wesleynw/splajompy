@@ -120,8 +120,8 @@ struct PostView: View {
         .transition(.opacity)
       }
 
-      if let text = post.post.text, !text.isEmpty {
-        ContentTextView(text: text, facets: post.post.facets ?? [])
+      if let content = post.post.richContent {
+        ContentTextView(attributedText: content)
       }
 
       if let images = post.images, !images.isEmpty {

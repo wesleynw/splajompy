@@ -126,11 +126,6 @@ private struct PollFormContent<AddButton: View>: View {
     @Environment(\.editMode) private var editMode
   #endif
 
-  private func placeholder(for index: Int) -> String {
-    let placeholders = ["Red", "Green", "Mauve", "Vermilion", "Periwinkle"]
-    return index < placeholders.count ? placeholders[index] : "Option \(index + 1)"
-  }
-
   var body: some View {
     Section("Title") {
       VStack(alignment: .leading) {
@@ -151,7 +146,7 @@ private struct PollFormContent<AddButton: View>: View {
       ForEach(Array(options.enumerated()), id: \.element.id) { index, option in
         HStack {
           TextField(
-            placeholder(for: index),
+            "Option \(index + 1)",
             text: Binding(
               get: { options[index].text },
               set: { newValue in
