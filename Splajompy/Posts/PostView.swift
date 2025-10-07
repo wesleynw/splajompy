@@ -47,23 +47,20 @@ struct PostView: View {
   @EnvironmentObject private var authManager: AuthManager
 
   var body: some View {
-    Group {
+    VStack {
       Divider()
-
-      Group {
-        if !isStandalone {
-          NavigationLink(
-            value: Route.post(id: post.id)
-          ) {
-            postContent
-          }
-          .buttonStyle(.plain)
-        } else {
+      if !isStandalone {
+        NavigationLink(
+          value: Route.post(id: post.id)
+        ) {
           postContent
         }
+        .buttonStyle(.plain)
+      } else {
+        postContent
+          .padding(.horizontal, 2)
+          .padding(.vertical, 4)
       }
-      .padding(.horizontal, 2)
-      .padding(.vertical, 4)
 
       Divider()
     }
