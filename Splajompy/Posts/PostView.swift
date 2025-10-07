@@ -160,14 +160,8 @@ struct PostView: View {
         .font(.caption)
         .foregroundColor(.gray)
         Spacer()
-        if #available(iOS 26, macOS 26, *) {
-          GlassEffectContainer {
-            postMenu
-          }
-          .glassEffect()
-        } else {
-          postMenu
-        }
+
+        postMenu
       }
     }
     .animation(.easeInOut(duration: 0.3), value: post.isPinned)
@@ -245,11 +239,11 @@ struct PostView: View {
         }
       )
 
-      if !isStandalone {
-        Divider()
-          .padding(.vertical, 5)
-          .padding(.horizontal, 4)
+      Divider()
+        .padding(.vertical, 5)
+        .padding(.horizontal, 4)
 
+      if !isStandalone {
         Button(action: {
           isShowingComments = true
         }) {
