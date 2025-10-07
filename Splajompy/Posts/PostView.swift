@@ -175,7 +175,7 @@ struct PostView: View {
   }
 
   private var postMenu: some View {
-    HStack(spacing: 0) {
+    HStack(spacing: 2) {
       Menu(
         content: {
           if let currentUser = authManager.getCurrentUser() {
@@ -287,24 +287,20 @@ struct PostView: View {
     .fixedSize()
     .buttonStyle(.plain)
     .padding(3)
-    .background {
-      if #available(iOS 26.0, *) {
-        Color.clear
-      } else {
-        RoundedRectangle(cornerRadius: 12).fill(.gray.opacity(0.15))
-      }
-    }
   }
 
 }
 
 #Preview {
+  let dateFormatter = ISO8601DateFormatter()
+  dateFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+
   let post = Post(
     postId: 123,
     userId: 456,
     text:
       "This is a sample post with some text content. also here's a link: https://google.com, another link: splajompy.com",
-    createdAt: ISO8601DateFormatter().date(from: "2025-04-01T12:30:45.123Z")!,
+    createdAt: dateFormatter.date(from: "2025-04-01T12:30:45.123Z")!,
     facets: nil
   )
 
@@ -312,7 +308,7 @@ struct PostView: View {
     userId: 456,
     email: "wesleynw@pm.me",
     username: "wesleynw",
-    createdAt: ISO8601DateFormatter().date(from: "2025-01-15T10:20:30.000Z")!,
+    createdAt: dateFormatter.date(from: "2025-01-15T10:20:30.000Z")!,
     name: "John Doe"
   )
 
@@ -351,7 +347,7 @@ struct PostView: View {
   let authManager = AuthManager()
   let postManager = PostManager()
 
-  NavigationStack {
+  return NavigationStack {
     PostView(
       post: detailedPost,
       postManager: postManager,
@@ -365,12 +361,15 @@ struct PostView: View {
 }
 
 #Preview("Standalone") {
+  let dateFormatter = ISO8601DateFormatter()
+  dateFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+
   let post = Post(
     postId: 123,
     userId: 456,
     text:
       "This is a sample post with some text content. also here's a link: https://google.com, another link: splajompy.com",
-    createdAt: ISO8601DateFormatter().date(from: "2025-04-01T12:30:45.123Z")!,
+    createdAt: dateFormatter.date(from: "2025-04-01T12:30:45.123Z")!,
     facets: nil
   )
 
@@ -378,7 +377,7 @@ struct PostView: View {
     userId: 456,
     email: "wesleynw@pm.me",
     username: "wesleynw",
-    createdAt: ISO8601DateFormatter().date(from: "2025-01-15T10:20:30.000Z")!,
+    createdAt: dateFormatter.date(from: "2025-01-15T10:20:30.000Z")!,
     name: "John Doe"
   )
 
@@ -417,10 +416,11 @@ struct PostView: View {
   let authManager = AuthManager()
   let postManager = PostManager()
 
-  NavigationView {
+  return NavigationStack {
     PostView(
       post: detailedPost,
       postManager: postManager,
+      isStandalone: true,
       onLikeButtonTapped: {},
       onPostDeleted: {},
       onPostPinned: {},
