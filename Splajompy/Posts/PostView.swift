@@ -152,6 +152,7 @@ struct PostView: View {
         TopCommentView(comment: topComment) {
           isShowingComments = true
         }
+        .frame(maxWidth: .infinity)
       }
 
       HStack {
