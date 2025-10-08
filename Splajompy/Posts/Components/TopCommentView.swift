@@ -53,7 +53,8 @@ struct TopCommentView: View {
     commentId: 1,
     postId: 1,
     userId: 1,
-    text: "This is a sample comment that might be quite long and will need to be truncated to fit in the preview",
+    text:
+      "This is a sample comment that might be quite long and will need to be truncated to fit in the preview",
     createdAt: "2025-04-01T12:30:45.123Z",
     user: user,
     facets: nil,
