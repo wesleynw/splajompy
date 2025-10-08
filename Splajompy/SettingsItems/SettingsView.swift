@@ -4,6 +4,7 @@ import SwiftUI
 struct SettingsView: View {
   @EnvironmentObject private var authManager: AuthManager
   @AppStorage("comment_sort_order") private var commentSortOrder: String = "Newest First"
+  @AppStorage("show_top_comment") private var showTopComment: Bool = false
   @AppStorage("secret-tab-enabled") private var isSecretTabEnabled: Bool = true
 
   var body: some View {
@@ -34,6 +35,10 @@ struct SettingsView: View {
           }
           .pickerStyle(.menu)
           .labelsHidden()
+        }
+
+        Toggle(isOn: $showTopComment) {
+          Label("Show Top Comment", systemImage: "star.bubble")
         }
 
         #if os(iOS)

@@ -90,6 +90,69 @@ func (f *FakeCommentRepository) GetCommentsByPostId(ctx context.Context, postId 
 	return result, nil
 }
 
+func (f *FakeCommentRepository) GetTopLikedCommentForPost(ctx context.Context, postId int, currentUserId int) (*queries.GetTopLikedCommentForPostRow, error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+
+	if _, exists := f.comments[postId]; !exists || len(f.comments[postId]) == 0 {
+		return nil, errors.New("no comments found")
+	}
+
+	// Count likes for each comment
+	var topComment *queries.Comment
+	maxLikes := int64(-1)
+
+	for _, comment := range f.comments[postId] {
+		// Count likes for this specific comment
+		likeCount := int64(0)
+		commentIdStr := strconv.Itoa(comment.CommentID)
+		postIdStr := strconv.Itoa(postId)
+
+		for key, liked := range f.commentLikes {
+			if liked {
+				// Key format is "userId-postId-commentId"
+				// Check if this key contains this comment's ID
+				parts := len(key)
+				if parts > 0 {
+					// Simple check: does the key end with our comment ID
+					expectedSuffix := postIdStr + "-" + commentIdStr
+					if len(key) > len(expectedSuffix) && key[len(key)-len(expectedSuffix):] == expectedSuffix {
+						likeCount++
+					}
+				}
+			}
+		}
+
+		if topComment == nil || likeCount > maxLikes || (likeCount == maxLikes && comment.CreatedAt.Time.After(topComment.CreatedAt.Time)) {
+			maxLikes = likeCount
+			tempComment := comment
+			topComment = &tempComment
+		}
+	}
+
+	if topComment == nil {
+		return nil, errors.New("no comments found")
+	}
+
+	// Get user info
+	user, err := f.GetUserById(ctx, topComment.UserID)
+	if err != nil {
+		return nil, err
+	}
+
+	return &queries.GetTopLikedCommentForPostRow{
+		CommentID: topComment.CommentID,
+		PostID:    topComment.PostID,
+		UserID:    topComment.UserID,
+		Text:      topComment.Text,
+		Facets:    topComment.Facets,
+		CreatedAt: topComment.CreatedAt,
+		Username:  user.Username,
+		Name:      user.Name,
+		LikeCount: maxLikes,
+	}, nil
+}
+
 func (f *FakeCommentRepository) IsCommentLikedByUser(ctx context.Context, userId int, postId int, commentId int) (bool, error) {
 	f.mu.Lock()
 	defer f.mu.Unlock()

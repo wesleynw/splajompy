@@ -66,15 +66,16 @@ type Post struct {
 }
 
 type DetailedPost struct {
-	Post          Post            `json:"post"`
-	User          PublicUser      `json:"user"`
-	IsLiked       bool            `json:"isLiked"`
-	Images        []queries.Image `json:"images"`
-	CommentCount  int             `json:"commentCount"`
-	RelevantLikes []RelevantLike  `json:"relevantLikes"`
-	HasOtherLikes bool            `json:"hasOtherLikes"`
-	Poll          *DetailedPoll   `json:"poll"`
-	IsPinned      bool            `json:"isPinned"`
+	Post          Post             `json:"post"`
+	User          PublicUser       `json:"user"`
+	IsLiked       bool             `json:"isLiked"`
+	Images        []queries.Image  `json:"images"`
+	CommentCount  int              `json:"commentCount"`
+	RelevantLikes []RelevantLike   `json:"relevantLikes"`
+	HasOtherLikes bool             `json:"hasOtherLikes"`
+	Poll          *DetailedPoll    `json:"poll"`
+	IsPinned      bool             `json:"isPinned"`
+	TopComment    *DetailedComment `json:"topComment"`
 }
 
 type DetailedPollOption struct {

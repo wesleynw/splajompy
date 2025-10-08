@@ -11,6 +11,7 @@ type CommentRepository interface {
 	AddCommentToPost(ctx context.Context, userId int, postId int, content string, facets db.Facets) (queries.Comment, error)
 	GetCommentById(ctx context.Context, commentId int) (queries.Comment, error)
 	GetCommentsByPostId(ctx context.Context, postId int) ([]queries.GetCommentsByPostIdRow, error)
+	GetTopLikedCommentForPost(ctx context.Context, postId int, currentUserId int) (*queries.GetTopLikedCommentForPostRow, error)
 	IsCommentLikedByUser(ctx context.Context, userId int, postId int, commentId int) (bool, error)
 	AddLikeToComment(ctx context.Context, userId int, postId int, commentId int) error
 	RemoveLikeFromComment(ctx context.Context, userId int, postId int, commentId int) error
@@ -39,6 +40,18 @@ func (r DBCommentRepository) GetCommentById(ctx context.Context, commentId int) 
 // GetCommentsByPostId retrieves all comments for a specific post
 func (r DBCommentRepository) GetCommentsByPostId(ctx context.Context, postId int) ([]queries.GetCommentsByPostIdRow, error) {
 	return r.querier.GetCommentsByPostId(ctx, postId)
+}
+
+// GetTopLikedCommentForPost retrieves the comment with the most likes for a specific post
+func (r DBCommentRepository) GetTopLikedCommentForPost(ctx context.Context, postId int, currentUserId int) (*queries.GetTopLikedCommentForPostRow, error) {
+	row, err := r.querier.GetTopLikedCommentForPost(ctx, queries.GetTopLikedCommentForPostParams{
+		PostID:  postId,
+		UserID:  currentUserId,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &row, nil
 }
 
 // IsCommentLikedByUser checks if a comment is liked by a specific user
