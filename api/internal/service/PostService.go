@@ -26,16 +26,18 @@ type PostService struct {
 	likeRepository         repositories.LikeRepository
 	notificationRepository repositories.NotificationRepository
 	bucketRepository       repositories.BucketRepository
+	commentRepository      repositories.CommentRepository
 	emailService           *resend.Client
 }
 
-func NewPostService(postRepository repositories.PostRepository, userRepository repositories.UserRepository, likeRepository repositories.LikeRepository, notificationRepository repositories.NotificationRepository, bucketRepo repositories.BucketRepository, emailService *resend.Client) *PostService {
+func NewPostService(postRepository repositories.PostRepository, userRepository repositories.UserRepository, likeRepository repositories.LikeRepository, notificationRepository repositories.NotificationRepository, bucketRepo repositories.BucketRepository, commentRepo repositories.CommentRepository, emailService *resend.Client) *PostService {
 	return &PostService{
 		postRepository:         postRepository,
 		userRepository:         userRepository,
 		likeRepository:         likeRepository,
 		notificationRepository: notificationRepository,
 		bucketRepository:       bucketRepo,
+		commentRepository:      commentRepo,
 		emailService:           emailService,
 	}
 }
@@ -148,6 +150,29 @@ func (s *PostService) GetPostById(ctx context.Context, currentUser models.Public
 	pinnedPostId, _ := s.postRepository.GetPinnedPostId(ctx, post.UserID)
 	isPinned := pinnedPostId != nil && *pinnedPostId == postId
 
+	var topComment *models.DetailedComment
+	topCommentRow, err := s.commentRepository.GetTopLikedCommentForPost(ctx, postId, currentUser.UserID)
+	if err == nil && topCommentRow != nil {
+		isCommentLiked, _ := s.commentRepository.IsCommentLikedByUser(ctx, currentUser.UserID, topCommentRow.PostID, topCommentRow.CommentID)
+
+		topComment = &models.DetailedComment{
+			CommentID: topCommentRow.CommentID,
+			PostID:    topCommentRow.PostID,
+			UserID:    topCommentRow.UserID,
+			Text:      topCommentRow.Text,
+			Facets:    topCommentRow.Facets,
+			CreatedAt: topCommentRow.CreatedAt.Time.UTC(),
+			User: models.PublicUser{
+				UserID:    topCommentRow.UserID,
+				Email:     "",
+				Username:  topCommentRow.Username,
+				CreatedAt: time.Time{},
+				Name:      topCommentRow.Name.String,
+			},
+			IsLiked: isCommentLiked,
+		}
+	}
+
 	versionAny := ctx.Value(middleware.AppVersionKey)
 	version, ok := versionAny.(string)
 	if pollDetails != nil && (!ok || version == "unknown" || semver.Compare("v"+version, "v1.3.0") < 0) {
@@ -167,6 +192,7 @@ func (s *PostService) GetPostById(ctx context.Context, currentUser models.Public
 		HasOtherLikes: hasOtherLikes,
 		Poll:          pollDetails,
 		IsPinned:      isPinned,
+		TopComment:    topComment,
 	}, nil
 }
 

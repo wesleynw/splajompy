@@ -32,3 +32,27 @@ RETURNING *;
 -- name: DeleteComment :exec
 DELETE FROM comments
 WHERE comment_id = $1;
+
+-- name: GetTopLikedCommentForPost :one
+SELECT
+  c.comment_id,
+  c.post_id,
+  c.user_id,
+  c.text,
+  c.facets,
+  c.created_at,
+  u.username,
+  u.name,
+  COUNT(l.user_id) as like_count
+FROM comments c
+JOIN users u ON c.user_id = u.user_id
+LEFT JOIN likes l ON c.comment_id = l.comment_id AND l.is_post = FALSE
+WHERE c.post_id = $1
+AND NOT EXISTS (
+    SELECT 1
+    FROM block
+    WHERE block.user_id = $2 AND target_user_id = c.user_id
+)
+GROUP BY c.comment_id, u.username, u.name
+ORDER BY like_count DESC, c.created_at DESC
+LIMIT 1;

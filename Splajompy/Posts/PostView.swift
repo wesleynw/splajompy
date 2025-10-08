@@ -44,6 +44,7 @@ struct PostView: View {
   @State private var isShowingComments = false
   @State private var isReporting = false
   @State private var showReportAlert = false
+  @AppStorage("show_top_comment") private var showTopComment: Bool = false
   @EnvironmentObject private var authManager: AuthManager
 
   var body: some View {
@@ -146,6 +147,12 @@ struct PostView: View {
       )
       .animation(.easeInOut(duration: 0.3), value: post.relevantLikes.count)
       .animation(.easeInOut(duration: 0.3), value: post.hasOtherLikes)
+
+      if showTopComment, let topComment = post.topComment {
+        TopCommentView(comment: topComment) {
+          isShowingComments = true
+        }
+      }
 
       HStack {
         Text(
