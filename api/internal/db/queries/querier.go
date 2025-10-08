@@ -54,7 +54,6 @@ type Querier interface {
 	GetPostsIdsByUserId(ctx context.Context, arg GetPostsIdsByUserIdParams) ([]int, error)
 	GetReadNotificationsForUserIdWithTimeOffset(ctx context.Context, arg GetReadNotificationsForUserIdWithTimeOffsetParams) ([]Notification, error)
 	GetSessionById(ctx context.Context, id string) (Session, error)
-	GetTopLikedCommentForPost(ctx context.Context, arg GetTopLikedCommentForPostParams) (GetTopLikedCommentForPostRow, error)
 	GetUnreadNotificationsForUserId(ctx context.Context, arg GetUnreadNotificationsForUserIdParams) ([]Notification, error)
 	GetUnreadNotificationsForUserIdWithTimeOffset(ctx context.Context, arg GetUnreadNotificationsForUserIdWithTimeOffsetParams) ([]Notification, error)
 	GetUserById(ctx context.Context, userID int) (User, error)

@@ -36,10 +36,6 @@ struct SettingsView: View {
           .labelsHidden()
         }
 
-        Toggle(isOn: $showTopComment) {
-          Label("Show Top Comment", systemImage: "star.bubble")
-        }
-
         #if os(iOS)
           NavigationLink(destination: AppIconPickerView()) {
             Label("App Icon", systemImage: "square.grid.2x2")
