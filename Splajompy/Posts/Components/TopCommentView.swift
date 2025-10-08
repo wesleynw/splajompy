@@ -18,6 +18,7 @@ struct TopCommentView: View {
               .fontWeight(.medium)
               .foregroundColor(.secondary)
           }
+          Spacer()
         }
 
         Text(comment.richContent)
