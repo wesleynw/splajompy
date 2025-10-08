@@ -51,6 +51,23 @@ struct Post: Decodable {
   let text: String?
   let createdAt: Date
   let facets: [Facet]?
+
+  var richContent: AttributedString? {
+    guard let text, !text.isEmpty else { return nil }
+
+    // TODO: the null coalescing here is dumb
+    let markdown = generateAttributedStringUsingFacets(
+      text,
+      facets: self.facets ?? []
+    )
+
+    return try! AttributedString(
+      markdown: markdown,
+      options: AttributedString.MarkdownParsingOptions(
+        interpretedSyntax: .inlineOnlyPreservingWhitespace
+      )
+    )
+  }
 }
 
 struct RelevantLike: Decodable {
