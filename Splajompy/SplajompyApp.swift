@@ -15,7 +15,6 @@ struct SplajompyApp: App {
   @StateObject private var authManager = AuthManager.shared
   private var postManager = PostManager()
   @AppStorage("appearance_mode") var appearanceMode: String = "Automatic"
-  @AppStorage("secret-tab-enabled") var secretTableEnabled: Bool = true
 
   init() {
     #if !DEBUG
@@ -89,32 +88,6 @@ struct SplajompyApp: App {
         Label("Notifications", systemImage: "bell")
       }
       .tag(1)
-
-      if secretTableEnabled {
-        if PostHogSDK.shared.isFeatureEnabled("secret-tab") {
-          VStack {
-            Image(systemName: "laurel.leading.laurel.trailing")
-              .font(.largeTitle)
-            Text("This is the secret page.")
-              .font(.title2)
-              .fontWeight(.bold)
-              .padding()
-            Text("Few can see the secret page.")
-              .fontWeight(.bold)
-              .padding()
-
-            Text(
-              "Please do not discuss the secret page amongst yourselves. You may disable the secret page in Settings should you find it a hinderance."
-            )
-            .padding()
-          }
-          .padding()
-          .multilineTextAlignment(.center)
-          .tabItem {
-            Label("Secret", systemImage: "fossil.shell")
-          }
-        }
-      }
 
       NavigationStack(path: $navigationPaths[2]) {
         SearchView()
