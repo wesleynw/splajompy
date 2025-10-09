@@ -20,6 +20,7 @@ type Handler struct {
 	userService         *service.UserService
 	notificationService *service.NotificationService
 	authService         *service.AuthService
+	statsService        *service.StatsService
 }
 
 func NewHandler(queries queries.Querier,
@@ -27,7 +28,8 @@ func NewHandler(queries queries.Querier,
 	commentService *service.CommentService,
 	userService *service.UserService,
 	notificationService *service.NotificationService,
-	authService *service.AuthService) *Handler {
+	authService *service.AuthService,
+	statsService *service.StatsService) *Handler {
 	return &Handler{
 		queries:             queries,
 		postService:         postService,
@@ -35,6 +37,7 @@ func NewHandler(queries queries.Querier,
 		userService:         userService,
 		notificationService: notificationService,
 		authService:         authService,
+		statsService:        statsService,
 	}
 }
 
@@ -118,6 +121,9 @@ func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
 	handleFunc("GET /post/{id}/comments", h.GetCommentsByPost)
 
 	handleFunc("POST /request-feature", h.RequestFeature)
+
+	// stats
+	handleFunc("GET /stats", h.GetAppStats)
 }
 
 func (h *Handler) GetIntPathParam(r *http.Request, paramName string) (int, error) {

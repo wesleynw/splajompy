@@ -33,6 +33,7 @@ protocol ProfileServiceProtocol: Sendable {
   func requestFeature(text: String) async -> AsyncResult<EmptyResponse>
   func getFollowers(userId: Int, offset: Int, limit: Int) async -> AsyncResult<[DetailedUser]>
   func getFollowing(userId: Int, offset: Int, limit: Int) async -> AsyncResult<[DetailedUser]>
+  func getAppStats() async -> AsyncResult<AppStats>
 }
 
 struct ProfileService: ProfileServiceProtocol {
@@ -119,6 +120,13 @@ struct ProfileService: ProfileServiceProtocol {
     return await APIService.performRequest(
       endpoint: "user/\(userId)/following",
       queryItems: queryItems
+    )
+  }
+
+  func getAppStats() async -> AsyncResult<AppStats> {
+    return await APIService.performRequest(
+      endpoint: "stats",
+      method: "GET"
     )
   }
 }
@@ -416,5 +424,16 @@ struct MockProfileService: ProfileServiceProtocol {
       )
     }
     return .success(paginatedUsers)
+  }
+
+  func getAppStats() async -> AsyncResult<AppStats> {
+    try? await Task.sleep(nanoseconds: 500_000_000)
+    return .success(
+      AppStats(
+        totalPosts: 1234,
+        totalComments: 5678,
+        totalLikes: 9012,
+        totalFollows: 345
+      ))
   }
 }

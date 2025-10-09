@@ -71,14 +71,16 @@ func main() {
 	notificationsRepository := repositories.NewDBNotificationRepository(q)
 	commentRepository := repositories.NewDBCommentRepository(q)
 	likeRepository := repositories.NewDBLikeRepository(q)
+	statsRepository := repositories.NewDBStatsRepository(q)
 
 	postService := service.NewPostService(postRepository, userRepository, likeRepository, notificationsRepository, bucketRepository, commentRepository, resentClient)
 	commentService := service.NewCommentService(commentRepository, postRepository, notificationsRepository, userRepository)
 	userService := service.NewUserService(userRepository, notificationsRepository, resentClient)
 	notificationService := service.NewNotificationService(notificationsRepository, postRepository, commentRepository, userRepository)
 	authManager := service.NewAuthService(userRepository, postRepository, bucketRepository, resentClient)
+	statsService := service.NewStatsService(statsRepository)
 
-	h := handler.NewHandler(q, postService, commentService, userService, notificationService, authManager)
+	h := handler.NewHandler(q, postService, commentService, userService, notificationService, authManager, statsService)
 
 	mux := http.NewServeMux()
 	h.RegisterRoutes(mux)
