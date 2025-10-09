@@ -53,11 +53,11 @@ struct SettingsView: View {
           }
         }
 
-        // if PostHogSDK.shared.isFeatureEnabled("statistics-page") {
-        NavigationLink(destination: StatisticsView()) {
-          Label("Statistics", systemImage: "chart.xyaxis.line")
+        if PostHogSDK.shared.isFeatureEnabled("statistics-page") {
+          NavigationLink(destination: StatisticsView()) {
+            Label("Statistics", systemImage: "chart.xyaxis.line")
+          }
         }
-        // }
 
         StorageManager()
 
