@@ -137,3 +137,10 @@ type ImageData struct {
 	Width  int    `json:"width"`
 	Height int    `json:"height"`
 }
+
+type AppStats struct {
+	TotalPosts    int64 `json:"totalPosts"`
+	TotalComments int64 `json:"totalComments"`
+	TotalLikes    int64 `json:"totalLikes"`
+	TotalFollows  int64 `json:"totalFollows"`
+}

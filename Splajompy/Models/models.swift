@@ -109,3 +109,10 @@ struct PollOption: Decodable {
   let title: String
   var voteTotal: Int
 }
+
+struct AppStats: Decodable {
+  let totalPosts: Int
+  let totalComments: Int
+  let totalLikes: Int
+  let totalFollows: Int
+}
