@@ -108,6 +108,11 @@ struct FollowingListView: View {
                   }
                 }
               }
+
+              if user.userId != users.last?.userId {
+                Divider()
+                  .padding(.leading, 16)
+              }
             }
 
             if isLoading {
@@ -149,19 +154,21 @@ struct UserRowView: View {
 
   var body: some View {
     HStack(spacing: 8) {
-      NavigationLink(
-        value: Route.profile(id: String(user.userId), username: user.username)
-      ) {
-        userInfoView
-
-        Spacer()
-      }
-      .buttonStyle(.plain)
-
+      userInfoView
+      Spacer()
       followButton
     }
     .padding(.horizontal, 16)
     .padding(.vertical, 12)
+    .background(
+      NavigationLink(
+        value: Route.profile(id: String(user.userId), username: user.username)
+      ) {
+        Color.clear
+          .contentShape(Rectangle())
+      }
+      .buttonStyle(.plain)
+    )
   }
 
   private var userInfoView: some View {
