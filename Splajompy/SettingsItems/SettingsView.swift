@@ -5,7 +5,6 @@ struct SettingsView: View {
   @EnvironmentObject private var authManager: AuthManager
   @AppStorage("comment_sort_order") private var commentSortOrder: String = "Newest First"
   @AppStorage("show_top_comment") private var showTopComment: Bool = false
-  @AppStorage("secret-tab-enabled") private var isSecretTabEnabled: Bool = true
 
   var body: some View {
     VStack {
@@ -37,10 +36,6 @@ struct SettingsView: View {
           .labelsHidden()
         }
 
-        Toggle(isOn: $showTopComment) {
-          Label("Show Top Comment", systemImage: "star.bubble")
-        }
-
         #if os(iOS)
           NavigationLink(destination: AppIconPickerView()) {
             Label("App Icon", systemImage: "square.grid.2x2")
@@ -48,7 +43,7 @@ struct SettingsView: View {
         #endif
 
         if PostHogSDK.shared.isFeatureEnabled("secret-tab") {
-          Toggle(isOn: $isSecretTabEnabled) {
+          NavigationLink(destination: SecretPageView()) {
             Label("Secret Page", systemImage: "fossil.shell")
           }
         }

@@ -7,7 +7,7 @@ struct PollView: View {
   var currentUser = AuthManager.shared.getCurrentUser()
 
   private var adjustedPercentages: [Int] {
-    guard poll.voteTotal > 0, poll.currentUserVote != nil else {
+    guard poll.voteTotal > 0, poll.currentUserVote != nil || currentUser?.userId == authorId else {
       return Array(repeating: 0, count: poll.options.count)
     }
 

@@ -85,7 +85,6 @@ struct DetailedPost: Decodable, Equatable, Identifiable {
   let hasOtherLikes: Bool
   var poll: Poll?
   var isPinned: Bool
-  var topComment: DetailedComment?
 
   var id: Int { post.postId }
 
