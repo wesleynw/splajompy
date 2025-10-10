@@ -73,6 +73,7 @@ Thumbs.db
 *.swo
 *~
 .project
+.zed
 
 # Logs
 logs/

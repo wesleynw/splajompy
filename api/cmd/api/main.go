@@ -74,7 +74,7 @@ func main() {
 	statsRepository := repositories.NewDBStatsRepository(q)
 
 	postService := service.NewPostService(postRepository, userRepository, likeRepository, notificationsRepository, bucketRepository, resentClient)
-	commentService := service.NewCommentService(commentRepository, postRepository, notificationsRepository, userRepository)
+	commentService := service.NewCommentService(commentRepository, postRepository, notificationsRepository, userRepository, likeRepository)
 	userService := service.NewUserService(userRepository, notificationsRepository, resentClient)
 	notificationService := service.NewNotificationService(notificationsRepository, postRepository, commentRepository, userRepository)
 	authManager := service.NewAuthService(userRepository, postRepository, bucketRepository, resentClient)
