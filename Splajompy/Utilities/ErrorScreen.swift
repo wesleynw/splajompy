@@ -16,6 +16,7 @@ struct ErrorScreen: View {
           .foregroundColor(.red)
           .multilineTextAlignment(.center)
       }
+      .padding()
       Button {
         Task {
           isRetrying = true

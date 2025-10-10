@@ -79,6 +79,10 @@ public struct APIService {
           await AuthManager.shared.signOut()
           return .error(APIErrorMessage(message: "Session expired. Please sign in again."))
         }
+        if httpResponse.statusCode == 503 {
+          return .error(
+            APIErrorMessage(message: "Service temporarily unavailable. Please try again later."))
+        }
       }
 
       let decoder = JSONDecoder()
