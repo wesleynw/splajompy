@@ -237,7 +237,7 @@ func (s *PostService) getPostsByPostIDs(ctx context.Context, currentUser models.
 }
 
 func (s *PostService) AddLikeToPost(ctx context.Context, currentUser models.PublicUser, postId int) error {
-	err := s.likeRepository.AddLike(ctx, currentUser.UserID, postId, true)
+	err := s.likeRepository.AddLike(ctx, currentUser.UserID, postId, nil)
 	if err != nil {
 		return err
 	}
@@ -265,7 +265,7 @@ func (s *PostService) AddLikeToPost(ctx context.Context, currentUser models.Publ
 // RemoveLikeFromPost removes the current user's like from a post and deletes
 // related notifications created within the last 5 minutes.
 func (s *PostService) RemoveLikeFromPost(ctx context.Context, currentUser models.PublicUser, postId int) error {
-	err := s.likeRepository.RemoveLike(ctx, currentUser.UserID, postId, true)
+	err := s.likeRepository.RemoveLike(ctx, currentUser.UserID, postId, nil)
 	if err != nil {
 		return err
 	}

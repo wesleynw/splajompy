@@ -7,8 +7,9 @@ import (
 )
 
 type LikeRepository interface {
-	AddLike(ctx context.Context, userId int, postId int, isPost bool) error
-	RemoveLike(ctx context.Context, userId int, postId int, isPost bool) error
+	AddLike(ctx context.Context, userId int, postId int, commentId *int) error
+	RemoveLike(ctx context.Context, userId int, postId int, commentId *int) error
+	IsLiked(ctx context.Context, userId int, postId int, commentId *int) (bool, error)
 	GetPostLikesFromFollowers(ctx context.Context, postId int, followerId int) ([]queries.GetPostLikesFromFollowersRow, error)
 	HasLikesFromOthers(ctx context.Context, postId int, userIds []int) (bool, error)
 }
@@ -18,44 +19,31 @@ type DBLikeRepository struct {
 }
 
 // AddLike adds a like to a post or comment
-func (r DBLikeRepository) AddLike(ctx context.Context, userId int, postId int, isPost bool) error {
-	// For posts, commentId should be null; for comments, we need a valid commentId
-	// Since the interface only supports liking posts at this level, we'll set commentId to null
-	var commentId *int
-	if !isPost {
-		// This shouldn't happen with the current interface, but it's here for future extensibility
-		val := 0
-		commentId = &val
-	} else {
-		commentId = nil
-	}
-
+func (r DBLikeRepository) AddLike(ctx context.Context, userId int, postId int, commentId *int) error {
 	return r.querier.AddLike(ctx, queries.AddLikeParams{
 		PostID:    postId,
 		CommentID: commentId,
 		UserID:    userId,
-		IsPost:    isPost,
 	})
 }
 
 // RemoveLike removes a like from a post or comment
-func (r DBLikeRepository) RemoveLike(ctx context.Context, userId int, postId int, isPost bool) error {
-	// For posts, commentId should be null; for comments we need a valid commentId
-	// Since the interface only supports unliking posts at this level, we'll set commentId to null
-	var commentId *int
-	if !isPost {
-		// This shouldn't happen with the current interface, but it's here for future extensibility
-		val := 0
-		commentId = &val
-	} else {
-		commentId = nil
-	}
-
+func (r DBLikeRepository) RemoveLike(ctx context.Context, userId int, postId int, commentId *int) error {
 	return r.querier.RemoveLike(ctx, queries.RemoveLikeParams{
 		PostID:    postId,
 		UserID:    userId,
-		IsPost:    isPost,
+		Column3:   commentId == nil, // is_post
 		CommentID: commentId,
+	})
+}
+
+// IsLiked checks if a user has liked a post or comment
+func (r DBLikeRepository) IsLiked(ctx context.Context, userId int, postId int, commentId *int) (bool, error) {
+	return r.querier.GetIsLikedByUser(ctx, queries.GetIsLikedByUserParams{
+		UserID:    userId,
+		PostID:    postId,
+		CommentID: commentId,
+		Column4:   commentId == nil,
 	})
 }
 

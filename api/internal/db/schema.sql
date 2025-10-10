@@ -56,11 +56,9 @@ CREATE TABLE likes (
     post_id INT NOT NULL,
     comment_id INT NULL,
     user_id INT NOT NULL,
-    is_post BOOLEAN NOT NULL DEFAULT true,
     FOREIGN KEY (post_id) REFERENCES posts(post_id) ON DELETE CASCADE,
     FOREIGN KEY (comment_id) REFERENCES comments(comment_id) ON DELETE CASCADE,
-    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
-    UNIQUE (user_id, post_id, comment_id, is_post)
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
 
 CREATE TABLE images (

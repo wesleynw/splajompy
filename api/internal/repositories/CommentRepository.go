@@ -12,8 +12,6 @@ type CommentRepository interface {
 	GetCommentById(ctx context.Context, commentId int) (queries.Comment, error)
 	GetCommentsByPostId(ctx context.Context, postId int) ([]queries.GetCommentsByPostIdRow, error)
 	IsCommentLikedByUser(ctx context.Context, userId int, postId int, commentId int) (bool, error)
-	AddLikeToComment(ctx context.Context, userId int, postId int, commentId int) error
-	RemoveLikeFromComment(ctx context.Context, userId int, postId int, commentId int) error
 	DeleteComment(ctx context.Context, commentId int) error
 	GetUserById(ctx context.Context, userId int) (queries.User, error)
 }
@@ -48,26 +46,6 @@ func (r DBCommentRepository) IsCommentLikedByUser(ctx context.Context, userId in
 		PostID:    postId,
 		CommentID: &commentId,
 		Column4:   false,
-	})
-}
-
-// AddLikeToComment adds a like to a comment
-func (r DBCommentRepository) AddLikeToComment(ctx context.Context, userId int, postId int, commentId int) error {
-	return r.querier.AddLike(ctx, queries.AddLikeParams{
-		PostID:    postId,
-		CommentID: &commentId,
-		UserID:    userId,
-		IsPost:    false,
-	})
-}
-
-// RemoveLikeFromComment removes a like from a comment
-func (r DBCommentRepository) RemoveLikeFromComment(ctx context.Context, userId int, postId int, commentId int) error {
-	return r.querier.RemoveLike(ctx, queries.RemoveLikeParams{
-		PostID:    postId,
-		CommentID: &commentId,
-		UserID:    userId,
-		IsPost:    false,
 	})
 }
 

@@ -50,7 +50,6 @@ type Like struct {
 	PostID    int  `json:"postId"`
 	CommentID *int `json:"commentId"`
 	UserID    int  `json:"userId"`
-	IsPost    bool `json:"isPost"`
 }
 
 type Notification struct {

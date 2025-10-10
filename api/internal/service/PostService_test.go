@@ -480,7 +480,7 @@ func TestRemoveLikeFromPost_DeletesRecentNotification(t *testing.T) {
 	post, err := svc.postRepository.InsertPost(ctx, otherUser.UserID, "Test post", nil, nil)
 	require.NoError(t, err)
 
-	err = likeRepo.AddLike(ctx, user.UserID, post.PostID, true)
+	err = likeRepo.AddLike(ctx, user.UserID, post.PostID, nil)
 	require.NoError(t, err)
 
 	err = notificationRepo.InsertNotification(ctx, otherUser.UserID, &post.PostID, nil, nil, "@testuser liked your post.", models.NotificationTypeLike, nil)
@@ -502,7 +502,7 @@ func TestRemoveLikeFromPost_KeepsOldNotification(t *testing.T) {
 	post, err := svc.postRepository.InsertPost(ctx, otherUser.UserID, "Test post", nil, nil)
 	require.NoError(t, err)
 
-	err = likeRepo.AddLike(ctx, user.UserID, post.PostID, true)
+	err = likeRepo.AddLike(ctx, user.UserID, post.PostID, nil)
 	require.NoError(t, err)
 
 	oldTime := time.Now().Add(-10 * time.Minute)
@@ -532,7 +532,7 @@ func TestRemoveLikeFromPost_NoNotificationExists(t *testing.T) {
 	post, err := svc.postRepository.InsertPost(ctx, otherUser.UserID, "Test post", nil, nil)
 	require.NoError(t, err)
 
-	err = likeRepo.AddLike(ctx, user.UserID, post.PostID, true)
+	err = likeRepo.AddLike(ctx, user.UserID, post.PostID, nil)
 	require.NoError(t, err)
 
 	err = svc.RemoveLikeFromPost(ctx, user, post.PostID)

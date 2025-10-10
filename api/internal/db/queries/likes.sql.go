@@ -10,24 +10,18 @@ import (
 )
 
 const addLike = `-- name: AddLike :exec
-INSERT INTO likes (post_id, comment_id, user_id, is_post)
-VALUES ($1, $2, $3, $4)
+INSERT INTO likes (post_id, comment_id, user_id)
+VALUES ($1, $2, $3)
 `
 
 type AddLikeParams struct {
 	PostID    int  `json:"postId"`
 	CommentID *int `json:"commentId"`
 	UserID    int  `json:"userId"`
-	IsPost    bool `json:"isPost"`
 }
 
 func (q *Queries) AddLike(ctx context.Context, arg AddLikeParams) error {
-	_, err := q.db.Exec(ctx, addLike,
-		arg.PostID,
-		arg.CommentID,
-		arg.UserID,
-		arg.IsPost,
-	)
+	_, err := q.db.Exec(ctx, addLike, arg.PostID, arg.CommentID, arg.UserID)
 	return err
 }
 
@@ -38,7 +32,7 @@ SELECT EXISTS (
   WHERE user_id = $1
   AND post_id = $2
   AND (
-    CASE 
+    CASE
       WHEN $4::boolean = FALSE THEN comment_id = $3
       ELSE comment_id IS NULL
     END
@@ -69,8 +63,8 @@ const getIsPostLikedByUser = `-- name: GetIsPostLikedByUser :one
 SELECT EXISTS (
   SELECT 1
   FROM likes
-  WHERE user_id = $1 
-    AND post_id = $2 
+  WHERE user_id = $1
+    AND post_id = $2
     AND comment_id IS NULL
 )
 `
@@ -154,22 +148,21 @@ const removeLike = `-- name: RemoveLike :exec
 DELETE FROM likes
 WHERE post_id = $1
 AND user_id = $2
-AND is_post = $3
 AND ($3 = TRUE OR comment_id = $4)
 `
 
 type RemoveLikeParams struct {
-	PostID    int  `json:"postId"`
-	UserID    int  `json:"userId"`
-	IsPost    bool `json:"isPost"`
-	CommentID *int `json:"commentId"`
+	PostID    int         `json:"postId"`
+	UserID    int         `json:"userId"`
+	Column3   interface{} `json:"column3"`
+	CommentID *int        `json:"commentId"`
 }
 
 func (q *Queries) RemoveLike(ctx context.Context, arg RemoveLikeParams) error {
 	_, err := q.db.Exec(ctx, removeLike,
 		arg.PostID,
 		arg.UserID,
-		arg.IsPost,
+		arg.Column3,
 		arg.CommentID,
 	)
 	return err
