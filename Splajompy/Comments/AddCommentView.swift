@@ -51,15 +51,6 @@ struct AddCommentSheet: View {
           }
         #endif
       }
-      .alert(isPresented: $viewModel.showError) {
-        Alert(
-          title: Text("Error"),
-          message: Text(viewModel.errorMessage ?? "Unknown error"),
-          dismissButton: .default(Text("OK")) {
-            viewModel.showError = false
-          }
-        )
-      }
       #if os(iOS)
         .navigationTitle("Comment")
         .navigationBarTitleDisplayMode(.inline)
@@ -88,7 +79,7 @@ struct AddCommentSheet: View {
                   }
                 }
               } label: {
-                if viewModel.isLoading {
+                if viewModel.isSubmitting {
                   ProgressView()
                 } else {
                   Label("Comment", systemImage: "arrow.up")
@@ -97,7 +88,7 @@ struct AddCommentSheet: View {
               .disabled(
                 text.string.trimmingCharacters(in: .whitespacesAndNewlines)
                   .isEmpty
-                  || viewModel.isLoading
+                  || viewModel.isSubmitting
               )
               .buttonStyle(.glassProminent)
             } else {
@@ -115,7 +106,7 @@ struct AddCommentSheet: View {
               .disabled(
                 text.string.trimmingCharacters(in: .whitespacesAndNewlines)
                   .isEmpty
-                  || viewModel.isLoading
+                  || viewModel.isSubmitting
               )
             }
           }
