@@ -16,6 +16,8 @@ extension CommentsView {
 
     @Published var state: CommentState = .idle
     @Published var isSubmitting: Bool = false
+    @Published var showError: Bool = false
+    @Published var errorMessage: String?
     @ObservedObject var postManager: PostManager
 
     init(
@@ -137,6 +139,8 @@ extension CommentsView {
         return true
       case .error(let error):
         print("Error adding comment: \(error.localizedDescription)")
+        errorMessage = error.localizedDescription
+        showError = true
         return false
       }
     }

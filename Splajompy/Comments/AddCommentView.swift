@@ -113,6 +113,15 @@ struct AddCommentSheet: View {
         }
       #endif
     }
+    .alert(isPresented: $viewModel.showError) {
+      Alert(
+        title: Text("Error"),
+        message: Text(viewModel.errorMessage ?? "Unknown error"),
+        dismissButton: .default(Text("OK")) {
+          viewModel.showError = false
+        }
+      )
+    }
   }
 }
 
