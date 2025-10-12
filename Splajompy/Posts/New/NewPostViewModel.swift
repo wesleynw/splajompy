@@ -1,11 +1,10 @@
-import Foundation
 import PhotosUI
 import SwiftUI
 
 enum PhotoState {
-  case loading(PhotosPickerItem)
+  case loading(Progress)
   case success(UIImage)
-  case failed
+  case failure
   case empty
 }
 
@@ -14,28 +13,27 @@ extension NewPostView {
     @Published var isLoading = false
     @Published var errorDisplay: String?
 
-    @Published var selectedImages = [UIImage]()
-    // TODO: find a way to do this without resetting the entire array of selected images
-    @Published var selectedItems = [PhotosPickerItem]() {
+    @Published var imageStates = [
+      (itemIdentifier: String, pickerItem: PhotosPickerItem, state: PhotoState)
+    ]()
+    @Published var imageSelection = [PhotosPickerItem]() {
       didSet {
-        Task {
-          var newImages = [UIImage]()
-
-          for item in selectedItems {
-            if let data = try? await item.loadTransferable(type: Data.self) {
-              if let uiImage = UIImage(data: data) {
-                print("Original image size: \(uiImage.size)")
-                if let resizedImage = uiImage.resize(newWidth: 1000) {
-                  print("Resized image size: \(resizedImage.size)")
-                  newImages.append(resizedImage)
-                } else {
-                  print("Resize failed")
-                }
-              }
-            }
+        let oldStates = imageStates
+        imageStates = imageSelection.map { item in
+          let itemId = item.itemIdentifier ?? UUID().uuidString
+          if let existingState = oldStates.first(where: {
+            $0.pickerItem == item
+          }) {
+            return (
+              itemIdentifier: existingState.itemIdentifier, pickerItem: item,
+              state: existingState.state
+            )
+          } else {
+            return (
+              itemIdentifier: itemId, pickerItem: item,
+              state: .loading(loadTransferable(from: item, itemId: itemId))
+            )
           }
-
-          selectedImages = newImages
         }
       }
     }
@@ -46,11 +44,35 @@ extension NewPostView {
       self.onPostCreated = onPostCreated
     }
 
-    func removeImage(index: Int) {
-      selectedItems.remove(at: index)
+    func removeImage(itemIdentifier: String) {
+      guard
+        let pickerItem = imageStates.first(where: {
+          $0.itemIdentifier == itemIdentifier
+        })?.pickerItem,
+        let index = imageSelection.firstIndex(where: { $0 == pickerItem })
+      else {
+        return
+      }
+      _ = withAnimation(.snappy) {
+        imageSelection.remove(at: index)
+      }
     }
 
-    func submitPost(text: String, poll: PollCreationRequest? = nil, dismiss: @escaping () -> Void) {
+    func retryImage(itemIdentifier: String) {
+      guard let index = imageStates.firstIndex(where: { $0.itemIdentifier == itemIdentifier })
+      else {
+        return
+      }
+      let pickerItem = imageStates[index].pickerItem
+      imageStates[index].state = .loading(
+        loadTransferable(from: pickerItem, itemId: itemIdentifier))
+    }
+
+    func submitPost(
+      text: String,
+      poll: PollCreationRequest? = nil,
+      dismiss: @escaping () -> Void
+    ) {
       Task {
         let validation = PostCreationService.validatePostText(text: text)
         if !validation.isValid {
@@ -60,10 +82,19 @@ extension NewPostView {
 
         isLoading = true
 
-        let result: AsyncResult<EmptyResponse>
+        let selectedImages = imageStates.compactMap { item -> UIImage? in
+          if case .success(let image) = item.state {
+            return image
+          }
+          return nil
+        }
 
-        result = await PostCreationService.createPost(
-          text: text, images: selectedImages, items: selectedItems, poll: poll)
+        let result = await PostCreationService.createPost(
+          text: text,
+          images: selectedImages,
+          items: imageSelection,
+          poll: poll
+        )
 
         switch result {
         case .success:
@@ -73,6 +104,36 @@ extension NewPostView {
         case .error(let error):
           errorDisplay = error.localizedDescription
           isLoading = false
+        }
+      }
+    }
+
+    private func loadTransferable(
+      from imageSelection: PhotosPickerItem,
+      itemId: String
+    ) -> Progress {
+      return imageSelection.loadTransferable(type: Data.self) { result in
+        DispatchQueue.main.async {
+          guard
+            let index = self.imageStates.firstIndex(where: {
+              $0.itemIdentifier == itemId
+            })
+          else {
+            print("Failed to find the item in imageStates.")
+            return
+          }
+          switch result {
+          case .success(let imageData?):
+            if let image = UIImage(data: imageData) {
+              self.imageStates[index].state = .success(image)
+            } else {
+              self.imageStates[index].state = .failure
+            }
+          case .success(nil):
+            self.imageStates[index].state = .empty
+          case .failure(_):
+            self.imageStates[index].state = .failure
+          }
         }
       }
     }

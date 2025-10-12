@@ -34,46 +34,7 @@ struct NewPostView: View {
               cursorPosition: $cursorPosition
             )
 
-            ScrollView(.horizontal, showsIndicators: false) {
-              HStack(spacing: 12) {
-                ForEach(0..<viewModel.selectedImages.count, id: \.self) { i in
-                  ZStack(alignment: .topTrailing) {
-                    Image(uiImage: viewModel.selectedImages[i])
-                      .resizable()
-                      .scaledToFill()
-                      .frame(width: 100, height: 100)
-                      .clipShape(RoundedRectangle(cornerRadius: 12))
-                      .overlay(
-                        RoundedRectangle(cornerRadius: 12)
-                          .stroke(Color.gray.opacity(0.3), lineWidth: 1)
-                      )
-
-                    Button {
-                      viewModel.removeImage(index: i)
-                    } label: {
-                      ZStack {
-                        Circle()
-                          .fill(Color.white)
-                          .frame(width: 22, height: 22)
-                          .shadow(
-                            color: Color.black.opacity(0.2),
-                            radius: 2,
-                            x: 0,
-                            y: 1
-                          )
-
-                        Image(systemName: "xmark")
-                          .font(.system(size: 10, weight: .bold))
-                          .foregroundColor(.gray)
-                      }
-                    }
-                    .padding(6)
-                  }
-                  .padding(4)
-                }
-              }
-              .padding(.horizontal)
-            }
+            imagePreviewsView
 
             if let poll = poll {
               PollPreviewView(poll: poll) {
@@ -108,33 +69,7 @@ struct NewPostView: View {
 
         Divider()
 
-        HStack {
-          PhotosPicker(
-            selection: $viewModel.selectedItems,
-            maxSelectionCount: 10,
-            selectionBehavior: .ordered,
-            matching: .images
-          ) {
-            Image(systemName: "photo.badge.plus")
-              .padding(.leading)
-          }
-
-          Button {
-            showingPollCreation = true
-          } label: {
-            Image(systemName: poll != nil ? "chart.bar.fill" : "chart.bar")
-              .padding(.leading)
-          }
-
-          Spacer()
-
-          Text("\(text.string.count)/2500")
-            .foregroundStyle(
-              text.string.count > 2500
-                ? Color.red.opacity(0.7) : Color.primary.opacity(0.5)
-            )
-        }
-        .padding()
+        postAdditionsMenu
       }
       .alert(
         "An error occurred",
@@ -206,14 +141,124 @@ struct NewPostView: View {
     }
   }
 
+  @ViewBuilder
+  private var imagePreviewsView: some View {
+    ScrollView(.horizontal, showsIndicators: false) {
+      HStack(spacing: 12) {
+        ForEach(viewModel.imageStates, id: \.itemIdentifier) { item in
+          ZStack(alignment: .topTrailing) {
+            ZStack {
+              RoundedRectangle(cornerRadius: 12)
+                .fill(Color.gray.opacity(0.1))
+                .frame(width: 100, height: 100)
+
+              switch item.state {
+              case .loading:
+                ProgressView()
+              case .success(let image):
+                Image(uiImage: image)
+                  .resizable()
+                  .scaledToFill()
+                  .frame(width: 100, height: 100)
+                  .clipShape(RoundedRectangle(cornerRadius: 12))
+              case .failure:
+                Button {
+                  viewModel.retryImage(itemIdentifier: item.itemIdentifier)
+                } label: {
+                  VStack {
+                    Image(systemName: "arrow.clockwise.circle.fill")
+                      .font(.title)
+                      .foregroundColor(.blue)
+                    Text("Retry")
+                      .font(.caption2)
+                      .foregroundColor(.blue)
+                  }
+                }
+              case .empty:
+                EmptyView()
+              }
+            }
+            .overlay(
+              RoundedRectangle(cornerRadius: 12)
+                .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+            )
+
+            Button {
+              viewModel.removeImage(itemIdentifier: item.itemIdentifier)
+            } label: {
+              ZStack {
+                Circle()
+                  .fill(Color.white)
+                  .frame(width: 22, height: 22)
+                  .shadow(
+                    color: Color.black.opacity(0.2),
+                    radius: 2,
+                    x: 0,
+                    y: 1
+                  )
+
+                Image(systemName: "xmark")
+                  .font(.system(size: 10, weight: .bold))
+                  .foregroundColor(.gray)
+              }
+            }
+            .padding(6)
+          }
+          .padding(4)
+          .transition(.scale)
+        }
+      }
+      .padding(.horizontal)
+    }
+  }
+
+  @ViewBuilder
+  private var postAdditionsMenu: some View {
+    HStack {
+      PhotosPicker(
+        selection: $viewModel.imageSelection,
+        maxSelectionCount: 10,
+        selectionBehavior: .ordered,
+        matching: .images
+      ) {
+        Image(systemName: "photo.badge.plus")
+          .padding(.leading)
+      }
+
+      Button {
+        showingPollCreation = true
+      } label: {
+        Image(systemName: poll != nil ? "chart.bar.fill" : "chart.bar")
+          .padding(.leading)
+      }
+
+      Spacer()
+
+      Text("\(text.string.count)/2500")
+        .foregroundStyle(
+          text.string.count > 2500
+            ? Color.red.opacity(0.7) : Color.primary.opacity(0.5)
+        )
+    }
+    .padding()
+  }
+
   private var isPostButtonDisabled: Bool {
     let trimmedText = text.string.trimmingCharacters(
       in: .whitespacesAndNewlines
     )
     let hasContent =
-      !trimmedText.isEmpty || viewModel.selectedImages.count > 0 || poll != nil
+      !trimmedText.isEmpty || viewModel.imageStates.count > 0 || poll != nil
+
+    let allImagesLoaded = viewModel.imageStates.allSatisfy { item in
+      if case .success = item.state {
+        return true
+      }
+      return false
+    }
 
     return !hasContent || trimmedText.count > 2500 || viewModel.isLoading
+      || !allImagesLoaded
   }
 }
 
