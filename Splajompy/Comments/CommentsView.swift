@@ -84,7 +84,10 @@ struct CommentsView: View {
         }
       }
 
-      if viewModel.isLoading {
+      switch viewModel.state {
+      case .idle:
+        EmptyView()
+      case .loading:
         VStack {
           Spacer()
           ProgressView()
@@ -92,34 +95,41 @@ struct CommentsView: View {
             .padding()
           Spacer()
         }
-      } else if viewModel.comments.isEmpty {
-        VStack(spacing: 16) {
-          Spacer()
-          Text("No comments")
-            .font(.title3)
-            .foregroundColor(.gray)
-          Spacer()
-        }
-      } else {
-        ScrollView {
-          ForEach(viewModel.comments, id: \.commentId) { comment in
-            CommentRow(
-              comment: comment,
-              toggleLike: {
-                viewModel.toggleLike(for: comment)
-              },
-              deleteComment: {
-                Task {
-                  await viewModel.deleteComment(comment)
-                  postManager.updatePost(id: postId) { post in
-                    post.commentCount -= 1
+      case .loaded(let comments):
+        if comments.isEmpty {
+          VStack(spacing: 16) {
+            Spacer()
+            Text("No comments")
+              .font(.title3)
+              .foregroundColor(.gray)
+            Spacer()
+          }
+        } else {
+          ScrollView {
+            ForEach(comments, id: \.commentId) { comment in
+              CommentRow(
+                comment: comment,
+                toggleLike: {
+                  viewModel.toggleLike(for: comment)
+                },
+                deleteComment: {
+                  Task {
+                    await viewModel.deleteComment(comment)
+                    postManager.updatePost(id: postId) { post in
+                      post.commentCount -= 1
+                    }
                   }
                 }
-              }
-            )
+              )
+            }
           }
+          .animation(.easeInOut(duration: 0.3), value: comments)
         }
-        .animation(.easeInOut(duration: 0.3), value: viewModel.comments)
+      case .failed(let error):
+        ErrorScreen(
+          errorString: error.localizedDescription,
+          onRetry: viewModel.loadComments
+        )
       }
 
       Divider()
@@ -310,6 +320,7 @@ struct LikeButton: View {
     postManager: postManager,
     viewModel: mockViewModel
   )
+  .environmentObject(AuthManager())
 }
 
 #Preview("No Comments") {
@@ -326,6 +337,7 @@ struct LikeButton: View {
     postManager: postManager,
     viewModel: mockViewModel
   )
+  .environmentObject(AuthManager())
 }
 
 #Preview("Error") {
@@ -342,4 +354,5 @@ struct LikeButton: View {
     postManager: postManager,
     viewModel: mockViewModel
   )
+  .environmentObject(AuthManager())
 }

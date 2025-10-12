@@ -1,5 +1,11 @@
-import Foundation
 import SwiftUI
+
+enum CommentState {
+  case idle
+  case loading
+  case loaded([DetailedComment])
+  case failed(Error)
+}
 
 extension CommentsView {
   @MainActor class ViewModel: ObservableObject {
@@ -8,10 +14,10 @@ extension CommentsView {
     @AppStorage("comment_sort_order") private var commentSortOrder: String =
       "Newest First"
 
-    @Published var comments = [DetailedComment]()
-    @Published var isLoading: Bool = false
-    @Published var errorMessage: String?
+    @Published var state: CommentState = .idle
+    @Published var isSubmitting: Bool = false
     @Published var showError: Bool = false
+    @Published var errorMessage: String?
     @ObservedObject var postManager: PostManager
 
     init(
@@ -26,46 +32,51 @@ extension CommentsView {
     }
 
     func loadComments() {
-      Task {
-        isLoading = true
+      state = .loading
 
+      Task {
         let result = await service.getComments(postId: postId)
 
         switch result {
         case .success(let fetchedComments):
-          comments = sortComments(fetchedComments)
+          state = .loaded(sortComments(fetchedComments))
           postManager.updatePost(
             id: postId,
             updates: { post in post.commentCount = fetchedComments.count }
           )
         case .error(let error):
-          print("Error fetching comments: \(error.localizedDescription)")
+          state = .failed(error)
         }
-
-        isLoading = false
       }
     }
 
     func toggleLike(for comment: DetailedComment) {
-      Task {
-        if let index = comments.firstIndex(where: {
+      guard case .loaded(var currentComments) = state else { return }
+
+      guard
+        let index = currentComments.firstIndex(where: {
           $0.commentId == comment.commentId
-        }) {
-          comments[index].isLiked.toggle()
+        })
+      else { return }
 
-          let result = await service.toggleLike(
-            postId: comment.postId,
-            commentId: comment.commentId,
-            isLiked: comment.isLiked
-          )
+      currentComments[index].isLiked.toggle()
+      state = .loaded(currentComments)
 
-          if case .error(let error) = result {
-            print("Error toggling like: \(error.localizedDescription)")
-            if let index = comments.firstIndex(where: {
-              $0.commentId == comment.commentId
-            }) {
-              comments[index].isLiked.toggle()
-            }
+      Task {
+        let result = await service.toggleLike(
+          postId: comment.postId,
+          commentId: comment.commentId,
+          isLiked: comment.isLiked
+        )
+
+        if case .error(let error) = result {
+          print("Error toggling like: \(error.localizedDescription)")
+          guard case .loaded(var revertComments) = state else { return }
+          if let index = revertComments.firstIndex(where: {
+            $0.commentId == comment.commentId
+          }) {
+            revertComments[index].isLiked.toggle()
+            state = .loaded(revertComments)
           }
         }
       }
@@ -95,23 +106,25 @@ extension CommentsView {
     }
 
     private func addCommentToList(_ comment: DetailedComment) {
+      guard case .loaded(var currentComments) = state else { return }
+
       if commentSortOrder == "Oldest First" {
-        comments.append(comment)
+        currentComments.append(comment)
       } else {
-        comments.insert(comment, at: 0)
+        currentComments.insert(comment, at: 0)
       }
+
+      state = .loaded(currentComments)
     }
 
     func submitComment(text: String) async -> Bool {
-      isLoading = true
-      defer {
-        isLoading = false
-      }
-
       let text = text.trimmingCharacters(
         in: .whitespacesAndNewlines
       )
       guard !text.isEmpty else { return false }
+
+      isSubmitting = true
+      defer { isSubmitting = false }
 
       let result = await service.addComment(postId: postId, text: text)
 
@@ -126,26 +139,31 @@ extension CommentsView {
         return true
       case .error(let error):
         print("Error adding comment: \(error.localizedDescription)")
-        self.errorMessage = error.localizedDescription
-        self.showError = true
+        errorMessage = error.localizedDescription
+        showError = true
         return false
       }
     }
 
     func deleteComment(_ comment: DetailedComment) async {
-      if let index = comments.firstIndex(where: {
-        $0.commentId == comment.commentId
-      }) {
-        comments.remove(at: index)
+      guard case .loaded(var currentComments) = state else { return }
 
-        let result = await service.deleteComment(commentId: comment.commentId)
+      guard
+        let index = currentComments.firstIndex(where: {
+          $0.commentId == comment.commentId
+        })
+      else { return }
 
-        if case .error(let error) = result {
-          print("Error deleting comment: \(error.localizedDescription)")
-          comments.insert(comment, at: index)
-          errorMessage = "Failed to delete comment"
-          showError = true
-        }
+      currentComments.remove(at: index)
+      state = .loaded(currentComments)
+
+      let result = await service.deleteComment(commentId: comment.commentId)
+
+      if case .error(let error) = result {
+        print("Error deleting comment: \(error.localizedDescription)")
+        guard case .loaded(var revertComments) = state else { return }
+        revertComments.insert(comment, at: index)
+        state = .loaded(revertComments)
       }
     }
   }
