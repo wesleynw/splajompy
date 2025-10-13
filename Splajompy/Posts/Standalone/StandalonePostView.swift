@@ -5,13 +5,17 @@ struct StandalonePostView: View {
   @ObservedObject var postManager: PostManager
 
   @StateObject private var viewModel: ViewModel
+  @StateObject private var commentsViewModel: CommentsView.ViewModel
   @State private var postState: PostState = .idle
+  @FocusState private var isCommentFocused: Bool
   @Environment(\.dismiss) private var dismiss
 
   init(postId: Int, postManager: PostManager) {
     self.postId = postId
     self.postManager = postManager
     _viewModel = StateObject(wrappedValue: ViewModel(postId: postId, postManager: postManager))
+    _commentsViewModel = StateObject(
+      wrappedValue: CommentsView.ViewModel(postId: postId, postManager: postManager))
   }
 
   var body: some View {
@@ -37,7 +41,13 @@ struct StandalonePostView: View {
                 }
               }
             )
-            CommentsView(postId: postId, postManager: postManager, isInSheet: false)
+            CommentsView(
+              postId: postId,
+              postManager: postManager,
+              viewModel: commentsViewModel,
+              isInSheet: false,
+              showInput: false
+            )
           }
         } else {
           ErrorScreen(
@@ -52,6 +62,9 @@ struct StandalonePostView: View {
         )
       }
     }
+    .onTapGesture {
+      isCommentFocused = false
+    }
     .refreshable(action: {
       Task { await loadPost() }
     })
@@ -61,6 +74,11 @@ struct StandalonePostView: View {
     .navigationTitle("Post")
     #if os(iOS)
       .navigationBarTitleDisplayMode(.inline)
+      .modifier(
+        CommentInputAccessoryModifier(
+          commentsViewModel: commentsViewModel,
+          isFocused: _isCommentFocused.projectedValue
+        ))
     #endif
   }
 
@@ -97,3 +115,30 @@ struct StandalonePostView: View {
     }
   }
 }
+
+#if os(iOS)
+  struct CommentInputAccessoryModifier: ViewModifier {
+    @ObservedObject var commentsViewModel: CommentsView.ViewModel
+    var isFocused: FocusState<Bool>.Binding
+
+    func body(content: Content) -> some View {
+      content
+        .safeAreaInset(edge: .bottom) {
+          CommentInputView(
+            text: $commentsViewModel.text,
+            cursorPosition: $commentsViewModel.cursorPosition,
+            isSubmitting: $commentsViewModel.isSubmitting,
+            isFocused: isFocused,
+            onSubmit: {
+              let result = await commentsViewModel.submitComment(
+                text: commentsViewModel.text.string)
+              if result {
+                commentsViewModel.resetInputState()
+              }
+              return result
+            }
+          )
+        }
+    }
+  }
+#endif

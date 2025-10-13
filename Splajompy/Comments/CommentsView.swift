@@ -4,6 +4,7 @@ import SwiftUI
 struct CommentsView: View {
   var postId: Int
   var isInSheet: Bool
+  var showInput: Bool
 
   @ObservedObject var postManager: PostManager
 
@@ -11,30 +12,34 @@ struct CommentsView: View {
   @Environment(\.dismiss) private var dismiss
 
   @State private var cursorY: CGFloat = 0
+  @FocusState private var isInputFocused: Bool
   #if os(iOS)
     @StateObject private var mentionViewModel =
       MentionTextEditor.MentionViewModel()
   #endif
 
-  init(postId: Int, postManager: PostManager, isInSheet: Bool = true) {
+  init(postId: Int, postManager: PostManager, isInSheet: Bool = true, showInput: Bool = true) {
     self.postId = postId
     self.postManager = postManager
     _viewModel = StateObject(
       wrappedValue: ViewModel(postId: postId, postManager: postManager)
     )
     self.isInSheet = isInSheet
+    self.showInput = showInput
   }
 
   init(
     postId: Int,
     postManager: PostManager,
     viewModel: ViewModel,
-    isInSheet: Bool = true
+    isInSheet: Bool = true,
+    showInput: Bool = true
   ) {
     self.postId = postId
     self.postManager = postManager
     _viewModel = StateObject(wrappedValue: viewModel)
     self.isInSheet = isInSheet
+    self.showInput = showInput
   }
 
   var body: some View {
@@ -61,7 +66,7 @@ struct CommentsView: View {
                 Button {
                   dismiss()
                 } label: {
-                  Image(systemName: "x.circle.fill")
+                  Image(systemName: "xmark.circle.fill")
                     .opacity(0.75)
                 }
                 .buttonStyle(.plain)
@@ -127,6 +132,9 @@ struct CommentsView: View {
               )
             }
           }
+          .onTapGesture {
+            isInputFocused = false
+          }
           .animation(.easeInOut(duration: 0.3), value: comments)
         }
       case .failed(let error):
@@ -136,50 +144,53 @@ struct CommentsView: View {
         )
       }
 
-      Divider()
+      if showInput {
+        Divider()
 
-      #if os(iOS)
-        HStack(alignment: .bottom, spacing: 8) {
-          MentionTextEditor(
-            text: $viewModel.text,
-            viewModel: mentionViewModel,
-            cursorY: $cursorY,
-            cursorPosition: $viewModel.cursorPosition,
-            isCompact: true
-          )
+        #if os(iOS)
+          HStack(alignment: .bottom, spacing: 8) {
+            MentionTextEditor(
+              text: $viewModel.text,
+              viewModel: mentionViewModel,
+              cursorY: $cursorY,
+              cursorPosition: $viewModel.cursorPosition,
+              isCompact: true
+            )
+            .focused($isInputFocused)
 
-          Button(action: {
-            Task {
-              let result = await viewModel.submitComment(text: viewModel.text.string)
-              if result == true {
-                viewModel.resetInputState()
-                postManager.updatePost(id: postId) { post in
-                  post.commentCount += 1
+            Button(action: {
+              Task {
+                let result = await viewModel.submitComment(text: viewModel.text.string)
+                if result == true {
+                  viewModel.resetInputState()
+                  postManager.updatePost(id: postId) { post in
+                    post.commentCount += 1
+                  }
                 }
               }
+            }) {
+              if viewModel.isSubmitting {
+                ProgressView()
+                  .frame(width: 32, height: 32)
+              } else {
+                Image(systemName: "arrow.up.circle.fill")
+                  .font(.system(size: 32))
+              }
             }
-          }) {
-            if viewModel.isSubmitting {
-              ProgressView()
-                .frame(width: 32, height: 32)
-            } else {
-              Image(systemName: "arrow.up.circle.fill")
-                .font(.system(size: 32))
-            }
+            .disabled(
+              viewModel.text.string.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                || viewModel.isSubmitting
+            )
           }
-          .disabled(
-            viewModel.text.string.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-              || viewModel.isSubmitting
-          )
-        }
 
-        .padding(.horizontal, 12)
-        .padding(.vertical, 8)
-      #endif
+          .padding(.horizontal, 12)
+          .padding(.vertical, 8)
+        #endif
+      }
     }
     #if os(iOS)
       .overlay(alignment: .bottomLeading) {
-        if mentionViewModel.isShowingSuggestions {
+        if showInput && mentionViewModel.isShowingSuggestions {
           MentionTextEditor.suggestionView(
             suggestions: mentionViewModel.mentionSuggestions,
             onInsert: { user in
