@@ -3,16 +3,12 @@ import PostHog
 import SwiftUI
 
 struct NewPostView: View {
-  @State private var text = NSAttributedString(string: "")
-  @State private var poll: PollCreationRequest?
-  @State private var showingPollCreation: Bool = false
   @State private var cursorY: CGFloat = 0
-  @State private var cursorPosition: Int = 0
+  @State private var showingPollCreation: Bool = false
 
   @StateObject private var viewModel: ViewModel
   @StateObject private var mentionViewModel =
     MentionTextEditor.MentionViewModel()
-  @FocusState private var isFocused: Bool
 
   @Environment(\.dismiss) private var dismiss
 
@@ -28,21 +24,21 @@ struct NewPostView: View {
         ScrollView {
           VStack {
             MentionTextEditor(
-              text: $text,
+              text: $viewModel.text,
               viewModel: mentionViewModel,
               cursorY: $cursorY,
-              cursorPosition: $cursorPosition,
+              cursorPosition: $viewModel.cursorPosition,
               isCompact: false,
               autoFocusOnAppear: true
             )
 
             imagePreviewsView
 
-            if let poll = poll {
+            if let poll = viewModel.poll {
               PollPreviewView(poll: poll) {
-                self.poll = nil
+                viewModel.poll = nil
               } onEdit: {
-                showingPollCreation = true
+                showingPollCreation.toggle()
               }
             }
           }
@@ -55,11 +51,11 @@ struct NewPostView: View {
                 onInsert: { user in
                   let result = mentionViewModel.insertMention(
                     user,
-                    in: text,
-                    at: cursorPosition
+                    in: viewModel.text,
+                    at: viewModel.cursorPosition
                   )
-                  text = result.text
-                  cursorPosition = result.newCursorPosition
+                  viewModel.text = result.text
+                  viewModel.cursorPosition = result.newCursorPosition
                 }
               )
               .offset(y: cursorY + 20)
@@ -75,7 +71,10 @@ struct NewPostView: View {
       }
       .alert(
         "An error occurred",
-        isPresented: .constant(viewModel.errorDisplay != nil),
+        isPresented: Binding(
+          get: { viewModel.errorDisplay != nil },
+          set: { if !$0 { viewModel.errorDisplay = nil } }
+        ),
         actions: {
           Button("OK") {
             viewModel.errorDisplay = nil
@@ -103,15 +102,7 @@ struct NewPostView: View {
 
         ToolbarItem(placement: .topBarTrailing) {
           if #available(iOS 26, *) {
-            Button {
-              viewModel.submitPost(
-                text: String(
-                  text.string.trimmingCharacters(in: .whitespacesAndNewlines)
-                ),
-                poll: poll,
-                dismiss: { dismiss() }
-              )
-            } label: {
+            Button(action: submitPostAction) {
               if viewModel.isLoading {
                 ProgressView()
               } else {
@@ -121,15 +112,7 @@ struct NewPostView: View {
             .buttonStyle(.borderedProminent)
             .disabled(isPostButtonDisabled)
           } else {
-            Button {
-              viewModel.submitPost(
-                text: String(
-                  text.string.trimmingCharacters(in: .whitespacesAndNewlines)
-                ),
-                poll: poll,
-                dismiss: { dismiss() }
-              )
-            } label: {
+            Button(action: submitPostAction) {
               Image(systemName: "arrow.up.circle.fill")
                 .opacity(0.8)
             }
@@ -139,7 +122,7 @@ struct NewPostView: View {
       }
     }
     .sheet(isPresented: $showingPollCreation) {
-      PollCreationView(poll: $poll)
+      PollCreationView(poll: $viewModel.poll)
     }
   }
 
@@ -228,17 +211,17 @@ struct NewPostView: View {
       }
 
       Button {
-        showingPollCreation = true
+        showingPollCreation.toggle()
       } label: {
-        Image(systemName: poll != nil ? "chart.bar.fill" : "chart.bar")
+        Image(systemName: viewModel.poll != nil ? "chart.bar.fill" : "chart.bar")
           .padding(.leading)
       }
 
       Spacer()
 
-      Text("\(text.string.count)/2500")
+      Text("\(viewModel.text.string.count)/2500")
         .foregroundStyle(
-          text.string.count > 2500
+          viewModel.text.string.count > 2500
             ? Color.red.opacity(0.7) : Color.primary.opacity(0.5)
         )
     }
@@ -246,11 +229,11 @@ struct NewPostView: View {
   }
 
   private var isPostButtonDisabled: Bool {
-    let trimmedText = text.string.trimmingCharacters(
+    let trimmedText = viewModel.text.string.trimmingCharacters(
       in: .whitespacesAndNewlines
     )
     let hasContent =
-      !trimmedText.isEmpty || viewModel.imageStates.count > 0 || poll != nil
+      !trimmedText.isEmpty || viewModel.imageStates.count > 0 || viewModel.poll != nil
 
     let allImagesLoaded = viewModel.imageStates.allSatisfy { item in
       if case .success = item.state {
@@ -261,6 +244,16 @@ struct NewPostView: View {
 
     return !hasContent || trimmedText.count > 2500 || viewModel.isLoading
       || !allImagesLoaded
+  }
+
+  private func submitPostAction() {
+    viewModel.submitPost(
+      text: String(
+        viewModel.text.string.trimmingCharacters(in: .whitespacesAndNewlines)
+      ),
+      poll: viewModel.poll,
+      dismiss: { dismiss() }
+    )
   }
 }
 

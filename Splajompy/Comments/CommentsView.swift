@@ -8,13 +8,9 @@ struct CommentsView: View {
   @ObservedObject var postManager: PostManager
 
   @StateObject private var viewModel: ViewModel
-  @FocusState private var isTextFieldFocused: Bool
   @Environment(\.dismiss) private var dismiss
 
-  @State private var text = NSAttributedString(string: "")
   @State private var cursorY: CGFloat = 0
-  @State private var cursorPosition: Int = 0
-  @State private var isCommentFieldFocused: Bool = false
   #if os(iOS)
     @StateObject private var mentionViewModel =
       MentionTextEditor.MentionViewModel()
@@ -145,30 +141,34 @@ struct CommentsView: View {
       #if os(iOS)
         HStack(alignment: .bottom, spacing: 8) {
           MentionTextEditor(
-            text: $text,
+            text: $viewModel.text,
             viewModel: mentionViewModel,
             cursorY: $cursorY,
-            cursorPosition: $cursorPosition,
+            cursorPosition: $viewModel.cursorPosition,
             isCompact: true
           )
 
           Button(action: {
             Task {
-              let result = await viewModel.submitComment(text: text.string)
+              let result = await viewModel.submitComment(text: viewModel.text.string)
               if result == true {
-                text = NSAttributedString(string: "")
-                isCommentFieldFocused = false
+                viewModel.resetInputState()
                 postManager.updatePost(id: postId) { post in
                   post.commentCount += 1
                 }
               }
             }
           }) {
-            Image(systemName: "arrow.up.circle.fill")
-              .font(.system(size: 32))
+            if viewModel.isSubmitting {
+              ProgressView()
+                .frame(width: 32, height: 32)
+            } else {
+              Image(systemName: "arrow.up.circle.fill")
+                .font(.system(size: 32))
+            }
           }
           .disabled(
-            text.string.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            viewModel.text.string.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
               || viewModel.isSubmitting
           )
         }
@@ -185,11 +185,11 @@ struct CommentsView: View {
             onInsert: { user in
               let result = mentionViewModel.insertMention(
                 user,
-                in: text,
-                at: cursorPosition
+                in: viewModel.text,
+                at: viewModel.cursorPosition
               )
-              text = result.text
-              cursorPosition = result.newCursorPosition
+              viewModel.text = result.text
+              viewModel.cursorPosition = result.newCursorPosition
             }
           )
           .padding(.horizontal, 16)
@@ -198,10 +198,16 @@ struct CommentsView: View {
         }
       }
     #endif
-    .onTapGesture {
-      if isTextFieldFocused {
-        isTextFieldFocused = false
+    .alert(
+      "Error submitting comment",
+      isPresented: $viewModel.showError,
+      actions: {
+        Button("OK") {
+          viewModel.showError = false
+        }
       }
+    ) {
+      Text(viewModel.errorMessage ?? "An error occurred while submitting your comment.")
     }
     .animation(.easeInOut, value: true)
     .onOpenURL { url in

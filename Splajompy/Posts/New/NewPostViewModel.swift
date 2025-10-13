@@ -13,6 +13,10 @@ extension NewPostView {
     @Published var isLoading = false
     @Published var errorDisplay: String?
 
+    @Published var text: NSAttributedString = NSAttributedString(string: "")
+    @Published var cursorPosition: Int = 0
+    @Published var poll: PollCreationRequest?
+
     @Published var imageStates = [
       (itemIdentifier: String, pickerItem: PhotosPickerItem, state: PhotoState)
     ]()
@@ -106,6 +110,12 @@ extension NewPostView {
           isLoading = false
         }
       }
+    }
+
+    func resetInputState() {
+      text = NSAttributedString(string: "")
+      cursorPosition = 0
+      poll = nil
     }
 
     private func loadTransferable(
