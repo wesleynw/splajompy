@@ -6,6 +6,7 @@ struct AttributedTextEditor: UIViewRepresentable {
   @Binding var cursorY: CGFloat
   @Binding var contentHeight: CGFloat
   var viewModel: MentionTextEditor.MentionViewModel?
+  var isScrollEnabled: Bool
 
   func makeUIView(context: Context) -> UITextView {
     let textView = UITextView()
@@ -19,12 +20,17 @@ struct AttributedTextEditor: UIViewRepresentable {
       .foregroundColor: UIColor.label,
     ]
     textView.attributedText = text
-    textView.isScrollEnabled = false
+    textView.isScrollEnabled = isScrollEnabled
     textView.translatesAutoresizingMaskIntoConstraints = true
     textView.setContentCompressionResistancePriority(
       .defaultLow,
       for: .horizontal
     )
+
+    if isScrollEnabled {
+      textView.textContainerInset = UIEdgeInsets(top: 4, left: 8, bottom: 4, right: 8)
+      textView.textContainer.lineFragmentPadding = 0
+    }
 
     return textView
   }

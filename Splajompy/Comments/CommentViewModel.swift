@@ -20,6 +20,9 @@ extension CommentsView {
     @Published var errorMessage: String?
     @ObservedObject var postManager: PostManager
 
+    @Published var text: NSAttributedString = NSAttributedString(string: "")
+    @Published var cursorPosition: Int = 0
+
     init(
       postId: Int,
       service: CommentServiceProtocol = CommentService(),
@@ -143,6 +146,11 @@ extension CommentsView {
         showError = true
         return false
       }
+    }
+
+    func resetInputState() {
+      text = NSAttributedString(string: "")
+      cursorPosition = 0
     }
 
     func deleteComment(_ comment: DetailedComment) async {
