@@ -31,7 +31,9 @@ struct NewPostView: View {
               text: $text,
               viewModel: mentionViewModel,
               cursorY: $cursorY,
-              cursorPosition: $cursorPosition
+              cursorPosition: $cursorPosition,
+              isCompact: false,
+              autoFocusOnAppear: true
             )
 
             imagePreviewsView

@@ -8,9 +8,17 @@ struct CommentsView: View {
   @ObservedObject var postManager: PostManager
 
   @StateObject private var viewModel: ViewModel
-  @State private var showingCommentSheet = false
   @FocusState private var isTextFieldFocused: Bool
   @Environment(\.dismiss) private var dismiss
+
+  @State private var text = NSAttributedString(string: "")
+  @State private var cursorY: CGFloat = 0
+  @State private var cursorPosition: Int = 0
+  @State private var isCommentFieldFocused: Bool = false
+  #if os(iOS)
+    @StateObject private var mentionViewModel =
+      MentionTextEditor.MentionViewModel()
+  #endif
 
   init(postId: Int, postManager: PostManager, isInSheet: Bool = true) {
     self.postId = postId
@@ -134,27 +142,62 @@ struct CommentsView: View {
 
       Divider()
 
-      Button(action: {
-        showingCommentSheet = true
-      }) {
-        HStack {
-          Spacer()
-          Image(systemName: "plus.circle.fill")
-            .font(.system(size: 20))
-          Text("Comment")
-            .fontWeight(.medium)
-          Spacer()
+      #if os(iOS)
+        HStack(alignment: .bottom, spacing: 8) {
+          MentionTextEditor(
+            text: $text,
+            viewModel: mentionViewModel,
+            cursorY: $cursorY,
+            cursorPosition: $cursorPosition,
+            isCompact: true
+          )
+
+          Button(action: {
+            Task {
+              let result = await viewModel.submitComment(text: text.string)
+              if result == true {
+                text = NSAttributedString(string: "")
+                isCommentFieldFocused = false
+                postManager.updatePost(id: postId) { post in
+                  post.commentCount += 1
+                }
+              }
+            }
+          }) {
+            Image(systemName: "arrow.up.circle.fill")
+              .font(.system(size: 32))
+          }
+          .disabled(
+            text.string.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+              || viewModel.isSubmitting
+          )
+        }
+
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+      #endif
+    }
+    #if os(iOS)
+      .overlay(alignment: .bottomLeading) {
+        if mentionViewModel.isShowingSuggestions {
+          MentionTextEditor.suggestionView(
+            suggestions: mentionViewModel.mentionSuggestions,
+            onInsert: { user in
+              let result = mentionViewModel.insertMention(
+                user,
+                in: text,
+                at: cursorPosition
+              )
+              text = result.text
+              cursorPosition = result.newCursorPosition
+            }
+          )
+          .padding(.horizontal, 16)
+          .padding(.bottom, 60)
+          .animation(.default, value: mentionViewModel.isShowingSuggestions)
         }
       }
-      .padding()
-      .buttonStyle(.plain)
-    }
-    .sheet(isPresented: $showingCommentSheet) {
-      AddCommentSheet(
-        viewModel: viewModel,
-        postId: postId,
-      )
-    }
+    #endif
     .onTapGesture {
       if isTextFieldFocused {
         isTextFieldFocused = false
