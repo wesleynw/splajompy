@@ -14,8 +14,6 @@ import SwiftUI
 
     var body: some View {
       VStack(spacing: 0) {
-        //        Divider()
-
         HStack(alignment: .bottom, spacing: 8) {
           MentionTextEditor(
             text: $text,
