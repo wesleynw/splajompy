@@ -28,7 +28,7 @@ struct AttributedTextEditor: UIViewRepresentable {
     )
 
     if isScrollEnabled {
-      textView.textContainerInset = UIEdgeInsets(top: 4, left: 8, bottom: 4, right: 8)
+      textView.textContainerInset = UIEdgeInsets(top: 8, left: 16, bottom: 8, right: 16)
       textView.textContainer.lineFragmentPadding = 0
     }
 
