@@ -14,7 +14,7 @@ import SwiftUI
 
     var body: some View {
       VStack(spacing: 0) {
-        Divider()
+        //        Divider()
 
         HStack(alignment: .bottom, spacing: 8) {
           MentionTextEditor(
@@ -26,27 +26,32 @@ import SwiftUI
           )
           .focused($isFocused)
 
-          Button(action: {
-            Task {
-              _ = await onSubmit()
+          if !text.string.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            Button(action: {
+              Task {
+                _ = await onSubmit()
+              }
+            }) {
+              if isSubmitting {
+                ProgressView()
+                  .frame(width: 32, height: 32)
+              } else {
+                Image(systemName: "arrow.up")
+                  .font(.system(size: 16, weight: .semibold))
+              }
             }
-          }) {
-            if isSubmitting {
-              ProgressView()
-                .frame(width: 32, height: 32)
-            } else {
-              Image(systemName: "arrow.up.circle.fill")
-                .font(.system(size: 32))
-            }
+            .buttonStyle(.borderedProminent)
+            .clipShape(Circle())
+            .transition(.scale.combined(with: .move(edge: .trailing)))
           }
-          .disabled(
-            text.string.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-              || isSubmitting
-          )
         }
+        .animation(
+          .spring(response: 0.3, dampingFraction: 0.7),
+          value: text.string.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        )
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
-        .background(Color(uiColor: .systemBackground))
+        //        .background(Color(uiColor: .systemBackground))
       }
       .overlay(alignment: .bottomLeading) {
         if mentionViewModel.isShowingSuggestions {
