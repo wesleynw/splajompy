@@ -56,13 +56,16 @@ struct MentionTextEditor: View {
         if text.string.isEmpty {
           Text("Add a comment...")
             .foregroundColor(Color(.placeholderText))
-            .offset(x: 16, y: 8)
+            .offset(x: 8, y: 4)
         }
       }
-      .clipShape(RoundedRectangle(cornerRadius: 18))
+      .padding(.horizontal, 4)
+      .padding(.vertical, 2)
+      .background(Color(.systemBackground))
+      .cornerRadius(18)
       .overlay(
         RoundedRectangle(cornerRadius: 18)
-          .stroke(Color.primary.opacity(0.3), lineWidth: 1)
+          .stroke(Color(.separator), lineWidth: 0.5)
       )
     } else {
       VStack(alignment: .leading, spacing: 0) {
