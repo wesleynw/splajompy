@@ -18,12 +18,7 @@ struct CommentsView: View {
       MentionTextEditor.MentionViewModel()
   #endif
 
-  init(
-    postId: Int,
-    postManager: PostManager,
-    isInSheet: Bool = true,
-    showInput: Bool = true
-  ) {
+  init(postId: Int, postManager: PostManager, isInSheet: Bool = true, showInput: Bool = true) {
     self.postId = postId
     self.postManager = postManager
     _viewModel = StateObject(
@@ -150,6 +145,8 @@ struct CommentsView: View {
       }
 
       if showInput {
+        Divider()
+
         #if os(iOS)
           HStack(alignment: .bottom, spacing: 8) {
             MentionTextEditor(
@@ -163,9 +160,7 @@ struct CommentsView: View {
 
             Button(action: {
               Task {
-                let result = await viewModel.submitComment(
-                  text: viewModel.text.string
-                )
+                let result = await viewModel.submitComment(text: viewModel.text.string)
                 if result == true {
                   viewModel.resetInputState()
                   postManager.updatePost(id: postId) { post in
@@ -183,9 +178,7 @@ struct CommentsView: View {
               }
             }
             .disabled(
-              viewModel.text.string.trimmingCharacters(
-                in: .whitespacesAndNewlines
-              ).isEmpty
+              viewModel.text.string.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
                 || viewModel.isSubmitting
             )
           }
@@ -225,10 +218,7 @@ struct CommentsView: View {
         }
       }
     ) {
-      Text(
-        viewModel.errorMessage
-          ?? "An error occurred while submitting your comment."
-      )
+      Text(viewModel.errorMessage ?? "An error occurred while submitting your comment.")
     }
     .animation(.easeInOut, value: true)
     .onOpenURL { url in
