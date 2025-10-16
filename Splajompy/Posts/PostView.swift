@@ -44,6 +44,7 @@ struct PostView: View {
   @State private var isShowingComments = false
   @State private var isReporting = false
   @State private var showReportAlert = false
+  @State private var showDeleteConfirmation = false
   @EnvironmentObject private var authManager: AuthManager
 
   var body: some View {
@@ -172,6 +173,16 @@ struct PostView: View {
     } message: {
       Text("Thanks. A notification has been sent to the developer.")
     }
+    .confirmationDialog(
+      "Are you sure you want to delete this post?",
+      isPresented: $showDeleteConfirmation,
+      titleVisibility: .visible
+    ) {
+      Button("Delete", role: .destructive) {
+        onPostDeleted()
+      }
+      Button("Cancel", role: .cancel) {}
+    }
   }
 
   private var postMenu: some View {
@@ -196,7 +207,7 @@ struct PostView: View {
                 }
               }
 
-              Button(role: .destructive, action: { onPostDeleted() }) {
+              Button(role: .destructive, action: { showDeleteConfirmation = true }) {
                 Label("Delete", systemImage: "trash")
                   .foregroundColor(.red)
               }
