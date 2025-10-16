@@ -115,4 +115,6 @@ struct AppStats: Decodable {
   let totalComments: Int
   let totalLikes: Int
   let totalFollows: Int
+  let totalUsers: Int
+  let totalNotifications: Int
 }

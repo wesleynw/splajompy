@@ -139,8 +139,10 @@ type ImageData struct {
 }
 
 type AppStats struct {
-	TotalPosts    int64 `json:"totalPosts"`
-	TotalComments int64 `json:"totalComments"`
-	TotalLikes    int64 `json:"totalLikes"`
-	TotalFollows  int64 `json:"totalFollows"`
+	TotalPosts         int64 `json:"totalPosts"`
+	TotalComments      int64 `json:"totalComments"`
+	TotalLikes         int64 `json:"totalLikes"`
+	TotalFollows       int64 `json:"totalFollows"`
+	TotalUsers         int64 `json:"totalUsers"`
+	TotalNotifications int64 `json:"totalNotifications"`
 }

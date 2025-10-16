@@ -433,7 +433,9 @@ struct MockProfileService: ProfileServiceProtocol {
         totalPosts: 1234,
         totalComments: 5678,
         totalLikes: 9012,
-        totalFollows: 345
+        totalFollows: 345,
+        totalUsers: 89,
+        totalNotifications: 456
       ))
   }
 }

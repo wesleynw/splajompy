@@ -45,6 +45,18 @@ func (q *Queries) GetTotalLikes(ctx context.Context) (int64, error) {
 	return count, err
 }
 
+const getTotalNotifications = `-- name: GetTotalNotifications :one
+SELECT COUNT(*)
+FROM notifications
+`
+
+func (q *Queries) GetTotalNotifications(ctx context.Context) (int64, error) {
+	row := q.db.QueryRow(ctx, getTotalNotifications)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const getTotalPosts = `-- name: GetTotalPosts :one
 SELECT COUNT(*)
 FROM posts
@@ -52,6 +64,18 @@ FROM posts
 
 func (q *Queries) GetTotalPosts(ctx context.Context) (int64, error) {
 	row := q.db.QueryRow(ctx, getTotalPosts)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
+const getTotalUsers = `-- name: GetTotalUsers :one
+SELECT COUNT(*)
+FROM users
+`
+
+func (q *Queries) GetTotalUsers(ctx context.Context) (int64, error) {
+	row := q.db.QueryRow(ctx, getTotalUsers)
 	var count int64
 	err := row.Scan(&count)
 	return count, err

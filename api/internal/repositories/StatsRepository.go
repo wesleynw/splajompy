@@ -11,6 +11,8 @@ type StatsRepository interface {
 	GetTotalComments(ctx context.Context) (int64, error)
 	GetTotalLikes(ctx context.Context) (int64, error)
 	GetTotalFollows(ctx context.Context) (int64, error)
+	GetTotalUsers(ctx context.Context) (int64, error)
+	GetTotalNotifications(ctx context.Context) (int64, error)
 }
 
 type DBStatsRepository struct {
@@ -35,6 +37,16 @@ func (r DBStatsRepository) GetTotalLikes(ctx context.Context) (int64, error) {
 // GetTotalFollows returns the total number of follow relationships in the system
 func (r DBStatsRepository) GetTotalFollows(ctx context.Context) (int64, error) {
 	return r.querier.GetTotalFollows(ctx)
+}
+
+// GetTotalUsers returns the total number of users in the system
+func (r DBStatsRepository) GetTotalUsers(ctx context.Context) (int64, error) {
+	return r.querier.GetTotalUsers(ctx)
+}
+
+// GetTotalNotifications returns the total number of notifications in the system
+func (r DBStatsRepository) GetTotalNotifications(ctx context.Context) (int64, error) {
+	return r.querier.GetTotalNotifications(ctx)
 }
 
 // NewDBStatsRepository creates a new stats repository
