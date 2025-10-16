@@ -13,3 +13,11 @@ FROM likes;
 -- name: GetTotalFollows :one
 SELECT COUNT(*)
 FROM follows;
+
+-- name: GetTotalUsers :one
+SELECT COUNT(*)
+FROM users;
+
+-- name: GetTotalNotifications :one
+SELECT COUNT(*)
+FROM notifications;

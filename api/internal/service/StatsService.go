@@ -39,10 +39,22 @@ func (s *StatsService) GetAppStats(ctx context.Context) (*models.AppStats, error
 		return nil, errors.New("unable to retrieve total follows")
 	}
 
+	totalUsers, err := s.statsRepository.GetTotalUsers(ctx)
+	if err != nil {
+		return nil, errors.New("unable to retrieve total users")
+	}
+
+	totalNotifications, err := s.statsRepository.GetTotalNotifications(ctx)
+	if err != nil {
+		return nil, errors.New("unable to retrieve total notifications")
+	}
+
 	return &models.AppStats{
-		TotalPosts:    totalPosts,
-		TotalComments: totalComments,
-		TotalLikes:    totalLikes,
-		TotalFollows:  totalFollows,
+		TotalPosts:         totalPosts,
+		TotalComments:      totalComments,
+		TotalLikes:         totalLikes,
+		TotalFollows:       totalFollows,
+		TotalUsers:         totalUsers,
+		TotalNotifications: totalNotifications,
 	}, nil
 }
