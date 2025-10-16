@@ -72,6 +72,8 @@ struct StatisticsView: View {
           StatRow(label: "Comments", value: stats.totalComments)
           StatRow(label: "Likes", value: stats.totalLikes)
           StatRow(label: "Follows", value: stats.totalFollows)
+          StatRow(label: "Splajompians", value: stats.totalUsers)
+          StatRow(label: "Notifications", value: stats.totalNotifications)
         }
         .refreshable {
           await loadStats()
