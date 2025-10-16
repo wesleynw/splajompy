@@ -249,6 +249,7 @@ struct CommentRow: View {
   let formatter = RelativeDateTimeFormatter()
 
   @EnvironmentObject private var authManager: AuthManager
+  @State private var showDeleteConfirmation = false
 
   private var commentDate: Date {
     let dateFormatter = ISO8601DateFormatter()
@@ -294,7 +295,7 @@ struct CommentRow: View {
             if currentUser.userId == comment.user.userId {
               Menu(
                 content: {
-                  Button(role: .destructive, action: { deleteComment() }) {
+                  Button(role: .destructive, action: { showDeleteConfirmation = true }) {
                     Label("Delete", systemImage: "trash")
                       .foregroundColor(.red)
                   }
@@ -332,6 +333,16 @@ struct CommentRow: View {
           }
         )
     )
+    .confirmationDialog(
+      "Are you sure you want to delete this comment?",
+      isPresented: $showDeleteConfirmation,
+      titleVisibility: .visible
+    ) {
+      Button("Delete", role: .destructive) {
+        deleteComment()
+      }
+      Button("Cancel", role: .cancel) {}
+    }
 
   }
 }
