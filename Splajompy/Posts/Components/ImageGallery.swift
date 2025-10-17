@@ -312,6 +312,8 @@ struct FullscreenImagePager: View {
         .tabViewStyle(PageTabViewStyle())
         .indexViewStyle(PageIndexViewStyle(backgroundDisplayMode: .always))
       #endif
+      .modifier(
+        NavigationTransitionModifier(sourceID: "image-\(currentIndex)", namespace: namespace))
 
       VStack {
         HStack {
@@ -359,7 +361,6 @@ struct FullscreenImagePager: View {
         Spacer()
       }
     }
-    .modifier(NavigationTransitionModifier(sourceID: "image-\(currentIndex)", namespace: namespace))
     .gesture(
       DragGesture(minimumDistance: 10)
         .onEnded { gesture in
@@ -372,7 +373,7 @@ struct FullscreenImagePager: View {
 }
 
 #Preview("Fullscreen Images") {
-  @Namespace var previewAnimation
+  @Previewable @Namespace var previewAnimation
 
   let imageUrls = [
     "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/development/posts/1/9278fc8a-401b-4145-83bb-ef05d4d52632.jpeg",
