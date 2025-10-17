@@ -111,9 +111,7 @@ struct NotificationsView: View {
             Spacer()
 
             Button("Mark All Read") {
-              Task {
-                await viewModel.markAllNotificationsAsRead()
-              }
+              viewModel.markAllNotificationsAsRead()
             }
             .font(.caption)
             .foregroundColor(.blue)
