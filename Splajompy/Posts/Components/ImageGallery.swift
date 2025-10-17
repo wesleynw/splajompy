@@ -591,11 +591,15 @@ struct TransitionSourceModifier: ViewModifier {
   let namespace: Namespace.ID
 
   func body(content: Content) -> some View {
-    if #available(iOS 18.0, *) {
-      content.matchedTransitionSource(id: id, in: namespace)
-    } else {
+    #if os(iOS)
+      if #available(iOS 18.0, *) {
+        content.matchedTransitionSource(id: id, in: namespace)
+      } else {
+        content
+      }
+    #else
       content
-    }
+    #endif
   }
 }
 
@@ -604,10 +608,14 @@ struct NavigationTransitionModifier: ViewModifier {
   let namespace: Namespace.ID
 
   func body(content: Content) -> some View {
-    if #available(iOS 18.0, *) {
-      content.navigationTransition(.zoom(sourceID: sourceID, in: namespace))
-    } else {
+    #if os(iOS)
+      if #available(iOS 18.0, *) {
+        content.navigationTransition(.zoom(sourceID: sourceID, in: namespace))
+      } else {
+        content
+      }
+    #else
       content
-    }
+    #endif
   }
 }
