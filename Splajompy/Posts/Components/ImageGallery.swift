@@ -6,6 +6,7 @@ struct ImageGallery: View {
 
   @State private var selectedImageIndex: Int? = nil
   @Environment(\.colorScheme) var colorScheme
+  @Namespace var animation
 
   var body: some View {
     Group {
@@ -35,7 +36,8 @@ struct ImageGallery: View {
         FullscreenImagePager(
           imageUrls: images.map { $0.imageBlobUrl },
           initialIndex: imageItem.id,
-          onDismiss: { selectedImageIndex = nil }
+          onDismiss: { selectedImageIndex = nil },
+          namespace: animation
         )
       }
     #else
@@ -56,7 +58,8 @@ struct ImageGallery: View {
         FullscreenImagePager(
           imageUrls: images.map { $0.imageBlobUrl },
           initialIndex: imageItem.id,
-          onDismiss: { selectedImageIndex = nil }
+          onDismiss: { selectedImageIndex = nil },
+          namespace: animation
         )
       }
     #endif
@@ -204,6 +207,7 @@ struct ImageGallery: View {
           )
         )
         .contentShape(.rect)
+        .modifier(TransitionSourceModifier(id: "image-\(index)", namespace: animation))
         .onTapGesture {
           selectedImageIndex = index
         }
@@ -244,6 +248,7 @@ struct ImageGallery: View {
         .frame(width: displayWidth, height: frameHeight)
         .clipShape(RoundedRectangle(cornerRadius: 8))
         .contentShape(.rect)
+        .modifier(TransitionSourceModifier(id: "image-0", namespace: animation))
         .onTapGesture {
           selectedImageIndex = 0
         }
@@ -261,11 +266,15 @@ struct FullscreenImagePager: View {
   let imageUrls: [String]
   @State private var currentIndex: Int
   let onDismiss: () -> Void
+  let namespace: Namespace.ID
 
-  init(imageUrls: [String], initialIndex: Int, onDismiss: @escaping () -> Void) {
+  init(
+    imageUrls: [String], initialIndex: Int, onDismiss: @escaping () -> Void, namespace: Namespace.ID
+  ) {
     self.imageUrls = imageUrls
     self._currentIndex = State(initialValue: initialIndex)
     self.onDismiss = onDismiss
+    self.namespace = namespace
   }
 
   private var screenWidth: CGFloat {
@@ -350,6 +359,7 @@ struct FullscreenImagePager: View {
         Spacer()
       }
     }
+    .modifier(NavigationTransitionModifier(sourceID: "image-\(currentIndex)", namespace: namespace))
     .gesture(
       DragGesture(minimumDistance: 10)
         .onEnded { gesture in
@@ -362,6 +372,8 @@ struct FullscreenImagePager: View {
 }
 
 #Preview("Fullscreen Images") {
+  @Namespace var previewAnimation
+
   let imageUrls = [
     "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/development/posts/1/9278fc8a-401b-4145-83bb-ef05d4d52632.jpeg",
     "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/development/posts/1/9278fc8a-401b-4145-83bb-ef05d4d52632.jpeg",
@@ -371,7 +383,8 @@ struct FullscreenImagePager: View {
   FullscreenImagePager(
     imageUrls: imageUrls,
     initialIndex: 0,
-    onDismiss: { print("dismiss") }
+    onDismiss: { print("dismiss") },
+    namespace: previewAnimation
   )
 }
 
@@ -571,4 +584,30 @@ struct FullscreenImagePager: View {
   Rectangle().frame(height: 10)
   ImageGallery(images: images)
   Rectangle().frame(height: 10)
+}
+
+struct TransitionSourceModifier: ViewModifier {
+  let id: String
+  let namespace: Namespace.ID
+
+  func body(content: Content) -> some View {
+    if #available(iOS 18.0, *) {
+      content.matchedTransitionSource(id: id, in: namespace)
+    } else {
+      content
+    }
+  }
+}
+
+struct NavigationTransitionModifier: ViewModifier {
+  let sourceID: String
+  let namespace: Namespace.ID
+
+  func body(content: Content) -> some View {
+    if #available(iOS 18.0, *) {
+      content.navigationTransition(.zoom(sourceID: sourceID, in: namespace))
+    } else {
+      content
+    }
+  }
 }
