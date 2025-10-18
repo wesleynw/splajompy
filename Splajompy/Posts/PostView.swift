@@ -46,6 +46,7 @@ struct PostView: View {
   @State private var showReportAlert = false
   @State private var showDeleteConfirmation = false
   @EnvironmentObject private var authManager: AuthManager
+  @Environment(\.navigationNamespace) private var navigationNamespace
 
   var body: some View {
     VStack {
@@ -57,6 +58,12 @@ struct PostView: View {
           postContent
         }
         .buttonStyle(.plain)
+        .modifier(
+          OptionalTransitionSourceModifier(
+            id: "post-\(post.id)",
+            namespace: navigationNamespace
+          )
+        )
       } else {
         postContent
           .padding(.horizontal, 2)

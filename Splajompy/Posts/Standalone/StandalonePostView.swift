@@ -9,6 +9,7 @@ struct StandalonePostView: View {
   @State private var postState: PostState = .idle
   @FocusState private var isCommentFocused: Bool
   @Environment(\.dismiss) private var dismiss
+  @Environment(\.navigationNamespace) private var navigationNamespace
 
   init(postId: Int, postManager: PostManager) {
     self.postId = postId
@@ -72,6 +73,12 @@ struct StandalonePostView: View {
       await reloadPost()
     }
     .navigationTitle("Post")
+    .modifier(
+      OptionalNavigationTransitionModifier(
+        sourceID: "post-\(postId)",
+        namespace: navigationNamespace
+      )
+    )
     #if os(iOS)
       .navigationBarTitleDisplayMode(.inline)
       .modifier(
