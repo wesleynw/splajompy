@@ -180,7 +180,8 @@ final class MockPostStore: @unchecked Sendable {
           email: "wesley@example.com",
           username: "wesley",
           createdAt: baseDate.addingTimeInterval(-25_920_000),
-          name: "Wesley"
+          name: "Wesley",
+          isVerified: false
         ),
         isLiked: true,
         commentCount: 3,
@@ -216,7 +217,8 @@ final class MockPostStore: @unchecked Sendable {
           email: "wesley@example.com",
           username: "wesley",
           createdAt: baseDate.addingTimeInterval(-25_920_000),
-          name: "Wesley"
+          name: "Wesley",
+          isVerified: false
         ),
         isLiked: false,
         commentCount: 1,
@@ -241,7 +243,8 @@ final class MockPostStore: @unchecked Sendable {
           email: "wesleynw@pm.me",
           username: "wesleynw",
           createdAt: baseDate.addingTimeInterval(-31_536_000),
-          name: "Wesley 🌌"
+          name: "Wesley 🌌",
+          isVerified: true
         ),
         isLiked: false,
         commentCount: 0,
@@ -265,7 +268,8 @@ final class MockPostStore: @unchecked Sendable {
           email: "marketvendor@example.com",
           username: "marketvendor",
           createdAt: baseDate.addingTimeInterval(-2_592_000),
-          name: "Market Maven"
+          name: "Market Maven",
+          isVerified: false
         ),
         isLiked: true,
         commentCount: 2,
@@ -300,7 +304,8 @@ final class MockPostStore: @unchecked Sendable {
           email: "showrunner@example.com",
           username: "giuseppe",
           createdAt: baseDate.addingTimeInterval(-5_184_000),
-          name: "DROP TABLE users; --"
+          name: "DROP TABLE users; --",
+          isVerified: false
         ),
         isLiked: false,
         commentCount: 5,
@@ -326,7 +331,8 @@ final class MockPostStore: @unchecked Sendable {
           email: "sophie@example.com",
           username: "realsophie",
           createdAt: baseDate.addingTimeInterval(-18_144_000),
-          name: "Sophie"
+          name: "Sophie",
+          isVerified: false
         ),
         isLiked: true,
         commentCount: 0,
@@ -350,7 +356,8 @@ final class MockPostStore: @unchecked Sendable {
           email: "joel@example.com",
           username: "joel",
           createdAt: baseDate.addingTimeInterval(-20_736_000),
-          name: "Joel"
+          name: "Joel",
+          isVerified: false
         ),
         isLiked: false,
         commentCount: 1,
@@ -374,7 +381,8 @@ final class MockPostStore: @unchecked Sendable {
           email: "wesleynw@pm.me",
           username: "wesleynw",
           createdAt: baseDate.addingTimeInterval(-31_536_000),
-          name: "Wesley 🔥"
+          name: "Wesley 🔥",
+          isVerified: true
         ),
         isLiked: true,
         commentCount: 4,
@@ -399,7 +407,8 @@ final class MockPostStore: @unchecked Sendable {
           email: "showrunner@example.com",
           username: "giuseppe",
           createdAt: baseDate.addingTimeInterval(-5_184_000),
-          name: "DROP TABLE users; --"
+          name: "DROP TABLE users; --",
+          isVerified: false
         ),
         isLiked: false,
         commentCount: 2,
@@ -435,7 +444,8 @@ final class MockPostStore: @unchecked Sendable {
           email: "wesleynw@pm.me",
           username: "wesleynw",
           createdAt: baseDate.addingTimeInterval(-31_536_000),
-          name: "Wesley 🌌"
+          name: "Wesley 🌌",
+          isVerified: true
         ),
         isLiked: false,
         commentCount: 0,
@@ -458,7 +468,8 @@ final class MockPostStore: @unchecked Sendable {
           email: "wesleynw@pm.me",
           username: "wesleynw",
           createdAt: baseDate.addingTimeInterval(-31_536_000),
-          name: "Wesley 🌌"
+          name: "Wesley 🌌",
+          isVerified: true
         ),
         isLiked: false,
         commentCount: 0,

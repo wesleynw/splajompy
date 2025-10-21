@@ -38,8 +38,9 @@ type APIResponse struct {
 }
 
 type RelevantLike struct {
-	Username string `json:"username"`
-	UserID   int    `json:"userId"`
+	Username   string `json:"username"`
+	UserID     int    `json:"userId"`
+	IsVerified bool   `json:"isVerified"`
 }
 
 type Notification struct {
@@ -112,11 +113,12 @@ type DetailedNotification struct {
 
 // PublicUser Related to queries.GetUserByIdentifierRow
 type PublicUser struct {
-	UserID    int       `json:"userId"`
-	Email     string    `json:"email"`
-	Username  string    `json:"username"`
-	CreatedAt time.Time `json:"createdAt"`
-	Name      string    `json:"name"`
+	UserID     int       `json:"userId"`
+	Email      string    `json:"email"`
+	Username   string    `json:"username"`
+	CreatedAt  time.Time `json:"createdAt"`
+	Name       string    `json:"name"`
+	IsVerified bool      `json:"isVerified"`
 }
 
 type DetailedUser struct {
@@ -130,6 +132,7 @@ type DetailedUser struct {
 	IsFollowing bool      `json:"isFollowing"`
 	IsBlocking  bool      `json:"isBlocking"`
 	Mutuals     []string  `json:"mutuals"`
+	IsVerified  bool      `json:"isVerified"`
 }
 
 type ImageData struct {

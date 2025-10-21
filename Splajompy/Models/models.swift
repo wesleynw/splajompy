@@ -7,6 +7,7 @@ struct User: Decodable {
   let createdAt: Date
   let name: String?
   var isFollowing: Bool?
+  let isVerified: Bool?
 }
 
 struct DetailedUser: Decodable {
@@ -20,6 +21,7 @@ struct DetailedUser: Decodable {
   var isFollowing: Bool
   let isBlocking: Bool
   let mutuals: [String]
+  let isVerified: Bool
 }
 
 struct ImageDTO: Decodable {

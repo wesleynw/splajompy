@@ -11,6 +11,7 @@ struct UserProfile: Decodable {
   var isFollowing: Bool
   var isBlocking: Bool
   let mutuals: [String]
+  var isVerified: Bool?
 }
 
 struct UpdateProfileRequest: Encodable {
@@ -159,7 +160,8 @@ final class MockUserStore: @unchecked Sendable {
         isFollower: false,
         isFollowing: false,
         isBlocking: false,
-        mutuals: []
+        mutuals: [],
+        isVerified: true
       ),
       6: UserProfile(
         userId: 6,
@@ -323,21 +325,24 @@ struct MockProfileService: ProfileServiceProtocol {
         email: "jane.smith@example.com",
         username: prefix + "_janesmith",
         createdAt: baseDate.addingTimeInterval(-8_640_000),
-        name: "Jane Smith"
+        name: "Jane Smith",
+        isVerified: false
       ),
       User(
         userId: 1002,
         email: "david.wilson@example.com",
         username: prefix + "davewilson",
         createdAt: baseDate.addingTimeInterval(-4_320_000),
-        name: "David Wilson"
+        name: "David Wilson",
+        isVerified: false
       ),
       User(
         userId: 1003,
         email: "maria.garcia@example.com",
         username: prefix + "mariagarcia",
         createdAt: baseDate.addingTimeInterval(-2_160_000),
-        name: "Maria Garcia"
+        name: "Maria Garcia",
+        isVerified: false
       ),
     ])
   }
@@ -397,7 +402,8 @@ struct MockProfileService: ProfileServiceProtocol {
         isFollower: profile.isFollower,
         isFollowing: profile.isFollowing,
         isBlocking: profile.isBlocking,
-        mutuals: profile.mutuals
+        mutuals: profile.mutuals,
+        isVerified: profile.isVerified ?? false
       )
     }
     return .success(paginatedUsers)
@@ -420,7 +426,8 @@ struct MockProfileService: ProfileServiceProtocol {
         isFollower: profile.isFollower,
         isFollowing: profile.isFollowing,
         isBlocking: profile.isBlocking,
-        mutuals: profile.mutuals
+        mutuals: profile.mutuals,
+        isVerified: profile.isVerified ?? false
       )
     }
     return .success(paginatedUsers)

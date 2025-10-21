@@ -46,7 +46,6 @@ struct PostView: View {
   @State private var showReportAlert = false
   @State private var showDeleteConfirmation = false
   @EnvironmentObject private var authManager: AuthManager
-  @Environment(\.navigationNamespace) private var navigationNamespace
 
   var body: some View {
     VStack {
@@ -58,12 +57,6 @@ struct PostView: View {
           postContent
         }
         .buttonStyle(.plain)
-        .modifier(
-          OptionalTransitionSourceModifier(
-            id: "post-\(post.id)",
-            namespace: navigationNamespace
-          )
-        )
       } else {
         postContent
           .padding(.horizontal, 2)
@@ -77,97 +70,18 @@ struct PostView: View {
   private var postContent: some View {
     VStack(alignment: .leading, spacing: 12) {
       if showAuthor {
-        HStack(alignment: .top) {
-          NavigationLink(
-            value: Route.profile(
-              id: String(post.user.userId),
-              username: post.user.username
-            )
-          ) {
-            VStack(alignment: .leading, spacing: 2) {
-              if post.user.username == "ads" {
-                HStack {
-                  Image(systemName: "medal")
-                  Text("Sponsored")
-                    .font(.subheadline)
-                    .fontWeight(.semibold)
-                }
-              } else {
-                if let displayName = post.user.name, !displayName.isEmpty {
-                  Text(displayName)
-                    .font(.title2)
-                    .fontWeight(.black)
-                    .lineLimit(1)
-                  Text("@\(post.user.username)")
-                    .font(.subheadline)
-                    .fontWeight(.bold)
-                    .foregroundColor(.gray)
-                } else {
-                  Text("@\(post.user.username)")
-                    .font(.title3)
-                    .fontWeight(.black)
-                }
-              }
-            }
-          }
-        }
-        .buttonStyle(.plain)
+        authorHeader
       }
 
       if post.isPinned && !showAuthor {
-        HStack {
-          Image(systemName: "pin.fill")
-            .font(.callout)
-            .foregroundColor(.secondary)
-          Text("Pinned")
-            .font(.callout)
-            .fontWeight(.semibold)
-            .foregroundColor(.secondary)
-          Spacer()
-        }
-        .transition(.opacity)
+        pinnedIndicator
       }
 
-      if let content = post.post.richContent {
-        ContentTextView(attributedText: content)
-      }
-
-      if let images = post.images, !images.isEmpty {
-        ImageGallery(images: images)
-      }
-
-      if let poll = post.poll {
-        PollView(
-          poll: poll,
-          authorId: post.user.userId,
-          onVote: { option in
-            Task {
-              await postManager.voteInPoll(postId: post.id, optionIndex: option)
-            }
-          }
-        )
-      }
-
-      RelevantLikeView(
-        relevantLikes: post.relevantLikes,
-        hasOtherLikes: post.hasOtherLikes
-      )
-      .animation(.easeInOut(duration: 0.3), value: post.relevantLikes.count)
-      .animation(.easeInOut(duration: 0.3), value: post.hasOtherLikes)
-
-      HStack {
-        Text(
-          RelativeDateTimeFormatter().localizedString(
-            for: post.post.createdAt,
-            relativeTo: Date.now
-          )
-        )
-        .font(.caption)
-        .foregroundColor(.gray)
-        Spacer()
-
-        postMenu
-      }
+      postTextContent
+      postImages
+      postPoll
+      relevantLikes
+      timestampAndMenu
     }
     .animation(.easeInOut(duration: 0.3), value: post.isPinned)
     .padding(.vertical, 4)
@@ -189,6 +103,122 @@ struct PostView: View {
         onPostDeleted()
       }
       Button("Cancel", role: .cancel) {}
+    }
+  }
+
+  private var authorHeader: some View {
+    HStack(alignment: .top) {
+      NavigationLink(
+        value: Route.profile(
+          id: String(post.user.userId),
+          username: post.user.username
+        )
+      ) {
+        VStack(alignment: .leading, spacing: 2) {
+          if post.user.username == "ads" {
+            HStack {
+              Image(systemName: "medal")
+              Text("Sponsored")
+                .font(.subheadline)
+                .fontWeight(.semibold)
+            }
+          } else {
+            if let displayName = post.user.name, !displayName.isEmpty {
+              Text(displayName)
+                .font(.title2)
+                .fontWeight(.black)
+                .lineLimit(1)
+              HStack(spacing: 4) {
+                Text("@\(post.user.username)")
+                  .font(.subheadline)
+                  .fontWeight(.bold)
+                  .foregroundColor(.gray)
+                if post.user.isVerified == true {
+                  VerificationBadge()
+                }
+              }
+            } else {
+              HStack(spacing: 4) {
+                Text("@\(post.user.username)")
+                  .font(.title3)
+                  .fontWeight(.black)
+                if post.user.isVerified == true {
+                  VerificationBadge()
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    .buttonStyle(.plain)
+  }
+
+  private var pinnedIndicator: some View {
+    HStack {
+      Image(systemName: "pin.fill")
+        .font(.callout)
+        .foregroundColor(.secondary)
+      Text("Pinned")
+        .font(.callout)
+        .fontWeight(.semibold)
+        .foregroundColor(.secondary)
+      Spacer()
+    }
+    .transition(.opacity)
+  }
+
+  @ViewBuilder
+  private var postTextContent: some View {
+    if let content = post.post.richContent {
+      ContentTextView(attributedText: content)
+    }
+  }
+
+  @ViewBuilder
+  private var postImages: some View {
+    if let images = post.images, !images.isEmpty {
+      ImageGallery(images: images)
+    }
+  }
+
+  @ViewBuilder
+  private var postPoll: some View {
+    if let poll = post.poll {
+      PollView(
+        poll: poll,
+        authorId: post.user.userId,
+        onVote: { option in
+          Task {
+            await postManager.voteInPoll(postId: post.id, optionIndex: option)
+          }
+        }
+      )
+    }
+  }
+
+  private var relevantLikes: some View {
+    RelevantLikeView(
+      relevantLikes: post.relevantLikes,
+      hasOtherLikes: post.hasOtherLikes
+    )
+    .animation(.easeInOut(duration: 0.3), value: post.relevantLikes.count)
+    .animation(.easeInOut(duration: 0.3), value: post.hasOtherLikes)
+  }
+
+  private var timestampAndMenu: some View {
+    HStack {
+      Text(
+        RelativeDateTimeFormatter().localizedString(
+          for: post.post.createdAt,
+          relativeTo: Date.now
+        )
+      )
+      .font(.caption)
+      .foregroundColor(.gray)
+      Spacer()
+
+      postMenu
     }
   }
 
@@ -327,7 +357,8 @@ struct PostView: View {
     email: "wesleynw@pm.me",
     username: "wesleynw",
     createdAt: dateFormatter.date(from: "2025-01-15T10:20:30.000Z")!,
-    name: "John Doe"
+    name: "John Doe",
+    isVerified: false
   )
 
   let images = [
@@ -372,7 +403,7 @@ struct PostView: View {
       onLikeButtonTapped: {},
       onPostDeleted: {},
       onPostPinned: {},
-      onPostUnpinned: {},
+      onPostUnpinned: {}
     )
     .environmentObject(authManager)
   }
@@ -396,7 +427,8 @@ struct PostView: View {
     email: "wesleynw@pm.me",
     username: "wesleynw",
     createdAt: dateFormatter.date(from: "2025-01-15T10:20:30.000Z")!,
-    name: "John Doe"
+    name: "John Doe",
+    isVerified: false
   )
 
   let images = [

@@ -96,6 +96,7 @@ type User struct {
 	Username     string           `json:"username"`
 	CreatedAt    pgtype.Timestamp `json:"createdAt"`
 	Name         pgtype.Text      `json:"name"`
+	IsVerified   bool             `json:"isVerified"`
 	PinnedPostID *int             `json:"pinnedPostId"`
 }
 

@@ -103,7 +103,8 @@ class AuthManager: ObservableObject, Sendable {
       email: email,
       username: username,
       createdAt: createdAt,
-      name: name
+      name: name,
+      isVerified: nil
     )
   }
 

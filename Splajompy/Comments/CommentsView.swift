@@ -272,11 +272,19 @@ struct CommentRow: View {
             .font(.subheadline)
             .foregroundColor(.gray)
             .lineLimit(1)
+
+          if comment.user.isVerified == true {
+            VerificationBadge()
+          }
         } else {
           Text("@\(comment.user.username)")
             .font(.headline)
             .fontWeight(.bold)
             .foregroundColor(.gray)
+
+          if comment.user.isVerified == true {
+            VerificationBadge()
+          }
         }
       }
 
