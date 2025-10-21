@@ -541,3 +541,48 @@ func (r *FakeUserRepository) GetFollowingByUserId(ctx context.Context, userId in
 
 	return following[start:end], nil
 }
+
+func (r *FakeUserRepository) GetMutualsByUserId(ctx context.Context, currentUserId int, targetUserId int, limit int, offset int) ([]queries.GetMutualsByUserIdRow, error) {
+	r.mutex.RLock()
+	defer r.mutex.RUnlock()
+
+	var mutuals []queries.GetMutualsByUserIdRow
+
+	// Get the users that both currentUserId and targetUserId follow
+	currentUserFollowing, currentExists := r.followRelations[currentUserId]
+	targetUserFollowing, targetExists := r.followRelations[targetUserId]
+
+	if currentExists && targetExists {
+		for followingId := range currentUserFollowing {
+			// Check if targetUserId also follows this user
+			if currentUserFollowing[followingId] && targetUserFollowing[followingId] {
+				if user, exists := r.users[followingId]; exists {
+					var name pgtype.Text
+					if user.Name != "" {
+						name = pgtype.Text{String: user.Name, Valid: true}
+					}
+
+					mutuals = append(mutuals, queries.GetMutualsByUserIdRow{
+						UserID:    followingId,
+						Email:     user.Email,
+						Username:  user.Username,
+						CreatedAt: pgtype.Timestamp{Time: user.CreatedAt, Valid: true},
+						Name:      name,
+					})
+				}
+			}
+		}
+	}
+
+	// Simple pagination
+	start := offset
+	end := offset + limit
+	if start >= len(mutuals) {
+		return []queries.GetMutualsByUserIdRow{}, nil
+	}
+	if end > len(mutuals) {
+		end = len(mutuals)
+	}
+
+	return mutuals[start:end], nil
+}

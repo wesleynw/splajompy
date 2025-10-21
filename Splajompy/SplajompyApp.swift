@@ -199,7 +199,9 @@ struct SplajompyApp: App {
     case .post(let id):
       StandalonePostView(postId: id, postManager: postManager)
     case .followingList(let userId):
-      FollowingListView(userId: userId, postManager: postManager)
+      UserListView(userId: userId, userListVariant: .following)
+    case .mutualsList(let userId):
+      UserListView(userId: userId, userListVariant: .mutuals)
     }
   }
 

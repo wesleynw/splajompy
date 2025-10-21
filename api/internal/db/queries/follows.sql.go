@@ -145,19 +145,11 @@ func (q *Queries) GetIsUserFollowingUser(ctx context.Context, arg GetIsUserFollo
 }
 
 const getMutualConnectionsForUser = `-- name: GetMutualConnectionsForUser :many
-SELECT DISTINCT u.username
+SELECT u.username
 FROM users u
-WHERE EXISTS (
-  SELECT 1
-  FROM follows f
-  WHERE f.follower_id = $1
-    AND following_id = u.user_id
-) AND EXISTS (
-  SELECT 1
-  FROM follows f
-  WHERE f.follower_id = $2
-    AND following_id = u.user_id
-)
+INNER JOIN follows f0 ON f0.follower_id = $1 AND f0.following_id = u.user_id
+INNER JOIN follows f1 ON f1.follower_id = $2 AND f1.following_id = u.user_id
+ORDER BY f0.created_at DESC
 `
 
 type GetMutualConnectionsForUserParams struct {
@@ -178,6 +170,61 @@ func (q *Queries) GetMutualConnectionsForUser(ctx context.Context, arg GetMutual
 			return nil, err
 		}
 		items = append(items, username)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getMutualsByUserId = `-- name: GetMutualsByUserId :many
+SELECT DISTINCT u.user_id, u.email, u.username, u.created_at, u.name
+FROM users u
+INNER JOIN follows f1 ON f1.following_id = u.user_id AND f1.follower_id = $1
+INNER JOIN follows f2 ON f2.following_id = u.user_id AND f2.follower_id = $2
+ORDER BY u.created_at DESC
+LIMIT $3 OFFSET $4
+`
+
+type GetMutualsByUserIdParams struct {
+	FollowerID   int `json:"followerId"`
+	FollowerID_2 int `json:"followerId2"`
+	Limit        int `json:"limit"`
+	Offset       int `json:"offset"`
+}
+
+type GetMutualsByUserIdRow struct {
+	UserID    int              `json:"userId"`
+	Email     string           `json:"email"`
+	Username  string           `json:"username"`
+	CreatedAt pgtype.Timestamp `json:"createdAt"`
+	Name      pgtype.Text      `json:"name"`
+}
+
+func (q *Queries) GetMutualsByUserId(ctx context.Context, arg GetMutualsByUserIdParams) ([]GetMutualsByUserIdRow, error) {
+	rows, err := q.db.Query(ctx, getMutualsByUserId,
+		arg.FollowerID,
+		arg.FollowerID_2,
+		arg.Limit,
+		arg.Offset,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetMutualsByUserIdRow
+	for rows.Next() {
+		var i GetMutualsByUserIdRow
+		if err := rows.Scan(
+			&i.UserID,
+			&i.Email,
+			&i.Username,
+			&i.CreatedAt,
+			&i.Name,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err

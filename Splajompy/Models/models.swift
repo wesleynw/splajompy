@@ -10,7 +10,7 @@ struct User: Decodable {
   let isVerified: Bool?
 }
 
-struct DetailedUser: Decodable {
+struct DetailedUser: Decodable, Identifiable {
   let userId: Int
   let email: String
   let username: String
@@ -22,6 +22,8 @@ struct DetailedUser: Decodable {
   let isBlocking: Bool
   let mutuals: [String]
   let isVerified: Bool
+
+  var id: Int { userId }
 }
 
 struct ImageDTO: Decodable {

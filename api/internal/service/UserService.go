@@ -38,7 +38,10 @@ func (s *UserService) GetUserById(ctx context.Context, cUser models.PublicUser, 
 	isFollower, _ := s.userRepository.IsUserFollowingUser(ctx, userID, cUser.UserID)
 	isBlocking, _ := s.userRepository.IsUserBlockingUser(ctx, cUser.UserID, userID)
 
-	mutuals, _ := s.userRepository.GetMutualConnectionsForUser(ctx, cUser.UserID, userID)
+	mutuals, err := s.userRepository.GetMutualConnectionsForUser(ctx, cUser.UserID, userID)
+	if err != nil {
+		return nil, err
+	}
 	if mutuals == nil {
 		mutuals = []string{}
 	}
@@ -182,6 +185,21 @@ func (s *UserService) GetFollowingByUserId(ctx context.Context, currentUser mode
 	userIDs := make([]int, len(following))
 	for i, follow := range following {
 		userIDs[i] = follow.UserID
+	}
+
+	return s.fetchDetailedUsersFromIDs(ctx, currentUser, userIDs)
+}
+
+// GetMutualsByUserId retrieves users that both the current user and the target user follow.
+func (s *UserService) GetMutualsByUserId(ctx context.Context, currentUser models.PublicUser, userId int, offset int, limit int) (*[]models.DetailedUser, error) {
+	mutuals, err := s.userRepository.GetMutualsByUserId(ctx, currentUser.UserID, userId, limit, offset)
+	if err != nil {
+		return nil, err
+	}
+
+	userIDs := make([]int, len(mutuals))
+	for i, mutual := range mutuals {
+		userIDs[i] = mutual.UserID
 	}
 
 	return s.fetchDetailedUsersFromIDs(ctx, currentUser, userIDs)

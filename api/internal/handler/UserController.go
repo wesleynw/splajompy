@@ -189,6 +189,26 @@ func (h *Handler) GetFollowingByUserId(w http.ResponseWriter, r *http.Request) {
 	utilities.HandleSuccess(w, following)
 }
 
+func (h *Handler) GetMutualsByUserId(w http.ResponseWriter, r *http.Request) {
+	currentUser := h.getAuthenticatedUser(r)
+
+	userId, err := h.GetIntPathParam(r, "id")
+	if err != nil {
+		utilities.HandleError(w, http.StatusBadRequest, "Missing user ID parameter")
+		return
+	}
+
+	limit, offset := h.parsePagination(r)
+
+	mutuals, err := h.userService.GetMutualsByUserId(r.Context(), *currentUser, userId, offset, limit)
+	if err != nil {
+		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
+		return
+	}
+
+	utilities.HandleSuccess(w, mutuals)
+}
+
 type RequestFeaturePayload struct {
 	Text string
 }
