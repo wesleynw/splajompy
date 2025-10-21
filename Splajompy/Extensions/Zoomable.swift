@@ -170,11 +170,6 @@
 
   extension View {
     @ViewBuilder
-    fileprivate func modify(@ViewBuilder _ fn: (Self) -> some View) -> some View {
-      fn(self)
-    }
-
-    @ViewBuilder
     fileprivate func animatableTransformEffect(_ transform: CGAffineTransform)
       -> some View
     {
