@@ -170,7 +170,7 @@
 
   extension View {
     @ViewBuilder
-    fileprivate func modify(@ViewBuilder _ fn: (Self) -> some View) -> some View {
+    func modify(@ViewBuilder _ fn: (Self) -> some View) -> some View {
       fn(self)
     }
 
