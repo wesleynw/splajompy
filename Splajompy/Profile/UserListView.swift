@@ -12,6 +12,10 @@ struct UserListView: View {
     )
   }
 
+  init(viewModel: UserListViewModel) {
+    _viewModel = StateObject(wrappedValue: viewModel)
+  }
+
   var body: some View {
     Group {
       switch viewModel.state {
@@ -130,41 +134,33 @@ struct UserRowView: View {
 
   var body: some View {
     HStack {
+      HStack {
+        if let name = user.name, !name.isEmpty {
+          Text(name)
+            .font(.headline)
+            .lineLimit(1)
+        }
+        Text("@\(user.username)")
+          .font(.subheadline)
+          .foregroundColor(.secondary)
+          .lineLimit(1)
+      }
+
+      followButton
+        .frame(maxWidth: .infinity, alignment: .trailing)
+        .buttonStyle(.plain)
+        .frame(maxWidth: .infinity, alignment: .leading)
+
+    }
+    .background(
       NavigationLink(
         value: Route.profile(id: String(user.userId), username: user.username)
       ) {
-        HStack {
-          if let name = user.name, !name.isEmpty {
-            Text(name)
-              .font(.headline)
-              .lineLimit(1)
-          }
-          Text("@\(user.username)")
-            .font(.subheadline)
-            .foregroundColor(.secondary)
-            .lineLimit(1)
-        }
+        Color.clear
+          .contentShape(Rectangle())
       }
       .buttonStyle(.plain)
-      .frame(maxWidth: .infinity, alignment: .leading)
-
-      followButton
-    }
-    .padding()
-  }
-
-  private var userInfoView: some View {
-    HStack(spacing: 6) {
-      if let name = user.name, !name.isEmpty {
-        Text(name)
-          .font(.headline)
-          .lineLimit(1)
-      }
-      Text("@\(user.username)")
-        .font(.subheadline)
-        .foregroundColor(.secondary)
-        .lineLimit(1)
-    }
+    )
   }
 
   private var followButton: some View {
@@ -198,7 +194,13 @@ struct UserRowView: View {
 }
 
 #Preview {
+  let viewModel = UserListViewModel(
+    userId: 1,
+    userListVariant: .following,
+    profileService: MockProfileService()
+  )
+
   NavigationStack {
-    UserListView(userId: 1, userListVariant: .following)
+    UserListView(viewModel: viewModel)
   }
 }

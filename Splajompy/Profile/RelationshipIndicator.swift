@@ -33,8 +33,6 @@ struct RelationshipIndicator: View {
           }
         }
       }
-    } else {
-      Text("lol")
     }
   }
 
