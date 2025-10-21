@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct UserListView: View {
+  private var userListVariant: UserListVariantEnum
   @StateObject private var viewModel: UserListViewModel
 
   init(userId: Int, userListVariant: UserListVariantEnum) {
@@ -10,10 +11,12 @@ struct UserListView: View {
         userListVariant: userListVariant
       )
     )
+    self.userListVariant = userListVariant
   }
 
   init(viewModel: UserListViewModel) {
     _viewModel = StateObject(wrappedValue: viewModel)
+    self.userListVariant = viewModel.userListVariant
   }
 
   var body: some View {
@@ -45,7 +48,7 @@ struct UserListView: View {
         )
       }
     }
-    .navigationTitle("Following")
+    .navigationTitle(userListVariant == .following ? "Following" : "Mutuals")
     #if os(iOS)
       .navigationBarTitleDisplayMode(.inline)
     #endif
@@ -81,36 +84,43 @@ struct UserListView: View {
   )
     -> some View
   {
-    List {
-      ForEach(users) { user in
-        UserRowView(
-          user: user,
-          onFollowToggle: { user in
-            Task {
-              await viewModel.toggleFollow(for: user)
+    ScrollView {
+      LazyVStack {
+        ForEach(users) { user in
+          UserRowView(
+            user: user,
+            onFollowToggle: { user in
+              Task {
+                await viewModel.toggleFollow(for: user)
+              }
+            }
+          )
+          .onAppear {
+            if user.userId == users.last?.userId {
+              Task {
+                await viewModel.loadUsers()
+              }
             }
           }
-        )
-        .onAppear {
-          if user.userId == users.last?.userId {
-            Task {
-              await viewModel.loadUsers()
-            }
+
+          if user.userId != users.last?.userId {
+            Divider()
+              .padding(.leading, 16)
+          }
+        }
+
+        if viewModel.hasMoreToFetch {
+          HStack {
+            Spacer()
+            ProgressView()
+              .scaleEffect(1.1)
+              .padding()
+            Spacer()
           }
         }
       }
 
-      if viewModel.hasMoreToFetch {
-        HStack {
-          Spacer()
-          ProgressView()
-            .scaleEffect(1.1)
-            .padding()
-          Spacer()
-        }
-      }
     }
-    .listStyle(.plain)
     .refreshable {
       Task {
         await viewModel.loadUsers(reset: true)
@@ -126,30 +136,20 @@ struct UserRowView: View {
 
   init(
     user: DetailedUser,
-    onFollowToggle: @escaping (DetailedUser) -> Void,
+    onFollowToggle: @escaping (DetailedUser) -> Void
   ) {
     self.user = user
     self.onFollowToggle = onFollowToggle
   }
 
   var body: some View {
-    HStack {
-      HStack {
-        if let name = user.name, !name.isEmpty {
-          Text(name)
-            .font(.headline)
-            .lineLimit(1)
-        }
-        Text("@\(user.username)")
-          .font(.subheadline)
-          .foregroundColor(.secondary)
-          .lineLimit(1)
-      }
-
+    HStack(spacing: 8) {
+      userInfoView
       Spacer()
-
       followButton
     }
+    .padding(.horizontal, 16)
+    .padding(.vertical, 12)
     .background(
       NavigationLink(
         value: Route.profile(id: String(user.userId), username: user.username)
@@ -158,8 +158,21 @@ struct UserRowView: View {
           .contentShape(Rectangle())
       }
       .buttonStyle(.plain)
-      .opacity(0)
     )
+  }
+
+  private var userInfoView: some View {
+    HStack(spacing: 6) {
+      if let name = user.name, !name.isEmpty {
+        Text(name)
+          .font(.headline)
+          .lineLimit(1)
+      }
+      Text("@\(user.username)")
+        .font(.subheadline)
+        .foregroundColor(.secondary)
+        .lineLimit(1)
+    }
   }
 
   private var followButton: some View {

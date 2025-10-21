@@ -22,6 +22,12 @@ struct RelationshipIndicator: View {
               .font(.footnote)
               .foregroundColor(.secondary)
           }
+
+          Spacer()
+
+          Image(systemName: "chevron.right")
+            .font(.system(size: 14, weight: .semibold))
+            .foregroundColor(.secondary.opacity(0.5))
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding()
@@ -33,6 +39,7 @@ struct RelationshipIndicator: View {
           }
         }
       }
+      .buttonStyle(.plain)
     }
   }
 
