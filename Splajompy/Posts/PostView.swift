@@ -90,9 +90,13 @@ struct PostView: View {
     .sheet(isPresented: $isShowingComments) {
       CommentsView(postId: post.post.postId, postManager: postManager)
         .modify {
-          if #available(iOS 18, *) {
-            $0.navigationTransition(.zoom(sourceID: "comments", in: namespace))
-          }
+          #if os(iOS)
+            if #available(iOS 18, *) {
+              $0.navigationTransition(
+                .zoom(sourceID: "comments", in: namespace)
+              )
+            }
+          #endif
         }
     }
     .alert("Post Reported", isPresented: $showReportAlert) {
