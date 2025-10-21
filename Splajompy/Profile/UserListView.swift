@@ -146,11 +146,9 @@ struct UserRowView: View {
           .lineLimit(1)
       }
 
-      followButton
-        .frame(maxWidth: .infinity, alignment: .trailing)
-        .buttonStyle(.plain)
-        .frame(maxWidth: .infinity, alignment: .leading)
+      Spacer()
 
+      followButton
     }
     .background(
       NavigationLink(
@@ -160,6 +158,7 @@ struct UserRowView: View {
           .contentShape(Rectangle())
       }
       .buttonStyle(.plain)
+      .opacity(0)
     )
   }
 
