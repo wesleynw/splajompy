@@ -47,7 +47,7 @@ Before pushing Swift code changes, run the following command to format your code
 ```bash
 xcrun swift-format --in-place --recursive .
 # or shorthand:
-xcrun swift-format -i -r .
+xcrun swift-format -ri .
 ```
 
 Swift linting is also enforced via a GitHub action that runs on pull requests.

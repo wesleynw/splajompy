@@ -32,7 +32,7 @@ SELECT EXISTS (
 );
 
 -- name: GetPostLikesFromFollowers :many
-SELECT users.username, users.user_id
+SELECT users.username, users.user_id, users.is_verified
 FROM likes
 INNER JOIN users ON likes.user_id = users.user_id
 WHERE post_id = $1 AND comment_id IS NULL AND

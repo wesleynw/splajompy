@@ -47,7 +47,8 @@ class MockCommentService: CommentServiceProtocol, @unchecked Sendable {
         email: "test@example.com",
         username: "testuser",
         createdAt: currentDate,
-        name: "Test User"
+        name: "Test User",
+        isVerified: false
       )
 
     let newComment = DetailedComment(
@@ -96,21 +97,24 @@ class MockCommentService: CommentServiceProtocol, @unchecked Sendable {
         email: "john@example.com",
         username: "johndoe",
         createdAt: currentDate,
-        name: "John Doe"
+        name: "John Doe",
+        isVerified: false
       ),
       User(
         userId: 2,
         email: "jane@example.com",
         username: "janedoe",
         createdAt: currentDate,
-        name: "Jane Doe"
+        name: "Jane Doe",
+        isVerified: false
       ),
       User(
         userId: 3,
         email: "bob@example.com",
         username: "bobsmith",
         createdAt: currentDate,
-        name: "Bob Smith"
+        name: "Bob Smith",
+        isVerified: false
       ),
     ]
 
@@ -175,7 +179,7 @@ class MockCommentService_Empty: CommentServiceProtocol, @unchecked Sendable {
   func addComment(postId: Int, text: String) async -> AsyncResult<DetailedComment> {
     let user = User(
       userId: 1, email: "test@example.com", username: "testuser",
-      createdAt: Date(), name: "Test User")
+      createdAt: Date(), name: "Test User", isVerified: false)
 
     let newComment = DetailedComment(
       commentId: Int.random(in: 100...1000),

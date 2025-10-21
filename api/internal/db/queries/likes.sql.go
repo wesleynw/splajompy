@@ -82,7 +82,7 @@ func (q *Queries) GetIsPostLikedByUser(ctx context.Context, arg GetIsPostLikedBy
 }
 
 const getPostLikesFromFollowers = `-- name: GetPostLikesFromFollowers :many
-SELECT users.username, users.user_id
+SELECT users.username, users.user_id, users.is_verified
 FROM likes
 INNER JOIN users ON likes.user_id = users.user_id
 WHERE post_id = $1 AND comment_id IS NULL AND
@@ -99,8 +99,9 @@ type GetPostLikesFromFollowersParams struct {
 }
 
 type GetPostLikesFromFollowersRow struct {
-	Username string `json:"username"`
-	UserID   int    `json:"userId"`
+	Username   string `json:"username"`
+	UserID     int    `json:"userId"`
+	IsVerified bool   `json:"isVerified"`
 }
 
 func (q *Queries) GetPostLikesFromFollowers(ctx context.Context, arg GetPostLikesFromFollowersParams) ([]GetPostLikesFromFollowersRow, error) {
@@ -112,7 +113,7 @@ func (q *Queries) GetPostLikesFromFollowers(ctx context.Context, arg GetPostLike
 	var items []GetPostLikesFromFollowersRow
 	for rows.Next() {
 		var i GetPostLikesFromFollowersRow
-		if err := rows.Scan(&i.Username, &i.UserID); err != nil {
+		if err := rows.Scan(&i.Username, &i.UserID, &i.IsVerified); err != nil {
 			return nil, err
 		}
 		items = append(items, i)

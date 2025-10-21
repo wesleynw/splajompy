@@ -169,6 +169,14 @@ struct ProfileView: View {
               .fontWeight(.bold)
               .lineLimit(1)
           }
+          HStack(spacing: 4) {
+            Text("@\(user.username)")
+              .font(.subheadline)
+              .foregroundColor(.gray)
+            if user.isVerified == true {
+              VerificationBadge()
+            }
+          }
         }
         Spacer()
       }

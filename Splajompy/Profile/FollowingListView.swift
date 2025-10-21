@@ -226,7 +226,8 @@ struct UserRowView: View {
     isFollower: true,
     isFollowing: false,
     isBlocking: false,
-    mutuals: ["alice", "bob"]
+    mutuals: ["alice", "bob"],
+    isVerified: false
   )
 
   @Previewable @State var user1 = DetailedUser(
@@ -239,7 +240,8 @@ struct UserRowView: View {
     isFollower: true,
     isFollowing: true,
     isBlocking: false,
-    mutuals: ["alice", "bob"]
+    mutuals: ["alice", "bob"],
+    isVerified: false
   )
 
   NavigationStack {
