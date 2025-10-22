@@ -40,6 +40,7 @@ type UserRepository interface {
 	GetMutualConnectionsForUser(ctx context.Context, currentUserId int, targetUserId int) ([]string, error)
 	GetFollowersByUserId(ctx context.Context, userId int, limit int, offset int) ([]queries.GetFollowersByUserIdRow, error)
 	GetFollowingByUserId(ctx context.Context, userId int, limit int, offset int) ([]queries.GetFollowingByUserIdRow, error)
+	GetMutualsByUserId(ctx context.Context, currentUserId int, targetUserId int, limit int, offset int) ([]queries.GetMutualsByUserIdRow, error)
 }
 
 type DBUserRepository struct {
@@ -250,6 +251,15 @@ func (r DBUserRepository) GetFollowingByUserId(ctx context.Context, userId int, 
 		FollowerID: userId,
 		Limit:      limit,
 		Offset:     offset,
+	})
+}
+
+func (r DBUserRepository) GetMutualsByUserId(ctx context.Context, currentUserId int, targetUserId int, limit int, offset int) ([]queries.GetMutualsByUserIdRow, error) {
+	return r.querier.GetMutualsByUserId(ctx, queries.GetMutualsByUserIdParams{
+		FollowerID:   currentUserId,
+		FollowerID_2: targetUserId,
+		Limit:        limit,
+		Offset:       offset,
 	})
 }
 

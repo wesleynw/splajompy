@@ -105,6 +105,7 @@ func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
 	handleFunc("GET /user/{id}", h.GetUserById)
 	handleFunc("GET /user/{id}/followers", h.GetFollowersByUserId)
 	handleFunc("GET /user/{id}/following", h.GetFollowingByUserId)
+	handleFunc("GET /user/{id}/mutuals", h.GetMutualsByUserId)
 	handleFunc("GET /posts/following", h.GetPostsByFollowing)
 	handleFunc("GET /posts/all", h.GetAllPosts)
 	handleFunc("GET /posts/mutual", h.GetMutualFeed)

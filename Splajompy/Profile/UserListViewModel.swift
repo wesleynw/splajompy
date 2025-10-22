@@ -1,17 +1,23 @@
 import SwiftUI
 
-enum FollowersFollowingState {
+enum UserListState {
   case idle
   case loading
   case loaded([DetailedUser])
   case failed(Error)
 }
 
-@MainActor
-class FollowingListViewModel: ObservableObject {
-  let userId: Int
+enum UserListVariantEnum {
+  case following
+  case mutuals
+}
 
-  @Published var state: FollowersFollowingState = .idle
+@MainActor
+class UserListViewModel: ObservableObject {
+  let userId: Int
+  let userListVariant: UserListVariantEnum
+
+  @Published var state: UserListState = .idle
   @Published var isFetchingMore: Bool = false
   @Published var hasMoreToFetch: Bool = false
 
@@ -21,13 +27,15 @@ class FollowingListViewModel: ObservableObject {
 
   init(
     userId: Int,
+    userListVariant: UserListVariantEnum,
     profileService: ProfileServiceProtocol = ProfileService()
   ) {
     self.userId = userId
+    self.userListVariant = userListVariant
     self.profileService = profileService
   }
 
-  func loadFollowing(reset: Bool = false) async {
+  func loadUsers(reset: Bool = false) async {
     guard !isFetchingMore else { return }
 
     isFetchingMore = true
@@ -39,11 +47,21 @@ class FollowingListViewModel: ObservableObject {
       offset = 0
     }
 
-    let result = await profileService.getFollowing(
-      userId: userId,
-      offset: offset,
-      limit: fetchLimit
-    )
+    let result: AsyncResult<[DetailedUser]>
+    switch userListVariant {
+    case .following:
+      result = await profileService.getFollowing(
+        userId: userId,
+        offset: offset,
+        limit: fetchLimit
+      )
+    case .mutuals:
+      result = await profileService.getMutuals(
+        userId: userId,
+        offset: offset,
+        limit: fetchLimit
+      )
+    }
 
     switch result {
     case .success(let users):
@@ -58,7 +76,7 @@ class FollowingListViewModel: ObservableObject {
       if case .idle = state {
         state = .failed(error)
       }
-      print("Failed to load following: \(error)")
+      print("Failed to load users: \(error)")
     }
   }
 

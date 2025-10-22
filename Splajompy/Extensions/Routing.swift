@@ -4,6 +4,7 @@ enum Route: Hashable {
   case profile(id: String, username: String)
   case post(id: Int)
   case followingList(userId: Int)
+  case mutualsList(userId: Int)
 }
 
 func parseDeepLink(_ url: URL) -> Route? {
