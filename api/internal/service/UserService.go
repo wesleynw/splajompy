@@ -57,6 +57,7 @@ func (s *UserService) GetUserById(ctx context.Context, cUser models.PublicUser, 
 		IsFollower:  isFollower,
 		IsBlocking:  isBlocking,
 		Mutuals:     mutuals,
+		MutualCount: len(mutuals),
 		IsVerified:  dbUser.IsVerified,
 	}, nil
 }

@@ -4,7 +4,7 @@ struct RelationshipIndicator: View {
   let user: UserProfile
 
   var body: some View {
-    if !user.mutuals.isEmpty {
+    if user.mutualCount > 0 {
       NavigationLink(value: Route.mutualsList(userId: user.userId)) {
         HStack {
           Image(systemName: "person.3.fill")
@@ -44,7 +44,7 @@ struct RelationshipIndicator: View {
   }
 
   private var mutualFriendsTitle: String {
-    let count = user.mutuals.count
+    let count = user.mutualCount
     return count == 1 ? "1 mutual" : "\(count) mutuals"
   }
 
@@ -75,7 +75,8 @@ struct RelationshipIndicator: View {
           isFollower: true,
           isFollowing: true,
           isBlocking: false,
-          mutuals: ["alice", "bob", "charlie", "dan", "ethan"]
+          mutuals: ["alice", "bob", "charlie", "dan", "ethan"],
+          mutualCount: 5
         )
       )
 
@@ -90,7 +91,8 @@ struct RelationshipIndicator: View {
           isFollower: true,
           isFollowing: true,
           isBlocking: false,
-          mutuals: ["alice", "bob", "charlie"]
+          mutuals: ["alice", "bob", "charlie"],
+          mutualCount: 3
         )
       )
 
@@ -105,7 +107,8 @@ struct RelationshipIndicator: View {
           isFollower: false,
           isFollowing: false,
           isBlocking: false,
-          mutuals: ["alice", "bob"]
+          mutuals: ["alice", "bob"],
+          mutualCount: 2
         )
       )
 
@@ -120,7 +123,8 @@ struct RelationshipIndicator: View {
           isFollower: false,
           isFollowing: false,
           isBlocking: false,
-          mutuals: []
+          mutuals: [],
+          mutualCount: 0
         )
       )
 
@@ -135,7 +139,8 @@ struct RelationshipIndicator: View {
           isFollower: false,
           isFollowing: false,
           isBlocking: false,
-          mutuals: ["alice"]
+          mutuals: ["alice"],
+          mutualCount: 0
         )
       )
     }

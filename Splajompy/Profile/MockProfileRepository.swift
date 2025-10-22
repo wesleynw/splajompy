@@ -29,6 +29,7 @@ final class MockUserStore: @unchecked Sendable {
         isFollowing: false,
         isBlocking: false,
         mutuals: [],
+        mutualCount: 0,
         isVerified: true
       ),
       6: UserProfile(
@@ -44,7 +45,8 @@ final class MockUserStore: @unchecked Sendable {
         isFollower: true,
         isFollowing: true,
         isBlocking: false,
-        mutuals: []
+        mutuals: [],
+        mutualCount: 0
       ),
       25: UserProfile(
         userId: 25,
@@ -58,7 +60,8 @@ final class MockUserStore: @unchecked Sendable {
         isFollower: false,
         isFollowing: true,
         isBlocking: false,
-        mutuals: []
+        mutuals: [],
+        mutualCount: 0
       ),
       120: UserProfile(
         userId: 120,
@@ -73,7 +76,8 @@ final class MockUserStore: @unchecked Sendable {
         isFollower: true,
         isFollowing: false,
         isBlocking: false,
-        mutuals: ["joel", "wesley"]
+        mutuals: ["joel", "wesley"],
+        mutualCount: 2
       ),
       103: UserProfile(
         userId: 103,
@@ -88,7 +92,8 @@ final class MockUserStore: @unchecked Sendable {
         isFollower: true,
         isFollowing: true,
         isBlocking: false,
-        mutuals: []
+        mutuals: [],
+        mutualCount: 0
       ),
       112: UserProfile(
         userId: 112,
@@ -103,7 +108,8 @@ final class MockUserStore: @unchecked Sendable {
         isFollower: false,
         isFollowing: false,
         isBlocking: false,
-        mutuals: []
+        mutuals: [],
+        mutualCount: 0
       ),
       97: UserProfile(
         userId: 97,
@@ -118,7 +124,8 @@ final class MockUserStore: @unchecked Sendable {
         isFollower: true,
         isFollowing: true,
         isBlocking: false,
-        mutuals: []
+        mutuals: [],
+        mutualCount: 0
       ),
       113: UserProfile(
         userId: 113,
@@ -133,7 +140,8 @@ final class MockUserStore: @unchecked Sendable {
         isFollower: false,
         isFollowing: false,
         isBlocking: false,
-        mutuals: []
+        mutuals: [],
+        mutualCount: 0
       ),
       30: UserProfile(
         userId: 30,
@@ -148,7 +156,8 @@ final class MockUserStore: @unchecked Sendable {
         isFollower: false,
         isFollowing: true,
         isBlocking: false,
-        mutuals: []
+        mutuals: [],
+        mutualCount: 0
       ),
       15: UserProfile(
         userId: 15,
@@ -163,7 +172,8 @@ final class MockUserStore: @unchecked Sendable {
         isFollower: true,
         isFollowing: false,
         isBlocking: false,
-        mutuals: []
+        mutuals: [],
+        mutualCount: 0
       ),
     ]
   }
@@ -271,6 +281,7 @@ struct MockProfileService: ProfileServiceProtocol {
         isFollowing: profile.isFollowing,
         isBlocking: profile.isBlocking,
         mutuals: profile.mutuals,
+        mutualCount: profile.mutuals.count,
         isVerified: profile.isVerified ?? false
       )
     }
@@ -295,6 +306,7 @@ struct MockProfileService: ProfileServiceProtocol {
         isFollowing: profile.isFollowing,
         isBlocking: profile.isBlocking,
         mutuals: profile.mutuals,
+        mutualCount: profile.mutuals.count,
         isVerified: profile.isVerified ?? false
       )
     }
@@ -320,6 +332,7 @@ struct MockProfileService: ProfileServiceProtocol {
         isFollowing: profile.isFollowing,
         isBlocking: profile.isBlocking,
         mutuals: profile.mutuals,
+        mutualCount: profile.mutuals.count,
         isVerified: profile.isVerified ?? false
       )
     }

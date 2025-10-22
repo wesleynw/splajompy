@@ -11,6 +11,7 @@ struct UserProfile: Decodable {
   var isFollowing: Bool
   var isBlocking: Bool
   let mutuals: [String]
+  let mutualCount: Int
   var isVerified: Bool?
 }
 

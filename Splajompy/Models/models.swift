@@ -21,6 +21,7 @@ struct DetailedUser: Decodable, Identifiable {
   var isFollowing: Bool
   let isBlocking: Bool
   let mutuals: [String]
+  let mutualCount: Int
   let isVerified: Bool
 
   var id: Int { userId }
