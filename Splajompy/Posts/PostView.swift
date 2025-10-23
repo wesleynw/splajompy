@@ -91,10 +91,12 @@ struct PostView: View {
       CommentsView(postId: post.post.postId, postManager: postManager)
         .modify {
           #if os(iOS)
-            if #available(iOS 18, *) {
+            if #available(iOS 26, *) {
               $0.navigationTransition(
                 .zoom(sourceID: "comments", in: namespace)
               )
+            } else {
+              $0
             }
           #endif
         }
