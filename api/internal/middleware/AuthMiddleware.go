@@ -17,14 +17,6 @@ import (
 func AuthMiddleware(q *queries.Queries) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			// TODO: this isn't my favorite thing. i'd like something cleaner than an exclusion list
-			// but it works for now. maybe in the future I use route groups or something and disable middleware on a
-			// specific sub-route like /auth?
-			if r.Method == "POST" && (r.URL.Path == "/register" || r.URL.Path == "/login" || r.URL.Path == "/otc/generate" || r.URL.Path == "/otc/verify") {
-				next.ServeHTTP(w, r)
-				return
-			}
-
 			ctx := r.Context()
 			header := r.Header.Get("Authorization")
 

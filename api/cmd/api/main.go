@@ -56,8 +56,8 @@ func main() {
 
 	q := queries.New(conn)
 
-	resentApiKey := os.Getenv("RESEND_API_KEY")
-	resentClient := resend.NewClient(resentApiKey)
+	resendApiKey := os.Getenv("RESEND_API_KEY")
+	resendClient := resend.NewClient(resendApiKey)
 
 	s3Client, err := service.NewS3Client()
 	if err != nil {
@@ -73,20 +73,30 @@ func main() {
 	likeRepository := repositories.NewDBLikeRepository(q)
 	statsRepository := repositories.NewDBStatsRepository(q)
 
-	postService := service.NewPostService(postRepository, userRepository, likeRepository, notificationsRepository, bucketRepository, resentClient)
+	postService := service.NewPostService(postRepository, userRepository, likeRepository, notificationsRepository, bucketRepository, resendClient)
 	commentService := service.NewCommentService(commentRepository, postRepository, notificationsRepository, userRepository, likeRepository)
-	userService := service.NewUserService(userRepository, notificationsRepository, resentClient)
+	userService := service.NewUserService(userRepository, notificationsRepository, resendClient)
 	notificationService := service.NewNotificationService(notificationsRepository, postRepository, commentRepository, userRepository)
-	authManager := service.NewAuthService(userRepository, postRepository, bucketRepository, resentClient)
+	authManager := service.NewAuthService(userRepository, postRepository, bucketRepository, resendClient)
 	statsService := service.NewStatsService(statsRepository)
 
 	h := handler.NewHandler(q, postService, commentService, userService, notificationService, authManager, statsService)
 
 	mux := http.NewServeMux()
-	h.RegisterRoutes(mux)
 
-	wrappedHandler := middleware.AuthMiddleware(q)(mux)
-	wrappedHandler = middleware.Logger(wrappedHandler)
+	// handleFunc is a replacement for mux.HandleFunc
+	// which enriches the handler's HTTP instrumentation with the pattern as the http.route.
+	otelRegisterRoute := func(pattern string, handlerFunc func(http.ResponseWriter, *http.Request)) {
+		// Configure the "http.route" for the HTTP instrumentation.
+		withRouteTag := otelhttp.WithRouteTag(pattern, http.HandlerFunc(handlerFunc))
+		mux.Handle(pattern, withRouteTag)
+	}
+
+	authMiddleware := middleware.AuthMiddleware(q)
+	h.RegisterRoutes(otelRegisterRoute, authMiddleware)
+	h.RegisterPublicRoutes(otelRegisterRoute)
+
+	wrappedHandler := middleware.Logger(mux)
 	wrappedHandler = middleware.AppVersion(wrappedHandler)
 
 	// Add HTTP instrumentation for the whole server.

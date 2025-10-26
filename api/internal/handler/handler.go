@@ -9,7 +9,6 @@ import (
 	"splajompy.com/api/v2/internal/models"
 	"splajompy.com/api/v2/internal/utilities"
 
-	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"splajompy.com/api/v2/internal/service"
 )
 
@@ -41,90 +40,91 @@ func NewHandler(queries queries.Querier,
 	}
 }
 
-func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
-	// handleFunc is a replacement for mux.HandleFunc
-	// which enriches the handler's HTTP instrumentation with the pattern as the http.route.
-	handleFunc := func(pattern string, handlerFunc func(http.ResponseWriter, *http.Request)) {
-		// Configure the "http.route" for the HTTP instrumentation.
-		handler := otelhttp.WithRouteTag(pattern, http.HandlerFunc(handlerFunc))
-		mux.Handle(pattern, handler)
+func (h *Handler) RegisterRoutes(handleFunc func(pattern string, handlerFunc func(http.ResponseWriter, *http.Request)), authMiddleware func(http.Handler) http.Handler) {
+	handleFuncWithAuth := func(pattern string, handlerFunc func(http.ResponseWriter, *http.Request)) {
+		handleFunc(pattern, func(w http.ResponseWriter, r *http.Request) {
+			authMiddleware(http.HandlerFunc(handlerFunc)).ServeHTTP(w, r)
+		})
 	}
 
+	// auth
+	handleFuncWithAuth("POST /account/delete", h.DeleteAccount)
+
+	// posts
+	handleFuncWithAuth("GET /post/presignedUrl", h.GetPresignedUrl)
+	handleFuncWithAuth("POST /v2/post/new", h.CreateNewPostV2)
+	handleFuncWithAuth("GET /post/{id}", h.GetPostById)
+	handleFuncWithAuth("GET /user/{id}/posts", h.GetPostsByUserId)
+	handleFuncWithAuth("DELETE /post/{id}", h.DeletePostById)
+	handleFuncWithAuth("POST /post/{id}/report", h.ReportPost)
+
+	// polls
+	handleFuncWithAuth("POST /post/{post_id}/vote/{option_index}", h.VoteOnPost)
+
+	// follow
+	handleFuncWithAuth("POST /follow/{user_id}", h.FollowUser)
+	handleFuncWithAuth("DELETE /follow/{user_id}", h.UnfollowUser)
+
+	handleFuncWithAuth("POST /user/profile", h.UpdateProfile)
+
+	// likes
+	handleFuncWithAuth("POST /post/{id}/liked", h.AddPostLike)
+	handleFuncWithAuth("DELETE /post/{id}/liked", h.RemovePostLike)
+
+	// pinning
+	handleFuncWithAuth("POST /posts/{id}/pin", h.PinPost)
+	handleFuncWithAuth("DELETE /posts/pin", h.UnpinPost)
+
+	// notifications
+	handleFuncWithAuth("GET /notifications", h.GetAllNotificationByUserId)
+	handleFuncWithAuth("GET /notifications/unread", h.GetUnreadNotificationsByUserId)
+	handleFuncWithAuth("POST /notifications/markRead", h.MarkAllNotificationsAsRead)
+	handleFuncWithAuth("POST /notifications/{id}/markRead", h.MarkNotificationAsReadById)
+	handleFuncWithAuth("GET /notifications/hasUnread", h.HasUnreadNotifications)
+	handleFuncWithAuth("GET /notifications/unreadCount", h.GetUnreadNotificationCount)
+	handleFuncWithAuth("GET /notifications/read/time", h.GetReadNotificationsByUserIdWithTimeOffset)
+	handleFuncWithAuth("GET /notifications/unread/time", h.GetUnreadNotificationsByUserIdWithTimeOffset)
+
+	// comments
+	handleFuncWithAuth("POST /post/{post_id}/comment", h.AddCommentToPostById)
+	handleFuncWithAuth("POST /post/{post_id}/comment/{comment_id}/liked", h.AddCommentLike)
+	handleFuncWithAuth("DELETE /post/{post_id}/comment/{comment_id}/liked", h.RemoveCommentLike)
+	handleFuncWithAuth("DELETE /comment/{comment_id}", h.DeleteComment)
+	handleFuncWithAuth("GET /post/{id}/comments", h.GetCommentsByPost)
+
+	// blocking
+	handleFuncWithAuth("POST /user/{user_id}/block", h.BlockUser)
+	handleFuncWithAuth("DELETE /user/{user_id}/block", h.UnblockUser)
+
+	// users
+	handleFuncWithAuth("GET /user/{id}", h.GetUserById)
+	handleFuncWithAuth("GET /user/{id}/followers", h.GetFollowersByUserId)
+	handleFuncWithAuth("GET /user/{id}/following", h.GetFollowingByUserId)
+	handleFuncWithAuth("GET /user/{id}/mutuals", h.GetMutualsByUserId)
+	handleFuncWithAuth("GET /users/search", h.SearchUsers)
+
+	// posts
+	handleFuncWithAuth("GET /posts/following", h.GetPostsByFollowing)
+	handleFuncWithAuth("GET /posts/all", h.GetAllPosts)
+	handleFuncWithAuth("GET /posts/mutual", h.GetMutualFeed)
+
+	// post routes with time-based offset
+	handleFuncWithAuth("GET /v2/posts/following", h.GetPostsByFollowingWithTimeOffset)
+	handleFuncWithAuth("GET /v2/posts/all", h.GetAllPostsWithTimeOffset)
+	handleFuncWithAuth("GET /v2/posts/mutual", h.GetMutualFeedWithTimeOffset)
+	handleFuncWithAuth("GET /v2/user/{id}/posts", h.GetPostsByUserIdWithTimeOffset)
+
+	// misc
+	handleFuncWithAuth("POST /request-feature", h.RequestFeature)
+	handleFuncWithAuth("GET /stats", h.GetAppStats)
+}
+
+func (h *Handler) RegisterPublicRoutes(handleFunc func(pattern string, handlerFunc func(http.ResponseWriter, *http.Request))) {
 	// auth
 	handleFunc("POST /register", h.Register)
 	handleFunc("POST /login", h.Login)
 	handleFunc("POST /otc/generate", h.GenerateOTC)
 	handleFunc("POST /otc/verify", h.VerifyOTC)
-	handleFunc("POST /account/delete", h.DeleteAccount)
-
-	// posts
-	handleFunc("GET /post/presignedUrl", h.GetPresignedUrl)
-	handleFunc("POST /v2/post/new", h.CreateNewPostV2)
-	handleFunc("GET /post/{id}", h.GetPostById)
-	handleFunc("GET /user/{id}/posts", h.GetPostsByUserId)
-	handleFunc("DELETE /post/{id}", h.DeletePostById)
-	handleFunc("POST /post/{id}/report", h.ReportPost)
-
-	// polls
-	handleFunc("POST /post/{post_id}/vote/{option_index}", h.VoteOnPost)
-
-	// follow
-	handleFunc("POST /follow/{user_id}", h.FollowUser)
-	handleFunc("DELETE /follow/{user_id}", h.UnfollowUser)
-
-	handleFunc("POST /user/profile", h.UpdateProfile)
-
-	// likes
-	handleFunc("POST /post/{id}/liked", h.AddPostLike)
-	handleFunc("DELETE /post/{id}/liked", h.RemovePostLike)
-
-	// pinning
-	handleFunc("POST /posts/{id}/pin", h.PinPost)
-	handleFunc("DELETE /posts/pin", h.UnpinPost)
-
-	// notifications
-	handleFunc("GET /notifications", h.GetAllNotificationByUserId)
-	handleFunc("GET /notifications/unread", h.GetUnreadNotificationsByUserId)
-	handleFunc("POST /notifications/markRead", h.MarkAllNotificationsAsRead)
-	handleFunc("POST /notifications/{id}/markRead", h.MarkNotificationAsReadById)
-	handleFunc("GET /notifications/hasUnread", h.HasUnreadNotifications)
-	handleFunc("GET /notifications/unreadCount", h.GetUnreadNotificationCount)
-	handleFunc("GET /notifications/read/time", h.GetReadNotificationsByUserIdWithTimeOffset)
-	handleFunc("GET /notifications/unread/time", h.GetUnreadNotificationsByUserIdWithTimeOffset)
-
-	// comments
-	handleFunc("POST /post/{post_id}/comment", h.AddCommentToPostById)
-	handleFunc("POST /post/{post_id}/comment/{comment_id}/liked", h.AddCommentLike)
-	handleFunc("DELETE /post/{post_id}/comment/{comment_id}/liked", h.RemoveCommentLike)
-	handleFunc("DELETE /comment/{comment_id}", h.DeleteComment)
-
-	// blocking
-	handleFunc("POST /user/{user_id}/block", h.BlockUser)
-	handleFunc("DELETE /user/{user_id}/block", h.UnblockUser)
-
-	handleFunc("GET /user/{id}", h.GetUserById)
-	handleFunc("GET /user/{id}/followers", h.GetFollowersByUserId)
-	handleFunc("GET /user/{id}/following", h.GetFollowingByUserId)
-	handleFunc("GET /user/{id}/mutuals", h.GetMutualsByUserId)
-	handleFunc("GET /posts/following", h.GetPostsByFollowing)
-	handleFunc("GET /posts/all", h.GetAllPosts)
-	handleFunc("GET /posts/mutual", h.GetMutualFeed)
-
-	// post routes with time-based offset
-	handleFunc("GET /v2/posts/following", h.GetPostsByFollowingWithTimeOffset)
-	handleFunc("GET /v2/posts/all", h.GetAllPostsWithTimeOffset)
-	handleFunc("GET /v2/posts/mutual", h.GetMutualFeedWithTimeOffset)
-	handleFunc("GET /v2/user/{id}/posts", h.GetPostsByUserIdWithTimeOffset)
-
-	handleFunc("GET /users/search", h.SearchUsers)
-
-	// comments
-	handleFunc("GET /post/{id}/comments", h.GetCommentsByPost)
-
-	handleFunc("POST /request-feature", h.RequestFeature)
-
-	// stats
-	handleFunc("GET /stats", h.GetAppStats)
 }
 
 func (h *Handler) GetIntPathParam(r *http.Request, paramName string) (int, error) {
