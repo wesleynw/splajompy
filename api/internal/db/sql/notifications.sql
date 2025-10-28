@@ -48,15 +48,17 @@ VALUES ($1, $2, $3, $4, $5, $6, $7, $8);
 
 -- name: GetReadNotificationsForUserIdWithTimeOffset :many
 SELECT *
-FROM notifications 
+FROM notifications
 WHERE user_id = $1 AND viewed = TRUE AND created_at < $2
+  AND (sqlc.narg('notification_type')::text IS NULL OR notification_type = sqlc.narg('notification_type'))
 ORDER BY created_at DESC
 LIMIT $3;
 
 -- name: GetUnreadNotificationsForUserIdWithTimeOffset :many
 SELECT *
-FROM notifications 
+FROM notifications
 WHERE user_id = $1 AND viewed = FALSE AND created_at < $2
+  AND (sqlc.narg('notification_type')::text IS NULL OR notification_type = sqlc.narg('notification_type'))
 ORDER BY created_at DESC
 LIMIT $3;
 

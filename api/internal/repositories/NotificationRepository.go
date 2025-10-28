@@ -20,8 +20,8 @@ type NotificationRepository interface {
 	MarkAllNotificationsAsReadForUser(ctx context.Context, userId int) error
 	GetUserHasUnreadNotifications(ctx context.Context, userId int) (bool, error)
 	GetUserUnreadNotificationCount(ctx context.Context, userId int) (int, error)
-	GetReadNotificationsForUserIdWithTimeOffset(ctx context.Context, userId int, beforeTime time.Time, limit int) ([]*models.Notification, error)
-	GetUnreadNotificationsForUserIdWithTimeOffset(ctx context.Context, userId int, beforeTime time.Time, limit int) ([]*models.Notification, error)
+	GetReadNotificationsForUserIdWithTimeOffset(ctx context.Context, userId int, beforeTime time.Time, limit int, notificationType *string) ([]*models.Notification, error)
+	GetUnreadNotificationsForUserIdWithTimeOffset(ctx context.Context, userId int, beforeTime time.Time, limit int, notificationType *string) ([]*models.Notification, error)
 	FindUnreadLikeNotification(ctx context.Context, userId int, postId int, commentId *int) (*models.Notification, error)
 	DeleteNotificationById(ctx context.Context, notificationId int) error
 }
@@ -125,12 +125,21 @@ func (r DBNotificationRepository) GetUnreadNotificationsForUserId(ctx context.Co
 }
 
 // GetReadNotificationsForUserIdWithTimeOffset retrieves read notifications for a user with time-based pagination
-func (r DBNotificationRepository) GetReadNotificationsForUserIdWithTimeOffset(ctx context.Context, userId int, beforeTime time.Time, limit int) ([]*models.Notification, error) {
-	notifications, err := r.querier.GetReadNotificationsForUserIdWithTimeOffset(ctx, queries.GetReadNotificationsForUserIdWithTimeOffsetParams{
+func (r DBNotificationRepository) GetReadNotificationsForUserIdWithTimeOffset(ctx context.Context, userId int, beforeTime time.Time, limit int, notificationType *string) ([]*models.Notification, error) {
+	params := queries.GetReadNotificationsForUserIdWithTimeOffsetParams{
 		UserID:    userId,
 		CreatedAt: pgtype.Timestamp{Time: beforeTime, Valid: true},
 		Limit:     limit,
-	})
+	}
+
+	// Set notification type filter (backwards compatible - nil means no filter)
+	if notificationType != nil {
+		params.NotificationType = pgtype.Text{String: *notificationType, Valid: true}
+	} else {
+		params.NotificationType = pgtype.Text{Valid: false}
+	}
+
+	notifications, err := r.querier.GetReadNotificationsForUserIdWithTimeOffset(ctx, params)
 	if err != nil {
 		return nil, err
 	}
@@ -145,12 +154,21 @@ func (r DBNotificationRepository) GetReadNotificationsForUserIdWithTimeOffset(ct
 }
 
 // GetUnreadNotificationsForUserIdWithTimeOffset retrieves unread notifications for a user with time-based pagination
-func (r DBNotificationRepository) GetUnreadNotificationsForUserIdWithTimeOffset(ctx context.Context, userId int, beforeTime time.Time, limit int) ([]*models.Notification, error) {
-	notifications, err := r.querier.GetUnreadNotificationsForUserIdWithTimeOffset(ctx, queries.GetUnreadNotificationsForUserIdWithTimeOffsetParams{
+func (r DBNotificationRepository) GetUnreadNotificationsForUserIdWithTimeOffset(ctx context.Context, userId int, beforeTime time.Time, limit int, notificationType *string) ([]*models.Notification, error) {
+	params := queries.GetUnreadNotificationsForUserIdWithTimeOffsetParams{
 		UserID:    userId,
 		CreatedAt: pgtype.Timestamp{Time: beforeTime, Valid: true},
 		Limit:     limit,
-	})
+	}
+
+	// Set notification type filter (backwards compatible - nil means no filter)
+	if notificationType != nil {
+		params.NotificationType = pgtype.Text{String: *notificationType, Valid: true}
+	} else {
+		params.NotificationType = pgtype.Text{Valid: false}
+	}
+
+	notifications, err := r.querier.GetUnreadNotificationsForUserIdWithTimeOffset(ctx, params)
 	if err != nil {
 		return nil, err
 	}

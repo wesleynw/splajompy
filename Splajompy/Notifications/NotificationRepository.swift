@@ -73,15 +73,15 @@ protocol NotificationServiceProtocol: Sendable {
 
   func getUnreadNotificationCount() async -> AsyncResult<Int>
 
-  func getReadNotificationsWithTimeOffset(beforeTime: String, limit: Int) async -> AsyncResult<
+  func getReadNotificationsWithTimeOffset(beforeTime: String, limit: Int, notificationType: String?) async -> AsyncResult<
     [Notification]
   >
 
-  func getUnreadNotificationsWithTimeOffset(beforeTime: String, limit: Int) async -> AsyncResult<
+  func getUnreadNotificationsWithTimeOffset(beforeTime: String, limit: Int, notificationType: String?) async -> AsyncResult<
     [Notification]
   >
 
-  func getReadNotificationWithSectionsWithTimeOffset(beforeTime: String, limit: Int) async
+  func getReadNotificationWithSectionsWithTimeOffset(beforeTime: String, limit: Int, notificationType: String?) async
     -> AsyncResult<NotificationSectionData>
 }
 
@@ -198,13 +198,18 @@ struct NotificationService: NotificationServiceProtocol {
     }
   }
 
-  func getReadNotificationsWithTimeOffset(beforeTime: String, limit: Int) async -> AsyncResult<
+  func getReadNotificationsWithTimeOffset(beforeTime: String, limit: Int, notificationType: String? = nil) async -> AsyncResult<
     [Notification]
   > {
-    let queryItems = [
+    var queryItems = [
       URLQueryItem(name: "before_time", value: beforeTime),
       URLQueryItem(name: "limit", value: "\(limit)"),
     ]
+
+    // Add notification type filter if specified (backwards compatible)
+    if let notificationType = notificationType {
+      queryItems.append(URLQueryItem(name: "notification_type", value: notificationType))
+    }
 
     return await APIService.performRequest(
       endpoint: "notifications/read/time",
@@ -212,13 +217,18 @@ struct NotificationService: NotificationServiceProtocol {
     )
   }
 
-  func getUnreadNotificationsWithTimeOffset(beforeTime: String, limit: Int) async -> AsyncResult<
+  func getUnreadNotificationsWithTimeOffset(beforeTime: String, limit: Int, notificationType: String? = nil) async -> AsyncResult<
     [Notification]
   > {
-    let queryItems = [
+    var queryItems = [
       URLQueryItem(name: "before_time", value: beforeTime),
       URLQueryItem(name: "limit", value: "\(limit)"),
     ]
+
+    // Add notification type filter if specified (backwards compatible)
+    if let notificationType = notificationType {
+      queryItems.append(URLQueryItem(name: "notification_type", value: notificationType))
+    }
 
     return await APIService.performRequest(
       endpoint: "notifications/unread/time",
@@ -226,10 +236,10 @@ struct NotificationService: NotificationServiceProtocol {
     )
   }
 
-  func getReadNotificationWithSectionsWithTimeOffset(beforeTime: String, limit: Int) async
+  func getReadNotificationWithSectionsWithTimeOffset(beforeTime: String, limit: Int, notificationType: String? = nil) async
     -> AsyncResult<NotificationSectionData>
   {
-    let result = await getReadNotificationsWithTimeOffset(beforeTime: beforeTime, limit: limit)
+    let result = await getReadNotificationsWithTimeOffset(beforeTime: beforeTime, limit: limit, notificationType: notificationType)
 
     switch result {
     case .success(let notifications):

@@ -7,11 +7,40 @@ enum NotificationState {
   case failed(Error)
 }
 
+enum NotificationFilter: String, CaseIterable, Identifiable {
+  case all = "all"
+  case like = "like"
+  case comment = "comment"
+  case mention = "mention"
+  case announcement = "announcement"
+  case followers = "followers"
+  case poll = "poll"
+
+  var id: String { rawValue }
+
+  var displayName: String {
+    switch self {
+    case .all: return "All"
+    case .like: return "Likes"
+    case .comment: return "Comments"
+    case .mention: return "Mentions"
+    case .announcement: return "Announcements"
+    case .followers: return "Followers"
+    case .poll: return "Polls"
+    }
+  }
+
+  var apiValue: String? {
+    self == .all ? nil : rawValue
+  }
+}
+
 extension NotificationsView {
   @MainActor class ViewModel: ObservableObject {
     @Published var state: NotificationState = .idle
     @Published var hasMoreToLoad: Bool = true
     @Published var hasMoreUnreadToLoad: Bool = true
+    @Published var selectedFilter: NotificationFilter = .all
     private var isFetching: Bool = false
     private var isFetchingUnread: Bool = false
 
@@ -77,12 +106,14 @@ extension NotificationsView {
 
       async let unreadResult = service.getUnreadNotificationsWithTimeOffset(
         beforeTime: ISO8601DateFormatter().string(from: Date()),
-        limit: limit
+        limit: limit,
+        notificationType: selectedFilter.apiValue
       )
       async let readResult =
         service.getReadNotificationWithSectionsWithTimeOffset(
           beforeTime: ISO8601DateFormatter().string(from: Date()),
-          limit: limit
+          limit: limit,
+          notificationType: selectedFilter.apiValue
         )
 
       let (unreadRes, readRes) = await (unreadResult, readResult)
@@ -118,7 +149,8 @@ extension NotificationsView {
 
       let result = await service.getUnreadNotificationsWithTimeOffset(
         beforeTime: beforeTime,
-        limit: limit
+        limit: limit,
+        notificationType: selectedFilter.apiValue
       )
 
       switch result {
@@ -162,7 +194,8 @@ extension NotificationsView {
 
       let result = await service.getReadNotificationWithSectionsWithTimeOffset(
         beforeTime: beforeTime,
-        limit: limit
+        limit: limit,
+        notificationType: selectedFilter.apiValue
       )
 
       switch result {
@@ -305,6 +338,23 @@ extension NotificationsView {
 
       lastUnreadNotificationTime = nil
       hasMoreUnreadToLoad = false
+    }
+
+    func setFilter(_ filter: NotificationFilter) {
+      guard filter != selectedFilter else { return }
+
+      selectedFilter = filter
+
+      // Reset pagination state
+      lastReadNotificationTime = nil
+      lastUnreadNotificationTime = nil
+      hasMoreToLoad = true
+      hasMoreUnreadToLoad = true
+
+      // Refetch with new filter
+      Task {
+        await refreshNotifications()
+      }
     }
   }
 }

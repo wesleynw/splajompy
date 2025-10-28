@@ -77,7 +77,41 @@ struct NotificationsView: View {
     sections: [NotificationDateSection: [Notification]],
     unreadNotifications: [Notification]
   ) -> some View {
-    List {
+    VStack(spacing: 0) {
+      // Filter chips
+      ScrollView(.horizontal, showsIndicators: false) {
+        HStack(spacing: 8) {
+          ForEach(NotificationFilter.allCases) { filter in
+            Button(action: {
+              viewModel.setFilter(filter)
+            }) {
+              Text(filter.displayName)
+                .font(.subheadline)
+                .fontWeight(viewModel.selectedFilter == filter ? .semibold : .regular)
+                .foregroundColor(
+                  viewModel.selectedFilter == filter
+                    ? .white
+                    : .primary
+                )
+                .padding(.horizontal, 16)
+                .padding(.vertical, 8)
+                .background(
+                  Capsule()
+                    .fill(
+                      viewModel.selectedFilter == filter
+                        ? Color.accentColor
+                        : Color.secondary.opacity(0.15)
+                    )
+                )
+            }
+            .buttonStyle(.plain)
+          }
+        }
+        .padding(.horizontal)
+        .padding(.vertical, 8)
+      }
+
+      List {
       if !unreadNotifications.isEmpty {
         Section {
           ForEach(unreadNotifications, id: \.notificationId) { notification in
@@ -167,12 +201,13 @@ struct NotificationsView: View {
         }
         .id(UUID())
       }
-    }
-    .listStyle(.plain)
-    .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
-    .refreshable {
-      await viewModel.refreshNotifications()
-      refreshId = UUID()
+      }
+      .listStyle(.plain)
+      .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
+      .refreshable {
+        await viewModel.refreshNotifications()
+        refreshId = UUID()
+      }
     }
   }
 }

@@ -143,7 +143,13 @@ func (h *Handler) GetReadNotificationsByUserIdWithTimeOffset(w http.ResponseWrit
 		}
 	}
 
-	notifications, err := h.notificationService.GetReadNotificationsByUserIdWithTimeOffset(r.Context(), *currentUser, beforeTime, limit)
+	// Parse optional notification_type query parameter (for backwards compatibility)
+	var notificationType *string
+	if notifTypeStr := r.URL.Query().Get("notification_type"); notifTypeStr != "" {
+		notificationType = &notifTypeStr
+	}
+
+	notifications, err := h.notificationService.GetReadNotificationsByUserIdWithTimeOffset(r.Context(), *currentUser, beforeTime, limit, notificationType)
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
 		return
@@ -176,7 +182,13 @@ func (h *Handler) GetUnreadNotificationsByUserIdWithTimeOffset(w http.ResponseWr
 		}
 	}
 
-	notifications, err := h.notificationService.GetUnreadNotificationsByUserIdWithTimeOffset(r.Context(), *currentUser, beforeTime, limit)
+	// Parse optional notification_type query parameter (for backwards compatibility)
+	var notificationType *string
+	if notifTypeStr := r.URL.Query().Get("notification_type"); notifTypeStr != "" {
+		notificationType = &notifTypeStr
+	}
+
+	notifications, err := h.notificationService.GetUnreadNotificationsByUserIdWithTimeOffset(r.Context(), *currentUser, beforeTime, limit, notificationType)
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
 		return
