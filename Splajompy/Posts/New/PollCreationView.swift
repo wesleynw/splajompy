@@ -10,25 +10,31 @@ struct PollCreationView: View {
   @FocusState private var focusedField: Int?
 
   var body: some View {
-    NavigationView {
+    NavigationStack {
       formContent
         .navigationTitle("New Poll")
         #if os(iOS)
           .navigationBarTitleDisplayMode(.inline)
         #endif
         .toolbar {
-          ToolbarItem(placement: .topBarLeading) {
-            if #available(iOS 26.0, *) {
-              Button(role: .close, action: { dismiss() })
-            } else {
-              Button {
-                dismiss()
-              } label: {
-                Image(systemName: "xmark.circle.fill")
-                  .opacity(0.8)
+          ToolbarItem(placement: .cancellationAction) {
+            #if os(iOS)
+              if #available(iOS 26.0, *) {
+                Button(role: .close, action: { dismiss() })
+              } else {
+                Button {
+                  dismiss()
+                } label: {
+                  Image(systemName: "xmark.circle.fill")
+                    .opacity(0.8)
+                }
+                .buttonStyle(.plain)
               }
-              .buttonStyle(.plain)
-            }
+            #else
+              Button("Cancel") {
+                dismiss()
+              }
+            #endif
           }
 
           #if os(iOS)
@@ -37,24 +43,30 @@ struct PollCreationView: View {
             }
           #endif
 
-          ToolbarItem(placement: .topBarTrailing) {
-            if #available(iOS 26, *) {
-              Button(action: savePoll) {
-                Text("Save")
+          ToolbarItem(placement: .confirmationAction) {
+            #if os(iOS)
+              if #available(iOS 26, *) {
+                Button(role: .confirm, action: savePoll)
+                  .disabled(!isValidPoll)
+              } else {
+                Button(action: savePoll) {
+                  Image(systemName: "checkmark.circle.fill")
+                    .opacity(0.8)
+                }
+                .disabled(!isValidPoll)
               }
-              .buttonStyle(.borderedProminent)
-              .disabled(!isValidPoll)
-            } else {
-              Button(action: savePoll) {
-                Image(systemName: "checkmark.circle.fill")
-                  .opacity(0.8)
+            #else
+              Button("Save") {
+                savePoll()
               }
               .disabled(!isValidPoll)
-            }
+            #endif
           }
         }
     }
-    .interactiveDismissDisabled()
+    #if os(iOS)
+      .interactiveDismissDisabled()
+    #endif
     .onAppear {
       if let existingPoll = poll {
         title = existingPoll.title
@@ -132,10 +144,12 @@ private struct PollFormContent<AddButton: View>: View {
   var body: some View {
     Section {
       VStack(alignment: .leading) {
-        TextField("What's your favorite color?", text: $title)
-          #if os(iOS)
+        #if os(iOS)
+          TextField("What's your favorite color?", text: $title)
             .disabled(editMode?.wrappedValue == .active)
-          #endif
+        #else
+          TextField("What's your favorite color?", text: $title)
+        #endif
         HStack {
           Spacer()
           Text("\(title.count)/100")
@@ -150,18 +164,29 @@ private struct PollFormContent<AddButton: View>: View {
     Section {
       ForEach(Array(options.enumerated()), id: \.element.id) { index, option in
         HStack {
-          TextField(
-            placeholder(for: index),
-            text: Binding(
-              get: { options[index].text },
-              set: { newValue in
-                options[index].text = newValue
-              }
-            )
-          )
-          .focused($focusedField, equals: index)
           #if os(iOS)
+            TextField(
+              placeholder(for: index),
+              text: Binding(
+                get: { options[index].text },
+                set: { newValue in
+                  options[index].text = newValue
+                }
+              )
+            )
+            .focused($focusedField, equals: index)
             .disabled(editMode?.wrappedValue.isEditing == true)
+          #else
+            TextField(
+              placeholder(for: index),
+              text: Binding(
+                get: { options[index].text },
+                set: { newValue in
+                  options[index].text = newValue
+                }
+              )
+            )
+            .focused($focusedField, equals: index)
           #endif
 
           if focusedField == index || options[index].text.count > 25 {
