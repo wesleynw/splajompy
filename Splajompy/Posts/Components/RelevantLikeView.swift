@@ -1,3 +1,4 @@
+import PostHog
 import SwiftUI
 
 struct RelevantLikeView: View {
@@ -7,8 +8,14 @@ struct RelevantLikeView: View {
   var body: some View {
     if relevantLikes.isEmpty && !hasOtherLikes {
       EmptyView()
+    } else if relevantLikes.isEmpty && hasOtherLikes {
+      othersOnlyView
     } else {
-      likesContainer
+      if PostHogSDK.shared.isFeatureEnabled("minimal-likes-display") {
+        minimalLikesContainer
+      } else {
+        likesContainer
+      }
     }
   }
 
@@ -60,10 +67,57 @@ struct RelevantLikeView: View {
           )
         }
       }
-      .padding(.horizontal, 5)
-      .padding(.vertical, 3)
       .transition(.opacity)
     }
+  }
+
+  private var minimalLikesContainer: some View {
+    HStack(spacing: 4) {
+      Text("Liked by")
+        .font(.footnote)
+        .foregroundColor(.secondary)
+
+      ForEach(Array(relevantLikes.enumerated()), id: \.element.userId) {
+        index,
+        like in
+        HStack(spacing: 0) {
+          NavigationLink(
+            value: Route.profile(
+              id: String(like.userId),
+              username: like.username
+            )
+          ) {
+            Text("@\(like.username)")
+              .font(.footnote)
+              .foregroundColor(.blue)
+              .lineLimit(1)
+          }
+          .buttonStyle(.plain)
+
+          if index < relevantLikes.count - 1 || hasOtherLikes {
+            Text(",")
+              .font(.footnote)
+              .foregroundColor(.secondary)
+          }
+        }
+      }
+
+      if hasOtherLikes {
+        Text("and others")
+          .font(.footnote)
+          .foregroundColor(.secondary)
+      }
+    }
+    .transition(.opacity)
+  }
+
+  private var othersOnlyView: some View {
+    HStack(spacing: 4) {
+      Text("Liked by others")
+        .font(.footnote)
+        .foregroundColor(.secondary)
+    }
+    .transition(.opacity)
   }
 }
 

@@ -41,7 +41,6 @@ struct PostView: View {
   var onPostPinned: () -> Void
   var onPostUnpinned: () -> Void
 
-  @Namespace private var namespace
   @State private var isShowingComments = false
   @State private var isReporting = false
   @State private var showReportAlert = false
@@ -89,17 +88,6 @@ struct PostView: View {
     .padding(.horizontal, 16)
     .sheet(isPresented: $isShowingComments) {
       CommentsView(postId: post.post.postId, postManager: postManager)
-        .modify {
-          #if os(iOS)
-            if #available(iOS 26, *) {
-              $0.navigationTransition(
-                .zoom(sourceID: "comments", in: namespace)
-              )
-            } else {
-              $0
-            }
-          #endif
-        }
     }
     .alert("Post Reported", isPresented: $showReportAlert) {
       Button("OK") {}
@@ -322,11 +310,6 @@ struct PostView: View {
         }
         .buttonStyle(.plain)
         .sensoryFeedback(.impact, trigger: isShowingComments)
-        .modify {
-          if #available(iOS 18, *) {
-            $0.matchedTransitionSource(id: "comments", in: namespace)
-          }
-        }
 
         Divider()
           .padding(.vertical, 5)

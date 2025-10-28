@@ -18,10 +18,12 @@ struct PollView: View {
 
   var body: some View {
     VStack(alignment: .leading) {
-      Text(poll.title)
-        .font(.headline)
-        .fontWeight(.medium)
-        .multilineTextAlignment(.leading)
+      if !poll.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+        Text(poll.title)
+          .font(.headline)
+          .fontWeight(.medium)
+          .multilineTextAlignment(.leading)
+      }
 
       VStack {
         ForEach(Array(poll.options.enumerated()), id: \.offset) {

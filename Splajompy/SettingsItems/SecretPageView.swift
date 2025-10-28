@@ -18,6 +18,9 @@ struct SecretPageView: View {
     .padding()
     .multilineTextAlignment(.center)
     .navigationTitle("Secret Page")
+    #if os(iOS)
+      .navigationBarTitleDisplayMode(.inline)
+    #endif
   }
 }
 
