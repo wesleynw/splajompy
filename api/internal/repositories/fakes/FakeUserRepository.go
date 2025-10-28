@@ -19,6 +19,8 @@ type FakeUserRepository struct {
 	userBios          map[int]string
 	passwords         map[int]string
 	followRelations   map[int]map[int]bool
+	blockRelations    map[int]map[int]bool
+	muteRelations     map[int]map[int]bool
 	verificationCodes map[int]map[string]queries.VerificationCode
 	sessions          map[string]queries.Session
 	mutex             sync.RWMutex
@@ -33,6 +35,8 @@ func NewFakeUserRepository() *FakeUserRepository {
 		userBios:          make(map[int]string),
 		passwords:         make(map[int]string),
 		followRelations:   make(map[int]map[int]bool),
+		blockRelations:    make(map[int]map[int]bool),
+		muteRelations:     make(map[int]map[int]bool),
 		verificationCodes: make(map[int]map[string]queries.VerificationCode),
 		sessions:          make(map[string]queries.Session),
 		nextUserId:        1,
@@ -406,16 +410,72 @@ func (r *FakeUserRepository) GetFollowingForUser(userId int) []int {
 	return followingIds
 }
 
-func (r *FakeUserRepository) BlockUser(_ context.Context, _ int, _ int) error {
-	panic("implement me")
+func (r *FakeUserRepository) BlockUser(_ context.Context, currentUserId int, targetUserId int) error {
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
+
+	if r.blockRelations[currentUserId] == nil {
+		r.blockRelations[currentUserId] = make(map[int]bool)
+	}
+
+	r.blockRelations[currentUserId][targetUserId] = true
+	return nil
 }
 
-func (r *FakeUserRepository) UnblockUser(_ context.Context, _ int, _ int) error {
-	panic("implement me")
+func (r *FakeUserRepository) UnblockUser(_ context.Context, currentUserId int, targetUserId int) error {
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
+
+	if r.blockRelations[currentUserId] != nil {
+		delete(r.blockRelations[currentUserId], targetUserId)
+	}
+
+	return nil
 }
 
-func (r *FakeUserRepository) IsUserBlockingUser(_ context.Context, _ int, _ int) (bool, error) {
-	return false, nil
+func (r *FakeUserRepository) IsUserBlockingUser(_ context.Context, blockerId int, blockedId int) (bool, error) {
+	r.mutex.RLock()
+	defer r.mutex.RUnlock()
+
+	if r.blockRelations[blockerId] == nil {
+		return false, nil
+	}
+
+	return r.blockRelations[blockerId][blockedId], nil
+}
+
+func (r *FakeUserRepository) MuteUser(_ context.Context, currentUserId int, targetUserId int) error {
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
+
+	if r.muteRelations[currentUserId] == nil {
+		r.muteRelations[currentUserId] = make(map[int]bool)
+	}
+
+	r.muteRelations[currentUserId][targetUserId] = true
+	return nil
+}
+
+func (r *FakeUserRepository) UnmuteUser(_ context.Context, currentUserId int, targetUserId int) error {
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
+
+	if r.muteRelations[currentUserId] != nil {
+		delete(r.muteRelations[currentUserId], targetUserId)
+	}
+
+	return nil
+}
+
+func (r *FakeUserRepository) IsUserMutingUser(_ context.Context, muterId int, mutedId int) (bool, error) {
+	r.mutex.RLock()
+	defer r.mutex.RUnlock()
+
+	if r.muteRelations[muterId] == nil {
+		return false, nil
+	}
+
+	return r.muteRelations[muterId][mutedId], nil
 }
 
 func (r *FakeUserRepository) DeleteAccount(ctx context.Context, userId int) error {

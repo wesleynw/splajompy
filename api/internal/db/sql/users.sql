@@ -121,6 +121,22 @@ SELECT EXISTS (
   WHERE user_id = $1 AND target_user_id = $2
 );
 
+-- name: MuteUser :exec
+INSERT INTO mute (user_id, target_user_id)
+VALUES ($1, $2)
+ON CONFLICT DO NOTHING;
+
+-- name: UnmuteUser :exec
+DELETE FROM mute
+WHERE user_id = $1 AND target_user_id = $2;
+
+-- name: GetIsUserMutingUser :one
+SELECT EXISTS (
+  SELECT 1
+  FROM mute
+  WHERE user_id = $1 AND target_user_id = $2
+);
+
 -- name: DeleteUserById :exec
 DELETE FROM users
 WHERE user_id = $1;

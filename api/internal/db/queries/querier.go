@@ -38,6 +38,7 @@ type Querier interface {
 	GetIsPostLikedByUser(ctx context.Context, arg GetIsPostLikedByUserParams) (bool, error)
 	GetIsUserBlockingUser(ctx context.Context, arg GetIsUserBlockingUserParams) (bool, error)
 	GetIsUserFollowingUser(ctx context.Context, arg GetIsUserFollowingUserParams) (bool, error)
+	GetIsUserMutingUser(ctx context.Context, arg GetIsUserMutingUserParams) (bool, error)
 	GetIsUsernameInUse(ctx context.Context, username string) (bool, error)
 	GetMutualConnectionsForUser(ctx context.Context, arg GetMutualConnectionsForUserParams) ([]string, error)
 	GetMutualsByUserId(ctx context.Context, arg GetMutualsByUserIdParams) ([]GetMutualsByUserIdRow, error)
@@ -80,9 +81,11 @@ type Querier interface {
 	InsertVote(ctx context.Context, arg InsertVoteParams) error
 	MarkAllNotificationsAsReadForUser(ctx context.Context, userID int) error
 	MarkNotificationAsReadById(ctx context.Context, notificationID int) error
+	MuteUser(ctx context.Context, arg MuteUserParams) error
 	PinPost(ctx context.Context, arg PinPostParams) error
 	RemoveLike(ctx context.Context, arg RemoveLikeParams) error
 	UnblockUser(ctx context.Context, arg UnblockUserParams) error
+	UnmuteUser(ctx context.Context, arg UnmuteUserParams) error
 	UnpinPost(ctx context.Context, userID int) error
 	UpdateSessionExpiry(ctx context.Context, arg UpdateSessionExpiryParams) error
 	UpdateUserBio(ctx context.Context, arg UpdateUserBioParams) error

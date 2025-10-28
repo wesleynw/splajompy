@@ -75,6 +75,7 @@ struct RelationshipIndicator: View {
           isFollower: true,
           isFollowing: true,
           isBlocking: false,
+          isMuting: false,
           mutuals: ["alice", "bob", "charlie", "dan", "ethan"],
           mutualCount: 5
         )
@@ -91,6 +92,7 @@ struct RelationshipIndicator: View {
           isFollower: true,
           isFollowing: true,
           isBlocking: false,
+          isMuting: false,
           mutuals: ["alice", "bob", "charlie"],
           mutualCount: 3
         )
@@ -107,6 +109,7 @@ struct RelationshipIndicator: View {
           isFollower: false,
           isFollowing: false,
           isBlocking: false,
+          isMuting: false,
           mutuals: ["alice", "bob"],
           mutualCount: 2
         )
@@ -123,6 +126,7 @@ struct RelationshipIndicator: View {
           isFollower: false,
           isFollowing: false,
           isBlocking: false,
+          isMuting: false,
           mutuals: [],
           mutualCount: 0
         )
@@ -139,6 +143,7 @@ struct RelationshipIndicator: View {
           isFollower: false,
           isFollowing: false,
           isBlocking: false,
+          isMuting: false,
           mutuals: ["alice"],
           mutualCount: 0
         )

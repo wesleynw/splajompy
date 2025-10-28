@@ -96,6 +96,10 @@ func (h *Handler) RegisterRoutes(handleFunc func(pattern string, handlerFunc fun
 	handleFuncWithAuth("POST /user/{user_id}/block", h.BlockUser)
 	handleFuncWithAuth("DELETE /user/{user_id}/block", h.UnblockUser)
 
+	// muting
+	handleFuncWithAuth("POST /user/{user_id}/mute", h.MuteUser)
+	handleFuncWithAuth("DELETE /user/{user_id}/mute", h.UnmuteUser)
+
 	// users
 	handleFuncWithAuth("GET /user/{id}", h.GetUserById)
 	handleFuncWithAuth("GET /user/{id}/followers", h.GetFollowersByUserId)

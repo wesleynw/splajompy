@@ -37,6 +37,7 @@ func (s *UserService) GetUserById(ctx context.Context, cUser models.PublicUser, 
 	isFollowing, _ := s.userRepository.IsUserFollowingUser(ctx, cUser.UserID, userID)
 	isFollower, _ := s.userRepository.IsUserFollowingUser(ctx, userID, cUser.UserID)
 	isBlocking, _ := s.userRepository.IsUserBlockingUser(ctx, cUser.UserID, userID)
+	isMuting, _ := s.userRepository.IsUserMutingUser(ctx, cUser.UserID, userID)
 
 	mutuals, err := s.userRepository.GetMutualConnectionsForUser(ctx, cUser.UserID, userID)
 	if err != nil {
@@ -56,6 +57,7 @@ func (s *UserService) GetUserById(ctx context.Context, cUser models.PublicUser, 
 		IsFollowing: isFollowing,
 		IsFollower:  isFollower,
 		IsBlocking:  isBlocking,
+		IsMuting:    isMuting,
 		Mutuals:     mutuals,
 		MutualCount: len(mutuals),
 		IsVerified:  dbUser.IsVerified,
@@ -137,6 +139,18 @@ func (s *UserService) BlockUser(ctx context.Context, currentUser models.PublicUs
 
 func (s *UserService) UnblockUser(ctx context.Context, currentUser models.PublicUser, userId int) error {
 	return s.userRepository.UnblockUser(ctx, currentUser.UserID, userId)
+}
+
+func (s *UserService) MuteUser(ctx context.Context, currentUser models.PublicUser, userId int) error {
+	return s.userRepository.MuteUser(ctx, currentUser.UserID, userId)
+}
+
+func (s *UserService) UnmuteUser(ctx context.Context, currentUser models.PublicUser, userId int) error {
+	return s.userRepository.UnmuteUser(ctx, currentUser.UserID, userId)
+}
+
+func (s *UserService) IsMutingUser(ctx context.Context, userId int, targetUserId int) (bool, error) {
+	return s.userRepository.IsUserMutingUser(ctx, userId, targetUserId)
 }
 
 func (s *UserService) RequestFeature(ctx context.Context, user models.PublicUser, text string) error {

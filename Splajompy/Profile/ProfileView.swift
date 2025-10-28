@@ -5,7 +5,20 @@ struct ProfileView: View {
   let userId: Int
   let isProfileTab: Bool
 
+  enum AlertType: Identifiable {
+    case block
+    case mute
+
+    var id: String {
+      switch self {
+      case .block: return "block"
+      case .mute: return "mute"
+      }
+    }
+  }
+
   @State private var isShowingProfileEditor: Bool = false
+  @State private var activeAlert: AlertType?
   @StateObject private var viewModel: ViewModel
   @EnvironmentObject private var authManager: AuthManager
   @ObservedObject var postManager: PostManager
@@ -13,6 +26,21 @@ struct ProfileView: View {
   private var isCurrentUser: Bool {
     guard let currentUser = authManager.getCurrentUser() else { return false }
     return currentUser.userId == userId
+  }
+
+  private var alertTitle: String {
+    guard case .loaded(let user) = viewModel.profileState,
+      let alertType = activeAlert
+    else {
+      return ""
+    }
+
+    switch alertType {
+    case .block:
+      return user.isBlocking ? "Unblock @\(user.username)" : "Block @\(user.username)"
+    case .mute:
+      return user.isMuting ? "Unmute @\(user.username)" : "Mute @\(user.username)"
+    }
   }
 
   init(
@@ -61,17 +89,33 @@ struct ProfileView: View {
         Menu {
           if case .loaded(let user) = viewModel.profileState {
             if user.isBlocking {
-              Button(role: .destructive, action: viewModel.toggleBlocking) {
+              Button(role: .destructive, action: { activeAlert = .block }) {
                 Label(
                   "Unblock @\(user.username)",
                   systemImage: "person.fill.checkmark"
                 )
               }
             } else {
-              Button(role: .destructive, action: viewModel.toggleBlocking) {
+              Button(role: .destructive, action: { activeAlert = .block }) {
                 Label(
                   "Block @\(user.username)",
                   systemImage: "person.fill.xmark"
+                )
+              }
+            }
+
+            if user.isMuting {
+              Button(action: { activeAlert = .mute }) {
+                Label(
+                  "Unmute @\(user.username)",
+                  systemImage: "speaker.wave.2"
+                )
+              }
+            } else {
+              Button(action: { activeAlert = .mute }) {
+                Label(
+                  "Mute @\(user.username)",
+                  systemImage: "speaker.slash"
                 )
               }
             }
@@ -79,7 +123,67 @@ struct ProfileView: View {
         } label: {
           Image(systemName: "ellipsis.circle")
         }
-        .disabled(viewModel.isLoadingBlockButton)
+        .disabled(viewModel.isLoadingBlockButton || viewModel.isLoadingMuteButton)
+      }
+    }
+    .alert(
+      alertTitle,
+      isPresented: Binding(
+        get: { activeAlert != nil },
+        set: { if !$0 { activeAlert = nil } }
+      ),
+      presenting: activeAlert
+    ) { alertType in
+      switch alertType {
+      case .block:
+        if case .loaded(let user) = viewModel.profileState {
+          if user.isBlocking {
+            Button("Unblock") {
+              viewModel.toggleBlocking()
+            }
+          } else {
+            Button("Block", role: .destructive) {
+              viewModel.toggleBlocking()
+            }
+          }
+        }
+        Button("Cancel", role: .cancel) {}
+      case .mute:
+        if case .loaded(let user) = viewModel.profileState {
+          if user.isMuting {
+            Button("Unmute") {
+              viewModel.toggleMuting()
+            }
+          } else {
+            Button("Mute", role: .destructive) {
+              viewModel.toggleMuting()
+            }
+          }
+        }
+        Button("Cancel", role: .cancel) {}
+      }
+    } message: { alertType in
+      if case .loaded(let user) = viewModel.profileState {
+        switch alertType {
+        case .block:
+          if user.isBlocking {
+            Text(
+              "Unblocking this person will allow you to see their posts and interact with them again."
+            )
+          } else {
+            Text(
+              "Blocking this person will unfollow them and prevent you from seeing their posts. They will be unable to see your presence on the app."
+            )
+          }
+        case .mute:
+          if user.isMuting {
+            Text("Unmuting this person will show their posts in your feeds again.")
+          } else {
+            Text(
+              "Muting this person will hide their posts from your feeds. You'll continue to follow them and they will not be aware that they are muted."
+            )
+          }
+        }
       }
     }
   }
@@ -169,14 +273,6 @@ struct ProfileView: View {
               .fontWeight(.bold)
               .lineLimit(1)
           }
-          HStack(spacing: 4) {
-            Text("@\(user.username)")
-              .font(.subheadline)
-              .foregroundColor(.gray)
-            if user.isVerified == true {
-              VerificationBadge()
-            }
-          }
         }
         Spacer()
       }
@@ -185,6 +281,21 @@ struct ProfileView: View {
         Text(user.bio)
           .font(.body)
           .fixedSize(horizontal: false, vertical: true)
+      }
+
+      if !isProfileTab && !isCurrentUser && user.isMuting {
+        HStack(spacing: 6) {
+          Image(systemName: "speaker.slash.fill")
+            .font(.system(size: 14))
+            .foregroundColor(.secondary)
+          Text("You have muted this person")
+            .font(.subheadline)
+            .foregroundColor(.secondary)
+        }
+        .padding(.vertical, 8)
+        .padding(.horizontal, 12)
+        .background(.secondary.opacity(0.1))
+        .cornerRadius(8)
       }
 
       if !isProfileTab && !isCurrentUser {
@@ -217,7 +328,7 @@ struct ProfileView: View {
             .buttonStyle(.borderedProminent)
           }
         } else {
-          Button(action: viewModel.toggleBlocking) {
+          Button(action: { activeAlert = .block }) {
             Text("Unblock")
               .frame(maxWidth: .infinity)
               .foregroundStyle(.red.opacity(0.7))
