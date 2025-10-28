@@ -17,17 +17,17 @@ struct PollCreationView: View {
           .navigationBarTitleDisplayMode(.inline)
         #endif
         .toolbar {
-          ToolbarItem(
-            placement: {
-              #if os(iOS)
-                .navigationBarLeading
-              #else
-                .primaryAction
-              #endif
-            }()
-          ) {
-            Button("Cancel") {
-              dismiss()
+          ToolbarItem(placement: .topBarLeading) {
+            if #available(iOS 26.0, *) {
+              Button(role: .close, action: { dismiss() })
+            } else {
+              Button {
+                dismiss()
+              } label: {
+                Image(systemName: "xmark.circle.fill")
+                  .opacity(0.8)
+              }
+              .buttonStyle(.plain)
             }
           }
 
@@ -37,22 +37,21 @@ struct PollCreationView: View {
             }
           #endif
 
-          ToolbarItem(
-            placement: {
-              #if os(iOS)
-                .navigationBarTrailing
-              #else
-                .primaryAction
-              #endif
-            }()
-          ) {
-            Button("Save") {
-              savePoll()
+          ToolbarItem(placement: .topBarTrailing) {
+            if #available(iOS 26, *) {
+              Button(action: savePoll) {
+                Text("Save")
+              }
+              .buttonStyle(.borderedProminent)
+              .disabled(!isValidPoll)
+            } else {
+              Button(action: savePoll) {
+                Image(systemName: "checkmark.circle.fill")
+                  .opacity(0.8)
+              }
+              .disabled(!isValidPoll)
             }
-            .fontWeight(.semibold)
-            .disabled(!isValidPoll)
           }
-
         }
     }
     .interactiveDismissDisabled()
@@ -78,8 +77,7 @@ struct PollCreationView: View {
   }
 
   private var isValidPoll: Bool {
-    !title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-      && title.count <= 100
+    title.count <= 100
       && options.filter {
         !$0.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
       }.count >= 2 && options.allSatisfy({ $0.text.count <= 25 })
@@ -132,7 +130,7 @@ private struct PollFormContent<AddButton: View>: View {
   }
 
   var body: some View {
-    Section("Title") {
+    Section {
       VStack(alignment: .leading) {
         TextField("What's your favorite color?", text: $title)
           #if os(iOS)
@@ -145,6 +143,8 @@ private struct PollFormContent<AddButton: View>: View {
             .foregroundColor(title.count > 100 ? .orange : .secondary)
         }
       }
+    } header: {
+      Text("Title (Optional)")
     }
 
     Section {

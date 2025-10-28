@@ -1,3 +1,5 @@
+import Nuke
+import PostHog
 import SwiftUI
 
 struct AboutView: View {
@@ -5,6 +7,8 @@ struct AboutView: View {
     Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? ""
   let buildNumber =
     Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? ""
+
+  @State private var cacheSize: String = "Calculating..."
 
   var body: some View {
     VStack {
@@ -20,15 +24,24 @@ struct AboutView: View {
               .font(.title2)
               .fontWeight(.semibold)
 
-            Text(
-              "Splajompy is free and open-source. You may view the code, contribute, or report issues on GitHub."
-            )
-            .font(.subheadline)
-            .foregroundColor(.secondary)
-            .multilineTextAlignment(.center)
-            .padding(.horizontal)
+            Text("Splajompy is free and open-source.")
+              .font(.subheadline)
+              .foregroundColor(.secondary)
+              .multilineTextAlignment(.center)
+              .padding(.horizontal)
           }
           .padding()
+        }
+
+        Section {
+          HStack {
+            Text("Version")
+            Spacer()
+            Text("\(appVersion) (Build \(buildNumber))")
+              .font(.footnote)
+              .fontWeight(.bold)
+              .foregroundColor(.secondary)
+          }
         }
 
         Section {
@@ -59,16 +72,34 @@ struct AboutView: View {
           }
         }
 
-        Section {
-          HStack {
-            Text("Version")
-            Spacer()
-            Text("\(appVersion) (Build \(buildNumber))")
-              .font(.footnote)
-              .fontWeight(.bold)
-              .foregroundColor(.secondary)
+        if PostHogSDK.shared.isFeatureEnabled("statistics-page") {
+          Section {
+            NavigationLink(destination: StatisticsView()) {
+              Label("Statistics", systemImage: "chart.xyaxis.line")
+            }
           }
         }
+
+        Section {
+          HStack {
+            Button(action: {
+              ImageCache.shared.removeAll()
+              if let dataCache = ImagePipeline.shared.configuration.dataCache {
+                dataCache.removeAll()
+              }
+
+              updateCacheSize()
+            }) {
+              Text("Clear Cache")
+            }
+
+            Spacer()
+
+            Text(cacheSize)
+              .foregroundStyle(.secondary)
+          }
+        }
+
       }
       #if os(macOS)
         .contentMargins(.horizontal, 20, for: .scrollContent)
@@ -79,6 +110,19 @@ struct AboutView: View {
     #if os(iOS)
       .navigationBarTitleDisplayMode(.inline)
     #endif
+    .task {
+      updateCacheSize()
+    }
+  }
+
+  private func updateCacheSize() {
+    let cache = try? DataCache(name: "media-cache")
+    if let cache = cache {
+      self.cacheSize = ByteCountFormatter.string(
+        fromByteCount: Int64(cache.totalSize),
+        countStyle: .file
+      )
+    }
   }
 }
 
