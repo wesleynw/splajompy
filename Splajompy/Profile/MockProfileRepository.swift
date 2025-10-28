@@ -28,6 +28,7 @@ final class MockUserStore: @unchecked Sendable {
         isFollower: false,
         isFollowing: false,
         isBlocking: false,
+        isMuting: false,
         mutuals: [],
         mutualCount: 0,
         isVerified: true
@@ -45,6 +46,7 @@ final class MockUserStore: @unchecked Sendable {
         isFollower: true,
         isFollowing: true,
         isBlocking: false,
+        isMuting: false,
         mutuals: [],
         mutualCount: 0
       ),
@@ -60,6 +62,7 @@ final class MockUserStore: @unchecked Sendable {
         isFollower: false,
         isFollowing: true,
         isBlocking: false,
+        isMuting: false,
         mutuals: [],
         mutualCount: 0
       ),
@@ -76,6 +79,7 @@ final class MockUserStore: @unchecked Sendable {
         isFollower: true,
         isFollowing: false,
         isBlocking: false,
+        isMuting: false,
         mutuals: ["joel", "wesley"],
         mutualCount: 2
       ),
@@ -92,6 +96,7 @@ final class MockUserStore: @unchecked Sendable {
         isFollower: true,
         isFollowing: true,
         isBlocking: false,
+        isMuting: false,
         mutuals: [],
         mutualCount: 0
       ),
@@ -108,6 +113,7 @@ final class MockUserStore: @unchecked Sendable {
         isFollower: false,
         isFollowing: false,
         isBlocking: false,
+        isMuting: false,
         mutuals: [],
         mutualCount: 0
       ),
@@ -124,6 +130,7 @@ final class MockUserStore: @unchecked Sendable {
         isFollower: true,
         isFollowing: true,
         isBlocking: false,
+        isMuting: false,
         mutuals: [],
         mutualCount: 0
       ),
@@ -140,6 +147,7 @@ final class MockUserStore: @unchecked Sendable {
         isFollower: false,
         isFollowing: false,
         isBlocking: false,
+        isMuting: false,
         mutuals: [],
         mutualCount: 0
       ),
@@ -156,6 +164,7 @@ final class MockUserStore: @unchecked Sendable {
         isFollower: false,
         isFollowing: true,
         isBlocking: false,
+        isMuting: false,
         mutuals: [],
         mutualCount: 0
       ),
@@ -172,6 +181,7 @@ final class MockUserStore: @unchecked Sendable {
         isFollower: true,
         isFollowing: false,
         isBlocking: false,
+        isMuting: false,
         mutuals: [],
         mutualCount: 0
       ),
@@ -258,6 +268,19 @@ struct MockProfileService: ProfileServiceProtocol {
     }
   }
 
+  func toggleMuting(userId: Int, isMuting: Bool) async -> AsyncResult<
+    EmptyResponse
+  > {
+    try? await Task.sleep(nanoseconds: 300_000_000)
+    if var user = store.users[userId] {
+      user.isMuting = isMuting
+      store.users[userId] = user
+      return .success(EmptyResponse())
+    } else {
+      return .error(APIErrorMessage(message: "User not found"))
+    }
+  }
+
   func requestFeature(text: String) async -> AsyncResult<EmptyResponse> {
     try? await Task.sleep(nanoseconds: 500_000_000)
     return .success(EmptyResponse())
@@ -280,6 +303,7 @@ struct MockProfileService: ProfileServiceProtocol {
         isFollower: profile.isFollower,
         isFollowing: profile.isFollowing,
         isBlocking: profile.isBlocking,
+        isMuting: profile.isMuting,
         mutuals: profile.mutuals,
         mutualCount: profile.mutuals.count,
         isVerified: profile.isVerified ?? false
@@ -305,6 +329,7 @@ struct MockProfileService: ProfileServiceProtocol {
         isFollower: profile.isFollower,
         isFollowing: profile.isFollowing,
         isBlocking: profile.isBlocking,
+        isMuting: profile.isMuting,
         mutuals: profile.mutuals,
         mutualCount: profile.mutuals.count,
         isVerified: profile.isVerified ?? false
@@ -331,6 +356,7 @@ struct MockProfileService: ProfileServiceProtocol {
         isFollower: profile.isFollower,
         isFollowing: profile.isFollowing,
         isBlocking: profile.isBlocking,
+        isMuting: profile.isMuting,
         mutuals: profile.mutuals,
         mutualCount: profile.mutuals.count,
         isVerified: profile.isVerified ?? false

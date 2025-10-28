@@ -131,6 +131,7 @@ type DetailedUser struct {
 	IsFollower  bool      `json:"isFollower"`
 	IsFollowing bool      `json:"isFollowing"`
 	IsBlocking  bool      `json:"isBlocking"`
+	IsMuting    bool      `json:"isMuting"`
 	Mutuals     []string  `json:"mutuals"`
 	MutualCount int       `json:"mutualCount"`
 	IsVerified  bool      `json:"isVerified"`

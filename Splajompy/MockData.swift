@@ -11,6 +11,7 @@ struct Mocks {
     isFollower: false,
     isFollowing: true,
     isBlocking: false,
+    isMuting: false,
     mutuals: ["alice", "bob"],
     mutualCount: 2,
     isVerified: false
@@ -26,6 +27,7 @@ struct Mocks {
     isFollower: true,
     isFollowing: true,
     isBlocking: false,
+    isMuting: false,
     mutuals: ["alice", "bob", "wesley"],
     mutualCount: 3,
     isVerified: false
@@ -41,6 +43,7 @@ struct Mocks {
     isFollower: true,
     isFollowing: true,
     isBlocking: false,
+    isMuting: false,
     mutuals: ["alice", "bob", "wesley"],
     mutualCount: 3,
     isVerified: false

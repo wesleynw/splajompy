@@ -28,6 +28,7 @@ extension ProfileView {
     @Published var isLoading: Bool = false
     @Published var isLoadingFollowButton: Bool = false
     @Published var isLoadingBlockButton: Bool = false
+    @Published var isLoadingMuteButton: Bool = false
     @Published var canLoadMorePosts: Bool = true
     @Published var isLoadingMorePosts: Bool = false
 
@@ -232,6 +233,26 @@ extension ProfileView {
           profileState = .failed(error.localizedDescription)
         }
         isLoadingBlockButton = false
+      }
+    }
+
+    func toggleMuting() {
+      guard case .loaded(let profile) = profileState else { return }
+      Task {
+        isLoadingMuteButton = true
+        let result = await profileService.toggleMuting(
+          userId: userId,
+          isMuting: profile.isMuting
+        )
+        switch result {
+        case .success(_):
+          var updatedProfile = profile
+          updatedProfile.isMuting.toggle()
+          profileState = .loaded(updatedProfile)
+        case .error(let error):
+          profileState = .failed(error.localizedDescription)
+        }
+        isLoadingMuteButton = false
       }
     }
 

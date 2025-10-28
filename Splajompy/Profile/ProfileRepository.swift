@@ -10,6 +10,7 @@ struct UserProfile: Decodable {
   var isFollower: Bool
   var isFollowing: Bool
   var isBlocking: Bool
+  var isMuting: Bool
   let mutuals: [String]
   let mutualCount: Int
   var isVerified: Bool?
@@ -30,6 +31,9 @@ protocol ProfileServiceProtocol: Sendable {
     EmptyResponse
   >
   func toggleBlocking(userId: Int, isBlocking: Bool) async -> AsyncResult<
+    EmptyResponse
+  >
+  func toggleMuting(userId: Int, isMuting: Bool) async -> AsyncResult<
     EmptyResponse
   >
   func requestFeature(text: String) async -> AsyncResult<EmptyResponse>
@@ -94,6 +98,16 @@ struct ProfileService: ProfileServiceProtocol {
     let method = isBlocking ? "DELETE" : "POST"
     return await APIService.performRequest(
       endpoint: "user/\(userId)/block",
+      method: method
+    )
+  }
+
+  func toggleMuting(userId: Int, isMuting: Bool) async -> AsyncResult<
+    EmptyResponse
+  > {
+    let method = isMuting ? "DELETE" : "POST"
+    return await APIService.performRequest(
+      endpoint: "user/\(userId)/mute",
       method: method
     )
   }

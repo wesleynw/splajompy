@@ -36,6 +36,9 @@ type UserRepository interface {
 	BlockUser(ctx context.Context, currentUserId int, targetUserId int) error
 	UnblockUser(ctx context.Context, currentUserId int, targetUserId int) error
 	IsUserBlockingUser(ctx context.Context, blockerId int, blockedId int) (bool, error)
+	MuteUser(ctx context.Context, currentUserId int, targetUserId int) error
+	UnmuteUser(ctx context.Context, currentUserId int, targetUserId int) error
+	IsUserMutingUser(ctx context.Context, muterId int, mutedId int) (bool, error)
 	DeleteAccount(ctx context.Context, userId int) error
 	GetMutualConnectionsForUser(ctx context.Context, currentUserId int, targetUserId int) ([]string, error)
 	GetFollowersByUserId(ctx context.Context, userId int, limit int, offset int) ([]queries.GetFollowersByUserIdRow, error)
@@ -223,6 +226,27 @@ func (r DBUserRepository) IsUserBlockingUser(ctx context.Context, blockerId int,
 	return r.querier.GetIsUserBlockingUser(ctx, queries.GetIsUserBlockingUserParams{
 		UserID:       blockerId,
 		TargetUserID: blockedId,
+	})
+}
+
+func (r DBUserRepository) MuteUser(ctx context.Context, currentUserId int, targetUserId int) error {
+	return r.querier.MuteUser(ctx, queries.MuteUserParams{
+		UserID:       currentUserId,
+		TargetUserID: targetUserId,
+	})
+}
+
+func (r DBUserRepository) UnmuteUser(ctx context.Context, currentUserId int, targetUserId int) error {
+	return r.querier.UnmuteUser(ctx, queries.UnmuteUserParams{
+		UserID:       currentUserId,
+		TargetUserID: targetUserId,
+	})
+}
+
+func (r DBUserRepository) IsUserMutingUser(ctx context.Context, muterId int, mutedId int) (bool, error) {
+	return r.querier.GetIsUserMutingUser(ctx, queries.GetIsUserMutingUserParams{
+		UserID:       muterId,
+		TargetUserID: mutedId,
 	})
 }
 

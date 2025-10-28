@@ -158,6 +158,26 @@ func (q *Queries) GetIsUserBlockingUser(ctx context.Context, arg GetIsUserBlocki
 	return exists, err
 }
 
+const getIsUserMutingUser = `-- name: GetIsUserMutingUser :one
+SELECT EXISTS (
+  SELECT 1
+  FROM mute
+  WHERE user_id = $1 AND target_user_id = $2
+)
+`
+
+type GetIsUserMutingUserParams struct {
+	UserID       int `json:"userId"`
+	TargetUserID int `json:"targetUserId"`
+}
+
+func (q *Queries) GetIsUserMutingUser(ctx context.Context, arg GetIsUserMutingUserParams) (bool, error) {
+	row := q.db.QueryRow(ctx, getIsUserMutingUser, arg.UserID, arg.TargetUserID)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
+}
+
 const getIsUsernameInUse = `-- name: GetIsUsernameInUse :one
 SELECT EXISTS (
   SELECT 1
@@ -372,6 +392,22 @@ func (q *Queries) GetVerificationCode(ctx context.Context, arg GetVerificationCo
 	return i, err
 }
 
+const muteUser = `-- name: MuteUser :exec
+INSERT INTO mute (user_id, target_user_id)
+VALUES ($1, $2)
+ON CONFLICT DO NOTHING
+`
+
+type MuteUserParams struct {
+	UserID       int `json:"userId"`
+	TargetUserID int `json:"targetUserId"`
+}
+
+func (q *Queries) MuteUser(ctx context.Context, arg MuteUserParams) error {
+	_, err := q.db.Exec(ctx, muteUser, arg.UserID, arg.TargetUserID)
+	return err
+}
+
 const unblockUser = `-- name: UnblockUser :exec
 DELETE FROM block
 WHERE user_id = $1 AND target_user_id = $2
@@ -384,6 +420,21 @@ type UnblockUserParams struct {
 
 func (q *Queries) UnblockUser(ctx context.Context, arg UnblockUserParams) error {
 	_, err := q.db.Exec(ctx, unblockUser, arg.UserID, arg.TargetUserID)
+	return err
+}
+
+const unmuteUser = `-- name: UnmuteUser :exec
+DELETE FROM mute
+WHERE user_id = $1 AND target_user_id = $2
+`
+
+type UnmuteUserParams struct {
+	UserID       int `json:"userId"`
+	TargetUserID int `json:"targetUserId"`
+}
+
+func (q *Queries) UnmuteUser(ctx context.Context, arg UnmuteUserParams) error {
+	_, err := q.db.Exec(ctx, unmuteUser, arg.UserID, arg.TargetUserID)
 	return err
 }
 

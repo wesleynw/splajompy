@@ -52,6 +52,13 @@ type Like struct {
 	UserID    int  `json:"userId"`
 }
 
+type Mute struct {
+	ID           int              `json:"id"`
+	UserID       int              `json:"userId"`
+	TargetUserID int              `json:"targetUserId"`
+	CreatedAt    pgtype.Timestamp `json:"createdAt"`
+}
+
 type Notification struct {
 	NotificationID   int              `json:"notificationId"`
 	UserID           int              `json:"userId"`

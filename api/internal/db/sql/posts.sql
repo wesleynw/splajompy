@@ -24,6 +24,10 @@ WHERE posts.user_id = $1 OR EXISTS (
     SELECT 1
     FROM block
     WHERE user_id = $1 AND target_user_id = posts.user_id
+) AND NOT EXISTS (
+    SELECT 1
+    FROM mute
+    WHERE user_id = $1 AND target_user_id = posts.user_id
 )
 ORDER BY posts.created_at DESC
 LIMIT $2
@@ -36,6 +40,10 @@ WHERE NOT EXISTS (
     SELECT 1
     FROM block
     WHERE block.user_id = $3 AND target_user_id = posts.user_id
+) AND NOT EXISTS (
+    SELECT 1
+    FROM mute
+    WHERE mute.user_id = $3 AND target_user_id = posts.user_id
 )
 ORDER BY posts.created_at DESC
 LIMIT $1
@@ -80,18 +88,19 @@ WHERE posts.user_id = $1;
 -- name: GetPostIdsForMutualFeed :many
 WITH user_relationships AS (
   SELECT posts.post_id, posts.user_id,
-    CASE 
+    CASE
       WHEN posts.user_id = $1 THEN 'own'
       WHEN f.follower_id IS NOT NULL THEN 'friend'
       ELSE 'mutual'
     END as relationship_type
   FROM posts
   LEFT JOIN follows f ON f.follower_id = $1 AND f.following_id = posts.user_id
-  WHERE (posts.user_id = $1 OR f.follower_id IS NOT NULL OR 
-         EXISTS (SELECT 1 FROM follows f1 
-                 INNER JOIN follows f2 ON f1.following_id = f2.follower_id 
+  WHERE (posts.user_id = $1 OR f.follower_id IS NOT NULL OR
+         EXISTS (SELECT 1 FROM follows f1
+                 INNER JOIN follows f2 ON f1.following_id = f2.follower_id
                  WHERE f1.follower_id = $1 AND f2.following_id = posts.user_id))
     AND NOT EXISTS (SELECT 1 FROM block WHERE user_id = $1 AND target_user_id = posts.user_id)
+    AND NOT EXISTS (SELECT 1 FROM mute WHERE user_id = $1 AND target_user_id = posts.user_id)
 )
 SELECT post_id, user_id, relationship_type, 
   CASE WHEN relationship_type = 'mutual' THEN 
@@ -126,6 +135,10 @@ WHERE NOT EXISTS (
     SELECT 1
     FROM block
     WHERE block.user_id = $3 AND target_user_id = posts.user_id
+) AND NOT EXISTS (
+    SELECT 1
+    FROM mute
+    WHERE mute.user_id = $3 AND target_user_id = posts.user_id
 ) AND ($2::timestamp IS NULL OR posts.created_at < $2::timestamp)
 ORDER BY posts.created_at DESC
 LIMIT $1;
@@ -141,6 +154,10 @@ WHERE (posts.user_id = $1 OR EXISTS (
     SELECT 1
     FROM block
     WHERE user_id = $1 AND target_user_id = posts.user_id
+) AND NOT EXISTS (
+    SELECT 1
+    FROM mute
+    WHERE user_id = $1 AND target_user_id = posts.user_id
 ) AND ($3::timestamp IS NULL OR posts.created_at < $3::timestamp)
 ORDER BY posts.created_at DESC
 LIMIT $2;
@@ -148,18 +165,19 @@ LIMIT $2;
 -- name: GetPostIdsForMutualFeedCursor :many
 WITH user_relationships AS (
   SELECT posts.post_id, posts.user_id,
-    CASE 
+    CASE
       WHEN posts.user_id = $1 THEN 'own'
       WHEN f.follower_id IS NOT NULL THEN 'friend'
       ELSE 'mutual'
     END as relationship_type
   FROM posts
   LEFT JOIN follows f ON f.follower_id = $1 AND f.following_id = posts.user_id
-  WHERE (posts.user_id = $1 OR f.follower_id IS NOT NULL OR 
-         EXISTS (SELECT 1 FROM follows f1 
-                 INNER JOIN follows f2 ON f1.following_id = f2.follower_id 
+  WHERE (posts.user_id = $1 OR f.follower_id IS NOT NULL OR
+         EXISTS (SELECT 1 FROM follows f1
+                 INNER JOIN follows f2 ON f1.following_id = f2.follower_id
                  WHERE f1.follower_id = $1 AND f2.following_id = posts.user_id))
     AND NOT EXISTS (SELECT 1 FROM block WHERE user_id = $1 AND target_user_id = posts.user_id)
+    AND NOT EXISTS (SELECT 1 FROM mute WHERE user_id = $1 AND target_user_id = posts.user_id)
     AND ($3::timestamp IS NULL OR posts.created_at < $3::timestamp)
 )
 SELECT post_id, user_id, relationship_type, 
