@@ -212,6 +212,10 @@ struct ProfileView: View {
             )
           }
         }
+        #if os(macOS)
+          .frame(maxWidth: 600)
+          .frame(maxWidth: .infinity)
+        #endif
       }
       .environmentObject(authManager)
       .refreshable {

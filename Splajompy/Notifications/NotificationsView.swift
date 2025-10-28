@@ -31,8 +31,8 @@ struct NotificationsView: View {
       }
     }
     #if os(macOS)
-      .contentMargins(.horizontal, 40, for: .scrollContent)
-      .safeAreaPadding(.horizontal, 20)
+      .frame(maxWidth: 600)
+      .frame(maxWidth: .infinity)
     #endif
     .onAppear {
       if case .idle = viewModel.state {
@@ -169,6 +169,9 @@ struct NotificationsView: View {
       }
     }
     .listStyle(.plain)
+    #if os(macOS)
+      .scrollContentBackground(.hidden)
+    #endif
     .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
     .refreshable {
       await viewModel.refreshNotifications()
