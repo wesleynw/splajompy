@@ -292,24 +292,42 @@ struct PostView: View {
         .padding(.horizontal, 4)
 
       if !isStandalone {
-        Button(action: {
-          isShowingComments = true
-        }) {
-          ZStack {
-            Image(systemName: "bubble.middle.bottom")
-              .font(.system(size: 22))
-              .frame(width: 48, height: 40)
+        #if os(iOS)
+          Button(action: {
+            isShowingComments = true
+          }) {
+            ZStack {
+              Image(systemName: "bubble.middle.bottom")
+                .font(.system(size: 22))
+                .frame(width: 48, height: 40)
 
-            if post.commentCount > 0 {
-              Text(post.commentCount > 9 ? "9+" : "\(post.commentCount)")
-                .font(.caption2)
-                .fontWeight(.medium)
-                .padding(.bottom, 4)
+              if post.commentCount > 0 {
+                Text(post.commentCount > 9 ? "9+" : "\(post.commentCount)")
+                  .font(.caption2)
+                  .fontWeight(.medium)
+                  .padding(.bottom, 4)
+              }
             }
           }
-        }
-        .buttonStyle(.plain)
-        .sensoryFeedback(.impact, trigger: isShowingComments)
+          .buttonStyle(.plain)
+          .sensoryFeedback(.impact, trigger: isShowingComments)
+        #else
+          NavigationLink(value: Route.post(id: post.id)) {
+            ZStack {
+              Image(systemName: "bubble.middle.bottom")
+                .font(.system(size: 22))
+                .frame(width: 48, height: 40)
+
+              if post.commentCount > 0 {
+                Text(post.commentCount > 9 ? "9+" : "\(post.commentCount)")
+                  .font(.caption2)
+                  .fontWeight(.medium)
+                  .padding(.bottom, 4)
+              }
+            }
+          }
+          .buttonStyle(.plain)
+        #endif
 
         Divider()
           .padding(.vertical, 5)

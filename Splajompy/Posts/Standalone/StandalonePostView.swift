@@ -20,47 +20,53 @@ struct StandalonePostView: View {
 
   var body: some View {
     ScrollView {
-      switch postState {
-      case .idle:
-        Color.clear
-      case .loading:
-        ProgressView()
-      case .loaded:
-        if let detailedPost = postManager.getPost(id: postId) {
-          VStack {
-            PostView(
-              post: detailedPost,
-              postManager: postManager,
-              showAuthor: true,
-              isStandalone: true,
-              onLikeButtonTapped: { viewModel.toggleLike() },
-              onPostDeleted: {
-                Task {
-                  await postManager.deletePost(id: postId)
-                  dismiss()
+      Group {
+        switch postState {
+        case .idle:
+          Color.clear
+        case .loading:
+          ProgressView()
+        case .loaded:
+          if let detailedPost = postManager.getPost(id: postId) {
+            VStack {
+              PostView(
+                post: detailedPost,
+                postManager: postManager,
+                showAuthor: true,
+                isStandalone: true,
+                onLikeButtonTapped: { viewModel.toggleLike() },
+                onPostDeleted: {
+                  Task {
+                    await postManager.deletePost(id: postId)
+                    dismiss()
+                  }
                 }
-              }
-            )
-            CommentsView(
-              postId: postId,
-              postManager: postManager,
-              viewModel: commentsViewModel,
-              isInSheet: false,
-              showInput: false
+              )
+              CommentsView(
+                postId: postId,
+                postManager: postManager,
+                viewModel: commentsViewModel,
+                isInSheet: false,
+                showInput: false
+              )
+            }
+          } else {
+            ErrorScreen(
+              errorString: "The post you're looking for doesn't exist or has been removed.",
+              onRetry: { await reloadPost() }
             )
           }
-        } else {
+        case .failed(let error):
           ErrorScreen(
-            errorString: "The post you're looking for doesn't exist or has been removed.",
+            errorString: error.localizedDescription,
             onRetry: { await reloadPost() }
           )
         }
-      case .failed(let error):
-        ErrorScreen(
-          errorString: error.localizedDescription,
-          onRetry: { await reloadPost() }
-        )
       }
+      #if os(macOS)
+        .frame(maxWidth: 600)
+        .frame(maxWidth: .infinity)
+      #endif
     }
     .onTapGesture {
       isCommentFocused = false

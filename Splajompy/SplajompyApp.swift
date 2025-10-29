@@ -222,5 +222,9 @@ struct SplajompyApp: App {
     selection = 0
 
     postManager.clearCache()
+
+    #if !DEBUG
+      PostHogSDK.shared.reset()
+    #endif
   }
 }
