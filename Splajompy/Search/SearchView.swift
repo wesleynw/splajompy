@@ -22,6 +22,10 @@ struct SearchView: View {
         searchResults
       }
     }
+    #if os(macOS)
+      .contentMargins(.horizontal, 40, for: .scrollContent)
+      .safeAreaPadding(.horizontal, 20)
+    #endif
     .navigationTitle("Search")
     .searchable(text: $searchText, prompt: "People...")
     .autocorrectionDisabled()
@@ -64,44 +68,33 @@ struct SearchView: View {
   }
 
   private var searchResults: some View {
-    ScrollView {
-      LazyVStack(spacing: 0) {
-        ForEach(viewModel.searchResults, id: \.userId) { user in
-          NavigationLink(
-            value: Route.profile(id: String(user.userId), username: user.username)
-          ) {
-            HStack {
-              VStack(alignment: .leading, spacing: 2) {
-                if let displayName = user.name, !displayName.isEmpty {
-                  Text(displayName)
-                    .font(.headline)
-                    .fontWeight(.bold)
-                    .lineLimit(1)
+    List(viewModel.searchResults, id: \.userId) { user in
+      NavigationLink(
+        value: Route.profile(id: String(user.userId), username: user.username)
+      ) {
+        HStack {
+          VStack(alignment: .leading, spacing: 2) {
+            if let displayName = user.name, !displayName.isEmpty {
+              Text(displayName)
+                .font(.headline)
+                .fontWeight(.bold)
+                .lineLimit(1)
 
-                  Text("@\(user.username)")
-                    .font(.subheadline)
-                    .foregroundColor(.gray)
-                } else {
-                  Text("@\(user.username)")
-                    .font(.headline)
-                    .fontWeight(.bold)
-                    .foregroundColor(.gray)
-                }
-              }
-              Spacer()
+              Text("@\(user.username)")
+                .font(.subheadline)
+                .foregroundColor(.gray)
+            } else {
+              Text("@\(user.username)")
+                .font(.headline)
+                .fontWeight(.bold)
+                .foregroundColor(.gray)
             }
-            .padding(.vertical, 8)
-            .padding(.horizontal, 16)
           }
-          .buttonStyle(.plain)
-
-          Divider()
+          Spacer()
         }
+        .padding(.vertical, 8)
       }
-      #if os(macOS)
-        .frame(maxWidth: 600)
-        .frame(maxWidth: .infinity)
-      #endif
     }
+    .listStyle(.plain)
   }
 }
