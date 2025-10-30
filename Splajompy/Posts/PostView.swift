@@ -283,7 +283,8 @@ struct PostView: View {
         label: {
           Image(systemName: "ellipsis")
             .font(.system(size: 22))
-            .frame(width: 48, height: 40)
+            .frame(width: 48, height: 44)
+            .contentShape(.rect)
         }
       )
 

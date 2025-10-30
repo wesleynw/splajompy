@@ -13,7 +13,7 @@ struct NotificationsView: View {
     Group {
       switch viewModel.state {
       case .idle, .loading:
-        loadingView
+        ProgressView()
       case .loaded(let sections, let unreadNotifications):
         if sections.isEmpty && unreadNotifications.isEmpty {
           noNotificationsView
@@ -31,7 +31,6 @@ struct NotificationsView: View {
       }
     }
     #if os(macOS)
-      .frame(maxWidth: 600)
       .frame(maxWidth: .infinity)
     #endif
     .onAppear {
@@ -40,16 +39,6 @@ struct NotificationsView: View {
       }
     }
     .navigationTitle("Notifications")
-  }
-
-  private var loadingView: some View {
-    VStack {
-      Spacer()
-      ProgressView()
-        .scaleEffect(1.5)
-        .padding()
-      Spacer()
-    }
   }
 
   private var noNotificationsView: some View {
@@ -82,6 +71,10 @@ struct NotificationsView: View {
         Section {
           ForEach(unreadNotifications, id: \.notificationId) { notification in
             NotificationRow(notification: notification, refreshId: refreshId)
+              #if os(macOS)
+                .frame(maxWidth: 600)
+                .frame(maxWidth: .infinity)
+              #endif
               .swipeActions(edge: .leading) {
                 Button {
                   Task {
@@ -129,6 +122,10 @@ struct NotificationsView: View {
                   notification: notification,
                   refreshId: refreshId
                 )
+                #if os(macOS)
+                  .frame(maxWidth: 600)
+                  .frame(maxWidth: .infinity)
+                #endif
                 .onAppear {
                   var lastSectionWithNotifications: NotificationDateSection? =
                     nil
@@ -168,10 +165,8 @@ struct NotificationsView: View {
         .id(UUID())
       }
     }
+    .frame(maxWidth: .infinity)
     .listStyle(.plain)
-    #if os(macOS)
-      .scrollContentBackground(.hidden)
-    #endif
     .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
     .refreshable {
       await viewModel.refreshNotifications()

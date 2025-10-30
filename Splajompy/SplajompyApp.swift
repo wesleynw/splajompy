@@ -173,6 +173,7 @@ struct SplajompyApp: App {
         }
         .environment(\.navigationNamespace, navigationNamespace)
       }
+      .scrollIndicators(.visible)
     }
   #endif
 

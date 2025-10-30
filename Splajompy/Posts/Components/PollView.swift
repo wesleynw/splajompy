@@ -41,7 +41,17 @@ struct PollView: View {
       }
     }
     .padding()
-    .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12))
+    .modify {
+      #if os(iOS)
+        if #available(iOS 26, *) {
+          $0.background(.regularMaterial, in: .containerRelative)
+        } else {
+          $0.background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12))
+        }
+      #else
+        $0.background(.quaternary, in: .rect(cornerRadius: 12))
+      #endif
+    }
   }
 
   private struct PollOptionView: View {

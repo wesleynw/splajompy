@@ -64,7 +64,7 @@ struct ProfileView: View {
     Group {
       switch viewModel.profileState {
       case .idle, .loading:
-        loadingPlaceholder
+        ProgressView()
       case .loaded(let user):
         profileList(user: user)
       case .failed(let error):
@@ -198,7 +198,7 @@ struct ProfileView: View {
 
           switch viewModel.postsState {
           case .idle, .loading:
-            loadingPlaceholder
+            ProgressView()
           case .loaded(let postIds):
             if postIds.isEmpty {
               emptyMessage
@@ -358,16 +358,6 @@ struct ProfileView: View {
     }
     .frame(maxWidth: .infinity, alignment: .leading)
     .padding()
-  }
-
-  private var loadingPlaceholder: some View {
-    VStack {
-      Spacer()
-      ProgressView()
-        .scaleEffect(1.5)
-        .padding()
-      Spacer()
-    }
   }
 
   private var emptyMessage: some View {
