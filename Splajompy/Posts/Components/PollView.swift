@@ -7,12 +7,18 @@ struct PollView: View {
   var currentUser = AuthManager.shared.getCurrentUser()
 
   private var adjustedPercentages: [Int] {
-    guard poll.voteTotal > 0, poll.currentUserVote != nil || currentUser?.userId == authorId else {
+    guard poll.voteTotal > 0,
+      poll.currentUserVote != nil || currentUser?.userId == authorId
+    else {
       return Array(repeating: 0, count: poll.options.count)
     }
 
-    let exactPercentages = poll.options.map { Float($0.voteTotal * 100) / Float(poll.voteTotal) }
-    return calculateGreatestRemainderQuotaFromList(percentages: exactPercentages)
+    let exactPercentages = poll.options.map {
+      Float($0.voteTotal * 100) / Float(poll.voteTotal)
+    }
+    return calculateGreatestRemainderQuotaFromList(
+      percentages: exactPercentages
+    )
       ?? poll.options.map { ($0.voteTotal * 100) / poll.voteTotal }
   }
 
@@ -32,7 +38,8 @@ struct PollView: View {
           PollOptionView(
             isSelected: index == poll.currentUserVote,
             option: option,
-            showResults: poll.currentUserVote != nil || currentUser?.userId == authorId,
+            showResults: poll.currentUserVote != nil
+              || currentUser?.userId == authorId,
             totalVotes: poll.voteTotal,
             percentage: adjustedPercentages[index],
             onTap: { onVote(index) }
@@ -41,12 +48,16 @@ struct PollView: View {
       }
     }
     .padding()
+    .containerShape(.rect(cornerRadius: 12))
     .modify {
       #if os(iOS)
         if #available(iOS 26, *) {
-          $0.background(.regularMaterial, in: .containerRelative)
+          $0.background(.regularMaterial, in: .rect(cornerRadius: 12))
         } else {
-          $0.background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12))
+          $0.background(
+            .regularMaterial,
+            in: RoundedRectangle(cornerRadius: 12)
+          )
         }
       #else
         $0.background(.quaternary, in: .rect(cornerRadius: 12))
@@ -85,34 +96,64 @@ struct PollView: View {
         .background {
           GeometryReader { geometry in
             ZStack(alignment: .leading) {
-              RoundedRectangle(cornerRadius: 12)
-                .fill(Color.secondary.opacity(0.2).gradient)
+              if #available(iOS 26, *) {
+                ConcentricRectangle()
+                  .fill(Color.secondary.opacity(0.3))
+              } else {
+                RoundedRectangle(cornerRadius: 12)
+                  .fill(Color.secondary.opacity(0.2))
+              }
 
-              RoundedRectangle(cornerRadius: 12)
-                .fill(
-                  isSelected
-                    ? Color.blue.opacity(0.5).gradient
-                    : Color.blue.opacity(0.2).gradient
-                )
-                .frame(width: geometry.size.width * CGFloat(percentage) / 100.0)
-                .animation(
-                  .spring(response: 0.4, dampingFraction: 0.75),
-                  value: percentage
-                )
+              if #available(iOS 26, *) {
+                ConcentricRectangle()
+                  .fill(
+                    Color.blue
+                      .opacity(isSelected ? 0.5 : 0.2)
+                      .gradient
+                  )
+                  .frame(
+                    width: geometry.size.width * CGFloat(percentage) / 100.0
+                  )
+                  .animation(
+                    .spring(response: 0.4, dampingFraction: 0.75),
+                    value: percentage
+                  )
+              } else {
+                RoundedRectangle(cornerRadius: 12)
+                  .fill(
+                    isSelected
+                      ? Color.blue.opacity(0.5).gradient
+                      : Color.blue.opacity(0.2).gradient
+                  )
+                  .frame(
+                    width: geometry.size.width * CGFloat(percentage) / 100.0
+                  )
+                  .animation(
+                    .spring(response: 0.4, dampingFraction: 0.75),
+                    value: percentage
+                  )
+              }
             }
           }
         }
         .overlay {
           if isSelected {
-            RoundedRectangle(cornerRadius: 12)
-              .stroke(Color.blue.gradient.opacity(0.5), lineWidth: 2)
+            if #available(iOS 26, *) {
+              ConcentricRectangle()
+                .stroke(Color.blue.gradient.opacity(0.5), lineWidth: 2)
+            } else {
+              RoundedRectangle(cornerRadius: 12)
+                .stroke(Color.blue.gradient.opacity(0.5), lineWidth: 2)
+            }
           }
         }
       }
       .buttonStyle(.plain)
+      .containerShape(.rect(cornerRadius: 12))
       .sensoryFeedback(.impact, trigger: showResults ? false : tapped)
     }
   }
+
 }
 
 #Preview {
