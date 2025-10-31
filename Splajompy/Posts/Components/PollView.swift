@@ -96,29 +96,50 @@ struct PollView: View {
         .background {
           GeometryReader { geometry in
             ZStack(alignment: .leading) {
-              if #available(iOS 26, *) {
-                ConcentricRectangle()
-                  .fill(Color.secondary.opacity(0.3))
-              } else {
+              #if os(iOS)
+                if #available(iOS 26, *) {
+                  ConcentricRectangle()
+                    .fill(Color.secondary.opacity(0.3))
+                } else {
+                  RoundedRectangle(cornerRadius: 12)
+                    .fill(Color.secondary.opacity(0.2))
+                }
+              #else
                 RoundedRectangle(cornerRadius: 12)
                   .fill(Color.secondary.opacity(0.2))
-              }
+              #endif
 
-              if #available(iOS 26, *) {
-                ConcentricRectangle()
-                  .fill(
-                    Color.blue
-                      .opacity(isSelected ? 0.5 : 0.2)
-                      .gradient
-                  )
-                  .frame(
-                    width: geometry.size.width * CGFloat(percentage) / 100.0
-                  )
-                  .animation(
-                    .spring(response: 0.4, dampingFraction: 0.75),
-                    value: percentage
-                  )
-              } else {
+              #if os(iOS)
+                if #available(iOS 26, *) {
+                  ConcentricRectangle()
+                    .fill(
+                      Color.blue
+                        .opacity(isSelected ? 0.5 : 0.2)
+                        .gradient
+                    )
+                    .frame(
+                      width: geometry.size.width * CGFloat(percentage) / 100.0
+                    )
+                    .animation(
+                      .spring(response: 0.4, dampingFraction: 0.75),
+                      value: percentage
+                    )
+                } else {
+                  RoundedRectangle(cornerRadius: 12)
+                    .fill(
+                      isSelected
+                        ? Color.blue.opacity(0.5).gradient
+                        : Color.blue.opacity(0.2).gradient
+                    )
+                    .frame(
+                      width: geometry.size.width * CGFloat(percentage) / 100.0
+                    )
+                    .animation(
+                      .spring(response: 0.4, dampingFraction: 0.75),
+                      value: percentage
+                    )
+                }
+              #else
                 RoundedRectangle(cornerRadius: 12)
                   .fill(
                     isSelected
@@ -132,19 +153,24 @@ struct PollView: View {
                     .spring(response: 0.4, dampingFraction: 0.75),
                     value: percentage
                   )
-              }
+              #endif
             }
           }
         }
         .overlay {
           if isSelected {
-            if #available(iOS 26, *) {
-              ConcentricRectangle()
-                .stroke(Color.blue.gradient.opacity(0.5), lineWidth: 2)
-            } else {
+            #if os(iOS)
+              if #available(iOS 26, *) {
+                ConcentricRectangle()
+                  .stroke(Color.blue.gradient.opacity(0.5), lineWidth: 2)
+              } else {
+                RoundedRectangle(cornerRadius: 12)
+                  .stroke(Color.blue.gradient.opacity(0.5), lineWidth: 2)
+              }
+            #else
               RoundedRectangle(cornerRadius: 12)
                 .stroke(Color.blue.gradient.opacity(0.5), lineWidth: 2)
-            }
+            #endif
           }
         }
       }
