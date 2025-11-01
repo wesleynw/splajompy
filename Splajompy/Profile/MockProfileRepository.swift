@@ -1,7 +1,7 @@
 import Foundation
 
-final class MockUserStore: @unchecked Sendable {
-  static let shared = MockUserStore()
+final class MockUserRepository: @unchecked Sendable {
+  static let shared = MockUserRepository()
 
   private let formatter: ISO8601DateFormatter = {
     let formatter = ISO8601DateFormatter()
@@ -22,9 +22,10 @@ final class MockUserStore: @unchecked Sendable {
         createdAt: formatter.string(
           from: baseDate.addingTimeInterval(-31_536_000)
         ),
-        name: "Wesley 🌌",
-        bio:
-          "splajompy creator",
+        name: "Wesley Weisenberger",
+        bio: """
+          welcome to splajompy!\nno, I don’t know your password, they’re all encrypted and whatever.
+          """,
         isFollower: false,
         isFollowing: false,
         isBlocking: false,
@@ -190,7 +191,7 @@ final class MockUserStore: @unchecked Sendable {
 }
 
 struct MockProfileService: ProfileServiceProtocol {
-  private let store = MockUserStore.shared
+  private let store = MockUserRepository.shared
 
   func getProfile(userId: Int) async -> AsyncResult<UserProfile> {
     try? await Task.sleep(nanoseconds: 500_000_000)
@@ -286,7 +287,9 @@ struct MockProfileService: ProfileServiceProtocol {
     return .success(EmptyResponse())
   }
 
-  func getFollowers(userId: Int, offset: Int, limit: Int) async -> AsyncResult<[DetailedUser]> {
+  func getFollowers(userId: Int, offset: Int, limit: Int) async -> AsyncResult<
+    [DetailedUser]
+  > {
     try? await Task.sleep(nanoseconds: 300_000_000)
     let allUsers = Array(store.users.values)
     let startIndex = min(offset, allUsers.count)
@@ -312,7 +315,9 @@ struct MockProfileService: ProfileServiceProtocol {
     return .success(paginatedUsers)
   }
 
-  func getFollowing(userId: Int, offset: Int, limit: Int) async -> AsyncResult<[DetailedUser]> {
+  func getFollowing(userId: Int, offset: Int, limit: Int) async -> AsyncResult<
+    [DetailedUser]
+  > {
     try? await Task.sleep(nanoseconds: 300_000_000)
     let allUsers = Array(store.users.values)
     let startIndex = min(offset, allUsers.count)
@@ -338,14 +343,19 @@ struct MockProfileService: ProfileServiceProtocol {
     return .success(paginatedUsers)
   }
 
-  func getMutuals(userId: Int, offset: Int, limit: Int) async -> AsyncResult<[DetailedUser]> {
+  func getMutuals(userId: Int, offset: Int, limit: Int) async -> AsyncResult<
+    [DetailedUser]
+  > {
     try? await Task.sleep(nanoseconds: 300_000_000)
     // Filter users who are mutuals (both isFollower and isFollowing are true)
-    let mutualUsers = Array(store.users.values).filter { $0.isFollower && $0.isFollowing }
+    let mutualUsers = Array(store.users.values).filter {
+      $0.isFollower && $0.isFollowing
+    }
     let startIndex = min(offset, mutualUsers.count)
     let endIndex = min(offset + limit, mutualUsers.count)
 
-    let paginatedUsers = Array(mutualUsers[startIndex..<endIndex]).map { profile in
+    let paginatedUsers = Array(mutualUsers[startIndex..<endIndex]).map {
+      profile in
       DetailedUser(
         userId: profile.userId,
         email: profile.email,
@@ -375,6 +385,7 @@ struct MockProfileService: ProfileServiceProtocol {
         totalFollows: 345,
         totalUsers: 89,
         totalNotifications: 456
-      ))
+      )
+    )
   }
 }
