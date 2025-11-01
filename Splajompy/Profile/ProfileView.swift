@@ -66,7 +66,7 @@ struct ProfileView: View {
       case .idle, .loading:
         ProgressView()
       case .loaded(let user):
-        profileList(user: user)
+        profile(user: user)
       case .failed(let error):
         ErrorScreen(
           errorString: error,
@@ -188,7 +188,7 @@ struct ProfileView: View {
     }
   }
 
-  private func profileList(user: UserProfile)
+  private func profile(user: UserProfile)
     -> some View
   {
     ScrollViewReader { proxy in
@@ -274,6 +274,7 @@ struct ProfileView: View {
           if !user.name.isEmpty {
             Text(user.name)
               .font(.title2)
+              .fontDesign(.serif)
               .fontWeight(.bold)
               .lineLimit(1)
           }
@@ -376,7 +377,7 @@ struct ProfileView: View {
   NavigationStack {
     ProfileView(
       userId: 1,
-      username: "test",
+      username: "wesley",
       postManager: postManager,
       isProfileTab: true,
       viewModel: ProfileView.ViewModel(
