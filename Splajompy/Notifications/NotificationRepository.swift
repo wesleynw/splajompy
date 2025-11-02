@@ -73,15 +73,20 @@ protocol NotificationServiceProtocol: Sendable {
 
   func getUnreadNotificationCount() async -> AsyncResult<Int>
 
-  func getReadNotificationsWithTimeOffset(beforeTime: String, limit: Int, notificationType: String?) async -> AsyncResult<
+  func getReadNotificationsWithTimeOffset(beforeTime: String, limit: Int, notificationType: String?)
+    async -> AsyncResult<
+      [Notification]
+    >
+
+  func getUnreadNotificationsWithTimeOffset(
+    beforeTime: String, limit: Int, notificationType: String?
+  ) async -> AsyncResult<
     [Notification]
   >
 
-  func getUnreadNotificationsWithTimeOffset(beforeTime: String, limit: Int, notificationType: String?) async -> AsyncResult<
-    [Notification]
-  >
-
-  func getReadNotificationWithSectionsWithTimeOffset(beforeTime: String, limit: Int, notificationType: String?) async
+  func getReadNotificationWithSectionsWithTimeOffset(
+    beforeTime: String, limit: Int, notificationType: String?
+  ) async
     -> AsyncResult<NotificationSectionData>
 }
 
@@ -198,7 +203,9 @@ struct NotificationService: NotificationServiceProtocol {
     }
   }
 
-  func getReadNotificationsWithTimeOffset(beforeTime: String, limit: Int, notificationType: String? = nil) async -> AsyncResult<
+  func getReadNotificationsWithTimeOffset(
+    beforeTime: String, limit: Int, notificationType: String? = nil
+  ) async -> AsyncResult<
     [Notification]
   > {
     var queryItems = [
@@ -217,7 +224,9 @@ struct NotificationService: NotificationServiceProtocol {
     )
   }
 
-  func getUnreadNotificationsWithTimeOffset(beforeTime: String, limit: Int, notificationType: String? = nil) async -> AsyncResult<
+  func getUnreadNotificationsWithTimeOffset(
+    beforeTime: String, limit: Int, notificationType: String? = nil
+  ) async -> AsyncResult<
     [Notification]
   > {
     var queryItems = [
@@ -236,10 +245,13 @@ struct NotificationService: NotificationServiceProtocol {
     )
   }
 
-  func getReadNotificationWithSectionsWithTimeOffset(beforeTime: String, limit: Int, notificationType: String? = nil) async
+  func getReadNotificationWithSectionsWithTimeOffset(
+    beforeTime: String, limit: Int, notificationType: String? = nil
+  ) async
     -> AsyncResult<NotificationSectionData>
   {
-    let result = await getReadNotificationsWithTimeOffset(beforeTime: beforeTime, limit: limit, notificationType: notificationType)
+    let result = await getReadNotificationsWithTimeOffset(
+      beforeTime: beforeTime, limit: limit, notificationType: notificationType)
 
     switch result {
     case .success(let notifications):

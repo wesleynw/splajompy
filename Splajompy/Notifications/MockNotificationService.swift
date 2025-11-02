@@ -494,9 +494,11 @@ class MockNotificationService: @unchecked Sendable, NotificationServiceProtocol 
     }
   }
 
-  func getReadNotificationsWithTimeOffset(beforeTime: String, limit: Int, notificationType: String?) async -> AsyncResult<
-    [Notification]
-  > {
+  func getReadNotificationsWithTimeOffset(beforeTime: String, limit: Int, notificationType: String?)
+    async -> AsyncResult<
+      [Notification]
+    >
+  {
     switch behavior {
     case .success(let notifications):
       var readNotifications = notifications.filter { $0.viewed }
@@ -523,7 +525,9 @@ class MockNotificationService: @unchecked Sendable, NotificationServiceProtocol 
     }
   }
 
-  func getUnreadNotificationsWithTimeOffset(beforeTime: String, limit: Int, notificationType: String?) async -> AsyncResult<
+  func getUnreadNotificationsWithTimeOffset(
+    beforeTime: String, limit: Int, notificationType: String?
+  ) async -> AsyncResult<
     [Notification]
   > {
     switch behavior {
@@ -552,10 +556,13 @@ class MockNotificationService: @unchecked Sendable, NotificationServiceProtocol 
     }
   }
 
-  func getReadNotificationWithSectionsWithTimeOffset(beforeTime: String, limit: Int, notificationType: String?) async
+  func getReadNotificationWithSectionsWithTimeOffset(
+    beforeTime: String, limit: Int, notificationType: String?
+  ) async
     -> AsyncResult<NotificationSectionData>
   {
-    let result = await getReadNotificationsWithTimeOffset(beforeTime: beforeTime, limit: limit, notificationType: notificationType)
+    let result = await getReadNotificationsWithTimeOffset(
+      beforeTime: beforeTime, limit: limit, notificationType: notificationType)
 
     switch result {
     case .success(let notifications):
