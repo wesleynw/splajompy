@@ -3,37 +3,16 @@ import SwiftUI
 
 struct SettingsView: View {
   @EnvironmentObject private var authManager: AuthManager
-  @AppStorage("comment_sort_order") private var commentSortOrder: String = "Newest First"
-  @AppStorage("show_top_comment") private var showTopComment: Bool = false
 
   var body: some View {
     VStack {
       List {
         NavigationLink(destination: AccountSettingsView()) {
-          HStack {
-            Label("Account", systemImage: "person.circle")
-            Spacer()
-            if let user = authManager.getCurrentUser() {
-              Text("@\(user.username)")
-                .font(.subheadline)
-                .foregroundColor(.secondary)
-            }
-          }
+          Label("Account", systemImage: "person.circle")
         }
 
         NavigationLink(destination: AppearanceSwitcher()) {
           Label("Appearance", systemImage: "circle.lefthalf.filled")
-        }
-
-        HStack {
-          Label("Comment Sort Order", systemImage: "arrow.up.arrow.down")
-          Spacer()
-          Picker("Comment Sort Order", selection: $commentSortOrder) {
-            Text("Newest First").tag("Newest First")
-            Text("Oldest First").tag("Oldest First")
-          }
-          .pickerStyle(.menu)
-          .labelsHidden()
         }
 
         #if os(iOS)
@@ -47,14 +26,6 @@ struct SettingsView: View {
             Label("Secret Page", systemImage: "fossil.shell")
           }
         }
-
-        if PostHogSDK.shared.isFeatureEnabled("statistics-page") {
-          NavigationLink(destination: StatisticsView()) {
-            Label("Statistics", systemImage: "chart.xyaxis.line")
-          }
-        }
-
-        StorageManager()
 
         Section {
           NavigationLink(destination: RequestFeatureView()) {

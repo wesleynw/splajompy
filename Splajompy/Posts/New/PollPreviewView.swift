@@ -13,10 +13,17 @@ struct PollPreviewView: View {
           .font(.body)
 
         VStack(alignment: .leading, spacing: 2) {
-          Text(poll.title)
-            .font(.body)
-            .fontWeight(.semibold)
-            .multilineTextAlignment(.leading)
+          if !poll.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            Text(poll.title)
+              .font(.body)
+              .fontWeight(.semibold)
+              .multilineTextAlignment(.leading)
+          } else {
+            Text("Poll")
+              .font(.body)
+              .fontWeight(.semibold)
+              .foregroundColor(.secondary)
+          }
 
           Text("\(poll.options.count) options")
             .font(.caption)

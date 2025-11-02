@@ -64,9 +64,9 @@ struct ProfileView: View {
     Group {
       switch viewModel.profileState {
       case .idle, .loading:
-        loadingPlaceholder
+        ProgressView()
       case .loaded(let user):
-        profileList(user: user)
+        profile(user: user)
       case .failed(let error):
         ErrorScreen(
           errorString: error,
@@ -188,7 +188,7 @@ struct ProfileView: View {
     }
   }
 
-  private func profileList(user: UserProfile)
+  private func profile(user: UserProfile)
     -> some View
   {
     ScrollViewReader { proxy in
@@ -198,7 +198,7 @@ struct ProfileView: View {
 
           switch viewModel.postsState {
           case .idle, .loading:
-            loadingPlaceholder
+            ProgressView()
           case .loaded(let postIds):
             if postIds.isEmpty {
               emptyMessage
@@ -212,6 +212,10 @@ struct ProfileView: View {
             )
           }
         }
+        #if os(macOS)
+          .frame(maxWidth: 600)
+          .frame(maxWidth: .infinity)
+        #endif
       }
       .environmentObject(authManager)
       .refreshable {
@@ -270,6 +274,7 @@ struct ProfileView: View {
           if !user.name.isEmpty {
             Text(user.name)
               .font(.title2)
+              .fontDesign(.serif)
               .fontWeight(.bold)
               .lineLimit(1)
           }
@@ -356,16 +361,6 @@ struct ProfileView: View {
     .padding()
   }
 
-  private var loadingPlaceholder: some View {
-    VStack {
-      Spacer()
-      ProgressView()
-        .scaleEffect(1.5)
-        .padding()
-      Spacer()
-    }
-  }
-
   private var emptyMessage: some View {
     VStack {
       Spacer()
@@ -382,7 +377,7 @@ struct ProfileView: View {
   NavigationStack {
     ProfileView(
       userId: 1,
-      username: "test",
+      username: "wesley",
       postManager: postManager,
       isProfileTab: true,
       viewModel: ProfileView.ViewModel(

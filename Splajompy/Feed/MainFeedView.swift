@@ -18,7 +18,8 @@ struct MainFeedView: View {
   var body: some View {
     mainContent
       .navigationTitle(
-        selectedFeedType == .mutual ? "Home" : selectedFeedType == .following ? "Following" : "All"
+        selectedFeedType == .mutual
+          ? "Home" : selectedFeedType == .following ? "Following" : "All"
       )
       .toolbarTitleMenu {
         Button {
@@ -74,6 +75,23 @@ struct MainFeedView: View {
           addPostToolbarItem
         }
       #endif
+      #if os(macOS)
+        .toolbar {
+          ToolbarItem(placement: .primaryAction) {
+            Button {
+              Task {
+                await viewModel.loadPosts(reset: true)
+              }
+            } label: {
+              if case .loading = viewModel.state {
+                ProgressView()
+              } else {
+                Label("Refresh", systemImage: "arrow.clockwise")
+              }
+            }
+          }
+        }
+      #endif
   }
 
   @ViewBuilder
@@ -81,7 +99,7 @@ struct MainFeedView: View {
     VStack {
       switch viewModel.state {
       case .idle, .loading:
-        loadingPlaceholder
+        ProgressView()
       case .loaded(let postIds):
         if postIds.isEmpty {
           emptyMessage
@@ -128,7 +146,9 @@ struct MainFeedView: View {
   private var postList: some View {
     ScrollView {
       LazyVStack(spacing: 0) {
-        ForEach(Array(viewModel.posts.enumerated()), id: \.element.id) { index, post in
+        ForEach(Array(viewModel.posts.enumerated()), id: \.element.id) {
+          index,
+          post in
           PostView(
             post: post,
             postManager: postManager,
@@ -140,6 +160,9 @@ struct MainFeedView: View {
           .onAppear {
             viewModel.handlePostAppear(at: index)
           }
+          #if os(macOS)
+            .frame(maxWidth: 600)
+          #endif
         }
 
         if viewModel.canLoadMore {
@@ -165,20 +188,13 @@ struct MainFeedView: View {
           .padding()
         }
       }
+      #if os(macOS)
+        .frame(maxWidth: .infinity)
+      #endif
     }
     .environmentObject(authManager)
     .refreshable {
       await viewModel.loadPosts(reset: true)
-    }
-  }
-
-  private var loadingPlaceholder: some View {
-    VStack {
-      Spacer()
-      ProgressView()
-        .scaleEffect(1.5)
-        .padding()
-      Spacer()
     }
   }
 

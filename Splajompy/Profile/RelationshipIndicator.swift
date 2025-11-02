@@ -33,7 +33,7 @@ struct RelationshipIndicator: View {
         .padding()
         .modify {
           if #available(iOS 26, *) {
-            $0.background(.quinary, in: .containerRelative)
+            $0.background(.quinary, in: .rect(cornerRadius: 12))
           } else {
             $0.background(.quinary, in: .rect(cornerRadius: 12))
           }

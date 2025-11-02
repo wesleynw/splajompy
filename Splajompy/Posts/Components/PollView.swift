@@ -7,21 +7,29 @@ struct PollView: View {
   var currentUser = AuthManager.shared.getCurrentUser()
 
   private var adjustedPercentages: [Int] {
-    guard poll.voteTotal > 0, poll.currentUserVote != nil || currentUser?.userId == authorId else {
+    guard poll.voteTotal > 0,
+      poll.currentUserVote != nil || currentUser?.userId == authorId
+    else {
       return Array(repeating: 0, count: poll.options.count)
     }
 
-    let exactPercentages = poll.options.map { Float($0.voteTotal * 100) / Float(poll.voteTotal) }
-    return calculateGreatestRemainderQuotaFromList(percentages: exactPercentages)
+    let exactPercentages = poll.options.map {
+      Float($0.voteTotal * 100) / Float(poll.voteTotal)
+    }
+    return calculateGreatestRemainderQuotaFromList(
+      percentages: exactPercentages
+    )
       ?? poll.options.map { ($0.voteTotal * 100) / poll.voteTotal }
   }
 
   var body: some View {
     VStack(alignment: .leading) {
-      Text(poll.title)
-        .font(.headline)
-        .fontWeight(.medium)
-        .multilineTextAlignment(.leading)
+      if !poll.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+        Text(poll.title)
+          .font(.headline)
+          .fontWeight(.medium)
+          .multilineTextAlignment(.leading)
+      }
 
       VStack {
         ForEach(Array(poll.options.enumerated()), id: \.offset) {
@@ -30,7 +38,8 @@ struct PollView: View {
           PollOptionView(
             isSelected: index == poll.currentUserVote,
             option: option,
-            showResults: poll.currentUserVote != nil || currentUser?.userId == authorId,
+            showResults: poll.currentUserVote != nil
+              || currentUser?.userId == authorId,
             totalVotes: poll.voteTotal,
             percentage: adjustedPercentages[index],
             onTap: { onVote(index) }
@@ -39,7 +48,13 @@ struct PollView: View {
       }
     }
     .padding()
-    .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12))
+    .modify {
+      #if os(iOS)
+        $0.background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12))
+      #else
+        $0.background(.quaternary, in: .rect(cornerRadius: 12))
+      #endif
+    }
   }
 
   private struct PollOptionView: View {

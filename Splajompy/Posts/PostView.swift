@@ -41,7 +41,6 @@ struct PostView: View {
   var onPostPinned: () -> Void
   var onPostUnpinned: () -> Void
 
-  @Namespace private var namespace
   @State private var isShowingComments = false
   @State private var isReporting = false
   @State private var showReportAlert = false
@@ -89,17 +88,6 @@ struct PostView: View {
     .padding(.horizontal, 16)
     .sheet(isPresented: $isShowingComments) {
       CommentsView(postId: post.post.postId, postManager: postManager)
-        .modify {
-          #if os(iOS)
-            if #available(iOS 26, *) {
-              $0.navigationTransition(
-                .zoom(sourceID: "comments", in: namespace)
-              )
-            } else {
-              $0
-            }
-          #endif
-        }
     }
     .alert("Post Reported", isPresented: $showReportAlert) {
       Button("OK") {}
@@ -295,7 +283,8 @@ struct PostView: View {
         label: {
           Image(systemName: "ellipsis")
             .font(.system(size: 22))
-            .frame(width: 48, height: 40)
+            .frame(width: 48, height: 44)
+            .contentShape(.rect)
         }
       )
 
@@ -304,29 +293,42 @@ struct PostView: View {
         .padding(.horizontal, 4)
 
       if !isStandalone {
-        Button(action: {
-          isShowingComments = true
-        }) {
-          ZStack {
-            Image(systemName: "bubble.middle.bottom")
-              .font(.system(size: 22))
-              .frame(width: 48, height: 40)
+        #if os(iOS)
+          Button(action: {
+            isShowingComments = true
+          }) {
+            ZStack {
+              Image(systemName: "bubble.middle.bottom")
+                .font(.system(size: 22))
+                .frame(width: 48, height: 40)
 
-            if post.commentCount > 0 {
-              Text(post.commentCount > 9 ? "9+" : "\(post.commentCount)")
-                .font(.caption2)
-                .fontWeight(.medium)
-                .padding(.bottom, 4)
+              if post.commentCount > 0 {
+                Text(post.commentCount > 9 ? "9+" : "\(post.commentCount)")
+                  .font(.caption2)
+                  .fontWeight(.medium)
+                  .padding(.bottom, 4)
+              }
             }
           }
-        }
-        .buttonStyle(.plain)
-        .sensoryFeedback(.impact, trigger: isShowingComments)
-        .modify {
-          if #available(iOS 18, *) {
-            $0.matchedTransitionSource(id: "comments", in: namespace)
+          .buttonStyle(.plain)
+          .sensoryFeedback(.impact, trigger: isShowingComments)
+        #else
+          NavigationLink(value: Route.post(id: post.id)) {
+            ZStack {
+              Image(systemName: "bubble.middle.bottom")
+                .font(.system(size: 22))
+                .frame(width: 48, height: 40)
+
+              if post.commentCount > 0 {
+                Text(post.commentCount > 9 ? "9+" : "\(post.commentCount)")
+                  .font(.caption2)
+                  .fontWeight(.medium)
+                  .padding(.bottom, 4)
+              }
+            }
           }
-        }
+          .buttonStyle(.plain)
+        #endif
 
         Divider()
           .padding(.vertical, 5)

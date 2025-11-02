@@ -219,7 +219,7 @@ struct ImageGallery: View {
     #if os(iOS)
       return UIScreen.main.bounds.width
     #else
-      return NSScreen.main?.frame.width ?? 400
+      return min(NSScreen.main?.frame.width ?? 400, 600)
     #endif
   }
 
@@ -281,7 +281,7 @@ struct FullscreenImagePager: View {
     #if os(iOS)
       return UIScreen.main.bounds.width
     #else
-      return NSScreen.main?.frame.width ?? 400
+      return min(NSScreen.main?.frame.width ?? 400, 600)
     #endif
   }
 
