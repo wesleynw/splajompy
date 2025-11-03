@@ -201,7 +201,6 @@ extension NotificationsView {
 
       switch result {
       case .success(let newSectionData):
-        // Merge new sections into existing sections
         for (section, notifications) in newSectionData.sections {
           if let existingNotifications = sections[section] {
             let existingIds = Set(
@@ -281,7 +280,6 @@ extension NotificationsView {
         return
       }
 
-      // Mark all sections as viewed
       for (section, notifications) in sections {
         let updatedNotifications = notifications.map { notification in
           var updated = notification
@@ -291,7 +289,6 @@ extension NotificationsView {
         sections[section] = updatedNotifications
       }
 
-      // Move all unread to read sections
       for var unreadNotification in unreadNotifications {
         unreadNotification.viewed = true
 

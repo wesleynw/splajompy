@@ -213,7 +213,6 @@ struct NotificationService: NotificationServiceProtocol {
       URLQueryItem(name: "limit", value: "\(limit)"),
     ]
 
-    // Add notification type filter if specified (backwards compatible)
     if let notificationType = notificationType {
       queryItems.append(URLQueryItem(name: "notification_type", value: notificationType))
     }
@@ -234,7 +233,6 @@ struct NotificationService: NotificationServiceProtocol {
       URLQueryItem(name: "limit", value: "\(limit)"),
     ]
 
-    // Add notification type filter if specified (backwards compatible)
     if let notificationType = notificationType {
       queryItems.append(URLQueryItem(name: "notification_type", value: notificationType))
     }

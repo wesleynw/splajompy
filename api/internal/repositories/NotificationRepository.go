@@ -132,7 +132,6 @@ func (r DBNotificationRepository) GetReadNotificationsForUserIdWithTimeOffset(ct
 		Limit:     limit,
 	}
 
-	// Set notification type filter (backwards compatible - nil means no filter)
 	if notificationType != nil {
 		params.NotificationType = pgtype.Text{String: *notificationType, Valid: true}
 	} else {
@@ -161,7 +160,6 @@ func (r DBNotificationRepository) GetUnreadNotificationsForUserIdWithTimeOffset(
 		Limit:     limit,
 	}
 
-	// Set notification type filter (backwards compatible - nil means no filter)
 	if notificationType != nil {
 		params.NotificationType = pgtype.Text{String: *notificationType, Valid: true}
 	} else {

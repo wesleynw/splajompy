@@ -143,7 +143,6 @@ func (h *Handler) GetReadNotificationsByUserIdWithTimeOffset(w http.ResponseWrit
 		}
 	}
 
-	// Parse optional notification_type query parameter (for backwards compatibility)
 	var notificationType *string
 	if notifTypeStr := r.URL.Query().Get("notification_type"); notifTypeStr != "" {
 		notificationType = &notifTypeStr
@@ -182,7 +181,6 @@ func (h *Handler) GetUnreadNotificationsByUserIdWithTimeOffset(w http.ResponseWr
 		}
 	}
 
-	// Parse optional notification_type query parameter (for backwards compatibility)
 	var notificationType *string
 	if notifTypeStr := r.URL.Query().Get("notification_type"); notifTypeStr != "" {
 		notificationType = &notifTypeStr
