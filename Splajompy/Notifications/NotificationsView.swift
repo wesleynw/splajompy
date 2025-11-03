@@ -1,3 +1,4 @@
+import PostHog
 import SwiftUI
 
 struct NotificationsView: View {
@@ -39,8 +40,10 @@ struct NotificationsView: View {
       }
     }
     .toolbar {
-      ToolbarItem(placement: .primaryAction) {
-        NotificationFilterMenu(filter: $viewModel.selectedFilter)
+      if PostHogSDK.shared.isFeatureEnabled("notification-filters") {
+        ToolbarItem(placement: .primaryAction) {
+          NotificationFilterMenu(filter: $viewModel.selectedFilter)
+        }
       }
     }
     .navigationTitle("Notifications")
