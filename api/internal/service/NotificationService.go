@@ -157,8 +157,8 @@ func (s *NotificationService) GetUnreadNotificationsByUserId(ctx context.Context
 	return detailedNotifications, nil
 }
 
-func (s *NotificationService) GetReadNotificationsByUserIdWithTimeOffset(ctx context.Context, user models.PublicUser, beforeTime time.Time, limit int) ([]models.DetailedNotification, error) {
-	notifications, err := s.notificationRepository.GetReadNotificationsForUserIdWithTimeOffset(ctx, user.UserID, beforeTime, limit)
+func (s *NotificationService) GetReadNotificationsByUserIdWithTimeOffset(ctx context.Context, user models.PublicUser, beforeTime time.Time, limit int, notificationType *string) ([]models.DetailedNotification, error) {
+	notifications, err := s.notificationRepository.GetReadNotificationsForUserIdWithTimeOffset(ctx, user.UserID, beforeTime, limit, notificationType)
 	if err != nil {
 		return nil, errors.New("unable to retrieve read notifications")
 	}
@@ -170,8 +170,8 @@ func (s *NotificationService) GetReadNotificationsByUserIdWithTimeOffset(ctx con
 	return s.buildDetailedNotifications(ctx, notifications)
 }
 
-func (s *NotificationService) GetUnreadNotificationsByUserIdWithTimeOffset(ctx context.Context, user models.PublicUser, beforeTime time.Time, limit int) ([]models.DetailedNotification, error) {
-	notifications, err := s.notificationRepository.GetUnreadNotificationsForUserIdWithTimeOffset(ctx, user.UserID, beforeTime, limit)
+func (s *NotificationService) GetUnreadNotificationsByUserIdWithTimeOffset(ctx context.Context, user models.PublicUser, beforeTime time.Time, limit int, notificationType *string) ([]models.DetailedNotification, error) {
+	notifications, err := s.notificationRepository.GetUnreadNotificationsForUserIdWithTimeOffset(ctx, user.UserID, beforeTime, limit, notificationType)
 	if err != nil {
 		return nil, errors.New("unable to retrieve unread notifications")
 	}

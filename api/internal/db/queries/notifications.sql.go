@@ -170,20 +170,27 @@ func (q *Queries) GetNotificationsForUserId(ctx context.Context, arg GetNotifica
 
 const getReadNotificationsForUserIdWithTimeOffset = `-- name: GetReadNotificationsForUserIdWithTimeOffset :many
 SELECT notification_id, user_id, post_id, comment_id, target_user_id, message, link, viewed, facets, notification_type, created_at
-FROM notifications 
+FROM notifications
 WHERE user_id = $1 AND viewed = TRUE AND created_at < $2
+  AND ($4::text IS NULL OR notification_type = $4)
 ORDER BY created_at DESC
 LIMIT $3
 `
 
 type GetReadNotificationsForUserIdWithTimeOffsetParams struct {
-	UserID    int              `json:"userId"`
-	CreatedAt pgtype.Timestamp `json:"createdAt"`
-	Limit     int              `json:"limit"`
+	UserID           int              `json:"userId"`
+	CreatedAt        pgtype.Timestamp `json:"createdAt"`
+	Limit            int              `json:"limit"`
+	NotificationType pgtype.Text      `json:"notificationType"`
 }
 
 func (q *Queries) GetReadNotificationsForUserIdWithTimeOffset(ctx context.Context, arg GetReadNotificationsForUserIdWithTimeOffsetParams) ([]Notification, error) {
-	rows, err := q.db.Query(ctx, getReadNotificationsForUserIdWithTimeOffset, arg.UserID, arg.CreatedAt, arg.Limit)
+	rows, err := q.db.Query(ctx, getReadNotificationsForUserIdWithTimeOffset,
+		arg.UserID,
+		arg.CreatedAt,
+		arg.Limit,
+		arg.NotificationType,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -263,20 +270,27 @@ func (q *Queries) GetUnreadNotificationsForUserId(ctx context.Context, arg GetUn
 
 const getUnreadNotificationsForUserIdWithTimeOffset = `-- name: GetUnreadNotificationsForUserIdWithTimeOffset :many
 SELECT notification_id, user_id, post_id, comment_id, target_user_id, message, link, viewed, facets, notification_type, created_at
-FROM notifications 
+FROM notifications
 WHERE user_id = $1 AND viewed = FALSE AND created_at < $2
+  AND ($4::text IS NULL OR notification_type = $4)
 ORDER BY created_at DESC
 LIMIT $3
 `
 
 type GetUnreadNotificationsForUserIdWithTimeOffsetParams struct {
-	UserID    int              `json:"userId"`
-	CreatedAt pgtype.Timestamp `json:"createdAt"`
-	Limit     int              `json:"limit"`
+	UserID           int              `json:"userId"`
+	CreatedAt        pgtype.Timestamp `json:"createdAt"`
+	Limit            int              `json:"limit"`
+	NotificationType pgtype.Text      `json:"notificationType"`
 }
 
 func (q *Queries) GetUnreadNotificationsForUserIdWithTimeOffset(ctx context.Context, arg GetUnreadNotificationsForUserIdWithTimeOffsetParams) ([]Notification, error) {
-	rows, err := q.db.Query(ctx, getUnreadNotificationsForUserIdWithTimeOffset, arg.UserID, arg.CreatedAt, arg.Limit)
+	rows, err := q.db.Query(ctx, getUnreadNotificationsForUserIdWithTimeOffset,
+		arg.UserID,
+		arg.CreatedAt,
+		arg.Limit,
+		arg.NotificationType,
+	)
 	if err != nil {
 		return nil, err
 	}

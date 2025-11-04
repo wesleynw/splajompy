@@ -285,7 +285,7 @@ func (f *FakeNotificationRepository) GetUnreadNotificationCount(userId int) int 
 }
 
 // GetReadNotificationsForUserIdWithTimeOffset retrieves read notifications for a user with time-based pagination
-func (f *FakeNotificationRepository) GetReadNotificationsForUserIdWithTimeOffset(ctx context.Context, userId int, beforeTime time.Time, limit int) ([]*models.Notification, error) {
+func (f *FakeNotificationRepository) GetReadNotificationsForUserIdWithTimeOffset(ctx context.Context, userId int, beforeTime time.Time, limit int, notificationType *string) ([]*models.Notification, error) {
 	f.mu.Lock()
 	defer f.mu.Unlock()
 
@@ -297,6 +297,11 @@ func (f *FakeNotificationRepository) GetReadNotificationsForUserIdWithTimeOffset
 	// Filter to only read notifications that are before the given time
 	filteredNotifications := make([]queries.Notification, 0)
 	for _, notification := range userNotifications {
+		// Apply notification type filter if specified
+		if notificationType != nil && notification.NotificationType != *notificationType {
+			continue
+		}
+
 		if notification.Viewed && notification.CreatedAt.Time.Before(beforeTime) {
 			filteredNotifications = append(filteredNotifications, notification)
 		}
@@ -317,7 +322,7 @@ func (f *FakeNotificationRepository) GetReadNotificationsForUserIdWithTimeOffset
 }
 
 // GetUnreadNotificationsForUserIdWithTimeOffset retrieves unread notifications for a user with time-based pagination
-func (f *FakeNotificationRepository) GetUnreadNotificationsForUserIdWithTimeOffset(ctx context.Context, userId int, beforeTime time.Time, limit int) ([]*models.Notification, error) {
+func (f *FakeNotificationRepository) GetUnreadNotificationsForUserIdWithTimeOffset(ctx context.Context, userId int, beforeTime time.Time, limit int, notificationType *string) ([]*models.Notification, error) {
 	f.mu.Lock()
 	defer f.mu.Unlock()
 
@@ -329,6 +334,11 @@ func (f *FakeNotificationRepository) GetUnreadNotificationsForUserIdWithTimeOffs
 	// Filter to only unread notifications that are before the given time
 	filteredNotifications := make([]queries.Notification, 0)
 	for _, notification := range userNotifications {
+		// Apply notification type filter if specified
+		if notificationType != nil && notification.NotificationType != *notificationType {
+			continue
+		}
+
 		if !notification.Viewed && notification.CreatedAt.Time.Before(beforeTime) {
 			filteredNotifications = append(filteredNotifications, notification)
 		}

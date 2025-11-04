@@ -1,3 +1,4 @@
+import PostHog
 import SwiftUI
 
 struct NotificationsView: View {
@@ -36,6 +37,13 @@ struct NotificationsView: View {
     .onAppear {
       if case .idle = viewModel.state {
         Task { await viewModel.refreshNotifications() }
+      }
+    }
+    .toolbar {
+      if PostHogSDK.shared.isFeatureEnabled("notification-filters") {
+        ToolbarItem(placement: .primaryAction) {
+          NotificationFilterMenu(filter: $viewModel.selectedFilter)
+        }
       }
     }
     .navigationTitle("Notifications")
@@ -129,7 +137,9 @@ struct NotificationsView: View {
                 .onAppear {
                   var lastSectionWithNotifications: NotificationDateSection? =
                     nil
-                  for sectionCase in NotificationDateSection.allCases.reversed() {
+                  for sectionCase in NotificationDateSection.allCases
+                    .reversed()
+                  {
                     if let sectionNotifications = sections[sectionCase],
                       !sectionNotifications.isEmpty
                     {
@@ -163,6 +173,7 @@ struct NotificationsView: View {
           Spacer()
         }
         .id(UUID())
+        .listRowSeparator(.hidden)
       }
     }
     .frame(maxWidth: .infinity)
