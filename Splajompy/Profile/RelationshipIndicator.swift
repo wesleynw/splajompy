@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct RelationshipIndicator: View {
-  let user: UserProfile
+  let user: DetailedUser
 
   var body: some View {
     if user.mutualCount > 0 {
@@ -65,7 +65,7 @@ struct RelationshipIndicator: View {
   NavigationStack {
     VStack(spacing: 16) {
       RelationshipIndicator(
-        user: UserProfile(
+        user: DetailedUser(
           userId: 4,
           email: "friend_with_mutuals@example.com",
           username: "friend_with_mutuals",
@@ -77,12 +77,14 @@ struct RelationshipIndicator: View {
           isBlocking: false,
           isMuting: false,
           mutuals: ["alice", "bob", "charlie", "dan", "ethan"],
-          mutualCount: 5
+          mutualCount: 5,
+          isVerified: false,
+          fontChoiceId: 0
         )
       )
 
       RelationshipIndicator(
-        user: UserProfile(
+        user: DetailedUser(
           userId: 4,
           email: "friend_with_mutuals@example.com",
           username: "friend_with_mutuals",
@@ -94,12 +96,14 @@ struct RelationshipIndicator: View {
           isBlocking: false,
           isMuting: false,
           mutuals: ["alice", "bob", "charlie"],
-          mutualCount: 3
+          mutualCount: 3,
+          isVerified: false,
+          fontChoiceId: 0
         )
       )
 
       RelationshipIndicator(
-        user: UserProfile(
+        user: DetailedUser(
           userId: 2,
           email: "mutual@example.com",
           username: "mutual_user",
@@ -111,12 +115,14 @@ struct RelationshipIndicator: View {
           isBlocking: false,
           isMuting: false,
           mutuals: ["alice", "bob"],
-          mutualCount: 2
+          mutualCount: 2,
+          isVerified: false,
+          fontChoiceId: 0
         )
       )
 
       RelationshipIndicator(
-        user: UserProfile(
+        user: DetailedUser(
           userId: 3,
           email: "none@example.com",
           username: "no_connection",
@@ -128,12 +134,14 @@ struct RelationshipIndicator: View {
           isBlocking: false,
           isMuting: false,
           mutuals: [],
-          mutualCount: 0
+          mutualCount: 0,
+          isVerified: false,
+          fontChoiceId: 0
         )
       )
 
       RelationshipIndicator(
-        user: UserProfile(
+        user: DetailedUser(
           userId: 3,
           email: "none@example.com",
           username: "no_connection",
@@ -145,7 +153,9 @@ struct RelationshipIndicator: View {
           isBlocking: false,
           isMuting: false,
           mutuals: ["alice"],
-          mutualCount: 0
+          mutualCount: 0,
+          isVerified: false,
+          fontChoiceId: 0
         )
       )
     }

@@ -17,6 +17,15 @@
 			</array>
 		</dict>
 	</array>
+	<key>UIAppFonts</key>
+	<array>
+		<string>Sixtyfour.ttf</string>
+		<string>UnifrakturMaguntia.ttf</string>
+		<string>OpenGorton.otf</string>
+		<string>Neuton.ttf</string>
+		<string>MonsieurLaDoulaise-Regular.ttf</string>
+		<string>Greifswalder Deutsche.ttf</string>
+	</array>
 	<key>UILaunchScreen</key>
 	<dict/>
 </dict>

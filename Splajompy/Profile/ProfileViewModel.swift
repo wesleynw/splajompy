@@ -4,7 +4,7 @@ import SwiftUI
 enum ProfileState {
   case idle
   case loading
-  case loaded(UserProfile)
+  case loaded(DetailedUser)
   case failed(String)
 }
 
@@ -63,8 +63,8 @@ extension ProfileView {
       let posts = await postsResult
 
       switch profile {
-      case .success(let userProfile):
-        profileState = .loaded(userProfile)
+      case .success(let DetailedUser):
+        profileState = .loaded(DetailedUser)
       case .error(let error):
         profileState = .failed(error.localizedDescription)
       }
@@ -172,7 +172,7 @@ extension ProfileView {
       }
     }
 
-    func updateProfile(name: String, bio: String) {
+    func updateProfile(name: String, bio: String, fontChoiceId: Int) {
       isLoading = true
       defer {
         isLoading = false
@@ -181,12 +181,14 @@ extension ProfileView {
       Task {
         let result = await profileService.updateProfile(
           name: name.trimmingCharacters(in: .whitespacesAndNewlines),
-          bio: bio.trimmingCharacters(in: .whitespacesAndNewlines))
+          bio: bio.trimmingCharacters(in: .whitespacesAndNewlines),
+          fontChoiceId: fontChoiceId)
         switch result {
         case .success(_):
           if case .loaded(var profile) = profileState {
             profile.name = name
             profile.bio = bio
+            profile.fontChoiceId = fontChoiceId
             profileState = .loaded(profile)
           }
         case .error(let error):

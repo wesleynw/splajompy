@@ -14,16 +14,17 @@ struct DetailedUser: Decodable, Identifiable {
   let userId: Int
   let email: String
   let username: String
-  let createdAt: Date
-  let name: String?
-  let bio: String
-  let isFollower: Bool
+  let createdAt: String
+  var name: String?
+  var bio: String
+  var isFollower: Bool
   var isFollowing: Bool
-  let isBlocking: Bool
-  let isMuting: Bool
+  var isBlocking: Bool
+  var isMuting: Bool
   let mutuals: [String]
   let mutualCount: Int
   let isVerified: Bool
+  var fontChoiceId: Int
 
   var id: Int { userId }
 }
