@@ -7,6 +7,7 @@ import (
 
 	"github.com/resend/resend-go/v2"
 	"golang.org/x/sync/errgroup"
+	"splajompy.com/api/v2/internal/db"
 	"splajompy.com/api/v2/internal/templates"
 
 	"splajompy.com/api/v2/internal/models"
@@ -118,7 +119,10 @@ func (s *UserService) UpdateProfile(ctx context.Context, userId int, name *strin
 		}
 	}
 	if displayProperties != nil {
-		if err := s.userRepository.UpdateUserDisplayProperties(ctx, userId, *displayProperties); err != nil {
+		dbDisplayProperties := db.UserDisplayProperties{
+			FontChoiceId: displayProperties.FontChoiceId,
+		}
+		if err := s.userRepository.UpdateUserDisplayProperties(ctx, userId, dbDisplayProperties); err != nil {
 			return err
 		}
 	}
