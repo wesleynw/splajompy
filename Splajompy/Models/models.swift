@@ -14,14 +14,7 @@ struct User: Decodable {
   let isVerified: Bool?
 }
 
-protocol UserDisplayable {
-  var userId: Int { get }
-  var username: String { get }
-  var name: String? { get }
-  var displayProperties: UserDisplayProperties { get }
-}
-
-struct PublicUser: Decodable, Identifiable, UserDisplayable {
+struct PublicUser: Decodable, Identifiable {
   let userId: Int
   let email: String
   let username: String
@@ -31,9 +24,32 @@ struct PublicUser: Decodable, Identifiable, UserDisplayable {
   let displayProperties: UserDisplayProperties
 
   var id: Int { userId }
+
+  init(
+    userId: Int, email: String, username: String, createdAt: String, name: String?,
+    isVerified: Bool, displayProperties: UserDisplayProperties
+  ) {
+    self.userId = userId
+    self.email = email
+    self.username = username
+    self.createdAt = createdAt
+    self.name = name
+    self.isVerified = isVerified
+    self.displayProperties = displayProperties
+  }
+
+  init(from detailedUser: DetailedUser) {
+    self.userId = detailedUser.userId
+    self.email = detailedUser.email
+    self.username = detailedUser.username
+    self.createdAt = detailedUser.createdAt
+    self.name = detailedUser.name
+    self.isVerified = detailedUser.isVerified
+    self.displayProperties = detailedUser.displayProperties
+  }
 }
 
-struct DetailedUser: Decodable, Identifiable, UserDisplayable {
+struct DetailedUser: Decodable, Identifiable {
   let userId: Int
   let email: String
   let username: String

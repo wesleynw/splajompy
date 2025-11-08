@@ -34,7 +34,15 @@ enum ProfileFontChoiceEnum: Int, CaseIterable, Identifiable, Hashable {
 }
 
 struct ProfileDisplayNameView: View {
-  var user: any UserDisplayable
+  var user: PublicUser
+
+  init(user: PublicUser) {
+    self.user = user
+  }
+
+  init(user: DetailedUser) {
+    self.user = PublicUser(from: user)
+  }
 
   var body: some View {
     VStack(alignment: .leading, spacing: 4) {
@@ -61,41 +69,41 @@ struct ProfileDisplayNameView: View {
 }
 
 #Preview("Default LargeTitle2") {
-  ProfileDisplayNameView(user: Mocks.testUser1)
+  ProfileDisplayNameView(user: PublicUser(from: Mocks.testUser1))
 }
 
 #Preview("Fallback") {
   var testUser1 = Mocks.testUser1
   testUser1.displayProperties = UserDisplayProperties(fontChoiceId: 999)
-  return ProfileDisplayNameView(user: testUser1)
+  return ProfileDisplayNameView(user: PublicUser(from: testUser1))
 }
 
 #Preview("Sixtyfour") {
   var testUser1 = Mocks.testUser1
   testUser1.displayProperties = UserDisplayProperties(fontChoiceId: 1)
-  return ProfileDisplayNameView(user: testUser1)
+  return ProfileDisplayNameView(user: PublicUser(from: testUser1))
 }
 
 #Preview("Old London") {
   var testUser1 = Mocks.testUser1
   testUser1.displayProperties = UserDisplayProperties(fontChoiceId: 2)
-  return ProfileDisplayNameView(user: testUser1)
+  return ProfileDisplayNameView(user: PublicUser(from: testUser1))
 }
 
 #Preview("Gorton") {
   var testUser1 = Mocks.testUser1
   testUser1.displayProperties = UserDisplayProperties(fontChoiceId: 3)
-  return ProfileDisplayNameView(user: testUser1)
+  return ProfileDisplayNameView(user: PublicUser(from: testUser1))
 }
 
 #Preview("Neuton") {
   var testUser1 = Mocks.testUser1
   testUser1.displayProperties = UserDisplayProperties(fontChoiceId: 4)
-  return ProfileDisplayNameView(user: testUser1)
+  return ProfileDisplayNameView(user: PublicUser(from: testUser1))
 }
 
 #Preview("Lavish") {
   var testUser1 = Mocks.testUser1
   testUser1.displayProperties = UserDisplayProperties(fontChoiceId: 5)
-  return ProfileDisplayNameView(user: testUser1)
+  return ProfileDisplayNameView(user: PublicUser(from: testUser1))
 }
