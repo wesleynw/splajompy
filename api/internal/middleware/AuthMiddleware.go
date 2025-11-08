@@ -2,11 +2,13 @@ package middleware
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"strings"
 	"time"
 
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgtype"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
@@ -34,21 +36,27 @@ func AuthMiddleware(q *queries.Queries) func(http.Handler) http.Handler {
 			token := strings.ReplaceAll(strings.TrimSpace(parts[1]), `\/`, `/`)
 
 			session, err := q.GetSessionById(ctx, token)
-			if err != nil {
+
+			// want to be careful here: if it's a server error, don't want to be logging
+			// people out automatically
+			var connectError *pgconn.ConnectError
+			if errors.As(err, &connectError) {
+				http.Error(w, "something went wrong", http.StatusInternalServerError)
+				return
+			} else if err != nil {
 				http.Error(w, "no session found", http.StatusUnauthorized)
 				return
 			}
 
-			// TODO: refresh tokens
-			//if time.Now().Unix() >= session.ExpiresAt.Time.Unix() {
-			//	err = q.DeleteSession(ctx, session.ID)
-			//	if err != nil {
-			//		http.Error(w, "failed to delete expired session", http.StatusInternalServerError)
-			//		return
-			//	}
-			//	http.Error(w, "session expired", http.StatusUnauthorized)
-			//	return
-			//}
+			if time.Now().Unix() >= session.ExpiresAt.Time.Unix() {
+				err = q.DeleteSession(ctx, session.ID)
+				if err != nil {
+					http.Error(w, "failed to delete expired session", http.StatusInternalServerError)
+					return
+				}
+				http.Error(w, "session expired", http.StatusUnauthorized)
+				return
+			}
 
 			// extend session if it's getting old (expires within 30 days)
 			thirtyDaysFromNow := time.Now().Add(time.Hour * 24 * 30)
