@@ -2,11 +2,14 @@ package middleware
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"strings"
 	"time"
 
+	// "github.com/jackc/pgx/v5/pgconn"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgtype"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
@@ -34,7 +37,14 @@ func AuthMiddleware(q *queries.Queries) func(http.Handler) http.Handler {
 			token := strings.ReplaceAll(strings.TrimSpace(parts[1]), `\/`, `/`)
 
 			session, err := q.GetSessionById(ctx, token)
-			if err != nil {
+
+			// want to be careful here: if it's a server error, don't want to be logging
+			// people out automatically
+			var connectError *pgconn.ConnectError
+			if errors.As(err, &connectError) {
+				http.Error(w, "something went wrong", http.StatusInternalServerError)
+				return
+			} else if err != nil {
 				http.Error(w, "no session found", http.StatusUnauthorized)
 				return
 			}
