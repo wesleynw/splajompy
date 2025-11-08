@@ -9,6 +9,7 @@ import (
 	"context"
 
 	"github.com/jackc/pgx/v5/pgtype"
+	db "splajompy.com/api/v2/internal/db"
 )
 
 const blockUser = `-- name: BlockUser :exec
@@ -46,7 +47,7 @@ func (q *Queries) CreateSession(ctx context.Context, arg CreateSessionParams) er
 const createUser = `-- name: CreateUser :one
 INSERT INTO users (email, username, password)
 VALUES ($1, $2, $3)
-RETURNING user_id, email, password, username, created_at, name, is_verified, pinned_post_id
+RETURNING user_id, email, password, username, created_at, name, is_verified, pinned_post_id, user_display_properties
 `
 
 type CreateUserParams struct {
@@ -67,6 +68,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.Name,
 		&i.IsVerified,
 		&i.PinnedPostID,
+		&i.UserDisplayProperties,
 	)
 	return i, err
 }
@@ -207,7 +209,7 @@ func (q *Queries) GetSessionById(ctx context.Context, id string) (Session, error
 }
 
 const getUserById = `-- name: GetUserById :one
-SELECT user_id, email, password, username, created_at, name, is_verified, pinned_post_id
+SELECT user_id, email, password, username, created_at, name, is_verified, pinned_post_id, user_display_properties
 FROM users
 WHERE user_id = $1
 LIMIT 1
@@ -225,12 +227,13 @@ func (q *Queries) GetUserById(ctx context.Context, userID int) (User, error) {
 		&i.Name,
 		&i.IsVerified,
 		&i.PinnedPostID,
+		&i.UserDisplayProperties,
 	)
 	return i, err
 }
 
 const getUserByIdentifier = `-- name: GetUserByIdentifier :one
-SELECT user_id, email, password, username, created_at, name, is_verified, pinned_post_id
+SELECT user_id, email, password, username, created_at, name, is_verified, pinned_post_id, user_display_properties
 FROM users
 WHERE email = $1 OR username = $1
 LIMIT 1
@@ -248,12 +251,13 @@ func (q *Queries) GetUserByIdentifier(ctx context.Context, email string) (User, 
 		&i.Name,
 		&i.IsVerified,
 		&i.PinnedPostID,
+		&i.UserDisplayProperties,
 	)
 	return i, err
 }
 
 const getUserByUsername = `-- name: GetUserByUsername :one
-SELECT user_id, email, password, username, created_at, name, is_verified, pinned_post_id
+SELECT user_id, email, password, username, created_at, name, is_verified, pinned_post_id, user_display_properties
 FROM users
 WHERE username = $1
 LIMIT 1
@@ -271,12 +275,13 @@ func (q *Queries) GetUserByUsername(ctx context.Context, username string) (User,
 		&i.Name,
 		&i.IsVerified,
 		&i.PinnedPostID,
+		&i.UserDisplayProperties,
 	)
 	return i, err
 }
 
 const getUserWithPasswordById = `-- name: GetUserWithPasswordById :one
-SELECT user_id, email, password, username, created_at, name, is_verified, pinned_post_id
+SELECT user_id, email, password, username, created_at, name, is_verified, pinned_post_id, user_display_properties
 FROM users
 WHERE user_id = $1
 LIMIT 1
@@ -294,12 +299,13 @@ func (q *Queries) GetUserWithPasswordById(ctx context.Context, userID int) (User
 		&i.Name,
 		&i.IsVerified,
 		&i.PinnedPostID,
+		&i.UserDisplayProperties,
 	)
 	return i, err
 }
 
 const getUserWithPasswordByIdentifier = `-- name: GetUserWithPasswordByIdentifier :one
-SELECT user_id, email, password, username, created_at, name, is_verified, pinned_post_id
+SELECT user_id, email, password, username, created_at, name, is_verified, pinned_post_id, user_display_properties
 FROM users
 WHERE email = $1 OR username = $1
 LIMIT 1
@@ -317,12 +323,13 @@ func (q *Queries) GetUserWithPasswordByIdentifier(ctx context.Context, email str
 		&i.Name,
 		&i.IsVerified,
 		&i.PinnedPostID,
+		&i.UserDisplayProperties,
 	)
 	return i, err
 }
 
 const getUsernameLike = `-- name: GetUsernameLike :many
-SELECT user_id, email, password, username, created_at, name, is_verified, pinned_post_id
+SELECT user_id, email, password, username, created_at, name, is_verified, pinned_post_id, user_display_properties
 FROM users
 WHERE username LIKE $1
 AND NOT EXISTS (
@@ -357,6 +364,7 @@ func (q *Queries) GetUsernameLike(ctx context.Context, arg GetUsernameLikeParams
 			&i.Name,
 			&i.IsVerified,
 			&i.PinnedPostID,
+			&i.UserDisplayProperties,
 		); err != nil {
 			return nil, err
 		}
@@ -468,6 +476,22 @@ type UpdateUserBioParams struct {
 
 func (q *Queries) UpdateUserBio(ctx context.Context, arg UpdateUserBioParams) error {
 	_, err := q.db.Exec(ctx, updateUserBio, arg.UserID, arg.Text)
+	return err
+}
+
+const updateUserDisplayProperties = `-- name: UpdateUserDisplayProperties :exec
+UPDATE users
+SET user_display_properties = $2
+WHERE user_id = $1
+`
+
+type UpdateUserDisplayPropertiesParams struct {
+	UserID                int                      `json:"userId"`
+	UserDisplayProperties db.UserDisplayProperties `json:"userDisplayProperties"`
+}
+
+func (q *Queries) UpdateUserDisplayProperties(ctx context.Context, arg UpdateUserDisplayPropertiesParams) error {
+	_, err := q.db.Exec(ctx, updateUserDisplayProperties, arg.UserID, arg.UserDisplayProperties)
 	return err
 }
 

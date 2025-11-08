@@ -1,32 +1,18 @@
 import Foundation
 
-struct UserProfile: Decodable {
-  let userId: Int
-  let email: String
-  let username: String
-  let createdAt: String
-  var name: String
-  var bio: String
-  var isFollower: Bool
-  var isFollowing: Bool
-  var isBlocking: Bool
-  var isMuting: Bool
-  let mutuals: [String]
-  let mutualCount: Int
-  var isVerified: Bool?
-}
-
 struct UpdateProfileRequest: Encodable {
   let name: String
   let bio: String
+  let displayProperties: UserDisplayProperties
 }
 
 protocol ProfileServiceProtocol: Sendable {
-  func getProfile(userId: Int) async -> AsyncResult<UserProfile>
-  func getUserFromUsernamePrefix(prefix: String) async -> AsyncResult<[User]>
-  func updateProfile(name: String, bio: String) async -> AsyncResult<
-    EmptyResponse
-  >
+  func getProfile(userId: Int) async -> AsyncResult<DetailedUser>
+  func getUserFromUsernamePrefix(prefix: String) async -> AsyncResult<[PublicUser]>
+  func updateProfile(name: String, bio: String, displayProperties: UserDisplayProperties) async
+    -> AsyncResult<
+      EmptyResponse
+    >
   func toggleFollowing(userId: Int, isFollowing: Bool) async -> AsyncResult<
     EmptyResponse
   >
@@ -50,14 +36,14 @@ protocol ProfileServiceProtocol: Sendable {
 }
 
 struct ProfileService: ProfileServiceProtocol {
-  func getProfile(userId: Int) async -> AsyncResult<UserProfile> {
+  func getProfile(userId: Int) async -> AsyncResult<DetailedUser> {
     return await APIService.performRequest(
       endpoint: "user/\(userId)",
       method: "GET"
     )
   }
 
-  func getUserFromUsernamePrefix(prefix: String) async -> AsyncResult<[User]> {
+  func getUserFromUsernamePrefix(prefix: String) async -> AsyncResult<[PublicUser]> {
     let queryItems = [URLQueryItem(name: "prefix", value: "\(prefix)")]
     return await APIService.performRequest(
       endpoint: "users/search",
@@ -65,10 +51,12 @@ struct ProfileService: ProfileServiceProtocol {
     )
   }
 
-  func updateProfile(name: String, bio: String) async -> AsyncResult<
-    EmptyResponse
-  > {
-    let request = UpdateProfileRequest(name: name, bio: bio)
+  func updateProfile(name: String, bio: String, displayProperties: UserDisplayProperties) async
+    -> AsyncResult<
+      EmptyResponse
+    >
+  {
+    let request = UpdateProfileRequest(name: name, bio: bio, displayProperties: displayProperties)
     let requestData: Data
     do {
       requestData = try JSONEncoder().encode(request)

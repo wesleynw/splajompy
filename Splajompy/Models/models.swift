@@ -1,5 +1,9 @@
 import Foundation
 
+struct UserDisplayProperties: Codable {
+  let fontChoiceId: Int
+}
+
 struct User: Decodable {
   let userId: Int
   let email: String
@@ -10,20 +14,56 @@ struct User: Decodable {
   let isVerified: Bool?
 }
 
+struct PublicUser: Decodable, Identifiable {
+  let userId: Int
+  let email: String
+  let username: String
+  let createdAt: String
+  let name: String?
+  let isVerified: Bool
+  let displayProperties: UserDisplayProperties
+
+  var id: Int { userId }
+
+  init(
+    userId: Int, email: String, username: String, createdAt: String, name: String?,
+    isVerified: Bool, displayProperties: UserDisplayProperties
+  ) {
+    self.userId = userId
+    self.email = email
+    self.username = username
+    self.createdAt = createdAt
+    self.name = name
+    self.isVerified = isVerified
+    self.displayProperties = displayProperties
+  }
+
+  init(from detailedUser: DetailedUser) {
+    self.userId = detailedUser.userId
+    self.email = detailedUser.email
+    self.username = detailedUser.username
+    self.createdAt = detailedUser.createdAt
+    self.name = detailedUser.name
+    self.isVerified = detailedUser.isVerified
+    self.displayProperties = detailedUser.displayProperties
+  }
+}
+
 struct DetailedUser: Decodable, Identifiable {
   let userId: Int
   let email: String
   let username: String
-  let createdAt: Date
-  let name: String?
-  let bio: String
-  let isFollower: Bool
+  let createdAt: String
+  var name: String?
+  var bio: String
+  var isFollower: Bool
   var isFollowing: Bool
-  let isBlocking: Bool
-  let isMuting: Bool
+  var isBlocking: Bool
+  var isMuting: Bool
   let mutuals: [String]
   let mutualCount: Int
   let isVerified: Bool
+  var displayProperties: UserDisplayProperties
 
   var id: Int { userId }
 }
@@ -83,7 +123,7 @@ struct RelevantLike: Decodable {
 
 struct DetailedPost: Decodable, Equatable, Identifiable {
   let post: Post
-  let user: User
+  let user: PublicUser
   var isLiked: Bool
   var commentCount: Int
   var images: [ImageDTO]?

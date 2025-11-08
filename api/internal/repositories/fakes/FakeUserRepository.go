@@ -8,38 +8,41 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5/pgtype"
+	"splajompy.com/api/v2/internal/db"
 	"splajompy.com/api/v2/internal/db/queries"
 	"splajompy.com/api/v2/internal/models"
 )
 
 type FakeUserRepository struct {
-	users             map[int]models.PublicUser
-	usersByUsername   map[string]int
-	usersByEmail      map[string]int
-	userBios          map[int]string
-	passwords         map[int]string
-	followRelations   map[int]map[int]bool
-	blockRelations    map[int]map[int]bool
-	muteRelations     map[int]map[int]bool
-	verificationCodes map[int]map[string]queries.VerificationCode
-	sessions          map[string]queries.Session
-	mutex             sync.RWMutex
-	nextUserId        int
+	users                  map[int]models.PublicUser
+	usersByUsername        map[string]int
+	usersByEmail           map[string]int
+	userBios               map[int]string
+	userDisplayProperties  map[int]models.UserDisplayProperties
+	passwords              map[int]string
+	followRelations        map[int]map[int]bool
+	blockRelations         map[int]map[int]bool
+	muteRelations          map[int]map[int]bool
+	verificationCodes      map[int]map[string]queries.VerificationCode
+	sessions               map[string]queries.Session
+	mutex                  sync.RWMutex
+	nextUserId             int
 }
 
 func NewFakeUserRepository() *FakeUserRepository {
 	return &FakeUserRepository{
-		users:             make(map[int]models.PublicUser),
-		usersByUsername:   make(map[string]int),
-		usersByEmail:      make(map[string]int),
-		userBios:          make(map[int]string),
-		passwords:         make(map[int]string),
-		followRelations:   make(map[int]map[int]bool),
-		blockRelations:    make(map[int]map[int]bool),
-		muteRelations:     make(map[int]map[int]bool),
-		verificationCodes: make(map[int]map[string]queries.VerificationCode),
-		sessions:          make(map[string]queries.Session),
-		nextUserId:        1,
+		users:                 make(map[int]models.PublicUser),
+		usersByUsername:       make(map[string]int),
+		usersByEmail:          make(map[string]int),
+		userBios:              make(map[int]string),
+		userDisplayProperties: make(map[int]models.UserDisplayProperties),
+		passwords:             make(map[int]string),
+		followRelations:       make(map[int]map[int]bool),
+		blockRelations:        make(map[int]map[int]bool),
+		muteRelations:         make(map[int]map[int]bool),
+		verificationCodes:     make(map[int]map[string]queries.VerificationCode),
+		sessions:              make(map[string]queries.Session),
+		nextUserId:            1,
 	}
 }
 
@@ -210,6 +213,22 @@ func (r *FakeUserRepository) UpdateUserName(ctx context.Context, userId int, new
 
 	user.Name = newName
 	r.users[id] = user
+
+	return nil
+}
+
+func (r *FakeUserRepository) UpdateUserDisplayProperties(ctx context.Context, userId int, displayProperties db.UserDisplayProperties) error {
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
+
+	id := userId
+	if _, exists := r.users[id]; !exists {
+		return errors.New("user not found")
+	}
+
+	r.userDisplayProperties[id] = models.UserDisplayProperties{
+		FontChoiceId: displayProperties.FontChoiceId,
+	}
 
 	return nil
 }

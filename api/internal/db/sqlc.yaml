@@ -64,3 +64,9 @@ sql:
               package: "db",
               type: "Facets"
             }
+          - column: "users.user_display_properties"
+            "go_type": {
+              import: "splajompy.com/api/v2/internal/db",
+              package: "db",
+              type: "UserDisplayProperties"
+            }

@@ -162,12 +162,8 @@ struct UserRowView: View {
   }
 
   private var userInfoView: some View {
-    HStack(spacing: 6) {
-      if let name = user.name, !name.isEmpty {
-        Text(name)
-          .font(.headline)
-          .lineLimit(1)
-      }
+    HStack(alignment: .firstTextBaseline, spacing: 2) {
+      ProfileDisplayNameView(user: user)
       Text("@\(user.username)")
         .font(.subheadline)
         .foregroundColor(.secondary)

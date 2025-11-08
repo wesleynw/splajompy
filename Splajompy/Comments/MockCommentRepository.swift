@@ -2,7 +2,7 @@ import Foundation
 
 class MockCommentService: CommentServiceProtocol, @unchecked Sendable {
   private var mockComments: [Int: [DetailedComment]] = [:]
-  private var mockUsers: [User] = []
+  private var mockUsers: [PublicUser] = []
   private var commentIdCounter = 1000
 
   init() {
@@ -42,13 +42,14 @@ class MockCommentService: CommentServiceProtocol, @unchecked Sendable {
     let currentDate = Date()
     let currentUser =
       mockUsers.first
-      ?? User(
+      ?? PublicUser(
         userId: 1,
         email: "test@example.com",
         username: "testuser",
-        createdAt: currentDate,
+        createdAt: ISO8601DateFormatter().string(from: currentDate),
         name: "Test User",
-        isVerified: false
+        isVerified: false,
+        displayProperties: UserDisplayProperties(fontChoiceId: 0)
       )
 
     let newComment = DetailedComment(
@@ -91,30 +92,36 @@ class MockCommentService: CommentServiceProtocol, @unchecked Sendable {
   private func setupMockData() {
     let currentDate = Date()
 
+    let dateFormatter = ISO8601DateFormatter()
+    let dateString = dateFormatter.string(from: currentDate)
+
     mockUsers = [
-      User(
+      PublicUser(
         userId: 1,
         email: "john@example.com",
         username: "johndoe",
-        createdAt: currentDate,
+        createdAt: dateString,
         name: "John Doe",
-        isVerified: false
+        isVerified: false,
+        displayProperties: UserDisplayProperties(fontChoiceId: 0)
       ),
-      User(
+      PublicUser(
         userId: 2,
         email: "jane@example.com",
         username: "janedoe",
-        createdAt: currentDate,
+        createdAt: dateString,
         name: "Jane Doe",
-        isVerified: false
+        isVerified: false,
+        displayProperties: UserDisplayProperties(fontChoiceId: 0)
       ),
-      User(
+      PublicUser(
         userId: 3,
         email: "bob@example.com",
         username: "bobsmith",
-        createdAt: currentDate,
+        createdAt: dateString,
         name: "Bob Smith",
-        isVerified: false
+        isVerified: false,
+        displayProperties: UserDisplayProperties(fontChoiceId: 0)
       ),
     ]
 
@@ -177,16 +184,23 @@ class MockCommentService_Empty: CommentServiceProtocol, @unchecked Sendable {
   }
 
   func addComment(postId: Int, text: String) async -> AsyncResult<DetailedComment> {
-    let user = User(
-      userId: 1, email: "test@example.com", username: "testuser",
-      createdAt: Date(), name: "Test User", isVerified: false)
+    let currentDate = Date()
+    let user = PublicUser(
+      userId: 1,
+      email: "test@example.com",
+      username: "testuser",
+      createdAt: ISO8601DateFormatter().string(from: currentDate),
+      name: "Test User",
+      isVerified: false,
+      displayProperties: UserDisplayProperties(fontChoiceId: 0)
+    )
 
     let newComment = DetailedComment(
       commentId: Int.random(in: 100...1000),
       postId: postId,
       userId: 1,
       text: text,
-      createdAt: ISO8601DateFormatter().string(from: Date()),
+      createdAt: ISO8601DateFormatter().string(from: currentDate),
       user: user,
       facets: [],
       isLiked: false

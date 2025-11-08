@@ -9,13 +9,13 @@ final class MockUserRepository: @unchecked Sendable {
     return formatter
   }()
 
-  var users: [Int: UserProfile]
+  var users: [Int: DetailedUser]
 
   init() {
     let baseDate = Date()
 
     self.users = [
-      1: UserProfile(
+      1: DetailedUser(
         userId: 1,
         email: "wesleynw@pm.me",
         username: "wesleynw",
@@ -24,7 +24,7 @@ final class MockUserRepository: @unchecked Sendable {
         ),
         name: "Wesley Weisenberger",
         bio: """
-          welcome to splajompy!\nno, I don’t know your password, they’re all encrypted and whatever.
+          welcome to splajompy!\nno, I don't know your password, they're all encrypted and whatever.
           """,
         isFollower: false,
         isFollowing: false,
@@ -32,9 +32,10 @@ final class MockUserRepository: @unchecked Sendable {
         isMuting: false,
         mutuals: [],
         mutualCount: 0,
-        isVerified: true
+        isVerified: true,
+        displayProperties: UserDisplayProperties(fontChoiceId: 0)
       ),
-      6: UserProfile(
+      6: DetailedUser(
         userId: 6,
         email: "wesley@example.com",
         username: "wesley",
@@ -49,9 +50,11 @@ final class MockUserRepository: @unchecked Sendable {
         isBlocking: false,
         isMuting: false,
         mutuals: [],
-        mutualCount: 0
+        mutualCount: 0,
+        isVerified: false,
+        displayProperties: UserDisplayProperties(fontChoiceId: 0)
       ),
-      25: UserProfile(
+      25: DetailedUser(
         userId: 25,
         email: "joel@example.com",
         username: "joel",
@@ -65,9 +68,11 @@ final class MockUserRepository: @unchecked Sendable {
         isBlocking: false,
         isMuting: false,
         mutuals: [],
-        mutualCount: 0
+        mutualCount: 0,
+        isVerified: false,
+        displayProperties: UserDisplayProperties(fontChoiceId: 0)
       ),
-      120: UserProfile(
+      120: DetailedUser(
         userId: 120,
         email: "sophie@example.com",
         username: "realsophie",
@@ -82,9 +87,11 @@ final class MockUserRepository: @unchecked Sendable {
         isBlocking: false,
         isMuting: false,
         mutuals: ["joel", "wesley"],
-        mutualCount: 2
+        mutualCount: 2,
+        isVerified: false,
+        displayProperties: UserDisplayProperties(fontChoiceId: 0)
       ),
-      103: UserProfile(
+      103: DetailedUser(
         userId: 103,
         email: "splazackly@example.com",
         username: "splazackly",
@@ -99,9 +106,11 @@ final class MockUserRepository: @unchecked Sendable {
         isBlocking: false,
         isMuting: false,
         mutuals: [],
-        mutualCount: 0
+        mutualCount: 0,
+        isVerified: false,
+        displayProperties: UserDisplayProperties(fontChoiceId: 0)
       ),
-      112: UserProfile(
+      112: DetailedUser(
         userId: 112,
         email: "giuseppe@example.com",
         username: "giuseppe",
@@ -116,9 +125,11 @@ final class MockUserRepository: @unchecked Sendable {
         isBlocking: false,
         isMuting: false,
         mutuals: [],
-        mutualCount: 0
+        mutualCount: 0,
+        isVerified: false,
+        displayProperties: UserDisplayProperties(fontChoiceId: 0)
       ),
-      97: UserProfile(
+      97: DetailedUser(
         userId: 97,
         email: "elena@example.com",
         username: "elena",
@@ -133,9 +144,11 @@ final class MockUserRepository: @unchecked Sendable {
         isBlocking: false,
         isMuting: false,
         mutuals: [],
-        mutualCount: 0
+        mutualCount: 0,
+        isVerified: false,
+        displayProperties: UserDisplayProperties(fontChoiceId: 0)
       ),
-      113: UserProfile(
+      113: DetailedUser(
         userId: 113,
         email: "pari@example.com",
         username: "pari",
@@ -150,9 +163,11 @@ final class MockUserRepository: @unchecked Sendable {
         isBlocking: false,
         isMuting: false,
         mutuals: [],
-        mutualCount: 0
+        mutualCount: 0,
+        isVerified: false,
+        displayProperties: UserDisplayProperties(fontChoiceId: 0)
       ),
-      30: UserProfile(
+      30: DetailedUser(
         userId: 30,
         email: "showrunner@example.com",
         username: "showrunner",
@@ -167,9 +182,11 @@ final class MockUserRepository: @unchecked Sendable {
         isBlocking: false,
         isMuting: false,
         mutuals: [],
-        mutualCount: 0
+        mutualCount: 0,
+        isVerified: false,
+        displayProperties: UserDisplayProperties(fontChoiceId: 0)
       ),
-      15: UserProfile(
+      15: DetailedUser(
         userId: 15,
         email: "marketvendor@example.com",
         username: "marketvendor",
@@ -184,7 +201,9 @@ final class MockUserRepository: @unchecked Sendable {
         isBlocking: false,
         isMuting: false,
         mutuals: [],
-        mutualCount: 0
+        mutualCount: 0,
+        isVerified: false,
+        displayProperties: UserDisplayProperties(fontChoiceId: 0)
       ),
     ]
   }
@@ -193,7 +212,7 @@ final class MockUserRepository: @unchecked Sendable {
 struct MockProfileService: ProfileServiceProtocol {
   private let store = MockUserRepository.shared
 
-  func getProfile(userId: Int) async -> AsyncResult<UserProfile> {
+  func getProfile(userId: Int) async -> AsyncResult<DetailedUser> {
     try? await Task.sleep(nanoseconds: 500_000_000)
     if let user = store.users[userId] {
       return .success(user)
@@ -202,43 +221,48 @@ struct MockProfileService: ProfileServiceProtocol {
     }
   }
 
-  func getUserFromUsernamePrefix(prefix: String) async -> AsyncResult<[User]> {
+  func getUserFromUsernamePrefix(prefix: String) async -> AsyncResult<[PublicUser]> {
     let baseDate = Date()
 
     let formatter = ISO8601DateFormatter()
     formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
 
     return .success([
-      User(
+      PublicUser(
         userId: 1001,
         email: "jane.smith@example.com",
         username: prefix + "_janesmith",
-        createdAt: baseDate.addingTimeInterval(-8_640_000),
+        createdAt: formatter.string(from: baseDate.addingTimeInterval(-8_640_000)),
         name: "Jane Smith",
-        isVerified: false
+        isVerified: false,
+        displayProperties: UserDisplayProperties(fontChoiceId: 0)
       ),
-      User(
+      PublicUser(
         userId: 1002,
         email: "david.wilson@example.com",
         username: prefix + "davewilson",
-        createdAt: baseDate.addingTimeInterval(-4_320_000),
+        createdAt: formatter.string(from: baseDate.addingTimeInterval(-4_320_000)),
         name: "David Wilson",
-        isVerified: false
+        isVerified: false,
+        displayProperties: UserDisplayProperties(fontChoiceId: 0)
       ),
-      User(
+      PublicUser(
         userId: 1003,
         email: "maria.garcia@example.com",
         username: prefix + "mariagarcia",
-        createdAt: baseDate.addingTimeInterval(-2_160_000),
+        createdAt: formatter.string(from: baseDate.addingTimeInterval(-2_160_000)),
         name: "Maria Garcia",
-        isVerified: false
+        isVerified: false,
+        displayProperties: UserDisplayProperties(fontChoiceId: 0)
       ),
     ])
   }
 
-  func updateProfile(name: String, bio: String) async -> AsyncResult<
-    EmptyResponse
-  > {
+  func updateProfile(name: String, bio: String, displayProperties: UserDisplayProperties) async
+    -> AsyncResult<
+      EmptyResponse
+    >
+  {
     try? await Task.sleep(nanoseconds: 500_000_000)
     return .success(EmptyResponse())
   }
@@ -300,7 +324,7 @@ struct MockProfileService: ProfileServiceProtocol {
         userId: profile.userId,
         email: profile.email,
         username: profile.username,
-        createdAt: Date(),
+        createdAt: profile.createdAt,
         name: profile.name,
         bio: profile.bio,
         isFollower: profile.isFollower,
@@ -309,7 +333,8 @@ struct MockProfileService: ProfileServiceProtocol {
         isMuting: profile.isMuting,
         mutuals: profile.mutuals,
         mutualCount: profile.mutuals.count,
-        isVerified: profile.isVerified ?? false
+        isVerified: profile.isVerified,
+        displayProperties: profile.displayProperties
       )
     }
     return .success(paginatedUsers)
@@ -328,7 +353,7 @@ struct MockProfileService: ProfileServiceProtocol {
         userId: profile.userId,
         email: profile.email,
         username: profile.username,
-        createdAt: Date(),
+        createdAt: profile.createdAt,
         name: profile.name,
         bio: profile.bio,
         isFollower: profile.isFollower,
@@ -337,7 +362,8 @@ struct MockProfileService: ProfileServiceProtocol {
         isMuting: profile.isMuting,
         mutuals: profile.mutuals,
         mutualCount: profile.mutuals.count,
-        isVerified: profile.isVerified ?? false
+        isVerified: profile.isVerified,
+        displayProperties: profile.displayProperties
       )
     }
     return .success(paginatedUsers)
@@ -360,7 +386,7 @@ struct MockProfileService: ProfileServiceProtocol {
         userId: profile.userId,
         email: profile.email,
         username: profile.username,
-        createdAt: Date(),
+        createdAt: profile.createdAt,
         name: profile.name,
         bio: profile.bio,
         isFollower: profile.isFollower,
@@ -369,7 +395,8 @@ struct MockProfileService: ProfileServiceProtocol {
         isMuting: profile.isMuting,
         mutuals: profile.mutuals,
         mutualCount: profile.mutuals.count,
-        isVerified: profile.isVerified ?? false
+        isVerified: profile.isVerified,
+        displayProperties: profile.displayProperties
       )
     }
     return .success(paginatedUsers)

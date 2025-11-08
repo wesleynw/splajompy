@@ -3,7 +3,7 @@ import SwiftUI
 extension MentionTextEditor {
   @MainActor
   class MentionViewModel: ObservableObject {
-    @Published var mentionSuggestions: [User] = []
+    @Published var mentionSuggestions: [PublicUser] = []
     @Published var isShowingSuggestions = false
 
     private var service: ProfileServiceProtocol = ProfileService()
@@ -120,7 +120,7 @@ extension MentionTextEditor {
     }
 
     func insertMention(
-      _ user: User, in attributedText: NSAttributedString, at cursorPosition: Int
+      _ user: PublicUser, in attributedText: NSAttributedString, at cursorPosition: Int
     ) -> (text: NSAttributedString, newCursorPosition: Int) {
       guard let startIndex = mentionStartIndex else {
         return (attributedText, cursorPosition)

@@ -26,6 +26,7 @@ type UserRepository interface {
 	UnfollowUser(ctx context.Context, followerId int, followingId int) error
 	SearchUsername(ctx context.Context, prefix string, limit int, currentUserId int) ([]models.PublicUser, error)
 	UpdateUserName(ctx context.Context, userId int, newName string) error
+	UpdateUserDisplayProperties(ctx context.Context, userId int, displayProperties db.UserDisplayProperties) error
 	GetIsUsernameInUse(ctx context.Context, username string) (bool, error)
 	GetIsEmailInUse(ctx context.Context, email string) (bool, error)
 	CreateUser(ctx context.Context, username string, email string, password string) (models.PublicUser, error)
@@ -145,6 +146,14 @@ func (r DBUserRepository) UpdateUserName(ctx context.Context, userId int, newNam
 	return r.querier.UpdateUserName(ctx, queries.UpdateUserNameParams{
 		UserID: userId,
 		Name:   pgtype.Text{String: newName, Valid: true},
+	})
+}
+
+// UpdateUserDisplayProperties updates a user's display properties
+func (r DBUserRepository) UpdateUserDisplayProperties(ctx context.Context, userId int, displayProperties db.UserDisplayProperties) error {
+	return r.querier.UpdateUserDisplayProperties(ctx, queries.UpdateUserDisplayPropertiesParams{
+		UserID:                userId,
+		UserDisplayProperties: displayProperties,
 	})
 }
 

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"splajompy.com/api/v2/internal/models"
 	"splajompy.com/api/v2/internal/utilities"
 )
 
@@ -91,8 +92,9 @@ func (h *Handler) UnfollowUser(w http.ResponseWriter, r *http.Request) {
 }
 
 type UpdateProfileRequest struct {
-	Name string `json:"name"`
-	Bio  string `json:"bio"`
+	Name              string                     `json:"name"`
+	Bio               string                     `json:"bio"`
+	DisplayProperties models.UserDisplayProperties `json:"displayProperties"`
 }
 
 func (h *Handler) UpdateProfile(w http.ResponseWriter, r *http.Request) {
@@ -104,7 +106,7 @@ func (h *Handler) UpdateProfile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := h.userService.UpdateProfile(r.Context(), currentUser.UserID, &request.Name, &request.Bio)
+	err := h.userService.UpdateProfile(r.Context(), currentUser.UserID, &request.Name, &request.Bio, &request.DisplayProperties)
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
 		return

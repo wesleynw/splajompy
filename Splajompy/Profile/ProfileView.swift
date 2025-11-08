@@ -37,9 +37,11 @@ struct ProfileView: View {
 
     switch alertType {
     case .block:
-      return user.isBlocking ? "Unblock @\(user.username)" : "Block @\(user.username)"
+      return user.isBlocking
+        ? "Unblock @\(user.username)" : "Block @\(user.username)"
     case .mute:
-      return user.isMuting ? "Unmute @\(user.username)" : "Mute @\(user.username)"
+      return user.isMuting
+        ? "Unmute @\(user.username)" : "Mute @\(user.username)"
     }
   }
 
@@ -123,7 +125,9 @@ struct ProfileView: View {
         } label: {
           Image(systemName: "ellipsis.circle")
         }
-        .disabled(viewModel.isLoadingBlockButton || viewModel.isLoadingMuteButton)
+        .disabled(
+          viewModel.isLoadingBlockButton || viewModel.isLoadingMuteButton
+        )
       }
     }
     .alert(
@@ -177,7 +181,9 @@ struct ProfileView: View {
           }
         case .mute:
           if user.isMuting {
-            Text("Unmuting this person will show their posts in your feeds again.")
+            Text(
+              "Unmuting this person will show their posts in your feeds again."
+            )
           } else {
             Text(
               "Muting this person will hide their posts from your feeds. You'll continue to follow them and they will not be aware that they are muted."
@@ -188,7 +194,7 @@ struct ProfileView: View {
     }
   }
 
-  private func profile(user: UserProfile)
+  private func profile(user: DetailedUser)
     -> some View
   {
     ScrollViewReader { proxy in
@@ -267,20 +273,9 @@ struct ProfileView: View {
     }
   }
 
-  private func profileHeader(user: UserProfile) -> some View {
+  private func profileHeader(user: DetailedUser) -> some View {
     VStack(alignment: .leading, spacing: 16) {
-      HStack {
-        VStack(alignment: .leading, spacing: 4) {
-          if !user.name.isEmpty {
-            Text(user.name)
-              .font(.title2)
-              .fontDesign(.serif)
-              .fontWeight(.bold)
-              .lineLimit(1)
-          }
-        }
-        Spacer()
-      }
+      ProfileDisplayNameView(user: user)
 
       if !user.bio.isEmpty {
         Text(user.bio)
