@@ -9,6 +9,7 @@ enum ProfileFontChoiceEnum: Int, CaseIterable, Identifiable, Hashable {
   case gorton = 3
   case neuton = 4
   case lavish = 5
+  case swanky = 6
 
   var fontName: String? {
     switch self {
@@ -18,6 +19,7 @@ enum ProfileFontChoiceEnum: Int, CaseIterable, Identifiable, Hashable {
     case .gorton: return "OpenGorton-Regular"
     case .neuton: return "Neuton-Regular"
     case .lavish: return "LavishlyYours-Regular"
+    case .swanky: return "FontdinerSwanky-Regular"
     }
   }
 
@@ -29,6 +31,7 @@ enum ProfileFontChoiceEnum: Int, CaseIterable, Identifiable, Hashable {
     case .gorton: return 25
     case .neuton: return 24
     case .lavish: return 28
+    case .swanky: return 30
     }
   }
 
@@ -40,6 +43,7 @@ enum ProfileFontChoiceEnum: Int, CaseIterable, Identifiable, Hashable {
     case .gorton: return 25
     case .neuton: return 30
     case .lavish: return 34
+    case .swanky: return 34
     }
   }
 }
