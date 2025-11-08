@@ -6,7 +6,8 @@ CREATE TABLE users (
     created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     name text,
     is_verified boolean DEFAULT FALSE NOT NULL,
-    pinned_post_id integer
+    pinned_post_id integer,
+    font_choice_id integer DEFAULT 0 NOT NULL
 );
 
 CREATE TABLE bios (

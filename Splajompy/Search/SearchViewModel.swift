@@ -3,7 +3,7 @@ import Foundation
 extension SearchView {
   @MainActor
   class ViewModel: ObservableObject {
-    @Published private(set) var searchResults: [User] = []
+    @Published private(set) var searchResults: [PublicUser] = []
     @Published private(set) var isLoading = false
 
     private let profileService: ProfileServiceProtocol

@@ -221,36 +221,39 @@ struct MockProfileService: ProfileServiceProtocol {
     }
   }
 
-  func getUserFromUsernamePrefix(prefix: String) async -> AsyncResult<[User]> {
+  func getUserFromUsernamePrefix(prefix: String) async -> AsyncResult<[PublicUser]> {
     let baseDate = Date()
 
     let formatter = ISO8601DateFormatter()
     formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
 
     return .success([
-      User(
+      PublicUser(
         userId: 1001,
         email: "jane.smith@example.com",
         username: prefix + "_janesmith",
-        createdAt: baseDate.addingTimeInterval(-8_640_000),
+        createdAt: formatter.string(from: baseDate.addingTimeInterval(-8_640_000)),
         name: "Jane Smith",
-        isVerified: false
+        isVerified: false,
+        fontChoiceId: 0
       ),
-      User(
+      PublicUser(
         userId: 1002,
         email: "david.wilson@example.com",
         username: prefix + "davewilson",
-        createdAt: baseDate.addingTimeInterval(-4_320_000),
+        createdAt: formatter.string(from: baseDate.addingTimeInterval(-4_320_000)),
         name: "David Wilson",
-        isVerified: false
+        isVerified: false,
+        fontChoiceId: 0
       ),
-      User(
+      PublicUser(
         userId: 1003,
         email: "maria.garcia@example.com",
         username: prefix + "mariagarcia",
-        createdAt: baseDate.addingTimeInterval(-2_160_000),
+        createdAt: formatter.string(from: baseDate.addingTimeInterval(-2_160_000)),
         name: "Maria Garcia",
-        isVerified: false
+        isVerified: false,
+        fontChoiceId: 0
       ),
     ])
   }

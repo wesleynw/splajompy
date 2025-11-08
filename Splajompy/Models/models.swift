@@ -10,7 +10,26 @@ struct User: Decodable {
   let isVerified: Bool?
 }
 
-struct DetailedUser: Decodable, Identifiable {
+protocol UserDisplayable {
+  var userId: Int { get }
+  var username: String { get }
+  var name: String? { get }
+  var fontChoiceId: Int { get }
+}
+
+struct PublicUser: Decodable, Identifiable, UserDisplayable {
+  let userId: Int
+  let email: String
+  let username: String
+  let createdAt: String
+  let name: String?
+  let isVerified: Bool
+  let fontChoiceId: Int
+
+  var id: Int { userId }
+}
+
+struct DetailedUser: Decodable, Identifiable, UserDisplayable {
   let userId: Int
   let email: String
   let username: String
@@ -84,7 +103,7 @@ struct RelevantLike: Decodable {
 
 struct DetailedPost: Decodable, Equatable, Identifiable {
   let post: Post
-  let user: User
+  let user: PublicUser
   var isLiked: Bool
   var commentCount: Int
   var images: [ImageDTO]?

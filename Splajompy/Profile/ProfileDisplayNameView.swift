@@ -2,14 +2,13 @@ import SwiftUI
 
 enum ProfileFontChoiceEnum: Int, CaseIterable, Identifiable, Hashable {
   var id: Int { rawValue }
-  
+
   case largeTitle2 = 0
   case sixtyFour = 1
   case unifraktur = 2
   case gorton = 3
   case neuton = 4
   case monsieur = 5
-  case griefswalder = 6
 
   var fontName: String? {
     switch self {
@@ -19,7 +18,6 @@ enum ProfileFontChoiceEnum: Int, CaseIterable, Identifiable, Hashable {
     case .gorton: return "OpenGorton-Regular"
     case .neuton: return "Neuton-Regular"
     case .monsieur: return "MonsieurLaDoulaise-Regular"
-    case .griefswalder: return "GreifswalderDeutscheSchrift"
     }
   }
 
@@ -28,16 +26,15 @@ enum ProfileFontChoiceEnum: Int, CaseIterable, Identifiable, Hashable {
     case .largeTitle2: return 0
     case .sixtyFour: return 14
     case .unifraktur: return 25
-    case .gorton: return 20
+    case .gorton: return 25
     case .neuton: return 24
     case .monsieur: return 35
-    case .griefswalder: return 30
     }
   }
 }
 
 struct ProfileDisplayNameView: View {
-  var user: DetailedUser
+  var user: any UserDisplayable
 
   var body: some View {
     VStack(alignment: .leading, spacing: 4) {
@@ -46,9 +43,13 @@ struct ProfileDisplayNameView: View {
           if let fontName = fontChoice.fontName {
             Text(name)
               .font(Font.custom(fontName, size: fontChoice.baselineSize))
+//              .padding(.horizontal, 4)
+//              .fixedSize()
+              .frame(maxWidth: .infinity)
           } else {
             Text(name)
               .font(.title2)
+              .fontWeight(.bold)
           }
         } else {
           Text(name)
@@ -97,11 +98,5 @@ struct ProfileDisplayNameView: View {
 #Preview("Monsieur") {
   var testUser1 = Mocks.testUser1
   testUser1.fontChoiceId = 5
-  return ProfileDisplayNameView(user: testUser1)
-}
-
-#Preview("Greifswalder") {
-  var testUser1 = Mocks.testUser1
-  testUser1.fontChoiceId = 6
   return ProfileDisplayNameView(user: testUser1)
 }

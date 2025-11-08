@@ -9,23 +9,7 @@ struct ProfileDisplayNameFontPicker: View {
     Button {
       showingFontPicker = true
     } label: {
-      HStack {
-        Text("Font")
-        Image(systemName: "chevron.up.chevron.down")
-          .font(.caption)
-        Spacer()
-        if let fontName = displayNameFont.fontName {
-          Text(displayName)
-            .font(
-              Font.custom(fontName, size: displayNameFont.baselineSize * 0.6)
-            )
-        } else {
-          Text(displayName)
-            .font(.callout)
-            .fontWeight(.bold)
-        }
-      }
-      .padding()
+      Label("Display Name Style", systemImage: "textformat")
     }
     .buttonStyle(.bordered)
     .sheet(isPresented: $showingFontPicker) {
@@ -55,7 +39,9 @@ struct ProfileDisplayNameFontPicker: View {
           }
         }
         .navigationTitle("Choose Font")
-        .navigationBarTitleDisplayMode(.inline)
+        #if os(iOS)
+          .navigationBarTitleDisplayMode(.inline)
+        #endif
         .toolbar {
           ToolbarItem(placement: .confirmationAction) {
             Button("Done") {

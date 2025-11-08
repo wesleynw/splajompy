@@ -105,6 +105,11 @@ VALUES ($1, $2)
 ON CONFLICT (user_id)
 DO UPDATE SET text = $2;
 
+-- name: UpdateUserFontChoiceId :exec
+UPDATE users
+SET font_choice_id = $2
+WHERE user_id = $1;
+
 -- name: BlockUser :exec
 INSERT INTO block (user_id, target_user_id)
 VALUES ($1, $2)

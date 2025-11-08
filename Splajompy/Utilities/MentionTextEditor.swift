@@ -100,8 +100,8 @@ struct MentionTextEditor: View {
   }
 
   static func suggestionView(
-    suggestions: [User],
-    onInsert: @escaping (User) -> Void
+    suggestions: [PublicUser],
+    onInsert: @escaping (PublicUser) -> Void
   ) -> some View {
     VStack(spacing: 0) {
       if suggestions.isEmpty {

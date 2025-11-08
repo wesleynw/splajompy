@@ -37,7 +37,6 @@ struct ProfileEditorView: View {
           Group {
             if let fontName = displayNameFont.fontName {
               TextEditor(text: $name)
-                .font(Font.custom(fontName, size: displayNameFont.baselineSize))
             } else {
               TextEditor(text: $name)
                 .font(.title2)

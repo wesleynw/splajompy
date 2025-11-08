@@ -123,28 +123,14 @@ struct PostView: View {
                 .fontWeight(.semibold)
             }
           } else {
-            if let displayName = post.user.name, !displayName.isEmpty {
-              Text(displayName)
-                .font(.title2)
-                .fontWeight(.black)
-                .lineLimit(1)
-              HStack(spacing: 4) {
-                Text("@\(post.user.username)")
-                  .font(.subheadline)
-                  .fontWeight(.bold)
-                  .foregroundColor(.gray)
-                if post.user.isVerified == true {
-                  VerificationBadge()
-                }
-              }
-            } else {
-              HStack(spacing: 4) {
-                Text("@\(post.user.username)")
-                  .font(.title3)
-                  .fontWeight(.black)
-                if post.user.isVerified == true {
-                  VerificationBadge()
-                }
+            ProfileDisplayNameView(user: post.user)
+            HStack(spacing: 4) {
+              Text("@\(post.user.username)")
+                .font(.subheadline)
+                .fontWeight(.bold)
+                .foregroundColor(.gray)
+              if post.user.isVerified == true {
+                VerificationBadge()
               }
             }
           }
@@ -362,8 +348,11 @@ struct PostView: View {
 }
 
 #Preview {
-  let dateFormatter = ISO8601DateFormatter()
-  dateFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+  @Previewable @State var dateFormatter: ISO8601DateFormatter = {
+    let formatter = ISO8601DateFormatter()
+    formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+    return formatter
+  }()
 
   let post = Post(
     postId: 123,
@@ -374,13 +363,14 @@ struct PostView: View {
     facets: nil
   )
 
-  let user = User(
+  let user = PublicUser(
     userId: 456,
     email: "wesleynw@pm.me",
     username: "wesleynw",
-    createdAt: dateFormatter.date(from: "2025-01-15T10:20:30.000Z")!,
+    createdAt: dateFormatter.string(from: dateFormatter.date(from: "2025-01-15T10:20:30.000Z")!),
     name: "John Doe",
-    isVerified: false
+    isVerified: false,
+    fontChoiceId: 0
   )
 
   let images = [
@@ -418,7 +408,7 @@ struct PostView: View {
   let authManager = AuthManager()
   let postManager = PostManager()
 
-  return NavigationStack {
+  NavigationStack {
     PostView(
       post: detailedPost,
       postManager: postManager,
@@ -432,8 +422,11 @@ struct PostView: View {
 }
 
 #Preview("Standalone") {
-  let dateFormatter = ISO8601DateFormatter()
-  dateFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+  @Previewable @State var dateFormatter: ISO8601DateFormatter = {
+    let formatter = ISO8601DateFormatter()
+    formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+    return formatter
+  }()
 
   let post = Post(
     postId: 123,
@@ -444,13 +437,14 @@ struct PostView: View {
     facets: nil
   )
 
-  let user = User(
+  let user = PublicUser(
     userId: 456,
     email: "wesleynw@pm.me",
     username: "wesleynw",
-    createdAt: dateFormatter.date(from: "2025-01-15T10:20:30.000Z")!,
+    createdAt: dateFormatter.string(from: dateFormatter.date(from: "2025-01-15T10:20:30.000Z")!),
     name: "John Doe",
-    isVerified: false
+    isVerified: false,
+    fontChoiceId: 0
   )
 
   let images = [
@@ -488,7 +482,7 @@ struct PostView: View {
   let authManager = AuthManager()
   let postManager = PostManager()
 
-  return NavigationStack {
+  NavigationStack {
     PostView(
       post: detailedPost,
       postManager: postManager,

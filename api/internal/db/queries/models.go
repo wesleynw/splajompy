@@ -105,6 +105,7 @@ type User struct {
 	Name         pgtype.Text      `json:"name"`
 	IsVerified   bool             `json:"isVerified"`
 	PinnedPostID *int             `json:"pinnedPostId"`
+	FontChoiceID int              `json:"fontChoiceId"`
 }
 
 type VerificationCode struct {

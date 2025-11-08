@@ -30,13 +30,14 @@ final class MockPostStore: @unchecked Sendable {
           createdAt: baseDate.addingTimeInterval(-7200),
           facets: nil
         ),
-        user: User(
+        user: PublicUser(
           userId: 6,
           email: "wesley@example.com",
           username: "wesley",
-          createdAt: baseDate.addingTimeInterval(-25_920_000),
+          createdAt: formatter.string(from: baseDate.addingTimeInterval(-25_920_000)),
           name: "Wesley",
-          isVerified: false
+          isVerified: false,
+          fontChoiceId: 0
         ),
         isLiked: true,
         commentCount: 3,
@@ -67,13 +68,14 @@ final class MockPostStore: @unchecked Sendable {
           createdAt: baseDate.addingTimeInterval(-14400),
           facets: nil
         ),
-        user: User(
+        user: PublicUser(
           userId: 6,
           email: "wesley@example.com",
           username: "wesley",
-          createdAt: baseDate.addingTimeInterval(-25_920_000),
+          createdAt: formatter.string(from: baseDate.addingTimeInterval(-25_920_000)),
           name: "Wesley",
-          isVerified: false
+          isVerified: false,
+          fontChoiceId: 0
         ),
         isLiked: false,
         commentCount: 1,
@@ -93,13 +95,14 @@ final class MockPostStore: @unchecked Sendable {
             Facet(type: "mention", userId: 6, indexStart: 0, indexEnd: 7)
           ]
         ),
-        user: User(
+        user: PublicUser(
           userId: 1,
           email: "wesleynw@pm.me",
           username: "wesleynw",
-          createdAt: baseDate.addingTimeInterval(-31_536_000),
+          createdAt: formatter.string(from: baseDate.addingTimeInterval(-31_536_000)),
           name: "Wesley 🌌",
-          isVerified: true
+          isVerified: true,
+          fontChoiceId: 0
         ),
         isLiked: false,
         commentCount: 0,
@@ -118,13 +121,14 @@ final class MockPostStore: @unchecked Sendable {
           createdAt: baseDate.addingTimeInterval(-18000),
           facets: nil
         ),
-        user: User(
+        user: PublicUser(
           userId: 15,
           email: "marketvendor@example.com",
           username: "marketvendor",
-          createdAt: baseDate.addingTimeInterval(-2_592_000),
+          createdAt: formatter.string(from: baseDate.addingTimeInterval(-2_592_000)),
           name: "Market Maven",
-          isVerified: false
+          isVerified: false,
+          fontChoiceId: 0
         ),
         isLiked: true,
         commentCount: 2,
@@ -154,13 +158,14 @@ final class MockPostStore: @unchecked Sendable {
           createdAt: baseDate.addingTimeInterval(-28800),
           facets: nil
         ),
-        user: User(
+        user: PublicUser(
           userId: 30,
           email: "showrunner@example.com",
           username: "giuseppe",
-          createdAt: baseDate.addingTimeInterval(-5_184_000),
+          createdAt: formatter.string(from: baseDate.addingTimeInterval(-5_184_000)),
           name: "DROP TABLE users; --",
-          isVerified: false
+          isVerified: false,
+          fontChoiceId: 0
         ),
         isLiked: false,
         commentCount: 5,
@@ -181,13 +186,14 @@ final class MockPostStore: @unchecked Sendable {
           createdAt: baseDate.addingTimeInterval(-3600),
           facets: nil
         ),
-        user: User(
+        user: PublicUser(
           userId: 120,
           email: "sophie@example.com",
           username: "realsophie",
-          createdAt: baseDate.addingTimeInterval(-18_144_000),
+          createdAt: formatter.string(from: baseDate.addingTimeInterval(-18_144_000)),
           name: "Sophie",
-          isVerified: false
+          isVerified: false,
+          fontChoiceId: 0
         ),
         isLiked: true,
         commentCount: 0,
@@ -206,13 +212,14 @@ final class MockPostStore: @unchecked Sendable {
           createdAt: baseDate.addingTimeInterval(-5400),
           facets: nil
         ),
-        user: User(
+        user: PublicUser(
           userId: 25,
           email: "joel@example.com",
           username: "joel",
-          createdAt: baseDate.addingTimeInterval(-20_736_000),
+          createdAt: formatter.string(from: baseDate.addingTimeInterval(-20_736_000)),
           name: "Joel",
-          isVerified: false
+          isVerified: false,
+          fontChoiceId: 0
         ),
         isLiked: false,
         commentCount: 1,
@@ -231,13 +238,14 @@ final class MockPostStore: @unchecked Sendable {
           createdAt: baseDate.addingTimeInterval(0),
           facets: nil
         ),
-        user: User(
+        user: PublicUser(
           userId: 1,
           email: "wesleynw@pm.me",
           username: "wesleynw",
-          createdAt: baseDate.addingTimeInterval(-31_536_000),
+          createdAt: formatter.string(from: baseDate.addingTimeInterval(-31_536_000)),
           name: "Wesley 🔥",
-          isVerified: true
+          isVerified: true,
+          fontChoiceId: 0
         ),
         isLiked: true,
         commentCount: 4,
@@ -257,13 +265,14 @@ final class MockPostStore: @unchecked Sendable {
           createdAt: baseDate.addingTimeInterval(-1),
           facets: nil
         ),
-        user: User(
+        user: PublicUser(
           userId: 30,
           email: "showrunner@example.com",
           username: "giuseppe",
-          createdAt: baseDate.addingTimeInterval(-5_184_000),
+          createdAt: formatter.string(from: baseDate.addingTimeInterval(-5_184_000)),
           name: "DROP TABLE users; --",
-          isVerified: false
+          isVerified: false,
+          fontChoiceId: 0
         ),
         isLiked: false,
         commentCount: 2,
@@ -294,13 +303,14 @@ final class MockPostStore: @unchecked Sendable {
           createdAt: baseDate.addingTimeInterval(-10_800_000),
           facets: nil
         ),
-        user: User(
+        user: PublicUser(
           userId: 1,
           email: "wesleynw@pm.me",
           username: "wesleynw",
-          createdAt: baseDate.addingTimeInterval(-31_536_000),
+          createdAt: formatter.string(from: baseDate.addingTimeInterval(-31_536_000)),
           name: "Wesley 🌌",
-          isVerified: true
+          isVerified: true,
+          fontChoiceId: 0
         ),
         isLiked: false,
         commentCount: 0,
@@ -318,13 +328,14 @@ final class MockPostStore: @unchecked Sendable {
           createdAt: baseDate.addingTimeInterval(-11_800_000),
           facets: nil
         ),
-        user: User(
+        user: PublicUser(
           userId: 1,
           email: "wesleynw@pm.me",
           username: "wesleynw",
-          createdAt: baseDate.addingTimeInterval(-31_536_000),
+          createdAt: formatter.string(from: baseDate.addingTimeInterval(-31_536_000)),
           name: "Wesley 🌌",
-          isVerified: true
+          isVerified: true,
+          fontChoiceId: 0
         ),
         isLiked: false,
         commentCount: 0,

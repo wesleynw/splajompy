@@ -74,21 +74,10 @@ struct SearchView: View {
       ) {
         HStack {
           VStack(alignment: .leading, spacing: 2) {
-            if let displayName = user.name, !displayName.isEmpty {
-              Text(displayName)
-                .font(.headline)
-                .fontWeight(.bold)
-                .lineLimit(1)
-
-              Text("@\(user.username)")
-                .font(.subheadline)
-                .foregroundColor(.gray)
-            } else {
-              Text("@\(user.username)")
-                .font(.headline)
-                .fontWeight(.bold)
-                .foregroundColor(.gray)
-            }
+            ProfileDisplayNameView(user: user)
+            Text("@\(user.username)")
+              .font(.subheadline)
+              .foregroundColor(.gray)
           }
           Spacer()
         }

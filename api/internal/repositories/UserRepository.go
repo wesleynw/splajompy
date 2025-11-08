@@ -26,6 +26,7 @@ type UserRepository interface {
 	UnfollowUser(ctx context.Context, followerId int, followingId int) error
 	SearchUsername(ctx context.Context, prefix string, limit int, currentUserId int) ([]models.PublicUser, error)
 	UpdateUserName(ctx context.Context, userId int, newName string) error
+	UpdateUserFontChoiceId(ctx context.Context, userId int, fontChoiceId int) error
 	GetIsUsernameInUse(ctx context.Context, username string) (bool, error)
 	GetIsEmailInUse(ctx context.Context, email string) (bool, error)
 	CreateUser(ctx context.Context, username string, email string, password string) (models.PublicUser, error)
@@ -145,6 +146,14 @@ func (r DBUserRepository) UpdateUserName(ctx context.Context, userId int, newNam
 	return r.querier.UpdateUserName(ctx, queries.UpdateUserNameParams{
 		UserID: userId,
 		Name:   pgtype.Text{String: newName, Valid: true},
+	})
+}
+
+// UpdateUserFontChoiceId updates a user's font choice ID
+func (r DBUserRepository) UpdateUserFontChoiceId(ctx context.Context, userId int, fontChoiceId int) error {
+	return r.querier.UpdateUserFontChoiceId(ctx, queries.UpdateUserFontChoiceIdParams{
+		UserID:       userId,
+		FontChoiceID: fontChoiceId,
 	})
 }
 

@@ -48,19 +48,20 @@ func (s *UserService) GetUserById(ctx context.Context, cUser models.PublicUser, 
 	}
 
 	return &models.DetailedUser{
-		UserID:      dbUser.UserID,
-		Email:       dbUser.Email,
-		Username:    dbUser.Username,
-		CreatedAt:   dbUser.CreatedAt,
-		Name:        dbUser.Name,
-		Bio:         bio,
-		IsFollowing: isFollowing,
-		IsFollower:  isFollower,
-		IsBlocking:  isBlocking,
-		IsMuting:    isMuting,
-		Mutuals:     mutuals,
-		MutualCount: len(mutuals),
-		IsVerified:  dbUser.IsVerified,
+		UserID:       dbUser.UserID,
+		Email:        dbUser.Email,
+		Username:     dbUser.Username,
+		CreatedAt:    dbUser.CreatedAt,
+		Name:         dbUser.Name,
+		Bio:          bio,
+		IsFollowing:  isFollowing,
+		IsFollower:   isFollower,
+		IsBlocking:   isBlocking,
+		IsMuting:     isMuting,
+		Mutuals:      mutuals,
+		MutualCount:  len(mutuals),
+		IsVerified:   dbUser.IsVerified,
+		FontChoiceId: dbUser.FontChoiceId,
 	}, nil
 }
 
@@ -105,7 +106,7 @@ func (s *UserService) UnfollowUser(ctx context.Context, currentUser models.Publi
 	return s.userRepository.UnfollowUser(ctx, currentUser.UserID, userId)
 }
 
-func (s *UserService) UpdateProfile(ctx context.Context, userId int, name *string, bio *string) error {
+func (s *UserService) UpdateProfile(ctx context.Context, userId int, name *string, bio *string, fontChoiceId *int) error {
 	if name != nil {
 		if err := s.userRepository.UpdateUserName(ctx, userId, *name); err != nil {
 			return err
@@ -113,6 +114,11 @@ func (s *UserService) UpdateProfile(ctx context.Context, userId int, name *strin
 	}
 	if bio != nil {
 		if err := s.userRepository.UpdateBio(ctx, userId, *bio); err != nil {
+			return err
+		}
+	}
+	if fontChoiceId != nil {
+		if err := s.userRepository.UpdateUserFontChoiceId(ctx, userId, *fontChoiceId); err != nil {
 			return err
 		}
 	}

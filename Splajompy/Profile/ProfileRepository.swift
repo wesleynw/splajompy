@@ -24,7 +24,7 @@ struct UpdateProfileRequest: Encodable {
 
 protocol ProfileServiceProtocol: Sendable {
   func getProfile(userId: Int) async -> AsyncResult<DetailedUser>
-  func getUserFromUsernamePrefix(prefix: String) async -> AsyncResult<[User]>
+  func getUserFromUsernamePrefix(prefix: String) async -> AsyncResult<[PublicUser]>
   func updateProfile(name: String, bio: String, fontChoiceId: Int) async -> AsyncResult<
     EmptyResponse
   >
@@ -58,7 +58,7 @@ struct ProfileService: ProfileServiceProtocol {
     )
   }
 
-  func getUserFromUsernamePrefix(prefix: String) async -> AsyncResult<[User]> {
+  func getUserFromUsernamePrefix(prefix: String) async -> AsyncResult<[PublicUser]> {
     let queryItems = [URLQueryItem(name: "prefix", value: "\(prefix)")]
     return await APIService.performRequest(
       endpoint: "users/search",
