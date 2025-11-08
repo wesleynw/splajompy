@@ -25,23 +25,37 @@ enum ProfileFontChoiceEnum: Int, CaseIterable, Identifiable, Hashable {
     switch self {
     case .largeTitle2: return 0
     case .sixtyFour: return 14
-    case .oldLondon: return 27
+    case .oldLondon: return 24
     case .gorton: return 25
     case .neuton: return 24
-    case .lavish: return 30
+    case .lavish: return 28
+    }
+  }
+
+  var titleSize: CGFloat {
+    switch self {
+    case .largeTitle2: return 0
+    case .sixtyFour: return 20
+    case .oldLondon: return 30
+    case .gorton: return 25
+    case .neuton: return 30
+    case .lavish: return 34
     }
   }
 }
 
 struct ProfileDisplayNameView: View {
   var user: PublicUser
+  var largeTitle: Bool
 
-  init(user: PublicUser) {
+  init(user: PublicUser, largeTitle: Bool = false) {
     self.user = user
+    self.largeTitle = largeTitle
   }
 
-  init(user: DetailedUser) {
+  init(user: DetailedUser, largeTitle: Bool = false) {
     self.user = PublicUser(from: user)
+    self.largeTitle = largeTitle
   }
 
   var body: some View {
@@ -50,19 +64,23 @@ struct ProfileDisplayNameView: View {
         if let fontChoice = ProfileFontChoiceEnum(rawValue: user.displayProperties.fontChoiceId) {
           if let fontName = fontChoice.fontName {
             Text(name)
-              .font(Font.custom(fontName, size: fontChoice.baselineSize))
+              .font(
+                Font.custom(
+                  fontName, size: largeTitle ? fontChoice.titleSize : fontChoice.baselineSize)
+              )
               .lineLimit(1)
           } else {
             Text(name)
-              .font(.title2)
+              .font(largeTitle ? .title2 : .body)
               .fontWeight(.black)
               .lineLimit(1)
           }
-        } else {
-          Text(name)
-            .font(.title2)
-            .fontWeight(.bold)
         }
+        //        else {
+        //          Text(name)
+        //            .font(.title2)
+        //            .fontWeight(.bold)
+        //        }
       }
     }
   }

@@ -112,11 +112,15 @@ struct NewPostView: View {
             .buttonStyle(.borderedProminent)
             .disabled(isPostButtonDisabled)
           } else {
-            Button(action: submitPostAction) {
-              Image(systemName: "arrow.up.circle.fill")
-                .opacity(0.8)
+            if viewModel.isLoading {
+              ProgressView()
+            } else {
+              Button(action: submitPostAction) {
+                Image(systemName: "arrow.up.circle.fill")
+                  .opacity(0.8)
+              }
+              .disabled(isPostButtonDisabled)
             }
-            .disabled(isPostButtonDisabled)
           }
         }
       }

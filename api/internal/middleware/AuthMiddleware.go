@@ -76,7 +76,7 @@ func AuthMiddleware(q *queries.Queries) func(http.Handler) http.Handler {
 
 			dbUser, err := q.GetUserById(ctx, session.UserID)
 			if err != nil {
-				http.Error(w, "user not found", http.StatusUnauthorized)
+				http.Error(w, "user not found", http.StatusBadRequest)
 				return
 			}
 
