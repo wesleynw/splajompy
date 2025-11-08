@@ -48,16 +48,15 @@ func AuthMiddleware(q *queries.Queries) func(http.Handler) http.Handler {
 				return
 			}
 
-			// TODO: refresh tokens
-			//if time.Now().Unix() >= session.ExpiresAt.Time.Unix() {
-			//	err = q.DeleteSession(ctx, session.ID)
-			//	if err != nil {
-			//		http.Error(w, "failed to delete expired session", http.StatusInternalServerError)
-			//		return
-			//	}
-			//	http.Error(w, "session expired", http.StatusUnauthorized)
-			//	return
-			//}
+			if time.Now().Unix() >= session.ExpiresAt.Time.Unix() {
+				err = q.DeleteSession(ctx, session.ID)
+				if err != nil {
+					http.Error(w, "failed to delete expired session", http.StatusInternalServerError)
+					return
+				}
+				http.Error(w, "session expired", http.StatusUnauthorized)
+				return
+			}
 
 			// extend session if it's getting old (expires within 30 days)
 			thirtyDaysFromNow := time.Now().Add(time.Hour * 24 * 30)
