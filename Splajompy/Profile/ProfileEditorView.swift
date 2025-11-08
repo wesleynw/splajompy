@@ -35,20 +35,16 @@ struct ProfileEditorView: View {
           }
           Divider()
           Group {
-            if let fontName = displayNameFont.fontName {
-              TextEditor(text: $name)
-            } else {
-              TextEditor(text: $name)
-                .font(.title2)
-                .fontWeight(.bold)
-            }
+            TextEditor(text: $name)
           }
           .frame(maxHeight: 100)
 
           ProfileDisplayNameFontPicker(
-            displayName: name.isEmpty ? "Your Name" : name,
+            displayName: name,
             displayNameFont: $displayNameFont
           )
+          .disabled(name.isEmpty)
+          
           HStack {
             Text("Bio")
               .font(.subheadline)
@@ -69,8 +65,9 @@ struct ProfileEditorView: View {
         .onAppear {
           name = currentProfile?.name ?? ""
           bio = currentProfile?.bio ?? ""
-          if let fontChoiceId = currentProfile?.fontChoiceId,
-             let fontChoice = ProfileFontChoiceEnum(rawValue: fontChoiceId) {
+          if let fontChoiceId = currentProfile?.displayProperties.fontChoiceId,
+            let fontChoice = ProfileFontChoiceEnum(rawValue: fontChoiceId)
+          {
             displayNameFont = fontChoice
           }
         }
@@ -94,7 +91,11 @@ struct ProfileEditorView: View {
           ToolbarItem(placement: .topBarTrailing) {
             if #available(iOS 26, *) {
               Button {
-                viewModel.updateProfile(name: name, bio: bio, fontChoiceId: displayNameFont.rawValue)
+                viewModel.updateProfile(
+                  name: name,
+                  bio: bio,
+                  displayProperties: UserDisplayProperties(fontChoiceId: displayNameFont.rawValue)
+                )
                 dismiss()
               } label: {
                 if viewModel.isLoading {
@@ -107,7 +108,11 @@ struct ProfileEditorView: View {
               .buttonStyle(.glassProminent)
             } else {
               Button {
-                viewModel.updateProfile(name: name, bio: bio, fontChoiceId: displayNameFont.rawValue)
+                viewModel.updateProfile(
+                  name: name,
+                  bio: bio,
+                  displayProperties: UserDisplayProperties(fontChoiceId: displayNameFont.rawValue)
+                )
                 dismiss()
               } label: {
                 Image(systemName: "checkmark.circle")

@@ -7,7 +7,7 @@ CREATE TABLE users (
     name text,
     is_verified boolean DEFAULT FALSE NOT NULL,
     pinned_post_id integer,
-    font_choice_id integer DEFAULT 0 NOT NULL
+    user_display_properties jsonb DEFAULT '{"fontChoiceId": 0}'::jsonb NOT NULL
 );
 
 CREATE TABLE bios (

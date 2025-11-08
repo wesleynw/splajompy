@@ -19,13 +19,13 @@ import Foundation
 struct UpdateProfileRequest: Encodable {
   let name: String
   let bio: String
-  let fontChoiceId: Int
+  let displayProperties: UserDisplayProperties
 }
 
 protocol ProfileServiceProtocol: Sendable {
   func getProfile(userId: Int) async -> AsyncResult<DetailedUser>
   func getUserFromUsernamePrefix(prefix: String) async -> AsyncResult<[PublicUser]>
-  func updateProfile(name: String, bio: String, fontChoiceId: Int) async -> AsyncResult<
+  func updateProfile(name: String, bio: String, displayProperties: UserDisplayProperties) async -> AsyncResult<
     EmptyResponse
   >
   func toggleFollowing(userId: Int, isFollowing: Bool) async -> AsyncResult<
@@ -66,10 +66,10 @@ struct ProfileService: ProfileServiceProtocol {
     )
   }
 
-  func updateProfile(name: String, bio: String, fontChoiceId: Int) async -> AsyncResult<
+  func updateProfile(name: String, bio: String, displayProperties: UserDisplayProperties) async -> AsyncResult<
     EmptyResponse
   > {
-    let request = UpdateProfileRequest(name: name, bio: bio, fontChoiceId: fontChoiceId)
+    let request = UpdateProfileRequest(name: name, bio: bio, displayProperties: displayProperties)
     let requestData: Data
     do {
       requestData = try JSONEncoder().encode(request)

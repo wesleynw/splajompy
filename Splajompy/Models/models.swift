@@ -1,5 +1,9 @@
 import Foundation
 
+struct UserDisplayProperties: Codable {
+  let fontChoiceId: Int
+}
+
 struct User: Decodable {
   let userId: Int
   let email: String
@@ -14,7 +18,7 @@ protocol UserDisplayable {
   var userId: Int { get }
   var username: String { get }
   var name: String? { get }
-  var fontChoiceId: Int { get }
+  var displayProperties: UserDisplayProperties { get }
 }
 
 struct PublicUser: Decodable, Identifiable, UserDisplayable {
@@ -24,7 +28,7 @@ struct PublicUser: Decodable, Identifiable, UserDisplayable {
   let createdAt: String
   let name: String?
   let isVerified: Bool
-  let fontChoiceId: Int
+  let displayProperties: UserDisplayProperties
 
   var id: Int { userId }
 }
@@ -43,7 +47,7 @@ struct DetailedUser: Decodable, Identifiable, UserDisplayable {
   let mutuals: [String]
   let mutualCount: Int
   let isVerified: Bool
-  var fontChoiceId: Int
+  var displayProperties: UserDisplayProperties
 
   var id: Int { userId }
 }

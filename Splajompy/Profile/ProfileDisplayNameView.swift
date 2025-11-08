@@ -8,7 +8,7 @@ enum ProfileFontChoiceEnum: Int, CaseIterable, Identifiable, Hashable {
   case unifraktur = 2
   case gorton = 3
   case neuton = 4
-  case monsieur = 5
+  case lavish = 5
 
   var fontName: String? {
     switch self {
@@ -17,7 +17,7 @@ enum ProfileFontChoiceEnum: Int, CaseIterable, Identifiable, Hashable {
     case .unifraktur: return "UnifrakturMaguntia"
     case .gorton: return "OpenGorton-Regular"
     case .neuton: return "Neuton-Regular"
-    case .monsieur: return "MonsieurLaDoulaise-Regular"
+    case .lavish: return "LavishlyYours-Regular"
     }
   }
 
@@ -28,7 +28,7 @@ enum ProfileFontChoiceEnum: Int, CaseIterable, Identifiable, Hashable {
     case .unifraktur: return 25
     case .gorton: return 25
     case .neuton: return 24
-    case .monsieur: return 35
+    case .lavish: return 30
     }
   }
 }
@@ -39,13 +39,10 @@ struct ProfileDisplayNameView: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 4) {
       if let name = user.name {
-        if let fontChoice = ProfileFontChoiceEnum(rawValue: user.fontChoiceId) {
+        if let fontChoice = ProfileFontChoiceEnum(rawValue: user.displayProperties.fontChoiceId) {
           if let fontName = fontChoice.fontName {
             Text(name)
               .font(Font.custom(fontName, size: fontChoice.baselineSize))
-//              .padding(.horizontal, 4)
-//              .fixedSize()
-              .frame(maxWidth: .infinity)
           } else {
             Text(name)
               .font(.title2)
@@ -67,36 +64,36 @@ struct ProfileDisplayNameView: View {
 
 #Preview("Fallback") {
   var testUser1 = Mocks.testUser1
-  testUser1.fontChoiceId = 999
+  testUser1.displayProperties = UserDisplayProperties(fontChoiceId: 999)
   return ProfileDisplayNameView(user: testUser1)
 }
 
 #Preview("Sixtyfour") {
   var testUser1 = Mocks.testUser1
-  testUser1.fontChoiceId = 1
+  testUser1.displayProperties = UserDisplayProperties(fontChoiceId: 1)
   return ProfileDisplayNameView(user: testUser1)
 }
 
 #Preview("Unifraktur") {
   var testUser1 = Mocks.testUser1
-  testUser1.fontChoiceId = 2
+  testUser1.displayProperties = UserDisplayProperties(fontChoiceId: 2)
   return ProfileDisplayNameView(user: testUser1)
 }
 
 #Preview("Gorton") {
   var testUser1 = Mocks.testUser1
-  testUser1.fontChoiceId = 3
+  testUser1.displayProperties = UserDisplayProperties(fontChoiceId: 3)
   return ProfileDisplayNameView(user: testUser1)
 }
 
 #Preview("Neuton") {
   var testUser1 = Mocks.testUser1
-  testUser1.fontChoiceId = 4
+  testUser1.displayProperties = UserDisplayProperties(fontChoiceId: 4)
   return ProfileDisplayNameView(user: testUser1)
 }
 
-#Preview("Monsieur") {
+#Preview("Lavish") {
   var testUser1 = Mocks.testUser1
-  testUser1.fontChoiceId = 5
+  testUser1.displayProperties = UserDisplayProperties(fontChoiceId: 5)
   return ProfileDisplayNameView(user: testUser1)
 }

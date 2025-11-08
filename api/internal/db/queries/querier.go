@@ -89,7 +89,7 @@ type Querier interface {
 	UnpinPost(ctx context.Context, userID int) error
 	UpdateSessionExpiry(ctx context.Context, arg UpdateSessionExpiryParams) error
 	UpdateUserBio(ctx context.Context, arg UpdateUserBioParams) error
-	UpdateUserFontChoiceId(ctx context.Context, arg UpdateUserFontChoiceIdParams) error
+	UpdateUserDisplayProperties(ctx context.Context, arg UpdateUserDisplayPropertiesParams) error
 	UpdateUserName(ctx context.Context, arg UpdateUserNameParams) error
 	UserHasUnreadNotifications(ctx context.Context, userID int) (bool, error)
 	UserSearchWithHeuristics(ctx context.Context, arg UserSearchWithHeuristicsParams) ([]UserSearchWithHeuristicsRow, error)

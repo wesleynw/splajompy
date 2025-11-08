@@ -21,7 +21,7 @@ struct Mocks {
     mutuals: ["alice", "bob"],
     mutualCount: 2,
     isVerified: false,
-    fontChoiceId: 0
+    displayProperties: UserDisplayProperties(fontChoiceId: 0)
   )
 
   static let testUser2 = DetailedUser(
@@ -38,7 +38,7 @@ struct Mocks {
     mutuals: ["alice", "bob", "wesley"],
     mutualCount: 3,
     isVerified: false,
-    fontChoiceId: 1
+    displayProperties: UserDisplayProperties(fontChoiceId: 1)
   )
 
   static let testUser3 = DetailedUser(
@@ -55,6 +55,6 @@ struct Mocks {
     mutuals: ["alice", "bob", "wesley"],
     mutualCount: 3,
     isVerified: false,
-    fontChoiceId: 2
+    displayProperties: UserDisplayProperties(fontChoiceId: 2)
   )
 }

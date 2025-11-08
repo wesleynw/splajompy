@@ -14,13 +14,15 @@ const UserContextKey ContextKey = "user"
 
 func MapUserToPublicUser(user queries.User) models.PublicUser {
 	return models.PublicUser{
-		UserID:       user.UserID,
-		Username:     user.Username,
-		Email:        user.Email,
-		Name:         user.Name.String,
-		CreatedAt:    user.CreatedAt.Time,
-		IsVerified:   user.IsVerified,
-		FontChoiceId: user.FontChoiceID,
+		UserID:            user.UserID,
+		Username:          user.Username,
+		Email:             user.Email,
+		Name:              user.Name.String,
+		CreatedAt:         user.CreatedAt.Time,
+		IsVerified:        user.IsVerified,
+		DisplayProperties: models.UserDisplayProperties{
+			FontChoiceId: user.UserDisplayProperties.FontChoiceId,
+		},
 	}
 }
 

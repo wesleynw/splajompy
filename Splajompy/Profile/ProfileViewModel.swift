@@ -172,7 +172,7 @@ extension ProfileView {
       }
     }
 
-    func updateProfile(name: String, bio: String, fontChoiceId: Int) {
+    func updateProfile(name: String, bio: String, displayProperties: UserDisplayProperties) {
       isLoading = true
       defer {
         isLoading = false
@@ -182,13 +182,13 @@ extension ProfileView {
         let result = await profileService.updateProfile(
           name: name.trimmingCharacters(in: .whitespacesAndNewlines),
           bio: bio.trimmingCharacters(in: .whitespacesAndNewlines),
-          fontChoiceId: fontChoiceId)
+          displayProperties: displayProperties)
         switch result {
         case .success(_):
           if case .loaded(var profile) = profileState {
             profile.name = name
             profile.bio = bio
-            profile.fontChoiceId = fontChoiceId
+            profile.displayProperties = displayProperties
             profileState = .loaded(profile)
           }
         case .error(let error):

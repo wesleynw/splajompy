@@ -105,9 +105,9 @@ VALUES ($1, $2)
 ON CONFLICT (user_id)
 DO UPDATE SET text = $2;
 
--- name: UpdateUserFontChoiceId :exec
+-- name: UpdateUserDisplayProperties :exec
 UPDATE users
-SET font_choice_id = $2
+SET user_display_properties = $2
 WHERE user_id = $1;
 
 -- name: BlockUser :exec

@@ -17,3 +17,7 @@ type Poll struct {
 	Title   string   `json:"title"`
 	Options []string `json:"options"`
 }
+
+type UserDisplayProperties struct {
+	FontChoiceId int `json:"fontChoiceId"`
+}
