@@ -49,15 +49,21 @@ struct ProfileDisplayNameFontPicker: View {
         #endif
         .toolbar {
           ToolbarItem(placement: .confirmationAction) {
-            if #available(iOS 26, *) {
-              Button("Done", systemImage: "checkmark", role: .confirm) {
+            #if os(iOS)
+              if #available(iOS 26, *) {
+                Button("Done", systemImage: "checkmark", role: .confirm) {
+                  showingFontPicker = false
+                }
+              } else {
+                Button("Done") {
+                  showingFontPicker = false
+                }
+              }
+            #else
+              Button("Done", systemImage: "checkmark") {
                 showingFontPicker = false
               }
-            } else {
-              Button("Done") {
-                showingFontPicker = false
-              }
-            }
+            #endif
           }
         }
       }
