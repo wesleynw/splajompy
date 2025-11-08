@@ -1,21 +1,5 @@
 import Foundation
 
-//struct DetailedUser: Decodable {
-//  let userId: Int
-//  let email: String
-//  let username: String
-//  let createdAt: String
-//  var name: String
-//  var bio: String
-//  var isFollower: Bool
-//  var isFollowing: Bool
-//  var isBlocking: Bool
-//  var isMuting: Bool
-//  let mutuals: [String]
-//  let mutualCount: Int
-//  var isVerified: Bool?
-//}
-
 struct UpdateProfileRequest: Encodable {
   let name: String
   let bio: String

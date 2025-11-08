@@ -162,7 +162,7 @@ struct UserRowView: View {
   }
 
   private var userInfoView: some View {
-    VStack(alignment: .leading, spacing: 2) {
+    HStack(alignment: .firstTextBaseline, spacing: 2) {
       ProfileDisplayNameView(user: user)
       Text("@\(user.username)")
         .font(.subheadline)

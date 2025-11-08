@@ -12,8 +12,6 @@ struct SearchView: View {
     Group {
       if viewModel.isLoading {
         ProgressView()
-          .scaleEffect(1.5)
-          .frame(maxWidth: .infinity, maxHeight: .infinity)
       } else if searchText.isEmpty {
         emptyState
       } else if viewModel.searchResults.isEmpty {
@@ -73,7 +71,7 @@ struct SearchView: View {
         value: Route.profile(id: String(user.userId), username: user.username)
       ) {
         HStack {
-          VStack(alignment: .leading, spacing: 2) {
+          HStack(alignment: .firstTextBaseline, spacing: 2) {
             ProfileDisplayNameView(user: user)
             Text("@\(user.username)")
               .font(.subheadline)
