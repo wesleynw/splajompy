@@ -123,7 +123,7 @@ struct PostView: View {
                 .fontWeight(.semibold)
             }
           } else {
-            ProfileDisplayNameView(user: post.user)
+            ProfileDisplayNameView(user: post.user, largeTitle: true)
             HStack(spacing: 4) {
               Text("@\(post.user.username)")
                 .font(.subheadline)

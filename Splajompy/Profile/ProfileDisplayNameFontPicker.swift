@@ -24,9 +24,14 @@ struct ProfileDisplayNameFontPicker: View {
                   Text(displayName)
                     .font(Font.custom(fontName, size: choice.baselineSize))
                 } else {
-                  Text(displayName)
-                    .font(.title2)
-                    .fontWeight(.bold)
+                  HStack(alignment: .firstTextBaseline) {
+                    Text(displayName)
+                      .font(.title2)
+                      .fontWeight(.black)
+
+                    Text("Default")
+                      .foregroundStyle(.secondary)
+                  }
                 }
                 Spacer()
                 if displayNameFont == choice {
@@ -44,13 +49,24 @@ struct ProfileDisplayNameFontPicker: View {
         #endif
         .toolbar {
           ToolbarItem(placement: .confirmationAction) {
-            Button("Done") {
-              showingFontPicker = false
-            }
+            #if os(iOS)
+              if #available(iOS 26, *) {
+                Button("Done", systemImage: "checkmark", role: .confirm) {
+                  showingFontPicker = false
+                }
+              } else {
+                Button("Done") {
+                  showingFontPicker = false
+                }
+              }
+            #else
+              Button("Done", systemImage: "checkmark") {
+                showingFontPicker = false
+              }
+            #endif
           }
         }
       }
-      .presentationDetents([.medium, .large])
     }
   }
 }

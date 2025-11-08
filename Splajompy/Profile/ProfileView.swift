@@ -275,7 +275,7 @@ struct ProfileView: View {
 
   private func profileHeader(user: DetailedUser) -> some View {
     VStack(alignment: .leading, spacing: 16) {
-      ProfileDisplayNameView(user: user)
+      ProfileDisplayNameView(user: user, largeTitle: true)
 
       if !user.bio.isEmpty {
         Text(user.bio)
