@@ -36,7 +36,7 @@ struct SplajompyApp: App {
     #if os(iOS)
       for family in UIFont.familyNames {
         print(family)
-        for names in UIFont.fontNames(forFamilyName: family){
+        for names in UIFont.fontNames(forFamilyName: family) {
           print("== \(names)")
         }
       }

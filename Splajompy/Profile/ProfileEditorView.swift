@@ -44,7 +44,7 @@ struct ProfileEditorView: View {
             displayNameFont: $displayNameFont
           )
           .disabled(name.isEmpty)
-          
+
           HStack {
             Text("Bio")
               .font(.subheadline)
