@@ -261,7 +261,7 @@ struct CommentRow: View {
 
   var body: some View {
     VStack(alignment: .leading, spacing: 6) {
-      VStack(alignment: .leading, spacing: 2) {
+      HStack(alignment: .firstTextBaseline, spacing: 2) {
         ProfileDisplayNameView(user: comment.user)
         HStack(spacing: 4) {
           Text("@\(comment.user.username)")

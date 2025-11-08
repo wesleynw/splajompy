@@ -32,24 +32,6 @@ struct SplajompyApp: App {
     )
     cacheConfig.dataCachePolicy = .storeEncodedImages  // cache processed images
     ImagePipeline.shared = ImagePipeline(configuration: cacheConfig)
-
-    #if os(iOS)
-      for family in UIFont.familyNames {
-        print(family)
-        for names in UIFont.fontNames(forFamilyName: family) {
-          print("== \(names)")
-        }
-      }
-    #elseif os(macOS)
-      for family in NSFontManager.shared.availableFontFamilies {
-        print(family)
-        if let fonts = NSFontManager.shared.availableMembers(ofFontFamily: family) {
-          for font in fonts {
-            print("== \(font[0])")
-          }
-        }
-      }
-    #endif
   }
 
   var body: some Scene {
