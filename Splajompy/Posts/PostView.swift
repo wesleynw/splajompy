@@ -370,7 +370,7 @@ struct PostView: View {
     createdAt: dateFormatter.string(from: dateFormatter.date(from: "2025-01-15T10:20:30.000Z")!),
     name: "John Doe",
     isVerified: false,
-    fontChoiceId: 0
+    displayProperties: UserDisplayProperties(fontChoiceId: 0)
   )
 
   let images = [
@@ -444,7 +444,7 @@ struct PostView: View {
     createdAt: dateFormatter.string(from: dateFormatter.date(from: "2025-01-15T10:20:30.000Z")!),
     name: "John Doe",
     isVerified: false,
-    fontChoiceId: 0
+    displayProperties: UserDisplayProperties(fontChoiceId: 0)
   )
 
   let images = [

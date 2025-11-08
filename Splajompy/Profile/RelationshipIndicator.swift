@@ -79,7 +79,7 @@ struct RelationshipIndicator: View {
           mutuals: ["alice", "bob", "charlie", "dan", "ethan"],
           mutualCount: 5,
           isVerified: false,
-          fontChoiceId: 0
+          displayProperties: UserDisplayProperties(fontChoiceId: 0)
         )
       )
 
@@ -98,7 +98,7 @@ struct RelationshipIndicator: View {
           mutuals: ["alice", "bob", "charlie"],
           mutualCount: 3,
           isVerified: false,
-          fontChoiceId: 0
+          displayProperties: UserDisplayProperties(fontChoiceId: 0)
         )
       )
 
@@ -117,7 +117,7 @@ struct RelationshipIndicator: View {
           mutuals: ["alice", "bob"],
           mutualCount: 2,
           isVerified: false,
-          fontChoiceId: 0
+          displayProperties: UserDisplayProperties(fontChoiceId: 0)
         )
       )
 
@@ -136,7 +136,7 @@ struct RelationshipIndicator: View {
           mutuals: [],
           mutualCount: 0,
           isVerified: false,
-          fontChoiceId: 0
+          displayProperties: UserDisplayProperties(fontChoiceId: 0)
         )
       )
 
@@ -155,7 +155,7 @@ struct RelationshipIndicator: View {
           mutuals: ["alice"],
           mutualCount: 0,
           isVerified: false,
-          fontChoiceId: 0
+          displayProperties: UserDisplayProperties(fontChoiceId: 0)
         )
       )
     }

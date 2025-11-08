@@ -37,7 +37,7 @@ final class MockPostStore: @unchecked Sendable {
           createdAt: formatter.string(from: baseDate.addingTimeInterval(-25_920_000)),
           name: "Wesley",
           isVerified: false,
-          fontChoiceId: 0
+          displayProperties: UserDisplayProperties(fontChoiceId: 0)
         ),
         isLiked: true,
         commentCount: 3,
@@ -75,7 +75,7 @@ final class MockPostStore: @unchecked Sendable {
           createdAt: formatter.string(from: baseDate.addingTimeInterval(-25_920_000)),
           name: "Wesley",
           isVerified: false,
-          fontChoiceId: 0
+          displayProperties: UserDisplayProperties(fontChoiceId: 0)
         ),
         isLiked: false,
         commentCount: 1,
@@ -102,7 +102,7 @@ final class MockPostStore: @unchecked Sendable {
           createdAt: formatter.string(from: baseDate.addingTimeInterval(-31_536_000)),
           name: "Wesley 🌌",
           isVerified: true,
-          fontChoiceId: 0
+          displayProperties: UserDisplayProperties(fontChoiceId: 0)
         ),
         isLiked: false,
         commentCount: 0,
@@ -128,7 +128,7 @@ final class MockPostStore: @unchecked Sendable {
           createdAt: formatter.string(from: baseDate.addingTimeInterval(-2_592_000)),
           name: "Market Maven",
           isVerified: false,
-          fontChoiceId: 0
+          displayProperties: UserDisplayProperties(fontChoiceId: 0)
         ),
         isLiked: true,
         commentCount: 2,
@@ -165,7 +165,7 @@ final class MockPostStore: @unchecked Sendable {
           createdAt: formatter.string(from: baseDate.addingTimeInterval(-5_184_000)),
           name: "DROP TABLE users; --",
           isVerified: false,
-          fontChoiceId: 0
+          displayProperties: UserDisplayProperties(fontChoiceId: 0)
         ),
         isLiked: false,
         commentCount: 5,
@@ -193,7 +193,7 @@ final class MockPostStore: @unchecked Sendable {
           createdAt: formatter.string(from: baseDate.addingTimeInterval(-18_144_000)),
           name: "Sophie",
           isVerified: false,
-          fontChoiceId: 0
+          displayProperties: UserDisplayProperties(fontChoiceId: 0)
         ),
         isLiked: true,
         commentCount: 0,
@@ -219,7 +219,7 @@ final class MockPostStore: @unchecked Sendable {
           createdAt: formatter.string(from: baseDate.addingTimeInterval(-20_736_000)),
           name: "Joel",
           isVerified: false,
-          fontChoiceId: 0
+          displayProperties: UserDisplayProperties(fontChoiceId: 0)
         ),
         isLiked: false,
         commentCount: 1,
@@ -245,7 +245,7 @@ final class MockPostStore: @unchecked Sendable {
           createdAt: formatter.string(from: baseDate.addingTimeInterval(-31_536_000)),
           name: "Wesley 🔥",
           isVerified: true,
-          fontChoiceId: 0
+          displayProperties: UserDisplayProperties(fontChoiceId: 0)
         ),
         isLiked: true,
         commentCount: 4,
@@ -272,7 +272,7 @@ final class MockPostStore: @unchecked Sendable {
           createdAt: formatter.string(from: baseDate.addingTimeInterval(-5_184_000)),
           name: "DROP TABLE users; --",
           isVerified: false,
-          fontChoiceId: 0
+          displayProperties: UserDisplayProperties(fontChoiceId: 0)
         ),
         isLiked: false,
         commentCount: 2,
@@ -310,7 +310,7 @@ final class MockPostStore: @unchecked Sendable {
           createdAt: formatter.string(from: baseDate.addingTimeInterval(-31_536_000)),
           name: "Wesley 🌌",
           isVerified: true,
-          fontChoiceId: 0
+          displayProperties: UserDisplayProperties(fontChoiceId: 0)
         ),
         isLiked: false,
         commentCount: 0,
@@ -335,7 +335,7 @@ final class MockPostStore: @unchecked Sendable {
           createdAt: formatter.string(from: baseDate.addingTimeInterval(-31_536_000)),
           name: "Wesley 🌌",
           isVerified: true,
-          fontChoiceId: 0
+          displayProperties: UserDisplayProperties(fontChoiceId: 0)
         ),
         isLiked: false,
         commentCount: 0,

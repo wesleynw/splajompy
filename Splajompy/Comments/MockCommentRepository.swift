@@ -49,7 +49,7 @@ class MockCommentService: CommentServiceProtocol, @unchecked Sendable {
         createdAt: ISO8601DateFormatter().string(from: currentDate),
         name: "Test User",
         isVerified: false,
-        fontChoiceId: 0
+        displayProperties: UserDisplayProperties(fontChoiceId: 0)
       )
 
     let newComment = DetailedComment(
@@ -103,7 +103,7 @@ class MockCommentService: CommentServiceProtocol, @unchecked Sendable {
         createdAt: dateString,
         name: "John Doe",
         isVerified: false,
-        fontChoiceId: 0
+        displayProperties: UserDisplayProperties(fontChoiceId: 0)
       ),
       PublicUser(
         userId: 2,
@@ -112,7 +112,7 @@ class MockCommentService: CommentServiceProtocol, @unchecked Sendable {
         createdAt: dateString,
         name: "Jane Doe",
         isVerified: false,
-        fontChoiceId: 0
+        displayProperties: UserDisplayProperties(fontChoiceId: 0)
       ),
       PublicUser(
         userId: 3,
@@ -121,7 +121,7 @@ class MockCommentService: CommentServiceProtocol, @unchecked Sendable {
         createdAt: dateString,
         name: "Bob Smith",
         isVerified: false,
-        fontChoiceId: 0
+        displayProperties: UserDisplayProperties(fontChoiceId: 0)
       ),
     ]
 
@@ -192,7 +192,7 @@ class MockCommentService_Empty: CommentServiceProtocol, @unchecked Sendable {
       createdAt: ISO8601DateFormatter().string(from: currentDate),
       name: "Test User",
       isVerified: false,
-      fontChoiceId: 0
+      displayProperties: UserDisplayProperties(fontChoiceId: 0)
     )
 
     let newComment = DetailedComment(

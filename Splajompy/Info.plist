@@ -20,11 +20,11 @@
 	<key>UIAppFonts</key>
 	<array>
 		<string>Sixtyfour.ttf</string>
-		<string>UnifrakturMaguntia.ttf</string>
 		<string>OpenGorton.otf</string>
 		<string>Neuton.ttf</string>
 		<string>MonsieurLaDoulaise-Regular.ttf</string>
 		<string>LavishlyYours-Regular.ttf</string>
+		<string>OldLondon.ttf</string>
 	</array>
 	<key>UILaunchScreen</key>
 	<dict/>

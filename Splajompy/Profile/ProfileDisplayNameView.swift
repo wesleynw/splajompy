@@ -5,7 +5,7 @@ enum ProfileFontChoiceEnum: Int, CaseIterable, Identifiable, Hashable {
 
   case largeTitle2 = 0
   case sixtyFour = 1
-  case unifraktur = 2
+  case oldLondon = 2
   case gorton = 3
   case neuton = 4
   case lavish = 5
@@ -14,7 +14,7 @@ enum ProfileFontChoiceEnum: Int, CaseIterable, Identifiable, Hashable {
     switch self {
     case .largeTitle2: return nil
     case .sixtyFour: return "Sixtyfour-Regular"
-    case .unifraktur: return "UnifrakturMaguntia"
+    case .oldLondon: return "OldLondon"
     case .gorton: return "OpenGorton-Regular"
     case .neuton: return "Neuton-Regular"
     case .lavish: return "LavishlyYours-Regular"
@@ -25,7 +25,7 @@ enum ProfileFontChoiceEnum: Int, CaseIterable, Identifiable, Hashable {
     switch self {
     case .largeTitle2: return 0
     case .sixtyFour: return 14
-    case .unifraktur: return 25
+    case .oldLondon: return 27
     case .gorton: return 25
     case .neuton: return 24
     case .lavish: return 30
@@ -74,7 +74,7 @@ struct ProfileDisplayNameView: View {
   return ProfileDisplayNameView(user: testUser1)
 }
 
-#Preview("Unifraktur") {
+#Preview("Old London") {
   var testUser1 = Mocks.testUser1
   testUser1.displayProperties = UserDisplayProperties(fontChoiceId: 2)
   return ProfileDisplayNameView(user: testUser1)

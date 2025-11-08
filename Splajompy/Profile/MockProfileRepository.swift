@@ -33,7 +33,7 @@ final class MockUserRepository: @unchecked Sendable {
         mutuals: [],
         mutualCount: 0,
         isVerified: true,
-        fontChoiceId: 0
+        displayProperties: UserDisplayProperties(fontChoiceId: 0)
       ),
       6: DetailedUser(
         userId: 6,
@@ -52,7 +52,7 @@ final class MockUserRepository: @unchecked Sendable {
         mutuals: [],
         mutualCount: 0,
         isVerified: false,
-        fontChoiceId: 0
+        displayProperties: UserDisplayProperties(fontChoiceId: 0)
       ),
       25: DetailedUser(
         userId: 25,
@@ -70,7 +70,7 @@ final class MockUserRepository: @unchecked Sendable {
         mutuals: [],
         mutualCount: 0,
         isVerified: false,
-        fontChoiceId: 0
+        displayProperties: UserDisplayProperties(fontChoiceId: 0)
       ),
       120: DetailedUser(
         userId: 120,
@@ -89,7 +89,7 @@ final class MockUserRepository: @unchecked Sendable {
         mutuals: ["joel", "wesley"],
         mutualCount: 2,
         isVerified: false,
-        fontChoiceId: 0
+        displayProperties: UserDisplayProperties(fontChoiceId: 0)
       ),
       103: DetailedUser(
         userId: 103,
@@ -108,7 +108,7 @@ final class MockUserRepository: @unchecked Sendable {
         mutuals: [],
         mutualCount: 0,
         isVerified: false,
-        fontChoiceId: 0
+        displayProperties: UserDisplayProperties(fontChoiceId: 0)
       ),
       112: DetailedUser(
         userId: 112,
@@ -127,7 +127,7 @@ final class MockUserRepository: @unchecked Sendable {
         mutuals: [],
         mutualCount: 0,
         isVerified: false,
-        fontChoiceId: 0
+        displayProperties: UserDisplayProperties(fontChoiceId: 0)
       ),
       97: DetailedUser(
         userId: 97,
@@ -146,7 +146,7 @@ final class MockUserRepository: @unchecked Sendable {
         mutuals: [],
         mutualCount: 0,
         isVerified: false,
-        fontChoiceId: 0
+        displayProperties: UserDisplayProperties(fontChoiceId: 0)
       ),
       113: DetailedUser(
         userId: 113,
@@ -165,7 +165,7 @@ final class MockUserRepository: @unchecked Sendable {
         mutuals: [],
         mutualCount: 0,
         isVerified: false,
-        fontChoiceId: 0
+        displayProperties: UserDisplayProperties(fontChoiceId: 0)
       ),
       30: DetailedUser(
         userId: 30,
@@ -184,7 +184,7 @@ final class MockUserRepository: @unchecked Sendable {
         mutuals: [],
         mutualCount: 0,
         isVerified: false,
-        fontChoiceId: 0
+        displayProperties: UserDisplayProperties(fontChoiceId: 0)
       ),
       15: DetailedUser(
         userId: 15,
@@ -203,7 +203,7 @@ final class MockUserRepository: @unchecked Sendable {
         mutuals: [],
         mutualCount: 0,
         isVerified: false,
-        fontChoiceId: 0
+        displayProperties: UserDisplayProperties(fontChoiceId: 0)
       ),
     ]
   }
@@ -235,7 +235,7 @@ struct MockProfileService: ProfileServiceProtocol {
         createdAt: formatter.string(from: baseDate.addingTimeInterval(-8_640_000)),
         name: "Jane Smith",
         isVerified: false,
-        fontChoiceId: 0
+        displayProperties: UserDisplayProperties(fontChoiceId: 0)
       ),
       PublicUser(
         userId: 1002,
@@ -244,7 +244,7 @@ struct MockProfileService: ProfileServiceProtocol {
         createdAt: formatter.string(from: baseDate.addingTimeInterval(-4_320_000)),
         name: "David Wilson",
         isVerified: false,
-        fontChoiceId: 0
+        displayProperties: UserDisplayProperties(fontChoiceId: 0)
       ),
       PublicUser(
         userId: 1003,
@@ -253,14 +253,16 @@ struct MockProfileService: ProfileServiceProtocol {
         createdAt: formatter.string(from: baseDate.addingTimeInterval(-2_160_000)),
         name: "Maria Garcia",
         isVerified: false,
-        fontChoiceId: 0
+        displayProperties: UserDisplayProperties(fontChoiceId: 0)
       ),
     ])
   }
 
-  func updateProfile(name: String, bio: String, fontChoiceId: Int) async -> AsyncResult<
-    EmptyResponse
-  > {
+  func updateProfile(name: String, bio: String, displayProperties: UserDisplayProperties) async
+    -> AsyncResult<
+      EmptyResponse
+    >
+  {
     try? await Task.sleep(nanoseconds: 500_000_000)
     return .success(EmptyResponse())
   }
@@ -332,7 +334,7 @@ struct MockProfileService: ProfileServiceProtocol {
         mutuals: profile.mutuals,
         mutualCount: profile.mutuals.count,
         isVerified: profile.isVerified,
-        fontChoiceId: profile.fontChoiceId
+        displayProperties: profile.displayProperties
       )
     }
     return .success(paginatedUsers)
@@ -361,7 +363,7 @@ struct MockProfileService: ProfileServiceProtocol {
         mutuals: profile.mutuals,
         mutualCount: profile.mutuals.count,
         isVerified: profile.isVerified,
-        fontChoiceId: profile.fontChoiceId
+        displayProperties: profile.displayProperties
       )
     }
     return .success(paginatedUsers)
@@ -394,7 +396,7 @@ struct MockProfileService: ProfileServiceProtocol {
         mutuals: profile.mutuals,
         mutualCount: profile.mutuals.count,
         isVerified: profile.isVerified,
-        fontChoiceId: profile.fontChoiceId
+        displayProperties: profile.displayProperties
       )
     }
     return .success(paginatedUsers)
