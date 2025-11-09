@@ -12,6 +12,7 @@ enum ProfileFontChoiceEnum: Int, CaseIterable, Identifiable, Hashable {
   case lavish = 5
   case swanky = 6
   case cooperBlack = 7
+  case alienMushrooms = 8
 
   var fontName: String? {
     switch self {
@@ -23,6 +24,7 @@ enum ProfileFontChoiceEnum: Int, CaseIterable, Identifiable, Hashable {
     case .lavish: return "LavishlyYours-Regular"
     case .swanky: return "FontdinerSwanky-Regular"
     case .cooperBlack: return "CooperBlackStd"
+    case .alienMushrooms: return "AlienMushrooms"
     }
   }
 
@@ -36,6 +38,7 @@ enum ProfileFontChoiceEnum: Int, CaseIterable, Identifiable, Hashable {
     case .lavish: return 28
     case .swanky: return 18
     case .cooperBlack: return 20
+    case .alienMushrooms: return 24
     }
   }
 
@@ -49,6 +52,7 @@ enum ProfileFontChoiceEnum: Int, CaseIterable, Identifiable, Hashable {
     case .lavish: return 34
     case .swanky: return 24
     case .cooperBlack: return 25
+    case .alienMushrooms: return 34
     }
   }
 }

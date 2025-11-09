@@ -19,12 +19,13 @@ struct SplajompyApp: App {
   @Namespace private var navigationNamespace
 
   init() {
-    #if !DEBUG
-      let posthogApiKey = "phc_sSDHxTCqpjwoSDSOQiNAAgmybjEakfePBsaNHWaWy74"
-      let config = PostHogConfig(apiKey: posthogApiKey)
-      config.captureScreenViews = false
-      PostHogSDK.shared.setup(config)
+    let posthogApiKey = "phc_sSDHxTCqpjwoSDSOQiNAAgmybjEakfePBsaNHWaWy74"
+    let config = PostHogConfig(apiKey: posthogApiKey)
+    config.captureScreenViews = false
+    #if DEBUG
+      config.optOut = true
     #endif
+    PostHogSDK.shared.setup(config)
 
     var cacheConfig = ImagePipeline.Configuration.withDataCache(
       name: "media-cache",
