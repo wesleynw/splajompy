@@ -14,7 +14,7 @@ struct AboutView: View {
     VStack {
       List {
         Section {
-          VStack(alignment: .center, spacing: 12) {
+          VStack(alignment: .center) {
             Image("Logo")
               .resizable()
               .aspectRatio(contentMode: .fit)
@@ -31,6 +31,7 @@ struct AboutView: View {
               .padding(.horizontal)
           }
           .padding()
+          .frame(maxWidth: .infinity)
         }
 
         Section {

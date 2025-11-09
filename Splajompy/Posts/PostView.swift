@@ -124,15 +124,6 @@ struct PostView: View {
             }
           } else {
             ProfileDisplayNameView(user: post.user, largeTitle: true)
-            HStack(spacing: 4) {
-              Text("@\(post.user.username)")
-                .font(.subheadline)
-                .fontWeight(.bold)
-                .foregroundColor(.gray)
-              if post.user.isVerified == true {
-                VerificationBadge()
-              }
-            }
           }
         }
       }
@@ -367,7 +358,9 @@ struct PostView: View {
     userId: 456,
     email: "wesleynw@pm.me",
     username: "wesleynw",
-    createdAt: dateFormatter.string(from: dateFormatter.date(from: "2025-01-15T10:20:30.000Z")!),
+    createdAt: dateFormatter.string(
+      from: dateFormatter.date(from: "2025-01-15T10:20:30.000Z")!
+    ),
     name: "John Doe",
     isVerified: false,
     displayProperties: UserDisplayProperties(fontChoiceId: 0)
@@ -441,7 +434,9 @@ struct PostView: View {
     userId: 456,
     email: "wesleynw@pm.me",
     username: "wesleynw",
-    createdAt: dateFormatter.string(from: dateFormatter.date(from: "2025-01-15T10:20:30.000Z")!),
+    createdAt: dateFormatter.string(
+      from: dateFormatter.date(from: "2025-01-15T10:20:30.000Z")!
+    ),
     name: "John Doe",
     isVerified: false,
     displayProperties: UserDisplayProperties(fontChoiceId: 0)

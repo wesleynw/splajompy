@@ -13,17 +13,20 @@ type ContextKey string
 const UserContextKey ContextKey = "user"
 
 func MapUserToPublicUser(user queries.User) models.PublicUser {
-	return models.PublicUser{
+	publicUser := models.PublicUser{
 		UserID:            user.UserID,
 		Username:          user.Username,
 		Email:             user.Email,
 		Name:              user.Name.String,
 		CreatedAt:         user.CreatedAt.Time,
 		IsVerified:        user.IsVerified,
-		DisplayProperties: models.UserDisplayProperties{
-			FontChoiceId: user.UserDisplayProperties.FontChoiceId,
-		},
 	}
+
+	if user.UserDisplayProperties != nil {
+		publicUser.DisplayProperties = models.UserDisplayProperties(*user.UserDisplayProperties)
+	}
+
+	return publicUser
 }
 
 // MapPost is a utility function to convert from queries.Post to models.Post.

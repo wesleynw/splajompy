@@ -217,7 +217,7 @@ func (r *FakeUserRepository) UpdateUserName(ctx context.Context, userId int, new
 	return nil
 }
 
-func (r *FakeUserRepository) UpdateUserDisplayProperties(ctx context.Context, userId int, displayProperties db.UserDisplayProperties) error {
+func (r *FakeUserRepository) UpdateUserDisplayProperties(ctx context.Context, userId int, displayProperties *db.UserDisplayProperties) error {
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
 

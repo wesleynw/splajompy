@@ -19,5 +19,5 @@ type Poll struct {
 }
 
 type UserDisplayProperties struct {
-	FontChoiceId int `json:"fontChoiceId"`
+	FontChoiceId *int `json:"fontChoiceId"`
 }

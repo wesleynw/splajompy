@@ -486,8 +486,8 @@ WHERE user_id = $1
 `
 
 type UpdateUserDisplayPropertiesParams struct {
-	UserID                int                      `json:"userId"`
-	UserDisplayProperties db.UserDisplayProperties `json:"userDisplayProperties"`
+	UserID                int                       `json:"userId"`
+	UserDisplayProperties *db.UserDisplayProperties `json:"userDisplayProperties"`
 }
 
 func (q *Queries) UpdateUserDisplayProperties(ctx context.Context, arg UpdateUserDisplayPropertiesParams) error {

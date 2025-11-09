@@ -262,17 +262,7 @@ struct CommentRow: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 6) {
       HStack(alignment: .firstTextBaseline, spacing: 2) {
-        ProfileDisplayNameView(user: comment.user)
-        HStack(spacing: 4) {
-          Text("@\(comment.user.username)")
-            .font(.subheadline)
-            .foregroundColor(.gray)
-            .lineLimit(1)
-
-          if comment.user.isVerified == true {
-            VerificationBadge()
-          }
-        }
+        ProfileDisplayNameView(user: comment.user, alignVertically: false)
       }
 
       ContentTextView(attributedText: comment.richContent)

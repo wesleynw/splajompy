@@ -122,7 +122,7 @@ func (s *UserService) UpdateProfile(ctx context.Context, userId int, name *strin
 		dbDisplayProperties := db.UserDisplayProperties{
 			FontChoiceId: displayProperties.FontChoiceId,
 		}
-		if err := s.userRepository.UpdateUserDisplayProperties(ctx, userId, dbDisplayProperties); err != nil {
+		if err := s.userRepository.UpdateUserDisplayProperties(ctx, userId, &dbDisplayProperties); err != nil {
 			return err
 		}
 	}
