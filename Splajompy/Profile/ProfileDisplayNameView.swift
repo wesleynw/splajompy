@@ -103,7 +103,7 @@ struct ProfileDisplayNameView: View {
 
   @ViewBuilder
   private var content: some View {
-    if let name = user.name {
+    if let name = user.name, !name.isEmpty {
       if let displayProperties = user.displayProperties,
         let fontChoiceId = displayProperties.fontChoiceId,
         let fontChoice = ProfileFontChoiceEnum(rawValue: fontChoiceId),
