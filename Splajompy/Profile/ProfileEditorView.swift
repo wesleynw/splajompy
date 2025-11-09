@@ -1,3 +1,4 @@
+import PostHog
 import SwiftUI
 
 struct ProfileEditorView: View {
@@ -39,11 +40,13 @@ struct ProfileEditorView: View {
           }
           .frame(maxHeight: 100)
 
-          ProfileDisplayNameFontPicker(
-            displayName: name,
-            displayNameFont: $displayNameFont
-          )
-          .disabled(name.isEmpty)
+          if PostHogSDK.shared.isFeatureEnabled("custom-profile-fonts") {
+            ProfileDisplayNameFontPicker(
+              displayName: name,
+              displayNameFont: $displayNameFont
+            )
+            .disabled(name.isEmpty)
+          }
 
           HStack {
             Text("Bio")
@@ -94,7 +97,9 @@ struct ProfileEditorView: View {
                 viewModel.updateProfile(
                   name: name,
                   bio: bio,
-                  displayProperties: UserDisplayProperties(fontChoiceId: displayNameFont.rawValue)
+                  displayProperties: UserDisplayProperties(
+                    fontChoiceId: displayNameFont.rawValue
+                  )
                 )
                 dismiss()
               } label: {
@@ -111,7 +116,9 @@ struct ProfileEditorView: View {
                 viewModel.updateProfile(
                   name: name,
                   bio: bio,
-                  displayProperties: UserDisplayProperties(fontChoiceId: displayNameFont.rawValue)
+                  displayProperties: UserDisplayProperties(
+                    fontChoiceId: displayNameFont.rawValue
+                  )
                 )
                 dismiss()
               } label: {

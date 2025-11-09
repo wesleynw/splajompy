@@ -1,7 +1,7 @@
 import Foundation
 
 struct UserDisplayProperties: Codable {
-  let fontChoiceId: Int
+  let fontChoiceId: Int?
 }
 
 struct User: Decodable {
@@ -21,7 +21,7 @@ struct PublicUser: Decodable, Identifiable {
   let createdAt: String
   let name: String?
   let isVerified: Bool
-  let displayProperties: UserDisplayProperties
+  let displayProperties: UserDisplayProperties?
 
   var id: Int { userId }
 
