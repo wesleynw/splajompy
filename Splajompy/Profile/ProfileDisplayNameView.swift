@@ -128,15 +128,16 @@ struct ProfileDisplayNameView: View {
 
       if isShowingUsername {
         Text("@" + user.username)
-          .font(isLargeTitle ? .subheadline : .body)
+          .font(isLargeTitle ? .subheadline : .footnote)
           .foregroundStyle(.secondary)
-          .fontWeight(.bold)
+          .fontWeight(.black)
           .lineLimit(1)
       }
     } else if isShowingUsername {
       Text("@" + user.username)
-        .font(isLargeTitle ? .title2 : .subheadline)
-        .fontWeight(.bold)
+        .font(isLargeTitle ? .title2 : .body)
+        .foregroundStyle(.secondary)
+        .fontWeight(.black)
         .lineLimit(1)
     }
   }

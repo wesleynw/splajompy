@@ -72,10 +72,7 @@ struct SearchView: View {
       ) {
         HStack {
           HStack(alignment: .firstTextBaseline, spacing: 2) {
-            ProfileDisplayNameView(user: user, showUsername: false)
-            Text("@\(user.username)")
-              .font(.subheadline)
-              .foregroundColor(.gray)
+            ProfileDisplayNameView(user: user, alignVertically: false)
           }
           Spacer()
         }
