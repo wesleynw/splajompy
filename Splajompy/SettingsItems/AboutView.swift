@@ -23,12 +23,6 @@ struct AboutView: View {
             Text("Splajompy")
               .font(.title2)
               .fontWeight(.semibold)
-
-            Text("Splajompy is free and open-source.")
-              .font(.subheadline)
-              .foregroundColor(.secondary)
-              .multilineTextAlignment(.center)
-              .padding(.horizontal)
           }
           .padding()
           .frame(maxWidth: .infinity)

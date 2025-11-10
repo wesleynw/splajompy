@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct RequestFeatureView: View {
+struct RequestSupportView: View {
   private let profileService: ProfileServiceProtocol
 
   init(profileService: ProfileServiceProtocol = ProfileService()) {
@@ -46,10 +46,9 @@ struct RequestFeatureView: View {
         } label: {
           if isLoading {
             ProgressView()
-          } else {
-            Text("Send")
-              .fontWeight(.bold)
           }
+          Text("Send")
+            .fontWeight(.bold)
         }
         .disabled(
           featureText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
@@ -97,6 +96,6 @@ struct RequestFeatureView: View {
 
 #Preview {
   NavigationStack {
-    RequestFeatureView(profileService: MockProfileService())
+    RequestSupportView(profileService: MockProfileService())
   }
 }

@@ -144,7 +144,7 @@ struct UserRowView: View {
 
   var body: some View {
     HStack(spacing: 8) {
-      userInfoView
+      ProfileDisplayNameView(user: user, alignVertically: false)
       Spacer()
       followButton
     }
@@ -159,16 +159,6 @@ struct UserRowView: View {
       }
       .buttonStyle(.plain)
     )
-  }
-
-  private var userInfoView: some View {
-    HStack(alignment: .firstTextBaseline, spacing: 2) {
-      ProfileDisplayNameView(user: user)
-      Text("@\(user.username)")
-        .font(.subheadline)
-        .foregroundColor(.secondary)
-        .lineLimit(1)
-    }
   }
 
   private var followButton: some View {

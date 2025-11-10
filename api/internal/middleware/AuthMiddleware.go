@@ -10,16 +10,23 @@ import (
 
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgtype"
+	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/trace"
+	"go.opentelemetry.io/otel/codes"
 	"splajompy.com/api/v2/internal/db/queries"
 	"splajompy.com/api/v2/internal/utilities"
 )
+
+var tracer = otel.Tracer("splajompy.com/api/v2/internal/middleware")
 
 func AuthMiddleware(q *queries.Queries) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ctx := r.Context()
+
+			ctx, span := tracer.Start(ctx, "AuthMiddleware")
+			defer span.End()
+
 			header := r.Header.Get("Authorization")
 
 			if header == "" {
@@ -36,7 +43,10 @@ func AuthMiddleware(q *queries.Queries) func(http.Handler) http.Handler {
 			token := strings.ReplaceAll(strings.TrimSpace(parts[1]), `\/`, `/`)
 
 			session, err := q.GetSessionById(ctx, token)
-
+			if err != nil {
+				span.SetStatus(codes.Error, "unable to grab user session")
+				span.RecordError(err)
+			}
 			// want to be careful here: if it's a server error, don't want to be logging
 			// people out automatically
 			var connectError *pgconn.ConnectError
@@ -82,7 +92,6 @@ func AuthMiddleware(q *queries.Queries) func(http.Handler) http.Handler {
 
 			publicUser := utilities.MapUserToPublicUser(dbUser)
 
-			span := trace.SpanFromContext(ctx)
 			span.SetAttributes(attribute.Int("user.id", session.UserID))
 
 			ctx = context.WithValue(ctx, utilities.UserContextKey, publicUser)

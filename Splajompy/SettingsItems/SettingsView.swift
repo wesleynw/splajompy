@@ -28,7 +28,7 @@ struct SettingsView: View {
         }
 
         Section {
-          NavigationLink(destination: RequestFeatureView()) {
+          NavigationLink(destination: RequestSupportView()) {
             Label("Support", systemImage: "lifepreserver")
           }
         }

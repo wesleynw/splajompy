@@ -73,7 +73,6 @@ func (s *UserService) GetUserByUsernameSearch(ctx context.Context, prefix string
 	}
 
 	publicUsers := make([]models.PublicUser, 0)
-
 	publicUsers = append(publicUsers, users...)
 
 	return &publicUsers, nil
