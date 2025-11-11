@@ -47,9 +47,10 @@ type Image struct {
 }
 
 type Like struct {
-	PostID    int  `json:"postId"`
-	CommentID *int `json:"commentId"`
-	UserID    int  `json:"userId"`
+	PostID    int                `json:"postId"`
+	CommentID *int               `json:"commentId"`
+	UserID    int                `json:"userId"`
+	CreatedAt pgtype.Timestamptz `json:"createdAt"`
 }
 
 type Mute struct {

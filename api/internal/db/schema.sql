@@ -58,6 +58,7 @@ CREATE TABLE likes (
     post_id INT NOT NULL,
     comment_id INT NULL,
     user_id INT NOT NULL,
+    created_at TIMESTAMP with time zone default now(),
     FOREIGN KEY (post_id) REFERENCES posts(post_id) ON DELETE CASCADE,
     FOREIGN KEY (comment_id) REFERENCES comments(comment_id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE

@@ -20,6 +20,7 @@ type Handler struct {
 	notificationService *service.NotificationService
 	authService         *service.AuthService
 	statsService        *service.StatsService
+	wrappedService      *service.WrappedService
 }
 
 func NewHandler(queries queries.Querier,
@@ -28,7 +29,8 @@ func NewHandler(queries queries.Querier,
 	userService *service.UserService,
 	notificationService *service.NotificationService,
 	authService *service.AuthService,
-	statsService *service.StatsService) *Handler {
+	statsService *service.StatsService,
+	wrappedService *service.WrappedService) *Handler {
 	return &Handler{
 		queries:             queries,
 		postService:         postService,
@@ -37,6 +39,7 @@ func NewHandler(queries queries.Querier,
 		notificationService: notificationService,
 		authService:         authService,
 		statsService:        statsService,
+		wrappedService:      wrappedService,
 	}
 }
 
@@ -121,6 +124,9 @@ func (h *Handler) RegisterRoutes(handleFunc func(pattern string, handlerFunc fun
 	// misc
 	handleFuncWithAuth("POST /request-feature", h.RequestFeature)
 	handleFuncWithAuth("GET /stats", h.GetAppStats)
+
+	// wrapped
+	handleFuncWithAuth("GET /wrapped/activity", h.GetWrappedActivityData)
 }
 
 func (h *Handler) RegisterPublicRoutes(handleFunc func(pattern string, handlerFunc func(http.ResponseWriter, *http.Request))) {
