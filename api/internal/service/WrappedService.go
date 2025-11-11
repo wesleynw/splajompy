@@ -153,5 +153,6 @@ func (s *WrappedService) GetUserActivityData(ctx context.Context, userId int) (*
 	return &UserActivityData{
 		ActivityCountCeiling: ceiling,
 		Counts:               counts,
+		MostActiveDayIndex:   mostActiveDayIndex,
 	}, nil
 }
