@@ -23,7 +23,7 @@ var fetchLimit = 50
 type UserActivityData struct {
 	ActivityCountCeiling int   `json:"activityCountCeiling"`
 	Counts               []int `json:"counts"`
-	MostActiveDayIndex   int   `json: mostActiveDayIndex`
+	MostActiveDayIndex   int   `json:"mostActiveDayIndex`
 }
 
 func (s *WrappedService) GetUserActivityData(ctx context.Context, userId int) (*UserActivityData, error) {

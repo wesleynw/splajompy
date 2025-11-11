@@ -1,15 +1,13 @@
 import SwiftUI
 
-struct ActivityOverviewData {
-  let activityCountCeiling: Int
-  let counts: [Int]
-}
-
 struct ActivityOverview: View {
   var data: ActivityOverviewData
   @State private var appearedIndices: Set<Int> = []
   @State private var showDetail = false
   @State private var cornerRadius: CGFloat = 5
+  @State private var showButton = false
+  @State private var showIntroText = false
+  @State private var introComplete = false
   @Namespace private var animation
 
   private var ceilingDayIndex: Int? {
@@ -18,6 +16,15 @@ struct ActivityOverview: View {
 
   var body: some View {
     ZStack {
+      if showIntroText {
+        Text("You were active on Splajompy...")
+          .font(.title)
+          .fontWeight(.bold)
+          .multilineTextAlignment(.center)
+          .padding()
+          .transition(.opacity)
+      }
+
       VStack {
         ScrollView {
           LazyVGrid(
@@ -36,22 +43,39 @@ struct ActivityOverview: View {
                   Double(data.counts[index]) / Double(data.activityCountCeiling)
                 )
                 .overlay {
-                  RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                    .stroke(.secondary.opacity(0.3), lineWidth: 1)
+                  RoundedRectangle(
+                    cornerRadius: cornerRadius,
+                    style: .continuous
+                  )
+                  .stroke(.secondary.opacity(0.3), lineWidth: 1)
                 }
                 .scaleEffect(appearedIndices.contains(index) ? 1 : 0)
                 .animation(
                   .spring(response: 0.25, dampingFraction: 0.6).delay(
-                    Double(index) * 0.02
+                    Double(index) * 0.01
                   ),
                   value: appearedIndices
                 )
             }
           }
           .padding()
-          .onAppear {
-            for index in data.counts.indices {
-              appearedIndices.insert(index)
+          .onChange(of: introComplete) { _, isComplete in
+            if isComplete {
+              // Start grid animation
+              for index in data.counts.indices {
+                appearedIndices.insert(index)
+              }
+
+              // Calculate when all animations will finish and show button
+              let lastItemDelay = Double(data.counts.count - 1) * 0.01
+              let animationDuration = 0.25
+              let totalDelay = lastItemDelay + animationDuration + 0.2
+
+              DispatchQueue.main.asyncAfter(deadline: .now() + totalDelay) {
+                withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
+                  showButton = true
+                }
+              }
             }
           }
         }
@@ -63,24 +87,46 @@ struct ActivityOverview: View {
               .matchedGeometryEffect(
                 id: "ceilingDay",
                 in: animation,
-                isSource: true
               )
               .frame(width: 200, height: 200)
           }
         }
-
-        Button {
-          withAnimation(.spring) {
-            showDetail.toggle()
-            cornerRadius = showDetail ? 50 : 5
+      }
+      .safeAreaInset(edge: .bottom) {
+        if showButton {
+          Button {
+            withAnimation(.spring) {
+              showDetail.toggle()
+              cornerRadius = showDetail ? 50 : 5
+            }
+          } label: {
+            Text("Continue")
+              .fontWeight(.bold)
+              .frame(maxWidth: .infinity)
           }
-        } label: {
-          Text("Continue")
-            .fontWeight(.bold)
-            .frame(maxWidth: .infinity)
+          .buttonStyle(.borderedProminent)
+          .padding()
+          .transition(.move(edge: .bottom).combined(with: .opacity))
         }
-        .buttonStyle(.borderedProminent)
-        .padding()
+      }
+    }
+    .onAppear {
+      // Orchestrate the intro sequence
+      // 1. Fade in the intro text
+      withAnimation(.easeIn(duration: 0.5)) {
+        showIntroText = true
+      }
+
+      // 2. After 2 seconds, fade out the intro text
+      DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+        withAnimation(.easeOut(duration: 0.5)) {
+          showIntroText = false
+        }
+      }
+
+      // 3. After fade out completes, start the grid animation
+      DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
+        introComplete = true
       }
     }
   }

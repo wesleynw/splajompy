@@ -126,7 +126,7 @@ func (h *Handler) RegisterRoutes(handleFunc func(pattern string, handlerFunc fun
 	handleFuncWithAuth("GET /stats", h.GetAppStats)
 
 	// wrapped
-	handleFuncWithAuth("GET /wrapped/activity", h.GetWrappedActivityData)
+	handleFuncWithAuth("GET /wrapped", h.GetWrappedActivityData)
 }
 
 func (h *Handler) RegisterPublicRoutes(handleFunc func(pattern string, handlerFunc func(http.ResponseWriter, *http.Request))) {

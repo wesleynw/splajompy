@@ -26,7 +26,7 @@ public struct APIService {
     Bundle.main.object(forInfoDictionaryKey: "API_URL") as? String
     ?? "http://api.splajompy.com"
 
-  static func createRequest(
+  private static func createRequest(
     for url: URL,
     method: String = "GET",
     body: Data? = nil
