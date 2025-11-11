@@ -2,9 +2,7 @@ package repositories
 
 import (
 	"context"
-	"time"
 
-	"github.com/jackc/pgx/v5/pgtype"
 	"splajompy.com/api/v2/internal/db"
 	"splajompy.com/api/v2/internal/db/queries"
 )
@@ -16,7 +14,6 @@ type CommentRepository interface {
 	IsCommentLikedByUser(ctx context.Context, userId int, postId int, commentId int) (bool, error)
 	DeleteComment(ctx context.Context, commentId int) error
 	GetUserById(ctx context.Context, userId int) (queries.User, error)
-	WrappedGetAllUserCommentsWithCursor(ctx context.Context, userId, limit int, cursor *time.Time) ([]queries.Comment, error)
 }
 
 type DBCommentRepository struct {
@@ -60,19 +57,6 @@ func (r DBCommentRepository) DeleteComment(ctx context.Context, commentId int) e
 // GetUserById retrieves a user by their ID
 func (r DBCommentRepository) GetUserById(ctx context.Context, userId int) (queries.User, error) {
 	return r.querier.GetUserById(ctx, userId)
-}
-
-func (r DBCommentRepository) WrappedGetAllUserCommentsWithCursor(ctx context.Context, userId, limit int, cursor *time.Time) ([]queries.Comment, error) {
-	var timestamp pgtype.Timestamp
-	if cursor != nil {
-		timestamp.Time = *cursor
-		timestamp.Valid = true
-	}
-	return r.querier.WrappedGetAllUserCommentsWithCursor(ctx, queries.WrappedGetAllUserCommentsWithCursorParams{
-		UserID: userId,
-		Limit:  limit,
-		Cursor: timestamp,
-	})
 }
 
 // NewDBCommentRepository creates a new comment repository
