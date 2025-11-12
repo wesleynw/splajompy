@@ -47,13 +47,57 @@ enum ProfileFontChoiceEnum: Int, CaseIterable, Identifiable, Hashable {
     case .largeTitle2: return 0
     case .sixtyFour: return 20
     case .oldLondon: return 30
-    case .gorton: return 25
+    case .gorton: return 22
     case .neuton: return 30
-    case .lavish: return 34
+    case .lavish: return 32
     case .swanky: return 24
     case .cooperBlack: return 25
-    case .alienMushrooms: return 34
+    case .alienMushrooms: return 38
     }
+  }
+
+  func fontNormalized(for text: String, isLargeTitle: Bool)
+    -> AttributedString
+  {
+    var attributed = AttributedString(text)
+
+    guard let fontName = fontName else {
+      attributed.font = isLargeTitle ? .title2 : .body
+      return attributed
+    }
+
+    let size = isLargeTitle ? titleSize : baselineSize
+    let customFont = Font.custom(fontName, size: size)
+    let fallbackFont: Font = isLargeTitle ? .title2 : .body
+
+    var currentIndex = attributed.startIndex
+    for character in text {
+      let nextIndex = attributed.index(afterCharacter: currentIndex)
+      let hasGlyph = fontHasGlyph(fontName, size: size, for: character)
+      attributed[currentIndex..<nextIndex].font =
+        hasGlyph ? customFont : fallbackFont
+      currentIndex = nextIndex
+    }
+
+    return attributed
+  }
+
+  private func fontHasGlyph(
+    _ fontName: String,
+    size: CGFloat,
+    for character: Character
+  ) -> Bool {
+    let ctFont = CTFontCreateWithName(fontName as CFString, size, nil)
+    let utf16Array = Array(String(character).utf16)
+    var glyphs = [CGGlyph](repeating: 0, count: utf16Array.count)
+
+    return CTFontGetGlyphsForCharacters(
+      ctFont,
+      utf16Array,
+      &glyphs,
+      utf16Array.count
+    )
+      && glyphs.allSatisfy { $0 != 0 }
   }
 }
 
@@ -95,7 +139,7 @@ struct ProfileDisplayNameView: View {
         content
       }
     } else {
-      HStack(alignment: .firstTextBaseline) {
+      HStack(alignment: .center) {
         content
       }
     }
@@ -107,17 +151,9 @@ struct ProfileDisplayNameView: View {
       if let displayProperties = user.displayProperties,
         let fontChoiceId = displayProperties.fontChoiceId,
         let fontChoice = ProfileFontChoiceEnum(rawValue: fontChoiceId),
-        let fontName = fontChoice.fontName,
         PostHogSDK.shared.isFeatureEnabled("custom-profile-fonts")
       {
-        Text(name)
-          .font(
-            Font.custom(
-              fontName,
-              size: isLargeTitle
-                ? fontChoice.titleSize : fontChoice.baselineSize
-            )
-          )
+        Text(fontChoice.fontNormalized(for: name, isLargeTitle: isLargeTitle))
           .lineLimit(1)
       } else {
         Text(name)
