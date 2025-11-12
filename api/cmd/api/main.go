@@ -79,8 +79,9 @@ func main() {
 	notificationService := service.NewNotificationService(notificationsRepository, postRepository, commentRepository, userRepository)
 	authManager := service.NewAuthService(userRepository, postRepository, bucketRepository, resendClient)
 	statsService := service.NewStatsService(statsRepository)
+	wrappedService := service.NewWrappedService(q)
 
-	h := handler.NewHandler(q, postService, commentService, userService, notificationService, authManager, statsService)
+	h := handler.NewHandler(q, postService, commentService, userService, notificationService, authManager, statsService, wrappedService)
 
 	mux := http.NewServeMux()
 
