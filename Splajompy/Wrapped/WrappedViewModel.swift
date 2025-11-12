@@ -2,7 +2,8 @@ import Foundation
 
 struct ActivityOverviewData: Decodable, Equatable {
   let activityCountCeiling: Int
-  let counts: [Int]
+  let counts: [String: Int]
+  let mostActiveDay: String
 }
 
 enum WrappedState: Equatable {

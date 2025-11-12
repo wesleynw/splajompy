@@ -21,16 +21,16 @@ func NewWrappedService(querier queries.Querier) *WrappedService {
 var fetchLimit = 50
 
 type UserActivityData struct {
-	ActivityCountCeiling int   `json:"activityCountCeiling"`
-	Counts               []int `json:"counts"`
-	MostActiveDayIndex   int   `json:"mostActiveDayIndex`
+	ActivityCountCeiling int            `json:"activityCountCeiling"`
+	Counts               map[string]int `json:"counts"`
+	MostActiveDay        string         `json:"mostActiveDay"`
 }
 
 func (s *WrappedService) GetUserActivityData(ctx context.Context, userId int) (*UserActivityData, error) {
-	counts := make([]int, 365)
+	counts := make(map[string]int)
 	var cursor *time.Time
 	ceiling := 0
-	mostActiveDayIndex := 0
+	mostActiveDay := ""
 
 	yearStart := time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC)
 	yearEnd := time.Date(2025, 12, 31, 23, 59, 59, 0, time.UTC)
@@ -57,13 +57,11 @@ func (s *WrappedService) GetUserActivityData(ctx context.Context, userId int) (*
 		var lastPost *queries.Post
 		for _, post := range posts {
 			if !post.CreatedAt.Time.Before(yearStart) && !post.CreatedAt.Time.After(yearEnd) {
-				index := int(post.CreatedAt.Time.Sub(yearStart).Hours() / 24)
-				if index >= 0 && index < 365 {
-					counts[index]++
-					if counts[index] > ceiling {
-						ceiling = counts[index]
-						mostActiveDayIndex = index
-					}
+				dateKey := post.CreatedAt.Time.Format("2006-01-02")
+				counts[dateKey]++
+				if counts[dateKey] > ceiling {
+					ceiling = counts[dateKey]
+					mostActiveDay = dateKey
 				}
 			}
 			lastPost = &post
@@ -96,13 +94,11 @@ func (s *WrappedService) GetUserActivityData(ctx context.Context, userId int) (*
 		var lastComment *queries.Comment
 		for _, comment := range comments {
 			if !comment.CreatedAt.Time.Before(yearStart) && !comment.CreatedAt.Time.After(yearEnd) {
-				index := int(comment.CreatedAt.Time.Sub(yearStart).Hours() / 24)
-				if index >= 0 && index < 365 {
-					counts[index]++
-					if counts[index] > ceiling {
-						ceiling = counts[index]
-						mostActiveDayIndex = index
-					}
+				dateKey := comment.CreatedAt.Time.Format("2006-01-02")
+				counts[dateKey]++
+				if counts[dateKey] > ceiling {
+					ceiling = counts[dateKey]
+					mostActiveDay = dateKey
 				}
 			}
 			lastComment = &comment
@@ -135,13 +131,11 @@ func (s *WrappedService) GetUserActivityData(ctx context.Context, userId int) (*
 		var lastLike *queries.Like
 		for _, like := range likes {
 			if !like.CreatedAt.Time.Before(yearStart) && !like.CreatedAt.Time.After(yearEnd) {
-				index := int(like.CreatedAt.Time.Sub(yearStart).Hours() / 24)
-				if index >= 0 && index < 365 {
-					counts[index]++
-					if counts[index] > ceiling {
-						ceiling = counts[index]
-						mostActiveDayIndex = index
-					}
+				dateKey := like.CreatedAt.Time.Format("2006-01-02")
+				counts[dateKey]++
+				if counts[dateKey] > ceiling {
+					ceiling = counts[dateKey]
+					mostActiveDay = dateKey
 				}
 			}
 			lastLike = &like
@@ -153,6 +147,6 @@ func (s *WrappedService) GetUserActivityData(ctx context.Context, userId int) (*
 	return &UserActivityData{
 		ActivityCountCeiling: ceiling,
 		Counts:               counts,
-		MostActiveDayIndex:   mostActiveDayIndex,
+		MostActiveDay:        mostActiveDay,
 	}, nil
 }

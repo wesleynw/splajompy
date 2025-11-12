@@ -115,7 +115,8 @@ struct ProfileDisplayNameView: View {
             Font.custom(
               fontName,
               size: isLargeTitle
-                ? fontChoice.titleSize : fontChoice.baselineSize
+                ? fontChoice.titleSize : fontChoice.baselineSize,
+              relativeTo: isLargeTitle ? .title2 : .body
             )
           )
           .lineLimit(1)
