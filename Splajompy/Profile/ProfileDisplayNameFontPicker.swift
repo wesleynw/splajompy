@@ -20,9 +20,8 @@ struct ProfileDisplayNameFontPicker: View {
               displayNameFont = choice
             } label: {
               HStack {
-                if let fontName = choice.fontName {
-                  Text(displayName)
-                    .font(Font.custom(fontName, size: choice.baselineSize))
+                if choice.fontName != nil {
+                  Text(choice.fontNormalized(for: displayName, isLargeTitle: false))
                 } else {
                   HStack(alignment: .firstTextBaseline) {
                     Text(displayName)
