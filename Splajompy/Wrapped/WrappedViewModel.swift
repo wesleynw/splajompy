@@ -20,7 +20,7 @@ enum WrappedState: Equatable {
     if case .loaded(_) = state {
       return
     }
-    
+
     state = .loading
 
     let result: AsyncResult<ActivityOverviewData> =

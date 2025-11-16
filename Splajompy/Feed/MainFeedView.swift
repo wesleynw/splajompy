@@ -77,7 +77,9 @@ struct MainFeedView: View {
         }
         .toolbar {
           ToolbarItem {
-            Button("2025 Wrapped", systemImage: "clock.arrow.trianglehead.counterclockwise.rotate.90") {
+            Button(
+              "2025 Wrapped", systemImage: "clock.arrow.trianglehead.counterclockwise.rotate.90"
+            ) {
               isShowingWrappedView.toggle()
             }
           }
