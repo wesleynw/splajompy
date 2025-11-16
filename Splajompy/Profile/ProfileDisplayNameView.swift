@@ -50,7 +50,7 @@ enum ProfileFontChoiceEnum: Int, CaseIterable, Identifiable, Hashable {
     case .gorton: return 22
     case .neuton: return 30
     case .lavish: return 32
-    case .swanky: return 24
+    case .swanky: return 22
     case .cooperBlack: return 25
     case .alienMushrooms: return 38
     }
@@ -62,13 +62,13 @@ enum ProfileFontChoiceEnum: Int, CaseIterable, Identifiable, Hashable {
     var attributed = AttributedString(text)
 
     guard let fontName = fontName else {
-      attributed.font = isLargeTitle ? .title2 : .body
+      attributed.font = isLargeTitle ? .title2.weight(.black) : .body.weight(.black)
       return attributed
     }
 
     let size = isLargeTitle ? titleSize : baselineSize
     let customFont = Font.custom(fontName, size: size)
-    let fallbackFont: Font = isLargeTitle ? .title2 : .body
+    let fallbackFont: Font = isLargeTitle ? .title2.weight(.black) : .body.weight(.black)
 
     var currentIndex = attributed.startIndex
     for character in text {
