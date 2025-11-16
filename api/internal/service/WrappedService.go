@@ -28,12 +28,16 @@ type UserActivityData struct {
 
 func (s *WrappedService) GetUserActivityData(ctx context.Context, userId int) (*UserActivityData, error) {
 	counts := make(map[string]int)
+	yearStart := time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC)
+	yearEnd := time.Date(2025, 12, 31, 23, 59, 0, 0, time.UTC)
+
+	for d := yearStart; !d.After(yearEnd); d = d.AddDate(0, 0, 1) {
+		counts[d.Format("2006-01-02")] = 0
+	}
+
 	var cursor *time.Time
 	ceiling := 0
 	mostActiveDay := ""
-
-	yearStart := time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC)
-	yearEnd := time.Date(2025, 12, 31, 23, 59, 59, 0, time.UTC)
 
 	// posts
 	for {
@@ -42,6 +46,7 @@ func (s *WrappedService) GetUserActivityData(ctx context.Context, userId int) (*
 			timestamp.Time = *cursor
 			timestamp.Valid = true
 		}
+
 		posts, err := s.querier.WrappedGetAllUserPostsWithCursor(ctx, queries.WrappedGetAllUserPostsWithCursorParams{
 			UserID: userId,
 			Limit:  fetchLimit,
@@ -56,7 +61,7 @@ func (s *WrappedService) GetUserActivityData(ctx context.Context, userId int) (*
 
 		var lastPost *queries.Post
 		for _, post := range posts {
-			if !post.CreatedAt.Time.Before(yearStart) && !post.CreatedAt.Time.After(yearEnd) {
+			if post.CreatedAt.Time.Year() == 2025 {
 				dateKey := post.CreatedAt.Time.Format("2006-01-02")
 				counts[dateKey]++
 				if counts[dateKey] > ceiling {
@@ -66,7 +71,6 @@ func (s *WrappedService) GetUserActivityData(ctx context.Context, userId int) (*
 			}
 			lastPost = &post
 		}
-
 		cursor = &lastPost.CreatedAt.Time
 	}
 
@@ -79,6 +83,7 @@ func (s *WrappedService) GetUserActivityData(ctx context.Context, userId int) (*
 			timestamp.Time = *cursor
 			timestamp.Valid = true
 		}
+
 		comments, err := s.querier.WrappedGetAllUserCommentsWithCursor(ctx, queries.WrappedGetAllUserCommentsWithCursorParams{
 			UserID: userId,
 			Limit:  fetchLimit,
@@ -93,7 +98,7 @@ func (s *WrappedService) GetUserActivityData(ctx context.Context, userId int) (*
 
 		var lastComment *queries.Comment
 		for _, comment := range comments {
-			if !comment.CreatedAt.Time.Before(yearStart) && !comment.CreatedAt.Time.After(yearEnd) {
+			if comment.CreatedAt.Time.Year() == 2025 {
 				dateKey := comment.CreatedAt.Time.Format("2006-01-02")
 				counts[dateKey]++
 				if counts[dateKey] > ceiling {
@@ -103,7 +108,6 @@ func (s *WrappedService) GetUserActivityData(ctx context.Context, userId int) (*
 			}
 			lastComment = &comment
 		}
-
 		cursor = &lastComment.CreatedAt.Time
 	}
 
@@ -116,6 +120,7 @@ func (s *WrappedService) GetUserActivityData(ctx context.Context, userId int) (*
 			timestamp.Time = *cursor
 			timestamp.Valid = true
 		}
+
 		likes, err := s.querier.WrappedGetAllUserLikesWithCursor(ctx, queries.WrappedGetAllUserLikesWithCursorParams{
 			UserID: userId,
 			Limit:  fetchLimit,
@@ -130,7 +135,7 @@ func (s *WrappedService) GetUserActivityData(ctx context.Context, userId int) (*
 
 		var lastLike *queries.Like
 		for _, like := range likes {
-			if !like.CreatedAt.Time.Before(yearStart) && !like.CreatedAt.Time.After(yearEnd) {
+			if like.CreatedAt.Time.Year() == 2025 {
 				dateKey := like.CreatedAt.Time.Format("2006-01-02")
 				counts[dateKey]++
 				if counts[dateKey] > ceiling {
@@ -140,7 +145,6 @@ func (s *WrappedService) GetUserActivityData(ctx context.Context, userId int) (*
 			}
 			lastLike = &like
 		}
-
 		cursor = &lastLike.CreatedAt.Time
 	}
 
