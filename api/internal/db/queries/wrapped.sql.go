@@ -11,6 +11,58 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const getTotalCommentsForUser = `-- name: GetTotalCommentsForUser :one
+SELECT COUNT(*)
+FROM comments
+WHERE user_id = $1
+`
+
+func (q *Queries) GetTotalCommentsForUser(ctx context.Context, userID int) (int64, error) {
+	row := q.db.QueryRow(ctx, getTotalCommentsForUser, userID)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
+const getTotalLikesForUser = `-- name: GetTotalLikesForUser :one
+SELECT COUNT(*)
+FROM likes
+WHERE user_id = $1
+`
+
+func (q *Queries) GetTotalLikesForUser(ctx context.Context, userID int) (int64, error) {
+	row := q.db.QueryRow(ctx, getTotalLikesForUser, userID)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
+const getTotalNotificationsForUser = `-- name: GetTotalNotificationsForUser :one
+SELECT COUNT(*)
+FROM notifications
+WHERE user_id = $1
+`
+
+func (q *Queries) GetTotalNotificationsForUser(ctx context.Context, userID int) (int64, error) {
+	row := q.db.QueryRow(ctx, getTotalNotificationsForUser, userID)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
+const getTotalPostsForUser = `-- name: GetTotalPostsForUser :one
+SELECT COUNT(*)
+FROM posts
+WHERE user_id = $1
+`
+
+func (q *Queries) GetTotalPostsForUser(ctx context.Context, userID int) (int64, error) {
+	row := q.db.QueryRow(ctx, getTotalPostsForUser, userID)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const wrappedGetAllUserCommentsWithCursor = `-- name: WrappedGetAllUserCommentsWithCursor :many
 SELECT comment_id, post_id, user_id, text, facets, created_at
 FROM comments

@@ -18,3 +18,23 @@ FROM likes
 WHERE user_id = $1 AND (@cursor::timestamptz IS NULL OR created_at < @cursor::timestamptz)
 ORDER BY created_at DESC
 LIMIT $2;
+
+-- name: GetTotalPostsForUser :one
+SELECT COUNT(*)
+FROM posts
+WHERE user_id = $1;
+
+-- name: GetTotalCommentsForUser :one
+SELECT COUNT(*)
+FROM comments
+WHERE user_id = $1;
+
+-- name: GetTotalLikesForUser :one
+SELECT COUNT(*)
+FROM likes
+WHERE user_id = $1;
+
+-- name: GetTotalNotificationsForUser :one
+SELECT COUNT(*)
+FROM notifications
+WHERE user_id = $1;
