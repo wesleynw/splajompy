@@ -122,6 +122,13 @@ struct ActivityOverview: View {
       }
       .safeAreaInset(edge: .bottom) {
         if showButton {
+            NavigationLink(destination: UserProportionRing(userPercent: 4)) {
+              Text("Continue")
+                .padding(3)
+                .fontWeight(.black)
+                .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.borderedProminent)
           Button("Continue") {}
             .buttonStyle(.borderedProminent)
             .frame(maxWidth: .infinity)

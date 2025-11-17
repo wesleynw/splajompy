@@ -180,6 +180,7 @@ func (s *WrappedService) getUserActivityData(ctx context.Context, userId int) (*
 }
 
 func (s *WrappedService) getPercentShareOfContent(ctx context.Context, userId int) (*float32, error) {
+	userId = 33
 	totalPosts, err := s.querier.GetTotalPosts(ctx)
 	if err != nil {
 		return nil, err
@@ -211,7 +212,7 @@ func (s *WrappedService) getPercentShareOfContent(ctx context.Context, userId in
 	}
 
 	const postWeight = 1
-	const commentWeight = 0.7
+	const commentWeight = 0.2
 	const likeWeight = 0.05
 
 	totalWeight := float32(totalPosts)*postWeight + float32(totalComments)*commentWeight + float32(totalLikes)*likeWeight
