@@ -33,7 +33,7 @@ enum ProfileFontChoiceEnum: Int, CaseIterable, Identifiable, Hashable {
     case .largeTitle2: return 0
     case .sixtyFour: return 14
     case .oldLondon: return 24
-    case .gorton: return 25
+    case .gorton: return 22
     case .neuton: return 24
     case .lavish: return 28
     case .swanky: return 18
@@ -47,7 +47,7 @@ enum ProfileFontChoiceEnum: Int, CaseIterable, Identifiable, Hashable {
     case .largeTitle2: return 0
     case .sixtyFour: return 20
     case .oldLondon: return 30
-    case .gorton: return 22
+    case .gorton: return 25
     case .neuton: return 30
     case .lavish: return 32
     case .swanky: return 22
