@@ -67,7 +67,7 @@ struct ProfileDisplayNameFontPicker: View {
                 showingFontPicker = false
               }
             } else {
-              Button("Done") {
+              Button("Cancel") {
                 showingFontPicker = false
               }
             }
