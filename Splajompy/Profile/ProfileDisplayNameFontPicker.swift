@@ -21,7 +21,9 @@ struct ProfileDisplayNameFontPicker: View {
             } label: {
               HStack {
                 if choice.fontName != nil {
-                  Text(choice.fontNormalized(for: displayName, isLargeTitle: false))
+                  Text(
+                    choice.fontNormalized(for: displayName, isLargeTitle: false)
+                  )
                 } else {
                   HStack(alignment: .firstTextBaseline) {
                     Text(displayName)
@@ -48,21 +50,27 @@ struct ProfileDisplayNameFontPicker: View {
         #endif
         .toolbar {
           ToolbarItem(placement: .confirmationAction) {
-            #if os(iOS)
-              if #available(iOS 26, *) {
-                Button("Done", systemImage: "checkmark", role: .confirm) {
-                  showingFontPicker = false
-                }
-              } else {
-                Button("Done") {
-                  showingFontPicker = false
-                }
-              }
-            #else
-              Button("Done", systemImage: "checkmark") {
+            if #available(iOS 26, macOS 26, *) {
+              Button("Done", systemImage: "checkmark", role: .confirm) {
                 showingFontPicker = false
               }
-            #endif
+            } else {
+              Button("Done") {
+                showingFontPicker = false
+              }
+            }
+          }
+
+          ToolbarItem(placement: .cancellationAction) {
+            if #available(iOS 26, macOS 26, *) {
+              Button(role: .cancel) {
+                showingFontPicker = false
+              }
+            } else {
+              Button("Done") {
+                showingFontPicker = false
+              }
+            }
           }
         }
       }
