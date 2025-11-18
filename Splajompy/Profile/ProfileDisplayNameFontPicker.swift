@@ -2,74 +2,82 @@ import SwiftUI
 
 struct ProfileDisplayNameFontPicker: View {
   var displayName: String
-  @Binding var displayNameFont: ProfileFontChoiceEnum
-  @State private var showingFontPicker = false
+  var displayNameFont: ProfileFontChoiceEnum
+  var onChange: (ProfileFontChoiceEnum) -> Void
+
+  @State private var selectedFont: ProfileFontChoiceEnum
+  @Environment(\.dismiss) private var dismiss
+
+  init(
+    displayName: String,
+    displayNameFont: ProfileFontChoiceEnum,
+    onChange: @escaping (ProfileFontChoiceEnum) -> Void
+  ) {
+    self.displayName = displayName
+    self.displayNameFont = displayNameFont
+    self.onChange = onChange
+    self._selectedFont = State(initialValue: displayNameFont)
+  }
 
   var body: some View {
-    Button {
-      showingFontPicker = true
-    } label: {
-      Label("Display Name Style", systemImage: "textformat")
-    }
-    .buttonStyle(.bordered)
-    .sheet(isPresented: $showingFontPicker) {
-      NavigationStack {
-        List {
-          ForEach(ProfileFontChoiceEnum.allCases) { choice in
-            Button {
-              displayNameFont = choice
-            } label: {
-              HStack {
-                if choice.fontName != nil {
-                  Text(
-                    choice.fontNormalized(for: displayName, isLargeTitle: false)
-                  )
-                } else {
-                  HStack(alignment: .firstTextBaseline) {
-                    Text(displayName)
-                      .font(.title2)
-                      .fontWeight(.black)
+    NavigationStack {
+      List {
+        ForEach(ProfileFontChoiceEnum.allCases) { choice in
+          Button {
+            selectedFont = choice
+          } label: {
+            HStack {
+              if choice.fontName != nil {
+                Text(
+                  choice.fontNormalized(for: displayName, isLargeTitle: false)
+                )
+              } else {
+                HStack(alignment: .firstTextBaseline) {
+                  Text(displayName)
+                    .font(.title2)
+                    .fontWeight(.black)
 
-                    Text("Default")
-                      .foregroundStyle(.secondary)
-                  }
-                }
-                Spacer()
-                if displayNameFont == choice {
-                  Image(systemName: "checkmark")
-                    .foregroundStyle(.blue)
+                  Text("Default")
+                    .foregroundStyle(.secondary)
                 }
               }
+              Spacer()
+              if selectedFont == choice {
+                Image(systemName: "checkmark")
+                  .foregroundStyle(.blue)
+              }
             }
-            .foregroundStyle(.primary)
+          }
+          .foregroundStyle(.primary)
+        }
+      }
+      .navigationTitle("Choose Font")
+      #if os(iOS)
+        .navigationBarTitleDisplayMode(.inline)
+      #endif
+      .toolbar {
+        ToolbarItem(placement: .confirmationAction) {
+          if #available(iOS 26, macOS 26, *) {
+            Button("Done", systemImage: "checkmark", role: .confirm) {
+              onChange(selectedFont)
+              dismiss()
+            }
+          } else {
+            Button("Done") {
+              onChange(selectedFont)
+              dismiss()
+            }
           }
         }
-        .navigationTitle("Choose Font")
-        #if os(iOS)
-          .navigationBarTitleDisplayMode(.inline)
-        #endif
-        .toolbar {
-          ToolbarItem(placement: .confirmationAction) {
-            if #available(iOS 26, macOS 26, *) {
-              Button("Done", systemImage: "checkmark", role: .confirm) {
-                showingFontPicker = false
-              }
-            } else {
-              Button("Done") {
-                showingFontPicker = false
-              }
-            }
-          }
 
-          ToolbarItem(placement: .cancellationAction) {
-            if #available(iOS 26, macOS 26, *) {
-              Button(role: .cancel) {
-                showingFontPicker = false
-              }
-            } else {
-              Button("Cancel") {
-                showingFontPicker = false
-              }
+        ToolbarItem(placement: .cancellationAction) {
+          if #available(iOS 26, macOS 26, *) {
+            Button(role: .cancel) {
+              dismiss()
+            }
+          } else {
+            Button("Cancel") {
+              dismiss()
             }
           }
         }
@@ -83,6 +91,7 @@ struct ProfileDisplayNameFontPicker: View {
 
   ProfileDisplayNameFontPicker(
     displayName: "Wesley",
-    displayNameFont: $displayNameFont
+    displayNameFont: displayNameFont,
+    onChange: { newFont in print("new font: \(newFont)") }
   )
 }
