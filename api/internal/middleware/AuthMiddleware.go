@@ -25,7 +25,6 @@ func AuthMiddleware(q *queries.Queries) func(http.Handler) http.Handler {
 			ctx := r.Context()
 
 			ctx, span := tracer.Start(ctx, "AuthMiddleware")
-			defer span.End()
 
 			header := r.Header.Get("Authorization")
 
@@ -47,6 +46,7 @@ func AuthMiddleware(q *queries.Queries) func(http.Handler) http.Handler {
 				span.SetStatus(codes.Error, "unable to grab user session")
 				span.RecordError(err)
 			}
+
 			// want to be careful here: if it's a server error, don't want to be logging
 			// people out automatically
 			var connectError *pgconn.ConnectError
@@ -96,6 +96,7 @@ func AuthMiddleware(q *queries.Queries) func(http.Handler) http.Handler {
 
 			ctx = context.WithValue(ctx, utilities.UserContextKey, publicUser)
 			r = r.WithContext(ctx)
+			span.End()
 
 			next.ServeHTTP(w, r)
 		})
