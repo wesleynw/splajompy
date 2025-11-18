@@ -1,7 +1,6 @@
 import PostHog
 import SwiftUI
 
-@available(iOS 17, *)
 struct ProfileEditorView: View {
   @StateObject var viewModel: ProfileView.ViewModel
   @State private var name: String = ""
@@ -50,6 +49,7 @@ struct ProfileEditorView: View {
           }
           .buttonStyle(.bordered)
           .disabled(name.isEmpty)
+          .padding()
         }
 
         HStack {
@@ -79,7 +79,9 @@ struct ProfileEditorView: View {
         }
       }
       .navigationTitle("Edit Profile")
-      .navigationBarTitleDisplayMode(.inline)
+      #if os(iOS)
+        .navigationBarTitleDisplayMode(.inline)
+      #endif
       .sheet(isPresented: $isShowingFontPicker) {
         ProfileDisplayNameFontPicker(
           displayName: name,
@@ -88,21 +90,17 @@ struct ProfileEditorView: View {
         )
       }
       .toolbar {
-        ToolbarItem(placement: .topBarLeading) {
-          if #available(iOS 26.0, *) {
+        ToolbarItem(placement: .cancellationAction) {
+          if #available(iOS 26.0, macOS 26, *) {
             Button(role: .close, action: { dismiss() })
           } else {
-            Button {
+            Button("Cancel") {
               dismiss()
-            } label: {
-              Image(systemName: "xmark.circle.fill")
-                .opacity(0.8)
             }
-            .buttonStyle(.plain)
           }
         }
 
-        ToolbarItem(placement: .topBarTrailing) {
+        ToolbarItem(placement: .confirmationAction) {
           if #available(iOS 26, *) {
             Button {
               viewModel.updateProfile(
@@ -121,9 +119,8 @@ struct ProfileEditorView: View {
               }
             }
             .disabled(name.count > 25 || bio.count > 400)
-            .buttonStyle(.glassProminent)
           } else {
-            Button {
+            Button("Done") {
               viewModel.updateProfile(
                 name: name,
                 bio: bio,
@@ -132,9 +129,6 @@ struct ProfileEditorView: View {
                 )
               )
               dismiss()
-            } label: {
-              Image(systemName: "checkmark.circle")
-                .opacity(0.8)
             }
             .disabled(name.count > 25 || bio.count > 400)
           }
