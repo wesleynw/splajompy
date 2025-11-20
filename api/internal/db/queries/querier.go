@@ -57,10 +57,14 @@ type Querier interface {
 	GetReadNotificationsForUserIdWithTimeOffset(ctx context.Context, arg GetReadNotificationsForUserIdWithTimeOffsetParams) ([]Notification, error)
 	GetSessionById(ctx context.Context, id string) (Session, error)
 	GetTotalComments(ctx context.Context) (int64, error)
+	GetTotalCommentsForUser(ctx context.Context, userID int) (int64, error)
 	GetTotalFollows(ctx context.Context) (int64, error)
 	GetTotalLikes(ctx context.Context) (int64, error)
+	GetTotalLikesForUser(ctx context.Context, userID int) (int64, error)
 	GetTotalNotifications(ctx context.Context) (int64, error)
+	GetTotalNotificationsForUser(ctx context.Context, userID int) (int64, error)
 	GetTotalPosts(ctx context.Context) (int64, error)
+	GetTotalPostsForUser(ctx context.Context, userID int) (int64, error)
 	GetTotalUsers(ctx context.Context) (int64, error)
 	GetUnreadNotificationsForUserId(ctx context.Context, arg GetUnreadNotificationsForUserIdParams) ([]Notification, error)
 	GetUnreadNotificationsForUserIdWithTimeOffset(ctx context.Context, arg GetUnreadNotificationsForUserIdWithTimeOffsetParams) ([]Notification, error)
@@ -93,6 +97,9 @@ type Querier interface {
 	UpdateUserName(ctx context.Context, arg UpdateUserNameParams) error
 	UserHasUnreadNotifications(ctx context.Context, userID int) (bool, error)
 	UserSearchWithHeuristics(ctx context.Context, arg UserSearchWithHeuristicsParams) ([]UserSearchWithHeuristicsRow, error)
+	WrappedGetAllUserCommentsWithCursor(ctx context.Context, arg WrappedGetAllUserCommentsWithCursorParams) ([]Comment, error)
+	WrappedGetAllUserLikesWithCursor(ctx context.Context, arg WrappedGetAllUserLikesWithCursorParams) ([]Like, error)
+	WrappedGetAllUserPostsWithCursor(ctx context.Context, arg WrappedGetAllUserPostsWithCursorParams) ([]Post, error)
 }
 
 var _ Querier = (*Queries)(nil)
