@@ -21,9 +21,17 @@ func NewWrappedService(querier queries.Querier) *WrappedService {
 var fetchLimit = 50
 
 type WrappedData struct {
-	ActivityData        UserActivityData `json:"activityData"`
-	PercentShareContent float32          `json:"percentShareContent"`
+	ActivityData UserActivityData `json:"activityData"`
+	SliceData    SliceData        `json:"sliceData"`
 }
+
+type SliceData struct {
+	Percent          float32 `json:"percent"`
+	PostComponent    float32 `json:"postComponent"`
+	CommentComponent float32 `json:"commentComponent"`
+	LikeComponent    float32 `json:"likeComponent"`
+}
+
 type UserActivityData struct {
 	ActivityCountCeiling int            `json:"activityCountCeiling"`
 	Counts               map[string]int `json:"counts"`
@@ -40,12 +48,12 @@ func (s *WrappedService) CompileWrappedForUser(ctx context.Context, userId int) 
 
 	data.ActivityData = *activity
 
-	percentShare, err := s.getPercentShareOfContent(ctx, userId)
+	sliceData, err := s.getPercentShareOfContent(ctx, userId)
 	if err != nil {
 		return nil, err
 	}
 
-	data.PercentShareContent = *percentShare
+	data.SliceData = *sliceData
 
 	return &data, nil
 }
@@ -179,8 +187,7 @@ func (s *WrappedService) getUserActivityData(ctx context.Context, userId int) (*
 	}, nil
 }
 
-func (s *WrappedService) getPercentShareOfContent(ctx context.Context, userId int) (*float32, error) {
-	userId = 33
+func (s *WrappedService) getPercentShareOfContent(ctx context.Context, userId int) (*SliceData, error) {
 	totalPosts, err := s.querier.GetTotalPosts(ctx)
 	if err != nil {
 		return nil, err
@@ -218,7 +225,19 @@ func (s *WrappedService) getPercentShareOfContent(ctx context.Context, userId in
 	totalWeight := float32(totalPosts)*postWeight + float32(totalComments)*commentWeight + float32(totalLikes)*likeWeight
 	userWeight := float32(userPosts)*postWeight + float32(userComments)*commentWeight + float32(userLikes)*likeWeight
 
-	proportion := (userWeight / totalWeight) * 100
+	userPostWeight := float32(userPosts) * postWeight
+	userCommentWeight := float32(userComments) * commentWeight
+	userLikeWeight := float32(userLikes) * likeWeight
 
-	return &proportion, nil
+	percent := (userWeight / totalWeight) * 100
+	postComponent := (userPostWeight / totalWeight) * 100
+	commentComponent := (userCommentWeight / totalWeight) * 100
+	likeComponent := (userLikeWeight / totalWeight) * 100
+
+	return &SliceData{
+		Percent:          percent,
+		PostComponent:    postComponent,
+		CommentComponent: commentComponent,
+		LikeComponent:    likeComponent,
+	}, nil
 }

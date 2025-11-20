@@ -1,7 +1,8 @@
 import SwiftUI
 
 struct ActivityOverview: View {
-  var data: ActivityOverviewData
+  var data: WrappedData
+
   @State private var appearedIndices: Set<String> = []
   @State private var showDetail = false
   @State private var showButton = false
@@ -10,7 +11,7 @@ struct ActivityOverview: View {
   @Namespace private var animation
 
   private var allDates: [String] {
-    data.counts.keys.sorted()
+    data.activityData.counts.keys.sorted()
   }
 
   private var firstDate: String? {
@@ -43,20 +44,33 @@ struct ActivityOverview: View {
         ScrollView {
           VStack(spacing: 12) {
             LazyVGrid(
-              columns: [GridItem(.adaptive(minimum: 20), spacing: 3)],
+              columns: [
+                GridItem(.adaptive(minimum: 20), spacing: 3)
+              ],
               spacing: 3
             ) {
               ForEach(allDates, id: \.self) { day in
-                let count = data.counts[day] ?? 0
-                let opacity = Double(count) / Double(data.activityCountCeiling)
+                let count = data.activityData.counts[day] ?? 0
+                let opacity =
+                  Double(count)
+                  / Double(
+                    data.activityData.activityCountCeiling
+                  )
                 RoundedRectangle(cornerRadius: 5)
                   .fill(.green)
                   .opacity(opacity)
                   .frame(width: 20, height: 20)
-                  .scaleEffect(appearedIndices.contains(day) ? 1 : 0)
+                  .scaleEffect(
+                    appearedIndices.contains(day) ? 1 : 0
+                  )
                   .animation(
-                    .spring(response: 0.25, dampingFraction: 0.6).delay(
-                      allDates.firstIndex(of: day).map { Double($0) * 0.01 }
+                    .spring(
+                      response: 0.25,
+                      dampingFraction: 0.6
+                    ).delay(
+                      allDates.firstIndex(of: day).map {
+                        Double($0) * 0.01
+                      }
                         ?? 0
                     ),
                     value: appearedIndices
@@ -95,7 +109,8 @@ struct ActivityOverview: View {
               Text("Less")
                 .font(.caption)
                 .foregroundStyle(.secondary)
-              ForEach([0.2, 0.4, 0.6, 0.8, 1.0], id: \.self) { opacity in
+              ForEach([0.2, 0.4, 0.6, 0.8, 1.0], id: \.self) {
+                opacity in
                 RoundedRectangle(cornerRadius: 2)
                   .fill(.green)
                   .opacity(opacity)
@@ -109,9 +124,12 @@ struct ActivityOverview: View {
           }
           .onChange(of: introComplete) { _, isComplete in
             if isComplete {
-              for date in allDates { appearedIndices.insert(date) }
+              for date in allDates {
+                appearedIndices.insert(date)
+              }
               DispatchQueue.main.asyncAfter(
-                deadline: .now() + Double(allDates.count) * 0.01 + 0.5
+                deadline: .now() + Double(allDates.count) * 0.01
+                  + 0.5
               ) {
                 withAnimation { showButton = true }
               }
@@ -122,13 +140,13 @@ struct ActivityOverview: View {
       }
       .safeAreaInset(edge: .bottom) {
         if showButton {
-            NavigationLink(destination: UserProportionRing(userPercent: 4)) {
-              Text("Continue")
-                .padding(3)
-                .fontWeight(.black)
-                .frame(maxWidth: .infinity)
-            }
-            .buttonStyle(.borderedProminent)
+          NavigationLink(destination: UserProportionRing(data: data)) {
+            Text("Continue")
+              .padding(3)
+              .fontWeight(.black)
+              .frame(maxWidth: .infinity)
+          }
+          .buttonStyle(.borderedProminent)
           Button("Continue") {}
             .buttonStyle(.borderedProminent)
             .frame(maxWidth: .infinity)
@@ -153,7 +171,9 @@ struct ActivityOverview: View {
   let df = DateFormatter()
   df.dateFormat = "yyyy-MM-dd"
   for month in 1...12 {
-    for day in 1...([4, 6, 9, 11].contains(month) ? 30 : month == 2 ? 28 : 31) {
+    for day
+      in 1...([4, 6, 9, 11].contains(month) ? 30 : month == 2 ? 28 : 31)
+    {
       if let date = Calendar.current.date(
         from: DateComponents(year: 2025, month: month, day: day)
       ) {
@@ -162,10 +182,19 @@ struct ActivityOverview: View {
     }
   }
   return ActivityOverview(
-    data: ActivityOverviewData(
-      activityCountCeiling: 35,
-      counts: counts,
-      mostActiveDay: "2025-02-15"
+    data: WrappedData(
+      activityData: ActivityOverviewData(
+        activityCountCeiling: 35,
+        counts: counts,
+        mostActiveDay: "2025-02-15"
+      ),
+      sliceData: SliceData(
+        percent: 5,
+        postComponent: 1,
+        commentComponent: 2,
+        likeComponent: 1
+      )
     )
+
   )
 }

@@ -14,7 +14,6 @@ struct WrappedIntroView: View {
           .padding()
 
         ProgressView()
-          .opacity(viewModel.state == .loading ? 1 : 0)
 
         if case .failed(let error) = viewModel.state {
           VStack(spacing: 12) {
@@ -35,11 +34,12 @@ struct WrappedIntroView: View {
       .task {
         await viewModel.load()
       }
-      .animation(.easeInOut(duration: 0.2), value: viewModel.state)
       .frame(maxHeight: .infinity)
       .safeAreaInset(edge: .bottom) {
         if case .loaded(let data) = viewModel.state {
-          NavigationLink(destination: ActivityOverview(data: data)) {
+          NavigationLink(
+            destination: ActivityOverview(data: data)
+          ) {
             Text("Start")
               .padding(3)
               .fontWeight(.black)

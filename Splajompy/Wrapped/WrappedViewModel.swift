@@ -1,15 +1,27 @@
 import Foundation
 
-struct ActivityOverviewData: Decodable, Equatable {
+struct WrappedData: Decodable {
+  let activityData: ActivityOverviewData
+  let sliceData: SliceData
+}
+
+struct ActivityOverviewData: Decodable {
   let activityCountCeiling: Int
   let counts: [String: Int]
   let mostActiveDay: String
 }
 
-enum WrappedState: Equatable {
+struct SliceData: Decodable {
+  let percent: Double
+  let postComponent: Double
+  let commentComponent: Double
+  let likeComponent: Double
+}
+
+enum WrappedState {
   case idle
   case loading
-  case loaded(ActivityOverviewData)
+  case loaded(WrappedData)
   case failed(String)
 }
 
@@ -23,7 +35,7 @@ enum WrappedState: Equatable {
 
     state = .loading
 
-    let result: AsyncResult<ActivityOverviewData> =
+    let result: AsyncResult<WrappedData> =
       await APIService.performRequest(endpoint: "wrapped")
 
     switch result {
