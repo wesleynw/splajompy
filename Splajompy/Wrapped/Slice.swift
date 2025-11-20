@@ -21,6 +21,7 @@ struct UserProportionRing: View {
             .padding()
 
           Text("\(data.sliceData.percent, specifier: "%.1f")%")
+            .fontDesign(.rounded)
             .foregroundStyle(.blue.gradient)
             .fontWeight(.black)
             .font(.title)
@@ -75,6 +76,51 @@ struct UserProportionRing: View {
   }
 
   @ViewBuilder
+  private var componentBreakdownText: some View {
+    VStack {
+      HStack {
+        Circle()
+          .fill(.purple.gradient)
+          .frame(width: 12, height: 12)
+        Text("Posts")
+          .fontWeight(.semibold)
+        Spacer()
+        Text("\(data.sliceData.postComponent, specifier: "%.1f")%")
+          .fontWeight(.black)
+          .foregroundStyle(.purple.gradient)
+      }
+
+      HStack(spacing: 16) {
+        Circle()
+          .fill(.yellow.gradient)
+          .frame(width: 12, height: 12)
+        Text("Comments")
+          .fontWeight(.semibold)
+        Spacer()
+        Text("\(data.sliceData.commentComponent, specifier: "%.1f")%")
+          .fontWeight(.black)
+          .foregroundStyle(.yellow.gradient)
+      }
+
+      HStack(spacing: 16) {
+        Circle()
+          .fill(.red.gradient)
+          .frame(width: 12, height: 12)
+        Text("Likes")
+          .fontWeight(.semibold)
+        Spacer()
+        Text("\(data.sliceData.likeComponent, specifier: "%.1f")%")
+          .fontWeight(.black)
+          .foregroundStyle(.red.gradient)
+      }
+    }
+    .padding(.horizontal)
+    .padding(.vertical, 8)
+    .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12))
+    .padding(.horizontal)
+  }
+
+  @ViewBuilder
   private var rings: some View {
     GeometryReader { geometry in
       let size = Float(min(geometry.size.width, geometry.size.height))
@@ -103,10 +149,6 @@ struct UserProportionRing: View {
       let offsetY = isAnimatingToCenter ? size / 2 : 0
 
       ZStack {
-        VStack {
-          Text("size: \(size)")
-          Text("width: \(approximateWidth)")
-        }
         AnimatedRingSegment(
           isHighlightedSlice: false,
           startPercent: animatedUserPercent,
@@ -137,11 +179,11 @@ struct UserProportionRing: View {
           componentArcs(ringWidth: ringWidth, chunkRotation: chunkRotation)
         }
 
-        //                if isShowingPercentage && !isAnimatingToCenter {
-        //                    Text("\(animatedUserPercent, specifier: "%.1f")%")
-        //                        .font(.title)
-        //                        .fontWeight(.black)
-        //                }
+        //        if isShowingPercentage && !isAnimatingToCenter {
+        //          Text("\(animatedUserPercent, specifier: "%.1f")%")
+        //            .font(.title)
+        //            .fontWeight(.black)
+        //        }
       }
       .frame(width: CGFloat(size), height: CGFloat(size))
       .position(
@@ -172,8 +214,8 @@ struct UserProportionRing: View {
       ringWidth: CGFloat(ringWidth),
       gapDegrees: 0
     )
-    .fill(.purple.gradient)
-    .shadow(color: .purple.opacity(0.4), radius: 6, x: 0, y: 3)
+    .fill(.orange.gradient)
+    .shadow(color: .orange.opacity(0.4), radius: 6, x: 0, y: 3)
     .rotationEffect(.degrees(chunkRotation))
 
     AnimatedRingSegment(
@@ -184,8 +226,8 @@ struct UserProportionRing: View {
       ringWidth: CGFloat(ringWidth),
       gapDegrees: 0
     )
-    .fill(.yellow.gradient)
-    .shadow(color: .yellow.opacity(0.4), radius: 6, x: 0, y: 3)
+    .fill(.pink.gradient)
+    .shadow(color: .pink.opacity(0.4), radius: 6, x: 0, y: 3)
     .rotationEffect(.degrees(chunkRotation))
 
     AnimatedRingSegment(
@@ -196,8 +238,8 @@ struct UserProportionRing: View {
       ringWidth: CGFloat(ringWidth),
       gapDegrees: 0
     )
-    .fill(.red.gradient)
-    .shadow(color: .red.opacity(0.4), radius: 6, x: 0, y: 3)
+    .fill(.purple.gradient)
+    .shadow(color: .purple.opacity(0.4), radius: 6, x: 0, y: 3)
     .rotationEffect(.degrees(chunkRotation))
   }
 }
