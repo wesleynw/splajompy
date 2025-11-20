@@ -8,14 +8,23 @@ struct UserProportionRing: View {
   @State private var isShowingPercentage: Bool = false
   @State private var animatedUserPercent: Double = 0
   @State private var isAnimatingToCenter: Bool = false
+  @State private var showComponentBreakdown: Bool = false
 
   var body: some View {
     VStack {
       if isAnimatingToCenter {
-        Text("Your slice of Splajompy")
-          .fontWeight(.bold)
-          .font(.title)
-          .padding()
+        VStack {
+          Text("Your slice of Splajompy")
+            .fontDesign(.rounded)
+            .fontWeight(.black)
+            .font(.title)
+            .padding()
+
+          Text("\(data.sliceData.percent, specifier: "%.1f")%")
+            .foregroundStyle(.blue.gradient)
+            .fontWeight(.black)
+            .font(.title)
+        }
       }
       if isShowingIntroText {
         Text("What % of Splajompy are you?")
@@ -30,14 +39,12 @@ struct UserProportionRing: View {
     .onAppear {
       DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
         withAnimation { isShowingIntroText = false }
-
       }
       DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
         withAnimation(.bouncy(duration: 1.7)) {
           animatedUserPercent = data.sliceData.percent
         }
       }
-
       DispatchQueue.main.asyncAfter(deadline: .now() + 3.2) {
         withAnimation(.default) {
           isShowingPercentage = true
@@ -45,14 +52,25 @@ struct UserProportionRing: View {
       }
     }
     .safeAreaInset(edge: .bottom) {
-      Button("Continue") {
-        withAnimation(.spring) {
-          isAnimatingToCenter.toggle()
+      if !isAnimatingToCenter {
+        Button("Continue") {
+          withAnimation(.spring) {
+            isAnimatingToCenter.toggle()
+          }
         }
+        .buttonStyle(.borderedProminent)
+        .frame(maxWidth: .infinity)
+        .padding()
+      } else {
+        Button(showComponentBreakdown ? "Hide Details" : "Show Details") {
+          withAnimation(.spring) {
+            showComponentBreakdown.toggle()
+          }
+        }
+        .buttonStyle(.borderedProminent)
+        .frame(maxWidth: .infinity)
+        .padding()
       }
-      .buttonStyle(.borderedProminent)
-      .frame(maxWidth: .infinity)
-      .padding()
     }
   }
 
@@ -63,30 +81,24 @@ struct UserProportionRing: View {
       let arcMidpoint = (animatedUserPercent / 100 * 360) / 2
       let chunkRotation = isAnimatingToCenter ? -arcMidpoint : 0
 
-      let approximateWidth =
-        .pi * Double(size) * animatedUserPercent / 100
+      let approximateWidth = .pi * Double(size) * animatedUserPercent / 100
       let approximateHeight = size * ringWidthRatio * 0.8
 
       // if it's a really small percentage, we need to override the ring width when zoomed
       // in or we'll just have a tall skinny slice
       let needsHeightOverride: Bool =
-        Double(approximateHeight) / approximateWidth > 2
-        && isAnimatingToCenter
+        Double(approximateHeight) / approximateWidth > 2 && isAnimatingToCenter
       let ringWidth =
-        needsHeightOverride
-        ? Float(approximateWidth) : size * ringWidthRatio
+        needsHeightOverride ? Float(approximateWidth) : size * ringWidthRatio
 
-      let targetScale: CGFloat =
-        CGFloat(
-          isAnimatingToCenter
-            ? size
-              / max(
-                Float(approximateWidth),
-                needsHeightOverride
-                  ? Float(approximateWidth)
-                  : approximateHeight
-              ) * 0.85 : 1.0
-        )
+      let targetScale: CGFloat = CGFloat(
+        isAnimatingToCenter
+          ? size
+            / max(
+              Float(approximateWidth),
+              needsHeightOverride ? Float(approximateWidth) : approximateHeight
+            ) * 0.85 : 1.0
+      )
 
       let offsetY = isAnimatingToCenter ? size / 2 : 0
 
@@ -119,6 +131,11 @@ struct UserProportionRing: View {
         .fill(.blue.gradient)
         .shadow(color: .blue.opacity(0.4), radius: 6, x: 0, y: 3)
         .rotationEffect(.degrees(chunkRotation))
+        .opacity(showComponentBreakdown ? 0 : 1)
+
+        if showComponentBreakdown {
+          componentArcs(ringWidth: ringWidth, chunkRotation: chunkRotation)
+        }
 
         //                if isShowingPercentage && !isAnimatingToCenter {
         //                    Text("\(animatedUserPercent, specifier: "%.1f")%")
@@ -137,6 +154,51 @@ struct UserProportionRing: View {
       .transition(.scale.animation(.spring(duration: 5.2)))
     }
     .padding()
+  }
+
+  @ViewBuilder
+  private func componentArcs(ringWidth: Float, chunkRotation: Double)
+    -> some View
+  {
+    let postPercent = data.sliceData.postComponent
+    let commentPercent = data.sliceData.commentComponent
+    let likePercent = data.sliceData.likeComponent
+
+    AnimatedRingSegment(
+      isHighlightedSlice: true,
+      startPercent: 0,
+      endPercent: postPercent,
+      showGap: false,
+      ringWidth: CGFloat(ringWidth),
+      gapDegrees: 0
+    )
+    .fill(.purple.gradient)
+    .shadow(color: .purple.opacity(0.4), radius: 6, x: 0, y: 3)
+    .rotationEffect(.degrees(chunkRotation))
+
+    AnimatedRingSegment(
+      isHighlightedSlice: true,
+      startPercent: postPercent,
+      endPercent: postPercent + commentPercent,
+      showGap: false,
+      ringWidth: CGFloat(ringWidth),
+      gapDegrees: 0
+    )
+    .fill(.yellow.gradient)
+    .shadow(color: .yellow.opacity(0.4), radius: 6, x: 0, y: 3)
+    .rotationEffect(.degrees(chunkRotation))
+
+    AnimatedRingSegment(
+      isHighlightedSlice: true,
+      startPercent: postPercent + commentPercent,
+      endPercent: postPercent + commentPercent + likePercent,
+      showGap: false,
+      ringWidth: CGFloat(ringWidth),
+      gapDegrees: 0
+    )
+    .fill(.red.gradient)
+    .shadow(color: .red.opacity(0.4), radius: 6, x: 0, y: 3)
+    .rotationEffect(.degrees(chunkRotation))
   }
 }
 
@@ -214,9 +276,9 @@ struct AnimatedRingSegment: Shape {
     ),
     sliceData: SliceData(
       percent: 5,
-      postComponent: 1,
-      commentComponent: 2,
-      likeComponent: 3
+      postComponent: 1.5,
+      commentComponent: 2.0,
+      likeComponent: 1.5
     )
   )
 
