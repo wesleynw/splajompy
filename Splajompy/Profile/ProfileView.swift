@@ -296,6 +296,7 @@ struct ProfileView: View {
         .padding(.horizontal, 12)
         .background(.secondary.opacity(0.1))
         .cornerRadius(8)
+        .frame(maxWidth: .infinity)
       }
 
       if !isProfileTab && !isCurrentUser {
