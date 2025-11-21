@@ -4,11 +4,11 @@ struct UserProportionRing: View {
   let data: WrappedData
   let ringWidthRatio: Float = 0.05
   let gapDegrees: Double = 9
-  @State private var isShowingIntroText: Bool = true
+  @State private var isShowingIntroText: Bool = false
   @State private var isShowingPercentage: Bool = false
   @State private var animatedUserPercent: Double = 0
-  @State private var isAnimatingToCenter: Bool = false
-  @State private var showComponentBreakdown: Bool = false
+  @State private var isAnimatingToCenter: Bool = true
+  @State private var showComponentBreakdown: Bool = true
 
   var body: some View {
     VStack {
@@ -25,6 +25,38 @@ struct UserProportionRing: View {
             .foregroundStyle(.blue.gradient)
             .fontWeight(.black)
             .font(.title)
+
+          if showComponentBreakdown {
+            HStack {
+              VStack {
+                Text("\(data.sliceData.postComponent, specifier: "%.1f")%")
+                  .fontDesign(.rounded)
+                  .fontWeight(.black)
+                  .font(.title3)
+                  .foregroundStyle(.orange.gradient)
+              }
+              .padding(.horizontal)
+
+              VStack {
+                Text("\(data.sliceData.commentComponent, specifier: "%.1f")%")
+                  .fontDesign(.rounded)
+                  .fontWeight(.black)
+                  .font(.title3)
+                  .foregroundStyle(.red.gradient)
+              }
+              .padding(.horizontal)
+
+              VStack {
+                Text("\(data.sliceData.likeComponent, specifier: "%.1f")%")
+                  .fontDesign(.rounded)
+                  .fontWeight(.black)
+                  .font(.title3)
+                  .foregroundStyle(.purple.gradient)
+              }
+              .padding(.horizontal)
+            }
+            .padding(.top)
+          }
         }
       }
       if isShowingIntroText {
