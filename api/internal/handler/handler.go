@@ -124,11 +124,11 @@ func (h *Handler) RegisterRoutes(handleFunc func(pattern string, handlerFunc fun
 }
 
 func (h *Handler) RegisterPublicRoutes(handleFunc func(pattern string, handlerFunc func(http.ResponseWriter, *http.Request))) {
-	// auth
 	handleFunc("POST /register", h.Register)
 	handleFunc("POST /login", h.Login)
 	handleFunc("POST /otc/generate", h.GenerateOTC)
 	handleFunc("POST /otc/verify", h.VerifyOTC)
+	handleFunc("GET /health", h.GetAppHealth)
 }
 
 func (h *Handler) GetIntPathParam(r *http.Request, paramName string) (int, error) {
