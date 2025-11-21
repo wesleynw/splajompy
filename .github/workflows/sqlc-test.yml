@@ -11,7 +11,7 @@ jobs:
   diff:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: sqlc-dev/setup-sqlc@v4
         with:
           sqlc-version: "1.30.0"
