@@ -444,31 +444,6 @@ func (q *Queries) MuteUser(ctx context.Context, arg MuteUserParams) error {
 	return err
 }
 
-const temp_GetAllUserIds = `-- name: Temp_GetAllUserIds :many
-SELECT user_id
-FROM users
-`
-
-func (q *Queries) Temp_GetAllUserIds(ctx context.Context) ([]int, error) {
-	rows, err := q.db.Query(ctx, temp_GetAllUserIds)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []int
-	for rows.Next() {
-		var user_id int
-		if err := rows.Scan(&user_id); err != nil {
-			return nil, err
-		}
-		items = append(items, user_id)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
 const unblockUser = `-- name: UnblockUser :exec
 DELETE FROM block
 WHERE user_id = $1 AND target_user_id = $2
@@ -561,22 +536,6 @@ type UpdateUserNameParams struct {
 
 func (q *Queries) UpdateUserName(ctx context.Context, arg UpdateUserNameParams) error {
 	_, err := q.db.Exec(ctx, updateUserName, arg.UserID, arg.Name)
-	return err
-}
-
-const updateUserReferralCode = `-- name: UpdateUserReferralCode :exec
-UPDATE users
-SET referral_code = $2
-WHERE user_id = $1
-`
-
-type UpdateUserReferralCodeParams struct {
-	UserID       int    `json:"userId"`
-	ReferralCode string `json:"referralCode"`
-}
-
-func (q *Queries) UpdateUserReferralCode(ctx context.Context, arg UpdateUserReferralCodeParams) error {
-	_, err := q.db.Exec(ctx, updateUserReferralCode, arg.UserID, arg.ReferralCode)
 	return err
 }
 

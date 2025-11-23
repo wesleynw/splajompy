@@ -669,11 +669,3 @@ func (r *FakeUserRepository) GetMutualsByUserId(ctx context.Context, currentUser
 func (r *FakeUserRepository) GetIsReferralCodeInUse(ctx context.Context, code string) (bool, error) {
 	return false, nil
 }
-
-func (r *FakeUserRepository) Temp_GetAllUserIds(ctx context.Context) ([]int, error) {
-	return []int{1, 2, 3}, nil
-}
-
-func (r *FakeUserRepository) Temp_UpdateUserReferralCode(ctx context.Context, userId int, code string) error {
-	return nil
-}
