@@ -45,19 +45,25 @@ func (q *Queries) CreateSession(ctx context.Context, arg CreateSessionParams) er
 }
 
 const createUser = `-- name: CreateUser :one
-INSERT INTO users (email, username, password)
-VALUES ($1, $2, $3)
-RETURNING user_id, email, password, username, created_at, name, is_verified, pinned_post_id, user_display_properties
+INSERT INTO users (email, username, password, referral_code)
+VALUES ($1, $2, $3, $4)
+RETURNING user_id, email, password, username, created_at, name, is_verified, pinned_post_id, user_display_properties, referral_code
 `
 
 type CreateUserParams struct {
-	Email    string `json:"email"`
-	Username string `json:"username"`
-	Password string `json:"password"`
+	Email        string `json:"email"`
+	Username     string `json:"username"`
+	Password     string `json:"password"`
+	ReferralCode string `json:"referralCode"`
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
-	row := q.db.QueryRow(ctx, createUser, arg.Email, arg.Username, arg.Password)
+	row := q.db.QueryRow(ctx, createUser,
+		arg.Email,
+		arg.Username,
+		arg.Password,
+		arg.ReferralCode,
+	)
 	var i User
 	err := row.Scan(
 		&i.UserID,
@@ -69,6 +75,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.IsVerified,
 		&i.PinnedPostID,
 		&i.UserDisplayProperties,
+		&i.ReferralCode,
 	)
 	return i, err
 }
@@ -135,6 +142,21 @@ SELECT EXISTS (
 
 func (q *Queries) GetIsEmailInUse(ctx context.Context, email string) (bool, error) {
 	row := q.db.QueryRow(ctx, getIsEmailInUse, email)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
+}
+
+const getIsReferralCodeInUse = `-- name: GetIsReferralCodeInUse :one
+SELECT EXISTS (
+    SELECT 1
+    FROM users
+    WHERE referral_code = $1
+)
+`
+
+func (q *Queries) GetIsReferralCodeInUse(ctx context.Context, referralCode string) (bool, error) {
+	row := q.db.QueryRow(ctx, getIsReferralCodeInUse, referralCode)
 	var exists bool
 	err := row.Scan(&exists)
 	return exists, err
@@ -209,7 +231,7 @@ func (q *Queries) GetSessionById(ctx context.Context, id string) (Session, error
 }
 
 const getUserById = `-- name: GetUserById :one
-SELECT user_id, email, password, username, created_at, name, is_verified, pinned_post_id, user_display_properties
+SELECT user_id, email, password, username, created_at, name, is_verified, pinned_post_id, user_display_properties, referral_code
 FROM users
 WHERE user_id = $1
 LIMIT 1
@@ -228,12 +250,13 @@ func (q *Queries) GetUserById(ctx context.Context, userID int) (User, error) {
 		&i.IsVerified,
 		&i.PinnedPostID,
 		&i.UserDisplayProperties,
+		&i.ReferralCode,
 	)
 	return i, err
 }
 
 const getUserByIdentifier = `-- name: GetUserByIdentifier :one
-SELECT user_id, email, password, username, created_at, name, is_verified, pinned_post_id, user_display_properties
+SELECT user_id, email, password, username, created_at, name, is_verified, pinned_post_id, user_display_properties, referral_code
 FROM users
 WHERE email = $1 OR username = $1
 LIMIT 1
@@ -252,12 +275,13 @@ func (q *Queries) GetUserByIdentifier(ctx context.Context, email string) (User, 
 		&i.IsVerified,
 		&i.PinnedPostID,
 		&i.UserDisplayProperties,
+		&i.ReferralCode,
 	)
 	return i, err
 }
 
 const getUserByUsername = `-- name: GetUserByUsername :one
-SELECT user_id, email, password, username, created_at, name, is_verified, pinned_post_id, user_display_properties
+SELECT user_id, email, password, username, created_at, name, is_verified, pinned_post_id, user_display_properties, referral_code
 FROM users
 WHERE username = $1
 LIMIT 1
@@ -276,12 +300,13 @@ func (q *Queries) GetUserByUsername(ctx context.Context, username string) (User,
 		&i.IsVerified,
 		&i.PinnedPostID,
 		&i.UserDisplayProperties,
+		&i.ReferralCode,
 	)
 	return i, err
 }
 
 const getUserWithPasswordById = `-- name: GetUserWithPasswordById :one
-SELECT user_id, email, password, username, created_at, name, is_verified, pinned_post_id, user_display_properties
+SELECT user_id, email, password, username, created_at, name, is_verified, pinned_post_id, user_display_properties, referral_code
 FROM users
 WHERE user_id = $1
 LIMIT 1
@@ -300,12 +325,13 @@ func (q *Queries) GetUserWithPasswordById(ctx context.Context, userID int) (User
 		&i.IsVerified,
 		&i.PinnedPostID,
 		&i.UserDisplayProperties,
+		&i.ReferralCode,
 	)
 	return i, err
 }
 
 const getUserWithPasswordByIdentifier = `-- name: GetUserWithPasswordByIdentifier :one
-SELECT user_id, email, password, username, created_at, name, is_verified, pinned_post_id, user_display_properties
+SELECT user_id, email, password, username, created_at, name, is_verified, pinned_post_id, user_display_properties, referral_code
 FROM users
 WHERE email = $1 OR username = $1
 LIMIT 1
@@ -324,12 +350,13 @@ func (q *Queries) GetUserWithPasswordByIdentifier(ctx context.Context, email str
 		&i.IsVerified,
 		&i.PinnedPostID,
 		&i.UserDisplayProperties,
+		&i.ReferralCode,
 	)
 	return i, err
 }
 
 const getUsernameLike = `-- name: GetUsernameLike :many
-SELECT user_id, email, password, username, created_at, name, is_verified, pinned_post_id, user_display_properties
+SELECT user_id, email, password, username, created_at, name, is_verified, pinned_post_id, user_display_properties, referral_code
 FROM users
 WHERE username LIKE $1
 AND NOT EXISTS (
@@ -365,6 +392,7 @@ func (q *Queries) GetUsernameLike(ctx context.Context, arg GetUsernameLikeParams
 			&i.IsVerified,
 			&i.PinnedPostID,
 			&i.UserDisplayProperties,
+			&i.ReferralCode,
 		); err != nil {
 			return nil, err
 		}
@@ -414,6 +442,31 @@ type MuteUserParams struct {
 func (q *Queries) MuteUser(ctx context.Context, arg MuteUserParams) error {
 	_, err := q.db.Exec(ctx, muteUser, arg.UserID, arg.TargetUserID)
 	return err
+}
+
+const temp_GetAllUserIds = `-- name: Temp_GetAllUserIds :many
+SELECT user_id
+FROM users
+`
+
+func (q *Queries) Temp_GetAllUserIds(ctx context.Context) ([]int, error) {
+	rows, err := q.db.Query(ctx, temp_GetAllUserIds)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []int
+	for rows.Next() {
+		var user_id int
+		if err := rows.Scan(&user_id); err != nil {
+			return nil, err
+		}
+		items = append(items, user_id)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const unblockUser = `-- name: UnblockUser :exec
@@ -508,6 +561,22 @@ type UpdateUserNameParams struct {
 
 func (q *Queries) UpdateUserName(ctx context.Context, arg UpdateUserNameParams) error {
 	_, err := q.db.Exec(ctx, updateUserName, arg.UserID, arg.Name)
+	return err
+}
+
+const updateUserReferralCode = `-- name: UpdateUserReferralCode :exec
+UPDATE users
+SET referral_code = $2
+WHERE user_id = $1
+`
+
+type UpdateUserReferralCodeParams struct {
+	UserID       int    `json:"userId"`
+	ReferralCode string `json:"referralCode"`
+}
+
+func (q *Queries) UpdateUserReferralCode(ctx context.Context, arg UpdateUserReferralCodeParams) error {
+	_, err := q.db.Exec(ctx, updateUserReferralCode, arg.UserID, arg.ReferralCode)
 	return err
 }
 

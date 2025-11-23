@@ -36,6 +36,7 @@ type Querier interface {
 	GetIsEmailInUse(ctx context.Context, email string) (bool, error)
 	GetIsLikedByUser(ctx context.Context, arg GetIsLikedByUserParams) (bool, error)
 	GetIsPostLikedByUser(ctx context.Context, arg GetIsPostLikedByUserParams) (bool, error)
+	GetIsReferralCodeInUse(ctx context.Context, referralCode string) (bool, error)
 	GetIsUserBlockingUser(ctx context.Context, arg GetIsUserBlockingUserParams) (bool, error)
 	GetIsUserFollowingUser(ctx context.Context, arg GetIsUserFollowingUserParams) (bool, error)
 	GetIsUserMutingUser(ctx context.Context, arg GetIsUserMutingUserParams) (bool, error)
@@ -84,6 +85,7 @@ type Querier interface {
 	MuteUser(ctx context.Context, arg MuteUserParams) error
 	PinPost(ctx context.Context, arg PinPostParams) error
 	RemoveLike(ctx context.Context, arg RemoveLikeParams) error
+	Temp_GetAllUserIds(ctx context.Context) ([]int, error)
 	UnblockUser(ctx context.Context, arg UnblockUserParams) error
 	UnmuteUser(ctx context.Context, arg UnmuteUserParams) error
 	UnpinPost(ctx context.Context, userID int) error
@@ -91,6 +93,7 @@ type Querier interface {
 	UpdateUserBio(ctx context.Context, arg UpdateUserBioParams) error
 	UpdateUserDisplayProperties(ctx context.Context, arg UpdateUserDisplayPropertiesParams) error
 	UpdateUserName(ctx context.Context, arg UpdateUserNameParams) error
+	UpdateUserReferralCode(ctx context.Context, arg UpdateUserReferralCodeParams) error
 	UserHasUnreadNotifications(ctx context.Context, userID int) (bool, error)
 	UserSearchWithHeuristics(ctx context.Context, arg UserSearchWithHeuristicsParams) ([]UserSearchWithHeuristicsRow, error)
 }

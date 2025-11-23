@@ -13,8 +13,8 @@ SELECT EXISTS (
 );
 
 -- name: CreateUser :one
-INSERT INTO users (email, username, password)
-VALUES ($1, $2, $3)
+INSERT INTO users (email, username, password, referral_code)
+VALUES ($1, $2, $3, $4)
 RETURNING *;
 
 -- name: GetUserWithPasswordById :one
@@ -192,3 +192,19 @@ WHERE NOT EXISTS (
 )
 ORDER BY r.tier, r.score DESC, r.username
     LIMIT $2;
+
+-- name: GetIsReferralCodeInUse :one
+SELECT EXISTS (
+    SELECT 1
+    FROM users
+    WHERE referral_code = $1
+);
+
+-- name: UpdateUserReferralCode :exec
+UPDATE users
+SET referral_code = $2
+WHERE user_id = $1;
+
+-- name: Temp_GetAllUserIds :many
+SELECT user_id
+FROM users;

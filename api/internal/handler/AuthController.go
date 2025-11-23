@@ -160,3 +160,13 @@ func (h *Handler) DeleteAccount(w http.ResponseWriter, r *http.Request) {
 
 	utilities.HandleEmptySuccess(w)
 }
+
+func (h *Handler) Temp_BackfillReferralCode(w http.ResponseWriter, r *http.Request) {
+	err := h.authService.Temp_BackfillReferralCode(r.Context())
+	if err != nil {
+		utilities.HandleError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	utilities.HandleEmptySuccess(w)
+}
