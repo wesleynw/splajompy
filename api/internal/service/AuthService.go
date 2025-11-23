@@ -290,27 +290,6 @@ func (s *AuthService) generateReferralCode(ctx context.Context) (*string, error)
 	return &formattedCode, nil
 }
 
-func (s *AuthService) Temp_BackfillReferralCode(ctx context.Context) error {
-	users, err := s.userRepository.Temp_GetAllUserIds(ctx)
-	if err != nil {
-		return err
-	}
-
-	for _, userId := range users {
-		code, err := s.generateReferralCode(ctx)
-		if err != nil {
-			return err
-		}
-
-		err = s.userRepository.Temp_UpdateUserReferralCode(ctx, userId, *code)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
 func (s *AuthService) DeleteAccount(ctx context.Context, currentUser models.PublicUser) error {
 	images, err := s.postRepository.GetAllImagesForUser(ctx, currentUser.UserID)
 	if err != nil {

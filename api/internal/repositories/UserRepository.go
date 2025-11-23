@@ -46,8 +46,6 @@ type UserRepository interface {
 	GetFollowingByUserId(ctx context.Context, userId int, limit int, offset int) ([]queries.GetFollowingByUserIdRow, error)
 	GetMutualsByUserId(ctx context.Context, currentUserId int, targetUserId int, limit int, offset int) ([]queries.GetMutualsByUserIdRow, error)
 	GetIsReferralCodeInUse(ctx context.Context, code string) (bool, error)
-	Temp_GetAllUserIds(ctx context.Context) ([]int, error)
-	Temp_UpdateUserReferralCode(ctx context.Context, userId int, code string) error
 }
 
 type DBUserRepository struct {
@@ -302,17 +300,6 @@ func (r DBUserRepository) GetMutualsByUserId(ctx context.Context, currentUserId 
 
 func (r DBUserRepository) GetIsReferralCodeInUse(ctx context.Context, code string) (bool, error) {
 	return r.querier.GetIsReferralCodeInUse(ctx, code)
-}
-
-func (r *DBUserRepository) Temp_GetAllUserIds(ctx context.Context) ([]int, error) {
-	return r.querier.Temp_GetAllUserIds(ctx)
-}
-
-func (r *DBUserRepository) Temp_UpdateUserReferralCode(ctx context.Context, userId int, code string) error {
-	return r.querier.UpdateUserReferralCode(ctx, queries.UpdateUserReferralCodeParams{
-		UserID:       userId,
-		ReferralCode: code,
-	})
 }
 
 // NewDBUserRepository creates a new user repository

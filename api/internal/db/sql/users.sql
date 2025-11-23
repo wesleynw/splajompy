@@ -199,12 +199,3 @@ SELECT EXISTS (
     FROM users
     WHERE referral_code = $1
 );
-
--- name: UpdateUserReferralCode :exec
-UPDATE users
-SET referral_code = $2
-WHERE user_id = $1;
-
--- name: Temp_GetAllUserIds :many
-SELECT user_id
-FROM users;
