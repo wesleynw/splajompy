@@ -302,7 +302,10 @@ func (s *AuthService) Temp_BackfillReferralCode(ctx context.Context) error {
 			return err
 		}
 
-		s.userRepository.Temp_UpdateUserReferralCode(ctx, userId, *code)
+		err = s.userRepository.Temp_UpdateUserReferralCode(ctx, userId, *code)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil

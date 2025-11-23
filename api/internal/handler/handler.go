@@ -121,7 +121,7 @@ func (h *Handler) RegisterRoutes(handleFunc func(pattern string, handlerFunc fun
 	// misc
 	handleFuncWithAuth("POST /request-feature", h.RequestFeature)
 	handleFuncWithAuth("GET /stats", h.GetAppStats)
-	handleFunc("POST /backfill", h.Temp_BackfillReferralCode)
+	handleFuncWithAuth("POST /backfill", h.Temp_BackfillReferralCode)
 }
 
 func (h *Handler) RegisterPublicRoutes(handleFunc func(pattern string, handlerFunc func(http.ResponseWriter, *http.Request))) {
