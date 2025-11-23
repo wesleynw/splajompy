@@ -22,7 +22,7 @@ func setupCommentTest(t *testing.T) (*CommentService, *fakes.FakeCommentReposito
 
 	svc := NewCommentService(commentRepo, postRepo, notificationRepo, userRepo, likeRepo)
 
-	user, err := userRepo.CreateUser(context.Background(), "testUser", "test@example.com", "password")
+	user, err := userRepo.CreateUser(context.Background(), "testUser", "test@example.com", "password", "123")
 	require.NoError(t, err)
 
 	return svc, commentRepo, postRepo, notificationRepo, userRepo, likeRepo, user
@@ -59,7 +59,7 @@ func TestGetCommentsByPostId(t *testing.T) {
 	post, err := postRepo.InsertPost(ctx, user.UserID, "Test post for getting comments", nil, nil)
 	require.NoError(t, err)
 
-	commenter, err := userRepo.CreateUser(ctx, "commenter", "commenter@example.com", "password")
+	commenter, err := userRepo.CreateUser(ctx, "commenter", "commenter@example.com", "password", "123")
 	require.NoError(t, err)
 
 	commentContents := []string{
@@ -109,7 +109,7 @@ func TestCommentLikes(t *testing.T) {
 	post, err := postRepo.InsertPost(ctx, user.UserID, "Test post for comment likes", nil, nil)
 	require.NoError(t, err)
 
-	otherUser, err := userRepo.CreateUser(ctx, "otherUser", "other@example.com", "password")
+	otherUser, err := userRepo.CreateUser(ctx, "otherUser", "other@example.com", "password", "123")
 	require.NoError(t, err)
 
 	comment, err := svc.AddCommentToPost(ctx, otherUser, post.PostID, "Comment to like")
@@ -164,7 +164,7 @@ func TestRemoveLikeFromComment_DeletesNotification(t *testing.T) {
 	svc, commentRepo, postRepo, notificationRepo, userRepo, likeRepo, user := setupCommentTest(t)
 	ctx := context.Background()
 
-	otherUser, err := userRepo.CreateUser(ctx, "otheruser", "other@example.com", "password")
+	otherUser, err := userRepo.CreateUser(ctx, "otheruser", "other@example.com", "password", "123")
 	require.NoError(t, err)
 
 	post, err := postRepo.InsertPost(ctx, user.UserID, "Test post", nil, nil)
@@ -190,7 +190,7 @@ func TestRemoveLikeFromComment_KeepsOldNotification(t *testing.T) {
 	svc, commentRepo, postRepo, notificationRepo, userRepo, likeRepo, user := setupCommentTest(t)
 	ctx := context.Background()
 
-	otherUser, err := userRepo.CreateUser(ctx, "otheruser", "other@example.com", "password")
+	otherUser, err := userRepo.CreateUser(ctx, "otheruser", "other@example.com", "password", "123")
 	require.NoError(t, err)
 
 	post, err := postRepo.InsertPost(ctx, user.UserID, "Test post", nil, nil)
@@ -225,7 +225,7 @@ func TestRemoveLikeFromComment_NoNotificationExists(t *testing.T) {
 	svc, commentRepo, postRepo, notificationRepo, userRepo, likeRepo, user := setupCommentTest(t)
 	ctx := context.Background()
 
-	otherUser, err := userRepo.CreateUser(ctx, "otheruser", "other@example.com", "password")
+	otherUser, err := userRepo.CreateUser(ctx, "otheruser", "other@example.com", "password", "123")
 	require.NoError(t, err)
 
 	post, err := postRepo.InsertPost(ctx, user.UserID, "Test post", nil, nil)
@@ -251,7 +251,7 @@ func TestDeleteComment_UnauthorizedUser(t *testing.T) {
 	post, err := postRepo.InsertPost(ctx, user.UserID, "Test post for deletion", nil, nil)
 	require.NoError(t, err)
 
-	otherUser, err := userRepo.CreateUser(ctx, "otherUser", "other@example.com", "password")
+	otherUser, err := userRepo.CreateUser(ctx, "otherUser", "other@example.com", "password", "123")
 	require.NoError(t, err)
 
 	comment, err := svc.AddCommentToPost(ctx, otherUser, post.PostID, "Comment to delete")
@@ -271,7 +271,7 @@ func TestNewCommentWithMention_DoesntSelfNotify(t *testing.T) {
 	svc, _, postRepo, notificationRepo, userRepo, _, _ := setupCommentTest(t)
 	ctx := context.Background()
 
-	user0, err := userRepo.CreateUser(ctx, "user0", "user0@splajompy.com", "password123")
+	user0, err := userRepo.CreateUser(ctx, "user0", "user0@splajompy.com", "password123", "123")
 	require.NoError(t, err)
 
 	post, err := postRepo.InsertPost(ctx, user0.UserID, "Test post", nil, nil)
@@ -291,11 +291,11 @@ func TestNewCommentWithMultipleMentions_DeduplicatesNotifications(t *testing.T) 
 	svc, _, postRepo, notificationRepo, userRepo, _, _ := setupCommentTest(t)
 	ctx := context.Background()
 
-	user0, err := userRepo.CreateUser(ctx, "user0", "user0@splajompy.com", "password123")
+	user0, err := userRepo.CreateUser(ctx, "user0", "user0@splajompy.com", "password123", "123")
 	require.NoError(t, err)
-	user1, err := userRepo.CreateUser(ctx, "user1", "user1@splajompy.com", "password123")
+	user1, err := userRepo.CreateUser(ctx, "user1", "user1@splajompy.com", "password123", "123")
 	require.NoError(t, err)
-	user2, err := userRepo.CreateUser(ctx, "user2", "user2@splajompy.com", "password123")
+	user2, err := userRepo.CreateUser(ctx, "user2", "user2@splajompy.com", "password123", "123")
 	require.NoError(t, err)
 
 	post, err := postRepo.InsertPost(ctx, user0.UserID, "Test post", nil, nil)

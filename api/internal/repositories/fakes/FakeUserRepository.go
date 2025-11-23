@@ -14,19 +14,19 @@ import (
 )
 
 type FakeUserRepository struct {
-	users                  map[int]models.PublicUser
-	usersByUsername        map[string]int
-	usersByEmail           map[string]int
-	userBios               map[int]string
-	userDisplayProperties  map[int]models.UserDisplayProperties
-	passwords              map[int]string
-	followRelations        map[int]map[int]bool
-	blockRelations         map[int]map[int]bool
-	muteRelations          map[int]map[int]bool
-	verificationCodes      map[int]map[string]queries.VerificationCode
-	sessions               map[string]queries.Session
-	mutex                  sync.RWMutex
-	nextUserId             int
+	users                 map[int]models.PublicUser
+	usersByUsername       map[string]int
+	usersByEmail          map[string]int
+	userBios              map[int]string
+	userDisplayProperties map[int]models.UserDisplayProperties
+	passwords             map[int]string
+	followRelations       map[int]map[int]bool
+	blockRelations        map[int]map[int]bool
+	muteRelations         map[int]map[int]bool
+	verificationCodes     map[int]map[string]queries.VerificationCode
+	sessions              map[string]queries.Session
+	mutex                 sync.RWMutex
+	nextUserId            int
 }
 
 func NewFakeUserRepository() *FakeUserRepository {
@@ -249,7 +249,7 @@ func (r *FakeUserRepository) GetIsEmailInUse(ctx context.Context, email string) 
 	return exists, nil
 }
 
-func (r *FakeUserRepository) CreateUser(ctx context.Context, username string, email string, password string) (models.PublicUser, error) {
+func (r *FakeUserRepository) CreateUser(ctx context.Context, username string, email string, password string, _ string) (models.PublicUser, error) {
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
 
@@ -664,4 +664,16 @@ func (r *FakeUserRepository) GetMutualsByUserId(ctx context.Context, currentUser
 	}
 
 	return mutuals[start:end], nil
+}
+
+func (r *FakeUserRepository) GetIsReferralCodeInUse(ctx context.Context, code string) (bool, error) {
+	return false, nil
+}
+
+func (r *FakeUserRepository) Temp_GetAllUserIds(ctx context.Context) ([]int, error) {
+	return []int{1, 2, 3}, nil
+}
+
+func (r *FakeUserRepository) Temp_UpdateUserReferralCode(ctx context.Context, userId int, code string) error {
+	return nil
 }

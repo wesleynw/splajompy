@@ -39,35 +39,40 @@ sql:
               type: "int"
               pointer: true
           - column: "posts.attributes"
-            "go_type": {
-                import: "splajompy.com/api/v2/internal/db" ,
+            "go_type":
+              {
+                import: "splajompy.com/api/v2/internal/db",
                 package: "db",
                 type: "Attributes",
-                pointer: true
-            }
+                pointer: true,
+              }
             "nullable": true
           - column: "posts.facets"
-            "go_type": {
-               import: "splajompy.com/api/v2/internal/db",
-               package: "db",
-               type: "Facets"
-            }
+            "go_type":
+              {
+                import: "splajompy.com/api/v2/internal/db",
+                package: "db",
+                type: "Facets",
+              }
           - column: "notifications.facets"
-            "go_type": {
-              import: "splajompy.com/api/v2/internal/db",
-              package: "db",
-              type: "Facets"
-            }
+            "go_type":
+              {
+                import: "splajompy.com/api/v2/internal/db",
+                package: "db",
+                type: "Facets",
+              }
           - column: "comments.facets"
-            "go_type": {
-              import: "splajompy.com/api/v2/internal/db",
-              package: "db",
-              type: "Facets"
-            }
+            "go_type":
+              {
+                import: "splajompy.com/api/v2/internal/db",
+                package: "db",
+                type: "Facets",
+              }
           - column: "users.user_display_properties"
-            "go_type": {
-              import: "splajompy.com/api/v2/internal/db",
-              package: "db",
-              type: "UserDisplayProperties",
-              pointer: true
-            }
+            "go_type":
+              {
+                import: "splajompy.com/api/v2/internal/db",
+                package: "db",
+                type: "UserDisplayProperties",
+                pointer: true,
+              }

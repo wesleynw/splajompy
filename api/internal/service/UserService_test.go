@@ -14,9 +14,9 @@ func TestFollowUser(t *testing.T) {
 	fakeUserRepo := fakes.NewFakeUserRepository()
 	fakeNotificationRepo := fakes.NewFakeNotificationRepository()
 
-	user1, err := fakeUserRepo.CreateUser(ctx, "user1", "user1@splajompy.com", "password123")
+	user1, err := fakeUserRepo.CreateUser(ctx, "user1", "user1@splajompy.com", "password", "123")
 	require.NoError(t, err)
-	user2, err := fakeUserRepo.CreateUser(ctx, "user2", "user2@splajompy.com", "password123")
+	user2, err := fakeUserRepo.CreateUser(ctx, "user2", "user2@splajompy.com", "password", "123")
 	require.NoError(t, err)
 
 	service := NewUserService(fakeUserRepo, fakeNotificationRepo, nil)
@@ -38,9 +38,9 @@ func TestGetUserById_WithNoMutuals_ReturnsEmptyArray(t *testing.T) {
 	fakeUserRepo := fakes.NewFakeUserRepository()
 	fakeNotificationRepo := fakes.NewFakeNotificationRepository()
 
-	requestingUser, err := fakeUserRepo.CreateUser(ctx, "requester", "requester@splajompy.com", "password123")
+	requestingUser, err := fakeUserRepo.CreateUser(ctx, "requester", "requester@splajompy.com", "password", "123")
 	require.NoError(t, err)
-	targetUser, err := fakeUserRepo.CreateUser(ctx, "target", "target@splajompy.com", "password123")
+	targetUser, err := fakeUserRepo.CreateUser(ctx, "target", "target@splajompy.com", "password", "123")
 	require.NoError(t, err)
 
 	service := NewUserService(fakeUserRepo, fakeNotificationRepo, nil)
