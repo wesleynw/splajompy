@@ -2,9 +2,12 @@ import SwiftUI
 
 enum Route: Hashable {
   case profile(id: String, username: String)
+  case currentProfile
   case post(id: Int)
   case followingList(userId: Int)
   case mutualsList(userId: Int)
+  case notifications
+  case search
 }
 
 func parseDeepLink(_ url: URL) -> Route? {

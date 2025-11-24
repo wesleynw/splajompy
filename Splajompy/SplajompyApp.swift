@@ -59,10 +59,44 @@ struct SplajompyApp: App {
   @ViewBuilder
   private var authenticatedView: some View {
     #if os(iOS)
-      iOSTabView
+      if PostHogSDK.shared.isFeatureEnabled("unified-navigation") || true {
+        unifiedNavigation
+      } else {
+        iOSTabView
+      }
     #else
       splitView
     #endif
+  }
+
+  @ViewBuilder
+  private var unifiedNavigation: some View {
+    NavigationStack(path: $navigationPaths[0]) {
+      MainFeedView(postManager: postManager)
+        .postHogScreenView()
+        .navigationDestination(for: Route.self) { route in
+          routeDestination(route)
+        }
+        .toolbar {
+          ToolbarItem(placement: .topBarLeading) {
+            NavigationLink(value: Route.currentProfile) {
+              Label("Profile", systemImage: "person")
+            }
+          }
+
+          ToolbarItem(placement: .topBarLeading) {
+            NavigationLink(value: Route.notifications) {
+              Label("Notifications", systemImage: "bell")
+            }
+          }
+
+          ToolbarItem(placement: .topBarTrailing) {
+            NavigationLink(value: Route.search) {
+              Label("Search", systemImage: "magnifyingglass")
+            }
+          }
+        }
+    }
   }
 
   @ViewBuilder
@@ -75,7 +109,7 @@ struct SplajompyApp: App {
             routeDestination(route)
           }
       }
-      .environment(\.navigationNamespace, navigationNamespace)
+
       .tabItem {
         Label("Home", systemImage: "house")
       }
@@ -88,7 +122,7 @@ struct SplajompyApp: App {
             routeDestination(route)
           }
       }
-      .environment(\.navigationNamespace, navigationNamespace)
+
       .tabItem {
         Label("Notifications", systemImage: "bell")
       }
@@ -101,7 +135,7 @@ struct SplajompyApp: App {
             routeDestination(route)
           }
       }
-      .environment(\.navigationNamespace, navigationNamespace)
+
       .tabItem {
         Label("Search", systemImage: "magnifyingglass")
       }
@@ -114,7 +148,7 @@ struct SplajompyApp: App {
             routeDestination(route)
           }
       }
-      .environment(\.navigationNamespace, navigationNamespace)
+
       .tabItem {
         Label("Profile", systemImage: "person.circle")
       }
@@ -172,7 +206,7 @@ struct SplajompyApp: App {
             handleDeepLink(url)
           }
         }
-        .environment(\.navigationNamespace, navigationNamespace)
+
       }
       .scrollIndicators(.visible)
     }
@@ -198,12 +232,18 @@ struct SplajompyApp: App {
         username: username,
         postManager: postManager
       )
+    case .currentProfile:
+      CurrentProfileView(postManager: postManager)
     case .post(let id):
       StandalonePostView(postId: id, postManager: postManager)
     case .followingList(let userId):
       UserListView(userId: userId, userListVariant: .following)
     case .mutualsList(let userId):
       UserListView(userId: userId, userListVariant: .mutuals)
+    case .notifications:
+      NotificationsView()
+    case .search:
+      SearchView()
     }
   }
 
