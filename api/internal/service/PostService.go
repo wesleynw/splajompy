@@ -113,7 +113,7 @@ func (s *PostService) NewPresignedStagingUrl(ctx context.Context, currentUser mo
 	return s.bucketRepository.GeneratePresignedURL(ctx, currentUser.UserID, extension, folder)
 }
 
-func (s *PostService) GetPostById(ctx context.Context, currentUser models.PublicUser, postId int) (*models.DetailedPost, error) {
+func (s *PostService) GetPostById(ctx context.Context, userId int, postId int) (*models.DetailedPost, error) {
 	post, err := s.postRepository.GetPostById(ctx, postId)
 	if err != nil {
 		return nil, err
@@ -124,7 +124,7 @@ func (s *PostService) GetPostById(ctx context.Context, currentUser models.Public
 		return nil, err
 	}
 
-	isLiked, _ := s.postRepository.IsPostLikedByUserId(ctx, currentUser.UserID, post.PostID)
+	isLiked, _ := s.postRepository.IsPostLikedByUserId(ctx, userId, post.PostID)
 
 	images, _ := s.postRepository.GetImagesForPost(ctx, post.PostID)
 	if images == nil {
@@ -135,11 +135,11 @@ func (s *PostService) GetPostById(ctx context.Context, currentUser models.Public
 	}
 
 	commentCount, _ := s.postRepository.GetCommentCountForPost(ctx, post.PostID)
-	relevantLikes, hasOtherLikes, _ := s.getRelevantLikes(ctx, currentUser, postId)
+	relevantLikes, hasOtherLikes, _ := s.getRelevantLikes(ctx, userId, postId)
 
 	var pollDetails *models.DetailedPoll
 	if post.Attributes != nil {
-		pollDetails, err = s.GetPollDetails(ctx, currentUser, postId, post.Attributes.Poll)
+		pollDetails, err = s.GetPollDetails(ctx, userId, postId, post.Attributes.Poll)
 		if err != nil {
 			return nil, err
 		}
@@ -220,7 +220,7 @@ func (s *PostService) getPostsByPostIDs(ctx context.Context, currentUser models.
 
 	for i, postID := range postIDs {
 		g.Go(func() error {
-			post, err := s.GetPostById(ctx, currentUser, postID)
+			post, err := s.GetPostById(ctx, currentUser.UserID, postID)
 			if err != nil {
 				return fmt.Errorf("unable to retrieve post %d", postID)
 			}
@@ -301,8 +301,8 @@ func (s *PostService) DeletePost(ctx context.Context, currentUser models.PublicU
 	return s.postRepository.DeletePost(ctx, postId)
 }
 
-func (s *PostService) getRelevantLikes(ctx context.Context, currentUser models.PublicUser, postId int) ([]models.RelevantLike, bool, error) {
-	likes, err := s.likeRepository.GetPostLikesFromFollowers(ctx, postId, currentUser.UserID)
+func (s *PostService) getRelevantLikes(ctx context.Context, userId int, postId int) ([]models.RelevantLike, bool, error) {
+	likes, err := s.likeRepository.GetPostLikesFromFollowers(ctx, postId, userId)
 	if err != nil {
 		return nil, false, err
 	}
@@ -325,7 +325,7 @@ func (s *PostService) getRelevantLikes(ctx context.Context, currentUser models.P
 	}
 
 	// don't include the current user
-	userIDs[count] = currentUser.UserID
+	userIDs[count] = userId
 
 	hasOtherLikes, err := s.likeRepository.HasLikesFromOthers(ctx, postId, userIDs)
 	if err != nil {
@@ -369,8 +369,8 @@ func (s *PostService) ReportPost(ctx context.Context, currentUser *models.Public
 	return err
 }
 
-func (s *PostService) GetPollDetails(ctx context.Context, currentUser models.PublicUser, postId int, poll db.Poll) (*models.DetailedPoll, error) {
-	currentUserVote, err := s.postRepository.GetUserVoteInPoll(ctx, postId, currentUser.UserID)
+func (s *PostService) GetPollDetails(ctx context.Context, userId int, postId int, poll db.Poll) (*models.DetailedPoll, error) {
+	currentUserVote, err := s.postRepository.GetUserVoteInPoll(ctx, postId, userId)
 	if err != nil {
 		return nil, err
 	}
