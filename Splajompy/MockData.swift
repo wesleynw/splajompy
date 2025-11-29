@@ -57,4 +57,22 @@ struct Mocks {
     isVerified: false,
     displayProperties: UserDisplayProperties(fontChoiceId: 2)
   )
+
+  static let wrappedData = WrappedData(
+    activityData: ActivityOverviewData(
+      activityCountCeiling: 1,
+      counts: ["test": 5],
+      mostActiveDay: "asdf"
+    ),
+    sliceData: SliceData(
+      percent: 5,
+      postComponent: 1.5,
+      commentComponent: 2.0,
+      likeComponent: 1.5
+    ),
+    comparativePostStatisticsData: ComparativePostStatisticsData(
+      postLengthVariation: 10.16273846328,
+      imageLengthVariation: -5.123
+    )
+  )
 }

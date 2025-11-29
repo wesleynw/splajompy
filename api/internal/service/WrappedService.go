@@ -21,8 +21,9 @@ func NewWrappedService(querier queries.Querier) *WrappedService {
 var fetchLimit = 50
 
 type WrappedData struct {
-	ActivityData UserActivityData `json:"activityData"`
-	SliceData    SliceData        `json:"sliceData"`
+	ActivityData                  UserActivityData              `json:"activityData"`
+	SliceData                     SliceData                     `json:"sliceData"`
+	ComparativePostStatisticsData ComparativePostStatisticsData `json:"comparativePostStatisticsData"`
 }
 
 type SliceData struct {
@@ -38,6 +39,11 @@ type UserActivityData struct {
 	MostActiveDay        string         `json:"mostActiveDay"`
 }
 
+type ComparativePostStatisticsData struct {
+	PostLengthVariation  float32 `json:"postLengthVariation"`
+	ImageLengthVariation float32 `json:"imageLengthVariation"`
+}
+
 func (s *WrappedService) CompileWrappedForUser(ctx context.Context, userId int) (*WrappedData, error) {
 	var data WrappedData
 
@@ -45,15 +51,19 @@ func (s *WrappedService) CompileWrappedForUser(ctx context.Context, userId int) 
 	if err != nil {
 		return nil, err
 	}
-
 	data.ActivityData = *activity
 
 	sliceData, err := s.getPercentShareOfContent(ctx, userId)
 	if err != nil {
 		return nil, err
 	}
-
 	data.SliceData = *sliceData
+
+	comparativePostData, err := s.getComparativePostData(ctx, userId)
+	if err != nil {
+		return nil, err
+	}
+	data.ComparativePostStatisticsData = *comparativePostData
 
 	return &data, nil
 }
@@ -240,4 +250,33 @@ func (s *WrappedService) getPercentShareOfContent(ctx context.Context, userId in
 		CommentComponent: commentComponent,
 		LikeComponent:    likeComponent,
 	}, nil
+}
+
+func (s *WrappedService) getComparativePostData(ctx context.Context, userId int) (*ComparativePostStatisticsData, error) {
+	averagePostLength, err := s.querier.WrappedGetAveragePostLength(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	userAveragePostLength, err := s.querier.WrappedGetAveragePostLengthForUser(ctx, userId)
+	if err != nil {
+		return nil, err
+	}
+
+	averageImageCount, err := s.querier.WrappedGetAverageImageCountPerPost(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	userAverageImageCount, err := s.querier.WrappedGetAverageImageCountPerPostForUser(ctx, userId)
+	if err != nil {
+		return nil, err
+	}
+
+	data := ComparativePostStatisticsData{
+		PostLengthVariation:  float32(userAveragePostLength) - float32(averagePostLength),
+		ImageLengthVariation: float32(averageImageCount) - float32(userAverageImageCount),
+	}
+
+	return &data, nil
 }

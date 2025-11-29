@@ -3,6 +3,7 @@ import Foundation
 struct WrappedData: Decodable {
   let activityData: ActivityOverviewData
   let sliceData: SliceData
+  let comparativePostStatisticsData: ComparativePostStatisticsData
 }
 
 struct ActivityOverviewData: Decodable {
@@ -16,6 +17,11 @@ struct SliceData: Decodable {
   let postComponent: Double
   let commentComponent: Double
   let likeComponent: Double
+}
+
+struct ComparativePostStatisticsData: Decodable {
+  let postLengthVariation: Double
+  let imageLengthVariation: Double
 }
 
 enum WrappedState {

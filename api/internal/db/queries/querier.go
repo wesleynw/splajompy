@@ -100,6 +100,10 @@ type Querier interface {
 	WrappedGetAllUserCommentsWithCursor(ctx context.Context, arg WrappedGetAllUserCommentsWithCursorParams) ([]Comment, error)
 	WrappedGetAllUserLikesWithCursor(ctx context.Context, arg WrappedGetAllUserLikesWithCursorParams) ([]Like, error)
 	WrappedGetAllUserPostsWithCursor(ctx context.Context, arg WrappedGetAllUserPostsWithCursorParams) ([]Post, error)
+	WrappedGetAverageImageCountPerPost(ctx context.Context) (float64, error)
+	WrappedGetAverageImageCountPerPostForUser(ctx context.Context, userID int) (float64, error)
+	WrappedGetAveragePostLength(ctx context.Context) (float64, error)
+	WrappedGetAveragePostLengthForUser(ctx context.Context, userID int) (float64, error)
 }
 
 var _ Querier = (*Queries)(nil)

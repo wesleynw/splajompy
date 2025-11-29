@@ -14,7 +14,7 @@ import (
 const getTotalCommentsForUser = `-- name: GetTotalCommentsForUser :one
 SELECT COUNT(*)
 FROM comments
-WHERE user_id = $1
+WHERE user_id = $1 AND EXTRACT(YEAR FROM created_at) = 2025
 `
 
 func (q *Queries) GetTotalCommentsForUser(ctx context.Context, userID int) (int64, error) {
@@ -27,7 +27,7 @@ func (q *Queries) GetTotalCommentsForUser(ctx context.Context, userID int) (int6
 const getTotalLikesForUser = `-- name: GetTotalLikesForUser :one
 SELECT COUNT(*)
 FROM likes
-WHERE user_id = $1
+WHERE user_id = $1 AND EXTRACT(YEAR FROM created_at) = 2025
 `
 
 func (q *Queries) GetTotalLikesForUser(ctx context.Context, userID int) (int64, error) {
@@ -40,7 +40,7 @@ func (q *Queries) GetTotalLikesForUser(ctx context.Context, userID int) (int64, 
 const getTotalNotificationsForUser = `-- name: GetTotalNotificationsForUser :one
 SELECT COUNT(*)
 FROM notifications
-WHERE user_id = $1
+WHERE user_id = $1 AND EXTRACT(YEAR FROM created_at) = 2025
 `
 
 func (q *Queries) GetTotalNotificationsForUser(ctx context.Context, userID int) (int64, error) {
@@ -53,7 +53,7 @@ func (q *Queries) GetTotalNotificationsForUser(ctx context.Context, userID int) 
 const getTotalPostsForUser = `-- name: GetTotalPostsForUser :one
 SELECT COUNT(*)
 FROM posts
-WHERE user_id = $1
+WHERE user_id = $1 AND EXTRACT(YEAR FROM created_at) = 2025
 `
 
 func (q *Queries) GetTotalPostsForUser(ctx context.Context, userID int) (int64, error) {
@@ -182,4 +182,66 @@ func (q *Queries) WrappedGetAllUserPostsWithCursor(ctx context.Context, arg Wrap
 		return nil, err
 	}
 	return items, nil
+}
+
+const wrappedGetAverageImageCountPerPost = `-- name: WrappedGetAverageImageCountPerPost :one
+SELECT AVG(image_count)
+FROM (
+    SELECT COUNT(*) as image_count
+    FROM images
+    JOIN posts ON images.post_id = posts.post_id
+    WHERE EXTRACT(YEAR FROM created_at) = 2025
+    GROUP BY images.post_id
+) subquery
+`
+
+func (q *Queries) WrappedGetAverageImageCountPerPost(ctx context.Context) (float64, error) {
+	row := q.db.QueryRow(ctx, wrappedGetAverageImageCountPerPost)
+	var avg float64
+	err := row.Scan(&avg)
+	return avg, err
+}
+
+const wrappedGetAverageImageCountPerPostForUser = `-- name: WrappedGetAverageImageCountPerPostForUser :one
+SELECT AVG(image_count)
+FROM (
+    SELECT COUNT(*) as image_count
+    FROM images
+    JOIN posts ON images.post_id = posts.post_id
+    WHERE user_id = $1 AND EXTRACT(YEAR FROM posts.created_at) = 2025
+    GROUP BY images.post_id
+) subquery
+`
+
+func (q *Queries) WrappedGetAverageImageCountPerPostForUser(ctx context.Context, userID int) (float64, error) {
+	row := q.db.QueryRow(ctx, wrappedGetAverageImageCountPerPostForUser, userID)
+	var avg float64
+	err := row.Scan(&avg)
+	return avg, err
+}
+
+const wrappedGetAveragePostLength = `-- name: WrappedGetAveragePostLength :one
+SELECT avg(length(text))
+FROM posts
+WHERE EXTRACT(YEAR FROM created_at) = 2025
+`
+
+func (q *Queries) WrappedGetAveragePostLength(ctx context.Context) (float64, error) {
+	row := q.db.QueryRow(ctx, wrappedGetAveragePostLength)
+	var avg float64
+	err := row.Scan(&avg)
+	return avg, err
+}
+
+const wrappedGetAveragePostLengthForUser = `-- name: WrappedGetAveragePostLengthForUser :one
+SELECT avg(length(text))
+FROM posts
+WHERE user_id = $1 AND EXTRACT(YEAR FROM created_at) = 2025
+`
+
+func (q *Queries) WrappedGetAveragePostLengthForUser(ctx context.Context, userID int) (float64, error) {
+	row := q.db.QueryRow(ctx, wrappedGetAveragePostLengthForUser, userID)
+	var avg float64
+	err := row.Scan(&avg)
+	return avg, err
 }

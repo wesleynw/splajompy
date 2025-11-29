@@ -4,11 +4,11 @@ struct UserProportionRing: View {
   let data: WrappedData
   let ringWidthRatio: Float = 0.05
   let gapDegrees: Double = 9
-  @State private var isShowingIntroText: Bool = false
-  @State private var isShowingPercentage: Bool = false
+  @State private var isShowingIntroText: Bool = true
+  @State private var isShowingPercentage: Bool = true
   @State private var animatedUserPercent: Double = 0
-  @State private var isAnimatingToCenter: Bool = true
-  @State private var showComponentBreakdown: Bool = true
+  @State private var isAnimatingToCenter: Bool = false
+  @State private var showComponentBreakdown: Bool = false
 
   var body: some View {
     VStack {
@@ -342,19 +342,5 @@ struct AnimatedRingSegment: Shape {
 }
 
 #Preview {
-  let data = WrappedData(
-    activityData: ActivityOverviewData(
-      activityCountCeiling: 1,
-      counts: ["test": 5],
-      mostActiveDay: "asdf"
-    ),
-    sliceData: SliceData(
-      percent: 5,
-      postComponent: 1.5,
-      commentComponent: 2.0,
-      likeComponent: 1.5
-    )
-  )
-
-  UserProportionRing(data: data)
+  UserProportionRing(data: Mocks.wrappedData)
 }

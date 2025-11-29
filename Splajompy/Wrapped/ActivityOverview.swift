@@ -167,34 +167,5 @@ struct ActivityOverview: View {
 }
 
 #Preview {
-  var counts: [String: Int] = [:]
-  let df = DateFormatter()
-  df.dateFormat = "yyyy-MM-dd"
-  for month in 1...12 {
-    for day
-      in 1...([4, 6, 9, 11].contains(month) ? 30 : month == 2 ? 28 : 31)
-    {
-      if let date = Calendar.current.date(
-        from: DateComponents(year: 2025, month: month, day: day)
-      ) {
-        counts[df.string(from: date)] = Int.random(in: 0...35)
-      }
-    }
-  }
-  return ActivityOverview(
-    data: WrappedData(
-      activityData: ActivityOverviewData(
-        activityCountCeiling: 35,
-        counts: counts,
-        mostActiveDay: "2025-02-15"
-      ),
-      sliceData: SliceData(
-        percent: 5,
-        postComponent: 1,
-        commentComponent: 2,
-        likeComponent: 1
-      )
-    )
-
-  )
+  ActivityOverview(data: Mocks.wrappedData)
 }
