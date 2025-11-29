@@ -36,6 +36,7 @@ type Querier interface {
 	GetIsEmailInUse(ctx context.Context, email string) (bool, error)
 	GetIsLikedByUser(ctx context.Context, arg GetIsLikedByUserParams) (bool, error)
 	GetIsPostLikedByUser(ctx context.Context, arg GetIsPostLikedByUserParams) (bool, error)
+	GetIsReferralCodeInUse(ctx context.Context, referralCode string) (bool, error)
 	GetIsUserBlockingUser(ctx context.Context, arg GetIsUserBlockingUserParams) (bool, error)
 	GetIsUserFollowingUser(ctx context.Context, arg GetIsUserFollowingUserParams) (bool, error)
 	GetIsUserMutingUser(ctx context.Context, arg GetIsUserMutingUserParams) (bool, error)

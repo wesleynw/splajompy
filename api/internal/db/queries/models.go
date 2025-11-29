@@ -107,6 +107,7 @@ type User struct {
 	IsVerified            bool                      `json:"isVerified"`
 	PinnedPostID          *int                      `json:"pinnedPostId"`
 	UserDisplayProperties *db.UserDisplayProperties `json:"userDisplayProperties"`
+	ReferralCode          string                    `json:"referralCode"`
 }
 
 type VerificationCode struct {

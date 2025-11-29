@@ -29,7 +29,7 @@ type UserRepository interface {
 	UpdateUserDisplayProperties(ctx context.Context, userId int, displayProperties *db.UserDisplayProperties) error
 	GetIsUsernameInUse(ctx context.Context, username string) (bool, error)
 	GetIsEmailInUse(ctx context.Context, email string) (bool, error)
-	CreateUser(ctx context.Context, username string, email string, password string) (models.PublicUser, error)
+	CreateUser(ctx context.Context, username string, email string, password string, referralCode string) (models.PublicUser, error)
 	GetVerificationCode(ctx context.Context, userId int, code string) (queries.VerificationCode, error)
 	CreateVerificationCode(ctx context.Context, userId int, code string, expiresAt time.Time) error
 	GetUserPasswordByIdentifier(ctx context.Context, identifier string) (string, error)
@@ -45,6 +45,7 @@ type UserRepository interface {
 	GetFollowersByUserId(ctx context.Context, userId int, limit int, offset int) ([]queries.GetFollowersByUserIdRow, error)
 	GetFollowingByUserId(ctx context.Context, userId int, limit int, offset int) ([]queries.GetFollowingByUserIdRow, error)
 	GetMutualsByUserId(ctx context.Context, currentUserId int, targetUserId int, limit int, offset int) ([]queries.GetMutualsByUserIdRow, error)
+	GetIsReferralCodeInUse(ctx context.Context, code string) (bool, error)
 }
 
 type DBUserRepository struct {
@@ -168,11 +169,12 @@ func (r DBUserRepository) GetIsEmailInUse(ctx context.Context, email string) (bo
 }
 
 // CreateUser creates a new user
-func (r DBUserRepository) CreateUser(ctx context.Context, username string, email string, password string) (models.PublicUser, error) {
+func (r DBUserRepository) CreateUser(ctx context.Context, username string, email string, password string, referralCode string) (models.PublicUser, error) {
 	user, err := r.querier.CreateUser(ctx, queries.CreateUserParams{
-		Username: username,
-		Email:    email,
-		Password: password,
+		Username:     username,
+		Email:        email,
+		Password:     password,
+		ReferralCode: referralCode,
 	})
 	if err != nil {
 		return models.PublicUser{}, err
@@ -294,6 +296,10 @@ func (r DBUserRepository) GetMutualsByUserId(ctx context.Context, currentUserId 
 		Limit:        limit,
 		Offset:       offset,
 	})
+}
+
+func (r DBUserRepository) GetIsReferralCodeInUse(ctx context.Context, code string) (bool, error) {
+	return r.querier.GetIsReferralCodeInUse(ctx, code)
 }
 
 // NewDBUserRepository creates a new user repository

@@ -31,6 +31,10 @@ struct SettingsView: View {
           NavigationLink(destination: RequestSupportView()) {
             Label("Support", systemImage: "lifepreserver")
           }
+        } footer: {
+          Text(
+            "This is your place to request a feature, ask for help, or just leave a note about what you think about Splajompy!"
+          )
         }
 
         Section {

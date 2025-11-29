@@ -25,7 +25,7 @@ func setupTest(t *testing.T) (*PostService, *fakes.FakePostRepository, *fakes.Fa
 
 	svc := NewPostService(postRepo, userRepo, likeRepo, notificationRepo, bucketRepo, nil)
 
-	user, err := userRepo.CreateUser(context.Background(), "testuser", "test@example.com", "password")
+	user, err := userRepo.CreateUser(context.Background(), "testuser", "test@example.com", "password", "123")
 	require.NoError(t, err)
 
 	err = os.Setenv("ENVIRONMENT", "test")
@@ -156,7 +156,7 @@ func TestGetPostsByUserId(t *testing.T) {
 
 	ctx := context.Background()
 
-	user2, err := userRepo.CreateUser(ctx, "otheruser", "other@example.com", "password")
+	user2, err := userRepo.CreateUser(ctx, "otheruser", "other@example.com", "password", "123")
 	require.NoError(t, err)
 
 	for i := 0; i < 3; i++ {
@@ -192,7 +192,7 @@ func TestDeletePost(t *testing.T) {
 	_, err = postRepo.GetPostById(ctx, post.PostID)
 	assert.Error(t, err)
 
-	otherUser, err := userRepo.CreateUser(ctx, "otheruser", "other@example.com", "password")
+	otherUser, err := userRepo.CreateUser(ctx, "otheruser", "other@example.com", "password", "123")
 	require.NoError(t, err)
 
 	post2, err := postRepo.InsertPost(ctx, otherUser.UserID, "Other user's post", nil, nil)
@@ -209,9 +209,9 @@ func TestAddLikeToPost(t *testing.T) {
 	svc, postRepo, userRepo, likeRepo, _, _, _ := setupTest(t)
 	ctx := context.Background()
 
-	postOwner, err := userRepo.CreateUser(ctx, "postOwner", "postowner@splajompy.com", "password")
+	postOwner, err := userRepo.CreateUser(ctx, "postOwner", "postowner@splajompy.com", "password", "123")
 	require.NoError(t, err)
-	secondUser, err := userRepo.CreateUser(ctx, "otherUser", "otheruser@splajompy.com", "password")
+	secondUser, err := userRepo.CreateUser(ctx, "otherUser", "otheruser@splajompy.com", "password", "123")
 	require.NoError(t, err)
 
 	post0, err := postRepo.InsertPost(ctx, postOwner.UserID, "Test post for liking", nil, nil)
@@ -244,9 +244,9 @@ func TestRemoveLikeFromPost(t *testing.T) {
 	svc, postRepo, userRepo, likeRepo, _, _, _ := setupTest(t)
 	ctx := context.Background()
 
-	postOwner, err := userRepo.CreateUser(ctx, "postOwner", "postowner@splajompy.com", "password")
+	postOwner, err := userRepo.CreateUser(ctx, "postOwner", "postowner@splajompy.com", "password", "123")
 	require.NoError(t, err)
-	secondUser, err := userRepo.CreateUser(ctx, "otherUser", "otheruser@splajompy.com", "password")
+	secondUser, err := userRepo.CreateUser(ctx, "otherUser", "otheruser@splajompy.com", "password", "123")
 	require.NoError(t, err)
 
 	post0, err := postRepo.InsertPost(ctx, postOwner.UserID, "Test post for liking", nil, nil)
@@ -280,7 +280,7 @@ func TestGetPostWithPoll_ReturnsEmptyPoll(t *testing.T) {
 	svc, postRepo, userRepo, _, _, _, currentUser := setupTest(t)
 	ctx := context.Background()
 
-	user, err := userRepo.CreateUser(ctx, "test1", "testuser@splajompy.com", "password123")
+	user, err := userRepo.CreateUser(ctx, "test1", "testuser@splajompy.com", "password", "123")
 	require.NoError(t, err)
 
 	attributes := db.Attributes{Poll: db.Poll{
@@ -314,7 +314,7 @@ func TestVoteOnPoll_NegativeOptionIndex_ReturnsError(t *testing.T) {
 	svc, postRepo, userRepo, _, _, _, currentUser := setupTest(t)
 	ctx := context.Background()
 
-	user, err := userRepo.CreateUser(ctx, "test1", "testuser@splajompy.com", "password123")
+	user, err := userRepo.CreateUser(ctx, "test1", "testuser@splajompy.com", "password", "123")
 	require.NoError(t, err)
 
 	attributes := db.Attributes{Poll: db.Poll{
@@ -335,7 +335,7 @@ func TestVoteOnPoll_Nonexistent_ReturnsError(t *testing.T) {
 	svc, postRepo, userRepo, _, _, _, currentUser := setupTest(t)
 	ctx := context.Background()
 
-	user, err := userRepo.CreateUser(ctx, "test1", "testuser@splajompy.com", "password123")
+	user, err := userRepo.CreateUser(ctx, "test1", "testuser@splajompy.com", "password", "123")
 	require.NoError(t, err)
 
 	attributes := db.Attributes{Poll: db.Poll{
@@ -356,7 +356,7 @@ func TestVoteOnPoll_InvalidOptionIndex_ReturnsError(t *testing.T) {
 	svc, postRepo, userRepo, _, _, _, currentUser := setupTest(t)
 	ctx := context.Background()
 
-	user, err := userRepo.CreateUser(ctx, "test1", "testuser@splajompy.com", "password123")
+	user, err := userRepo.CreateUser(ctx, "test1", "testuser@splajompy.com", "password", "123")
 	require.NoError(t, err)
 
 	attributes := db.Attributes{Poll: db.Poll{
@@ -391,7 +391,7 @@ func TestVoteOnPoll_SavesVote(t *testing.T) {
 	svc, postRepo, userRepo, _, _, _, currentUser := setupTest(t)
 	ctx := context.Background()
 
-	user, err := userRepo.CreateUser(ctx, "test1", "testuser@splajompy.com", "password123")
+	user, err := userRepo.CreateUser(ctx, "test1", "testuser@splajompy.com", "password", "123")
 	require.NoError(t, err)
 
 	poll := db.Poll{
@@ -426,11 +426,11 @@ func TestVoteOnPoll_SavesVote_Multi(t *testing.T) {
 	svc, postRepo, userRepo, _, _, _, currentUser := setupTest(t)
 	ctx := context.Background()
 
-	user0, err := userRepo.CreateUser(ctx, "test0", "testuser0@splajompy.com", "password123")
+	user0, err := userRepo.CreateUser(ctx, "test0", "testuser0@splajompy.com", "password", "123")
 	require.NoError(t, err)
-	user1, err := userRepo.CreateUser(ctx, "test1", "testuser1@splajompy.com", "password123")
+	user1, err := userRepo.CreateUser(ctx, "test1", "testuser1@splajompy.com", "password", "123")
 	require.NoError(t, err)
-	user2, err := userRepo.CreateUser(ctx, "test2", "testuser2@splajompy.com", "password123")
+	user2, err := userRepo.CreateUser(ctx, "test2", "testuser2@splajompy.com", "password", "123")
 	require.NoError(t, err)
 
 	poll := db.Poll{
@@ -474,7 +474,7 @@ func TestRemoveLikeFromPost_DeletesRecentNotification(t *testing.T) {
 	svc, _, userRepo, likeRepo, notificationRepo, _, user := setupTest(t)
 	ctx := context.Background()
 
-	otherUser, err := userRepo.CreateUser(ctx, "otheruser", "other@example.com", "password")
+	otherUser, err := userRepo.CreateUser(ctx, "otheruser", "other@example.com", "password", "123")
 	require.NoError(t, err)
 
 	post, err := svc.postRepository.InsertPost(ctx, otherUser.UserID, "Test post", nil, nil)
@@ -496,7 +496,7 @@ func TestRemoveLikeFromPost_KeepsOldNotification(t *testing.T) {
 	svc, _, userRepo, likeRepo, notificationRepo, _, user := setupTest(t)
 	ctx := context.Background()
 
-	otherUser, err := userRepo.CreateUser(ctx, "otheruser", "other@example.com", "password")
+	otherUser, err := userRepo.CreateUser(ctx, "otheruser", "other@example.com", "password", "123")
 	require.NoError(t, err)
 
 	post, err := svc.postRepository.InsertPost(ctx, otherUser.UserID, "Test post", nil, nil)
@@ -526,7 +526,7 @@ func TestRemoveLikeFromPost_NoNotificationExists(t *testing.T) {
 	svc, _, userRepo, likeRepo, notificationRepo, _, user := setupTest(t)
 	ctx := context.Background()
 
-	otherUser, err := userRepo.CreateUser(ctx, "otheruser", "other@example.com", "password")
+	otherUser, err := userRepo.CreateUser(ctx, "otheruser", "other@example.com", "password", "123")
 	require.NoError(t, err)
 
 	post, err := svc.postRepository.InsertPost(ctx, otherUser.UserID, "Test post", nil, nil)
@@ -545,7 +545,7 @@ func TestNewPost_DoesntSelfNotify(t *testing.T) {
 	var svc, _, userRepo, _, notificationRepo, _, _ = setupTest(t)
 	ctx := context.Background()
 
-	user0, err := userRepo.CreateUser(ctx, "user0", "user0@splajompy.com", "password123")
+	user0, err := userRepo.CreateUser(ctx, "user0", "user0@splajompy.com", "password", "123")
 	require.NoError(t, err)
 
 	postText := "test post that mentions the current user @user0 @user0"
@@ -562,9 +562,9 @@ func TestSendOneNotificationToEachMentionedUser(t *testing.T) {
 	var svc, _, userRepo, _, notificationRepo, _, user0 = setupTest(t)
 	ctx := context.Background()
 
-	user1, err := userRepo.CreateUser(ctx, "user1", "user1@splajompy.com", "password123")
+	user1, err := userRepo.CreateUser(ctx, "user1", "user1@splajompy.com", "password", "123")
 	require.NoError(t, err)
-	user2, err := userRepo.CreateUser(ctx, "user2", "user2@splajompy.com", "password123")
+	user2, err := userRepo.CreateUser(ctx, "user2", "user2@splajompy.com", "password", "123")
 	require.NoError(t, err)
 
 	postText := "this is a test post which mentions users: @user1 @user1 @user2 @user2 @user2"

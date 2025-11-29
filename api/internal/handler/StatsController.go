@@ -15,3 +15,7 @@ func (h *Handler) GetAppStats(w http.ResponseWriter, r *http.Request) {
 
 	utilities.HandleSuccess(w, stats)
 }
+
+func (h *Handler) GetAppHealth(w http.ResponseWriter, r *http.Request) {
+	utilities.HandleEmptySuccess(w)
+}
