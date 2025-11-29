@@ -58,6 +58,32 @@ struct Mocks {
     displayProperties: UserDisplayProperties(fontChoiceId: 2)
   )
 
+  static let post1 = DetailedPost(
+    post: Post(
+      postId: 2000,
+      userId: 1,
+      text:
+        "check this out: Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+      createdAt: Date(),
+      facets: nil
+    ),
+    user: PublicUser(
+      userId: 1,
+      email: "wesleynw@pm.me",
+      username: "wesleynw",
+      createdAt: Date().ISO8601Format(),
+      name: "Wesley 🌌",
+      isVerified: true,
+      displayProperties: UserDisplayProperties(fontChoiceId: 0)
+    ),
+    isLiked: false,
+    commentCount: 0,
+    images: nil,
+    relevantLikes: [],
+    hasOtherLikes: false,
+    isPinned: false
+  )
+
   static let wrappedData = WrappedData(
     activityData: ActivityOverviewData(
       activityCountCeiling: 1,
@@ -73,6 +99,7 @@ struct Mocks {
     comparativePostStatisticsData: ComparativePostStatisticsData(
       postLengthVariation: 10.16273846328,
       imageLengthVariation: -5.123
-    )
+    ),
+    mostLikedPost: post1
   )
 }

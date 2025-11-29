@@ -4,6 +4,7 @@ struct WrappedData: Decodable {
   let activityData: ActivityOverviewData
   let sliceData: SliceData
   let comparativePostStatisticsData: ComparativePostStatisticsData
+  let mostLikedPost: DetailedPost
 }
 
 struct ActivityOverviewData: Decodable {
