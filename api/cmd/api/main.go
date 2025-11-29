@@ -79,7 +79,7 @@ func main() {
 	notificationService := service.NewNotificationService(notificationsRepository, postRepository, commentRepository, userRepository)
 	authManager := service.NewAuthService(userRepository, postRepository, bucketRepository, resendClient)
 	statsService := service.NewStatsService(statsRepository)
-	wrappedService := service.NewWrappedService(q)
+	wrappedService := service.NewWrappedService(q, *postService)
 
 	h := handler.NewHandler(q, postService, commentService, userService, notificationService, authManager, statsService, wrappedService)
 

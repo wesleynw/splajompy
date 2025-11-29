@@ -68,3 +68,11 @@ FROM (
     WHERE user_id = $1 AND EXTRACT(YEAR FROM posts.created_at) = 2025
     GROUP BY images.post_id
 ) subquery;
+
+-- name: WrappedGetMostLikedPostId :one
+SELECT likes.post_id, COUNT(*)
+FROM likes
+JOIN posts ON likes.post_id = posts.post_id
+WHERE posts.user_id = $1 AND comment_id IS NULL
+GROUP BY likes.post_id
+ORDER BY COUNT(*) DESC;

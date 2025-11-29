@@ -245,3 +245,24 @@ func (q *Queries) WrappedGetAveragePostLengthForUser(ctx context.Context, userID
 	err := row.Scan(&avg)
 	return avg, err
 }
+
+const wrappedGetMostLikedPostId = `-- name: WrappedGetMostLikedPostId :one
+SELECT likes.post_id, COUNT(*)
+FROM likes
+JOIN posts ON likes.post_id = posts.post_id
+WHERE posts.user_id = $1 AND comment_id IS NULL
+GROUP BY likes.post_id
+ORDER BY COUNT(*) DESC
+`
+
+type WrappedGetMostLikedPostIdRow struct {
+	PostID int   `json:"postId"`
+	Count  int64 `json:"count"`
+}
+
+func (q *Queries) WrappedGetMostLikedPostId(ctx context.Context, userID int) (WrappedGetMostLikedPostIdRow, error) {
+	row := q.db.QueryRow(ctx, wrappedGetMostLikedPostId, userID)
+	var i WrappedGetMostLikedPostIdRow
+	err := row.Scan(&i.PostID, &i.Count)
+	return i, err
+}

@@ -53,7 +53,7 @@ struct LengthComparisonView: View {
               "\(abs(data.comparativePostStatisticsData.postLengthVariation), specifier: "%.1f")% "
             )
             .foregroundStyle(.blue)
-            + Text("\(getLongerShorterPosts()) than the average post.")
+            + Text("\(getLongerShorterPosts()) than average.")
         }
         .font(.title)
         .padding()
@@ -66,7 +66,7 @@ struct LengthComparisonView: View {
               "\(abs(data.comparativePostStatisticsData.imageLengthVariation), specifier: "%.1f")% "
             )
             .foregroundStyle(.red)
-            + Text("\(getMoreLessImages()) images than the average post.")
+            + Text("\(getMoreLessImages()) images than average.")
         }
         .font(.title)
       }

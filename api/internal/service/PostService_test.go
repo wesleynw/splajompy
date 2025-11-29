@@ -112,7 +112,7 @@ func TestGetPostById(t *testing.T) {
 	_, err = postRepo.InsertImage(ctx, post.PostID, 500, 500, imageUrl, 0)
 	require.NoError(t, err)
 
-	detailedPost, err := svc.GetPostById(ctx, user, post.PostID)
+	detailedPost, err := svc.GetPostById(ctx, user.UserID, post.PostID)
 	assert.NoError(t, err)
 	assert.NotNil(t, detailedPost)
 
@@ -293,7 +293,7 @@ func TestGetPostWithPoll_ReturnsEmptyPoll(t *testing.T) {
 	post, err := postRepo.InsertPost(ctx, user.UserID, "Test post for vote on saving", nil, &attributes)
 	require.NoError(t, err)
 
-	updatedPost, err := svc.GetPostById(ctx, currentUser, post.PostID)
+	updatedPost, err := svc.GetPostById(ctx, currentUser.UserID, post.PostID)
 	require.NoError(t, err)
 
 	require.NotNil(t, updatedPost)
@@ -372,7 +372,7 @@ func TestVoteOnPoll_InvalidOptionIndex_ReturnsError(t *testing.T) {
 	err = svc.VoteOnPoll(ctx, currentUser, post.PostID, 2)
 	assert.Error(t, err)
 
-	updatedPost, err := svc.GetPostById(ctx, currentUser, post.PostID)
+	updatedPost, err := svc.GetPostById(ctx, currentUser.UserID, post.PostID)
 	require.NoError(t, err)
 
 	require.NotNil(t, updatedPost)
@@ -407,7 +407,7 @@ func TestVoteOnPoll_SavesVote(t *testing.T) {
 	err = svc.VoteOnPoll(ctx, currentUser, post.PostID, 0)
 	require.NoError(t, err)
 
-	updatedPost, err := svc.GetPostById(ctx, currentUser, post.PostID)
+	updatedPost, err := svc.GetPostById(ctx, currentUser.UserID, post.PostID)
 	require.NoError(t, err)
 
 	require.NotNil(t, updatedPost)
@@ -455,7 +455,7 @@ func TestVoteOnPoll_SavesVote_Multi(t *testing.T) {
 	err = svc.VoteOnPoll(ctx, user2, post.PostID, 0)
 	require.NoError(t, err)
 
-	updatedPost, err := svc.GetPostById(ctx, currentUser, post.PostID)
+	updatedPost, err := svc.GetPostById(ctx, currentUser.UserID, post.PostID)
 	require.NoError(t, err)
 
 	require.NotNil(t, updatedPost)

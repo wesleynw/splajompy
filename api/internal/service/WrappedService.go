@@ -6,15 +6,18 @@ import (
 
 	"github.com/jackc/pgx/v5/pgtype"
 	"splajompy.com/api/v2/internal/db/queries"
+	"splajompy.com/api/v2/internal/models"
 )
 
 type WrappedService struct {
-	querier queries.Querier
+	querier     queries.Querier
+	postService PostService
 }
 
-func NewWrappedService(querier queries.Querier) *WrappedService {
+func NewWrappedService(querier queries.Querier, postService PostService) *WrappedService {
 	return &WrappedService{
-		querier: querier,
+		querier:     querier,
+		postService: postService,
 	}
 }
 
@@ -24,6 +27,7 @@ type WrappedData struct {
 	ActivityData                  UserActivityData              `json:"activityData"`
 	SliceData                     SliceData                     `json:"sliceData"`
 	ComparativePostStatisticsData ComparativePostStatisticsData `json:"comparativePostStatisticsData"`
+	MostLikedPost                 *models.DetailedPost          `json:"mostLikedPost"`
 }
 
 type SliceData struct {
@@ -64,6 +68,12 @@ func (s *WrappedService) CompileWrappedForUser(ctx context.Context, userId int) 
 		return nil, err
 	}
 	data.ComparativePostStatisticsData = *comparativePostData
+
+	mostLikedPost, err := s.getMostLikedPost(ctx, userId)
+	if err != nil {
+		return nil, err
+	}
+	data.MostLikedPost = mostLikedPost
 
 	return &data, nil
 }
@@ -279,4 +289,18 @@ func (s *WrappedService) getComparativePostData(ctx context.Context, userId int)
 	}
 
 	return &data, nil
+}
+
+func (s *WrappedService) getMostLikedPost(ctx context.Context, userId int) (*models.DetailedPost, error) {
+	postId, err := s.querier.WrappedGetMostLikedPostId(ctx, userId)
+	if err != nil {
+		return nil, err
+	}
+
+	post, err := s.postService.GetPostById(ctx, userId, postId.PostID)
+	if err != nil {
+		return nil, err
+	}
+
+	return post, nil
 }

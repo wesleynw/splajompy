@@ -104,6 +104,7 @@ type Querier interface {
 	WrappedGetAverageImageCountPerPostForUser(ctx context.Context, userID int) (float64, error)
 	WrappedGetAveragePostLength(ctx context.Context) (float64, error)
 	WrappedGetAveragePostLengthForUser(ctx context.Context, userID int) (float64, error)
+	WrappedGetMostLikedPostId(ctx context.Context, userID int) (WrappedGetMostLikedPostIdRow, error)
 }
 
 var _ Querier = (*Queries)(nil)
