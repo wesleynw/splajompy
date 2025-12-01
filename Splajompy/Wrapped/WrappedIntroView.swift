@@ -1,19 +1,30 @@
 import SwiftUI
 
+enum WrappedPage {
+  case intro
+  case activity
+  case lengthComparison
+  case mostLikedPost
+  case slice
+}
+
 struct WrappedIntroView: View {
-  @StateObject private var viewModel = WrappedViewModel()
+  @State private var path: [WrappedPage] = []
+  @StateObject private var viewModel: WrappedViewModel = WrappedViewModel()
   @Environment(\.dismiss) private var dismiss
 
   var body: some View {
-    NavigationStack {
-      VStack(spacing: 20) {
+    NavigationStack(path: $path) {
+      VStack {
         Text("Welcome to your 2025 Splajompy Wrapped!")
           .fontWeight(.bold)
           .font(.title2)
+          .fontDesign(.rounded)
           .multilineTextAlignment(.center)
           .padding()
 
         ProgressView()
+          .opacity(viewModel.state.isLoading ? 1 : 0)
 
         if case .failed(let error) = viewModel.state {
           VStack(spacing: 12) {
@@ -36,24 +47,13 @@ struct WrappedIntroView: View {
       }
       .frame(maxHeight: .infinity)
       .safeAreaInset(edge: .bottom) {
-        if case .loaded(let data) = viewModel.state {
-          NavigationLink(
-            destination: ActivityOverview(data: data)
-          ) {
-            Text("Start")
-              .padding(3)
-              .fontWeight(.black)
-              .frame(maxWidth: .infinity)
+        if case .loaded = viewModel.state {
+          Button("Start") {
+            path.append(.activity)
           }
           .buttonStyle(.borderedProminent)
         } else {
-          Button {
-
-          } label: {
-            Text("Start")
-              .padding(3)
-              .fontWeight(.black)
-              .frame(maxWidth: .infinity)
+          Button("Start") {
           }
           .buttonStyle(.borderedProminent)
           .disabled(true)
@@ -75,10 +75,36 @@ struct WrappedIntroView: View {
         }
       }
       .padding()
+      .navigationDestination(for: WrappedPage.self) { selection in
+        destinationView(for: selection)
+      }
     }
   }
-}
 
-#Preview {
-  WrappedIntroView()
+  @ViewBuilder
+  private func destinationView(for page: WrappedPage) -> some View {
+    switch viewModel.state {
+    case .loaded(let data):
+      switch page {
+      case .activity:
+        ActivityOverview(
+          data: data,
+          onContinue: { path.append(.mostLikedPost) }
+        )
+      case .slice:
+        UserProportionRing(data: data)
+      case .lengthComparison:
+        LengthComparisonView(data: data, onContinue: { path.append(.slice) })
+      case .mostLikedPost:
+        MostLikedPostView(
+          data: data,
+          onContinue: { path.append(.lengthComparison) }
+        )
+      case .intro:
+        WrappedIntroView()
+      }
+    default:
+      ProgressView()
+    }
+  }
 }

@@ -2,8 +2,10 @@ import SwiftUI
 
 struct LengthComparisonView: View {
   var data: WrappedData
+  var onContinue: () -> Void
   @State private var isShowingSubheadline1: Bool = false
   @State private var isShowingSubheadline2: Bool = false
+  @State private var isShowingContinueButton: Bool = false
 
   func getHeadline() -> String {
     let reference = data.comparativePostStatisticsData.postLengthVariation
@@ -69,6 +71,22 @@ struct LengthComparisonView: View {
             + Text("\(getMoreLessImages()) images than average.")
         }
         .font(.title)
+        .onAppear {
+          DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+            withAnimation {
+              isShowingContinueButton = true
+            }
+          }
+        }
+      }
+    }
+    .frame(maxHeight: .infinity)
+    .safeAreaInset(edge: .bottom) {
+      if isShowingContinueButton {
+        Button("Continue") {
+          onContinue()
+        }
+        .buttonStyle(.borderedProminent)
       }
     }
     .padding()
@@ -79,5 +97,5 @@ struct LengthComparisonView: View {
 }
 
 #Preview {
-  LengthComparisonView(data: Mocks.wrappedData)
+  LengthComparisonView(data: Mocks.wrappedData, onContinue: {})
 }

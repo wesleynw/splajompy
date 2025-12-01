@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ActivityOverview: View {
   var data: WrappedData
+  var onContinue: () -> Void
 
   @State private var appearedIndices: Set<String> = []
   @State private var showDetail = false
@@ -140,17 +141,11 @@ struct ActivityOverview: View {
       }
       .safeAreaInset(edge: .bottom) {
         if showButton {
-          NavigationLink(destination: UserProportionRing(data: data)) {
-            Text("Continue")
-              .padding(3)
-              .fontWeight(.black)
-              .frame(maxWidth: .infinity)
+          Button("Continue") {
+            onContinue()
           }
+          .frame(maxWidth: .infinity)
           .buttonStyle(.borderedProminent)
-          Button("Continue") {}
-            .buttonStyle(.borderedProminent)
-            .frame(maxWidth: .infinity)
-            .padding()
         }
       }
     }
@@ -167,5 +162,5 @@ struct ActivityOverview: View {
 }
 
 #Preview {
-  ActivityOverview(data: Mocks.wrappedData)
+  ActivityOverview(data: Mocks.wrappedData, onContinue: { print("continue") })
 }

@@ -2,7 +2,9 @@ import SwiftUI
 
 struct MostLikedPostView: View {
   var data: WrappedData
+  var onContinue: () -> Void
   @State private var isShowingPost: Bool = false
+  @State private var isShowingContinueButton: Bool = false
 
   var body: some View {
     VStack {
@@ -26,18 +28,36 @@ struct MostLikedPostView: View {
             .fontWeight(.black)
             .fontDesign(.rounded)
             .padding()
-          
+
           PostView(post: data.mostLikedPost, postManager: PostManager())
+        }
+        .onAppear {
+          DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+            withAnimation {
+              isShowingContinueButton = true
+            }
+          }
         }
       }
     }
     .padding()
+    .safeAreaInset(edge: .bottom) {
+      if isShowingContinueButton {
+        Button("Continue") {
+          onContinue()
+        }
+        .buttonStyle(.borderedProminent)
+      }
+    }
   }
 }
 
 #Preview {
   NavigationStack {
-    MostLikedPostView(data: Mocks.wrappedData)
-      .environmentObject(AuthManager())
+    MostLikedPostView(
+      data: Mocks.wrappedData,
+      onContinue: { print("continue") }
+    )
+    .environmentObject(AuthManager())
   }
 }

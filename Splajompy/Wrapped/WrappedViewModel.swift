@@ -30,6 +30,13 @@ enum WrappedState {
   case loading
   case loaded(WrappedData)
   case failed(String)
+
+  var isLoading: Bool {
+    if case .loading = self {
+      return true
+    }
+    return false
+  }
 }
 
 @MainActor class WrappedViewModel: ObservableObject {
