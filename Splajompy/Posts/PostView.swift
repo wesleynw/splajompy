@@ -148,7 +148,7 @@ struct PostView: View {
   @ViewBuilder
   private var postTextContent: some View {
     if let content = post.post.richContent {
-      ContentTextView(attributedText: content)
+      Text(content)
     }
   }
 
