@@ -58,6 +58,26 @@ struct Mocks {
     displayProperties: UserDisplayProperties(fontChoiceId: 2)
   )
 
+  static let testPublicUser1 = PublicUser(
+    userId: 100,
+    email: "wesley@splajompy.com",
+    username: "wesley",
+    createdAt: formatter.string(from: Date()),
+    name: "Wesley W",
+    isVerified: true,
+    displayProperties: UserDisplayProperties(fontChoiceId: 0)
+  )
+
+  static let testPublicUser2 = PublicUser(
+    userId: 101,
+    email: "bob@example.com",
+    username: "bobsmith",
+    createdAt: formatter.string(from: Date()),
+    name: nil,
+    isVerified: false,
+    displayProperties: UserDisplayProperties(fontChoiceId: 1)
+  )
+
   static let post1 = DetailedPost(
     post: Post(
       postId: 2000,
@@ -100,6 +120,11 @@ struct Mocks {
       postLengthVariation: 10.16273846328,
       imageLengthVariation: -5.123
     ),
-    mostLikedPost: post1
+    mostLikedPost: post1,
+    favoriteUsers: [
+      FavoriteUserData(user: testPublicUser1, proportion: 100),
+      FavoriteUserData(user: testPublicUser2, proportion: 49.554354343534),
+      FavoriteUserData(user: testPublicUser1, proportion: 30.1238921738921),
+    ]
   )
 }

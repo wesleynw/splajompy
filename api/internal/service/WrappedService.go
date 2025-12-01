@@ -8,6 +8,7 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	"splajompy.com/api/v2/internal/db/queries"
 	"splajompy.com/api/v2/internal/models"
+	"splajompy.com/api/v2/internal/utilities"
 )
 
 type WrappedService struct {
@@ -29,7 +30,7 @@ type WrappedData struct {
 	SliceData                     SliceData                     `json:"sliceData"`
 	ComparativePostStatisticsData ComparativePostStatisticsData `json:"comparativePostStatisticsData"`
 	MostLikedPost                 *models.DetailedPost          `json:"mostLikedPost"`
-	FavoriteUsers                 FavoriteUsers
+	FavoriteUsers                 []FavoriteUserData
 }
 
 type SliceData struct {
@@ -50,14 +51,9 @@ type ComparativePostStatisticsData struct {
 	ImageLengthVariation float32 `json:"imageLengthVariation"`
 }
 
-type FavoriteUsers struct {
-	Users []FavoriteUserData
-}
-
 type FavoriteUserData struct {
-	Username    string
-	DisplayName string
-	Proportion  float64
+	User       models.PublicUser
+	Proportion float64
 }
 
 func (s *WrappedService) CompileWrappedForUser(ctx context.Context, userId int) (*WrappedData, error) {
@@ -323,7 +319,7 @@ func (s *WrappedService) getMostLikedPost(ctx context.Context, userId int) (*mod
 	return post, nil
 }
 
-func (s *WrappedService) getFavoriteUsers(ctx context.Context, userId int) (*FavoriteUsers, error) {
+func (s *WrappedService) getFavoriteUsers(ctx context.Context, userId int) (*[]FavoriteUserData, error) {
 	givenPostLikes, err := s.querier.WrappedGetUsersWhoGetMostLikesForPosts(ctx, userId)
 	if err != nil {
 		return nil, err
@@ -386,11 +382,10 @@ func (s *WrappedService) getFavoriteUsers(ctx context.Context, userId int) (*Fav
 		}
 
 		users = append(users, FavoriteUserData{
-			Username:    user.Username,
-			DisplayName: user.Name.String,
-			Proportion:  scaledWeight,
+			User:       utilities.MapUserToPublicUser(user),
+			Proportion: scaledWeight,
 		})
 	}
 
-	return &FavoriteUsers{Users: users}, nil
+	return &users, nil
 }

@@ -5,6 +5,7 @@ struct WrappedData: Decodable {
   let sliceData: SliceData
   let comparativePostStatisticsData: ComparativePostStatisticsData
   let mostLikedPost: DetailedPost
+  let favoriteUsers: [FavoriteUserData]
 }
 
 struct ActivityOverviewData: Decodable {
@@ -23,6 +24,11 @@ struct SliceData: Decodable {
 struct ComparativePostStatisticsData: Decodable {
   let postLengthVariation: Double
   let imageLengthVariation: Double
+}
+
+struct FavoriteUserData: Decodable {
+  let user: PublicUser
+  let proportion: Double
 }
 
 enum WrappedState {
