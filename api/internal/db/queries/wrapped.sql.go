@@ -266,3 +266,114 @@ func (q *Queries) WrappedGetMostLikedPostId(ctx context.Context, userID int) (Wr
 	err := row.Scan(&i.PostID, &i.Count)
 	return i, err
 }
+
+const wrappedGetUsersWhoGetMostComments = `-- name: WrappedGetUsersWhoGetMostComments :many
+SELECT
+    u.user_id,
+    COUNT(*) as comment_count
+FROM comments c
+JOIN posts p ON c.post_id = p.post_id
+JOIN users u ON p.user_id = u.user_id
+WHERE c.user_id = $1 AND p.user_id != $1
+GROUP BY u.user_id, u.username
+ORDER BY comment_count DESC
+`
+
+type WrappedGetUsersWhoGetMostCommentsRow struct {
+	UserID       int   `json:"userId"`
+	CommentCount int64 `json:"commentCount"`
+}
+
+func (q *Queries) WrappedGetUsersWhoGetMostComments(ctx context.Context, userID int) ([]WrappedGetUsersWhoGetMostCommentsRow, error) {
+	rows, err := q.db.Query(ctx, wrappedGetUsersWhoGetMostComments, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []WrappedGetUsersWhoGetMostCommentsRow
+	for rows.Next() {
+		var i WrappedGetUsersWhoGetMostCommentsRow
+		if err := rows.Scan(&i.UserID, &i.CommentCount); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const wrappedGetUsersWhoGetMostLikesForComments = `-- name: WrappedGetUsersWhoGetMostLikesForComments :many
+SELECT
+    u.user_id,
+    COUNT(*) as like_count
+FROM likes l
+JOIN comments c ON l.comment_id = c.comment_id
+JOIN users u ON c.user_id = u.user_id
+WHERE l.user_id = $1 AND l.comment_id IS NOT NULL
+GROUP BY u.user_id, u.username
+ORDER BY like_count DESC
+`
+
+type WrappedGetUsersWhoGetMostLikesForCommentsRow struct {
+	UserID    int   `json:"userId"`
+	LikeCount int64 `json:"likeCount"`
+}
+
+func (q *Queries) WrappedGetUsersWhoGetMostLikesForComments(ctx context.Context, userID int) ([]WrappedGetUsersWhoGetMostLikesForCommentsRow, error) {
+	rows, err := q.db.Query(ctx, wrappedGetUsersWhoGetMostLikesForComments, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []WrappedGetUsersWhoGetMostLikesForCommentsRow
+	for rows.Next() {
+		var i WrappedGetUsersWhoGetMostLikesForCommentsRow
+		if err := rows.Scan(&i.UserID, &i.LikeCount); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const wrappedGetUsersWhoGetMostLikesForPosts = `-- name: WrappedGetUsersWhoGetMostLikesForPosts :many
+SELECT
+    u.user_id,
+    COUNT(*) as like_count
+FROM likes l
+JOIN posts p ON l.post_id = p.post_id
+JOIN users u ON p.user_id = u.user_id
+WHERE l.user_id = $1 AND l.comment_id IS NULL
+GROUP BY u.user_id, u.username
+ORDER BY like_count DESC
+`
+
+type WrappedGetUsersWhoGetMostLikesForPostsRow struct {
+	UserID    int   `json:"userId"`
+	LikeCount int64 `json:"likeCount"`
+}
+
+func (q *Queries) WrappedGetUsersWhoGetMostLikesForPosts(ctx context.Context, userID int) ([]WrappedGetUsersWhoGetMostLikesForPostsRow, error) {
+	rows, err := q.db.Query(ctx, wrappedGetUsersWhoGetMostLikesForPosts, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []WrappedGetUsersWhoGetMostLikesForPostsRow
+	for rows.Next() {
+		var i WrappedGetUsersWhoGetMostLikesForPostsRow
+		if err := rows.Scan(&i.UserID, &i.LikeCount); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}

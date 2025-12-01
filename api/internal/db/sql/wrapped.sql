@@ -76,3 +76,36 @@ JOIN posts ON likes.post_id = posts.post_id
 WHERE posts.user_id = $1 AND comment_id IS NULL
 GROUP BY likes.post_id
 ORDER BY COUNT(*) DESC;
+
+-- name: WrappedGetUsersWhoGetMostLikesForPosts :many
+SELECT
+    u.user_id,
+    COUNT(*) as like_count
+FROM likes l
+JOIN posts p ON l.post_id = p.post_id
+JOIN users u ON p.user_id = u.user_id
+WHERE l.user_id = $1 AND l.comment_id IS NULL
+GROUP BY u.user_id, u.username
+ORDER BY like_count DESC;
+
+-- name: WrappedGetUsersWhoGetMostLikesForComments :many
+SELECT
+    u.user_id,
+    COUNT(*) as like_count
+FROM likes l
+JOIN comments c ON l.comment_id = c.comment_id
+JOIN users u ON c.user_id = u.user_id
+WHERE l.user_id = $1 AND l.comment_id IS NOT NULL
+GROUP BY u.user_id, u.username
+ORDER BY like_count DESC;
+
+-- name: WrappedGetUsersWhoGetMostComments :many
+SELECT
+    u.user_id,
+    COUNT(*) as comment_count
+FROM comments c
+JOIN posts p ON c.post_id = p.post_id
+JOIN users u ON p.user_id = u.user_id
+WHERE c.user_id = $1 AND p.user_id != $1
+GROUP BY u.user_id, u.username
+ORDER BY comment_count DESC;

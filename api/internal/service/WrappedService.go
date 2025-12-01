@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"sort"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgtype"
@@ -28,6 +29,7 @@ type WrappedData struct {
 	SliceData                     SliceData                     `json:"sliceData"`
 	ComparativePostStatisticsData ComparativePostStatisticsData `json:"comparativePostStatisticsData"`
 	MostLikedPost                 *models.DetailedPost          `json:"mostLikedPost"`
+	FavoriteUsers                 FavoriteUsers
 }
 
 type SliceData struct {
@@ -46,6 +48,16 @@ type UserActivityData struct {
 type ComparativePostStatisticsData struct {
 	PostLengthVariation  float32 `json:"postLengthVariation"`
 	ImageLengthVariation float32 `json:"imageLengthVariation"`
+}
+
+type FavoriteUsers struct {
+	Users []FavoriteUserData
+}
+
+type FavoriteUserData struct {
+	Username    string
+	DisplayName string
+	Proportion  float64
 }
 
 func (s *WrappedService) CompileWrappedForUser(ctx context.Context, userId int) (*WrappedData, error) {
@@ -74,6 +86,12 @@ func (s *WrappedService) CompileWrappedForUser(ctx context.Context, userId int) 
 		return nil, err
 	}
 	data.MostLikedPost = mostLikedPost
+
+	favoriteUsers, err := s.getFavoriteUsers(ctx, userId)
+	if err != nil {
+		return nil, err
+	}
+	data.FavoriteUsers = *favoriteUsers
 
 	return &data, nil
 }
@@ -303,4 +321,76 @@ func (s *WrappedService) getMostLikedPost(ctx context.Context, userId int) (*mod
 	}
 
 	return post, nil
+}
+
+func (s *WrappedService) getFavoriteUsers(ctx context.Context, userId int) (*FavoriteUsers, error) {
+	givenPostLikes, err := s.querier.WrappedGetUsersWhoGetMostLikesForPosts(ctx, userId)
+	if err != nil {
+		return nil, err
+	}
+
+	givenCommentLikes, err := s.querier.WrappedGetUsersWhoGetMostLikesForComments(ctx, userId)
+	if err != nil {
+		return nil, err
+	}
+
+	givenComments, err := s.querier.WrappedGetUsersWhoGetMostComments(ctx, userId)
+	if err != nil {
+		return nil, err
+	}
+
+	weights := make(map[int]float64)
+
+	for _, row := range givenPostLikes {
+		weights[row.UserID] += float64(row.LikeCount)
+	}
+
+	for _, row := range givenCommentLikes {
+		weights[row.UserID] += float64(row.LikeCount)
+	}
+
+	for _, row := range givenComments {
+		weights[row.UserID] += float64(row.CommentCount)
+	}
+
+	type userWeight struct {
+		UserID int
+		Weight float64
+	}
+
+	sorted := make([]userWeight, 0, len(weights))
+	var maxWeight float64
+	for userID, weight := range weights {
+		sorted = append(sorted, userWeight{UserID: userID, Weight: weight})
+		if weight > maxWeight {
+			maxWeight = weight
+		}
+	}
+
+	sort.Slice(sorted, func(i, j int) bool {
+		return sorted[i].Weight > sorted[j].Weight
+	})
+
+	limit := min(5, len(sorted))
+
+	users := make([]FavoriteUserData, 0, limit)
+	for _, uw := range sorted[:limit] {
+		user, err := s.querier.GetUserById(ctx, uw.UserID)
+		if err != nil {
+			continue
+		}
+
+		scaledWeight := float64(0)
+		if maxWeight > 0 {
+			scaledWeight = (uw.Weight / maxWeight) * 100
+		}
+
+		users = append(users, FavoriteUserData{
+			Username:    user.Username,
+			DisplayName: user.Name.String,
+			Proportion:  scaledWeight,
+		})
+	}
+
+	return &FavoriteUsers{Users: users}, nil
 }
