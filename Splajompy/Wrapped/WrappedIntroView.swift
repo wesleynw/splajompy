@@ -6,6 +6,7 @@ enum WrappedPage {
   case lengthComparison
   case mostLikedPost
   case slice
+  case favoriteUsers
 }
 
 struct WrappedIntroView: View {
@@ -27,12 +28,9 @@ struct WrappedIntroView: View {
           .opacity(viewModel.state.isLoading ? 1 : 0)
 
         if case .failed(let error) = viewModel.state {
-          VStack(spacing: 12) {
-            Text("Failed to load wrapped data")
+          VStack {
+            Text("Error: \(error)")
               .foregroundStyle(.red)
-            Text(error)
-              .font(.caption)
-              .foregroundStyle(.secondary)
             Button("Retry") {
               Task {
                 await viewModel.load()
@@ -40,8 +38,10 @@ struct WrappedIntroView: View {
             }
             .buttonStyle(.bordered)
           }
+          .transition(.opacity)
         }
       }
+      .animation(.default, value: viewModel.state.isLoading)
       .task {
         await viewModel.load()
       }
@@ -59,8 +59,11 @@ struct WrappedIntroView: View {
           .disabled(true)
         }
       }
+      .navigationDestination(for: WrappedPage.self) { selection in
+        destinationView(for: selection)
+      }
       .toolbar {
-        ToolbarItem(placement: .cancellationAction) {
+        ToolbarItem(placement: .topBarTrailing) {
           if #available(iOS 26.0, *) {
             Button(role: .close, action: { dismiss() })
           } else {
@@ -75,9 +78,6 @@ struct WrappedIntroView: View {
         }
       }
       .padding()
-      .navigationDestination(for: WrappedPage.self) { selection in
-        destinationView(for: selection)
-      }
     }
   }
 
@@ -91,20 +91,58 @@ struct WrappedIntroView: View {
           data: data,
           onContinue: { path.append(.mostLikedPost) }
         )
+        .closeToolbar()
       case .slice:
         UserProportionRing(data: data)
+          .closeToolbar()
       case .lengthComparison:
-        LengthComparisonView(data: data, onContinue: { path.append(.slice) })
+        LengthComparisonView(
+          data: data,
+          onContinue: { path.append(.favoriteUsers) }
+        )
+        .closeToolbar()
       case .mostLikedPost:
         MostLikedPostView(
           data: data,
           onContinue: { path.append(.lengthComparison) }
         )
+        .closeToolbar()
+      case .favoriteUsers:
+        FavoriteUsersView(data: data, onContinue: { path.append(.slice) })
+          .closeToolbar()
       case .intro:
         WrappedIntroView()
       }
     default:
       ProgressView()
     }
+  }
+}
+
+struct CloseToolbarModifier: ViewModifier {
+  @Environment(\.dismiss) private var dismiss
+
+  func body(content: Content) -> some View {
+    content.toolbar {
+      ToolbarItem(placement: .topBarTrailing) {
+        if #available(iOS 26.0, *) {
+          Button(role: .close, action: { dismiss() })
+        } else {
+          Button {
+            dismiss()
+          } label: {
+            Image(systemName: "xmark.circle.fill")
+              .opacity(0.8)
+          }
+          .buttonStyle(.plain)
+        }
+      }
+    }
+  }
+}
+
+extension View {
+  func closeToolbar() -> some View {
+    modifier(CloseToolbarModifier())
   }
 }

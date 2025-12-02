@@ -211,11 +211,11 @@ struct UserProportionRing: View {
           componentArcs(ringWidth: ringWidth, chunkRotation: chunkRotation)
         }
 
-        //        if isShowingPercentage && !isAnimatingToCenter {
-        //          Text("\(animatedUserPercent, specifier: "%.1f")%")
-        //            .font(.title)
-        //            .fontWeight(.black)
-        //        }
+        if isShowingPercentage && !isAnimatingToCenter {
+          Text("\(animatedUserPercent, specifier: "%.1f")%")
+            .font(.title)
+            .fontWeight(.black)
+        }
       }
       .frame(width: CGFloat(size), height: CGFloat(size))
       .position(

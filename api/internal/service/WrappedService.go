@@ -30,7 +30,7 @@ type WrappedData struct {
 	SliceData                     SliceData                     `json:"sliceData"`
 	ComparativePostStatisticsData ComparativePostStatisticsData `json:"comparativePostStatisticsData"`
 	MostLikedPost                 *models.DetailedPost          `json:"mostLikedPost"`
-	FavoriteUsers                 []FavoriteUserData
+	FavoriteUsers                 []FavoriteUserData            `json:"favoriteUsers"`
 }
 
 type SliceData struct {
@@ -52,8 +52,8 @@ type ComparativePostStatisticsData struct {
 }
 
 type FavoriteUserData struct {
-	User       models.PublicUser
-	Proportion float64
+	User       models.PublicUser `json:"user"`
+	Proportion float64           `json:"proportion"`
 }
 
 func (s *WrappedService) CompileWrappedForUser(ctx context.Context, userId int) (*WrappedData, error) {

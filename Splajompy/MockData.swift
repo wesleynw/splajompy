@@ -125,6 +125,8 @@ struct Mocks {
       FavoriteUserData(user: testPublicUser1, proportion: 100),
       FavoriteUserData(user: testPublicUser2, proportion: 49.554354343534),
       FavoriteUserData(user: testPublicUser1, proportion: 30.1238921738921),
+      FavoriteUserData(user: testPublicUser1, proportion: 30.1238921738921),
+      FavoriteUserData(user: testPublicUser1, proportion: 30.1238921738921),
     ]
   )
 }
