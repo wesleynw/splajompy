@@ -10,10 +10,9 @@ struct FavoriteUsersView: View {
   var body: some View {
     VStack {
       Text(
-        isShowingIntroText
-          ? "You have some favorites on Splajompy." : "Your favorite people"
+        "Your favorite people"
       )
-      .font(isShowingIntroText ? .largeTitle : .title)
+      .font(.title)
       .fontDesign(.rounded)
       .fontWeight(.bold)
       .multilineTextAlignment(.center)
@@ -43,6 +42,14 @@ struct FavoriteUsersView: View {
         }
       }
       .transition(.blurReplace)
+
+      if isShowingIntroText {
+        Text("on Splajompy")
+          .font(.title)
+          .fontDesign(.rounded)
+          .fontWeight(.bold)
+          .multilineTextAlignment(.center)
+      }
 
       if !isShowingIntroText {
         ForEach(Array(data.favoriteUsers.enumerated()), id: \.offset) {
