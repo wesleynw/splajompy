@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"slices"
 	"sort"
 	"time"
 
@@ -27,6 +28,7 @@ var fetchLimit = 50
 
 type WrappedData struct {
 	ActivityData                  UserActivityData              `json:"activityData"`
+	WeeklyActivity                []int                         `json:"weeklyActivityData"` // not my best piece of programming, but just assume this is len=7
 	SliceData                     SliceData                     `json:"sliceData"`
 	ComparativePostStatisticsData ComparativePostStatisticsData `json:"comparativePostStatisticsData"`
 	MostLikedPost                 *models.DetailedPost          `json:"mostLikedPost"`
@@ -60,11 +62,12 @@ type FavoriteUserData struct {
 func (s *WrappedService) CompileWrappedForUser(ctx context.Context, userId int) (*WrappedData, error) {
 	var data WrappedData
 
-	activity, err := s.getUserActivityData(ctx, userId)
+	activity, weeklyActivity, err := s.getUserActivityData(ctx, userId)
 	if err != nil {
 		return nil, err
 	}
 	data.ActivityData = *activity
+	data.WeeklyActivity = *weeklyActivity
 
 	sliceData, err := s.getPercentShareOfContent(ctx, userId)
 	if err != nil {
@@ -99,8 +102,9 @@ func (s *WrappedService) CompileWrappedForUser(ctx context.Context, userId int) 
 	return &data, nil
 }
 
-func (s *WrappedService) getUserActivityData(ctx context.Context, userId int) (*UserActivityData, error) {
+func (s *WrappedService) getUserActivityData(ctx context.Context, userId int) (*UserActivityData, *[]int, error) {
 	counts := make(map[string]int)
+	weeklyCounts := make([]int, 7)
 	yearStart := time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC)
 	yearEnd := time.Date(2025, 12, 31, 23, 59, 0, 0, time.UTC)
 
@@ -126,7 +130,7 @@ func (s *WrappedService) getUserActivityData(ctx context.Context, userId int) (*
 			Cursor: timestamp,
 		})
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 		if len(posts) == 0 {
 			break
@@ -141,6 +145,8 @@ func (s *WrappedService) getUserActivityData(ctx context.Context, userId int) (*
 					ceiling = counts[dateKey]
 					mostActiveDay = dateKey
 				}
+
+				weeklyCounts[post.CreatedAt.Time.Weekday()]++
 			}
 			lastPost = &post
 		}
@@ -163,7 +169,7 @@ func (s *WrappedService) getUserActivityData(ctx context.Context, userId int) (*
 			Cursor: timestamp,
 		})
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 		if len(comments) == 0 {
 			break
@@ -178,6 +184,8 @@ func (s *WrappedService) getUserActivityData(ctx context.Context, userId int) (*
 					ceiling = counts[dateKey]
 					mostActiveDay = dateKey
 				}
+
+				weeklyCounts[comment.CreatedAt.Time.Weekday()]++
 			}
 			lastComment = &comment
 		}
@@ -200,7 +208,7 @@ func (s *WrappedService) getUserActivityData(ctx context.Context, userId int) (*
 			Cursor: timestamp,
 		})
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 		if len(likes) == 0 {
 			break
@@ -215,17 +223,26 @@ func (s *WrappedService) getUserActivityData(ctx context.Context, userId int) (*
 					ceiling = counts[dateKey]
 					mostActiveDay = dateKey
 				}
+
+				weeklyCounts[like.CreatedAt.Time.Weekday()]++
 			}
 			lastLike = &like
 		}
 		cursor = &lastLike.CreatedAt.Time
 	}
 
+	// scale weekly activity to 100
+	scale := slices.Max(weeklyCounts)
+	for index := range len(weeklyCounts) {
+		computed := (100 * weeklyCounts[index]) / scale
+		weeklyCounts[index] = computed
+	}
+
 	return &UserActivityData{
 		ActivityCountCeiling: ceiling,
 		Counts:               counts,
 		MostActiveDay:        mostActiveDay,
-	}, nil
+	}, &weeklyCounts, nil
 }
 
 func (s *WrappedService) getPercentShareOfContent(ctx context.Context, userId int) (*SliceData, error) {
