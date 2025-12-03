@@ -9,6 +9,7 @@ import (
 	"context"
 
 	"github.com/jackc/pgx/v5/pgtype"
+	db "splajompy.com/api/v2/internal/db"
 )
 
 const getTotalCommentsForUser = `-- name: GetTotalCommentsForUser :one
@@ -268,6 +269,59 @@ func (q *Queries) WrappedGetMostLikedPostId(ctx context.Context, userID int) (Wr
 	return i, err
 }
 
+const wrappedGetPollsThatUserVotedIn = `-- name: WrappedGetPollsThatUserVotedIn :many
+SELECT posts.post_id, posts.user_id, text, posts.created_at, facets, attributes, id, poll_vote.post_id, poll_vote.user_id, option_index, poll_vote.created_at
+FROM posts
+JOIN poll_vote ON posts.post_id = poll_vote.post_id
+WHERE attributes->'poll' IS NOT NULL AND poll_vote.user_id = $1
+`
+
+type WrappedGetPollsThatUserVotedInRow struct {
+	PostID      int              `json:"postId"`
+	UserID      int              `json:"userId"`
+	Text        pgtype.Text      `json:"text"`
+	CreatedAt   pgtype.Timestamp `json:"createdAt"`
+	Facets      db.Facets        `json:"facets"`
+	Attributes  *db.Attributes   `json:"attributes"`
+	ID          int              `json:"id"`
+	PostID_2    int              `json:"postId2"`
+	UserID_2    int              `json:"userId2"`
+	OptionIndex int              `json:"optionIndex"`
+	CreatedAt_2 pgtype.Timestamp `json:"createdAt2"`
+}
+
+func (q *Queries) WrappedGetPollsThatUserVotedIn(ctx context.Context, userID int) ([]WrappedGetPollsThatUserVotedInRow, error) {
+	rows, err := q.db.Query(ctx, wrappedGetPollsThatUserVotedIn, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []WrappedGetPollsThatUserVotedInRow
+	for rows.Next() {
+		var i WrappedGetPollsThatUserVotedInRow
+		if err := rows.Scan(
+			&i.PostID,
+			&i.UserID,
+			&i.Text,
+			&i.CreatedAt,
+			&i.Facets,
+			&i.Attributes,
+			&i.ID,
+			&i.PostID_2,
+			&i.UserID_2,
+			&i.OptionIndex,
+			&i.CreatedAt_2,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const wrappedGetUsersWhoGetMostComments = `-- name: WrappedGetUsersWhoGetMostComments :many
 SELECT
     u.user_id,
@@ -314,7 +368,7 @@ FROM likes l
 JOIN comments c ON l.comment_id = c.comment_id
 JOIN users u ON c.user_id = u.user_id
 WHERE l.user_id = $1 AND l.comment_id IS NOT NULL
-    AND EXTRACT(YEAR FROM likes.created_at) = 2025
+    AND EXTRACT(YEAR FROM l.created_at) = 2025
 GROUP BY u.user_id, u.username
 ORDER BY like_count DESC
 `
@@ -352,7 +406,7 @@ FROM likes l
 JOIN posts p ON l.post_id = p.post_id
 JOIN users u ON p.user_id = u.user_id
 WHERE l.user_id = $1 AND l.comment_id IS NULL
-    AND EXTRACT(YEAR FROM likes.created_at) = 2025
+    AND EXTRACT(YEAR FROM l.created_at) = 2025
 GROUP BY u.user_id, u.username
 ORDER BY like_count DESC
 `

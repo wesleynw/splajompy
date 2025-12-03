@@ -86,7 +86,7 @@ FROM likes l
 JOIN posts p ON l.post_id = p.post_id
 JOIN users u ON p.user_id = u.user_id
 WHERE l.user_id = $1 AND l.comment_id IS NULL
-    AND EXTRACT(YEAR FROM likes.created_at) = 2025
+    AND EXTRACT(YEAR FROM l.created_at) = 2025
 GROUP BY u.user_id, u.username
 ORDER BY like_count DESC;
 
@@ -98,7 +98,7 @@ FROM likes l
 JOIN comments c ON l.comment_id = c.comment_id
 JOIN users u ON c.user_id = u.user_id
 WHERE l.user_id = $1 AND l.comment_id IS NOT NULL
-    AND EXTRACT(YEAR FROM likes.created_at) = 2025
+    AND EXTRACT(YEAR FROM l.created_at) = 2025
 GROUP BY u.user_id, u.username
 ORDER BY like_count DESC;
 
@@ -113,3 +113,9 @@ WHERE c.user_id = $1 AND p.user_id != $1
     AND EXTRACT(YEAR FROM c.created_at) = 2025
 GROUP BY u.user_id, u.username
 ORDER BY comment_count DESC;
+
+-- name: WrappedGetPollsThatUserVotedIn :many
+SELECT *
+FROM posts
+JOIN poll_vote ON posts.post_id = poll_vote.post_id
+WHERE attributes->'poll' IS NOT NULL AND poll_vote.user_id = $1;

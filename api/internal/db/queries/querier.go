@@ -106,6 +106,7 @@ type Querier interface {
 	WrappedGetAveragePostLength(ctx context.Context) (float64, error)
 	WrappedGetAveragePostLengthForUser(ctx context.Context, userID int) (float64, error)
 	WrappedGetMostLikedPostId(ctx context.Context, userID int) (WrappedGetMostLikedPostIdRow, error)
+	WrappedGetPollsThatUserVotedIn(ctx context.Context, userID int) ([]WrappedGetPollsThatUserVotedInRow, error)
 	WrappedGetUsersWhoGetMostComments(ctx context.Context, userID int) ([]WrappedGetUsersWhoGetMostCommentsRow, error)
 	WrappedGetUsersWhoGetMostLikesForComments(ctx context.Context, userID int) ([]WrappedGetUsersWhoGetMostLikesForCommentsRow, error)
 	WrappedGetUsersWhoGetMostLikesForPosts(ctx context.Context, userID int) ([]WrappedGetUsersWhoGetMostLikesForPostsRow, error)

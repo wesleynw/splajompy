@@ -31,6 +31,7 @@ type WrappedData struct {
 	ComparativePostStatisticsData ComparativePostStatisticsData `json:"comparativePostStatisticsData"`
 	MostLikedPost                 *models.DetailedPost          `json:"mostLikedPost"`
 	FavoriteUsers                 []FavoriteUserData            `json:"favoriteUsers"`
+	ControversialPoll             *models.DetailedPoll          `json:"controversialPoll"`
 }
 
 type SliceData struct {
@@ -88,6 +89,12 @@ func (s *WrappedService) CompileWrappedForUser(ctx context.Context, userId int) 
 		return nil, err
 	}
 	data.FavoriteUsers = *favoriteUsers
+
+	poll, err := s.getControversialPoll(ctx, userId)
+	if err != nil {
+		return nil, err
+	}
+	data.ControversialPoll = poll
 
 	return &data, nil
 }
@@ -388,4 +395,29 @@ func (s *WrappedService) getFavoriteUsers(ctx context.Context, userId int) (*[]F
 	}
 
 	return &users, nil
+}
+
+func (s *WrappedService) getControversialPoll(ctx context.Context, userId int) (*models.DetailedPoll, error) {
+	polls, err := s.querier.WrappedGetPollsThatUserVotedIn(ctx, userId)
+	if err != nil {
+		return nil, err
+	}
+
+	minProportion := 100
+	var poll *models.DetailedPoll
+
+	for index := range len(polls) {
+		pollDetails, err := s.postService.GetPollDetails(ctx, userId, polls[index].PostID, polls[index].Attributes.Poll)
+		if err != nil {
+			return nil, err
+		}
+
+		userVotePercentage := pollDetails.Options[*pollDetails.CurrentUserVote].VoteTotal / pollDetails.VoteTotal
+		if userVotePercentage < minProportion {
+			minProportion = userVotePercentage
+			poll = pollDetails
+		}
+	}
+
+	return poll, nil
 }
