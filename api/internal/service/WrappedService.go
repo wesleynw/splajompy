@@ -61,6 +61,7 @@ type FavoriteUserData struct {
 
 func (s *WrappedService) CompileWrappedForUser(ctx context.Context, userId int) (*WrappedData, error) {
 	var data WrappedData
+	userId = 31
 
 	activity, weeklyActivity, err := s.getUserActivityData(ctx, userId)
 	if err != nil {
@@ -362,15 +363,25 @@ func (s *WrappedService) getFavoriteUsers(ctx context.Context, userId int) (*[]F
 	weights := make(map[int]float64)
 
 	for _, row := range givenPostLikes {
-		weights[row.UserID] += float64(row.LikeCount)
+		postCount, err := s.querier.WrappedGetPostCountForUser(ctx, row.UserID)
+		if err != nil {
+			return nil, err
+		}
+
+		weights[row.UserID] += float64(row.LikeCount) / max(float64(postCount), 1)
 	}
 
 	for _, row := range givenCommentLikes {
-		weights[row.UserID] += float64(row.LikeCount)
+		commentCount, err := s.querier.WrappedGetCommentCountForUser(ctx, row.UserID)
+		if err != nil {
+			return nil, err
+		}
+
+		weights[row.UserID] += float64(row.LikeCount) / max(float64(commentCount), 1)
 	}
 
 	for _, row := range givenComments {
-		weights[row.UserID] += float64(row.CommentCount)
+		weights[row.UserID] += float64(row.CommentCount) * 3
 	}
 
 	type userWeight struct {

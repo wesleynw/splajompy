@@ -119,3 +119,13 @@ SELECT *
 FROM posts
 JOIN poll_vote ON posts.post_id = poll_vote.post_id
 WHERE attributes->'poll' IS NOT NULL AND poll_vote.user_id = $1;
+
+-- name: WrappedGetPostCountForUser :one
+SELECT COUNT(*)
+FROM posts
+WHERE user_id = $1 AND EXTRACT(YEAR FROM created_at) = 2025;
+
+-- name: WrappedGetCommentCountForUser :one
+SELECT COUNT(*)
+FROM comments
+WHERE user_id = $1 AND EXTRACT(YEAR FROM created_at) = 2025;

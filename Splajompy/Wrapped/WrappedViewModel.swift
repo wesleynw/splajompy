@@ -2,6 +2,7 @@ import Foundation
 
 struct WrappedData: Decodable {
   let activityData: ActivityOverviewData
+  let weeklyActivityData: [Int]
   let sliceData: SliceData
   let comparativePostStatisticsData: ComparativePostStatisticsData
   let mostLikedPost: DetailedPost

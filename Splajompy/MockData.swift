@@ -110,6 +110,15 @@ struct Mocks {
       counts: ["test": 5],
       mostActiveDay: "asdf"
     ),
+    weeklyActivityData: [
+      87,
+      77,
+      100,
+      92,
+      78,
+      79,
+      91,
+    ],
     sliceData: SliceData(
       percent: 5,
       postComponent: 1.5,

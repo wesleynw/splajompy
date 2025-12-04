@@ -247,6 +247,19 @@ func (q *Queries) WrappedGetAveragePostLengthForUser(ctx context.Context, userID
 	return avg, err
 }
 
+const wrappedGetCommentCountForUser = `-- name: WrappedGetCommentCountForUser :one
+SELECT COUNT(*)
+FROM comments
+WHERE user_id = $1 AND EXTRACT(YEAR FROM created_at) = 2025
+`
+
+func (q *Queries) WrappedGetCommentCountForUser(ctx context.Context, userID int) (int64, error) {
+	row := q.db.QueryRow(ctx, wrappedGetCommentCountForUser, userID)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const wrappedGetMostLikedPostId = `-- name: WrappedGetMostLikedPostId :one
 SELECT likes.post_id, COUNT(*)
 FROM likes
@@ -320,6 +333,19 @@ func (q *Queries) WrappedGetPollsThatUserVotedIn(ctx context.Context, userID int
 		return nil, err
 	}
 	return items, nil
+}
+
+const wrappedGetPostCountForUser = `-- name: WrappedGetPostCountForUser :one
+SELECT COUNT(*)
+FROM posts
+WHERE user_id = $1 AND EXTRACT(YEAR FROM created_at) = 2025
+`
+
+func (q *Queries) WrappedGetPostCountForUser(ctx context.Context, userID int) (int64, error) {
+	row := q.db.QueryRow(ctx, wrappedGetPostCountForUser, userID)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
 }
 
 const wrappedGetUsersWhoGetMostComments = `-- name: WrappedGetUsersWhoGetMostComments :many
