@@ -38,7 +38,7 @@ struct NotificationRow: View {
       VStack(alignment: .leading, spacing: 4) {
         HStack(alignment: .top, spacing: 8) {
           VStack(alignment: .leading, spacing: 4) {
-            ContentTextView(attributedText: notification.richContent)
+            Text(notification.richContent)
 
             Text(relativeDate(from: notification.createdAt))
               .font(.caption)

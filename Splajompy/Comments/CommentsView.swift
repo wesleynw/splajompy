@@ -265,7 +265,7 @@ struct CommentRow: View {
         ProfileDisplayNameView(user: comment.user, alignVertically: false)
       }
 
-      ContentTextView(attributedText: comment.richContent)
+      Text(comment.richContent)
 
       HStack {
         Text(formatter.localizedString(for: commentDate, relativeTo: Date()))
