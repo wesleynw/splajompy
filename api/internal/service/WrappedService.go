@@ -61,7 +61,6 @@ type FavoriteUserData struct {
 
 func (s *WrappedService) CompileWrappedForUser(ctx context.Context, userId int) (*WrappedData, error) {
 	var data WrappedData
-	userId = 31
 
 	activity, weeklyActivity, err := s.getUserActivityData(ctx, userId)
 	if err != nil {

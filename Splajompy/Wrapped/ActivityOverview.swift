@@ -139,7 +139,7 @@ struct ActivityOverview: View {
         }
         .opacity(showDetail ? 0 : 1)
       }
-      .safeAreaInset(edge: .bottom) {
+      .overlay(alignment: .bottom) {
         if showButton {
           Button("Continue") {
             onContinue()

@@ -41,7 +41,7 @@ struct MostLikedPostView: View {
       }
     }
     .padding()
-    .safeAreaInset(edge: .bottom) {
+    .overlay(alignment: .bottom) {
       if isShowingContinueButton {
         Button("Continue") {
           onContinue()

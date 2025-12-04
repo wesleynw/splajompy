@@ -84,7 +84,7 @@ struct UserProportionRing: View {
         }
       }
     }
-    .safeAreaInset(edge: .bottom) {
+    .overlay(alignment: .bottom) {
       if !isAnimatingToCenter {
         Button("Continue") {
           withAnimation(.spring) {

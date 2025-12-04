@@ -3,6 +3,7 @@ import SwiftUI
 enum WrappedPage {
   case intro
   case activity
+  case weeklyActivity
   case lengthComparison
   case mostLikedPost
   case slice
@@ -46,10 +47,10 @@ struct WrappedIntroView: View {
         await viewModel.load()
       }
       .frame(maxHeight: .infinity)
-      .safeAreaInset(edge: .bottom) {
+      .overlay(alignment: .bottom) {
         if case .loaded = viewModel.state {
           Button("Start") {
-            path.append(.activity)
+            path.append(.weeklyActivity)
           }
           .buttonStyle(.borderedProminent)
         } else {
@@ -86,30 +87,32 @@ struct WrappedIntroView: View {
     switch viewModel.state {
     case .loaded(let data):
       switch page {
+      case .weeklyActivity:
+        WeeklyActivityView(data: data, onContinue: { path.append(.activity) })
       case .activity:
         ActivityOverview(
           data: data,
           onContinue: { path.append(.mostLikedPost) }
         )
-        .closeToolbar()
+        .closeToolbar(onDismiss: dismiss.callAsFunction)
       case .slice:
         UserProportionRing(data: data)
-          .closeToolbar()
+          .closeToolbar(onDismiss: dismiss.callAsFunction)
       case .lengthComparison:
         LengthComparisonView(
           data: data,
           onContinue: { path.append(.favoriteUsers) }
         )
-        .closeToolbar()
+        .closeToolbar(onDismiss: dismiss.callAsFunction)
       case .mostLikedPost:
         MostLikedPostView(
           data: data,
           onContinue: { path.append(.lengthComparison) }
         )
-        .closeToolbar()
+        .closeToolbar(onDismiss: dismiss.callAsFunction)
       case .favoriteUsers:
         FavoriteUsersView(data: data, onContinue: { path.append(.slice) })
-          .closeToolbar()
+          .closeToolbar(onDismiss: dismiss.callAsFunction)
       case .intro:
         WrappedIntroView()
       }
@@ -120,17 +123,15 @@ struct WrappedIntroView: View {
 }
 
 struct CloseToolbarModifier: ViewModifier {
-  @Environment(\.dismiss) private var dismiss
+  let onDismiss: () -> Void
 
   func body(content: Content) -> some View {
     content.toolbar {
       ToolbarItem(placement: .topBarTrailing) {
         if #available(iOS 26.0, *) {
-          Button(role: .close, action: { dismiss() })
+          Button(role: .close, action: onDismiss)
         } else {
-          Button {
-            dismiss()
-          } label: {
+          Button(action: onDismiss) {
             Image(systemName: "xmark.circle.fill")
               .opacity(0.8)
           }
@@ -142,7 +143,7 @@ struct CloseToolbarModifier: ViewModifier {
 }
 
 extension View {
-  func closeToolbar() -> some View {
-    modifier(CloseToolbarModifier())
+  func closeToolbar(onDismiss: @escaping () -> Void) -> some View {
+    modifier(CloseToolbarModifier(onDismiss: onDismiss))
   }
 }
