@@ -292,11 +292,11 @@ struct ProfileView: View {
             .font(.subheadline)
             .foregroundColor(.secondary)
         }
+        .frame(maxWidth: .infinity)
         .padding(.vertical, 8)
         .padding(.horizontal, 12)
-        .background(.secondary.opacity(0.1))
+        .background(.thinMaterial)
         .cornerRadius(8)
-        .frame(maxWidth: .infinity)
       }
 
       if !isProfileTab && !isCurrentUser {
@@ -315,7 +315,13 @@ struct ProfileView: View {
                   .frame(maxWidth: .infinity)
               }
             }
-            .buttonStyle(.bordered)
+            .modify {
+              if #available(iOS 26, macOS 26, *) {
+                $0.buttonStyle(.glass)
+              } else {
+                $0.buttonStyle(.bordered)
+              }
+            }
           } else {
             Button(action: viewModel.toggleFollowing) {
               if viewModel.isLoadingFollowButton {
@@ -326,7 +332,13 @@ struct ProfileView: View {
                   .frame(maxWidth: .infinity)
               }
             }
-            .buttonStyle(.borderedProminent)
+            .modify {
+              if #available(iOS 26, macOS 26, *) {
+                $0.buttonStyle(.glassProminent)
+              } else {
+                $0.buttonStyle(.borderedProminent)
+              }
+            }
           }
         } else {
           Button(action: { activeAlert = .block }) {
@@ -342,13 +354,25 @@ struct ProfileView: View {
             Text("Edit Profile")
               .frame(maxWidth: .infinity)
           }
-          .buttonStyle(.bordered)
+          .modify {
+            if #available(iOS 26, macOS 26, *) {
+              $0.buttonStyle(.glass)
+            } else {
+              $0.buttonStyle(.bordered)
+            }
+          }
 
           NavigationLink(value: Route.followingList(userId: userId)) {
             Text("Following")
               .frame(maxWidth: .infinity)
           }
-          .buttonStyle(.bordered)
+          .modify {
+            if #available(iOS 26, macOS 26, *) {
+              $0.buttonStyle(.glass)
+            } else {
+              $0.buttonStyle(.bordered)
+            }
+          }
         }
 
       }

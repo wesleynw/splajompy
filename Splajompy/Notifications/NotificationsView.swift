@@ -168,7 +168,6 @@ struct NotificationsView: View {
         HStack {
           Spacer()
           ProgressView()
-            .scaleEffect(1.1)
             .padding()
           Spacer()
         }

@@ -33,7 +33,6 @@ struct StatisticsView: View {
         VStack {
           Spacer()
           ProgressView()
-            .scaleEffect(1.5)
             .padding()
           Spacer()
         }

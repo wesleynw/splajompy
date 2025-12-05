@@ -24,7 +24,6 @@ struct UserListView: View {
       switch viewModel.state {
       case .idle:
         ProgressView()
-          .scaleEffect(1.5)
           .onAppear {
             Task {
               await viewModel.loadUsers(reset: true)
@@ -32,7 +31,6 @@ struct UserListView: View {
           }
       case .loading:
         ProgressView()
-          .scaleEffect(1.5)
       case .loaded(let users):
         if users.isEmpty {
           noUsersView
@@ -113,7 +111,6 @@ struct UserListView: View {
           HStack {
             Spacer()
             ProgressView()
-              .scaleEffect(1.1)
               .padding()
             Spacer()
           }
