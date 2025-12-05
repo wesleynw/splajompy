@@ -13,6 +13,7 @@ enum ProfileFontChoiceEnum: Int, CaseIterable, Identifiable, Hashable {
   case swanky = 6
   case cooperBlack = 7
   case alienMushrooms = 8
+  case chewy = 9
 
   var fontName: String? {
     switch self {
@@ -25,6 +26,7 @@ enum ProfileFontChoiceEnum: Int, CaseIterable, Identifiable, Hashable {
     case .swanky: return "FontdinerSwanky-Regular"
     case .cooperBlack: return "CooperBlackStd"
     case .alienMushrooms: return "AlienMushrooms"
+    case .chewy: return "Chewy-Regular"
     }
   }
 
@@ -39,6 +41,7 @@ enum ProfileFontChoiceEnum: Int, CaseIterable, Identifiable, Hashable {
     case .swanky: return 18
     case .cooperBlack: return 20
     case .alienMushrooms: return 24
+    case .chewy: return 20
     }
   }
 
@@ -53,6 +56,7 @@ enum ProfileFontChoiceEnum: Int, CaseIterable, Identifiable, Hashable {
     case .swanky: return 22
     case .cooperBlack: return 25
     case .alienMushrooms: return 38
+    case .chewy: return 28
     }
   }
 
@@ -62,13 +66,15 @@ enum ProfileFontChoiceEnum: Int, CaseIterable, Identifiable, Hashable {
     var attributed = AttributedString(text)
 
     guard let fontName = fontName else {
-      attributed.font = isLargeTitle ? .title2.weight(.black) : .body.weight(.black)
+      attributed.font =
+        isLargeTitle ? .title2.weight(.black) : .body.weight(.black)
       return attributed
     }
 
     let size = isLargeTitle ? titleSize : baselineSize
     let customFont = Font.custom(fontName, size: size)
-    let fallbackFont: Font = isLargeTitle ? .title2.weight(.black) : .body.weight(.black)
+    let fallbackFont: Font =
+      isLargeTitle ? .title2.weight(.black) : .body.weight(.black)
 
     var currentIndex = attributed.startIndex
     for character in text {
@@ -139,7 +145,7 @@ struct ProfileDisplayNameView: View {
         content
       }
     } else {
-      HStack(alignment: .center) {
+      HStack(alignment: .firstTextBaseline) {
         content
       }
     }

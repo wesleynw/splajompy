@@ -81,7 +81,7 @@ public struct APIService {
         }
         if httpResponse.statusCode == 503 {
           return .error(
-            APIErrorMessage(message: "Service temporarily unavailable. Please try again later."))
+            APIErrorMessage(message: "Service unavailable."))
         }
       }
 

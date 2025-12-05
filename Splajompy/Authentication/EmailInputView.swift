@@ -29,25 +29,26 @@ struct EmailInputView: View {
         #endif
         .focused($isFieldFocused)
         .onAppear { isFieldFocused = true }
-
-      Spacer()
-
-      VStack(spacing: 12) {
+    }
+    .frame(maxHeight: .infinity, alignment: .topLeading)
+    .safeAreaInset(edge: .bottom) {
+      VStack {
         Button(action: {
           dismiss()
         }) {
-          HStack {
-            Spacer()
-            Text("Use password instead")
-              .font(.system(size: 16, weight: .bold))
-              .padding()
-            Spacer()
-          }
-          .frame(maxWidth: .infinity)
+          Text("Use password instead")
+            .fontWeight(.bold)
+            .font(.body)
+            .padding()
+            .frame(maxWidth: .infinity)
         }
         .disabled(authManager.isLoading)
 
-        Button(action: {
+        AsyncActionButton(
+          title: "Continue",
+          isLoading: authManager.isLoading,
+          isDisabled: authManager.isLoading || identifier.isEmpty
+        ) {
           Task {
             let success = await authManager.requestOneTimeCode(
               for: identifier.lowercased()
@@ -60,37 +61,8 @@ struct EmailInputView: View {
               showError = true
             }
           }
-        }) {
-          ZStack {
-            HStack {
-              Spacer()
-              Text("Continue")
-                .font(.system(size: 16, weight: .bold))
-                .foregroundColor(
-                  identifier.isEmpty ? Color.primary.opacity(0.4) : Color.white
-                )
-                .padding()
-              Spacer()
-            }
-
-            if authManager.isLoading {
-              HStack {
-                Spacer()
-                ProgressView()
-                  .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                  .padding(.trailing, 16)
-              }
-            }
-          }
-          .background(
-            identifier.isEmpty
-              ? Color.secondary.opacity(0.3) : Color.accentColor
-          )
-          .cornerRadius(10)
         }
-        .disabled(authManager.isLoading || identifier.isEmpty)
       }
-      .padding(.bottom, 8)
     }
     .padding()
     .navigationTitle("Sign In")
@@ -105,7 +77,21 @@ struct EmailInputView: View {
           #endif
         }()
       ) {
-        CloseButton(onClose: { isPresenting = false })
+        #if os(iOS)
+          if #available(iOS 26.0, *) {
+            Button(role: .close, action: { isPresenting = false })
+          } else {
+            Button {
+              isPresenting = false
+            } label: {
+              Image(systemName: "xmark.circle.fill")
+                .opacity(0.8)
+            }
+            .buttonStyle(.plain)
+          }
+        #else
+          CloseButton(onClose: { isPresenting = false })
+        #endif
       }
     }
     .navigationDestination(isPresented: $shouldShowCodeView) {

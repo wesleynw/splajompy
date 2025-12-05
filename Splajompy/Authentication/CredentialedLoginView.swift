@@ -70,68 +70,42 @@ struct CredentialedLoginView: View {
             .autocorrectionDisabled()
             .focused($isPasswordFieldFocused)
         }
-        .padding(.bottom, 10)
-
-        Spacer()
-
-        Button(action: {
-          shouldShowEmailView = true
-        }) {
-          HStack {
-            Spacer()
-            Text("Email me a code instead")
-              .font(.system(size: 16, weight: .bold))
-              .padding()
-            Spacer()
-          }
-          .frame(maxWidth: .infinity)
-        }
-        .disabled(authManager.isLoading)
-
-        Button(action: {
-          Task {
-            let (success, err) = await authManager.signInWithPassword(
-              identifier: identifier.lowercased(),
-              password: password
-            )
-            if !success {
-              errorMessage = err
-              showError = true
-            }
-          }
-        }
-        ) {
-          ZStack {
+      }
+      .frame(maxHeight: .infinity, alignment: .topLeading)
+      .safeAreaInset(edge: .bottom) {
+        VStack {
+          Button(action: {
+            shouldShowEmailView = true
+          }) {
             HStack {
               Spacer()
-              Text("Continue")
+              Text("Email me a code instead")
                 .font(.system(size: 16, weight: .bold))
-                .foregroundColor(
-                  password.isEmpty ? Color.primary.opacity(0.4) : Color.white
-                )
                 .padding()
               Spacer()
             }
+            .frame(maxWidth: .infinity)
+          }
+          .disabled(authManager.isLoading)
 
-            if authManager.isLoading {
-              HStack {
-                Spacer()
-                ProgressView()
-                  .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                  .padding(.trailing, 16)
+          AsyncActionButton(
+            title: "Continue",
+            isLoading: authManager.isLoading,
+            isDisabled: authManager.isLoading || password.isEmpty
+              || identifier.isEmpty
+          ) {
+            Task {
+              let (success, err) = await authManager.signInWithPassword(
+                identifier: identifier.lowercased(),
+                password: password
+              )
+              if !success {
+                errorMessage = err
+                showError = true
               }
             }
           }
-          .background(
-            password.isEmpty ? Color.secondary.opacity(0.3) : Color.accentColor
-          )
-          .cornerRadius(10)
         }
-        .disabled(
-          authManager.isLoading || password.isEmpty || identifier.isEmpty
-        )
-        .padding(.bottom, 8)
-
       }
       .padding()
       .navigationTitle("Sign In")

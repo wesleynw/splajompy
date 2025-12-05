@@ -14,6 +14,7 @@ struct OneTimeCodeView: View {
     VStack(alignment: .leading) {
       Text("You should receive a verification email momentarily.")
         .font(.body)
+        .fontWeight(.bold)
         .foregroundColor(.secondary)
         .padding(.bottom, 20)
 
@@ -36,9 +37,14 @@ struct OneTimeCodeView: View {
         #endif
         .onAppear { isFocused = true }
 
-      Spacer()
-
-      Button(action: {
+    }
+    .frame(maxHeight: .infinity, alignment: .topLeading)
+    .safeAreaInset(edge: .bottom) {
+      AsyncActionButton(
+        title: "Continue",
+        isLoading: authManager.isLoading,
+        isDisabled: authManager.isLoading || oneTimeCode.isEmpty
+      ) {
         Task {
           let success = await authManager.verifyOneTimeCode(
             for: identifier,
@@ -49,38 +55,9 @@ struct OneTimeCodeView: View {
           }
         }
       }
-      ) {
-        ZStack {
-          HStack {
-            Spacer()
-            Text("Continue")
-              .font(.system(size: 16, weight: .bold))
-              .foregroundColor(
-                oneTimeCode.isEmpty ? Color.primary.opacity(0.4) : Color.white
-              )
-              .padding()
-            Spacer()
-          }
-
-          if authManager.isLoading {
-            HStack {
-              Spacer()
-              ProgressView()
-                .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                .padding(.trailing, 16)
-            }
-          }
-        }
-        .background(
-          oneTimeCode.isEmpty ? Color.secondary.opacity(0.3) : Color.accentColor
-        )
-        .cornerRadius(10)
-      }
-      .disabled(authManager.isLoading || oneTimeCode.isEmpty)
-      .padding(.bottom, 8)
     }
-    .padding()
     .navigationTitle("Check your email")
+    .padding()
     .toolbar {
       ToolbarItem(
         placement: {

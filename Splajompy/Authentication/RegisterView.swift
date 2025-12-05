@@ -37,7 +37,19 @@ struct RegisterView: View {
 
           Spacer(minLength: 24)
 
-          bottomSection
+        }
+        .safeAreaInset(edge: .bottom) {
+          VStack {
+            AsyncActionButton(
+              title: "Continue",
+              isLoading: authManager.isLoading,
+              isDisabled: isContinueButtonDisabled
+            ) {
+              handleContinue()
+
+            }
+            termsText
+          }
         }
         .padding(.horizontal, 24)
         .padding(.vertical, 32)
@@ -191,14 +203,6 @@ struct RegisterView: View {
     }
   }
 
-  private var bottomSection: some View {
-    VStack(spacing: 12) {
-      continueButton
-      termsText
-    }
-    .padding(.bottom, 8)
-  }
-
   private var termsText: some View {
     Text(
       "By continuing, you agree to our [Terms of Service](https://splajompy.com/tos) and [Privacy Policy](https://splajompy.com/privacy)."
@@ -219,33 +223,6 @@ struct RegisterView: View {
       }
     )
     .padding(.bottom, 16)
-  }
-
-  private var continueButton: some View {
-    Button(action: handleContinue) {
-      ZStack {
-        HStack {
-          Spacer()
-          Text("Continue")
-            .font(.system(size: 16, weight: .bold))
-            .foregroundColor(continueButtonTextColor)
-            .padding()
-          Spacer()
-        }
-
-        if authManager.isLoading {
-          HStack {
-            Spacer()
-            ProgressView()
-              .progressViewStyle(CircularProgressViewStyle(tint: .white))
-              .padding(.trailing, 16)
-          }
-        }
-      }
-      .background(continueButtonBackgroundColor)
-      .cornerRadius(10)
-    }
-    .disabled(isContinueButtonDisabled)
   }
 
   private func errorMessageView(_ message: String) -> some View {
