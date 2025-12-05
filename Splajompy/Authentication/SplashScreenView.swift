@@ -10,7 +10,6 @@ struct SplashScreenView: View {
       Image("Logo")
         .resizable()
         .scaledToFit()
-        .colorScheme(.dark)
         .frame(height: 130)
         .shadow(color: .white, radius: 3)
 
@@ -30,16 +29,15 @@ struct SplashScreenView: View {
           Text("Log In")
             .fontWeight(.black)
             .fontDesign(.rounded)
-            .foregroundColor(.white)
             .padding()
             .frame(maxWidth: .infinity)
             .background(
               RoundedRectangle(cornerRadius: 30)
                 .fill(.clear)
-                .stroke(.white, lineWidth: 1)
+                .stroke(.primary, lineWidth: 1)
                 .shadow(color: .white, radius: 1)
             )
-            .shadow(color: .white, radius: 1)
+            .shadow(color: .accentColor, radius: 1)
         }
         .frame(maxWidth: .infinity)
         .contentShape(Rectangle())
@@ -64,6 +62,7 @@ struct SplashScreenView: View {
       }
       .padding()
     }
+    .preferredColorScheme(.dark)
     #if os(iOS)
       .fullScreenCover(isPresented: $isLoginViewPresenting) {
         CredentialedLoginView(isPresenting: $isLoginViewPresenting)
@@ -80,7 +79,6 @@ struct SplashScreenView: View {
       }
     #endif
     .environmentObject(authManager)
-    .preferredColorScheme(.dark)
   }
 }
 
