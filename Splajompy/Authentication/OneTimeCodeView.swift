@@ -18,6 +18,7 @@ struct OneTimeCodeView: View {
         .padding(.bottom, 20)
 
       TextField("Code", text: $oneTimeCode)
+        .textFieldStyle(.plain)
         .padding(12)
         .background(
           RoundedRectangle(cornerRadius: 8)

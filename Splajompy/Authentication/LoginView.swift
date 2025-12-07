@@ -31,6 +31,7 @@ struct LoginView: View {
                   lineWidth: 2
                 )
             )
+            .textFieldStyle(.plain)
             .cornerRadius(8)
             .textContentType(.username)
             #if os(iOS)
@@ -65,6 +66,7 @@ struct LoginView: View {
                 .autocapitalization(.none)
               #endif
               .autocorrectionDisabled()
+              .textFieldStyle(.plain)
               .focused($isPasswordFieldFocused)
           }
         }
@@ -78,42 +80,22 @@ struct LoginView: View {
             }
           }) {
             Text("Sign in with \(isUsingPassword ? "email code" : "password")")
-              .font(.system(size: 16, weight: .bold))
-              .padding()
+              .fontWeight(.bold)
               .frame(maxWidth: .infinity)
           }
+          .controlSize(.large)
           .disabled(authManager.isLoading)
 
-          AsyncActionButton(
-            title: "Continue",
-            isLoading: authManager.isLoading,
-            isDisabled: authManager.isLoading
-              || identifier.isEmpty || (isUsingPassword && password.isEmpty)
-          ) {
-            if isUsingPassword {
-              Task {
-                let (success, err) = await authManager.signInWithPassword(
-                  identifier: identifier,
-                  password: password
-                )
-                if !success {
-                  errorMessage = err
-                  showError = true
-                }
-              }
-            } else {
-              let success = await authManager.requestOneTimeCode(
-                for: identifier
-              )
-              if success {
-                isShowingOtcVerify = true
-              } else {
-                errorMessage =
-                  "Failed to send code. Try again with a different Username or Email."
-                showError = true
-              }
+          #if os(iOS)
+            AsyncActionButton(
+              title: "Continue",
+              isLoading: authManager.isLoading,
+              isDisabled: authManager.isLoading
+                || identifier.isEmpty || (isUsingPassword && password.isEmpty)
+            ) {
+              await handleSubmit()
             }
-          }
+          #endif
         }
       }
       .padding()
@@ -124,7 +106,7 @@ struct LoginView: View {
             #if os(iOS)
               .topBarTrailing
             #else
-              .primaryAction
+              .destructiveAction
             #endif
           }()
         ) {
@@ -141,9 +123,26 @@ struct LoginView: View {
               .buttonStyle(.plain)
             }
           #else
-            CloseButton(onClose: { dismiss() })
+            Button("Cancel") {
+              dismiss()
+            }
+            .fontWeight(.bold)
+            .controlSize(.large)
           #endif
         }
+
+        #if os(macOS)
+          ToolbarItem(placement: .confirmationAction) {
+            AsyncActionButton(
+              title: "Continue",
+              isLoading: authManager.isLoading,
+              isDisabled: authManager.isLoading
+                || identifier.isEmpty || (isUsingPassword && password.isEmpty)
+            ) {
+              await handleSubmit()
+            }
+          }
+        #endif
       }
       .navigationDestination(isPresented: $isShowingOtcVerify) {
         OneTimeCodeView(identifier: identifier)
@@ -158,6 +157,28 @@ struct LoginView: View {
           ),
           dismissButton: .default(Text("OK"))
         )
+      }
+    }
+  }
+
+  private func handleSubmit() async {
+    if isUsingPassword {
+      let (success, err) = await authManager.signInWithPassword(
+        identifier: identifier,
+        password: password
+      )
+      if !success {
+        errorMessage = err
+        showError = true
+      }
+    } else {
+      let success = await authManager.requestOneTimeCode(for: identifier)
+      if success {
+        isShowingOtcVerify = true
+      } else {
+        errorMessage =
+          "Failed to send code. Try again with a different Username or Email."
+        showError = true
       }
     }
   }
