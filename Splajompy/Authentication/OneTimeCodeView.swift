@@ -18,7 +18,6 @@ struct OneTimeCodeView: View {
         .padding(.bottom, 20)
 
       TextField("Code", text: $oneTimeCode)
-        .textFieldStyle(.plain)
         .padding(12)
         .background(
           RoundedRectangle(cornerRadius: 8)
@@ -34,6 +33,8 @@ struct OneTimeCodeView: View {
         .textContentType(.oneTimeCode)
         #if os(iOS)
           .keyboardType(.numberPad)
+        #else
+          .textFieldStyle(.plain)
         #endif
         .onAppear { isFocused = true }
 

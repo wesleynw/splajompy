@@ -38,7 +38,20 @@ struct RegisterView: View {
 
         }
         .safeAreaInset(edge: .bottom) {
-          termsText
+          VStack {
+            termsText
+
+            #if os(iOS)
+              AsyncActionButton(
+                title: "Continue",
+                isLoading: authManager.isLoading,
+                isDisabled: isContinueButtonDisabled
+              ) {
+                handleContinue()
+
+              }
+            #endif
+          }
         }
         .padding(.horizontal, 24)
         .padding(.vertical, 32)
@@ -76,25 +89,18 @@ struct RegisterView: View {
           #endif
         }
 
-        ToolbarItem(
-          placement: {
-            #if os(iOS)
-              return .bottomBar
-            #else
-              return .confirmationAction
-            #endif
-          }()
-        ) {
-          AsyncActionButton(
-            title: "Continue",
-            isLoading: authManager.isLoading,
-            isDisabled: isContinueButtonDisabled
-          ) {
-            handleContinue()
+        #if os(macOS)
+          ToolbarItem(placement: .confirmationAction) {
+            AsyncActionButton(
+              title: "Continue",
+              isLoading: authManager.isLoading,
+              isDisabled: isContinueButtonDisabled
+            ) {
+              handleContinue()
 
+            }
           }
-          .frame(maxWidth: .infinity)
-        }
+        #endif
       }
       .animation(.easeInOut(duration: 0.25), value: usernameError.isEmpty)
       .animation(.easeInOut(duration: 0.25), value: emailError.isEmpty)
@@ -104,7 +110,6 @@ struct RegisterView: View {
 
   private var usernameField: some View {
     TextField("Username", text: $username)
-      .textFieldStyle(.plain)
       .padding(12)
       .background(
         RoundedRectangle(cornerRadius: 8)
@@ -118,6 +123,8 @@ struct RegisterView: View {
       #if os(iOS)
         .autocapitalization(.none)
         .autocorrectionDisabled()
+      #else
+        .textFieldStyle(.plain)
       #endif
       .padding(.bottom, usernameError.isEmpty ? 10 : 4)
       .focused($isUsernameFieldFocused)
@@ -138,7 +145,6 @@ struct RegisterView: View {
 
   private var emailField: some View {
     TextField("Email", text: $email)
-      .textFieldStyle(.plain)
       .padding(12)
       .background(
         RoundedRectangle(cornerRadius: 8)
@@ -149,6 +155,8 @@ struct RegisterView: View {
       #if os(iOS)
         .autocapitalization(.none)
         .autocorrectionDisabled()
+      #else
+        .textFieldStyle(.plain)
       #endif
       .padding(.bottom, emailError.isEmpty ? 10 : 4)
       .focused($isEmailFieldFocused)
@@ -166,7 +174,6 @@ struct RegisterView: View {
 
   private var passwordField: some View {
     SecureField("Password", text: $password)
-      .textFieldStyle(.plain)
       .padding(12)
       .background(
         RoundedRectangle(cornerRadius: 8)
@@ -180,6 +187,8 @@ struct RegisterView: View {
       #if os(iOS)
         .autocapitalization(.none)
         .autocorrectionDisabled()
+      #else
+        .textFieldStyle(.plain)
       #endif
       .focused($isPasswordFieldFocused)
       .padding(.bottom, passwordError.isEmpty ? 0 : 4)
