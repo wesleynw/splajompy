@@ -2,7 +2,6 @@ import SwiftUI
 
 struct OneTimeCodeView: View {
   var identifier: String
-  @Binding var isPresenting: Bool
   @Environment(\.dismiss) var dismiss
   @FocusState private var isFocused: Bool
   @State private var showError: Bool = false
@@ -19,6 +18,7 @@ struct OneTimeCodeView: View {
         .padding(.bottom, 20)
 
       TextField("Code", text: $oneTimeCode)
+        .textFieldStyle(.plain)
         .padding(12)
         .background(
           RoundedRectangle(cornerRadius: 8)
@@ -58,33 +58,6 @@ struct OneTimeCodeView: View {
     }
     .navigationTitle("Check your email")
     .padding()
-    .toolbar {
-      ToolbarItem(
-        placement: {
-          #if os(iOS)
-            .topBarTrailing
-          #else
-            .primaryAction
-          #endif
-        }()
-      ) {
-        #if os(iOS)
-          if #available(iOS 26.0, *) {
-            Button(role: .close, action: { isPresenting = false })
-          } else {
-            Button {
-              isPresenting = false
-            } label: {
-              Image(systemName: "xmark.circle.fill")
-                .opacity(0.8)
-            }
-            .buttonStyle(.plain)
-          }
-        #else
-          CloseButton(onClose: { isPresenting = false })
-        #endif
-      }
-    }
     .alert(isPresented: $showError) {
       Alert(
         title: Text("Sign In Failed"),
@@ -96,10 +69,9 @@ struct OneTimeCodeView: View {
 }
 
 #Preview {
-  @Previewable @State var isPresenting = true
 
   NavigationStack {
-    OneTimeCodeView(identifier: "wesleynw", isPresenting: $isPresenting)
+    OneTimeCodeView(identifier: "wesleynw")
       .environmentObject(AuthManager())
   }
 }

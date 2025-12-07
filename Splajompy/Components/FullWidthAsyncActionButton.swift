@@ -28,6 +28,7 @@ struct AsyncActionButton: View {
       }
     }
     .disabled(isLoading || isDisabled)
+    .frame(maxWidth: .infinity)
   }
 }
 

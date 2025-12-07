@@ -29,17 +29,17 @@ struct SplashScreenView: View {
           Text("Log In")
             .fontWeight(.black)
             .fontDesign(.rounded)
-            .padding()
             .frame(maxWidth: .infinity)
-            .background(
-              RoundedRectangle(cornerRadius: 30)
-                .fill(.clear)
-                .stroke(.primary, lineWidth: 1)
-                .shadow(color: .white, radius: 1)
-            )
         }
-        .frame(maxWidth: .infinity)
-        .contentShape(Rectangle())
+        .modify {
+          if #available(iOS 26, macOS 26, *) {
+            $0.buttonStyle(.glass)
+          } else {
+            $0.buttonStyle(.bordered)
+          }
+        }
+        .buttonStyle(.borderedProminent)
+        .controlSize(.extraLarge)
         .sensoryFeedback(.impact, trigger: isLoginViewPresenting)
 
         Button {
@@ -48,14 +48,16 @@ struct SplashScreenView: View {
           Text("Sign Up")
             .fontWeight(.black)
             .fontDesign(.rounded)
-            .foregroundColor(.white)
-            .padding()
             .frame(maxWidth: .infinity)
-            .background {
-              RoundedRectangle(cornerRadius: 30)
-                .shadow(radius: 2)
-            }
         }
+        .modify {
+          if #available(iOS 26, macOS 26, *) {
+            $0.buttonStyle(.glassProminent)
+          } else {
+            $0.buttonStyle(.borderedProminent)
+          }
+        }
+        .controlSize(.extraLarge)
         .sensoryFeedback(.impact, trigger: isRegisterViewPresenting)
       }
       .padding()
@@ -63,17 +65,17 @@ struct SplashScreenView: View {
     .preferredColorScheme(.dark)
     #if os(iOS)
       .fullScreenCover(isPresented: $isLoginViewPresenting) {
-        CredentialedLoginView(isPresenting: $isLoginViewPresenting)
+        LoginView()
       }
       .fullScreenCover(isPresented: $isRegisterViewPresenting) {
-        RegisterView(isPresenting: $isRegisterViewPresenting)
+        RegisterView()
       }
     #else
       .sheet(isPresented: $isLoginViewPresenting) {
-        CredentialedLoginView(isPresenting: $isLoginViewPresenting)
+        LoginView()
       }
       .sheet(isPresented: $isRegisterViewPresenting) {
-        RegisterView(isPresenting: $isRegisterViewPresenting)
+        RegisterView()
       }
     #endif
     .environmentObject(authManager)
