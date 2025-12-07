@@ -5,20 +5,8 @@ struct ProfileView: View {
   let userId: Int
   let isProfileTab: Bool
 
-  enum AlertType: Identifiable {
-    case block
-    case mute
-
-    var id: String {
-      switch self {
-      case .block: return "block"
-      case .mute: return "mute"
-      }
-    }
-  }
-
   @State private var isShowingProfileEditor: Bool = false
-  @State private var activeAlert: AlertType?
+  @State private var activeAlert: ProfileAlertEnum?
   @StateObject private var viewModel: ViewModel
   @EnvironmentObject private var authManager: AuthManager
   @ObservedObject var postManager: PostManager
@@ -225,7 +213,7 @@ struct ProfileView: View {
       }
       .environmentObject(authManager)
       .refreshable {
-        await viewModel.loadPosts(reset: true)
+        await viewModel.loadProfileAndPosts()
       }
     }
   }
@@ -387,6 +375,18 @@ struct ProfileView: View {
       Text(isCurrentUser ? "Your posts will show up here." : "No posts here.")
         .padding()
       Spacer()
+    }
+  }
+}
+
+enum ProfileAlertEnum: Identifiable {
+  case block
+  case mute
+
+  var id: String {
+    switch self {
+    case .block: return "block"
+    case .mute: return "mute"
     }
   }
 }
