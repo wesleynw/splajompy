@@ -80,6 +80,7 @@ struct LoginView: View {
             }
           }) {
             Text("Sign in with \(isUsingPassword ? "email code" : "password")")
+              .padding()
               .fontWeight(.bold)
               .frame(maxWidth: .infinity)
           }
