@@ -224,7 +224,6 @@ struct MainFeedView: View {
         HStack {
           if case .loading = viewModel.state {
             ProgressView()
-              .scaleEffect(0.8)
           } else {
             Image(systemName: "arrow.clockwise")
           }

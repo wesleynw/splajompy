@@ -133,7 +133,6 @@ struct AccountSettingsView: View {
                 if authManager.isLoading {
                   ProgressView()
                     .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                    .scaleEffect(0.8)
                 }
                 Text("Delete Account")
                   .fontWeight(.semibold)

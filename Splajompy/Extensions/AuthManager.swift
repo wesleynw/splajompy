@@ -134,6 +134,7 @@ class AuthManager: ObservableObject, Sendable {
     isAuthenticated = true
   }
 
+  /// Request a one time code be sent to the email of the user given by the identifier.
   func requestOneTimeCode(for identifier: String) async -> Bool {
     isLoading = true
     defer { isLoading = false }
@@ -142,7 +143,10 @@ class AuthManager: ObservableObject, Sendable {
       let identifier: String
     }
 
-    guard let jsonData = try? JSONEncoder().encode(Body(identifier: identifier))
+    guard
+      let jsonData = try? JSONEncoder().encode(
+        Body(identifier: identifier.lowercased())
+      )
     else {
       return false
     }
@@ -172,7 +176,7 @@ class AuthManager: ObservableObject, Sendable {
 
     guard
       let jsonData = try? JSONEncoder().encode(
-        Body(identifier: identifier, code: code)
+        Body(identifier: identifier.lowercased(), code: code)
       )
     else {
       return false
@@ -215,7 +219,7 @@ class AuthManager: ObservableObject, Sendable {
     }
 
     let credentials = LoginCredentials(
-      identifier: identifier,
+      identifier: identifier.lowercased(),
       password: password
     )
 
@@ -255,8 +259,10 @@ class AuthManager: ObservableObject, Sendable {
     defer { isLoading = false }
 
     if let validationError = validateRegistrationInput(
-      username: username, email: email, password: password)
-    {
+      username: username,
+      email: email,
+      password: password
+    ) {
       return (false, validationError)
     }
 
@@ -305,7 +311,10 @@ class AuthManager: ObservableObject, Sendable {
     }
 
     let alphanumericRegex = "^[a-zA-Z0-9.]+$"
-    let alphanumericPred = NSPredicate(format: "SELF MATCHES %@", alphanumericRegex)
+    let alphanumericPred = NSPredicate(
+      format: "SELF MATCHES %@",
+      alphanumericRegex
+    )
     if !alphanumericPred.evaluate(with: username) {
       return "Username can only contain letters, numbers, and periods"
     }
@@ -339,7 +348,11 @@ class AuthManager: ObservableObject, Sendable {
     return nil
   }
 
-  private func validateRegistrationInput(username: String, email: String, password: String)
+  private func validateRegistrationInput(
+    username: String,
+    email: String,
+    password: String
+  )
     -> String?
   {
     if let usernameError = validateUsername(username) {

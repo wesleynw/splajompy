@@ -49,7 +49,6 @@ struct ProfileEditorView: View {
           }
           .buttonStyle(.bordered)
           .disabled(name.isEmpty)
-          .padding()
         }
 
         HStack {

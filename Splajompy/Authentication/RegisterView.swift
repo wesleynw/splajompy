@@ -1,7 +1,6 @@
 import SwiftUI
 
 struct RegisterView: View {
-  @Binding var isPresenting: Bool
   @Environment(\.dismiss) var dismiss
 
   @State private var email: String = ""
@@ -37,7 +36,22 @@ struct RegisterView: View {
 
           Spacer(minLength: 24)
 
-          bottomSection
+        }
+        .safeAreaInset(edge: .bottom) {
+          VStack {
+            termsText
+
+            #if os(iOS)
+              AsyncActionButton(
+                title: "Continue",
+                isLoading: authManager.isLoading,
+                isDisabled: isContinueButtonDisabled
+              ) {
+                handleContinue()
+
+              }
+            #endif
+          }
         }
         .padding(.horizontal, 24)
         .padding(.vertical, 32)
@@ -48,18 +62,18 @@ struct RegisterView: View {
         ToolbarItem(
           placement: {
             #if os(iOS)
-              return .topBarTrailing
+              return .destructiveAction
             #else
-              return .primaryAction
+              return .destructiveAction
             #endif
           }()
         ) {
           #if os(iOS)
             if #available(iOS 26.0, *) {
-              Button(role: .close, action: { isPresenting = false })
+              Button(role: .close, action: { dismiss() })
             } else {
               Button {
-                isPresenting = false
+                dismiss()
               } label: {
                 Image(systemName: "xmark.circle.fill")
                   .opacity(0.8)
@@ -67,9 +81,26 @@ struct RegisterView: View {
               .buttonStyle(.plain)
             }
           #else
-            CloseButton(onClose: { isPresenting = false })
+            Button("Cancel") {
+              dismiss()
+            }
+            .fontWeight(.bold)
+            .controlSize(.large)
           #endif
         }
+
+        #if os(macOS)
+          ToolbarItem(placement: .confirmationAction) {
+            AsyncActionButton(
+              title: "Continue",
+              isLoading: authManager.isLoading,
+              isDisabled: isContinueButtonDisabled
+            ) {
+              handleContinue()
+
+            }
+          }
+        #endif
       }
       .animation(.easeInOut(duration: 0.25), value: usernameError.isEmpty)
       .animation(.easeInOut(duration: 0.25), value: emailError.isEmpty)
@@ -92,6 +123,8 @@ struct RegisterView: View {
       #if os(iOS)
         .autocapitalization(.none)
         .autocorrectionDisabled()
+      #else
+        .textFieldStyle(.plain)
       #endif
       .padding(.bottom, usernameError.isEmpty ? 10 : 4)
       .focused($isUsernameFieldFocused)
@@ -122,6 +155,8 @@ struct RegisterView: View {
       #if os(iOS)
         .autocapitalization(.none)
         .autocorrectionDisabled()
+      #else
+        .textFieldStyle(.plain)
       #endif
       .padding(.bottom, emailError.isEmpty ? 10 : 4)
       .focused($isEmailFieldFocused)
@@ -152,6 +187,8 @@ struct RegisterView: View {
       #if os(iOS)
         .autocapitalization(.none)
         .autocorrectionDisabled()
+      #else
+        .textFieldStyle(.plain)
       #endif
       .focused($isPasswordFieldFocused)
       .padding(.bottom, passwordError.isEmpty ? 0 : 4)
@@ -191,14 +228,6 @@ struct RegisterView: View {
     }
   }
 
-  private var bottomSection: some View {
-    VStack(spacing: 12) {
-      continueButton
-      termsText
-    }
-    .padding(.bottom, 8)
-  }
-
   private var termsText: some View {
     Text(
       "By continuing, you agree to our [Terms of Service](https://splajompy.com/tos) and [Privacy Policy](https://splajompy.com/privacy)."
@@ -219,33 +248,6 @@ struct RegisterView: View {
       }
     )
     .padding(.bottom, 16)
-  }
-
-  private var continueButton: some View {
-    Button(action: handleContinue) {
-      ZStack {
-        HStack {
-          Spacer()
-          Text("Continue")
-            .font(.system(size: 16, weight: .bold))
-            .foregroundColor(continueButtonTextColor)
-            .padding()
-          Spacer()
-        }
-
-        if authManager.isLoading {
-          HStack {
-            Spacer()
-            ProgressView()
-              .progressViewStyle(CircularProgressViewStyle(tint: .white))
-              .padding(.trailing, 16)
-          }
-        }
-      }
-      .background(continueButtonBackgroundColor)
-      .cornerRadius(10)
-    }
-    .disabled(isContinueButtonDisabled)
   }
 
   private func errorMessageView(_ message: String) -> some View {
@@ -287,14 +289,6 @@ struct RegisterView: View {
     authManager.isLoading || isFormEmpty
   }
 
-  private var toolbarPlacement: ToolbarItemPlacement {
-    #if os(iOS)
-      return .topBarTrailing
-    #else
-      return .primaryAction
-    #endif
-  }
-
   private func handleContinue() {
     if validateForm() {
       Task {
@@ -324,9 +318,8 @@ struct RegisterView: View {
 }
 
 #Preview {
-  @Previewable @State var isPresenting = true
   let authManager = AuthManager()
 
-  RegisterView(isPresenting: $isPresenting)
+  RegisterView()
     .environmentObject(authManager)
 }
