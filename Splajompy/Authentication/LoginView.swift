@@ -4,7 +4,7 @@ struct LoginView: View {
   @Environment(\.dismiss) var dismiss
 
   @State private var identifier: String = ""
-  @State private var isUsingPassword: Bool = false
+  @State private var isUsingPassword: Bool = true
   @State private var isShowingOtcVerify: Bool = false
   @State private var password = ""
   @State private var hasRequestedCode: Bool = false
@@ -31,11 +31,12 @@ struct LoginView: View {
                   lineWidth: 2
                 )
             )
-            .textFieldStyle(.plain)
             .cornerRadius(8)
             .textContentType(.username)
             #if os(iOS)
               .autocorrectionDisabled()
+            #else
+              .textFieldStyle(.plain)
             #endif
             .focused($isIdentifierFieldFocused)
             .onAppear {
@@ -64,9 +65,10 @@ struct LoginView: View {
               .textContentType(.password)
               #if os(iOS)
                 .autocapitalization(.none)
+              #else
+                .textFieldStyle(.plain)
               #endif
               .autocorrectionDisabled()
-              .textFieldStyle(.plain)
               .focused($isPasswordFieldFocused)
           }
         }
@@ -80,12 +82,12 @@ struct LoginView: View {
             }
           }) {
             Text("Sign in with \(isUsingPassword ? "email code" : "password")")
-              .padding()
               .fontWeight(.bold)
               .frame(maxWidth: .infinity)
           }
           .controlSize(.large)
           .disabled(authManager.isLoading)
+          .padding()
 
           #if os(iOS)
             AsyncActionButton(

@@ -11,7 +11,7 @@ struct SplashScreenView: View {
         .resizable()
         .scaledToFit()
         .frame(height: 130)
-        .shadow(color: .white, radius: 3)
+        .shadow(color: .white, radius: 1)
 
       Text("Splajompy")
         .fontWeight(.black)
