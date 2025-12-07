@@ -43,13 +43,16 @@ extension ProfileView {
     }
 
     func loadProfileAndPosts() async {
-      // don't reload if we already have both profile and posts data
-      if case .loaded(_) = profileState, case .loaded(_) = postsState {
-        return
+      // if profile or posts are already loaded, don't reset to loading state when updating
+      if case .loaded(_) = profileState {
+      } else {
+        profileState = .loading
       }
 
-      profileState = .loading
-      postsState = .loading
+      if case .loaded(_) = postsState {
+      } else {
+        postsState = .loading
+      }
 
       async let profileResult = profileService.getProfile(userId: userId)
       async let postsResult = postManager.loadFeed(
@@ -172,7 +175,11 @@ extension ProfileView {
       }
     }
 
-    func updateProfile(name: String, bio: String, displayProperties: UserDisplayProperties) {
+    func updateProfile(
+      name: String,
+      bio: String,
+      displayProperties: UserDisplayProperties
+    ) {
       isLoading = true
       defer {
         isLoading = false
@@ -182,7 +189,8 @@ extension ProfileView {
         let result = await profileService.updateProfile(
           name: name.trimmingCharacters(in: .whitespacesAndNewlines),
           bio: bio.trimmingCharacters(in: .whitespacesAndNewlines),
-          displayProperties: displayProperties)
+          displayProperties: displayProperties
+        )
         switch result {
         case .success(_):
           if case .loaded(var profile) = profileState {
@@ -300,13 +308,18 @@ extension ProfileView {
       }
     }
 
-    private func repositionPostChronologically(_ postId: Int, in currentIds: inout [Int]) {
+    private func repositionPostChronologically(
+      _ postId: Int,
+      in currentIds: inout [Int]
+    ) {
       guard let post = postManager.getPost(id: postId) else { return }
 
       currentIds.removeAll { $0 == postId }
       let posts = postManager.getPostsById(currentIds)
       let insertIndex =
-        posts.firstIndex { !$0.isPinned && $0.post.createdAt < post.post.createdAt }
+        posts.firstIndex {
+          !$0.isPinned && $0.post.createdAt < post.post.createdAt
+        }
         ?? currentIds.count
       currentIds.insert(postId, at: insertIndex)
     }

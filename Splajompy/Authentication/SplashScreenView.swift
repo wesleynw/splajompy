@@ -37,7 +37,6 @@ struct SplashScreenView: View {
                 .stroke(.primary, lineWidth: 1)
                 .shadow(color: .white, radius: 1)
             )
-            .shadow(color: .accentColor, radius: 1)
         }
         .frame(maxWidth: .infinity)
         .contentShape(Rectangle())
@@ -56,7 +55,6 @@ struct SplashScreenView: View {
               RoundedRectangle(cornerRadius: 30)
                 .shadow(radius: 2)
             }
-            .shadow(color: .white, radius: 1)
         }
         .sensoryFeedback(.impact, trigger: isRegisterViewPresenting)
       }
