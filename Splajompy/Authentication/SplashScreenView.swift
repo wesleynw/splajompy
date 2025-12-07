@@ -65,7 +65,7 @@ struct SplashScreenView: View {
     .preferredColorScheme(.dark)
     #if os(iOS)
       .fullScreenCover(isPresented: $isLoginViewPresenting) {
-        CredentialedLoginView(isPresenting: $isLoginViewPresenting)
+        LoginView()
       }
       .fullScreenCover(isPresented: $isRegisterViewPresenting) {
         RegisterView(isPresenting: $isRegisterViewPresenting)

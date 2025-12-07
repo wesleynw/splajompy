@@ -1,17 +1,13 @@
 import SwiftUI
 
-struct CredentialedLoginView: View {
-  @Binding var isPresenting: Bool
+struct LoginView: View {
   @Environment(\.dismiss) var dismiss
 
   @State private var identifier: String = ""
+  @State private var isUsingPassword: Bool = false
+  @State private var isShowingOtcVerify: Bool = false
   @State private var password = ""
   @State private var hasRequestedCode: Bool = false
-  @State private var shouldShowEmailView: Bool = false
-
-  init(isPresenting: Binding<Bool>) {
-    self._isPresenting = isPresenting
-  }
 
   @State var showError: Bool = false
   @State var errorMessage: String = ""
@@ -51,56 +47,69 @@ struct CredentialedLoginView: View {
         }
         .padding(.bottom, 10)
 
-        VStack(alignment: .leading, spacing: 5) {
-          SecureField("Password", text: $password)
-            .padding(12)
-            .background(
-              RoundedRectangle(cornerRadius: 8)
-                .stroke(
-                  isPasswordFieldFocused
-                    ? Color.primary : Color.gray.opacity(0.75),
-                  lineWidth: 2
-                )
-            )
-            .cornerRadius(8)
-            .textContentType(.password)
-            #if os(iOS)
-              .autocapitalization(.none)
-            #endif
-            .autocorrectionDisabled()
-            .focused($isPasswordFieldFocused)
+        if isUsingPassword {
+          VStack(alignment: .leading) {
+            SecureField("Password", text: $password)
+              .padding(12)
+              .background(
+                RoundedRectangle(cornerRadius: 8)
+                  .stroke(
+                    isPasswordFieldFocused
+                      ? Color.primary : Color.gray.opacity(0.75),
+                    lineWidth: 2
+                  )
+              )
+              .cornerRadius(8)
+              .textContentType(.password)
+              #if os(iOS)
+                .autocapitalization(.none)
+              #endif
+              .autocorrectionDisabled()
+              .focused($isPasswordFieldFocused)
+          }
         }
       }
       .frame(maxHeight: .infinity, alignment: .topLeading)
       .safeAreaInset(edge: .bottom) {
         VStack {
           Button(action: {
-            shouldShowEmailView = true
-          }) {
-            HStack {
-              Spacer()
-              Text("Email me a code instead")
-                .font(.system(size: 16, weight: .bold))
-                .padding()
-              Spacer()
+            withAnimation {
+              isUsingPassword.toggle()
             }
-            .frame(maxWidth: .infinity)
+          }) {
+            Text("Sign in with \(isUsingPassword ? "email code" : "password")")
+              .font(.system(size: 16, weight: .bold))
+              .padding()
+              .frame(maxWidth: .infinity)
           }
           .disabled(authManager.isLoading)
 
           AsyncActionButton(
             title: "Continue",
             isLoading: authManager.isLoading,
-            isDisabled: authManager.isLoading || password.isEmpty
-              || identifier.isEmpty
+            isDisabled: authManager.isLoading
+              || identifier.isEmpty || (isUsingPassword && password.isEmpty)
           ) {
-            Task {
-              let (success, err) = await authManager.signInWithPassword(
-                identifier: identifier.lowercased(),
-                password: password
+            if isUsingPassword {
+              Task {
+                let (success, err) = await authManager.signInWithPassword(
+                  identifier: identifier,
+                  password: password
+                )
+                if !success {
+                  errorMessage = err
+                  showError = true
+                }
+              }
+            } else {
+              let success = await authManager.requestOneTimeCode(
+                for: identifier
               )
-              if !success {
-                errorMessage = err
+              if success {
+                isShowingOtcVerify = true
+              } else {
+                errorMessage =
+                  "Failed to send code. Try again with a different Username or Email."
                 showError = true
               }
             }
@@ -121,10 +130,10 @@ struct CredentialedLoginView: View {
         ) {
           #if os(iOS)
             if #available(iOS 26.0, *) {
-              Button(role: .close, action: { isPresenting = false })
+              Button(role: .close, action: { dismiss() })
             } else {
               Button {
-                isPresenting = false
+                dismiss()
               } label: {
                 Image(systemName: "xmark.circle.fill")
                   .opacity(0.8)
@@ -132,12 +141,12 @@ struct CredentialedLoginView: View {
               .buttonStyle(.plain)
             }
           #else
-            CloseButton(onClose: { isPresenting = false })
+            CloseButton(onClose: { dismiss() })
           #endif
         }
       }
-      .navigationDestination(isPresented: $shouldShowEmailView) {
-        EmailInputView(identifier: $identifier, isPresenting: $isPresenting)
+      .navigationDestination(isPresented: $isShowingOtcVerify) {
+        OneTimeCodeView(identifier: identifier)
           .environmentObject(authManager)
       }
       .alert(isPresented: $showError) {
@@ -155,8 +164,6 @@ struct CredentialedLoginView: View {
 }
 
 #Preview {
-  @Previewable @State var isPresenting = true
-
-  CredentialedLoginView(isPresenting: $isPresenting)
+  LoginView()
     .environmentObject(AuthManager())
 }
