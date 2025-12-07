@@ -409,5 +409,3 @@ enum ProfileAlertEnum: Identifiable {
     .environmentObject(AuthManager())
   }
 }
-
-
