@@ -45,6 +45,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.35.11 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sts v1.41.3 // indirect
 	github.com/aws/smithy-go v1.24.0 // indirect
+	github.com/bbalet/stopwords v1.0.0 // indirect
 	github.com/cenkalti/backoff/v5 v5.0.3 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/ebitengine/purego v0.8.4 // indirect

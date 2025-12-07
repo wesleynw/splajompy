@@ -9,6 +9,7 @@
 *.test
 *.out
 go.work
+__debug_bin
 
 # Dependency directories
 vendor/
