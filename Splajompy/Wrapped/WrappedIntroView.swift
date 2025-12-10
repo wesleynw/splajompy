@@ -47,16 +47,41 @@ struct WrappedIntroView: View {
         await viewModel.load()
       }
       .frame(maxHeight: .infinity)
+      .padding()
       .overlay(alignment: .bottom) {
         if case .loaded = viewModel.state {
-          Button("Start") {
+          Button {
             path.append(.weeklyActivity)
+          } label: {
+            Text("Start")
+              .frame(maxWidth: .infinity)
+              .fontWeight(.bold)
           }
-          .buttonStyle(.borderedProminent)
+          .controlSize(.large)
+          .modify {
+            if #available(iOS 26, *) {
+              $0.buttonStyle(.glassProminent)
+            } else {
+              $0.buttonStyle(.borderedProminent)
+            }
+          }
+
         } else {
-          Button("Start") {
+          Button {
+            path.append(.weeklyActivity)
+          } label: {
+            Text("Start")
+              .frame(maxWidth: .infinity)
+              .fontWeight(.bold)
           }
-          .buttonStyle(.borderedProminent)
+          .controlSize(.large)
+          .modify {
+            if #available(iOS 26, *) {
+              $0.buttonStyle(.glassProminent)
+            } else {
+              $0.buttonStyle(.borderedProminent)
+            }
+          }
           .disabled(true)
         }
       }
@@ -78,7 +103,6 @@ struct WrappedIntroView: View {
           }
         }
       }
-      .padding()
     }
   }
 
@@ -90,7 +114,7 @@ struct WrappedIntroView: View {
       case .weeklyActivity:
         WeeklyActivityView(data: data, onContinue: { path.append(.activity) })
       case .activity:
-        ActivityOverview(
+        YearlyActivityView(
           data: data,
           onContinue: { path.append(.mostLikedPost) }
         )

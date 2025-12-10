@@ -10,12 +10,12 @@ struct MostLikedPostView: View {
     VStack {
       if !isShowingPost {
         Text("Throughout the year, one post in particular stood out.")
-          .font(.title)
+          .font(.title2)
           .fontDesign(.rounded)
           .fontWeight(.bold)
           .multilineTextAlignment(.center)
           .onAppear {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
               withAnimation {
                 isShowingPost = true
               }
@@ -24,7 +24,7 @@ struct MostLikedPostView: View {
       } else {
         ScrollView {
           Text("Your top post")
-            .font(.title)
+            .font(.title2)
             .fontWeight(.black)
             .fontDesign(.rounded)
             .padding()

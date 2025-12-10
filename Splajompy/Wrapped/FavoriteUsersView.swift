@@ -12,7 +12,7 @@ struct FavoriteUsersView: View {
       Text(
         "Your favorite people"
       )
-      .font(.title)
+      .font(.title2)
       .fontDesign(.rounded)
       .fontWeight(.bold)
       .multilineTextAlignment(.center)
@@ -33,7 +33,7 @@ struct FavoriteUsersView: View {
           }
 
           DispatchQueue.main.asyncAfter(
-            deadline: .now() + Double(data.favoriteUsers.count) + 2
+            deadline: .now() + Double(data.favoriteUsers.count) + 1
           ) {
             withAnimation {
               isShowingContinueButton = true
@@ -45,7 +45,7 @@ struct FavoriteUsersView: View {
 
       if isShowingIntroText {
         Text("on Splajompy")
-          .font(.title)
+          .font(.title2)
           .fontDesign(.rounded)
           .fontWeight(.bold)
           .multilineTextAlignment(.center)

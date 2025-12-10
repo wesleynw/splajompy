@@ -18,7 +18,7 @@ struct WeeklyActivityView: View {
         .multilineTextAlignment(.center)
         .padding()
         .onAppear {
-          DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+          DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
             withAnimation {
               isShowingIntroText = false
             }
@@ -31,7 +31,7 @@ struct WeeklyActivityView: View {
             .fontDesign(.rounded)
             .font(.title3)
             .fontWeight(.bold)
-            .padding()
+            .padding(.bottom, 20)
 
           HStack {
             ForEach(Array(days.enumerated()), id: \.offset) { index, elem in
@@ -51,7 +51,10 @@ struct WeeklyActivityView: View {
                         * animatedHeights[index] / 100
                     )
                     .foregroundStyle(.green.gradient)
-                    .shadow(color: .green, radius: animatedHeights[index] > 0 ? 3 : 0)
+                    .shadow(
+                      color: .green,
+                      radius: 1
+                    )
                     .compositingGroup()
                 }
                 Text(elem)
@@ -62,7 +65,6 @@ struct WeeklyActivityView: View {
             }
           }
           .padding()
-          .frame(width: proxy.size.width, height: proxy.size.height)
           .onAppear {
             for index in 0..<7 {
               withAnimation(.bouncy.delay(Double(index) * 0.4)) {
@@ -77,6 +79,7 @@ struct WeeklyActivityView: View {
             }
           }
         }
+        .frame(maxHeight: .infinity, alignment: .center)
 
       }
       .overlay(alignment: .bottom) {

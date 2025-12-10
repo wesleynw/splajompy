@@ -4,11 +4,11 @@ struct UserProportionRing: View {
   let data: WrappedData
   let ringWidthRatio: Float = 0.05
   let gapDegrees: Double = 9
-  @State private var isShowingIntroText: Bool = true
+  @State private var isShowingIntroText: Bool = false
   @State private var isShowingPercentage: Bool = true
   @State private var animatedUserPercent: Double = 0
-  @State private var isAnimatingToCenter: Bool = false
-  @State private var showComponentBreakdown: Bool = false
+  @State private var isAnimatingToCenter: Bool = true
+  @State private var showComponentBreakdown: Bool = true
 
   var body: some View {
     VStack {
@@ -21,43 +21,49 @@ struct UserProportionRing: View {
             .padding()
 
           Text("\(data.sliceData.percent, specifier: "%.1f")%")
-            .fontDesign(.rounded)
             .foregroundStyle(.blue.gradient)
             .fontWeight(.black)
-            .font(.title)
+            .font(.largeTitle)
 
-          if showComponentBreakdown {
-            HStack {
-              VStack {
-                Text("\(data.sliceData.postComponent, specifier: "%.1f")%")
-                  .fontDesign(.rounded)
-                  .fontWeight(.black)
-                  .font(.title3)
-                  .foregroundStyle(.orange.gradient)
-              }
-              .padding(.horizontal)
+          HStack {
+            VStack {
+              Text("\(data.sliceData.postComponent, specifier: "%.1f")%")
+                .fontWeight(.black)
+                .font(.title3)
 
-              VStack {
-                Text("\(data.sliceData.commentComponent, specifier: "%.1f")%")
-                  .fontDesign(.rounded)
-                  .fontWeight(.black)
-                  .font(.title3)
-                  .foregroundStyle(.red.gradient)
-              }
-              .padding(.horizontal)
-
-              VStack {
-                Text("\(data.sliceData.likeComponent, specifier: "%.1f")%")
-                  .fontDesign(.rounded)
-                  .fontWeight(.black)
-                  .font(.title3)
-                  .foregroundStyle(.purple.gradient)
-              }
-              .padding(.horizontal)
+              Text("Posts")
+                .fontWeight(.bold)
             }
-            .padding(.top)
+            .foregroundStyle(.orange.gradient)
+            .padding(5)
+
+            VStack {
+              Text("\(data.sliceData.commentComponent, specifier: "%.1f")%")
+                .fontWeight(.black)
+                .font(.title3)
+
+              Text("Comments")
+                .fontWeight(.bold)
+            }
+            .foregroundStyle(.red.gradient)
+            .padding(5)
+
+            VStack {
+              Text("\(data.sliceData.likeComponent, specifier: "%.1f")%")
+                .fontWeight(.black)
+                .font(.title3)
+
+              Text("Likes")
+                .fontWeight(.bold)
+            }
+            .foregroundStyle(.purple.gradient)
+            .padding(5)
           }
+          .fontDesign(.rounded)
+          .padding(.horizontal)
+          .opacity(showComponentBreakdown ? 1 : 0)
         }
+        .frame(maxWidth: .infinity, alignment: .center)
       }
       if isShowingIntroText {
         Text("What % of Splajompy are you?")
@@ -70,10 +76,10 @@ struct UserProportionRing: View {
     }
     .frame(maxHeight: .infinity)
     .onAppear {
-      DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+      DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
         withAnimation { isShowingIntroText = false }
       }
-      DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+      DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
         withAnimation(.bouncy(duration: 1.7)) {
           animatedUserPercent = data.sliceData.percent
         }
@@ -85,24 +91,22 @@ struct UserProportionRing: View {
       }
     }
     .overlay(alignment: .bottom) {
-      if !isAnimatingToCenter {
-        Button("Continue") {
-          withAnimation(.spring) {
-            isAnimatingToCenter.toggle()
+      if !isShowingIntroText {
+        if !isAnimatingToCenter {
+          Button("Continue") {
+            withAnimation(.spring) {
+              isAnimatingToCenter.toggle()
+            }
           }
-        }
-        .buttonStyle(.borderedProminent)
-        .frame(maxWidth: .infinity)
-        .padding()
-      } else {
-        Button(showComponentBreakdown ? "Hide Details" : "Show Details") {
-          withAnimation(.spring) {
-            showComponentBreakdown.toggle()
+          .buttonStyle(.borderedProminent)
+        } else {
+          Button(showComponentBreakdown ? "Hide Details" : "Show Details") {
+            withAnimation(.spring) {
+              showComponentBreakdown.toggle()
+            }
           }
+          .buttonStyle(.borderedProminent)
         }
-        .buttonStyle(.borderedProminent)
-        .frame(maxWidth: .infinity)
-        .padding()
       }
     }
   }

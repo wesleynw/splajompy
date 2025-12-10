@@ -3,6 +3,7 @@ import SwiftUI
 struct LengthComparisonView: View {
   var data: WrappedData
   var onContinue: () -> Void
+  @State private var isShowingIntroText: Bool = true
   @State private var isShowingSubheadline1: Bool = false
   @State private var isShowingSubheadline2: Bool = false
   @State private var isShowingContinueButton: Bool = false
@@ -31,22 +32,30 @@ struct LengthComparisonView: View {
 
   var body: some View {
     VStack(alignment: .center) {
-      Text(getHeadline())
-        .font(.largeTitle)
-        .onAppear {
-          DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
-            withAnimation {
-              isShowingSubheadline1 = true
+      if isShowingIntroText {
+        Text(getHeadline())
+          .font(.title2)
+          .onAppear {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
+              withAnimation {
+                isShowingIntroText = false
+              }
             }
-          }
 
-          DispatchQueue.main.asyncAfter(deadline: .now() + 3.5) {
-            withAnimation {
-              isShowingSubheadline2 = true
+            DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+              withAnimation {
+                isShowingSubheadline1 = true
+              }
+            }
+
+            DispatchQueue.main.asyncAfter(deadline: .now() + 4.5) {
+              withAnimation {
+                isShowingSubheadline2 = true
+              }
             }
           }
-        }
-        .padding()
+          .padding()
+      }
 
       if isShowingSubheadline1 {
         HStack {
@@ -57,7 +66,7 @@ struct LengthComparisonView: View {
             .foregroundStyle(.blue)
             + Text("\(getLongerShorterPosts()) than average.")
         }
-        .font(.title)
+        .font(.title2)
         .padding()
       }
 
@@ -70,7 +79,7 @@ struct LengthComparisonView: View {
             .foregroundStyle(.red)
             + Text("\(getMoreLessImages()) images than average.")
         }
-        .font(.title)
+        .font(.title2)
         .onAppear {
           DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
             withAnimation {
@@ -81,6 +90,8 @@ struct LengthComparisonView: View {
       }
     }
     .frame(maxHeight: .infinity)
+    .fontWeight(.bold)
+    .fontDesign(.rounded)
     .overlay(alignment: .bottom) {
       if isShowingContinueButton {
         Button("Continue") {
@@ -90,8 +101,6 @@ struct LengthComparisonView: View {
       }
     }
     .padding()
-    .fontWeight(.bold)
-    .fontDesign(.rounded)
     .multilineTextAlignment(.center)
   }
 }
