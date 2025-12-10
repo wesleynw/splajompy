@@ -7,6 +7,7 @@ struct WrappedData: Decodable {
   let comparativePostStatisticsData: ComparativePostStatisticsData
   let mostLikedPost: DetailedPost
   let favoriteUsers: [FavoriteUserData]
+  let totalWordCount: Int
 }
 
 struct ActivityOverviewData: Decodable {

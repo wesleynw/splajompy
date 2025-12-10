@@ -136,6 +136,7 @@ struct Mocks {
       FavoriteUserData(user: testPublicUser1, proportion: 30.1238921738921),
       FavoriteUserData(user: testPublicUser1, proportion: 30.1238921738921),
       FavoriteUserData(user: testPublicUser1, proportion: 30.1238921738921),
-    ]
+    ],
+    totalWordCount: 18356
   )
 }
