@@ -10,6 +10,7 @@ enum WrappedPage {
   case favoriteUsers
 }
 
+@available(macOS, unavailable)
 struct WrappedIntroView: View {
   @State private var path: [WrappedPage] = []
   @StateObject private var viewModel: WrappedViewModel = WrappedViewModel()
@@ -146,6 +147,7 @@ struct WrappedIntroView: View {
   }
 }
 
+@available(macOS, unavailable)
 struct CloseToolbarModifier: ViewModifier {
   let onDismiss: () -> Void
 
@@ -167,6 +169,7 @@ struct CloseToolbarModifier: ViewModifier {
 }
 
 extension View {
+  @available(macOS, unavailable)
   func closeToolbar(onDismiss: @escaping () -> Void) -> some View {
     modifier(CloseToolbarModifier(onDismiss: onDismiss))
   }

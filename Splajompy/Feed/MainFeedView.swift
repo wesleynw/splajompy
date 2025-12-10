@@ -67,10 +67,10 @@ struct MainFeedView: View {
           await viewModel.loadPosts(reset: true, useLoadingState: true)
         }
       }
-      .fullScreenCover(isPresented: $isShowingWrappedView) {
-        WrappedIntroView()
-      }
       #if os(iOS)
+        .fullScreenCover(isPresented: $isShowingWrappedView) {
+          WrappedIntroView()
+        }
         .navigationBarTitleDisplayMode(.inline)
         .sheet(isPresented: $isShowingNewPostView) {
           newPostSheet
@@ -78,7 +78,8 @@ struct MainFeedView: View {
         .toolbar {
           ToolbarItem {
             Button(
-              "2025 Wrapped", systemImage: "clock.arrow.trianglehead.counterclockwise.rotate.90"
+              "2025 Wrapped",
+              systemImage: "clock.arrow.trianglehead.counterclockwise.rotate.90"
             ) {
               isShowingWrappedView.toggle()
             }
