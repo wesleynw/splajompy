@@ -4,6 +4,7 @@ import (
 	"context"
 	"slices"
 	"sort"
+	"strings"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgtype"
@@ -34,6 +35,7 @@ type WrappedData struct {
 	MostLikedPost                 *models.DetailedPost          `json:"mostLikedPost"`
 	FavoriteUsers                 []FavoriteUserData            `json:"favoriteUsers"`
 	ControversialPoll             *models.DetailedPoll          `json:"controversialPoll"`
+	TotalWordCount                *int                          `json:"totalWordCount"`
 }
 
 type SliceData struct {
@@ -61,6 +63,7 @@ type FavoriteUserData struct {
 
 func (s *WrappedService) CompileWrappedForUser(ctx context.Context, userId int) (*WrappedData, error) {
 	var data WrappedData
+	userId = 18
 
 	activity, weeklyActivity, err := s.getUserActivityData(ctx, userId)
 	if err != nil {
@@ -98,6 +101,12 @@ func (s *WrappedService) CompileWrappedForUser(ctx context.Context, userId int) 
 		return nil, err
 	}
 	data.ControversialPoll = poll
+
+	totalWordCount, err := s.getWordCountData(ctx, userId)
+	if err != nil {
+		return nil, err
+	}
+	data.TotalWordCount = totalWordCount
 
 	return &data, nil
 }
@@ -138,16 +147,14 @@ func (s *WrappedService) getUserActivityData(ctx context.Context, userId int) (*
 
 		var lastPost *queries.Post
 		for _, post := range posts {
-			if post.CreatedAt.Time.Year() == 2025 {
-				dateKey := post.CreatedAt.Time.Format("2006-01-02")
-				counts[dateKey]++
-				if counts[dateKey] > ceiling {
-					ceiling = counts[dateKey]
-					mostActiveDay = dateKey
-				}
-
-				weeklyCounts[post.CreatedAt.Time.Weekday()]++
+			dateKey := post.CreatedAt.Time.Format("2006-01-02")
+			counts[dateKey]++
+			if counts[dateKey] > ceiling {
+				ceiling = counts[dateKey]
+				mostActiveDay = dateKey
 			}
+
+			weeklyCounts[post.CreatedAt.Time.Weekday()]++
 			lastPost = &post
 		}
 		cursor = &lastPost.CreatedAt.Time
@@ -177,16 +184,14 @@ func (s *WrappedService) getUserActivityData(ctx context.Context, userId int) (*
 
 		var lastComment *queries.Comment
 		for _, comment := range comments {
-			if comment.CreatedAt.Time.Year() == 2025 {
-				dateKey := comment.CreatedAt.Time.Format("2006-01-02")
-				counts[dateKey]++
-				if counts[dateKey] > ceiling {
-					ceiling = counts[dateKey]
-					mostActiveDay = dateKey
-				}
-
-				weeklyCounts[comment.CreatedAt.Time.Weekday()]++
+			dateKey := comment.CreatedAt.Time.Format("2006-01-02")
+			counts[dateKey]++
+			if counts[dateKey] > ceiling {
+				ceiling = counts[dateKey]
+				mostActiveDay = dateKey
 			}
+
+			weeklyCounts[comment.CreatedAt.Time.Weekday()]++
 			lastComment = &comment
 		}
 		cursor = &lastComment.CreatedAt.Time
@@ -216,16 +221,14 @@ func (s *WrappedService) getUserActivityData(ctx context.Context, userId int) (*
 
 		var lastLike *queries.Like
 		for _, like := range likes {
-			if like.CreatedAt.Time.Year() == 2025 {
-				dateKey := like.CreatedAt.Time.Format("2006-01-02")
-				counts[dateKey]++
-				if counts[dateKey] > ceiling {
-					ceiling = counts[dateKey]
-					mostActiveDay = dateKey
-				}
-
-				weeklyCounts[like.CreatedAt.Time.Weekday()]++
+			dateKey := like.CreatedAt.Time.Format("2006-01-02")
+			counts[dateKey]++
+			if counts[dateKey] > ceiling {
+				ceiling = counts[dateKey]
+				mostActiveDay = dateKey
 			}
+
+			weeklyCounts[like.CreatedAt.Time.Weekday()]++
 			lastLike = &like
 		}
 		cursor = &lastLike.CreatedAt.Time
@@ -447,4 +450,70 @@ func (s *WrappedService) getControversialPoll(ctx context.Context, userId int) (
 	}
 
 	return poll, nil
+}
+
+// getWordCountData sums the total number of words used in a user's  posts and comments
+func (s *WrappedService) getWordCountData(ctx context.Context, userId int) (*int, error) {
+	totalWordCount := 0
+	var cursor *time.Time
+
+	for {
+		var timestamp pgtype.Timestamp
+		if cursor != nil {
+			timestamp.Time = *cursor
+			timestamp.Valid = true
+		}
+
+		posts, err := s.querier.WrappedGetAllUserPostsWithCursor(ctx, queries.WrappedGetAllUserPostsWithCursorParams{
+			UserID: userId,
+			Limit:  fetchLimit,
+			Cursor: timestamp,
+		})
+		if err != nil {
+			return nil, err
+		}
+		if len(posts) == 0 {
+			break
+		}
+
+		for _, post := range posts {
+			postTextBreakdown := strings.Fields(post.Text.String)
+			totalWordCount += len(postTextBreakdown)
+		}
+
+		lastPost := posts[len(posts)-1]
+		cursor = &lastPost.CreatedAt.Time
+	}
+
+	cursor = nil
+
+	for {
+		var timestamp pgtype.Timestamp
+		if cursor != nil {
+			timestamp.Time = *cursor
+			timestamp.Valid = true
+		}
+
+		comments, err := s.querier.WrappedGetAllUserCommentsWithCursor(ctx, queries.WrappedGetAllUserCommentsWithCursorParams{
+			UserID: userId,
+			Limit:  fetchLimit,
+			Cursor: timestamp,
+		})
+		if err != nil {
+			return nil, err
+		}
+		if len(comments) == 0 {
+			break
+		}
+
+		for _, comment := range comments {
+			commentWordBreakdown := strings.Fields(comment.Text)
+			totalWordCount += len(commentWordBreakdown)
+		}
+
+		lastComment := comments[len(comments)-1]
+		cursor = &lastComment.CreatedAt.Time
+	}
+
+	return &totalWordCount, nil
 }

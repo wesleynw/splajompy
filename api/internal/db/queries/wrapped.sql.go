@@ -67,7 +67,9 @@ func (q *Queries) GetTotalPostsForUser(ctx context.Context, userID int) (int64, 
 const wrappedGetAllUserCommentsWithCursor = `-- name: WrappedGetAllUserCommentsWithCursor :many
 SELECT comment_id, post_id, user_id, text, facets, created_at
 FROM comments
-WHERE user_id = $1 AND ($3::timestamp IS NULL OR created_at < $3)
+WHERE user_id = $1
+  AND EXTRACT(YEAR FROM created_at) = 2025
+  AND ($3::timestamp IS NULL OR created_at < $3)
 ORDER BY created_at DESC
 LIMIT $2
 `
@@ -108,7 +110,8 @@ func (q *Queries) WrappedGetAllUserCommentsWithCursor(ctx context.Context, arg W
 const wrappedGetAllUserLikesWithCursor = `-- name: WrappedGetAllUserLikesWithCursor :many
 SELECT post_id, comment_id, user_id, created_at
 FROM likes
-WHERE user_id = $1 AND ($3::timestamptz IS NULL OR created_at < $3::timestamptz)
+WHERE user_id = $1 AND EXTRACT(YEAR FROM created_at) = 2025
+    AND ($3::timestamptz IS NULL OR created_at < $3::timestamptz)
 ORDER BY created_at DESC
 LIMIT $2
 `
@@ -147,7 +150,9 @@ func (q *Queries) WrappedGetAllUserLikesWithCursor(ctx context.Context, arg Wrap
 const wrappedGetAllUserPostsWithCursor = `-- name: WrappedGetAllUserPostsWithCursor :many
 SELECT post_id, user_id, text, created_at, facets, attributes
 FROM posts
-WHERE user_id = $1 AND ($3::timestamp IS NULL OR created_at < $3::timestamp)
+WHERE user_id = $1
+  AND EXTRACT(YEAR FROM created_at) = 2025
+  AND ($3::timestamp IS NULL OR created_at < $3::timestamp)
 ORDER BY created_at DESC
 LIMIT $2
 `
