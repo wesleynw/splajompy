@@ -107,6 +107,31 @@ func (q *Queries) WrappedGetAllUserCommentsWithCursor(ctx context.Context, arg W
 	return items, nil
 }
 
+const wrappedGetAllUserIds = `-- name: WrappedGetAllUserIds :many
+SELECT user_id
+FROM users
+`
+
+func (q *Queries) WrappedGetAllUserIds(ctx context.Context) ([]int, error) {
+	rows, err := q.db.Query(ctx, wrappedGetAllUserIds)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []int
+	for rows.Next() {
+		var user_id int
+		if err := rows.Scan(&user_id); err != nil {
+			return nil, err
+		}
+		items = append(items, user_id)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const wrappedGetAllUserLikesWithCursor = `-- name: WrappedGetAllUserLikesWithCursor :many
 SELECT post_id, comment_id, user_id, created_at
 FROM likes
@@ -263,6 +288,19 @@ func (q *Queries) WrappedGetCommentCountForUser(ctx context.Context, userID int)
 	var count int64
 	err := row.Scan(&count)
 	return count, err
+}
+
+const wrappedGetCompiledDataByUserId = `-- name: WrappedGetCompiledDataByUserId :one
+SELECT content
+FROM wrapped
+WHERE user_id = $1
+`
+
+func (q *Queries) WrappedGetCompiledDataByUserId(ctx context.Context, userID int) ([]byte, error) {
+	row := q.db.QueryRow(ctx, wrappedGetCompiledDataByUserId, userID)
+	var content []byte
+	err := row.Scan(&content)
+	return content, err
 }
 
 const wrappedGetMostLikedPostId = `-- name: WrappedGetMostLikedPostId :one
@@ -465,4 +503,21 @@ func (q *Queries) WrappedGetUsersWhoGetMostLikesForPosts(ctx context.Context, us
 		return nil, err
 	}
 	return items, nil
+}
+
+const wrappedUpdateCompiledDataByUserId = `-- name: WrappedUpdateCompiledDataByUserId :exec
+INSERT INTO wrapped (user_id, content)
+VALUES ($1, $2)
+ON CONFLICT (user_id)
+DO UPDATE SET content = $2
+`
+
+type WrappedUpdateCompiledDataByUserIdParams struct {
+	UserID  int    `json:"userId"`
+	Content []byte `json:"content"`
+}
+
+func (q *Queries) WrappedUpdateCompiledDataByUserId(ctx context.Context, arg WrappedUpdateCompiledDataByUserIdParams) error {
+	_, err := q.db.Exec(ctx, wrappedUpdateCompiledDataByUserId, arg.UserID, arg.Content)
+	return err
 }

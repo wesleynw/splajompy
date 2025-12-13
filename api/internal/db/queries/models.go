@@ -116,3 +116,9 @@ type VerificationCode struct {
 	UserID    int              `json:"userId"`
 	ExpiresAt pgtype.Timestamp `json:"expiresAt"`
 }
+
+type Wrapped struct {
+	UserID    int              `json:"userId"`
+	Content   []byte           `json:"content"`
+	Generated pgtype.Timestamp `json:"generated"`
+}

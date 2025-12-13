@@ -117,30 +117,30 @@ type DetailedNotification struct {
 
 // PublicUser Related to queries.GetUserByIdentifierRow
 type PublicUser struct {
-	UserID             int                    `json:"userId"`
-	Email              string                 `json:"email"`
-	Username           string                 `json:"username"`
-	CreatedAt          time.Time              `json:"createdAt"`
-	Name               string                 `json:"name"`
-	IsVerified         bool                   `json:"isVerified"`
-	DisplayProperties  UserDisplayProperties  `json:"displayProperties"`
+	UserID            int                   `json:"userId"`
+	Email             string                `json:"email"`
+	Username          string                `json:"username"`
+	CreatedAt         time.Time             `json:"createdAt"`
+	Name              string                `json:"name"`
+	IsVerified        bool                  `json:"isVerified"`
+	DisplayProperties UserDisplayProperties `json:"displayProperties"`
 }
 
 type DetailedUser struct {
-	UserID             int                    `json:"userId"`
-	Email              string                 `json:"email"`
-	Username           string                 `json:"username"`
-	CreatedAt          time.Time              `json:"createdAt"`
-	Name               string                 `json:"name"`
-	Bio                string                 `json:"bio"`
-	IsFollower         bool                   `json:"isFollower"`
-	IsFollowing        bool                   `json:"isFollowing"`
-	IsBlocking         bool                   `json:"isBlocking"`
-	IsMuting           bool                   `json:"isMuting"`
-	Mutuals            []string               `json:"mutuals"`
-	MutualCount        int                    `json:"mutualCount"`
-	IsVerified         bool                   `json:"isVerified"`
-	DisplayProperties  UserDisplayProperties  `json:"displayProperties"`
+	UserID            int                   `json:"userId"`
+	Email             string                `json:"email"`
+	Username          string                `json:"username"`
+	CreatedAt         time.Time             `json:"createdAt"`
+	Name              string                `json:"name"`
+	Bio               string                `json:"bio"`
+	IsFollower        bool                  `json:"isFollower"`
+	IsFollowing       bool                  `json:"isFollowing"`
+	IsBlocking        bool                  `json:"isBlocking"`
+	IsMuting          bool                  `json:"isMuting"`
+	Mutuals           []string              `json:"mutuals"`
+	MutualCount       int                   `json:"mutualCount"`
+	IsVerified        bool                  `json:"isVerified"`
+	DisplayProperties UserDisplayProperties `json:"displayProperties"`
 }
 
 type ImageData struct {

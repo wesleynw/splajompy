@@ -99,6 +99,7 @@ type Querier interface {
 	UserHasUnreadNotifications(ctx context.Context, userID int) (bool, error)
 	UserSearchWithHeuristics(ctx context.Context, arg UserSearchWithHeuristicsParams) ([]UserSearchWithHeuristicsRow, error)
 	WrappedGetAllUserCommentsWithCursor(ctx context.Context, arg WrappedGetAllUserCommentsWithCursorParams) ([]Comment, error)
+	WrappedGetAllUserIds(ctx context.Context) ([]int, error)
 	WrappedGetAllUserLikesWithCursor(ctx context.Context, arg WrappedGetAllUserLikesWithCursorParams) ([]Like, error)
 	WrappedGetAllUserPostsWithCursor(ctx context.Context, arg WrappedGetAllUserPostsWithCursorParams) ([]Post, error)
 	WrappedGetAverageImageCountPerPost(ctx context.Context) (float64, error)
@@ -106,12 +107,14 @@ type Querier interface {
 	WrappedGetAveragePostLength(ctx context.Context) (float64, error)
 	WrappedGetAveragePostLengthForUser(ctx context.Context, userID int) (float64, error)
 	WrappedGetCommentCountForUser(ctx context.Context, userID int) (int64, error)
+	WrappedGetCompiledDataByUserId(ctx context.Context, userID int) ([]byte, error)
 	WrappedGetMostLikedPostId(ctx context.Context, userID int) (WrappedGetMostLikedPostIdRow, error)
 	WrappedGetPollsThatUserVotedIn(ctx context.Context, userID int) ([]WrappedGetPollsThatUserVotedInRow, error)
 	WrappedGetPostCountForUser(ctx context.Context, userID int) (int64, error)
 	WrappedGetUsersWhoGetMostComments(ctx context.Context, userID int) ([]WrappedGetUsersWhoGetMostCommentsRow, error)
 	WrappedGetUsersWhoGetMostLikesForComments(ctx context.Context, userID int) ([]WrappedGetUsersWhoGetMostLikesForCommentsRow, error)
 	WrappedGetUsersWhoGetMostLikesForPosts(ctx context.Context, userID int) ([]WrappedGetUsersWhoGetMostLikesForPostsRow, error)
+	WrappedUpdateCompiledDataByUserId(ctx context.Context, arg WrappedUpdateCompiledDataByUserIdParams) error
 }
 
 var _ Querier = (*Queries)(nil)

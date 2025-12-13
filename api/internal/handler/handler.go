@@ -126,6 +126,7 @@ func (h *Handler) RegisterRoutes(handleFunc func(pattern string, handlerFunc fun
 	handleFuncWithAuth("GET /stats", h.GetAppStats)
 
 	// wrapped
+	handleFuncWithAuth("POST /precomuputeWrapped", h.WrappedPrecomputation)
 	handleFuncWithAuth("GET /wrapped", h.GetWrappedActivityData)
 }
 

@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"slices"
 	"sort"
 	"strings"
@@ -27,42 +28,59 @@ func NewWrappedService(querier queries.Querier, postService PostService) *Wrappe
 
 var fetchLimit = 50
 
-type WrappedData struct {
-	ActivityData                  UserActivityData              `json:"activityData"`
-	WeeklyActivity                []int                         `json:"weeklyActivityData"` // not my best piece of programming, but just assume this is len=7
-	SliceData                     SliceData                     `json:"sliceData"`
-	ComparativePostStatisticsData ComparativePostStatisticsData `json:"comparativePostStatisticsData"`
-	MostLikedPost                 *models.DetailedPost          `json:"mostLikedPost"`
-	FavoriteUsers                 []FavoriteUserData            `json:"favoriteUsers"`
-	ControversialPoll             *models.DetailedPoll          `json:"controversialPoll"`
-	TotalWordCount                *int                          `json:"totalWordCount"`
+func (s *WrappedService) GetPrecomputedWrappedDataByUserId(ctx context.Context, userId int) (*models.WrappedData, error) {
+	data, err := s.querier.WrappedGetCompiledDataByUserId(ctx, userId)
+	if err != nil {
+		return nil, err
+	}
+
+	var wrappedData *models.WrappedData
+
+	err = json.Unmarshal(data, wrappedData)
+	if err != nil {
+		return nil, err
+	}
+
+	return wrappedData, nil
 }
 
-type SliceData struct {
-	Percent          float32 `json:"percent"`
-	PostComponent    float32 `json:"postComponent"`
-	CommentComponent float32 `json:"commentComponent"`
-	LikeComponent    float32 `json:"likeComponent"`
+func (s *WrappedService) PrecomputeWrappedForAllUsers(ctx context.Context) ([]int, []int, error) {
+	users, err := s.querier.WrappedGetAllUserIds(ctx)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	succeeded := []int{}
+	failed := []int{}
+
+	for _, userId := range users {
+		data, err := s.compileWrappedForUser(ctx, userId)
+		if err != nil {
+			failed = append(failed, userId)
+		}
+
+		byteData, err := json.Marshal(data)
+		if err != nil {
+			failed = append(failed, userId)
+			break
+		}
+
+		err = s.querier.WrappedUpdateCompiledDataByUserId(ctx, queries.WrappedUpdateCompiledDataByUserIdParams{
+			UserID:  userId,
+			Content: byteData,
+		})
+		if err != nil {
+			return nil, nil, err
+		}
+
+		succeeded = append(succeeded, userId)
+	}
+
+	return succeeded, failed, nil
 }
 
-type UserActivityData struct {
-	ActivityCountCeiling int            `json:"activityCountCeiling"`
-	Counts               map[string]int `json:"counts"`
-	MostActiveDay        string         `json:"mostActiveDay"`
-}
-
-type ComparativePostStatisticsData struct {
-	PostLengthVariation  float32 `json:"postLengthVariation"`
-	ImageLengthVariation float32 `json:"imageLengthVariation"`
-}
-
-type FavoriteUserData struct {
-	User       models.PublicUser `json:"user"`
-	Proportion float64           `json:"proportion"`
-}
-
-func (s *WrappedService) CompileWrappedForUser(ctx context.Context, userId int) (*WrappedData, error) {
-	var data WrappedData
+func (s *WrappedService) compileWrappedForUser(ctx context.Context, userId int) (*models.WrappedData, error) {
+	var data models.WrappedData
 
 	activity, weeklyActivity, err := s.getUserActivityData(ctx, userId)
 	if err != nil {
@@ -110,7 +128,7 @@ func (s *WrappedService) CompileWrappedForUser(ctx context.Context, userId int) 
 	return &data, nil
 }
 
-func (s *WrappedService) getUserActivityData(ctx context.Context, userId int) (*UserActivityData, *[]int, error) {
+func (s *WrappedService) getUserActivityData(ctx context.Context, userId int) (*models.UserActivityData, *[]int, error) {
 	counts := make(map[string]int)
 	weeklyCounts := make([]int, 7)
 	yearStart := time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC)
@@ -236,18 +254,18 @@ func (s *WrappedService) getUserActivityData(ctx context.Context, userId int) (*
 	// scale weekly activity to 100
 	scale := slices.Max(weeklyCounts)
 	for index := range len(weeklyCounts) {
-		computed := (100 * weeklyCounts[index]) / scale
+		computed := (100 * weeklyCounts[index]) / max(scale, 1)
 		weeklyCounts[index] = computed
 	}
 
-	return &UserActivityData{
+	return &models.UserActivityData{
 		ActivityCountCeiling: ceiling,
 		Counts:               counts,
 		MostActiveDay:        mostActiveDay,
 	}, &weeklyCounts, nil
 }
 
-func (s *WrappedService) getPercentShareOfContent(ctx context.Context, userId int) (*SliceData, error) {
+func (s *WrappedService) getPercentShareOfContent(ctx context.Context, userId int) (*models.SliceData, error) {
 	totalPosts, err := s.querier.GetTotalPosts(ctx)
 	if err != nil {
 		return nil, err
@@ -294,7 +312,7 @@ func (s *WrappedService) getPercentShareOfContent(ctx context.Context, userId in
 	commentComponent := (userCommentWeight / totalWeight) * 100
 	likeComponent := (userLikeWeight / totalWeight) * 100
 
-	return &SliceData{
+	return &models.SliceData{
 		Percent:          percent,
 		PostComponent:    postComponent,
 		CommentComponent: commentComponent,
@@ -302,7 +320,7 @@ func (s *WrappedService) getPercentShareOfContent(ctx context.Context, userId in
 	}, nil
 }
 
-func (s *WrappedService) getComparativePostData(ctx context.Context, userId int) (*ComparativePostStatisticsData, error) {
+func (s *WrappedService) getComparativePostData(ctx context.Context, userId int) (*models.ComparativePostStatisticsData, error) {
 	averagePostLength, err := s.querier.WrappedGetAveragePostLength(ctx)
 	if err != nil {
 		return nil, err
@@ -323,7 +341,7 @@ func (s *WrappedService) getComparativePostData(ctx context.Context, userId int)
 		return nil, err
 	}
 
-	data := ComparativePostStatisticsData{
+	data := models.ComparativePostStatisticsData{
 		PostLengthVariation:  float32(userAveragePostLength) - float32(averagePostLength),
 		ImageLengthVariation: float32(averageImageCount) - float32(userAverageImageCount),
 	}
@@ -345,7 +363,7 @@ func (s *WrappedService) getMostLikedPost(ctx context.Context, userId int) (*mod
 	return post, nil
 }
 
-func (s *WrappedService) getFavoriteUsers(ctx context.Context, userId int) (*[]FavoriteUserData, error) {
+func (s *WrappedService) getFavoriteUsers(ctx context.Context, userId int) (*[]models.FavoriteUserData, error) {
 	givenPostLikes, err := s.querier.WrappedGetUsersWhoGetMostLikesForPosts(ctx, userId)
 	if err != nil {
 		return nil, err
@@ -405,7 +423,7 @@ func (s *WrappedService) getFavoriteUsers(ctx context.Context, userId int) (*[]F
 
 	limit := min(5, len(sorted))
 
-	users := make([]FavoriteUserData, 0, limit)
+	users := make([]models.FavoriteUserData, 0, limit)
 	for _, uw := range sorted[:limit] {
 		user, err := s.querier.GetUserById(ctx, uw.UserID)
 		if err != nil {
@@ -417,7 +435,7 @@ func (s *WrappedService) getFavoriteUsers(ctx context.Context, userId int) (*[]F
 			scaledWeight = (uw.Weight / maxWeight) * 100
 		}
 
-		users = append(users, FavoriteUserData{
+		users = append(users, models.FavoriteUserData{
 			User:       utilities.MapUserToPublicUser(user),
 			Proportion: scaledWeight,
 		})

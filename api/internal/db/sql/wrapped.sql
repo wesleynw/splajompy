@@ -134,3 +134,18 @@ WHERE user_id = $1 AND EXTRACT(YEAR FROM created_at) = 2025;
 SELECT COUNT(*)
 FROM comments
 WHERE user_id = $1 AND EXTRACT(YEAR FROM created_at) = 2025;
+
+-- name: WrappedGetAllUserIds :many
+SELECT user_id
+FROM users;
+
+-- name: WrappedGetCompiledDataByUserId :one
+SELECT content
+FROM wrapped
+WHERE user_id = $1;
+
+-- name: WrappedUpdateCompiledDataByUserId :exec
+INSERT INTO wrapped (user_id, content)
+VALUES ($1, $2)
+ON CONFLICT (user_id)
+DO UPDATE SET content = $2;
