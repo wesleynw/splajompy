@@ -2,6 +2,9 @@ import SwiftUI
 
 struct TotalWordCountView: View {
   var data: WrappedData
+  var onContinue: () -> Void
+
+  @State private var isShowingContinueButton: Bool = false
   @State private var isShowingIntroText: Bool = true
   @State private var animationProgress: CGFloat = 0
 
@@ -21,16 +24,46 @@ struct TotalWordCountView: View {
                 animationProgress = 1
               }
             }
+
+            DispatchQueue.main.asyncAfter(deadline: .now() + 6) {
+              withAnimation {
+                isShowingContinueButton = true
+              }
+            }
           }
       } else {
         ZStack {
           ConcentricStroke(progress: animationProgress, scale: 1, delay: 0)
-          ConcentricStroke(progress: animationProgress, scale: 0.618, delay: 0.1)
-          ConcentricStroke(progress: animationProgress, scale: 0.381924, delay: 0.2)
-          ConcentricStroke(progress: animationProgress, scale: 0.243667512, delay: 0.3)
-          ConcentricStroke(progress: animationProgress, scale: 0.1505865224, delay: 0.4)
-          ConcentricStroke(progress: animationProgress, scale: 0.09306247084, delay: 0.5)
-          ConcentricStroke(progress: animationProgress, scale: 0.05751260698, delay: 0.6)
+          ConcentricStroke(
+            progress: animationProgress,
+            scale: 0.618,
+            delay: 0.1
+          )
+          ConcentricStroke(
+            progress: animationProgress,
+            scale: 0.381924,
+            delay: 0.2
+          )
+          ConcentricStroke(
+            progress: animationProgress,
+            scale: 0.243667512,
+            delay: 0.3
+          )
+          ConcentricStroke(
+            progress: animationProgress,
+            scale: 0.1505865224,
+            delay: 0.4
+          )
+          ConcentricStroke(
+            progress: animationProgress,
+            scale: 0.09306247084,
+            delay: 0.5
+          )
+          ConcentricStroke(
+            progress: animationProgress,
+            scale: 0.05751260698,
+            delay: 0.6
+          )
 
           HStack {
             Text("You wrote ")
@@ -47,6 +80,14 @@ struct TotalWordCountView: View {
           .opacity(animationProgress)
         }
         .transition(.scale)
+      }
+    }
+    .safeAreaInset(edge: .bottom) {
+      if isShowingContinueButton {
+        Button("Continue") {
+          onContinue()
+        }
+        .buttonStyle(.borderedProminent)
       }
     }
     .padding()
@@ -76,5 +117,5 @@ struct ConcentricStroke: View {
 }
 
 #Preview {
-  TotalWordCountView(data: Mocks.wrappedData)
+  TotalWordCountView(data: Mocks.wrappedData, onContinue: {})
 }

@@ -4,11 +4,11 @@ struct UserProportionRing: View {
   let data: WrappedData
   let ringWidthRatio: Float = 0.05
   let gapDegrees: Double = 9
-  @State private var isShowingIntroText: Bool = false
-  @State private var isShowingPercentage: Bool = true
+  @State private var isShowingIntroText: Bool = true
+  @State private var isShowingPercentage: Bool = false
   @State private var animatedUserPercent: Double = 0
-  @State private var isAnimatingToCenter: Bool = true
-  @State private var showComponentBreakdown: Bool = true
+  @State private var isAnimatingToCenter: Bool = false
+  @State private var showComponentBreakdown: Bool = false
 
   var body: some View {
     VStack {

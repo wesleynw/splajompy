@@ -8,6 +8,7 @@ enum WrappedPage {
   case mostLikedPost
   case slice
   case favoriteUsers
+  case totalWordCount
 }
 
 @available(macOS, unavailable)
@@ -125,6 +126,12 @@ struct WrappedIntroView: View {
           .closeToolbar(onDismiss: dismiss.callAsFunction)
       case .lengthComparison:
         LengthComparisonView(
+          data: data,
+          onContinue: { path.append(.totalWordCount) }
+        )
+        .closeToolbar(onDismiss: dismiss.callAsFunction)
+      case .totalWordCount:
+        TotalWordCountView(
           data: data,
           onContinue: { path.append(.favoriteUsers) }
         )
