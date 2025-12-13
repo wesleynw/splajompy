@@ -2,6 +2,7 @@ import SwiftUI
 
 struct MainFeedView: View {
   @State private var isShowingNewPostView = false
+  @State private var isShowingWrappedView: Bool = false
   @StateObject private var viewModel: FeedViewModel
   @EnvironmentObject var authManager: AuthManager
   @ObservedObject var postManager: PostManager
@@ -67,11 +68,22 @@ struct MainFeedView: View {
         }
       }
       #if os(iOS)
+        .fullScreenCover(isPresented: $isShowingWrappedView) {
+          WrappedIntroView()
+        }
         .navigationBarTitleDisplayMode(.inline)
         .sheet(isPresented: $isShowingNewPostView) {
           newPostSheet
         }
         .toolbar {
+          ToolbarItem {
+            Button(
+              "2025 Wrapped",
+              systemImage: "clock.arrow.trianglehead.counterclockwise.rotate.90"
+            ) {
+              isShowingWrappedView.toggle()
+            }
+          }
           addPostToolbarItem
         }
       #endif

@@ -47,9 +47,10 @@ type Image struct {
 }
 
 type Like struct {
-	PostID    int  `json:"postId"`
-	CommentID *int `json:"commentId"`
-	UserID    int  `json:"userId"`
+	PostID    int                `json:"postId"`
+	CommentID *int               `json:"commentId"`
+	UserID    int                `json:"userId"`
+	CreatedAt pgtype.Timestamptz `json:"createdAt"`
 }
 
 type Mute struct {
@@ -114,4 +115,10 @@ type VerificationCode struct {
 	Code      string           `json:"code"`
 	UserID    int              `json:"userId"`
 	ExpiresAt pgtype.Timestamp `json:"expiresAt"`
+}
+
+type Wrapped struct {
+	UserID    int              `json:"userId"`
+	Content   []byte           `json:"content"`
+	Generated pgtype.Timestamp `json:"generated"`
 }
