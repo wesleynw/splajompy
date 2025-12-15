@@ -65,8 +65,6 @@ func (s *WrappedService) PrecomputeWrappedForAllUsers(ctx context.Context) (*Pre
 		return nil, err
 	}
 
-	succeeded := []int{}
-	failed := []int{}
 	precomputationResult := PrecomputationResult{}
 
 	for _, userId := range users {
@@ -81,13 +79,11 @@ func (s *WrappedService) PrecomputeWrappedForAllUsers(ctx context.Context) (*Pre
 
 		data, err := s.compileWrappedForUser(ctx, userId, &precomputationResult)
 		if err != nil {
-			failed = append(failed, userId)
 			continue
 		}
 
 		byteData, err := json.Marshal(data)
 		if err != nil {
-			failed = append(failed, userId)
 			continue
 		}
 
@@ -96,11 +92,8 @@ func (s *WrappedService) PrecomputeWrappedForAllUsers(ctx context.Context) (*Pre
 			Content: byteData,
 		})
 		if err != nil {
-			failed = append(failed, userId)
 			continue
 		}
-
-		succeeded = append(succeeded, userId)
 	}
 
 	return &precomputationResult, nil
@@ -151,12 +144,14 @@ func (s *WrappedService) compileWrappedForUser(ctx context.Context, userId int, 
 	}
 	if activity == nil {
 		precomputationResult.MissingYearlyActivityData++
+	} else {
+		data.ActivityData = *activity
 	}
-	data.ActivityData = *activity
 	if weeklyActivity == nil {
 		precomputationResult.MissingWeeklyActivityData++
+	} else {
+		data.WeeklyActivity = *weeklyActivity
 	}
-	data.WeeklyActivity = *weeklyActivity
 
 	sliceData, err := s.getPercentShareOfContent(ctx, userId)
 	if err != nil {
@@ -164,8 +159,9 @@ func (s *WrappedService) compileWrappedForUser(ctx context.Context, userId int, 
 	}
 	if sliceData == nil {
 		precomputationResult.MissingSliceData++
+	} else {
+		data.SliceData = *sliceData
 	}
-	data.SliceData = *sliceData
 
 	comparativePostData, err := s.getComparativePostData(ctx, userId)
 	if err != nil {
@@ -173,8 +169,9 @@ func (s *WrappedService) compileWrappedForUser(ctx context.Context, userId int, 
 	}
 	if comparativePostData == nil {
 		precomputationResult.MissingComparativePostData++
+	} else {
+		data.ComparativePostStatisticsData = *comparativePostData
 	}
-	data.ComparativePostStatisticsData = *comparativePostData
 
 	mostLikedPost, err := s.getMostLikedPost(ctx, userId)
 	if err != nil {
@@ -182,8 +179,9 @@ func (s *WrappedService) compileWrappedForUser(ctx context.Context, userId int, 
 	}
 	if mostLikedPost == nil {
 		precomputationResult.MissingMostLikedPost++
+	} else {
+		data.MostLikedPost = mostLikedPost
 	}
-	data.MostLikedPost = mostLikedPost
 
 	favoriteUsers, err := s.getFavoriteUsers(ctx, userId)
 	if err != nil {
@@ -191,8 +189,9 @@ func (s *WrappedService) compileWrappedForUser(ctx context.Context, userId int, 
 	}
 	if favoriteUsers == nil {
 		precomputationResult.MissingFavoriteUsers++
+	} else {
+		data.FavoriteUsers = *favoriteUsers
 	}
-	data.FavoriteUsers = *favoriteUsers
 
 	poll, err := s.getControversialPoll(ctx, userId)
 	if err != nil {
@@ -200,8 +199,9 @@ func (s *WrappedService) compileWrappedForUser(ctx context.Context, userId int, 
 	}
 	if poll == nil {
 		precomputationResult.MissingControversialPoll++
+	} else {
+		data.ControversialPoll = poll
 	}
-	data.ControversialPoll = poll
 
 	totalWordCount, err := s.getWordCountData(ctx, userId)
 	if err != nil {
@@ -209,8 +209,9 @@ func (s *WrappedService) compileWrappedForUser(ctx context.Context, userId int, 
 	}
 	if totalWordCount == nil {
 		precomputationResult.MissingWordCountData++
+	} else {
+		data.TotalWordCount = totalWordCount
 	}
-	data.TotalWordCount = totalWordCount
 
 	return &data, nil
 }
