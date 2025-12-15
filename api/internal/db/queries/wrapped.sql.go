@@ -234,21 +234,21 @@ func (q *Queries) WrappedGetAverageImageCountPerPost(ctx context.Context) (float
 }
 
 const wrappedGetAverageImageCountPerPostForUser = `-- name: WrappedGetAverageImageCountPerPostForUser :one
-SELECT AVG(image_count)
+SELECT COALESCE(AVG(image_count), 0)::int
 FROM (
     SELECT COUNT(*) as image_count
     FROM images
     JOIN posts ON images.post_id = posts.post_id
-    WHERE user_id = $1 AND EXTRACT(YEAR FROM posts.created_at) = 2025
+    WHERE posts.user_id = $1 AND EXTRACT(YEAR FROM posts.created_at) = 2025
     GROUP BY images.post_id
 ) subquery
 `
 
-func (q *Queries) WrappedGetAverageImageCountPerPostForUser(ctx context.Context, userID int) (float64, error) {
+func (q *Queries) WrappedGetAverageImageCountPerPostForUser(ctx context.Context, userID int) (int, error) {
 	row := q.db.QueryRow(ctx, wrappedGetAverageImageCountPerPostForUser, userID)
-	var avg float64
-	err := row.Scan(&avg)
-	return avg, err
+	var column_1 int
+	err := row.Scan(&column_1)
+	return column_1, err
 }
 
 const wrappedGetAveragePostLength = `-- name: WrappedGetAveragePostLength :one
@@ -520,4 +520,39 @@ type WrappedUpdateCompiledDataByUserIdParams struct {
 func (q *Queries) WrappedUpdateCompiledDataByUserId(ctx context.Context, arg WrappedUpdateCompiledDataByUserIdParams) error {
 	_, err := q.db.Exec(ctx, wrappedUpdateCompiledDataByUserId, arg.UserID, arg.Content)
 	return err
+}
+
+const wrappedUserHasOneLike = `-- name: WrappedUserHasOneLike :one
+SELECT EXISTS (
+    SELECT 1
+    FROM likes
+    JOIN posts ON likes.post_id = posts.post_id
+    WHERE likes.comment_id IS NULL
+    AND posts.user_id = $1
+        AND EXTRACT(YEAR FROM likes.created_at) = 2025
+        AND EXTRACT(YEAR FROM posts.created_at) = 2025
+)
+`
+
+func (q *Queries) WrappedUserHasOneLike(ctx context.Context, userID int) (bool, error) {
+	row := q.db.QueryRow(ctx, wrappedUserHasOneLike, userID)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
+}
+
+const wrappedUserHasPost = `-- name: WrappedUserHasPost :one
+SELECT EXISTS (
+    SELECT 1
+    FROM posts
+    WHERE user_id = $1
+        AND EXTRACT(YEAR FROM posts.created_at) = 2025
+)
+`
+
+func (q *Queries) WrappedUserHasPost(ctx context.Context, userID int) (bool, error) {
+	row := q.db.QueryRow(ctx, wrappedUserHasPost, userID)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
 }

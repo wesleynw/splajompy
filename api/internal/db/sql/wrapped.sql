@@ -65,12 +65,12 @@ FROM (
 ) subquery;
 
 -- name: WrappedGetAverageImageCountPerPostForUser :one
-SELECT AVG(image_count)
+SELECT COALESCE(AVG(image_count), 0)::int
 FROM (
     SELECT COUNT(*) as image_count
     FROM images
     JOIN posts ON images.post_id = posts.post_id
-    WHERE user_id = $1 AND EXTRACT(YEAR FROM posts.created_at) = 2025
+    WHERE posts.user_id = $1 AND EXTRACT(YEAR FROM posts.created_at) = 2025
     GROUP BY images.post_id
 ) subquery;
 
@@ -149,3 +149,22 @@ INSERT INTO wrapped (user_id, content)
 VALUES ($1, $2)
 ON CONFLICT (user_id)
 DO UPDATE SET content = $2;
+
+-- name: WrappedUserHasPost :one
+SELECT EXISTS (
+    SELECT 1
+    FROM posts
+    WHERE user_id = $1
+        AND EXTRACT(YEAR FROM posts.created_at) = 2025
+);
+
+-- name: WrappedUserHasOneLike :one
+SELECT EXISTS (
+    SELECT 1
+    FROM likes
+    JOIN posts ON likes.post_id = posts.post_id
+    WHERE likes.comment_id IS NULL
+    AND posts.user_id = $1
+        AND EXTRACT(YEAR FROM likes.created_at) = 2025
+        AND EXTRACT(YEAR FROM posts.created_at) = 2025
+);

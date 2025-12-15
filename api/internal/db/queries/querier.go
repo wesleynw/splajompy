@@ -103,7 +103,7 @@ type Querier interface {
 	WrappedGetAllUserLikesWithCursor(ctx context.Context, arg WrappedGetAllUserLikesWithCursorParams) ([]Like, error)
 	WrappedGetAllUserPostsWithCursor(ctx context.Context, arg WrappedGetAllUserPostsWithCursorParams) ([]Post, error)
 	WrappedGetAverageImageCountPerPost(ctx context.Context) (float64, error)
-	WrappedGetAverageImageCountPerPostForUser(ctx context.Context, userID int) (float64, error)
+	WrappedGetAverageImageCountPerPostForUser(ctx context.Context, userID int) (int, error)
 	WrappedGetAveragePostLength(ctx context.Context) (float64, error)
 	WrappedGetAveragePostLengthForUser(ctx context.Context, userID int) (float64, error)
 	WrappedGetCommentCountForUser(ctx context.Context, userID int) (int64, error)
@@ -115,6 +115,8 @@ type Querier interface {
 	WrappedGetUsersWhoGetMostLikesForComments(ctx context.Context, userID int) ([]WrappedGetUsersWhoGetMostLikesForCommentsRow, error)
 	WrappedGetUsersWhoGetMostLikesForPosts(ctx context.Context, userID int) ([]WrappedGetUsersWhoGetMostLikesForPostsRow, error)
 	WrappedUpdateCompiledDataByUserId(ctx context.Context, arg WrappedUpdateCompiledDataByUserIdParams) error
+	WrappedUserHasOneLike(ctx context.Context, userID int) (bool, error)
+	WrappedUserHasPost(ctx context.Context, userID int) (bool, error)
 }
 
 var _ Querier = (*Queries)(nil)

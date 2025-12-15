@@ -54,15 +54,25 @@ func (s *WrappedService) PrecomputeWrappedForAllUsers(ctx context.Context) ([]in
 	failed := []int{}
 
 	for _, userId := range users {
+		isEligible, err := s.isUserEligibleForWrapped(ctx, userId)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		if !isEligible {
+			continue
+		}
+
 		data, err := s.compileWrappedForUser(ctx, userId)
 		if err != nil {
 			failed = append(failed, userId)
+			continue
 		}
 
 		byteData, err := json.Marshal(data)
 		if err != nil {
 			failed = append(failed, userId)
-			break
+			continue
 		}
 
 		err = s.querier.WrappedUpdateCompiledDataByUserId(ctx, queries.WrappedUpdateCompiledDataByUserIdParams{
@@ -70,13 +80,50 @@ func (s *WrappedService) PrecomputeWrappedForAllUsers(ctx context.Context) ([]in
 			Content: byteData,
 		})
 		if err != nil {
-			return nil, nil, err
+			failed = append(failed, userId)
+			continue
 		}
 
 		succeeded = append(succeeded, userId)
 	}
 
 	return succeeded, failed, nil
+}
+
+// isUserEligibleForWrapped returns whether a user is eligible for a wrapped. given user must:
+// 1. have at least one post
+// 2. have an account created prior to 12/25/2025
+// 3. has one like on a post
+func (s *WrappedService) isUserEligibleForWrapped(ctx context.Context, userId int) (bool, error) {
+	user, err := s.querier.GetUserById(ctx, userId)
+	if err != nil {
+		return false, err
+	}
+
+	// was user created before 12/25/2025?
+	if user.CreatedAt.Time.After(time.Date(2025, 12, 25, 0, 0, 0, 0, time.UTC)) {
+		return false, nil
+	}
+
+	hasPosts, err := s.querier.WrappedUserHasPost(ctx, userId)
+	if err != nil {
+		return false, err
+	}
+
+	hasPostLike, err := s.querier.WrappedUserHasOneLike(ctx, userId)
+	if err != nil {
+		return false, err
+	}
+
+	if !hasPostLike {
+		return false, nil
+	}
+
+	if !hasPosts {
+		return false, err
+	}
+
+	return true, nil
 }
 
 func (s *WrappedService) compileWrappedForUser(ctx context.Context, userId int) (*models.WrappedData, error) {
