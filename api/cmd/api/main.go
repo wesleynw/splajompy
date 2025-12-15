@@ -84,17 +84,9 @@ func main() {
 
 	mux := http.NewServeMux()
 
-	// handleFunc is a replacement for mux.HandleFunc
-	// which enriches the handler's HTTP instrumentation with the pattern as the http.route.
-	otelRegisterRoute := func(pattern string, handlerFunc func(http.ResponseWriter, *http.Request)) {
-		// Configure the "http.route" for the HTTP instrumentation.
-		withRouteTag := otelhttp.WithRouteTag(pattern, http.HandlerFunc(handlerFunc))
-		mux.Handle(pattern, withRouteTag)
-	}
-
 	authMiddleware := middleware.AuthMiddleware(q)
-	h.RegisterRoutes(otelRegisterRoute, authMiddleware)
-	h.RegisterPublicRoutes(otelRegisterRoute)
+	h.RegisterRoutes(mux.HandleFunc, authMiddleware)
+	h.RegisterPublicRoutes(mux.HandleFunc)
 
 	wrappedHandler := middleware.Logger(mux)
 	wrappedHandler = middleware.AppVersion(wrappedHandler)
