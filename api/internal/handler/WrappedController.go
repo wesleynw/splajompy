@@ -6,11 +6,6 @@ import (
 	"splajompy.com/api/v2/internal/utilities"
 )
 
-type WrappedPrecomputationResponse struct {
-	Succeeded []int
-	Failed    []int
-}
-
 func (h *Handler) WrappedPrecomputation(w http.ResponseWriter, r *http.Request) {
 	// currentUser := h.getAuthenticatedUser(r)
 	// if currentUser.UserID != 6 { // me
@@ -18,18 +13,13 @@ func (h *Handler) WrappedPrecomputation(w http.ResponseWriter, r *http.Request) 
 	// 	return
 	// }
 
-	succeeded, failed, err := h.wrappedService.PrecomputeWrappedForAllUsers(r.Context())
+	data, err := h.wrappedService.PrecomputeWrappedForAllUsers(r.Context())
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	response := WrappedPrecomputationResponse{
-		Succeeded: succeeded,
-		Failed:    failed,
-	}
-
-	utilities.HandleSuccess(w, response)
+	utilities.HandleSuccess(w, data)
 }
 
 func (h *Handler) GetWrappedActivityData(w http.ResponseWriter, r *http.Request) {

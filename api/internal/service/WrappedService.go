@@ -44,26 +44,42 @@ func (s *WrappedService) GetPrecomputedWrappedDataByUserId(ctx context.Context, 
 	return wrappedData, nil
 }
 
-func (s *WrappedService) PrecomputeWrappedForAllUsers(ctx context.Context) ([]int, []int, error) {
+type PrecomputationResult struct {
+	SuccessCount int
+	FailureCount int
+	SkippedCount int
+
+	MissingYearlyActivityData  int
+	MissingWeeklyActivityData  int
+	MissingSliceData           int
+	MissingComparativePostData int
+	MissingMostLikedPost       int
+	MissingFavoriteUsers       int
+	MissingControversialPoll   int
+	MissingWordCountData       int
+}
+
+func (s *WrappedService) PrecomputeWrappedForAllUsers(ctx context.Context) (*PrecomputationResult, error) {
 	users, err := s.querier.WrappedGetAllUserIds(ctx)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
 	succeeded := []int{}
 	failed := []int{}
+	precomputationResult := PrecomputationResult{}
 
 	for _, userId := range users {
 		isEligible, err := s.isUserEligibleForWrapped(ctx, userId)
 		if err != nil {
-			return nil, nil, err
+			return nil, err
 		}
 
 		if !isEligible {
 			continue
 		}
 
-		data, err := s.compileWrappedForUser(ctx, userId)
+		data, err := s.compileWrappedForUser(ctx, userId, &precomputationResult)
 		if err != nil {
 			failed = append(failed, userId)
 			continue
@@ -87,7 +103,7 @@ func (s *WrappedService) PrecomputeWrappedForAllUsers(ctx context.Context) ([]in
 		succeeded = append(succeeded, userId)
 	}
 
-	return succeeded, failed, nil
+	return &precomputationResult, nil
 }
 
 // isUserEligibleForWrapped returns whether a user is eligible for a wrapped. given user must:
@@ -126,19 +142,28 @@ func (s *WrappedService) isUserEligibleForWrapped(ctx context.Context, userId in
 	return true, nil
 }
 
-func (s *WrappedService) compileWrappedForUser(ctx context.Context, userId int) (*models.WrappedData, error) {
+func (s *WrappedService) compileWrappedForUser(ctx context.Context, userId int, precomputationResult *PrecomputationResult) (*models.WrappedData, error) {
 	var data models.WrappedData
 
 	activity, weeklyActivity, err := s.getUserActivityData(ctx, userId)
 	if err != nil {
 		return nil, err
 	}
+	if activity == nil {
+		precomputationResult.MissingYearlyActivityData++
+	}
 	data.ActivityData = *activity
+	if weeklyActivity == nil {
+		precomputationResult.MissingWeeklyActivityData++
+	}
 	data.WeeklyActivity = *weeklyActivity
 
 	sliceData, err := s.getPercentShareOfContent(ctx, userId)
 	if err != nil {
 		return nil, err
+	}
+	if sliceData == nil {
+		precomputationResult.MissingSliceData++
 	}
 	data.SliceData = *sliceData
 
@@ -146,11 +171,17 @@ func (s *WrappedService) compileWrappedForUser(ctx context.Context, userId int) 
 	if err != nil {
 		return nil, err
 	}
+	if comparativePostData == nil {
+		precomputationResult.MissingComparativePostData++
+	}
 	data.ComparativePostStatisticsData = *comparativePostData
 
 	mostLikedPost, err := s.getMostLikedPost(ctx, userId)
 	if err != nil {
 		return nil, err
+	}
+	if mostLikedPost == nil {
+		precomputationResult.MissingMostLikedPost++
 	}
 	data.MostLikedPost = mostLikedPost
 
@@ -158,17 +189,26 @@ func (s *WrappedService) compileWrappedForUser(ctx context.Context, userId int) 
 	if err != nil {
 		return nil, err
 	}
+	if favoriteUsers == nil {
+		precomputationResult.MissingFavoriteUsers++
+	}
 	data.FavoriteUsers = *favoriteUsers
 
 	poll, err := s.getControversialPoll(ctx, userId)
 	if err != nil {
 		return nil, err
 	}
+	if poll == nil {
+		precomputationResult.MissingControversialPoll++
+	}
 	data.ControversialPoll = poll
 
 	totalWordCount, err := s.getWordCountData(ctx, userId)
 	if err != nil {
 		return nil, err
+	}
+	if totalWordCount == nil {
+		precomputationResult.MissingWordCountData++
 	}
 	data.TotalWordCount = totalWordCount
 
