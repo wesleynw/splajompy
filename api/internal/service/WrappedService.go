@@ -34,14 +34,14 @@ func (s *WrappedService) GetPrecomputedWrappedDataByUserId(ctx context.Context, 
 		return nil, err
 	}
 
-	var wrappedData *models.WrappedData
+	var wrappedData models.WrappedData
 
-	err = json.Unmarshal(data, wrappedData)
+	err = json.Unmarshal(data, &wrappedData)
 	if err != nil {
 		return nil, err
 	}
 
-	return wrappedData, nil
+	return &wrappedData, nil
 }
 
 type PrecomputationResult struct {

@@ -137,6 +137,15 @@ struct Mocks {
       FavoriteUserData(user: testPublicUser1, proportion: 30.1238921738921),
       FavoriteUserData(user: testPublicUser1, proportion: 30.1238921738921),
     ],
-    totalWordCount: 18356
+    totalWordCount: 18356,
+    controversialPoll: Poll(
+      title: "should i add polls?",
+      voteTotal: 14,
+      options: [
+        PollOption(title: "yes 😛", voteTotal: 8),
+        PollOption(title: "i thought you’d never ask", voteTotal: 4),
+        PollOption(title: "is the sky blue?", voteTotal: 2),
+      ]
+    )
   )
 }
