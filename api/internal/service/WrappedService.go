@@ -36,10 +36,11 @@ func (s *WrappedService) GetPrecomputedWrappedDataByUserId(ctx context.Context, 
 
 	var wrappedData models.WrappedData
 
-	err = json.Unmarshal(data, &wrappedData)
+	err = json.Unmarshal(data.Content, &wrappedData)
 	if err != nil {
 		return nil, err
 	}
+	wrappedData.GeneratedUtc = data.Generated.Time
 
 	return &wrappedData, nil
 }

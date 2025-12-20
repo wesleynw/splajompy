@@ -30,6 +30,10 @@ struct WrappedIntroView: View {
         ProgressView()
           .opacity(viewModel.state.isLoading ? 1 : 0)
 
+        if case .loaded(let data) = viewModel.state {
+          Text("Data last generated \(data.generatedUtc.ISO8601Format())")
+        }
+
         if case .failed(let error) = viewModel.state {
           VStack {
             Text("Error: \(error)")
@@ -49,6 +53,7 @@ struct WrappedIntroView: View {
         await viewModel.load()
       }
       .frame(maxHeight: .infinity)
+      .frame(maxWidth: .infinity)
       .padding()
       .overlay(alignment: .bottom) {
         if case .loaded = viewModel.state {
@@ -59,6 +64,7 @@ struct WrappedIntroView: View {
               .frame(maxWidth: .infinity)
               .fontWeight(.bold)
           }
+          .padding()
           .controlSize(.large)
           .modify {
             if #available(iOS 26, *) {
@@ -85,6 +91,7 @@ struct WrappedIntroView: View {
             }
           }
           .disabled(true)
+          .padding()
         }
       }
       .navigationDestination(for: WrappedPage.self) { selection in

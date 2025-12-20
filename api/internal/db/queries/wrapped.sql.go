@@ -291,16 +291,21 @@ func (q *Queries) WrappedGetCommentCountForUser(ctx context.Context, userID int)
 }
 
 const wrappedGetCompiledDataByUserId = `-- name: WrappedGetCompiledDataByUserId :one
-SELECT content
+SELECT content, generated
 FROM wrapped
 WHERE user_id = $1
 `
 
-func (q *Queries) WrappedGetCompiledDataByUserId(ctx context.Context, userID int) ([]byte, error) {
+type WrappedGetCompiledDataByUserIdRow struct {
+	Content   []byte           `json:"content"`
+	Generated pgtype.Timestamp `json:"generated"`
+}
+
+func (q *Queries) WrappedGetCompiledDataByUserId(ctx context.Context, userID int) (WrappedGetCompiledDataByUserIdRow, error) {
 	row := q.db.QueryRow(ctx, wrappedGetCompiledDataByUserId, userID)
-	var content []byte
-	err := row.Scan(&content)
-	return content, err
+	var i WrappedGetCompiledDataByUserIdRow
+	err := row.Scan(&i.Content, &i.Generated)
+	return i, err
 }
 
 const wrappedGetMostLikedPostId = `-- name: WrappedGetMostLikedPostId :one

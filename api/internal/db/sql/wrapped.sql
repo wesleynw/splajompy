@@ -140,7 +140,7 @@ SELECT user_id
 FROM users;
 
 -- name: WrappedGetCompiledDataByUserId :one
-SELECT content
+SELECT content, generated
 FROM wrapped
 WHERE user_id = $1;
 

@@ -146,6 +146,7 @@ struct Mocks {
         PollOption(title: "i thought you’d never ask", voteTotal: 4),
         PollOption(title: "is the sky blue?", voteTotal: 2),
       ]
-    )
+    ),
+    generatedUtc: Date()
   )
 }

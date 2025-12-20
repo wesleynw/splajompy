@@ -1,5 +1,7 @@
 package models
 
+import "time"
+
 type WrappedData struct {
 	ActivityData                  UserActivityData              `json:"activityData"`
 	WeeklyActivity                []int                         `json:"weeklyActivityData"` // not my best piece of programming, but just assume this is len=7
@@ -9,6 +11,7 @@ type WrappedData struct {
 	FavoriteUsers                 []FavoriteUserData            `json:"favoriteUsers"`
 	ControversialPoll             *DetailedPoll                 `json:"controversialPoll"`
 	TotalWordCount                *int                          `json:"totalWordCount"`
+	GeneratedUtc                  time.Time                     `json:"generatedUtc"`
 }
 
 type SliceData struct {
