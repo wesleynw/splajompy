@@ -4,6 +4,8 @@ struct UserProportionRing: View {
   let data: WrappedData
   let ringWidthRatio: Float = 0.05
   let gapDegrees: Double = 9
+  let onContinue: () -> Void
+
   @State private var isShowingIntroText: Bool = true
   @State private var isShowingPercentage: Bool = false
   @State private var animatedUserPercent: Double = 0
@@ -100,12 +102,19 @@ struct UserProportionRing: View {
           }
           .buttonStyle(.borderedProminent)
         } else {
-          Button(showComponentBreakdown ? "Hide Details" : "Show Details") {
-            withAnimation(.spring) {
-              showComponentBreakdown.toggle()
+          HStack {
+            Button(showComponentBreakdown ? "Hide Details" : "Show Details") {
+              withAnimation(.spring) {
+                showComponentBreakdown.toggle()
+              }
             }
+            .buttonStyle(.borderedProminent)
+
+            Button("Continue") {
+              onContinue()
+            }
+            .buttonStyle(.borderedProminent)
           }
-          .buttonStyle(.borderedProminent)
         }
       }
     }
@@ -346,5 +355,5 @@ struct AnimatedRingSegment: Shape {
 }
 
 #Preview {
-  UserProportionRing(data: Mocks.wrappedData)
+  UserProportionRing(data: Mocks.wrappedData, onContinue: {})
 }

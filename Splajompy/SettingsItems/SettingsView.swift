@@ -20,6 +20,7 @@ struct SettingsView: View {
                 systemImage:
                   "clock.arrow.trianglehead.counterclockwise.rotate.90"
               )
+              .frame(maxWidth: .infinity, alignment: .leading)
             }
             .buttonStyle(.plain)
           }

@@ -10,6 +10,7 @@ enum WrappedPage {
   case slice
   case favoriteUsers
   case totalWordCount
+  case end
 }
 
 @available(macOS, unavailable)
@@ -22,7 +23,7 @@ struct WrappedIntroView: View {
   var body: some View {
     NavigationStack(path: $path) {
       VStack {
-        Text("Welcome to your 2025 Splajompy Wrapped!")
+        Text("Welcome to your 2025 Splajompy Rejomp!")
           .fontWeight(.bold)
           .font(.title2)
           .fontDesign(.rounded)
@@ -136,7 +137,7 @@ struct WrappedIntroView: View {
         )
         .closeToolbar(onDismiss: dismiss.callAsFunction)
       case .slice:
-        UserProportionRing(data: data)
+        UserProportionRing(data: data, onContinue: { path.append(.end) })
           .closeToolbar(onDismiss: dismiss.callAsFunction)
       case .lengthComparison:
         LengthComparisonView(
@@ -147,13 +148,27 @@ struct WrappedIntroView: View {
       case .totalWordCount:
         TotalWordCountView(
           data: data,
-          onContinue: { path.append(.favoriteUsers) }
+          onContinue: {
+            if !data.favoriteUsers.isEmpty {
+              path.append(.favoriteUsers)
+            } else if data.sliceData.percent > 1 {
+              path.append(.slice)
+            } else {
+              path.append(.end)
+            }
+          }
         )
         .closeToolbar(onDismiss: dismiss.callAsFunction)
       case .mostLikedPost:
         MostLikedPostView(
           data: data,
-          onContinue: { path.append(.controversialPoll) }
+          onContinue: {
+            if data.controversialPoll != nil {
+              path.append(.controversialPoll)
+            } else {
+              path.append(.lengthComparison)
+            }
+          }
         )
         .closeToolbar(onDismiss: dismiss.callAsFunction)
       case .controversialPoll:
@@ -162,10 +177,21 @@ struct WrappedIntroView: View {
           onContinue: { path.append(.lengthComparison) }
         )
       case .favoriteUsers:
-        FavoriteUsersView(data: data, onContinue: { path.append(.slice) })
-          .closeToolbar(onDismiss: dismiss.callAsFunction)
+        FavoriteUsersView(
+          data: data,
+          onContinue: {
+            if data.sliceData.percent > 1 {
+              path.append(.slice)
+            } else {
+              path.append(.end)
+            }
+          }
+        )
+        .closeToolbar(onDismiss: dismiss.callAsFunction)
       case .intro:
         WrappedIntroView()
+      case .end:
+        EndView()
       }
     default:
       ProgressView()

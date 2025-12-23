@@ -11,21 +11,25 @@ struct TotalWordCountView: View {
       LinedPaperBackground()
 
       VStack(alignment: .leading) {
-        Text("You had a lot to say this year...")
-          .padding(.vertical)
-          .onAppear {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
-              withAnimation {
-                isShowingIntroText = false
-              }
-            }
-
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-              withAnimation {
-                isShowingContinueButton = true
-              }
+        Text(
+          data.totalWordCount > 100
+            ? "You had a lot to say this year..."
+            : "You didn't have a lot to say this year..."
+        )
+        .padding(.vertical)
+        .onAppear {
+          DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
+            withAnimation {
+              isShowingIntroText = false
             }
           }
+
+          DispatchQueue.main.asyncAfter(deadline: .now() + 3.5) {
+            withAnimation {
+              isShowingContinueButton = true
+            }
+          }
+        }
 
         HStack {
           Text("You wrote ")
@@ -40,6 +44,7 @@ struct TotalWordCountView: View {
       .fontDesign(.serif)
       .font(.title)
       .padding(.leading, 60)
+      .padding(.trailing)
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity)
     .foregroundStyle(.black)

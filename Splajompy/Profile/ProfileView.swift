@@ -69,7 +69,6 @@ struct ProfileView: View {
         await viewModel.loadProfileAndPosts()
       }
     }
-    .navigationTitle("@" + self.username)
     .sheet(isPresented: $isShowingProfileEditor) {
       ProfileEditorView(viewModel: viewModel)
         .interactiveDismissDisabled()
@@ -214,6 +213,13 @@ struct ProfileView: View {
       .environmentObject(authManager)
       .refreshable {
         await viewModel.loadProfileAndPosts()
+      }
+    }
+    .toolbar {
+      ToolbarItem(placement: .principal) {
+        Text("@" + user.username)
+          .font(.callout)
+          .fontWeight(.bold)
       }
     }
   }

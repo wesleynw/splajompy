@@ -9,45 +9,45 @@ struct FavoriteUsersView: View {
 
   var body: some View {
     VStack {
-      Text(
-        "Your favorite people"
-      )
-      .font(.title2)
-      .fontDesign(.rounded)
-      .fontWeight(.bold)
-      .multilineTextAlignment(.center)
-      .padding()
-      .onAppear {
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-          withAnimation {
-            isShowingIntroText = false
-          }
-          for index in 0..<data.favoriteUsers.count {
-            DispatchQueue.main.asyncAfter(deadline: .now() + Double(index) + 1) {
-              if visibleRowCount <= index {
-                withAnimation(.bouncy) {
-                  visibleRowCount = index + 1
+      Text("Your favorite people")
+        .font(.title2)
+        .fontDesign(.rounded)
+        .fontWeight(.black)
+        .multilineTextAlignment(.center)
+        .padding()
+        .onAppear {
+          DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+            withAnimation {
+              isShowingIntroText = false
+            }
+            for index in 0..<data.favoriteUsers.count {
+              DispatchQueue.main.asyncAfter(
+                deadline: .now() + Double(index) + 1
+              ) {
+                if visibleRowCount <= index {
+                  withAnimation(.bouncy) {
+                    visibleRowCount = index + 1
+                  }
                 }
               }
             }
-          }
 
-          DispatchQueue.main.asyncAfter(
-            deadline: .now() + Double(data.favoriteUsers.count) + 1
-          ) {
-            withAnimation {
-              isShowingContinueButton = true
+            DispatchQueue.main.asyncAfter(
+              deadline: .now() + Double(data.favoriteUsers.count) + 1
+            ) {
+              withAnimation {
+                isShowingContinueButton = true
+              }
             }
           }
         }
-      }
-      .transition(.blurReplace)
+        .transition(.blurReplace)
 
       if isShowingIntroText {
         Text("on Splajompy")
           .font(.title2)
           .fontDesign(.rounded)
-          .fontWeight(.bold)
+          .fontWeight(.black)
           .multilineTextAlignment(.center)
       }
 
