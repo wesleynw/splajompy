@@ -4,6 +4,8 @@ struct MainFeedView: View {
   @State private var isShowingNewPostView = false
   @State private var isShowingWrappedView: Bool = false
   @StateObject private var viewModel: FeedViewModel
+  @StateObject private var wrappedViewModel: WrappedViewModel =
+    WrappedViewModel()
   @EnvironmentObject var authManager: AuthManager
   @ObservedObject var postManager: PostManager
 
@@ -63,8 +65,8 @@ struct MainFeedView: View {
         }
       }
       .task {
-        await viewModel.getIsEligibleForWrapped()
-        if viewModel.promptWrappedView && !hasViewedWrapped {
+        await wrappedViewModel.loadEligibility()
+        if wrappedViewModel.isEligibleForWrapped && !hasViewedWrapped {
           isShowingWrappedView = true
         }
       }
