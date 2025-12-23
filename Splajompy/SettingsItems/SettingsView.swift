@@ -3,10 +3,29 @@ import SwiftUI
 
 struct SettingsView: View {
   @EnvironmentObject private var authManager: AuthManager
+  @State private var isShowingWrappedView: Bool = false
+  @StateObject private var wrappedViewModel: WrappedViewModel =
+    WrappedViewModel()
 
   var body: some View {
     VStack {
       List {
+        if wrappedViewModel.isEligibleForWrapped {
+          Section {
+            Button {
+              isShowingWrappedView = true
+            } label: {
+              Label(
+                "Rejomp 2025",
+                systemImage:
+                  "clock.arrow.trianglehead.counterclockwise.rotate.90"
+              )
+            }
+            .buttonStyle(.plain)
+          }
+          .transition(.slide)
+        }
+
         NavigationLink(destination: AccountSettingsView()) {
           Label("Account", systemImage: "person.circle")
         }
@@ -42,10 +61,16 @@ struct SettingsView: View {
             Label("About", systemImage: "info.circle")
           }
         }
-
       }
+      .animation(.default, value: wrappedViewModel.isEligibleForWrapped)
     }
     .navigationTitle("Settings")
+    .fullScreenCover(isPresented: $isShowingWrappedView) {
+      WrappedIntroView()
+    }
+    .task {
+      await wrappedViewModel.loadEligibility()
+    }
   }
 }
 

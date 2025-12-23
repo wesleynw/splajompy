@@ -16,6 +16,8 @@ enum FeedState {
   @Published var isLoadingMore: Bool = false
   @Published var postIds: [Int] = []
 
+  @Published var promptWrappedView: Bool = false
+
   var posts: [DetailedPost] {
     postManager.getPostsById(postIds)
   }
@@ -80,6 +82,19 @@ enum FeedState {
   func toggleLike(on post: DetailedPost) {
     Task {
       await postManager.likePost(id: post.id)
+    }
+  }
+
+  func getIsEligibleForWrapped() async {
+    let isEligible: AsyncResult<Bool> = await APIService.performRequest(
+      endpoint: "wrapped/eligibilty",
+      method: "GET"
+    )
+
+    if case .success(let t) = isEligible {
+      if t {
+        promptWrappedView = true
+      }
     }
   }
 

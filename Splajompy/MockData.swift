@@ -58,6 +58,15 @@ struct Mocks {
     displayProperties: UserDisplayProperties(fontChoiceId: 2)
   )
 
+  static let basicUser = User(
+    userId: 0,
+    email: "wesleynw@pmme",
+    username: "Wesley",
+    createdAt: Date(),
+    name: "test",
+    isVerified: false
+  )
+
   static let testPublicUser1 = PublicUser(
     userId: 100,
     email: "wesley@splajompy.com",

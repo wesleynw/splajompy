@@ -5,7 +5,6 @@ struct TotalWordCountView: View {
   var onContinue: () -> Void
   @State private var isShowingContinueButton: Bool = false
   @State private var isShowingIntroText: Bool = true
-  @State private var animationProgress: CGFloat = 0
 
   var body: some View {
     ZStack {
@@ -19,23 +18,23 @@ struct TotalWordCountView: View {
               withAnimation {
                 isShowingIntroText = false
               }
-              withAnimation(.spring) {
-                animationProgress = 1
-              }
             }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 6) {
+          }
+
+        if !isShowingIntroText {
+          HStack {
+            Text("You wrote ")
+              + Text(data.totalWordCount.formatted()).foregroundStyle(.blue)
+              + Text(" words on Splajompy")
+          }
+          .onAppear {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
               withAnimation {
                 isShowingContinueButton = true
               }
             }
           }
-
-        HStack {
-          Text("You wrote ")
-            + Text(data.totalWordCount.formatted()).foregroundStyle(.blue)
-            + Text(" words on Splajompy")
         }
-        .opacity(animationProgress)
       }
       .lineLimit(nil)
       .frame(maxWidth: .infinity)

@@ -128,6 +128,7 @@ func (h *Handler) RegisterRoutes(handleFunc func(pattern string, handlerFunc fun
 	// wrapped
 	handleFuncWithAuth("POST /precomuputeWrapped", h.WrappedPrecomputation)
 	handleFuncWithAuth("GET /wrapped", h.GetWrappedActivityData)
+	handleFuncWithAuth("GET /wrapped/eligibility", h.GetIsUserEligibleForWrapped)
 }
 
 func (h *Handler) RegisterPublicRoutes(handleFunc func(pattern string, handlerFunc func(http.ResponseWriter, *http.Request))) {

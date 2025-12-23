@@ -69,7 +69,7 @@ func (s *WrappedService) PrecomputeWrappedForAllUsers(ctx context.Context) (*Pre
 	precomputationResult := PrecomputationResult{}
 
 	for _, userId := range users {
-		isEligible, err := s.isUserEligibleForWrapped(ctx, userId)
+		isEligible, err := s.IsUserEligibleForWrapped(ctx, userId)
 		if err != nil {
 			return nil, err
 		}
@@ -100,11 +100,11 @@ func (s *WrappedService) PrecomputeWrappedForAllUsers(ctx context.Context) (*Pre
 	return &precomputationResult, nil
 }
 
-// isUserEligibleForWrapped returns whether a user is eligible for a wrapped. given user must:
+// IsUserEligibleForWrapped returns whether a user is eligible for a wrapped. given user must:
 // 1. have at least one post
 // 2. have an account created prior to 12/25/2025
 // 3. has one like on a post
-func (s *WrappedService) isUserEligibleForWrapped(ctx context.Context, userId int) (bool, error) {
+func (s *WrappedService) IsUserEligibleForWrapped(ctx context.Context, userId int) (bool, error) {
 	user, err := s.querier.GetUserById(ctx, userId)
 	if err != nil {
 		return false, err

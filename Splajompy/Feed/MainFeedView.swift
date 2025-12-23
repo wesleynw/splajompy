@@ -8,6 +8,7 @@ struct MainFeedView: View {
   @ObservedObject var postManager: PostManager
 
   @AppStorage("selectedFeedType") private var selectedFeedType: FeedType = .all
+  @AppStorage("hasViewedWrapped") private var hasViewedWrapped: Bool = false
 
   init(postManager: PostManager) {
     self.postManager = postManager
@@ -61,6 +62,12 @@ struct MainFeedView: View {
           }
         }
       }
+      .task {
+        await viewModel.getIsEligibleForWrapped()
+        if viewModel.promptWrappedView && !hasViewedWrapped {
+          isShowingWrappedView = true
+        }
+      }
       .onChange(of: selectedFeedType) { _, newFeedType in
         Task {
           viewModel.feedType = newFeedType
@@ -76,14 +83,6 @@ struct MainFeedView: View {
           newPostSheet
         }
         .toolbar {
-          ToolbarItem {
-            Button(
-              "2025 Wrapped",
-              systemImage: "clock.arrow.trianglehead.counterclockwise.rotate.90"
-            ) {
-              isShowingWrappedView.toggle()
-            }
-          }
           addPostToolbarItem
         }
       #endif

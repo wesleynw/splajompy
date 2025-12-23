@@ -51,6 +51,20 @@ enum WrappedState {
 
 @MainActor class WrappedViewModel: ObservableObject {
   @Published var state: WrappedState = .idle
+  @Published var isEligibleForWrapped: Bool = false
+
+  func loadEligibility() async {
+    let result: AsyncResult<Bool> = await APIService.performRequest(
+      endpoint: "wrapped/eligibility",
+      method: "GET"
+    )
+
+    if case .success(let t) = result {
+      if t {
+        isEligibleForWrapped = true
+      }
+    }
+  }
 
   func load() async {
     if case .loaded(_) = state {
