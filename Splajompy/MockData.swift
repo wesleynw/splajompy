@@ -150,6 +150,7 @@ struct Mocks {
     controversialPoll: Poll(
       title: "should i add polls?",
       voteTotal: 14,
+      currentUserVote: 2,
       options: [
         PollOption(title: "yes 😛", voteTotal: 8),
         PollOption(title: "i thought you’d never ask", voteTotal: 4),

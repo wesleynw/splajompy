@@ -2,30 +2,85 @@ import SwiftUI
 
 struct ControversialPollView: View {
   var data: WrappedData
-  var currentUser: User
-  var onComplete: () -> Void
+  var onContinue: () -> Void
 
-  @State private var isShowingIntroText: Bool = false
+  @EnvironmentObject var authManager: AuthManager
+
+  @State private var isShowingIntroText: Bool = true
+  @State private var isShowingContinueButton: Bool = false
+  @State private var modifiedPoll: Poll?
 
   var body: some View {
-    if isShowingIntroText {
-      Text("asdf")
-    }
+    VStack {
+      Text("You had some controversial opinions this year...")
+        .padding()
+        .font(.title2)
+        .fontWeight(.bold)
+        .multilineTextAlignment(.center)
+        .onAppear {
+          DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
+            withAnimation {
+              isShowingIntroText = false
+            }
+          }
+        }
 
-    PollView(
-      poll: data.controversialPoll!,
-      authorId: currentUser.userId,
-      onVote: { _ in },
-      currentUser: currentUser
-    )
+      if !isShowingIntroText {
+        if let poll = modifiedPoll {
+          PollView(
+            poll: poll,
+            authorId: authManager.getCurrentUser()!.userId,
+            onVote: { _ in }
+          )
+          .padding()
+          .transition(.opacity)
+          .onAppear {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+              if var updatedPoll = modifiedPoll {
+                withAnimation {
+                  updatedPoll.currentUserVote =
+                    data.controversialPoll?.currentUserVote
+                  modifiedPoll = updatedPoll
+                }
+              }
+            }
+
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+              withAnimation {
+                isShowingContinueButton = true
+              }
+            }
+          }
+        }
+      }
+    }
+    .frame(maxHeight: .infinity)
+    .overlay(alignment: .bottom) {
+      if isShowingContinueButton {
+        Button("Continue") {
+          onContinue()
+        }
+        .buttonStyle(.borderedProminent)
+      }
+    }
+    .padding()
+    .onAppear {
+      if var poll = data.controversialPoll {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3.5) {
+          withAnimation {
+            poll.currentUserVote = nil
+            modifiedPoll = poll
+          }
+        }
+      }
+    }
   }
 }
 
 #Preview {
   ControversialPollView(
     data: Mocks.wrappedData,
-    currentUser: Mocks.basicUser,
-    onComplete: {}
+    onContinue: {}
   )
   .environmentObject(AuthManager())
 }

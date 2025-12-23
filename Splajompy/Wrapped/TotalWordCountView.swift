@@ -19,22 +19,20 @@ struct TotalWordCountView: View {
                 isShowingIntroText = false
               }
             }
-          }
 
-        if !isShowingIntroText {
-          HStack {
-            Text("You wrote ")
-              + Text(data.totalWordCount.formatted()).foregroundStyle(.blue)
-              + Text(" words on Splajompy")
-          }
-          .onAppear {
             DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
               withAnimation {
                 isShowingContinueButton = true
               }
             }
           }
+
+        HStack {
+          Text("You wrote ")
+            + Text(data.totalWordCount.formatted()).foregroundStyle(.blue)
+            + Text(" words on Splajompy")
         }
+        .opacity(isShowingIntroText ? 0 : 1)
       }
       .lineLimit(nil)
       .frame(maxWidth: .infinity)

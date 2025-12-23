@@ -6,6 +6,7 @@ enum WrappedPage {
   case weeklyActivity
   case lengthComparison
   case mostLikedPost
+  case controversialPoll
   case slice
   case favoriteUsers
   case totalWordCount
@@ -146,9 +147,14 @@ struct WrappedIntroView: View {
       case .mostLikedPost:
         MostLikedPostView(
           data: data,
-          onContinue: { path.append(.lengthComparison) }
+          onContinue: { path.append(.controversialPoll) }
         )
         .closeToolbar(onDismiss: dismiss.callAsFunction)
+      case .controversialPoll:
+        ControversialPollView(
+          data: data,
+          onContinue: { path.append(.lengthComparison) }
+        )
       case .favoriteUsers:
         FavoriteUsersView(data: data, onContinue: { path.append(.slice) })
           .closeToolbar(onDismiss: dismiss.callAsFunction)
