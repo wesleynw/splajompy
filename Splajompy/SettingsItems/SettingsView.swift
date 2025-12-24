@@ -11,7 +11,7 @@ struct SettingsView: View {
     VStack {
       List {
         if wrappedViewModel.isEligibleForWrapped
-          && PostHogSDK.shared.isFeatureEnabled("rejomp-section-in-settings") || true
+          && PostHogSDK.shared.isFeatureEnabled("rejomp-section-in-settings")
         {
           Section {
             Button {
