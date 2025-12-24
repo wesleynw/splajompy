@@ -176,6 +176,7 @@ struct WrappedIntroView: View {
           data: data,
           onContinue: { path.append(.lengthComparison) }
         )
+        .closeToolbar(onDismiss: dismiss.callAsFunction)
       case .favoriteUsers:
         FavoriteUsersView(
           data: data,

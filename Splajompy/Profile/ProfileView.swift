@@ -73,6 +73,16 @@ struct ProfileView: View {
       ProfileEditorView(viewModel: viewModel)
         .interactiveDismissDisabled()
     }
+    #if os(iOS)
+      .navigationBarTitleDisplayMode(.inline)
+    #endif
+    .toolbar {
+      ToolbarItem(placement: .principal) {
+        Text("@" + self.username)
+          .font(.callout)
+          .fontWeight(.bold)
+      }
+    }
     .toolbar {
       if !isProfileTab && !isCurrentUser {
         Menu {
@@ -213,13 +223,6 @@ struct ProfileView: View {
       .environmentObject(authManager)
       .refreshable {
         await viewModel.loadProfileAndPosts()
-      }
-    }
-    .toolbar {
-      ToolbarItem(placement: .principal) {
-        Text("@" + user.username)
-          .font(.callout)
-          .fontWeight(.bold)
       }
     }
   }

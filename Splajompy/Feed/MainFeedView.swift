@@ -1,3 +1,4 @@
+import PostHog
 import SwiftUI
 
 struct MainFeedView: View {
@@ -66,7 +67,9 @@ struct MainFeedView: View {
       }
       .task {
         await wrappedViewModel.loadEligibility()
-        if wrappedViewModel.isEligibleForWrapped && !hasViewedWrapped {
+        if wrappedViewModel.isEligibleForWrapped && !hasViewedWrapped
+          && PostHogSDK.shared.isFeatureEnabled("rejomp-2025-prompt")
+        {
           isShowingWrappedView = true
         }
       }

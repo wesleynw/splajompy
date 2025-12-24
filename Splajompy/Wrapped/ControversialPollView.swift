@@ -7,11 +7,11 @@ struct ControversialPollView: View {
   @State private var isShowingIntroText: Bool = true
   @State private var isShowingContinueButton: Bool = false
   @State private var modifiedPoll: Poll?
-  
+
   var body: some View {
     ZStack {
       TopographicBackground()
-      
+
       VStack {
         Text("You had some controversial opinions this year...")
           .padding()
@@ -67,12 +67,8 @@ struct ControversialPollView: View {
     .background(.yellow.gradient.secondary)
     .onAppear {
       if var poll = data.controversialPoll {
-        DispatchQueue.main.asyncAfter(deadline: .now() + 3.5) {
-          withAnimation {
-            poll.currentUserVote = nil
-            modifiedPoll = poll
-          }
-        }
+        poll.currentUserVote = nil
+        modifiedPoll = poll
       }
     }
   }
@@ -83,20 +79,21 @@ struct TopographicBackground: View {
     Canvas { context, size in
       let contourCount = 80
       let spacing = size.height / CGFloat(contourCount)
-      
+
       for i in 0..<contourCount {
         var path = Path()
         let baseY = CGFloat(i) * spacing
-        
+
         path.move(to: CGPoint(x: 0, y: baseY))
-        
+
         for x in stride(from: 0, through: size.width, by: 20) {
-          let noise = sin(x / 30 + CGFloat(i) * 0.5) * 15 +
-                      cos(x / 50 - CGFloat(i) * 0.3) * 10
+          let noise =
+            sin(x / 30 + CGFloat(i) * 0.5) * 15 + cos(x / 50 - CGFloat(i) * 0.3)
+            * 10
           let y = baseY + noise
           path.addLine(to: CGPoint(x: x, y: y))
         }
-        
+
         context.stroke(
           path,
           with: .color(.primary.opacity(0.08)),

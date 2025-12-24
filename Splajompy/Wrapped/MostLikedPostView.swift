@@ -9,7 +9,7 @@ struct MostLikedPostView: View {
   var body: some View {
     ZStack {
       // background placeholder
-      
+
       VStack {
         if !isShowingPost {
           Text("Throughout the year, one post in particular stood out.")

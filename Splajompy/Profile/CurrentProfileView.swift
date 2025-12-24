@@ -13,12 +13,10 @@ struct CurrentProfileView: View {
         isProfileTab: true
       )
       .toolbar {
-        ToolbarItem(placement: .topBarTrailing) {
-          NavigationLink(
-            destination: SettingsView().environmentObject(authManager)
-          ) {
-            Image(systemName: "gearshape")
-          }
+        NavigationLink(
+          destination: SettingsView().environmentObject(authManager)
+        ) {
+          Image(systemName: "gearshape")
         }
       }
     }

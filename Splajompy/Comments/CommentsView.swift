@@ -108,6 +108,9 @@ struct CommentsView: View {
             .padding()
           Spacer()
         }
+        .onTapGesture {
+          isInputFocused = false
+        }
       case .loaded(let comments):
         if comments.isEmpty {
           VStack(spacing: 16) {
@@ -116,6 +119,9 @@ struct CommentsView: View {
               .font(.title3)
               .foregroundColor(.gray)
             Spacer()
+          }
+          .onTapGesture {
+            isInputFocused = false
           }
         } else {
           ScrollView {
@@ -279,7 +285,10 @@ struct CommentRow: View {
             if currentUser.userId == comment.user.userId {
               Menu(
                 content: {
-                  Button(role: .destructive, action: { showDeleteConfirmation = true }) {
+                  Button(
+                    role: .destructive,
+                    action: { showDeleteConfirmation = true }
+                  ) {
                     Label("Delete", systemImage: "trash")
                       .foregroundColor(.red)
                   }
