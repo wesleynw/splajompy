@@ -12,7 +12,7 @@ processors:
   resourcedetection:
     # Enriches telemetry data with resource information from the host
     # https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/resourcedetectionprocessor
-    detectors: ["env", "docker", "system"]
+    detectors: ["env", "system"]
     override: false
   transform/drop_unneeded_resource_attributes:
     # https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/transformprocessor
@@ -61,7 +61,7 @@ processors:
           - replace_pattern(name, "\\?.*", "")
           - replace_match(name, "GET /post/*", "GET /post/{id}")
           - replace_match(name, "DELETE /post/*", "DELETE /post/{id}")
-          - replace_match(name, "POST /post/*/report", "POST /post/{id}/report")  
+          - replace_match(name, "POST /post/*/report", "POST /post/{id}/report")
           - replace_match(name, "POST /post/*/liked", "POST /post/{id}/liked")
           - replace_match(name, "DELETE /post/*/liked", "DELETE /post/{id}/liked")
           - replace_match(name, "GET /post/*/comments", "GET /post/{id}/comments")
@@ -109,15 +109,17 @@ connectors:
     host_identifiers: ["host.name"]
 
 service:
-  extensions:
-    [
-      basicauth/grafana_cloud,
-    ]
+  extensions: [basicauth/grafana_cloud]
   pipelines:
     traces:
       receivers: [otlp]
       processors:
-        [resourcedetection, transform/drop_unneeded_resource_attributes, transform/generalize_span_name, batch]
+        [
+          resourcedetection,
+          transform/drop_unneeded_resource_attributes,
+          transform/generalize_span_name,
+          batch,
+        ]
       exporters: [otlphttp/grafana_cloud, grafanacloud]
     metrics:
       receivers: [otlp]
@@ -136,9 +138,5 @@ service:
     logs:
       receivers: [otlp]
       processors:
-        [
-          resourcedetection,
-          transform/drop_unneeded_resource_attributes,
-          batch,
-        ]
+        [resourcedetection, transform/drop_unneeded_resource_attributes, batch]
       exporters: [otlphttp/grafana_cloud]
