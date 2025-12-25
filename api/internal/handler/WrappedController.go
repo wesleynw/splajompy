@@ -7,11 +7,11 @@ import (
 )
 
 func (h *Handler) WrappedPrecomputation(w http.ResponseWriter, r *http.Request) {
-	// currentUser := h.getAuthenticatedUser(r)
-	// if currentUser.UserID != 6 { // me
-	// 	utilities.HandleError(w, http.StatusUnauthorized, "")
-	// 	return
-	// }
+	currentUser := h.getAuthenticatedUser(r)
+	if currentUser.UserID != 6 { // me
+		utilities.HandleError(w, http.StatusUnauthorized, "you're not allowed to do this")
+		return
+	}
 
 	data, err := h.wrappedService.PrecomputeWrappedForAllUsers(r.Context())
 	if err != nil {
