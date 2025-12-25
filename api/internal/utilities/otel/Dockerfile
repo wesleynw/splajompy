@@ -10,6 +10,3 @@ ENV GRAFANA_CLOUD_API_KEY=${GRAFANA_CLOUD_API_KEY}
 
 # Expose ports
 EXPOSE 4317 4318
-
-# Mount point for Docker socket
-VOLUME ["/var/run/docker.sock"]
