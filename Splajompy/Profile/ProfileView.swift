@@ -69,10 +69,19 @@ struct ProfileView: View {
         await viewModel.loadProfileAndPosts()
       }
     }
-    .navigationTitle("@" + self.username)
     .sheet(isPresented: $isShowingProfileEditor) {
       ProfileEditorView(viewModel: viewModel)
         .interactiveDismissDisabled()
+    }
+    #if os(iOS)
+      .navigationBarTitleDisplayMode(.inline)
+    #endif
+    .toolbar {
+      ToolbarItem(placement: .principal) {
+        Text("@" + self.username)
+          .font(.callout)
+          .fontWeight(.bold)
+      }
     }
     .toolbar {
       if !isProfileTab && !isCurrentUser {

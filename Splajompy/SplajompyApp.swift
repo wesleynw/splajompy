@@ -16,8 +16,6 @@ struct SplajompyApp: App {
   private var postManager = PostManager()
   @AppStorage("appearance_mode") var appearanceMode: String = "Automatic"
 
-  @Namespace private var navigationNamespace
-
   init() {
     let posthogApiKey = "phc_sSDHxTCqpjwoSDSOQiNAAgmybjEakfePBsaNHWaWy74"
     let config = PostHogConfig(apiKey: posthogApiKey)
@@ -75,7 +73,6 @@ struct SplajompyApp: App {
             routeDestination(route)
           }
       }
-      .environment(\.navigationNamespace, navigationNamespace)
       .tabItem {
         Label("Home", systemImage: "house")
       }
@@ -88,7 +85,6 @@ struct SplajompyApp: App {
             routeDestination(route)
           }
       }
-      .environment(\.navigationNamespace, navigationNamespace)
       .tabItem {
         Label("Notifications", systemImage: "bell")
       }
@@ -101,7 +97,6 @@ struct SplajompyApp: App {
             routeDestination(route)
           }
       }
-      .environment(\.navigationNamespace, navigationNamespace)
       .tabItem {
         Label("Search", systemImage: "magnifyingglass")
       }
@@ -114,7 +109,6 @@ struct SplajompyApp: App {
             routeDestination(route)
           }
       }
-      .environment(\.navigationNamespace, navigationNamespace)
       .tabItem {
         Label("Profile", systemImage: "person.circle")
       }
@@ -172,7 +166,6 @@ struct SplajompyApp: App {
             handleDeepLink(url)
           }
         }
-        .environment(\.navigationNamespace, navigationNamespace)
       }
       .scrollIndicators(.visible)
     }

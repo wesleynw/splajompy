@@ -71,7 +71,7 @@ func (h *Handler) GetPostById(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	post, err := h.postService.GetPostById(r.Context(), *currentUser, id)
+	post, err := h.postService.GetPostById(r.Context(), currentUser.UserID, id)
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
 		return

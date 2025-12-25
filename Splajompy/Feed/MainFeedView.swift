@@ -1,12 +1,17 @@
+import PostHog
 import SwiftUI
 
 struct MainFeedView: View {
   @State private var isShowingNewPostView = false
+  @State private var isShowingWrappedView: Bool = false
   @StateObject private var viewModel: FeedViewModel
+  @StateObject private var wrappedViewModel: WrappedViewModel =
+    WrappedViewModel()
   @EnvironmentObject var authManager: AuthManager
   @ObservedObject var postManager: PostManager
 
   @AppStorage("selectedFeedType") private var selectedFeedType: FeedType = .all
+  @AppStorage("hasViewedWrapped") private var hasViewedWrapped: Bool = false
 
   init(postManager: PostManager) {
     self.postManager = postManager
@@ -60,6 +65,14 @@ struct MainFeedView: View {
           }
         }
       }
+      .task {
+        await wrappedViewModel.loadEligibility()
+        if wrappedViewModel.isEligibleForWrapped && !hasViewedWrapped
+          && PostHogSDK.shared.isFeatureEnabled("rejomp-2025-prompt")
+        {
+          isShowingWrappedView = true
+        }
+      }
       .onChange(of: selectedFeedType) { _, newFeedType in
         Task {
           viewModel.feedType = newFeedType
@@ -67,6 +80,9 @@ struct MainFeedView: View {
         }
       }
       #if os(iOS)
+        .fullScreenCover(isPresented: $isShowingWrappedView) {
+          WrappedIntroView()
+        }
         .navigationBarTitleDisplayMode(.inline)
         .sheet(isPresented: $isShowingNewPostView) {
           newPostSheet

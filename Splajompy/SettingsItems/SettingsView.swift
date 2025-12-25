@@ -3,10 +3,32 @@ import SwiftUI
 
 struct SettingsView: View {
   @EnvironmentObject private var authManager: AuthManager
+  @State private var isShowingWrappedView: Bool = false
+  @StateObject private var wrappedViewModel: WrappedViewModel =
+    WrappedViewModel()
 
   var body: some View {
     VStack {
       List {
+        if wrappedViewModel.isEligibleForWrapped
+          && PostHogSDK.shared.isFeatureEnabled("rejomp-section-in-settings")
+        {
+          Section {
+            Button {
+              isShowingWrappedView = true
+            } label: {
+              Label(
+                "Rejomp 2025",
+                systemImage:
+                  "clock.arrow.trianglehead.counterclockwise.rotate.90"
+              )
+              .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .buttonStyle(.plain)
+          }
+          .transition(.slide)
+        }
+
         NavigationLink(destination: AccountSettingsView()) {
           Label("Account", systemImage: "person.circle")
         }
@@ -42,10 +64,18 @@ struct SettingsView: View {
             Label("About", systemImage: "info.circle")
           }
         }
-
       }
+      .animation(.default, value: wrappedViewModel.isEligibleForWrapped)
     }
     .navigationTitle("Settings")
+    #if os(iOS)
+      .fullScreenCover(isPresented: $isShowingWrappedView) {
+        WrappedIntroView()
+      }
+      .task {
+        await wrappedViewModel.loadEligibility()
+      }
+    #endif
   }
 }
 

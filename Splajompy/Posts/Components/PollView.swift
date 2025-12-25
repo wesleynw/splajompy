@@ -4,11 +4,12 @@ struct PollView: View {
   var poll: Poll
   var authorId: Int
   var onVote: (Int) -> Void
-  var currentUser = AuthManager.shared.getCurrentUser()
+
+  @EnvironmentObject var authManager: AuthManager
 
   private var adjustedPercentages: [Int] {
     guard poll.voteTotal > 0,
-      poll.currentUserVote != nil || currentUser?.userId == authorId
+      poll.currentUserVote != nil || authManager.getCurrentUser()?.userId == authorId
     else {
       return Array(repeating: 0, count: poll.options.count)
     }
@@ -39,7 +40,7 @@ struct PollView: View {
             isSelected: index == poll.currentUserVote,
             option: option,
             showResults: poll.currentUserVote != nil
-              || currentUser?.userId == authorId,
+              || authManager.getCurrentUser()?.userId == authorId,
             totalVotes: poll.voteTotal,
             percentage: adjustedPercentages[index],
             onTap: { onVote(index) }
@@ -143,4 +144,5 @@ struct PollView: View {
     .padding()
   }
   .padding()
+  .environmentObject(AuthManager())
 }
