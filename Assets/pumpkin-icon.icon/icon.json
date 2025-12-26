@@ -1,8 +1,8 @@
 {
   "fill" : {
     "linear-gradient" : [
-      "display-p3:0.04706,0.03137,0.13725,1.00000",
-      "srgb:0.07059,0.04314,0.16471,1.00000"
+      "display-p3:0.06275,0.04314,0.16078,1.00000",
+      "srgb:0.04706,0.03137,0.13725,1.00000"
     ],
     "orientation" : {
       "start" : {
@@ -19,8 +19,8 @@
     {
       "layers" : [
         {
-          "image-name" : "Adobe Express - file.png",
-          "name" : "Adobe Express - file",
+          "image-name" : "pumpkin.png",
+          "name" : "pumpkin",
           "position" : {
             "scale" : 0.5,
             "translation-in-points" : [
