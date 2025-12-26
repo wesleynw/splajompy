@@ -11,7 +11,7 @@ struct SettingsView: View {
     VStack {
       List {
         if wrappedViewModel.isEligibleForWrapped
-          && PostHogSDK.shared.isFeatureEnabled("rejomp-section-in-settings")
+          && PostHogSDK.shared.isFeatureEnabled("rejomp-section-in-settings") || true
         {
           Section {
             Button {
@@ -24,7 +24,8 @@ struct SettingsView: View {
               )
               .frame(maxWidth: .infinity, alignment: .leading)
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.borderless)
+            .frame(maxWidth: .infinity, alignment: .leading)
           }
           .transition(.slide)
         }
