@@ -7,54 +7,55 @@ struct MostLikedPostView: View {
   @State private var isShowingContinueButton: Bool = false
 
   var body: some View {
-    ZStack {
-      // background placeholder
-
-      VStack {
-        if !isShowingPost {
-          Text("Throughout the year, one post in particular stood out.")
-            .font(.title2)
-            .fontDesign(.rounded)
-            .fontWeight(.bold)
-            .multilineTextAlignment(.center)
-            .onAppear {
-              DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
-                withAnimation {
-                  isShowingPost = true
-                }
-              }
-            }
-        } else {
-          ScrollView {
-            Text("Your top post")
-              .font(.title2)
-              .fontWeight(.black)
-              .fontDesign(.rounded)
-              .padding()
-
-            PostView(post: data.mostLikedPost, postManager: PostManager())
-              .padding()
-          }
+    VStack {
+      if !isShowingPost {
+        Text("One post stood out in particular this year")
+          .font(.title2)
+          .fontDesign(.rounded)
+          .fontWeight(.bold)
+          .multilineTextAlignment(.center)
           .onAppear {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
               withAnimation {
-                isShowingContinueButton = true
+                isShowingPost = true
               }
             }
           }
+      } else {
+        ScrollView {
+          Text("Your top post")
+            .font(.title2)
+            .fontWeight(.black)
+            .fontDesign(.rounded)
+            .padding()
+
+          PostView(post: data.mostLikedPost, postManager: PostManager())
         }
-      }
-      .padding()
-      .overlay(alignment: .bottom) {
-        if isShowingContinueButton {
-          Button("Continue") {
-            onContinue()
+        .onAppear {
+          DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+            withAnimation {
+              isShowingContinueButton = true
+            }
           }
-          .buttonStyle(.borderedProminent)
         }
       }
     }
-    .background(.white)
+    .padding()
+    .overlay(alignment: .bottom) {
+      if isShowingContinueButton {
+        Button("Continue") {
+          onContinue()
+        }
+        .fontWeight(.bold)
+        .modify {
+          if #available(iOS 26, macOS 26, *) {
+            $0.buttonStyle(.glassProminent)
+          } else {
+            $0.buttonStyle(.borderedProminent)
+          }
+        }
+      }
+    }
   }
 }
 

@@ -33,9 +33,11 @@ struct WrappedIntroView: View {
         ProgressView()
           .opacity(viewModel.state.isLoading ? 1 : 0)
 
-        if case .loaded(let data) = viewModel.state {
-          Text("Data last generated \(data.generatedUtc.ISO8601Format())")
-        }
+        #if DEBUG
+          if case .loaded(let data) = viewModel.state {
+            Text("Data last generated \(data.generatedUtc.ISO8601Format())")
+          }
+        #endif
 
         if case .failed(let error) = viewModel.state {
           VStack {
@@ -130,6 +132,7 @@ struct WrappedIntroView: View {
       switch page {
       case .weeklyActivity:
         WeeklyActivityView(data: data, onContinue: { path.append(.activity) })
+          .closeToolbar(onDismiss: dismiss.callAsFunction)
       case .activity:
         YearlyActivityView(
           data: data,
@@ -193,6 +196,7 @@ struct WrappedIntroView: View {
         WrappedIntroView()
       case .end:
         EndView()
+          .closeToolbar(onDismiss: dismiss.callAsFunction)
       }
     default:
       ProgressView()

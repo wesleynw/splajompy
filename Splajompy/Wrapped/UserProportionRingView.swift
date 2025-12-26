@@ -219,6 +219,7 @@ struct UserProportionRing: View {
         .shadow(color: .blue.opacity(0.4), radius: 6, x: 0, y: 3)
         .rotationEffect(.degrees(chunkRotation))
         .opacity(showComponentBreakdown ? 0 : 1)
+        .drawingGroup()
 
         if showComponentBreakdown {
           componentArcs(ringWidth: ringWidth, chunkRotation: chunkRotation)
