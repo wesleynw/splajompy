@@ -100,7 +100,13 @@ struct UserProportionRing: View {
               isAnimatingToCenter.toggle()
             }
           }
-          .buttonStyle(.borderedProminent)
+          .modify {
+            if #available(iOS 26, macOS 26, *) {
+              $0.buttonStyle(.glassProminent)
+            } else {
+              $0.buttonStyle(.borderedProminent)
+            }
+          }
         } else {
           HStack {
             Button(showComponentBreakdown ? "Hide Details" : "Show Details") {
@@ -108,12 +114,24 @@ struct UserProportionRing: View {
                 showComponentBreakdown.toggle()
               }
             }
-            .buttonStyle(.borderedProminent)
+            .modify {
+              if #available(iOS 26, macOS 26, *) {
+                $0.buttonStyle(.glassProminent)
+              } else {
+                $0.buttonStyle(.borderedProminent)
+              }
+            }
 
             Button("Continue") {
               onContinue()
             }
-            .buttonStyle(.borderedProminent)
+            .modify {
+              if #available(iOS 26, macOS 26, *) {
+                $0.buttonStyle(.glassProminent)
+              } else {
+                $0.buttonStyle(.borderedProminent)
+              }
+            }
           }
         }
       }
@@ -205,7 +223,6 @@ struct UserProportionRing: View {
         .fill(.gray.opacity(0.3).gradient)
         .shadow(color: .black.opacity(0.1), radius: 2, x: 0, y: 1)
         .opacity(isAnimatingToCenter ? 0 : 1)
-        .drawingGroup()
 
         AnimatedRingSegment(
           isHighlightedSlice: true,
@@ -219,7 +236,6 @@ struct UserProportionRing: View {
         .shadow(color: .blue.opacity(0.4), radius: 6, x: 0, y: 3)
         .rotationEffect(.degrees(chunkRotation))
         .opacity(showComponentBreakdown ? 0 : 1)
-        .drawingGroup()
 
         if showComponentBreakdown {
           componentArcs(ringWidth: ringWidth, chunkRotation: chunkRotation)
