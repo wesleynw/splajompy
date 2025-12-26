@@ -8,7 +8,7 @@ struct FavoriteUsersView: View {
   @State private var visibleRowCount: Int = 0
 
   var body: some View {
-    VStack(alignment: .leading) {
+    VStack(alignment: .center) {
       Text("Your favorite people")
         .font(.title2)
         .fontDesign(.rounded)
@@ -83,12 +83,19 @@ struct FavoriteUsersView: View {
         .padding(.horizontal)
       }
     }
-    .padding(.leading, 60)
-    .frame(maxHeight: .infinity)
+    .frame(maxWidth: .infinity, maxHeight: .infinity)
     .overlay(alignment: .bottom) {
       if isShowingContinueButton {
         Button("Continue") {
           onContinue()
+        }
+        .fontWeight(.bold)
+        .modify {
+          if #available(iOS 26, *) {
+            $0.buttonStyle(.glassProminent)
+          } else {
+            $0.buttonStyle(.borderedProminent)
+          }
         }
         .buttonStyle(.borderedProminent)
       }

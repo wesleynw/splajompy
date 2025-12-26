@@ -9,7 +9,7 @@ struct AppIconPickerView: View {
 
   var body: some View {
     HStack(spacing: 20) {
-      Image("Image_AppIcon")
+      Image("icon-png")
         .resizable()
         .frame(width: 80, height: 80)
         .cornerRadius(16)
@@ -17,7 +17,7 @@ struct AppIconPickerView: View {
           RoundedRectangle(cornerRadius: 16)
             .stroke(
               selectedIcon == nil ? Color.blue : Color.clear,
-              lineWidth: 3
+              lineWidth: 5
             )
         )
         .onTapGesture {
@@ -25,36 +25,36 @@ struct AppIconPickerView: View {
           setAppIcon(nil)
         }
 
-      Image("Image_AppIcon 1")
+      Image("rainbow-icon-png")
         .resizable()
         .frame(width: 80, height: 80)
         .cornerRadius(16)
         .overlay(
           RoundedRectangle(cornerRadius: 16)
             .stroke(
-              selectedIcon == "AppIcon 1" ? Color.blue : Color.clear,
-              lineWidth: 3
+              selectedIcon == "rainbow-icon" ? Color.blue : Color.clear,
+              lineWidth: 5
             )
         )
         .onTapGesture {
-          selectedIcon = "AppIcon 1"
-          setAppIcon("AppIcon 1")
+          selectedIcon = "rainbow-icon"
+          setAppIcon("rainbow-icon")
         }
 
-      Image("halloween_logo")
+      Image("pumpkin-icon-png")
         .resizable()
         .frame(width: 80, height: 80)
         .cornerRadius(16)
         .overlay(
           RoundedRectangle(cornerRadius: 16)
             .stroke(
-              selectedIcon == "halloween_app_icon" ? Color.blue : Color.clear,
-              lineWidth: 3
+              selectedIcon == "pumpkin-icon" ? Color.blue : Color.clear,
+              lineWidth: 5
             )
         )
         .onTapGesture {
-          selectedIcon = "halloween_app_icon"
-          setAppIcon("halloween_app_icon")
+          selectedIcon = "pumpkin-icon"
+          setAppIcon("pumpkin-icon")
         }
     }
     .frame(maxWidth: .infinity)
@@ -63,12 +63,16 @@ struct AppIconPickerView: View {
     .navigationBarTitleDisplayMode(.inline)
   }
 
+  /// Set app icon. Call with nil as the icon name to reset the app icon to default.
   private func setAppIcon(_ iconName: String?) {
     guard UIApplication.shared.alternateIconName != iconName else { return }
 
-    UIApplication.shared.setAlternateIconName(iconName) { error in
-      if let error = error {
-        print("Error setting alternate icon: \(error.localizedDescription)")
+    if let iconName {
+      print("changing app icon to \(iconName)")
+      UIApplication.shared.setAlternateIconName(iconName) { error in
+        if let error {
+          print("Error setting alternate icon: \(error)")
+        }
       }
     }
   }

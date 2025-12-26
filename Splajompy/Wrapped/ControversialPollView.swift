@@ -59,6 +59,14 @@ struct ControversialPollView: View {
           Button("Continue") {
             onContinue()
           }
+          .fontWeight(.bold)
+          .modify {
+            if #available(iOS 26, *) {
+              $0.buttonStyle(.glassProminent)
+            } else {
+              $0.buttonStyle(.borderedProminent)
+            }
+          }
           .buttonStyle(.borderedProminent)
         }
       }

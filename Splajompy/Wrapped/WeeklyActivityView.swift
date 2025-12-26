@@ -92,7 +92,15 @@ struct WeeklyActivityView: View {
             Button("Continue") {
               onContinue()
             }
+            .modify {
+              if #available(iOS 26, *) {
+                $0.buttonStyle(.glassProminent)
+              } else {
+                $0.buttonStyle(.borderedProminent)
+              }
+            }
             .buttonStyle(.borderedProminent)
+            .fontWeight(.bold)
           }
         }
       }

@@ -10,13 +10,12 @@ struct TotalWordCountView: View {
     ZStack {
       LinedPaperBackground()
 
-      VStack(alignment: .leading) {
+      VStack(alignment: .leading, spacing: 25) {
         Text(
           data.totalWordCount > 100
             ? "You had a lot to say this year..."
             : "You didn't have a lot to say this year..."
         )
-        .padding(.vertical)
         .onAppear {
           DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
             withAnimation {
@@ -38,7 +37,6 @@ struct TotalWordCountView: View {
         }
         .opacity(isShowingIntroText ? 0 : 1)
       }
-      .lineLimit(nil)
       .frame(maxWidth: .infinity)
       .multilineTextAlignment(.leading)
       .fontDesign(.serif)
@@ -54,7 +52,14 @@ struct TotalWordCountView: View {
         Button("Continue") {
           onContinue()
         }
-        .buttonStyle(.borderedProminent)
+        .fontWeight(.bold)
+        .modify {
+          if #available(iOS 26, *) {
+            $0.buttonStyle(.glassProminent)
+          } else {
+            $0.buttonStyle(.borderedProminent)
+          }
+        }
       }
     }
   }
