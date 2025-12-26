@@ -91,7 +91,7 @@ struct FavoriteUsersView: View {
         }
         .fontWeight(.bold)
         .modify {
-          if #available(iOS 26, *) {
+          if #available(iOS 26, macOS 26, *) {
             $0.buttonStyle(.glassProminent)
           } else {
             $0.buttonStyle(.borderedProminent)
