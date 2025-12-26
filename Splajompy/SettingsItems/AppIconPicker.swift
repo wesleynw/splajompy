@@ -67,12 +67,9 @@ struct AppIconPickerView: View {
   private func setAppIcon(_ iconName: String?) {
     guard UIApplication.shared.alternateIconName != iconName else { return }
 
-    if let iconName {
-      print("changing app icon to \(iconName)")
-      UIApplication.shared.setAlternateIconName(iconName) { error in
-        if let error {
-          print("Error setting alternate icon: \(error)")
-        }
+    UIApplication.shared.setAlternateIconName(iconName) { error in
+      if let error {
+        print("Error setting alternate icon: \(error)")
       }
     }
   }

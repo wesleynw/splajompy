@@ -7,8 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		18086B062EFDFBE0004E5BDA /* pumpkin-icon.icon in Resources */ = {isa = PBXBuildFile; fileRef = 18086B042EFDFBE0004E5BDA /* pumpkin-icon.icon */; };
-		18086B072EFDFBE0004E5BDA /* rainbow-icon.icon in Resources */ = {isa = PBXBuildFile; fileRef = 18086B052EFDFBE0004E5BDA /* rainbow-icon.icon */; };
 		180DEE602E39AE0F00A4D29D /* Nuke in Frameworks */ = {isa = PBXBuildFile; productRef = 180DEE5F2E39AE0F00A4D29D /* Nuke */; };
 		180DEE622E39AE0F00A4D29D /* NukeExtensions in Frameworks */ = {isa = PBXBuildFile; productRef = 180DEE612E39AE0F00A4D29D /* NukeExtensions */; };
 		180DEE642E39AE0F00A4D29D /* NukeUI in Frameworks */ = {isa = PBXBuildFile; productRef = 180DEE632E39AE0F00A4D29D /* NukeUI */; };
@@ -41,8 +39,6 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		18086B042EFDFBE0004E5BDA /* pumpkin-icon.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = "pumpkin-icon.icon"; sourceTree = "<group>"; };
-		18086B052EFDFBE0004E5BDA /* rainbow-icon.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = "rainbow-icon.icon"; sourceTree = "<group>"; };
 		184A63CB2D88CBA100860D6B /* Splajompy.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Splajompy.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		184A63DB2D88CBA200860D6B /* SplajompyTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SplajompyTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		184A63E52D88CBA200860D6B /* SplajompyUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SplajompyUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -161,8 +157,6 @@
 				184A63CC2D88CBA100860D6B /* Products */,
 				18A617E62D9B2D6000B93F08 /* Splajompy */,
 				18E435E62DB29069003A0999 /* Frameworks */,
-				18086B042EFDFBE0004E5BDA /* pumpkin-icon.icon */,
-				18086B052EFDFBE0004E5BDA /* rainbow-icon.icon */,
 			);
 			sourceTree = "<group>";
 		};
@@ -379,8 +373,6 @@
 		184A63C92D88CBA000860D6B /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			files = (
-				18086B062EFDFBE0004E5BDA /* pumpkin-icon.icon in Resources */,
-				18086B072EFDFBE0004E5BDA /* rainbow-icon.icon in Resources */,
 			);
 		};
 		184A63D92D88CBA200860D6B /* Resources */ = {
@@ -560,10 +552,9 @@
 			baseConfigurationReferenceAnchor = 184A63CD2D88CBA100860D6B /* Splajompy */;
 			baseConfigurationReferenceRelativePath = Configuration/Debug.xcconfig;
 			buildSettings = {
-				"ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES[sdk=*]" = "pumpkin-icon rainbow-icon";
-				ASSETCATALOG_COMPILER_APPICON_NAME = "default-icon";
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CODE_SIGN_ENTITLEMENTS = Splajompy/SplajompyDebug.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
@@ -610,10 +601,9 @@
 			baseConfigurationReferenceAnchor = 184A63CD2D88CBA100860D6B /* Splajompy */;
 			baseConfigurationReferenceRelativePath = Configuration/Release.xcconfig;
 			buildSettings = {
-				"ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES[sdk=*]" = "pumpkin-icon rainbow-icon";
-				ASSETCATALOG_COMPILER_APPICON_NAME = "default-icon";
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CODE_SIGN_ENTITLEMENTS = Splajompy/Splajompy.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
