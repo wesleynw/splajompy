@@ -360,17 +360,17 @@ func (s *WrappedService) getUserActivityData(ctx context.Context, userId int) (*
 }
 
 func (s *WrappedService) getPercentShareOfContent(ctx context.Context, userId int) (*models.SliceData, error) {
-	totalPosts, err := s.querier.GetTotalPosts(ctx)
+	totalPosts, err := s.querier.WrappedGetTotalPosts(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	totalComments, err := s.querier.GetTotalComments(ctx)
+	totalComments, err := s.querier.WrappedGetTotalComments(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	totalLikes, err := s.querier.GetTotalLikes(ctx)
+	totalLikes, err := s.querier.WrappedGetTotalLikes(ctx)
 	if err != nil {
 		return nil, err
 	}
