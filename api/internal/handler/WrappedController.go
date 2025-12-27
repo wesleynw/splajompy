@@ -35,9 +35,9 @@ func (h *Handler) GetIsUserEligibleForWrapped(w http.ResponseWriter, r *http.Req
 }
 
 func (h *Handler) GetWrappedActivityData(w http.ResponseWriter, r *http.Request) {
-	// currentUser := h.getAuthenticatedUser(r)
+	currentUser := h.getAuthenticatedUser(r)
 
-	data, err := h.wrappedService.GetPrecomputedWrappedDataByUserId(r.Context(), 219)
+	data, err := h.wrappedService.GetPrecomputedWrappedDataByUserId(r.Context(), currentUser.UserID)
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, err.Error())
 		return
