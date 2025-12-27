@@ -168,3 +168,6 @@ SELECT EXISTS (
         AND EXTRACT(YEAR FROM likes.created_at) = 2025
         AND EXTRACT(YEAR FROM posts.created_at) = 2025
 );
+
+-- name: WrappedDeleteAllStored :exec
+DELETE FROM wrapped;

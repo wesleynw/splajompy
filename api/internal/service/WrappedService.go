@@ -61,6 +61,11 @@ type PrecomputationResult struct {
 }
 
 func (s *WrappedService) PrecomputeWrappedForAllUsers(ctx context.Context) (*PrecomputationResult, error) {
+	err := s.querier.WrappedDeleteAllStored(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	users, err := s.querier.WrappedGetAllUserIds(ctx)
 	if err != nil {
 		return nil, err

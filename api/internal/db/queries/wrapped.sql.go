@@ -64,6 +64,15 @@ func (q *Queries) GetTotalPostsForUser(ctx context.Context, userID int) (int64, 
 	return count, err
 }
 
+const wrappedDeleteAllStored = `-- name: WrappedDeleteAllStored :exec
+DELETE FROM wrapped
+`
+
+func (q *Queries) WrappedDeleteAllStored(ctx context.Context) error {
+	_, err := q.db.Exec(ctx, wrappedDeleteAllStored)
+	return err
+}
+
 const wrappedGetAllUserCommentsWithCursor = `-- name: WrappedGetAllUserCommentsWithCursor :many
 SELECT comment_id, post_id, user_id, text, facets, created_at
 FROM comments

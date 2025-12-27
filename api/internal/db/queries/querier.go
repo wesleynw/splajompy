@@ -98,6 +98,7 @@ type Querier interface {
 	UpdateUserName(ctx context.Context, arg UpdateUserNameParams) error
 	UserHasUnreadNotifications(ctx context.Context, userID int) (bool, error)
 	UserSearchWithHeuristics(ctx context.Context, arg UserSearchWithHeuristicsParams) ([]UserSearchWithHeuristicsRow, error)
+	WrappedDeleteAllStored(ctx context.Context) error
 	WrappedGetAllUserCommentsWithCursor(ctx context.Context, arg WrappedGetAllUserCommentsWithCursorParams) ([]Comment, error)
 	WrappedGetAllUserIds(ctx context.Context) ([]int, error)
 	WrappedGetAllUserLikesWithCursor(ctx context.Context, arg WrappedGetAllUserLikesWithCursorParams) ([]Like, error)
