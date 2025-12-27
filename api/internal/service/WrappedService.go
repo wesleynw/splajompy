@@ -539,7 +539,7 @@ func (s *WrappedService) getControversialPoll(ctx context.Context, userId int) (
 		return nil, err
 	}
 
-	minProportion := 100
+	minProportion := 100.0
 	var poll *models.DetailedPoll
 
 	for index := range len(polls) {
@@ -548,8 +548,17 @@ func (s *WrappedService) getControversialPoll(ctx context.Context, userId int) (
 			return nil, err
 		}
 
-		userVotePercentage := pollDetails.Options[*pollDetails.CurrentUserVote].VoteTotal / pollDetails.VoteTotal
-		if userVotePercentage < minProportion {
+		chosenOption := pollDetails.Options[*pollDetails.CurrentUserVote]
+
+		userVotePercentage := float64(chosenOption.VoteTotal) / float64(pollDetails.VoteTotal)
+		topVotes := 0
+		for _, option := range pollDetails.Options {
+			if option.VoteTotal > topVotes {
+				topVotes = option.VoteTotal
+			}
+		}
+
+		if userVotePercentage < minProportion || chosenOption.VoteTotal < topVotes {
 			minProportion = userVotePercentage
 			poll = pollDetails
 		}
