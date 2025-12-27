@@ -344,6 +344,7 @@ SELECT posts.post_id, posts.user_id, text, posts.created_at, facets, attributes,
 FROM posts
 JOIN poll_vote ON posts.post_id = poll_vote.post_id
 WHERE attributes->'poll' IS NOT NULL AND poll_vote.user_id = $1
+    AND EXTRACT(YEAR FROM posts.created_at) = 2025
 `
 
 type WrappedGetPollsThatUserVotedInRow struct {
@@ -400,6 +401,45 @@ WHERE user_id = $1 AND EXTRACT(YEAR FROM created_at) = 2025
 
 func (q *Queries) WrappedGetPostCountForUser(ctx context.Context, userID int) (int64, error) {
 	row := q.db.QueryRow(ctx, wrappedGetPostCountForUser, userID)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
+const wrappedGetTotalComments = `-- name: WrappedGetTotalComments :one
+SELECT COUNT(*)
+FROM comments
+WHERE EXTRACT(YEAR FROM created_at) = 2025
+`
+
+func (q *Queries) WrappedGetTotalComments(ctx context.Context) (int64, error) {
+	row := q.db.QueryRow(ctx, wrappedGetTotalComments)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
+const wrappedGetTotalLikes = `-- name: WrappedGetTotalLikes :one
+SELECT COUNT(*)
+FROM likes
+WHERE EXTRACT(YEAR FROM created_at) = 2025
+`
+
+func (q *Queries) WrappedGetTotalLikes(ctx context.Context) (int64, error) {
+	row := q.db.QueryRow(ctx, wrappedGetTotalLikes)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
+const wrappedGetTotalPosts = `-- name: WrappedGetTotalPosts :one
+SELECT COUNT(*)
+FROM posts
+WHERE EXTRACT(YEAR FROM created_at) = 2025
+`
+
+func (q *Queries) WrappedGetTotalPosts(ctx context.Context) (int64, error) {
+	row := q.db.QueryRow(ctx, wrappedGetTotalPosts)
 	var count int64
 	err := row.Scan(&count)
 	return count, err

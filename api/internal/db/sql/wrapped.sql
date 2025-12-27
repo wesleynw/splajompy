@@ -123,7 +123,8 @@ ORDER BY comment_count DESC;
 SELECT *
 FROM posts
 JOIN poll_vote ON posts.post_id = poll_vote.post_id
-WHERE attributes->'poll' IS NOT NULL AND poll_vote.user_id = $1;
+WHERE attributes->'poll' IS NOT NULL AND poll_vote.user_id = $1
+    AND EXTRACT(YEAR FROM posts.created_at) = 2025;
 
 -- name: WrappedGetPostCountForUser :one
 SELECT COUNT(*)
@@ -168,6 +169,21 @@ SELECT EXISTS (
         AND EXTRACT(YEAR FROM likes.created_at) = 2025
         AND EXTRACT(YEAR FROM posts.created_at) = 2025
 );
+
+-- name: WrappedGetTotalPosts :one
+SELECT COUNT(*)
+FROM posts
+WHERE EXTRACT(YEAR FROM created_at) = 2025;
+
+-- name: WrappedGetTotalComments :one
+SELECT COUNT(*)
+FROM comments
+WHERE EXTRACT(YEAR FROM created_at) = 2025;
+
+-- name: WrappedGetTotalLikes :one
+SELECT COUNT(*)
+FROM likes
+WHERE EXTRACT(YEAR FROM created_at) = 2025;
 
 -- name: WrappedDeleteAllStored :exec
 DELETE FROM wrapped;
