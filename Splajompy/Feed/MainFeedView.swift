@@ -64,13 +64,16 @@ struct MainFeedView: View {
             await viewModel.loadPosts()
           }
         }
-      }
-      .task {
-        await wrappedViewModel.loadEligibility()
-        if wrappedViewModel.isEligibleForWrapped && !hasViewedWrapped
-          && PostHogSDK.shared.isFeatureEnabled("rejomp-2025-prompt")
+
+        if PostHogSDK.shared.isFeatureEnabled("rejomp-2025-prompt")
+          && !hasViewedWrapped
         {
-          isShowingWrappedView = true
+          Task {
+            await wrappedViewModel.loadEligibility()
+            if case .loaded(let eligible) = wrappedViewModel.eligibility {
+              isShowingWrappedView = eligible
+            }
+          }
         }
       }
       .onChange(of: selectedFeedType) { _, newFeedType in

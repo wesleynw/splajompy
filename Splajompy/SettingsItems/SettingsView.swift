@@ -10,8 +10,8 @@ struct SettingsView: View {
   var body: some View {
     VStack {
       List {
-        if wrappedViewModel.isEligibleForWrapped
-          && PostHogSDK.shared.isFeatureEnabled("rejomp-section-in-settings")
+        if PostHogSDK.shared.isFeatureEnabled("rejomp-section-in-settings"),
+          case .loaded(true) = wrappedViewModel.eligibility
         {
           Section {
             Button {
@@ -66,7 +66,7 @@ struct SettingsView: View {
           }
         }
       }
-      .animation(.default, value: wrappedViewModel.isEligibleForWrapped)
+      .animation(.default, value: wrappedViewModel.eligibility)
     }
     .navigationTitle("Settings")
     #if os(iOS)
