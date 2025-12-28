@@ -184,7 +184,7 @@ struct WrappedIntroView: View {
         FavoriteUsersView(
           data: data,
           onContinue: {
-            if data.sliceData.percent > 1 {
+            if data.sliceData.percent > 2 {
               path.append(.slice)
             } else {
               path.append(.end)
