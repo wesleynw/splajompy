@@ -16,7 +16,6 @@ struct User: Decodable {
 
 struct PublicUser: Decodable, Identifiable {
   let userId: Int
-  let email: String
   let username: String
   let createdAt: String
   let name: String?
@@ -30,7 +29,6 @@ struct PublicUser: Decodable, Identifiable {
     isVerified: Bool, displayProperties: UserDisplayProperties
   ) {
     self.userId = userId
-    self.email = email
     self.username = username
     self.createdAt = createdAt
     self.name = name
@@ -40,7 +38,6 @@ struct PublicUser: Decodable, Identifiable {
 
   init(from detailedUser: DetailedUser) {
     self.userId = detailedUser.userId
-    self.email = detailedUser.email
     self.username = detailedUser.username
     self.createdAt = detailedUser.createdAt
     self.name = detailedUser.name
