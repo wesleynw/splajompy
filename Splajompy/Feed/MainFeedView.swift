@@ -23,7 +23,15 @@ struct MainFeedView: View {
   var body: some View {
     mainContent
       .toolbar {
-        ToolbarItem(placement: .topBarLeading) {
+        ToolbarItem(
+          placement: {
+            #if os(iOS)
+              .topBarLeading
+            #else
+              .primaryAction
+            #endif
+          }()
+        ) {
           Menu {
             Button {
               selectedFeedType = .mutual
