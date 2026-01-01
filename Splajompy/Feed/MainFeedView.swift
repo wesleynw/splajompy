@@ -22,38 +22,54 @@ struct MainFeedView: View {
 
   var body: some View {
     mainContent
-      .navigationTitle(
-        selectedFeedType == .mutual
-          ? "Home" : selectedFeedType == .following ? "Following" : "All"
-      )
-      .toolbarTitleMenu {
-        Button {
-          selectedFeedType = .mutual
-        } label: {
-          HStack {
-            Text("Home")
-            if selectedFeedType == .mutual {
-              Image(systemName: "checkmark")
+      .toolbar {
+        ToolbarItem(
+          placement: {
+            #if os(iOS)
+              .topBarLeading
+            #else
+              .primaryAction
+            #endif
+          }()
+        ) {
+          Menu {
+            Button {
+              selectedFeedType = .mutual
+            } label: {
+              HStack {
+                Text("Home")
+                if selectedFeedType == .mutual {
+                  Image(systemName: "checkmark")
+                }
+              }
             }
-          }
-        }
-        Button {
-          selectedFeedType = .following
-        } label: {
-          HStack {
-            Text("Following")
-            if selectedFeedType == .following {
-              Image(systemName: "checkmark")
+            Button {
+              selectedFeedType = .following
+            } label: {
+              HStack {
+                Text("Following")
+                if selectedFeedType == .following {
+                  Image(systemName: "checkmark")
+                }
+              }
             }
-          }
-        }
-        Button {
-          selectedFeedType = .all
-        } label: {
-          HStack {
-            Text("All")
-            if selectedFeedType == .all {
-              Image(systemName: "checkmark")
+            Button {
+              selectedFeedType = .all
+            } label: {
+              HStack {
+                Text("All")
+                if selectedFeedType == .all {
+                  Image(systemName: "checkmark")
+                }
+              }
+            }
+          } label: {
+            HStack {
+              Text("Splajompy")
+                .font(.title2)
+                .fontWeight(.black)
+              Image(systemName: "chevron.down")
+                .font(.caption)
             }
           }
         }
@@ -86,7 +102,6 @@ struct MainFeedView: View {
         .fullScreenCover(isPresented: $isShowingWrappedView) {
           WrappedIntroView()
         }
-        .navigationBarTitleDisplayMode(.inline)
         .sheet(isPresented: $isShowingNewPostView) {
           newPostSheet
         }
@@ -115,22 +130,20 @@ struct MainFeedView: View {
 
   @ViewBuilder
   private var mainContent: some View {
-    VStack {
-      switch viewModel.state {
-      case .idle, .loading:
-        ProgressView()
-      case .loaded(let postIds):
-        if postIds.isEmpty {
-          emptyMessage
-        } else {
-          postList
-        }
-      case .failed(let error):
-        ErrorScreen(
-          errorString: error.localizedDescription,
-          onRetry: { await viewModel.loadPosts(reset: true) }
-        )
+    switch viewModel.state {
+    case .idle, .loading:
+      ProgressView()
+    case .loaded(let postIds):
+      if postIds.isEmpty {
+        emptyMessage
+      } else {
+        postList
       }
+    case .failed(let error):
+      ErrorScreen(
+        errorString: error.localizedDescription,
+        onRetry: { await viewModel.loadPosts(reset: true) }
+      )
     }
   }
 
