@@ -40,16 +40,14 @@ struct ProfileEditorView: View {
         }
         .frame(maxHeight: 100)
 
-        if PostHogSDK.shared.isFeatureEnabled("custom-profile-fonts") {
-          Button {
-            isShowingFontPicker = true
-          } label: {
-            Label("Display Name Style", systemImage: "textformat")
-              .frame(maxWidth: .infinity)
-          }
-          .buttonStyle(.bordered)
-          .disabled(name.isEmpty)
+        Button {
+          isShowingFontPicker = true
+        } label: {
+          Label("Display Name Style", systemImage: "textformat")
+            .frame(maxWidth: .infinity)
         }
+        .buttonStyle(.bordered)
+        .disabled(name.isEmpty)
 
         HStack {
           Text("Bio")

@@ -156,8 +156,7 @@ struct ProfileDisplayNameView: View {
     if let name = user.name, !name.isEmpty {
       if let displayProperties = user.displayProperties,
         let fontChoiceId = displayProperties.fontChoiceId,
-        let fontChoice = ProfileFontChoiceEnum(rawValue: fontChoiceId),
-        PostHogSDK.shared.isFeatureEnabled("custom-profile-fonts")
+        let fontChoice = ProfileFontChoiceEnum(rawValue: fontChoiceId)
       {
         Text(fontChoice.fontNormalized(for: name, isLargeTitle: isLargeTitle))
           .lineLimit(1)

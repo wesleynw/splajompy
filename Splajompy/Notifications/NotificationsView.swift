@@ -40,10 +40,8 @@ struct NotificationsView: View {
       }
     }
     .toolbar {
-      if PostHogSDK.shared.isFeatureEnabled("notification-filters") {
-        ToolbarItem(placement: .primaryAction) {
-          NotificationFilterMenu(filter: $viewModel.selectedFilter)
-        }
+      ToolbarItem(placement: .primaryAction) {
+        NotificationFilterMenu(filter: $viewModel.selectedFilter)
       }
     }
     .navigationTitle("Notifications")
