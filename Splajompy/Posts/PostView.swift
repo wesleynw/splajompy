@@ -65,10 +65,11 @@ struct PostView: View {
 
       Divider()
     }
+    .frame(maxWidth: .infinity)
   }
 
   private var postContent: some View {
-    VStack(alignment: .leading, spacing: 12) {
+    VStack(alignment: .leading, spacing: 10) {
       if showAuthor {
         authorHeader
       }
@@ -83,6 +84,7 @@ struct PostView: View {
       relevantLikes
       timestampAndMenu
     }
+    .frame(maxWidth: .infinity)
     .animation(.easeInOut(duration: 0.3), value: post.isPinned)
     .padding(.vertical, 4)
     .padding(.horizontal, 16)
@@ -192,8 +194,9 @@ struct PostView: View {
         )
         .font(.caption)
         .foregroundColor(.gray)
-
       }
+
+      Spacer()
 
       postMenu
     }
