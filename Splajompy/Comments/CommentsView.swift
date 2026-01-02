@@ -256,14 +256,6 @@ struct CommentRow: View {
   @EnvironmentObject private var authManager: AuthManager
   @State private var showDeleteConfirmation = false
 
-  private var commentDate: Date {
-    let dateFormatter = ISO8601DateFormatter()
-    dateFormatter.formatOptions = [
-      .withInternetDateTime, .withFractionalSeconds,
-    ]
-    return dateFormatter.date(from: comment.createdAt) ?? Date()
-  }
-
   var body: some View {
     VStack(alignment: .leading, spacing: 6) {
       HStack(alignment: .firstTextBaseline, spacing: 2) {
@@ -273,10 +265,14 @@ struct CommentRow: View {
       Text(comment.richContent)
 
       HStack {
-        Text(formatter.localizedString(for: commentDate, relativeTo: Date()))
+        TimelineView(.periodic(from: .now, by: 5)) { _ in
+          Text(
+            comment.createdAt
+              .formatted(.relative(presentation: .named))
+          )
           .font(.caption)
           .foregroundColor(.gray)
-          .allowsHitTesting(false)
+        }
 
         Spacer()
 

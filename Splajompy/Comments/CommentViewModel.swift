@@ -85,20 +85,12 @@ extension CommentsView {
       }
     }
 
-    private func parseCommentDate(_ createdAt: String) -> Date {
-      let dateFormatter = ISO8601DateFormatter()
-      dateFormatter.formatOptions = [
-        .withInternetDateTime, .withFractionalSeconds,
-      ]
-      return dateFormatter.date(from: createdAt) ?? Date()
-    }
-
     private func sortComments(_ comments: [DetailedComment])
       -> [DetailedComment]
     {
       return comments.sorted { comment1, comment2 in
-        let date1 = parseCommentDate(comment1.createdAt)
-        let date2 = parseCommentDate(comment2.createdAt)
+        let date1 = comment1.createdAt
+        let date2 = comment2.createdAt
 
         if commentSortOrder == "Oldest First" {
           return date1 < date2
