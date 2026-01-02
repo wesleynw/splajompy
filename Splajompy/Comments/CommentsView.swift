@@ -120,6 +120,7 @@ struct CommentsView: View {
               .foregroundColor(.gray)
             Spacer()
           }
+          .frame(maxWidth: .infinity, maxHeight: .infinity)
           .onTapGesture {
             isInputFocused = false
           }
