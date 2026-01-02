@@ -184,16 +184,16 @@ struct PostView: View {
   }
 
   private var timestampAndMenu: some View {
-    HStack {
-      Text(
-        RelativeDateTimeFormatter().localizedString(
-          for: post.post.createdAt,
-          relativeTo: Date.now
+    HStack(alignment: .firstTextBaseline) {
+      TimelineView(.periodic(from: .now, by: 5)) { _ in
+        Text(
+          post.post.createdAt
+            .formatted(.relative(presentation: .named))
         )
-      )
-      .font(.caption)
-      .foregroundColor(.gray)
-      Spacer()
+        .font(.caption)
+        .foregroundColor(.gray)
+
+      }
 
       postMenu
     }

@@ -46,7 +46,7 @@ class MockCommentService: CommentServiceProtocol, @unchecked Sendable {
         userId: 1,
         email: "test@example.com",
         username: "testuser",
-        createdAt: ISO8601DateFormatter().string(from: currentDate),
+        createdAt: ISO8601DateFormatter().string(from: Date()),
         name: "Test User",
         isVerified: false,
         displayProperties: UserDisplayProperties(fontChoiceId: 0)
@@ -57,7 +57,7 @@ class MockCommentService: CommentServiceProtocol, @unchecked Sendable {
       postId: postId,
       userId: currentUser.userId,
       text: text,
-      createdAt: ISO8601DateFormatter().string(from: currentDate),
+      createdAt: currentDate,
       user: currentUser,
       facets: [],
       isLiked: false
@@ -92,15 +92,12 @@ class MockCommentService: CommentServiceProtocol, @unchecked Sendable {
   private func setupMockData() {
     let currentDate = Date()
 
-    let dateFormatter = ISO8601DateFormatter()
-    let dateString = dateFormatter.string(from: currentDate)
-
     mockUsers = [
       PublicUser(
         userId: 1,
         email: "john@example.com",
         username: "johndoe",
-        createdAt: dateString,
+        createdAt: ISO8601DateFormatter().string(from: Date()),
         name: "John Doe",
         isVerified: false,
         displayProperties: UserDisplayProperties(fontChoiceId: 0)
@@ -109,7 +106,7 @@ class MockCommentService: CommentServiceProtocol, @unchecked Sendable {
         userId: 2,
         email: "jane@example.com",
         username: "janedoe",
-        createdAt: dateString,
+        createdAt: ISO8601DateFormatter().string(from: Date()),
         name: "Jane Doe",
         isVerified: false,
         displayProperties: UserDisplayProperties(fontChoiceId: 0)
@@ -118,7 +115,7 @@ class MockCommentService: CommentServiceProtocol, @unchecked Sendable {
         userId: 3,
         email: "bob@example.com",
         username: "bobsmith",
-        createdAt: dateString,
+        createdAt: ISO8601DateFormatter().string(from: Date()),
         name: "Bob Smith",
         isVerified: false,
         displayProperties: UserDisplayProperties(fontChoiceId: 0)
@@ -132,7 +129,7 @@ class MockCommentService: CommentServiceProtocol, @unchecked Sendable {
           postId: 1,
           userId: 1,
           text: "Great post!",
-          createdAt: ISO8601DateFormatter().string(from: currentDate),
+          createdAt: currentDate,
           user: mockUsers[0],
           facets: [],
           isLiked: false
@@ -142,7 +139,7 @@ class MockCommentService: CommentServiceProtocol, @unchecked Sendable {
           postId: 1,
           userId: 2,
           text: "I totally agree with this.",
-          createdAt: ISO8601DateFormatter().string(from: currentDate),
+          createdAt: currentDate,
           user: mockUsers[1],
           facets: [],
           isLiked: true
@@ -154,7 +151,7 @@ class MockCommentService: CommentServiceProtocol, @unchecked Sendable {
           postId: 2,
           userId: 3,
           text: "Interesting perspective.",
-          createdAt: ISO8601DateFormatter().string(from: currentDate),
+          createdAt: currentDate,
           user: mockUsers[2],
           facets: [],
           isLiked: false
@@ -164,7 +161,7 @@ class MockCommentService: CommentServiceProtocol, @unchecked Sendable {
           postId: 2,
           userId: 1,
           text: "Thanks for sharing this.",
-          createdAt: ISO8601DateFormatter().string(from: currentDate),
+          createdAt: currentDate,
           user: mockUsers[0],
           facets: [],
           isLiked: false
@@ -200,7 +197,7 @@ class MockCommentService_Empty: CommentServiceProtocol, @unchecked Sendable {
       postId: postId,
       userId: 1,
       text: text,
-      createdAt: ISO8601DateFormatter().string(from: currentDate),
+      createdAt: Date(),
       user: user,
       facets: [],
       isLiked: false
