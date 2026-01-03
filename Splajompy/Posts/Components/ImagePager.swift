@@ -23,9 +23,15 @@ struct ImagePager: View {
     ZStack {
       TabView(selection: $currentIndex) {
         ForEach(Array(imageUrls.enumerated()), id: \.1) { index, url in
-          ZoomableAsyncImage(imageUrl: url)
-            .edgesIgnoringSafeArea(.all)
-            .tag(index)
+          #if os(iOS)
+            ZoomableAsyncImage(imageUrl: url)
+              .edgesIgnoringSafeArea(.all)
+              .tag(index)
+          #else
+            ZoomableAsyncImageMac(imageUrl: url)
+              .edgesIgnoringSafeArea(.all)
+              .tag(index)
+          #endif
         }
       }
       #if os(iOS)

@@ -55,7 +55,7 @@ struct ImageGallery: View {
           set: { selectedImageIndex = $0?.id }
         )
       ) { imageItem in
-        FullscreenImagePager(
+        ImagePager(
           imageUrls: images.map { $0.imageBlobUrl },
           initialIndex: imageItem.id,
           onDismiss: { selectedImageIndex = nil },

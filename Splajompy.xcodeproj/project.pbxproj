@@ -83,6 +83,7 @@
 			);
 			platformFiltersByRelativePath = {
 				Extensions/ImageResize.swift = (ios, );
+				Posts/Components/ZoomableAsyncImage.swift = (ios, );
 				Posts/New/NewPostRepository.swift = (ios, );
 				Posts/New/NewPostView.swift = (ios, );
 				Posts/New/NewPostViewModel.swift = (ios, );
