@@ -46,7 +46,13 @@ struct ProfileEditorView: View {
           Label("Display Name Style", systemImage: "textformat")
             .frame(maxWidth: .infinity)
         }
-        .buttonStyle(.bordered)
+        .modify {
+          if #available(iOS 26, macOS 26, *) {
+            $0.buttonStyle(.glass)
+          } else {
+            $0.buttonStyle(.bordered)
+          }
+        }
         .disabled(name.isEmpty)
 
         HStack {

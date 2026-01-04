@@ -144,6 +144,7 @@ struct SplajompyApp: App {
             switch selection {
             case 0:
               MainFeedView(postManager: postManager)
+                .toolbar(removing: .title)
                 .postHogScreenView()
             case 1:
               NotificationsView()
