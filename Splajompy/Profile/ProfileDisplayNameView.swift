@@ -9,7 +9,7 @@ enum ProfileFontChoiceEnum: Int, CaseIterable, Identifiable, Hashable {
   case oldLondon = 2
   case gorton = 3
   case neuton = 4
-  case lavish = 5
+  case allura = 5
   case swanky = 6
   case cooperBlack = 7
   case alienMushrooms = 8
@@ -22,7 +22,7 @@ enum ProfileFontChoiceEnum: Int, CaseIterable, Identifiable, Hashable {
     case .oldLondon: return "OldLondon"
     case .gorton: return "OpenGorton-Regular"
     case .neuton: return "Neuton-Regular"
-    case .lavish: return "LavishlyYours-Regular"
+    case .allura: return "Allura-Regular"
     case .swanky: return "FontdinerSwanky-Regular"
     case .cooperBlack: return "CooperBlackStd"
     case .alienMushrooms: return "AlienMushrooms"
@@ -37,8 +37,8 @@ enum ProfileFontChoiceEnum: Int, CaseIterable, Identifiable, Hashable {
     case .oldLondon: return 24
     case .gorton: return 22
     case .neuton: return 24
-    case .lavish: return 28
-    case .swanky: return 18
+    case .allura: return 28
+    case .swanky: return 14
     case .cooperBlack: return 20
     case .alienMushrooms: return 24
     case .chewy: return 20
@@ -52,7 +52,7 @@ enum ProfileFontChoiceEnum: Int, CaseIterable, Identifiable, Hashable {
     case .oldLondon: return 30
     case .gorton: return 25
     case .neuton: return 30
-    case .lavish: return 32
+    case .allura: return 28
     case .swanky: return 22
     case .cooperBlack: return 25
     case .alienMushrooms: return 38

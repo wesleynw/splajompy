@@ -28,7 +28,7 @@ struct MainFeedView: View {
             #if os(iOS)
               .topBarLeading
             #else
-              .primaryAction
+              .principal
             #endif
           }()
         ) {
@@ -68,10 +68,14 @@ struct MainFeedView: View {
               Text("Splajompy")
                 .font(.title2)
                 .fontWeight(.black)
-              Image(systemName: "chevron.down")
-                .font(.caption)
+
+              #if os(iOS)  // this feels kind of stupid. the mac os includes the chevron automatically
+                Image(systemName: "chevron.down")
+                  .font(.caption)
+              #endif
             }
           }
+          .menuIndicator(.visible)
         }
       }
       .onAppear {

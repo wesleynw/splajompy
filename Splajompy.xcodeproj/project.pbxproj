@@ -7,8 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		18086B062EFDFBE0004E5BDA /* pumpkin-icon.icon in Resources */ = {isa = PBXBuildFile; fileRef = 18086B042EFDFBE0004E5BDA /* pumpkin-icon.icon */; };
-		18086B072EFDFBE0004E5BDA /* rainbow-icon.icon in Resources */ = {isa = PBXBuildFile; fileRef = 18086B052EFDFBE0004E5BDA /* rainbow-icon.icon */; };
 		180DEE602E39AE0F00A4D29D /* Nuke in Frameworks */ = {isa = PBXBuildFile; productRef = 180DEE5F2E39AE0F00A4D29D /* Nuke */; };
 		180DEE622E39AE0F00A4D29D /* NukeExtensions in Frameworks */ = {isa = PBXBuildFile; productRef = 180DEE612E39AE0F00A4D29D /* NukeExtensions */; };
 		180DEE642E39AE0F00A4D29D /* NukeUI in Frameworks */ = {isa = PBXBuildFile; productRef = 180DEE632E39AE0F00A4D29D /* NukeUI */; };
@@ -40,9 +38,18 @@
 		};
 /* End PBXContainerItemProxy section */
 
+/* Begin PBXCopyFilesBuildPhase section */
+		18BE05ED2F0B14F50095A915 /* Copy Files */ = {
+			isa = PBXCopyFilesBuildPhase;
+			dstPath = fonts;
+			dstSubfolder = Resources;
+			files = (
+			);
+			name = "Copy Files";
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
-		18086B042EFDFBE0004E5BDA /* pumpkin-icon.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = "pumpkin-icon.icon"; sourceTree = "<group>"; };
-		18086B052EFDFBE0004E5BDA /* rainbow-icon.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = "rainbow-icon.icon"; sourceTree = "<group>"; };
 		184A63CB2D88CBA100860D6B /* Splajompy.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Splajompy.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		184A63DB2D88CBA200860D6B /* SplajompyTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SplajompyTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		184A63E52D88CBA200860D6B /* SplajompyUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SplajompyUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -110,6 +117,24 @@
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
+/* Begin PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
+		18BE05F72F0B15030095A915 /* Exceptions for "Assets" folder in "Copy Files" phase from "Splajompy" target */ = {
+			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
+			buildPhase = 18BE05ED2F0B14F50095A915 /* Copy Files */;
+			membershipExceptions = (
+				fonts/AlienMushrooms.ttf,
+				"fonts/Allura-Regular.ttf",
+				"fonts/Chewy-Regular.ttf",
+				"fonts/CooperBlack-Std.otf",
+				"fonts/FontdinerSwanky-Regular.ttf",
+				fonts/Neuton.ttf,
+				fonts/OldLondon.ttf,
+				fonts/OpenGorton.otf,
+				fonts/Sixtyfour.ttf,
+			);
+		};
+/* End PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		184A63CD2D88CBA100860D6B /* Splajompy */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
@@ -124,6 +149,7 @@
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
 				18A5873F2E204DD700436724 /* Exceptions for "Assets" folder in "Splajompy" target */,
+				18BE05F72F0B15030095A915 /* Exceptions for "Assets" folder in "Copy Files" phase from "Splajompy" target */,
 			);
 			path = Assets;
 			sourceTree = "<group>";
@@ -162,8 +188,6 @@
 				184A63CC2D88CBA100860D6B /* Products */,
 				18A617E62D9B2D6000B93F08 /* Splajompy */,
 				18E435E62DB29069003A0999 /* Frameworks */,
-				18086B042EFDFBE0004E5BDA /* pumpkin-icon.icon */,
-				18086B052EFDFBE0004E5BDA /* rainbow-icon.icon */,
 			);
 			sourceTree = "<group>";
 		};
@@ -273,6 +297,7 @@
 				184A63C72D88CBA000860D6B /* Sources */,
 				184A63C82D88CBA000860D6B /* Frameworks */,
 				184A63C92D88CBA000860D6B /* Resources */,
+				18BE05ED2F0B14F50095A915 /* Copy Files */,
 			);
 			buildRules = (
 			);
@@ -380,8 +405,6 @@
 		184A63C92D88CBA000860D6B /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			files = (
-				18086B062EFDFBE0004E5BDA /* pumpkin-icon.icon in Resources */,
-				18086B072EFDFBE0004E5BDA /* rainbow-icon.icon in Resources */,
 			);
 		};
 		184A63D92D88CBA200860D6B /* Resources */ = {

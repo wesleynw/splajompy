@@ -4,6 +4,8 @@
 <dict>
 	<key>API_URL</key>
 	<string>$(API_URL)</string>
+	<key>ATSApplicationFontsPath</key>
+	<string>fonts</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
@@ -22,12 +24,12 @@
 		<string>Sixtyfour.ttf</string>
 		<string>OpenGorton.otf</string>
 		<string>Neuton.ttf</string>
-		<string>LavishlyYours-Regular.ttf</string>
 		<string>OldLondon.ttf</string>
 		<string>FontdinerSwanky-Regular.ttf</string>
 		<string>AlienMushrooms.ttf</string>
 		<string>CooperBlack-Std.otf</string>
 		<string>Chewy-Regular.ttf</string>
+		<string>Allura-Regular.ttf</string>
 	</array>
 	<key>UILaunchScreen</key>
 	<dict/>
