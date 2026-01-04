@@ -33,7 +33,7 @@ struct ImageGallery: View {
           set: { selectedImageIndex = $0?.id }
         )
       ) { imageItem in
-        FullscreenImagePager(
+        ImagePager(
           imageUrls: images.map { $0.imageBlobUrl },
           initialIndex: imageItem.id,
           onDismiss: { selectedImageIndex = nil },
@@ -55,7 +55,7 @@ struct ImageGallery: View {
           set: { selectedImageIndex = $0?.id }
         )
       ) { imageItem in
-        FullscreenImagePager(
+        ImagePager(
           imageUrls: images.map { $0.imageBlobUrl },
           initialIndex: imageItem.id,
           onDismiss: { selectedImageIndex = nil },
@@ -207,7 +207,9 @@ struct ImageGallery: View {
           )
         )
         .contentShape(.rect)
-        .modifier(TransitionSourceModifier(id: "image-\(index)", namespace: animation))
+        .modifier(
+          TransitionSourceModifier(id: "image-\(index)", namespace: animation)
+        )
         .onTapGesture {
           selectedImageIndex = index
         }
@@ -240,11 +242,17 @@ struct ImageGallery: View {
             image.resizable()
           } else {
             ProgressView()
-              .frame(maxWidth: .infinity, maxHeight: frameHeight ?? expectedHeight)
+              .frame(
+                maxWidth: .infinity,
+                maxHeight: frameHeight ?? expectedHeight
+              )
           }
         }
         .processors([.resize(width: screenWidth)])
-        .aspectRatio(aspectRatio, contentMode: (isVeryWide || isVeryTall) ? .fill : .fit)
+        .aspectRatio(
+          aspectRatio,
+          contentMode: (isVeryWide || isVeryTall) ? .fill : .fit
+        )
         .frame(width: displayWidth, height: frameHeight)
         .clipShape(RoundedRectangle(cornerRadius: 8))
         .contentShape(.rect)
@@ -260,133 +268,6 @@ struct ImageGallery: View {
 struct ImageItem: Identifiable {
   let id: Int
   let url: URL
-}
-
-struct FullscreenImagePager: View {
-  let imageUrls: [String]
-  @State private var currentIndex: Int
-  let onDismiss: () -> Void
-  let namespace: Namespace.ID
-
-  init(
-    imageUrls: [String], initialIndex: Int, onDismiss: @escaping () -> Void, namespace: Namespace.ID
-  ) {
-    self.imageUrls = imageUrls
-    self._currentIndex = State(initialValue: initialIndex)
-    self.onDismiss = onDismiss
-    self.namespace = namespace
-  }
-
-  private var screenWidth: CGFloat {
-    #if os(iOS)
-      return UIScreen.main.bounds.width
-    #else
-      return min(NSScreen.main?.frame.width ?? 400, 600)
-    #endif
-  }
-
-  var body: some View {
-    ZStack {
-      TabView(selection: $currentIndex) {
-        ForEach(Array(imageUrls.enumerated()), id: \.1) { index, url in
-          if let url = URL(string: url) {
-            LazyImage(url: url) {
-              state in
-              if let image = state.image {
-                image.resizable()
-              } else {
-                ProgressView()
-                  .frame(maxWidth: .infinity, maxHeight: .infinity)
-              }
-            }
-            .processors([.resize(width: screenWidth)])
-            .aspectRatio(contentMode: .fit)
-            #if os(iOS)
-              .zoomable(minZoomScale: 1, doubleTapZoomScale: 2)
-            #endif
-            .tag(index)
-          }
-        }
-      }
-      #if os(iOS)
-        .tabViewStyle(PageTabViewStyle())
-        .indexViewStyle(PageIndexViewStyle(backgroundDisplayMode: .always))
-      #endif
-      .modifier(
-        NavigationTransitionModifier(sourceID: "image-\(currentIndex)", namespace: namespace))
-
-      VStack {
-        HStack {
-          if imageUrls.count > 1 {
-            Text("\(currentIndex + 1) / \(imageUrls.count)")
-              .foregroundColor(.white)
-              .font(.subheadline)
-              .fontWeight(.bold)
-              .padding(8)
-              .background(Color.black.opacity(0.6))
-              .cornerRadius(8)
-              .padding()
-          }
-
-          Spacer()
-
-          Button(action: onDismiss) {
-            Image(systemName: "xmark")
-              .font(.system(size: 20, weight: .bold))
-              .foregroundColor(.white)
-              .padding(12)
-              .background(Color.black.opacity(0.6))
-              .clipShape(Circle())
-          }
-          .padding()
-        }
-
-        #if os(macOS)
-          // Custom page indicator for macOS
-          if imageUrls.count > 1 {
-            HStack(spacing: 8) {
-              ForEach(0..<imageUrls.count, id: \.self) { index in
-                Circle()
-                  .fill(
-                    index == currentIndex
-                      ? Color.white : Color.white.opacity(0.5)
-                  )
-                  .frame(width: 8, height: 8)
-              }
-            }
-            .padding(.bottom, 20)
-          }
-        #endif
-
-        Spacer()
-      }
-    }
-    .gesture(
-      DragGesture(minimumDistance: 10)
-        .onEnded { gesture in
-          if gesture.translation.height > 0 {
-            onDismiss()
-          }
-        }
-    )
-  }
-}
-
-#Preview("Fullscreen Images") {
-  @Previewable @Namespace var previewAnimation
-
-  let imageUrls = [
-    "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/development/posts/1/9278fc8a-401b-4145-83bb-ef05d4d52632.jpeg",
-    "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/development/posts/1/9278fc8a-401b-4145-83bb-ef05d4d52632.jpeg",
-    "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/development/posts/1/9278fc8a-401b-4145-83bb-ef05d4d52632.jpeg",
-  ]
-
-  FullscreenImagePager(
-    imageUrls: imageUrls,
-    initialIndex: 0,
-    onDismiss: { print("dismiss") },
-    namespace: previewAnimation
-  )
 }
 
 #Preview("Single Image") {

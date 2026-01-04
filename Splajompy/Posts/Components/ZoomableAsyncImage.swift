@@ -1,97 +1,91 @@
 import NukeUI
 import SwiftUI
 
-struct ZoomableAsyncImage: View {
-  let url: URL
-  let imageID: String
-  let namespace: Namespace.ID
-  let onTap: () -> Void
+#if os(iOS)
 
-  @State private var scale: CGFloat = 1.0
-  @State private var lastScale: CGFloat = 1.0
-  @State private var offset: CGSize = .zero
-  @State private var lastOffset: CGSize = .zero
+  /// A zoomable, pannable async image display. Wraps UIScrollView and LazyImageView.
+  struct ZoomableAsyncImage: UIViewRepresentable {
+    let imageUrl: String
 
-  init(url: URL, imageID: String, namespace: Namespace.ID, onTap: @escaping () -> Void) {
-    self.url = url
-    self.imageID = imageID
-    self.namespace = namespace
-    self.onTap = onTap
-  }
+    func makeUIView(context: Context) -> some UIView {
+      let scrollView = UIScrollView()
+      let imageLoaderView = LazyImageView()
 
-  var body: some View {
-    LazyImage(url: url) { state in
-      if let image = state.image {
-        image
-          .resizable()
-          .scaledToFit()
-          .matchedGeometryEffect(id: imageID, in: namespace)
-          .scaleEffect(scale)
-          .offset(offset)
-          .gesture(
-            MagnificationGesture()
-              .onChanged { value in
-                let delta = value / lastScale
-                lastScale = value
-                scale = min(max(scale * delta, 1.0), 5.0)
-              }
-              .onEnded { _ in
-                lastScale = 1.0
-                if scale < 1.2 {
-                  withAnimation {
-                    scale = 1.0
-                    offset = .zero
-                    lastOffset = .zero
-                  }
-                }
-              }
+      scrollView.delegate = context.coordinator
+      context.coordinator.imageLoaderView = imageLoaderView
+
+      scrollView.minimumZoomScale = 1
+      scrollView.maximumZoomScale = 4
+
+      let doubleTapRecognizer = UITapGestureRecognizer(
+        target: context.coordinator,
+        action: #selector(Coordinator.handleDoubleTap(_:))
+      )
+      doubleTapRecognizer.numberOfTapsRequired = 2
+      scrollView.addGestureRecognizer(doubleTapRecognizer)
+
+      imageLoaderView.placeholderView = UIActivityIndicatorView()
+      imageLoaderView.url = URL(string: imageUrl)
+      imageLoaderView.imageView.contentMode = .scaleAspectFit
+      imageLoaderView.imageView.backgroundColor = .clear
+
+      imageLoaderView.autoresizingMask = [.flexibleHeight, .flexibleWidth]
+      scrollView.addSubview(imageLoaderView)
+
+      return scrollView
+    }
+
+    func updateUIView(_ uiView: UIViewType, context: Context) {
+      context.coordinator.imageLoaderView?.url = URL(string: imageUrl)
+    }
+
+    func makeCoordinator() -> Coordinator {
+      Coordinator()
+    }
+
+    class Coordinator: NSObject, UIScrollViewDelegate {
+      weak var imageLoaderView: LazyImageView?
+
+      func viewForZooming(in scrollView: UIScrollView) -> UIView? {
+        imageLoaderView
+      }
+
+      @objc func handleDoubleTap(_ gesture: UITapGestureRecognizer) {
+        guard let scrollView = gesture.view as? UIScrollView else { return }
+        if scrollView.zoomScale == 1 {
+          let point = gesture.location(in: imageLoaderView)
+          let zoomRect = zoomRectForScale(
+            scale: scrollView.maximumZoomScale,
+            center: point,
+            scrollView: scrollView
           )
-          .simultaneousGesture(
-            DragGesture()
-              .onChanged { value in
-                if scale > 1.0 {
-                  offset = CGSize(
-                    width: lastOffset.width + value.translation.width,
-                    height: lastOffset.height + value.translation.height
-                  )
-                }
-              }
-              .onEnded { _ in
-                lastOffset = offset
-              }
-          )
-          .simultaneousGesture(
-            TapGesture(count: 2).onEnded {
-              withAnimation {
-                if scale > 1.0 {
-                  scale = 1.0
-                  offset = .zero
-                  lastOffset = .zero
-                } else {
-                  scale = 3.0
-                }
-              }
-            }
-          )
-          .simultaneousGesture(
-            TapGesture().onEnded {
-              if scale <= 1.0 {
-                onTap()
-              }
-            }
-          )
-      } else if state.error != nil {
-        Image(systemName: "photo")
-          .font(.largeTitle)
-          .foregroundColor(.white)
-          .matchedGeometryEffect(id: imageID, in: namespace)
-          .onTapGesture {
-            onTap()
-          }
-      } else {
-        ProgressView()
-          .matchedGeometryEffect(id: imageID, in: namespace)
+          scrollView.zoom(to: zoomRect, animated: true)
+        } else {
+          scrollView.setZoomScale(1, animated: true)
+        }
+      }
+
+      private func zoomRectForScale(
+        scale: CGFloat,
+        center: CGPoint,
+        scrollView: UIScrollView
+      ) -> CGRect {
+        var zoomRect = CGRect.zero
+        zoomRect.size.height = scrollView.frame.size.height / scale
+        zoomRect.size.width = scrollView.frame.size.width / scale
+        zoomRect.origin.x = center.x - (zoomRect.size.width / 2.0)
+        zoomRect.origin.y = center.y - (zoomRect.size.height / 2.0)
+        return zoomRect
       }
     }
   }
-}
+
+  #Preview {
+    let url: String =
+      "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/development/posts/1/9278fc8a-401b-4145-83bb-ef05d4d52632.jpeg"
+
+    ZoomableAsyncImage(imageUrl: url)
+      .frame(maxWidth: .infinity, maxHeight: .infinity)
+  }
+
+#endif

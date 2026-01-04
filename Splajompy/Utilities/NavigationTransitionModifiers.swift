@@ -33,29 +33,3 @@ struct NavigationTransitionModifier: ViewModifier {
     #endif
   }
 }
-
-struct OptionalTransitionSourceModifier: ViewModifier {
-  let id: String
-  let namespace: Namespace.ID?
-
-  func body(content: Content) -> some View {
-    if let namespace = namespace {
-      content.modifier(TransitionSourceModifier(id: id, namespace: namespace))
-    } else {
-      content
-    }
-  }
-}
-
-struct OptionalNavigationTransitionModifier: ViewModifier {
-  let sourceID: String
-  let namespace: Namespace.ID?
-
-  func body(content: Content) -> some View {
-    if let namespace = namespace {
-      content.modifier(NavigationTransitionModifier(sourceID: sourceID, namespace: namespace))
-    } else {
-      content
-    }
-  }
-}
