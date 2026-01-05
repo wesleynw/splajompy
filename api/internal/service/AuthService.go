@@ -60,6 +60,8 @@ func (s *AuthService) Register(ctx context.Context, email string, username strin
 		return nil, err
 	}
 
+	username = strings.ToLower(username)
+
 	existingUsername, err := s.userRepository.GetIsUsernameInUse(ctx, username)
 	if err != nil {
 		return nil, errors.New("unable to create user")
@@ -143,6 +145,8 @@ type AuthResponse struct {
 }
 
 func (s *AuthService) VerifyPassword(ctx context.Context, identifier string, password string) (bool, error) {
+	identifier = strings.ToLower(identifier)
+
 	storedPassword, err := s.userRepository.GetUserPasswordByIdentifier(ctx, identifier)
 	if err != nil {
 		return false, ErrInvalidPassword
@@ -156,6 +160,8 @@ func (s *AuthService) VerifyPassword(ctx context.Context, identifier string, pas
 }
 
 func (s *AuthService) LoginWithCredentials(ctx context.Context, credentials *Credentials) (*AuthResponse, error) {
+	credentials.Identifier = strings.ToLower(credentials.Identifier)
+
 	password, err := s.userRepository.GetUserPasswordByIdentifier(ctx, credentials.Identifier)
 	if err != nil {
 		return nil, ErrUserNotFound
@@ -182,6 +188,8 @@ func (s *AuthService) LoginWithCredentials(ctx context.Context, credentials *Cre
 }
 
 func (s *AuthService) VerifyOTCCode(ctx context.Context, identifier string, code string) (*AuthResponse, error) {
+	identifier = strings.ToLower(identifier)
+
 	user, err := s.userRepository.GetUserByIdentifier(ctx, identifier)
 	if err != nil {
 		return nil, err
@@ -208,6 +216,8 @@ func (s *AuthService) VerifyOTCCode(ctx context.Context, identifier string, code
 }
 
 func (s *AuthService) ProcessOTC(ctx context.Context, identifier string) error {
+	identifier = strings.ToLower(identifier)
+
 	user, err := s.userRepository.GetUserByIdentifier(ctx, identifier)
 	if err != nil {
 		return err
