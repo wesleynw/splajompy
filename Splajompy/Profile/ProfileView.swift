@@ -76,10 +76,27 @@ struct ProfileView: View {
     #if os(iOS)
       .navigationBarTitleDisplayMode(.inline)
     #endif
+    #if os(macOS)
+      .modify {
+        if isProfileTab {
+          $0.toolbar(removing: .title)
+        } else {
+          $0
+        }
+      }
+    #endif
     .toolbar {
       if isProfileTab {
         if #available(iOS 26, macOS 26, *) {
-          ToolbarItem(placement: .topBarLeading) {
+          ToolbarItem(
+            placement: {
+              #if os(iOS)
+                .topBarLeading
+              #else
+                .principal
+              #endif
+            }()
+          ) {
             Text("Profile")
               .font(.title2)
               .fontWeight(.black)
@@ -87,7 +104,15 @@ struct ProfileView: View {
           }
           .sharedBackgroundVisibility(.hidden)
         } else {
-          ToolbarItem(placement: .topBarLeading) {
+          ToolbarItem(
+            placement: {
+              #if os(iOS)
+                .topBarLeading
+              #else
+                .principal
+              #endif
+            }()
+          ) {
             Text("Profile")
               .font(.title2)
               .fontWeight(.black)
@@ -208,21 +233,23 @@ struct ProfileView: View {
         }
       }
     }
-    .modify {
-      if #available(iOS 16, macOS 13, *), isProfileTab {
-        $0.toolbarBackground(.visible, for: .navigationBar)
+    #if os(iOS)
+      .modify {
+        if #available(iOS 16, *), isProfileTab {
+          $0.toolbarBackground(.visible, for: .navigationBar)
           .toolbarBackground(.blue.gradient.opacity(0.5), for: .navigationBar)
-      } else {
-        $0
+        } else {
+          $0
+        }
       }
-    }
-    .modify {
-      if #available(iOS 18, *), isProfileTab {
-        $0.toolbarBackgroundVisibility(.visible, for: .navigationBar)
-      } else {
-        $0
+      .modify {
+        if #available(iOS 18, *), isProfileTab {
+          $0.toolbarBackgroundVisibility(.visible, for: .navigationBar)
+        } else {
+          $0
+        }
       }
-    }
+    #endif
   }
 
   private func profile(user: DetailedUser)

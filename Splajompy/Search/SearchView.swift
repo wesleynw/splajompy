@@ -23,10 +23,19 @@ struct SearchView: View {
     #if os(macOS)
       .contentMargins(.horizontal, 40, for: .scrollContent)
       .safeAreaPadding(.horizontal, 20)
+      .toolbar(removing: .title)
     #endif
     .toolbar {
       if #available(iOS 26, macOS 26, *) {
-        ToolbarItem(placement: .topBarLeading) {
+        ToolbarItem(
+          placement: {
+            #if os(iOS)
+              .topBarLeading
+            #else
+              .principal
+            #endif
+          }()
+        ) {
           Text("Search")
             .font(.title2)
             .fontWeight(.black)
@@ -34,7 +43,15 @@ struct SearchView: View {
         }
         .sharedBackgroundVisibility(.hidden)
       } else {
-        ToolbarItem(placement: .topBarLeading) {
+        ToolbarItem(
+          placement: {
+            #if os(iOS)
+              .topBarLeading
+            #else
+              .principal
+            #endif
+          }()
+        ) {
           Text("Search")
             .font(.title2)
             .fontWeight(.black)
@@ -42,21 +59,23 @@ struct SearchView: View {
         }
       }
     }
-    .modify {
-      if #available(iOS 16, macOS 13, *) {
-        $0.toolbarBackground(.visible, for: .navigationBar)
+    #if os(iOS)
+      .modify {
+        if #available(iOS 16, *) {
+          $0.toolbarBackground(.visible, for: .navigationBar)
           .toolbarBackground(.blue.gradient.opacity(0.5), for: .navigationBar)
-      } else {
-        $0
+        } else {
+          $0
+        }
       }
-    }
-    .modify {
-      if #available(iOS 18, *) {
-        $0.toolbarBackgroundVisibility(.visible, for: .navigationBar)
-      } else {
-        $0
+      .modify {
+        if #available(iOS 18, *) {
+          $0.toolbarBackgroundVisibility(.visible, for: .navigationBar)
+        } else {
+          $0
+        }
       }
-    }
+    #endif
     .searchable(text: $searchText)
     .autocorrectionDisabled()
     .onSubmit(of: .search) {

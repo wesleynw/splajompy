@@ -22,6 +22,9 @@ struct MainFeedView: View {
 
   var body: some View {
     mainContent
+      #if os(macOS)
+        .toolbar(removing: .title)
+      #endif
       .toolbar {
         ToolbarItem(
           placement: {
@@ -131,21 +134,23 @@ struct MainFeedView: View {
           }
         }
       #endif
-      .modify {
-        if #available(iOS 16, macOS 13, *) {
-          $0.toolbarBackground(.visible, for: .navigationBar)
+      #if os(iOS)
+        .modify {
+          if #available(iOS 16, *) {
+            $0.toolbarBackground(.visible, for: .navigationBar)
             .toolbarBackground(.blue.gradient.opacity(0.5), for: .navigationBar)
-        } else {
-          $0
+          } else {
+            $0
+          }
         }
-      }
-      .modify {
-        if #available(iOS 18, *) {
-          $0.toolbarBackgroundVisibility(.visible, for: .navigationBar)
-        } else {
-          $0
+        .modify {
+          if #available(iOS 18, *) {
+            $0.toolbarBackgroundVisibility(.visible, for: .navigationBar)
+          } else {
+            $0
+          }
         }
-      }
+      #endif
   }
 
   @ViewBuilder
