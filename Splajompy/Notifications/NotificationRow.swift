@@ -40,9 +40,15 @@ struct NotificationRow: View {
           VStack(alignment: .leading, spacing: 4) {
             Text(notification.richContent)
 
-            Text(relativeDate(from: notification.createdAt))
+            TimelineView(.periodic(from: .now, by: 5)) { _ in
+              Text(
+                notification.createdAt.formatted(
+                  .relative(presentation: .named)
+                )
+              )
               .font(.caption)
               .foregroundColor(.secondary)
+            }
           }
 
           Spacer(minLength: 0)

@@ -66,15 +66,7 @@ extension NotificationsView {
       -> [Notification]
     {
       return notifications.sorted { notification1, notification2 in
-        guard
-          let date1 = sharedISO8601Formatter.date(
-            from: notification1.createdAt
-          ),
-          let date2 = sharedISO8601Formatter.date(from: notification2.createdAt)
-        else {
-          return false
-        }
-        return date1 > date2
+        return notification1.createdAt > notification2.createdAt
       }
     }
 
@@ -84,10 +76,11 @@ extension NotificationsView {
     ) {
       let sorted = sortNotificationsByDate(notifications)
       if let oldest = sorted.last {
+        let timeString = ISO8601DateFormatter().string(from: oldest.createdAt)
         if isUnread {
-          lastUnreadNotificationTime = oldest.createdAt
+          lastUnreadNotificationTime = timeString
         } else {
-          lastReadNotificationTime = oldest.createdAt
+          lastReadNotificationTime = timeString
         }
       }
     }
@@ -245,12 +238,7 @@ extension NotificationsView {
         var movedNotification = unreadNotifications.remove(at: unreadIndex)
         movedNotification.viewed = true
 
-        guard
-          let date = sharedISO8601Formatter.date(
-            from: movedNotification.createdAt
-          )
-        else { return }
-        let section = date.notificationSection()
+        let section = movedNotification.createdAt.notificationSection()
 
         if var existingNotifications = sections[section] {
           if !existingNotifications.contains(where: {
@@ -292,12 +280,7 @@ extension NotificationsView {
       for var unreadNotification in unreadNotifications {
         unreadNotification.viewed = true
 
-        guard
-          let date = sharedISO8601Formatter.date(
-            from: unreadNotification.createdAt
-          )
-        else { continue }
-        let section = date.notificationSection()
+        let section = unreadNotification.createdAt.notificationSection()
 
         if var existingNotifications = sections[section] {
           if !existingNotifications.contains(where: {

@@ -10,7 +10,7 @@ struct Notification: Identifiable, Decodable, Equatable {
   let message: String
   let link: String?
   var viewed: Bool
-  let createdAt: String
+  let createdAt: Date
   let imageBlob: String?
   let imageWidth: Int?
   let imageHeight: Int?
@@ -73,19 +73,27 @@ protocol NotificationServiceProtocol: Sendable {
 
   func getUnreadNotificationCount() async -> AsyncResult<Int>
 
-  func getReadNotificationsWithTimeOffset(beforeTime: String, limit: Int, notificationType: String?)
+  func getReadNotificationsWithTimeOffset(
+    beforeTime: String,
+    limit: Int,
+    notificationType: String?
+  )
     async -> AsyncResult<
       [Notification]
     >
 
   func getUnreadNotificationsWithTimeOffset(
-    beforeTime: String, limit: Int, notificationType: String?
+    beforeTime: String,
+    limit: Int,
+    notificationType: String?
   ) async -> AsyncResult<
     [Notification]
   >
 
   func getReadNotificationWithSectionsWithTimeOffset(
-    beforeTime: String, limit: Int, notificationType: String?
+    beforeTime: String,
+    limit: Int,
+    notificationType: String?
   ) async
     -> AsyncResult<NotificationSectionData>
 }
@@ -140,12 +148,7 @@ struct NotificationService: NotificationServiceProtocol {
     case .success(let notifications):
       let sectionedNotifications = Dictionary(grouping: notifications) {
         notification in
-        guard
-          let date = sharedISO8601Formatter.date(from: notification.createdAt)
-        else {
-          return NotificationDateSection.older
-        }
-        return date.notificationSection()
+        return notification.createdAt.notificationSection()
       }
       return .success(NotificationSectionData(sections: sectionedNotifications))
     case .error(let error):
@@ -190,12 +193,7 @@ struct NotificationService: NotificationServiceProtocol {
     case .success(let notifications):
       let sectionedNotifications = Dictionary(grouping: notifications) {
         notification in
-        guard
-          let date = sharedISO8601Formatter.date(from: notification.createdAt)
-        else {
-          return NotificationDateSection.older
-        }
-        return date.notificationSection()
+        return notification.createdAt.notificationSection()
       }
       return .success(NotificationSectionData(sections: sectionedNotifications))
     case .error(let error):
@@ -204,7 +202,9 @@ struct NotificationService: NotificationServiceProtocol {
   }
 
   func getReadNotificationsWithTimeOffset(
-    beforeTime: String, limit: Int, notificationType: String? = nil
+    beforeTime: String,
+    limit: Int,
+    notificationType: String? = nil
   ) async -> AsyncResult<
     [Notification]
   > {
@@ -214,7 +214,9 @@ struct NotificationService: NotificationServiceProtocol {
     ]
 
     if let notificationType = notificationType {
-      queryItems.append(URLQueryItem(name: "notification_type", value: notificationType))
+      queryItems.append(
+        URLQueryItem(name: "notification_type", value: notificationType)
+      )
     }
 
     return await APIService.performRequest(
@@ -224,7 +226,9 @@ struct NotificationService: NotificationServiceProtocol {
   }
 
   func getUnreadNotificationsWithTimeOffset(
-    beforeTime: String, limit: Int, notificationType: String? = nil
+    beforeTime: String,
+    limit: Int,
+    notificationType: String? = nil
   ) async -> AsyncResult<
     [Notification]
   > {
@@ -234,7 +238,9 @@ struct NotificationService: NotificationServiceProtocol {
     ]
 
     if let notificationType = notificationType {
-      queryItems.append(URLQueryItem(name: "notification_type", value: notificationType))
+      queryItems.append(
+        URLQueryItem(name: "notification_type", value: notificationType)
+      )
     }
 
     return await APIService.performRequest(
@@ -244,23 +250,23 @@ struct NotificationService: NotificationServiceProtocol {
   }
 
   func getReadNotificationWithSectionsWithTimeOffset(
-    beforeTime: String, limit: Int, notificationType: String? = nil
+    beforeTime: String,
+    limit: Int,
+    notificationType: String? = nil
   ) async
     -> AsyncResult<NotificationSectionData>
   {
     let result = await getReadNotificationsWithTimeOffset(
-      beforeTime: beforeTime, limit: limit, notificationType: notificationType)
+      beforeTime: beforeTime,
+      limit: limit,
+      notificationType: notificationType
+    )
 
     switch result {
     case .success(let notifications):
       let sectionedNotifications = Dictionary(grouping: notifications) {
         notification in
-        guard
-          let date = sharedISO8601Formatter.date(from: notification.createdAt)
-        else {
-          return NotificationDateSection.older
-        }
-        return date.notificationSection()
+        return notification.createdAt.notificationSection()
       }
       return .success(NotificationSectionData(sections: sectionedNotifications))
     case .error(let error):

@@ -53,7 +53,7 @@ class MockNotificationService: @unchecked Sendable, NotificationServiceProtocol 
         message: "@joel liked your post",
         link: "/post/2001",
         viewed: false,
-        createdAt: formatter.string(from: baseDate.addingTimeInterval(-3600)),
+        createdAt: baseDate.addingTimeInterval(-3600),
         imageBlob:
           "https://www.acouplecooks.com/wp-content/uploads/2021/05/Latte-Art-070.jpg",
         imageWidth: 500,
@@ -82,7 +82,7 @@ class MockNotificationService: @unchecked Sendable, NotificationServiceProtocol 
         message: "@realsophie commented on your post",
         link: "/post/2002",
         viewed: false,
-        createdAt: formatter.string(from: baseDate.addingTimeInterval(-7200)),
+        createdAt: baseDate.addingTimeInterval(-7200),
         imageBlob: nil,
         imageWidth: 0,
         imageHeight: 0,
@@ -116,7 +116,7 @@ class MockNotificationService: @unchecked Sendable, NotificationServiceProtocol 
         message: "@wesley mentioned you in a post",
         link: "/post/2003",
         viewed: true,
-        createdAt: formatter.string(from: baseDate.addingTimeInterval(-10800)),
+        createdAt: baseDate.addingTimeInterval(-10800),
         imageBlob: nil,
         imageWidth: 0,
         imageHeight: 0,
@@ -146,7 +146,7 @@ class MockNotificationService: @unchecked Sendable, NotificationServiceProtocol 
         message: "@splazackly liked your comment",
         link: "/post/2004",
         viewed: true,
-        createdAt: formatter.string(from: baseDate.addingTimeInterval(-14400)),
+        createdAt: baseDate.addingTimeInterval(-14400),
         imageBlob: imageUrl,
         imageWidth: 500,
         imageHeight: 500,
@@ -180,7 +180,7 @@ class MockNotificationService: @unchecked Sendable, NotificationServiceProtocol 
         message: "@giuseppe liked your post",
         link: "/post/2001",
         viewed: true,
-        createdAt: formatter.string(from: baseDate.addingTimeInterval(-18000)),
+        createdAt: baseDate.addingTimeInterval(-18000),
         imageBlob: imageUrl,
         imageWidth: 500,
         imageHeight: 500,
@@ -208,7 +208,7 @@ class MockNotificationService: @unchecked Sendable, NotificationServiceProtocol 
         message: "@elena replied to your comment",
         link: "/post/2005",
         viewed: false,
-        createdAt: formatter.string(from: baseDate.addingTimeInterval(-21600)),
+        createdAt: baseDate.addingTimeInterval(-21600),
         imageBlob: nil,
         imageWidth: 0,
         imageHeight: 0,
@@ -242,7 +242,7 @@ class MockNotificationService: @unchecked Sendable, NotificationServiceProtocol 
         message: "Welcome to the community! 🎉",
         link: "/welcome",
         viewed: true,
-        createdAt: formatter.string(from: baseDate.addingTimeInterval(-86400)),
+        createdAt: baseDate.addingTimeInterval(-86400),
         imageBlob: nil,
         imageWidth: 0,
         imageHeight: 0,
@@ -262,7 +262,7 @@ class MockNotificationService: @unchecked Sendable, NotificationServiceProtocol 
         message: "@pari started following you",
         link: "/profile/113",
         viewed: true,
-        createdAt: formatter.string(from: baseDate.addingTimeInterval(-43200)),
+        createdAt: baseDate.addingTimeInterval(-43200),
         imageBlob: nil,
         imageWidth: 0,
         imageHeight: 0,
@@ -281,9 +281,6 @@ class MockNotificationService: @unchecked Sendable, NotificationServiceProtocol 
   {
     var notifications: [Notification] = []
 
-    let formatter = ISO8601DateFormatter()
-    formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-
     for i in startingId..<(startingId + count) {
       let id = i
       let message =
@@ -291,9 +288,7 @@ class MockNotificationService: @unchecked Sendable, NotificationServiceProtocol 
         ? "{tag:1:wesley}Test notification #\(id)" : "Test notification #\(id)"
       let link = id % 2 == 0 ? "/posts/\(200 + id)" : nil
       let commentId = id % 3 == 0 ? 300 + id : nil
-      let dateString = formatter.string(
-        from: Date().addingTimeInterval(-Double(id * 3600))
-      )
+      let date = Date().addingTimeInterval(-Double(id * 3600))
 
       let notification = Notification(
         notificationId: id,
@@ -305,7 +300,7 @@ class MockNotificationService: @unchecked Sendable, NotificationServiceProtocol 
         message: message,
         link: link,
         viewed: id % 4 == 0,
-        createdAt: dateString,
+        createdAt: date,
         imageBlob: nil,
         imageWidth: 0,
         imageHeight: 0,
@@ -352,10 +347,7 @@ class MockNotificationService: @unchecked Sendable, NotificationServiceProtocol 
     switch result {
     case .success(let notifications):
       let sectionedNotifications = Dictionary(grouping: notifications) { notification in
-        guard let date = sharedISO8601Formatter.date(from: notification.createdAt) else {
-          return NotificationDateSection.older
-        }
-        return date.notificationSection()
+        return notification.createdAt.notificationSection()
       }
       return .success(NotificationSectionData(sections: sectionedNotifications))
     case .error(let error):
@@ -424,10 +416,7 @@ class MockNotificationService: @unchecked Sendable, NotificationServiceProtocol 
     switch result {
     case .success(let notifications):
       let sectionedNotifications = Dictionary(grouping: notifications) { notification in
-        guard let date = sharedISO8601Formatter.date(from: notification.createdAt) else {
-          return NotificationDateSection.older
-        }
-        return date.notificationSection()
+        return notification.createdAt.notificationSection()
       }
       return .success(NotificationSectionData(sections: sectionedNotifications))
     case .error(let error):
@@ -567,10 +556,7 @@ class MockNotificationService: @unchecked Sendable, NotificationServiceProtocol 
     switch result {
     case .success(let notifications):
       let sectionedNotifications = Dictionary(grouping: notifications) { notification in
-        guard let date = sharedISO8601Formatter.date(from: notification.createdAt) else {
-          return NotificationDateSection.older
-        }
-        return date.notificationSection()
+        return notification.createdAt.notificationSection()
       }
       return .success(NotificationSectionData(sections: sectionedNotifications))
     case .error(let error):
