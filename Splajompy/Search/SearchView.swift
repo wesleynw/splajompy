@@ -24,8 +24,40 @@ struct SearchView: View {
       .contentMargins(.horizontal, 40, for: .scrollContent)
       .safeAreaPadding(.horizontal, 20)
     #endif
-    .navigationTitle("Search")
-    .searchable(text: $searchText, prompt: "People...")
+    .toolbar {
+      if #available(iOS 26, macOS 26, *) {
+        ToolbarItem(placement: .topBarLeading) {
+          Text("Search")
+            .font(.title2)
+            .fontWeight(.black)
+            .fixedSize()
+        }
+        .sharedBackgroundVisibility(.hidden)
+      } else {
+        ToolbarItem(placement: .topBarLeading) {
+          Text("Search")
+            .font(.title2)
+            .fontWeight(.black)
+            .fixedSize()
+        }
+      }
+    }
+    .modify {
+      if #available(iOS 16, macOS 13, *) {
+        $0.toolbarBackground(.visible, for: .navigationBar)
+          .toolbarBackground(.blue.gradient.opacity(0.5), for: .navigationBar)
+      } else {
+        $0
+      }
+    }
+    .modify {
+      if #available(iOS 18, *) {
+        $0.toolbarBackgroundVisibility(.visible, for: .navigationBar)
+      } else {
+        $0
+      }
+    }
+    .searchable(text: $searchText)
     .autocorrectionDisabled()
     .onSubmit(of: .search) {
       if !searchText.isEmpty {
@@ -80,5 +112,11 @@ struct SearchView: View {
       }
     }
     .listStyle(.plain)
+  }
+}
+
+#Preview {
+  NavigationStack {
+    SearchView()
   }
 }

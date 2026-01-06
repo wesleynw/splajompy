@@ -44,7 +44,39 @@ struct NotificationsView: View {
         NotificationFilterMenu(filter: $viewModel.selectedFilter)
       }
     }
-    .navigationTitle("Notifications")
+    .toolbar {
+      if #available(iOS 26, macOS 26, *) {
+        ToolbarItem(placement: .topBarLeading) {
+          Text("Notifications")
+            .fontWeight(.black)
+            .font(.title2)
+            .fixedSize()
+        }
+        .sharedBackgroundVisibility(.hidden)
+      } else {
+        ToolbarItem(placement: .topBarLeading) {
+          Text("Notifications")
+            .fontWeight(.black)
+            .font(.title2)
+            .fixedSize()
+        }
+      }
+    }
+    .modify {
+      if #available(iOS 16, macOS 13, *) {
+        $0.toolbarBackground(.visible, for: .navigationBar)
+          .toolbarBackground(.blue.gradient.opacity(0.5), for: .navigationBar)
+      } else {
+        $0
+      }
+    }
+    .modify {
+      if #available(iOS 18, *) {
+        $0.toolbarBackgroundVisibility(.visible, for: .navigationBar)
+      } else {
+        $0
+      }
+    }
   }
 
   private var noNotificationsView: some View {
