@@ -17,6 +17,8 @@ struct SplajompyApp: App {
   @AppStorage("appearance_mode") var appearanceMode: String = "Automatic"
 
   init() {
+    initializeOtel()
+
     let posthogApiKey = "phc_sSDHxTCqpjwoSDSOQiNAAgmybjEakfePBsaNHWaWy74"
     let config = PostHogConfig(apiKey: posthogApiKey)
     config.captureScreenViews = false

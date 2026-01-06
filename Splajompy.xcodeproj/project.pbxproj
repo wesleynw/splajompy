@@ -11,6 +11,11 @@
 		180DEE622E39AE0F00A4D29D /* NukeExtensions in Frameworks */ = {isa = PBXBuildFile; productRef = 180DEE612E39AE0F00A4D29D /* NukeExtensions */; };
 		180DEE642E39AE0F00A4D29D /* NukeUI in Frameworks */ = {isa = PBXBuildFile; productRef = 180DEE632E39AE0F00A4D29D /* NukeUI */; };
 		180DEE662E39AE0F00A4D29D /* NukeVideo in Frameworks */ = {isa = PBXBuildFile; productRef = 180DEE652E39AE0F00A4D29D /* NukeVideo */; };
+		1868AF3D2F0C74C7001E15E9 /* OpenTelemetryApi in Frameworks */ = {isa = PBXBuildFile; productRef = 1868AF3C2F0C74C7001E15E9 /* OpenTelemetryApi */; };
+		1868AF3F2F0C74C7001E15E9 /* OpenTelemetrySdk in Frameworks */ = {isa = PBXBuildFile; productRef = 1868AF3E2F0C74C7001E15E9 /* OpenTelemetrySdk */; };
+		1868AF452F0C7598001E15E9 /* OpenTelemetryProtocolExporterHTTP in Frameworks */ = {isa = PBXBuildFile; productRef = 1868AF442F0C7598001E15E9 /* OpenTelemetryProtocolExporterHTTP */; };
+		1868AF472F0C75BD001E15E9 /* URLSessionInstrumentation in Frameworks */ = {isa = PBXBuildFile; productRef = 1868AF462F0C75BD001E15E9 /* URLSessionInstrumentation */; };
+		1868AF492F0C9FF0001E15E9 /* ResourceExtension in Frameworks */ = {isa = PBXBuildFile; productRef = 1868AF482F0C9FF0001E15E9 /* ResourceExtension */; };
 		187974BA2DDC1EE300BA0F37 /* PostHog in Frameworks */ = {isa = PBXBuildFile; productRef = 187974B92DDC1EE300BA0F37 /* PostHog */; };
 		18A617E92D9B2D6000B93F08 /* FeedViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18A617DA2D9B2D6000B93F08 /* FeedViewModel.swift */; };
 		18A617EA2D9B2D6000B93F08 /* AuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18A617D62D9B2D6000B93F08 /* AuthManager.swift */; };
@@ -165,6 +170,11 @@
 				180DEE602E39AE0F00A4D29D /* Nuke in Frameworks */,
 				180DEE622E39AE0F00A4D29D /* NukeExtensions in Frameworks */,
 				187974BA2DDC1EE300BA0F37 /* PostHog in Frameworks */,
+				1868AF472F0C75BD001E15E9 /* URLSessionInstrumentation in Frameworks */,
+				1868AF492F0C9FF0001E15E9 /* ResourceExtension in Frameworks */,
+				1868AF3D2F0C74C7001E15E9 /* OpenTelemetryApi in Frameworks */,
+				1868AF452F0C7598001E15E9 /* OpenTelemetryProtocolExporterHTTP in Frameworks */,
+				1868AF3F2F0C74C7001E15E9 /* OpenTelemetrySdk in Frameworks */,
 			);
 		};
 		184A63D82D88CBA200860D6B /* Frameworks */ = {
@@ -312,6 +322,11 @@
 				180DEE612E39AE0F00A4D29D /* NukeExtensions */,
 				180DEE632E39AE0F00A4D29D /* NukeUI */,
 				180DEE652E39AE0F00A4D29D /* NukeVideo */,
+				1868AF3C2F0C74C7001E15E9 /* OpenTelemetryApi */,
+				1868AF3E2F0C74C7001E15E9 /* OpenTelemetrySdk */,
+				1868AF442F0C7598001E15E9 /* OpenTelemetryProtocolExporterHTTP */,
+				1868AF462F0C75BD001E15E9 /* URLSessionInstrumentation */,
+				1868AF482F0C9FF0001E15E9 /* ResourceExtension */,
 			);
 			productName = Splajompy;
 			productReference = 184A63CB2D88CBA100860D6B /* Splajompy.app */;
@@ -388,6 +403,8 @@
 			packageReferences = (
 				187974B82DDC1EE300BA0F37 /* XCRemoteSwiftPackageReference "posthog-ios" */,
 				180DEE5E2E39AD6400A4D29D /* XCRemoteSwiftPackageReference "Nuke" */,
+				1868AF362F0C726C001E15E9 /* XCRemoteSwiftPackageReference "opentelemetry-swift-core" */,
+				1868AF372F0C728E001E15E9 /* XCRemoteSwiftPackageReference "opentelemetry-swift" */,
 			);
 			preferredProjectObjectVersion = 90;
 			productRefGroup = 184A63CC2D88CBA100860D6B /* Products */;
@@ -807,6 +824,22 @@
 				minimumVersion = 12.8.0;
 			};
 		};
+		1868AF362F0C726C001E15E9 /* XCRemoteSwiftPackageReference "opentelemetry-swift-core" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/open-telemetry/opentelemetry-swift-core.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.3.0;
+			};
+		};
+		1868AF372F0C728E001E15E9 /* XCRemoteSwiftPackageReference "opentelemetry-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/open-telemetry/opentelemetry-swift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.3.0;
+			};
+		};
 		187974B82DDC1EE300BA0F37 /* XCRemoteSwiftPackageReference "posthog-ios" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/PostHog/posthog-ios.git";
@@ -837,6 +870,31 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 180DEE5E2E39AD6400A4D29D /* XCRemoteSwiftPackageReference "Nuke" */;
 			productName = NukeVideo;
+		};
+		1868AF3C2F0C74C7001E15E9 /* OpenTelemetryApi */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 1868AF362F0C726C001E15E9 /* XCRemoteSwiftPackageReference "opentelemetry-swift-core" */;
+			productName = OpenTelemetryApi;
+		};
+		1868AF3E2F0C74C7001E15E9 /* OpenTelemetrySdk */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 1868AF362F0C726C001E15E9 /* XCRemoteSwiftPackageReference "opentelemetry-swift-core" */;
+			productName = OpenTelemetrySdk;
+		};
+		1868AF442F0C7598001E15E9 /* OpenTelemetryProtocolExporterHTTP */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 1868AF372F0C728E001E15E9 /* XCRemoteSwiftPackageReference "opentelemetry-swift" */;
+			productName = OpenTelemetryProtocolExporterHTTP;
+		};
+		1868AF462F0C75BD001E15E9 /* URLSessionInstrumentation */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 1868AF372F0C728E001E15E9 /* XCRemoteSwiftPackageReference "opentelemetry-swift" */;
+			productName = URLSessionInstrumentation;
+		};
+		1868AF482F0C9FF0001E15E9 /* ResourceExtension */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 1868AF372F0C728E001E15E9 /* XCRemoteSwiftPackageReference "opentelemetry-swift" */;
+			productName = ResourceExtension;
 		};
 		187974B92DDC1EE300BA0F37 /* PostHog */ = {
 			isa = XCSwiftPackageProductDependency;

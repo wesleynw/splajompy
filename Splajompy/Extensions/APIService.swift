@@ -1,4 +1,5 @@
 import Foundation
+@preconcurrency import OpenTelemetryApi
 
 public struct EmptyResponse: Decodable & Sendable {}
 
@@ -57,16 +58,31 @@ public struct APIService {
     queryItems: [URLQueryItem]? = nil,
     body: Data? = nil
   ) async -> AsyncResult<T> {
+    let tracer = OpenTelemetry.instance.tracerProvider.get(instrumentationName: "APIService")
+    let span = tracer.spanBuilder(spanName: "API Service: \(method) /\(endpoint)")
+      .setActive(true)
+      .startSpan()
+
+    defer {
+      span.end()
+    }
+
     guard var urlComponents = URLComponents(string: "\(baseUrl)/\(endpoint)")
     else {
+      span.status = .error(description: "Bad URL")
       return .error(URLError(.badURL))
     }
 
     urlComponents.queryItems = queryItems
 
     guard let url = urlComponents.url else {
+      span.status = .error(description: "Bad URL")
       return .error(URLError(.badURL))
     }
+
+    span.setAttribute(key: "http.method", value: method)
+    span.setAttribute(key: "http.url", value: url.absoluteString)
+    span.setAttribute(key: "http.target", value: endpoint)
 
     print("REQUEST: \(method) \(url)")
     let request = await createRequest(for: url, method: method, body: body)
@@ -75,11 +91,15 @@ public struct APIService {
       let (data, response) = try await URLSession.shared.data(for: request)
 
       if let httpResponse = response as? HTTPURLResponse {
+        span.setAttribute(key: "http.status_code", value: httpResponse.statusCode)
+
         if httpResponse.statusCode == 401 {
+          span.status = .error(description: "Unauthorized")
           await AuthManager.shared.signOut()
           return .error(APIErrorMessage(message: "Session expired. Please sign in again."))
         }
         if httpResponse.statusCode == 503 {
+          span.status = .error(description: "Service unavailable")
           return .error(
             APIErrorMessage(message: "Service unavailable."))
         }
@@ -116,26 +136,32 @@ public struct APIService {
         )
         if decodedResponse.success {
           if T.self == EmptyResponse.self {
+            span.status = .ok
             return .success(EmptyResponse() as! T)
           }
 
           guard let responseData = decodedResponse.data else {
+            span.status = .error(description: "API returned success but no data")
             return .error(
               APIErrorMessage(message: "API returned success but no data")
             )
           }
 
+          span.status = .ok
           return .success(responseData)
         }
+        span.status = .error(description: decodedResponse.error ?? "Unknown API error")
         return .error(
           APIErrorMessage(message: decodedResponse.error ?? "Unknown API error")
         )
       } catch {
         print("API response decoding error: \(error)")
+        span.status = .error(description: "Decoding error: \(error.localizedDescription)")
         return .error(error)
       }
     } catch {
       print("API call error: \(error)")
+      span.status = .error(description: "Request error: \(error.localizedDescription)")
       return .error(error)
     }
   }
