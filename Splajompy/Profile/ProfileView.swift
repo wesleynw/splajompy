@@ -77,10 +77,29 @@ struct ProfileView: View {
       .navigationBarTitleDisplayMode(.inline)
     #endif
     .toolbar {
-      ToolbarItem(placement: .principal) {
-        Text("@" + self.username)
-          .font(.callout)
-          .fontWeight(.bold)
+      if isProfileTab {
+        if #available(iOS 26, macOS 26, *) {
+          ToolbarItem(placement: .topBarLeading) {
+            Text("Profile")
+              .font(.title2)
+              .fontWeight(.black)
+              .fixedSize()
+          }
+          .sharedBackgroundVisibility(.hidden)
+        } else {
+          ToolbarItem(placement: .topBarLeading) {
+            Text("Profile")
+              .font(.title2)
+              .fontWeight(.black)
+              .fixedSize()
+          }
+        }
+      } else {
+        ToolbarItem(placement: .principal) {
+          Text("@" + self.username)
+            .font(.callout)
+            .fontWeight(.bold)
+        }
       }
     }
     .toolbar {
@@ -187,6 +206,21 @@ struct ProfileView: View {
             )
           }
         }
+      }
+    }
+    .modify {
+      if #available(iOS 16, macOS 13, *), isProfileTab {
+        $0.toolbarBackground(.visible, for: .navigationBar)
+          .toolbarBackground(.blue.gradient.opacity(0.5), for: .navigationBar)
+      } else {
+        $0
+      }
+    }
+    .modify {
+      if #available(iOS 18, *), isProfileTab {
+        $0.toolbarBackgroundVisibility(.visible, for: .navigationBar)
+      } else {
+        $0
       }
     }
   }

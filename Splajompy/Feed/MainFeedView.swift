@@ -74,6 +74,7 @@ struct MainFeedView: View {
                   .font(.caption)
               #endif
             }
+            .foregroundStyle(.primary)
           }
           .menuIndicator(.visible)
         }
@@ -130,6 +131,21 @@ struct MainFeedView: View {
           }
         }
       #endif
+      .modify {
+        if #available(iOS 16, macOS 13, *) {
+          $0.toolbarBackground(.visible, for: .navigationBar)
+            .toolbarBackground(.blue.gradient.opacity(0.5), for: .navigationBar)
+        } else {
+          $0
+        }
+      }
+      .modify {
+        if #available(iOS 18, *) {
+          $0.toolbarBackgroundVisibility(.visible, for: .navigationBar)
+        } else {
+          $0
+        }
+      }
   }
 
   @ViewBuilder
