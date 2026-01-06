@@ -16,7 +16,7 @@ func initializeOtel() {
   let spanExporter = OtlpHttpTraceExporter(
     endpoint: endpoint
   )
-  let spanProcessor = SimpleSpanProcessor(spanExporter: spanExporter)
+  let spanProcessor = BatchSpanProcessor(spanExporter: spanExporter)
 
   #if DEBUG
     let serviceName = "ios-dev"
@@ -29,7 +29,8 @@ func initializeOtel() {
   let resource = Resource(attributes: [
     "service.name": AttributeValue.string(serviceName),
     "service.version": AttributeValue.string(
-      Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "unknown"
+      Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String
+        ?? "unknown"
     ),
     "deployment.environment": AttributeValue.string(environment),
   ])
@@ -43,7 +44,7 @@ func initializeOtel() {
 
   let config = URLSessionInstrumentationConfiguration(
     shouldInstrument: { request in
-      guard let url = request.url else { return true }
+      guard let url = request.url else { return false }
       return !url.path().contains("/otel/")
     },
     nameSpan: { request in
