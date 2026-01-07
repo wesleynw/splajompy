@@ -59,23 +59,6 @@ struct SearchView: View {
         }
       }
     }
-    #if os(iOS)
-      .modify {
-        if #available(iOS 16, *) {
-          $0.toolbarBackground(.visible, for: .navigationBar)
-          .toolbarBackground(.blue.gradient.opacity(0.5), for: .navigationBar)
-        } else {
-          $0
-        }
-      }
-      .modify {
-        if #available(iOS 18, *) {
-          $0.toolbarBackgroundVisibility(.visible, for: .navigationBar)
-        } else {
-          $0
-        }
-      }
-    #endif
     .searchable(text: $searchText)
     .autocorrectionDisabled()
     .onSubmit(of: .search) {
@@ -97,9 +80,6 @@ struct SearchView: View {
       Image(systemName: "magnifyingglass")
         .font(.system(size: 48))
         .foregroundColor(.gray)
-      Text("Search for Splajompians")
-        .font(.title3)
-        .fontWeight(.bold)
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity)
   }
@@ -117,17 +97,19 @@ struct SearchView: View {
   }
 
   private var searchResults: some View {
-    List(viewModel.searchResults, id: \.userId) { user in
-      NavigationLink(
-        value: Route.profile(id: String(user.userId), username: user.username)
-      ) {
-        HStack {
-          HStack(alignment: .firstTextBaseline, spacing: 2) {
-            ProfileDisplayNameView(user: user, alignVertically: false)
+    List {
+      ForEach(viewModel.searchResults, id: \.userId) { user in
+        NavigationLink(
+          value: Route.profile(id: String(user.userId), username: user.username)
+        ) {
+          HStack {
+            HStack(alignment: .firstTextBaseline, spacing: 2) {
+              ProfileDisplayNameView(user: user, alignVertically: false)
+            }
+            Spacer()
           }
-          Spacer()
+          .padding(.vertical, 8)
         }
-        .padding(.vertical, 8)
       }
     }
     .listStyle(.plain)

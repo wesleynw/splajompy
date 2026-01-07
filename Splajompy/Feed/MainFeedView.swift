@@ -134,23 +134,6 @@ struct MainFeedView: View {
           }
         }
       #endif
-      #if os(iOS)
-        .modify {
-          if #available(iOS 16, *) {
-            $0.toolbarBackground(.visible, for: .navigationBar)
-            .toolbarBackground(.blue.gradient.opacity(0.5), for: .navigationBar)
-          } else {
-            $0
-          }
-        }
-        .modify {
-          if #available(iOS 18, *) {
-            $0.toolbarBackgroundVisibility(.visible, for: .navigationBar)
-          } else {
-            $0
-          }
-        }
-      #endif
   }
 
   @ViewBuilder

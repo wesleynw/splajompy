@@ -233,23 +233,6 @@ struct ProfileView: View {
         }
       }
     }
-    #if os(iOS)
-      .modify {
-        if #available(iOS 16, *), isProfileTab {
-          $0.toolbarBackground(.visible, for: .navigationBar)
-          .toolbarBackground(.blue.gradient.opacity(0.5), for: .navigationBar)
-        } else {
-          $0
-        }
-      }
-      .modify {
-        if #available(iOS 18, *), isProfileTab {
-          $0.toolbarBackgroundVisibility(.visible, for: .navigationBar)
-        } else {
-          $0
-        }
-      }
-    #endif
   }
 
   private func profile(user: DetailedUser)
