@@ -97,7 +97,7 @@ struct ProfileView: View {
               #endif
             }()
           ) {
-            Text("Profile")
+            Text("@" + self.username)
               .font(.title2)
               .fontWeight(.black)
               .fixedSize()
@@ -113,7 +113,7 @@ struct ProfileView: View {
               #endif
             }()
           ) {
-            Text("Profile")
+            Text("@" + self.username)
               .font(.title2)
               .fontWeight(.black)
               .fixedSize()
