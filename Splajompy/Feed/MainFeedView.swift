@@ -77,8 +77,9 @@ struct MainFeedView: View {
                   .font(.caption)
               #endif
             }
-            .foregroundStyle(.primary)
+            .tint(.primary)
           }
+          .buttonStyle(.plain)
           .menuIndicator(.visible)
         }
       }
