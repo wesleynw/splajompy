@@ -28,7 +28,12 @@ struct AttributedTextEditor: UIViewRepresentable {
     )
 
     if isScrollEnabled {
-      textView.textContainerInset = UIEdgeInsets(top: 4, left: 8, bottom: 4, right: 8)
+      textView.textContainerInset = UIEdgeInsets(
+        top: 4,
+        left: 8,
+        bottom: 4,
+        right: 8
+      )
       textView.textContainer.lineFragmentPadding = 0
     }
 
@@ -43,7 +48,9 @@ struct AttributedTextEditor: UIViewRepresentable {
     context.coordinator.isInternalUpdate = false
 
     let fixedWidth = uiView.bounds.width
-    let size = uiView.sizeThatFits(CGSize(width: fixedWidth, height: .greatestFiniteMagnitude))
+    let size = uiView.sizeThatFits(
+      CGSize(width: fixedWidth, height: .greatestFiniteMagnitude)
+    )
 
     DispatchQueue.main.async {
       if abs(self.contentHeight - size.height) > 1 {
@@ -79,7 +86,6 @@ struct AttributedTextEditor: UIViewRepresentable {
       isInternalUpdate = true
       let currentText = textView.attributedText ?? NSAttributedString()
       self.text.wrappedValue = currentText
-      //      textView.invalidateIntrinsicContentSize()
     }
 
     func textViewDidChangeSelection(_ textView: UITextView) {
