@@ -9,7 +9,40 @@ struct MentionTextEditor: View {
   var autoFocusOnAppear: Bool
 
   @State private var contentHeight: CGFloat
+  @State private var currentMention: String?
   @FocusState private var isFocused: Bool
+
+  static let mentionPattern = "@([a-zA-Z0-9_.]+)"
+
+  struct Mention {
+    let username: String
+    let range: NSRange
+  }
+
+  static func extractMentions(from text: String) -> [Mention] {
+    guard let regex = try? NSRegularExpression(pattern: mentionPattern) else {
+      return []
+    }
+
+    let nsString = text as NSString
+    let matches = regex.matches(in: text, range: NSRange(location: 0, length: nsString.length))
+
+    return matches.compactMap { match in
+      guard match.numberOfRanges > 1 else { return nil }
+      let usernameRange = match.range(at: 1)
+      let username = nsString.substring(with: usernameRange)
+      return Mention(username: username, range: match.range)
+    }
+  }
+
+  static func isPositionInMention(in text: String, at position: Int) -> Bool {
+    let mentions = extractMentions(from: text)
+    return mentions.contains { mention in
+      // Cursor must be INSIDE the mention, not at the start
+      // If cursor is at mention.range.location (before the @), treat as normal text
+      position > mention.range.location && position < mention.range.location + mention.range.length
+    }
+  }
 
   init(
     text: Binding<NSAttributedString>,
@@ -39,10 +72,10 @@ struct MentionTextEditor: View {
       ZStack(alignment: .topLeading) {
         AttributedTextEditor(
           text: $text,
+          currentMention: $currentMention,
           cursorPosition: $cursorPosition,
           cursorY: $cursorY,
           contentHeight: $contentHeight,
-          viewModel: viewModel,
           isScrollEnabled: true
         )
         .frame(height: displayHeight)
@@ -50,6 +83,13 @@ struct MentionTextEditor: View {
         .onAppear {
           if autoFocusOnAppear {
             self.isFocused = true
+          }
+        }
+        .onChange(of: currentMention) { oldValue, newValue in
+          if let mention = newValue, !mention.isEmpty {
+            viewModel.fetchSuggestions(prefix: mention)
+          } else {
+            viewModel.clearMentionState()
           }
         }
 
@@ -72,10 +112,10 @@ struct MentionTextEditor: View {
         ZStack(alignment: .topLeading) {
           AttributedTextEditor(
             text: $text,
+            currentMention: $currentMention,
             cursorPosition: $cursorPosition,
             cursorY: $cursorY,
             contentHeight: $contentHeight,
-            viewModel: viewModel,
             isScrollEnabled: false
           )
           .frame(maxWidth: .infinity, minHeight: contentHeight)
@@ -83,6 +123,13 @@ struct MentionTextEditor: View {
           .onAppear {
             if autoFocusOnAppear {
               self.isFocused = true
+            }
+          }
+          .onChange(of: currentMention) { oldValue, newValue in
+            if let mention = newValue, !mention.isEmpty {
+              viewModel.fetchSuggestions(prefix: mention)
+            } else {
+              viewModel.clearMentionState()
             }
           }
 
@@ -101,10 +148,20 @@ struct MentionTextEditor: View {
 
   static func suggestionView(
     suggestions: [PublicUser],
+    isLoading: Bool = false,
     onInsert: @escaping (PublicUser) -> Void
   ) -> some View {
     VStack(spacing: 0) {
-      if suggestions.isEmpty {
+      if isLoading {
+        HStack {
+          ProgressView()
+            .padding(.trailing, 8)
+          Text("Searching...")
+            .foregroundColor(.gray)
+        }
+        .frame(height: 44)
+        .frame(maxWidth: .infinity, alignment: .center)
+      } else if suggestions.isEmpty {
         Text("No users found")
           .foregroundColor(.gray)
           .frame(height: 44)

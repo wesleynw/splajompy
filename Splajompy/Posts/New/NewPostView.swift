@@ -48,6 +48,7 @@ struct NewPostView: View {
             if mentionViewModel.isShowingSuggestions {
               MentionTextEditor.suggestionView(
                 suggestions: mentionViewModel.mentionSuggestions,
+                isLoading: mentionViewModel.isLoading,
                 onInsert: { user in
                   let result = mentionViewModel.insertMention(
                     user,
@@ -58,8 +59,8 @@ struct NewPostView: View {
                   viewModel.cursorPosition = result.newCursorPosition
                 }
               )
-              .offset(y: cursorY + 20)
-              .padding(.horizontal, 32)
+              .offset(x: 20, y: cursorY + 40)
+              .padding(.horizontal, 16)
               .animation(.default, value: mentionViewModel.isShowingSuggestions)
             }
           }

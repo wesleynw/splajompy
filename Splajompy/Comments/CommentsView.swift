@@ -205,6 +205,7 @@ struct CommentsView: View {
         if showInput && mentionViewModel.isShowingSuggestions {
           MentionTextEditor.suggestionView(
             suggestions: mentionViewModel.mentionSuggestions,
+            isLoading: mentionViewModel.isLoading,
             onInsert: { user in
               let result = mentionViewModel.insertMention(
                 user,
