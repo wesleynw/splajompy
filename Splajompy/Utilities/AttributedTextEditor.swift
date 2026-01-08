@@ -88,12 +88,10 @@ struct AttributedTextEditor: UIViewRepresentable {
       let currentText = textView.attributedText ?? NSAttributedString()
       self.text.wrappedValue = currentText
 
-      // Check for mention after text change
       checkForMention(in: textView)
     }
 
     func textViewDidChangeSelection(_ textView: UITextView) {
-      // Update cursor Y coordinate and position
       if let selectedRange = textView.selectedTextRange {
         let position = textView.offset(
           from: textView.beginningOfDocument,
@@ -106,10 +104,8 @@ struct AttributedTextEditor: UIViewRepresentable {
           self.cursorY.wrappedValue = caretRect.origin.y
         }
 
-        // Check for mention after selection change
         checkForMention(in: textView)
 
-        // Reset typing attributes if not in mention
         let isInMention = MentionTextEditor.isPositionInMention(in: textView.text, at: position)
 
         if !isInMention {
@@ -138,7 +134,6 @@ struct AttributedTextEditor: UIViewRepresentable {
 
       let text = textView.text ?? ""
 
-      // Find word start before cursor
       guard cursorPosition > 0, cursorPosition <= text.count else {
         DispatchQueue.main.async {
           self.currentMention.wrappedValue = nil
@@ -153,7 +148,6 @@ struct AttributedTextEditor: UIViewRepresentable {
           limitedBy: text.endIndex
         ) ?? text.endIndex
 
-      // Check if character before cursor is whitespace (clear mention)
       if cursorIndex > text.startIndex {
         let beforeCursor = text.index(before: cursorIndex)
         if text[beforeCursor] == " " || text[beforeCursor] == "\n" {
@@ -164,14 +158,12 @@ struct AttributedTextEditor: UIViewRepresentable {
         }
       }
 
-      // Find word boundary
       let wordStartIndex =
         text[..<cursorIndex].lastIndex(where: { $0.isWhitespace })
         .map { text.index(after: $0) } ?? text.startIndex
 
       let currentWord = String(text[wordStartIndex..<cursorIndex])
 
-      // Check if current word is a mention
       if currentWord.hasPrefix("@"), currentWord.count <= 21 {
         let mentionPrefix = String(currentWord.dropFirst())
         DispatchQueue.main.async {
