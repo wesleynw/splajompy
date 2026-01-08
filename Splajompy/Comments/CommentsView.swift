@@ -55,6 +55,12 @@ struct CommentsView: View {
           #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
           #endif
+          .interactiveDismissDisabled(
+            isInputFocused
+              || !viewModel.text.string.trimmingCharacters(
+                in: .whitespacesAndNewlines
+              ).isEmpty
+          )
           .toolbar {
             ToolbarItem(
               placement: {
