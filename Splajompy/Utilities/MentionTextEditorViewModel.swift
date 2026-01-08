@@ -5,116 +5,60 @@ extension MentionTextEditor {
   class MentionViewModel: ObservableObject {
     @Published var mentionSuggestions: [PublicUser] = []
     @Published var isShowingSuggestions = false
+    @Published var isLoading = false
 
     private var service: ProfileServiceProtocol = ProfileService()
-    private var mentionStartIndex: String.Index?
-    private var mentionPrefix: String = ""
-    private let mentionPattern = "@([a-zA-Z0-9_.]+)"
+    private var fetchTask: Task<Void, Never>?
+    private var debounceTask: Task<Void, Never>?
 
-    private struct Mention {
-      let username: String
-      let range: NSRange
-    }
+    func clearMentionState() {
+      fetchTask?.cancel()
+      debounceTask?.cancel()
 
-    private func extractMentions(from text: String) -> [Mention] {
-      var mentions: [Mention] = []
-      do {
-        let regex = try NSRegularExpression(pattern: mentionPattern)
-        let nsString = text as NSString
-        let matches = regex.matches(
-          in: text,
-          range: NSRange(location: 0, length: nsString.length)
-        )
-
-        for match in matches {
-          let range = match.range
-          let username = nsString.substring(
-            with: NSRange(
-              location: range.location + 1,
-              length: range.length - 1
-            )
-          )
-          mentions.append(Mention(username: username, range: range))
-        }
-      } catch {
-        print("Error creating regex: \(error)")
-      }
-      return mentions
-    }
-
-    func checkForMention(in text: String, at cursorPosition: Int) {
-      guard cursorPosition > 0, cursorPosition <= text.utf16.count else {
-        clearMentionState()
-        return
-      }
-
-      let cursorIndex =
-        text.index(
-          text.startIndex,
-          offsetBy: cursorPosition,
-          limitedBy: text.endIndex
-        ) ?? text.endIndex
-
-      if cursorPosition == 0 {
-        clearMentionState()
-        return
-      }
-
-      let beforeCursorIndex = text.index(before: cursorIndex)
-      if cursorIndex > text.startIndex
-        && (text[beforeCursorIndex] == " " || text[beforeCursorIndex] == "\n")
-      {
-        clearMentionState()
-        return
-      }
-
-      let wordStartIndex =
-        text[..<cursorIndex].lastIndex(where: { $0.isWhitespace })
-        .map { text.index(after: $0) } ?? text.startIndex
-
-      let currentWord = String(text[wordStartIndex..<cursorIndex])
-
-      if currentWord.hasPrefix("@"), currentWord.count <= 21 {
-        mentionStartIndex = wordStartIndex
-        let newPrefix = String(currentWord.dropFirst())
-
-        if newPrefix != mentionPrefix {
-          mentionPrefix = newPrefix
-          fetchSuggestions(prefix: mentionPrefix)
-        }
-        return
-      }
-
-      clearMentionState()
-    }
-
-    private func clearMentionState() {
-      mentionStartIndex = nil
-      mentionPrefix = ""
       isShowingSuggestions = false
+      isLoading = false
       mentionSuggestions = []
     }
 
     func fetchSuggestions(prefix: String) {
-      self.isShowingSuggestions = true
+      debounceTask?.cancel()
 
-      Task {
-        let response = await service.getUserFromUsernamePrefix(prefix: prefix)
-        switch response {
-        case .success(let users):
+      guard !prefix.isEmpty else {
+        clearMentionState()
+        return
+      }
+
+      self.isShowingSuggestions = true
+      self.isLoading = true
+
+      debounceTask = Task {
+        try? await Task.sleep(nanoseconds: 300_000_000)  // 300ms
+
+        guard !Task.isCancelled else { return }
+
+        await MainActor.run {
+          self.fetchTask?.cancel()
+        }
+
+        let fetchTask = Task {
+          let response = await service.getUserFromUsernamePrefix(prefix: prefix)
+
+          guard !Task.isCancelled else { return }
+
           await MainActor.run {
-            self.mentionSuggestions = users
-            if prefix.isEmpty {
-              self.isShowingSuggestions = false
+            switch response {
+            case .success(let users):
+              self.mentionSuggestions = users
+              self.isLoading = false
+            case .error:
+              self.mentionSuggestions = []
+              self.isLoading = false
             }
           }
-        case .error:
-          await MainActor.run {
-            self.mentionSuggestions = []
-            if prefix.isEmpty {
-              self.isShowingSuggestions = false
-            }
-          }
+        }
+
+        await MainActor.run {
+          self.fetchTask = fetchTask
         }
       }
     }
@@ -122,10 +66,6 @@ extension MentionTextEditor {
     func insertMention(
       _ user: PublicUser, in attributedText: NSAttributedString, at cursorPosition: Int
     ) -> (text: NSAttributedString, newCursorPosition: Int) {
-      guard let startIndex = mentionStartIndex else {
-        return (attributedText, cursorPosition)
-      }
-
       let text = attributedText.string
 
       let cursorIndex =
@@ -135,7 +75,14 @@ extension MentionTextEditor {
           limitedBy: text.endIndex
         ) ?? text.endIndex
 
-      let replaceRange = startIndex..<cursorIndex
+      let wordStartIndex =
+        text[..<cursorIndex].lastIndex(where: { $0.isWhitespace })
+        .map { text.index(after: $0) } ?? text.startIndex
+
+      let wordEndIndex =
+        text[cursorIndex...].firstIndex(where: { $0.isWhitespace }) ?? text.endIndex
+
+      let replaceRange = wordStartIndex..<wordEndIndex
       let replacement = "@\(user.username) "
 
       var newText = text
@@ -144,19 +91,12 @@ extension MentionTextEditor {
       let newAttributedText = applyMentionStyling(to: newText)
 
       let newCursorPosition =
-        text.distance(from: text.startIndex, to: startIndex)
+        text.distance(from: text.startIndex, to: wordStartIndex)
         + replacement.utf16.count
 
       clearMentionState()
 
       return (newAttributedText, newCursorPosition)
-    }
-
-    func isPositionInMention(in text: String, at position: Int) -> Bool {
-      let mentions = extractMentions(from: text)
-      return mentions.contains { mention in
-        NSLocationInRange(position, mention.range)
-      }
     }
 
     func applyMentionStyling(to text: String) -> NSAttributedString {
@@ -174,7 +114,7 @@ extension MentionTextEditor {
         range: fullRange
       )
 
-      let mentions = extractMentions(from: text)
+      let mentions = MentionTextEditor.extractMentions(from: text)
       for mention in mentions {
         mutableAttributedText.addAttribute(
           .foregroundColor,

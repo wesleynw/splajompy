@@ -48,10 +48,11 @@ import SwiftUI
         .padding(.vertical, 8)
         .background(Color(uiColor: .systemBackground))
       }
-      .overlay(alignment: .bottomLeading) {
+      .overlay(alignment: .topLeading) {
         if mentionViewModel.isShowingSuggestions {
           MentionTextEditor.suggestionView(
             suggestions: mentionViewModel.mentionSuggestions,
+            isLoading: mentionViewModel.isLoading,
             onInsert: { user in
               let result = mentionViewModel.insertMention(
                 user,
@@ -62,8 +63,8 @@ import SwiftUI
               cursorPosition = result.newCursorPosition
             }
           )
+          .offset(x: 20, y: cursorY + 38)
           .padding(.horizontal, 16)
-          .padding(.bottom, 60)
           .animation(.default, value: mentionViewModel.isShowingSuggestions)
         }
       }

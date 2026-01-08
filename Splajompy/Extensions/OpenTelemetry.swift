@@ -18,11 +18,10 @@ func initializeOtel() {
   )
   let spanProcessor = BatchSpanProcessor(spanExporter: spanExporter)
 
+  let serviceName = "ios-app"
   #if DEBUG
-    let serviceName = "ios-dev"
     let environment = "development"
   #else
-    let serviceName = "ios-prod"
     let environment = "production"
   #endif
 
@@ -32,6 +31,7 @@ func initializeOtel() {
       Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String
         ?? "unknown"
     ),
+    "service.instance.id": AttributeValue.string(UUID().uuidString),
     "deployment.environment": AttributeValue.string(environment),
   ])
 
