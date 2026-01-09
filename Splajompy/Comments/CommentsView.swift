@@ -56,10 +56,9 @@ struct CommentsView: View {
             .navigationBarTitleDisplayMode(.inline)
           #endif
           .interactiveDismissDisabled(
-            isInputFocused
-              || !viewModel.text.string.trimmingCharacters(
-                in: .whitespacesAndNewlines
-              ).isEmpty
+            !viewModel.text.string.trimmingCharacters(
+              in: .whitespacesAndNewlines
+            ).isEmpty
           )
           .toolbar {
             ToolbarItem(
