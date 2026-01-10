@@ -85,8 +85,17 @@ struct AttributedTextEditor: UIViewRepresentable {
 
     func textViewDidChange(_ textView: UITextView) {
       isInternalUpdate = true
-      let currentText = textView.attributedText ?? NSAttributedString()
-      self.text.wrappedValue = currentText
+
+      let plainText = textView.text ?? ""
+
+      let styledText = applyMentionStyling(to: plainText)
+
+      let selectedRange = textView.selectedRange
+
+      textView.attributedText = styledText
+      textView.selectedRange = selectedRange
+
+      self.text.wrappedValue = styledText
 
       checkForMention(in: textView)
     }
@@ -108,13 +117,11 @@ struct AttributedTextEditor: UIViewRepresentable {
 
         let isInMention = MentionTextEditor.isPositionInMention(in: textView.text, at: position)
 
-        if !isInMention {
-          DispatchQueue.main.async {
-            textView.typingAttributes = [
-              .font: UIFont.preferredFont(forTextStyle: .body),
-              .foregroundColor: UIColor.label,
-            ]
-          }
+        DispatchQueue.main.async {
+          textView.typingAttributes = [
+            .font: UIFont.preferredFont(forTextStyle: .body),
+            .foregroundColor: isInMention ? UIColor.systemBlue : UIColor.label,
+          ]
         }
       }
     }
@@ -174,6 +181,33 @@ struct AttributedTextEditor: UIViewRepresentable {
           self.currentMention.wrappedValue = nil
         }
       }
+    }
+
+    private func applyMentionStyling(to text: String) -> NSAttributedString {
+      let mutableAttributedText = NSMutableAttributedString(string: text)
+      let fullRange = NSRange(location: 0, length: text.utf16.count)
+
+      mutableAttributedText.addAttribute(
+        .font,
+        value: UIFont.preferredFont(forTextStyle: .body),
+        range: fullRange
+      )
+      mutableAttributedText.addAttribute(
+        .foregroundColor,
+        value: UIColor.label,
+        range: fullRange
+      )
+
+      let mentions = MentionTextEditor.extractMentions(from: text)
+      for mention in mentions {
+        mutableAttributedText.addAttribute(
+          .foregroundColor,
+          value: UIColor.systemBlue,
+          range: mention.range
+        )
+      }
+
+      return mutableAttributedText
     }
   }
 }

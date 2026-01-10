@@ -88,20 +88,8 @@ extension MentionTextEditor {
       var newText = text
       newText.replaceSubrange(replaceRange, with: replacement)
 
-      let newAttributedText = applyMentionStyling(to: newText)
-
-      let newCursorPosition =
-        text.distance(from: text.startIndex, to: wordStartIndex)
-        + replacement.utf16.count
-
-      clearMentionState()
-
-      return (newAttributedText, newCursorPosition)
-    }
-
-    func applyMentionStyling(to text: String) -> NSAttributedString {
-      let mutableAttributedText = NSMutableAttributedString(string: text)
-      let fullRange = NSRange(location: 0, length: text.utf16.count)
+      let mutableAttributedText = NSMutableAttributedString(string: newText)
+      let fullRange = NSRange(location: 0, length: newText.utf16.count)
 
       mutableAttributedText.addAttribute(
         .font,
@@ -114,7 +102,7 @@ extension MentionTextEditor {
         range: fullRange
       )
 
-      let mentions = MentionTextEditor.extractMentions(from: text)
+      let mentions = MentionTextEditor.extractMentions(from: newText)
       for mention in mentions {
         mutableAttributedText.addAttribute(
           .foregroundColor,
@@ -123,7 +111,13 @@ extension MentionTextEditor {
         )
       }
 
-      return mutableAttributedText
+      let newCursorPosition =
+        text.distance(from: text.startIndex, to: wordStartIndex)
+        + replacement.utf16.count
+
+      clearMentionState()
+
+      return (mutableAttributedText, newCursorPosition)
     }
   }
 }
