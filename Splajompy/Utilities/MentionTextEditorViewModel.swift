@@ -64,7 +64,9 @@ extension MentionTextEditor {
     }
 
     func insertMention(
-      _ user: PublicUser, in attributedText: NSAttributedString, at cursorPosition: Int
+      _ user: PublicUser,
+      in attributedText: NSAttributedString,
+      at cursorPosition: Int
     ) -> (text: NSAttributedString, newCursorPosition: Int) {
       let text = attributedText.string
 
@@ -80,7 +82,8 @@ extension MentionTextEditor {
         .map { text.index(after: $0) } ?? text.startIndex
 
       let wordEndIndex =
-        text[cursorIndex...].firstIndex(where: { $0.isWhitespace }) ?? text.endIndex
+        text[cursorIndex...].firstIndex(where: { $0.isWhitespace })
+        ?? text.endIndex
 
       let replaceRange = wordStartIndex..<wordEndIndex
       let replacement = "@\(user.username) "

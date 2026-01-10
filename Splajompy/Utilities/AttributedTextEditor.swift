@@ -42,11 +42,13 @@ struct AttributedTextEditor: UIViewRepresentable {
   }
 
   func updateUIView(_ uiView: UITextView, context: Context) {
-    if !context.coordinator.isInternalUpdate && uiView.attributedText != text {
+    if uiView.attributedText != text {
       uiView.attributedText = text
-
     }
-    context.coordinator.isInternalUpdate = false
+
+    if uiView.selectedRange.upperBound != cursorPosition {
+      uiView.selectedRange = NSRange(location: cursorPosition, length: 0)
+    }
 
     let fixedWidth = uiView.bounds.width
     let size = uiView.sizeThatFits(
@@ -69,7 +71,6 @@ struct AttributedTextEditor: UIViewRepresentable {
     var currentMention: Binding<String?>
     var cursorPosition: Binding<Int>
     var cursorY: Binding<CGFloat>
-    var isInternalUpdate = false
 
     init(
       _ text: Binding<NSAttributedString>,
@@ -84,19 +85,14 @@ struct AttributedTextEditor: UIViewRepresentable {
     }
 
     func textViewDidChange(_ textView: UITextView) {
-      isInternalUpdate = true
+      let text =
+        textView.attributedText ?? NSAttributedString(string: "")
 
-      let plainText = textView.text ?? ""
-
-      let styledText = applyMentionStyling(to: plainText)
-
-      let selectedRange = textView.selectedRange
-
+      let ranges = textView.selectedRange
+      let styledText = applyMentionStyling(to: text)
       textView.attributedText = styledText
-      textView.selectedRange = selectedRange
-
+      textView.selectedRange = ranges
       self.text.wrappedValue = styledText
-
       checkForMention(in: textView)
     }
 
@@ -115,7 +111,10 @@ struct AttributedTextEditor: UIViewRepresentable {
 
         checkForMention(in: textView)
 
-        let isInMention = MentionTextEditor.isPositionInMention(in: textView.text, at: position)
+        let isInMention = MentionTextEditor.isPositionInMention(
+          in: textView.text,
+          at: position
+        )
 
         DispatchQueue.main.async {
           textView.typingAttributes = [
@@ -169,7 +168,13 @@ struct AttributedTextEditor: UIViewRepresentable {
         text[..<cursorIndex].lastIndex(where: { $0.isWhitespace })
         .map { text.index(after: $0) } ?? text.startIndex
 
-      let currentWord = String(text[wordStartIndex..<cursorIndex])
+      let wordEndIndex =
+        text[cursorIndex...].firstIndex(where: { $0.isWhitespace })
+        ?? text.endIndex
+
+      print("start: \(wordStartIndex), end \(wordEndIndex)")
+
+      let currentWord = String(text[wordStartIndex..<wordEndIndex])
 
       if currentWord.hasPrefix("@"), currentWord.count <= 21 {
         let mentionPrefix = String(currentWord.dropFirst())
@@ -183,9 +188,13 @@ struct AttributedTextEditor: UIViewRepresentable {
       }
     }
 
-    private func applyMentionStyling(to text: String) -> NSAttributedString {
-      let mutableAttributedText = NSMutableAttributedString(string: text)
-      let fullRange = NSRange(location: 0, length: text.utf16.count)
+    private func applyMentionStyling(to text: NSAttributedString)
+      -> NSAttributedString
+    {
+      let mutableAttributedText = NSMutableAttributedString(
+        attributedString: text
+      )
+      let fullRange = NSRange(location: 0, length: text.length)
 
       mutableAttributedText.addAttribute(
         .font,
@@ -198,7 +207,7 @@ struct AttributedTextEditor: UIViewRepresentable {
         range: fullRange
       )
 
-      let mentions = MentionTextEditor.extractMentions(from: text)
+      let mentions = MentionTextEditor.extractMentions(from: text.string)
       for mention in mentions {
         mutableAttributedText.addAttribute(
           .foregroundColor,

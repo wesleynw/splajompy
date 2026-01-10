@@ -56,6 +56,7 @@ struct NewPostView: View {
                     at: viewModel.cursorPosition
                   )
                   viewModel.text = result.text
+                  print("new cursor pos: \(result.newCursorPosition)")
                   viewModel.cursorPosition = result.newCursorPosition
                 }
               )
