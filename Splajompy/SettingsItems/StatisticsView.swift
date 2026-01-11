@@ -49,7 +49,7 @@ struct StatisticsView: View {
       .navigationBarTitleDisplayMode(.inline)
     #endif
     .refreshable {
-      await viewModel.load(useLoadingState: false)
+      await viewModel.load(showLoadingState: false)
     }
     .task {
       await viewModel.load()
