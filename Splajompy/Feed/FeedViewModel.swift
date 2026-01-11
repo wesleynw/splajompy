@@ -8,7 +8,7 @@ enum FeedState {
   case failed(Error)
 }
 
-@MainActor class FeedViewModel: ObservableObject {
+@MainActor @Observable class FeedViewModel: ObservableObject {
   var feedType: FeedType
   var userId: Int?
   @Published var canLoadMore: Bool = true
