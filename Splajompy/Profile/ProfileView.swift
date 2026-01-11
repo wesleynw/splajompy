@@ -75,8 +75,8 @@ struct ProfileView: View {
     }
     #if os(iOS)
       .navigationBarTitleDisplayMode(.inline)
-    #endif
-    #if os(macOS)
+      .toolbarRole(.browser)
+    #else
       .modify {
         if isProfileTab {
           $0.toolbar(removing: .title)
@@ -85,7 +85,6 @@ struct ProfileView: View {
         }
       }
     #endif
-    .toolbarRole(.browser)
     .toolbar {
       if isProfileTab {
         if #available(iOS 26, macOS 26, *) {
