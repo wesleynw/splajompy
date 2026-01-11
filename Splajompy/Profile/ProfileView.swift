@@ -85,34 +85,26 @@ struct ProfileView: View {
         }
       }
     #endif
+    .toolbarRole(.browser)
     .toolbar {
       if isProfileTab {
         if #available(iOS 26, macOS 26, *) {
           ToolbarItem(
             placement: .principal
           ) {
-            HStack {
-              Text("@" + self.username)
-                .font(.title2)
-                .fontWeight(.black)
-              Spacer()
+            Text("@" + self.username)
+              .font(.title2)
+              .fontWeight(.black)
 
-            }
-            .frame(maxWidth: .infinity)
           }
           .sharedBackgroundVisibility(.hidden)
         } else {
           ToolbarItem(
             placement: .principal
           ) {
-            HStack {
-              Text("@" + self.username)
-              Text("@wesley")
-                .font(.title2)
-                .fontWeight(.black)
-              Spacer()
-            }
-            .frame(maxWidth: .infinity)
+            Text("@" + self.username)
+              .font(.title2)
+              .fontWeight(.black)
           }
         }
       } else {

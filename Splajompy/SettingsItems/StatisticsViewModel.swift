@@ -16,8 +16,10 @@ extension StatisticsView {
       self.profileService = profileService
     }
 
-    func load() async {
-      state = .loading
+    func load(showLoadingState: Bool = false) async {
+      if showLoadingState {
+        state = .loading
+      }
 
       let result = await profileService.getAppStatistics()
 
