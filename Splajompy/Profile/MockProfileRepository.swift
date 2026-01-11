@@ -25,6 +25,8 @@ final class MockUserRepository: @unchecked Sendable {
         name: "Wesley Weisenberger",
         bio: """
           welcome to splajompy!\nno, I don't know your password, they're all encrypted and whatever.
+
+          https://splajompy.com
           """,
         isFollower: false,
         isFollowing: false,
