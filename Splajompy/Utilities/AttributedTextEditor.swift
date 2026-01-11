@@ -42,11 +42,13 @@ struct AttributedTextEditor: UIViewRepresentable {
   }
 
   func updateUIView(_ uiView: UITextView, context: Context) {
-    if !context.coordinator.isInternalUpdate && uiView.attributedText != text {
+    if uiView.attributedText != text {
       uiView.attributedText = text
-
     }
-    context.coordinator.isInternalUpdate = false
+
+    if uiView.selectedRange.upperBound != cursorPosition {
+      uiView.selectedRange = NSRange(location: cursorPosition, length: 0)
+    }
 
     let fixedWidth = uiView.bounds.width
     let size = uiView.sizeThatFits(
@@ -69,7 +71,6 @@ struct AttributedTextEditor: UIViewRepresentable {
     var currentMention: Binding<String?>
     var cursorPosition: Binding<Int>
     var cursorY: Binding<CGFloat>
-    var isInternalUpdate = false
 
     init(
       _ text: Binding<NSAttributedString>,
@@ -84,10 +85,14 @@ struct AttributedTextEditor: UIViewRepresentable {
     }
 
     func textViewDidChange(_ textView: UITextView) {
-      isInternalUpdate = true
-      let currentText = textView.attributedText ?? NSAttributedString()
-      self.text.wrappedValue = currentText
+      let text =
+        textView.attributedText ?? NSAttributedString(string: "")
 
+      let ranges = textView.selectedRange
+      let styledText = applyMentionStyling(to: text)
+      textView.attributedText = styledText
+      textView.selectedRange = ranges
+      self.text.wrappedValue = styledText
       checkForMention(in: textView)
     }
 
@@ -106,15 +111,16 @@ struct AttributedTextEditor: UIViewRepresentable {
 
         checkForMention(in: textView)
 
-        let isInMention = MentionTextEditor.isPositionInMention(in: textView.text, at: position)
+        let isInMention = MentionTextEditor.isPositionInMention(
+          in: textView.text,
+          at: position
+        )
 
-        if !isInMention {
-          DispatchQueue.main.async {
-            textView.typingAttributes = [
-              .font: UIFont.preferredFont(forTextStyle: .body),
-              .foregroundColor: UIColor.label,
-            ]
-          }
+        DispatchQueue.main.async {
+          textView.typingAttributes = [
+            .font: UIFont.preferredFont(forTextStyle: .body),
+            .foregroundColor: isInMention ? UIColor.systemBlue : UIColor.label,
+          ]
         }
       }
     }
@@ -162,7 +168,13 @@ struct AttributedTextEditor: UIViewRepresentable {
         text[..<cursorIndex].lastIndex(where: { $0.isWhitespace })
         .map { text.index(after: $0) } ?? text.startIndex
 
-      let currentWord = String(text[wordStartIndex..<cursorIndex])
+      let wordEndIndex =
+        text[cursorIndex...].firstIndex(where: { $0.isWhitespace })
+        ?? text.endIndex
+
+      print("start: \(wordStartIndex), end \(wordEndIndex)")
+
+      let currentWord = String(text[wordStartIndex..<wordEndIndex])
 
       if currentWord.hasPrefix("@"), currentWord.count <= 21 {
         let mentionPrefix = String(currentWord.dropFirst())
@@ -174,6 +186,37 @@ struct AttributedTextEditor: UIViewRepresentable {
           self.currentMention.wrappedValue = nil
         }
       }
+    }
+
+    private func applyMentionStyling(to text: NSAttributedString)
+      -> NSAttributedString
+    {
+      let mutableAttributedText = NSMutableAttributedString(
+        attributedString: text
+      )
+      let fullRange = NSRange(location: 0, length: text.length)
+
+      mutableAttributedText.addAttribute(
+        .font,
+        value: UIFont.preferredFont(forTextStyle: .body),
+        range: fullRange
+      )
+      mutableAttributedText.addAttribute(
+        .foregroundColor,
+        value: UIColor.label,
+        range: fullRange
+      )
+
+      let mentions = MentionTextEditor.extractMentions(from: text.string)
+      for mention in mentions {
+        mutableAttributedText.addAttribute(
+          .foregroundColor,
+          value: UIColor.systemBlue,
+          range: mention.range
+        )
+      }
+
+      return mutableAttributedText
     }
   }
 }

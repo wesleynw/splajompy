@@ -59,8 +59,8 @@ struct NewPostView: View {
                   viewModel.cursorPosition = result.newCursorPosition
                 }
               )
-              .offset(x: 20, y: cursorY + 40)
-              .padding(.horizontal, 16)
+              .offset(y: cursorY + 40)
+              .padding(.horizontal, 32)
               .animation(.default, value: mentionViewModel.isShowingSuggestions)
             }
           }
