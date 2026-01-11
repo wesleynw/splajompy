@@ -185,17 +185,20 @@ extension ProfileView {
         isLoading = false
       }
 
+      let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
+      let trimmedBio = bio.trimmingCharacters(in: .whitespacesAndNewlines)
+
       Task {
         let result = await profileService.updateProfile(
-          name: name.trimmingCharacters(in: .whitespacesAndNewlines),
-          bio: bio.trimmingCharacters(in: .whitespacesAndNewlines),
+          name: trimmedName,
+          bio: trimmedBio,
           displayProperties: displayProperties
         )
         switch result {
         case .success(_):
           if case .loaded(var profile) = profileState {
-            profile.name = name
-            profile.bio = bio
+            profile.name = trimmedName
+            profile.bio = trimmedBio
             profile.displayProperties = displayProperties
             profileState = .loaded(profile)
           }

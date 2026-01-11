@@ -37,10 +37,6 @@ struct StatisticsView: View {
           StatRow(label: "Users", value: stats.totalUsers)
           StatRow(label: "Notifications", value: stats.totalNotifications)
         }
-        .refreshable {
-          await viewModel.load()
-        }
-
       case .failed(let error):
         ErrorScreen(
           errorString: error.localizedDescription,
@@ -52,6 +48,9 @@ struct StatisticsView: View {
     #if os(iOS)
       .navigationBarTitleDisplayMode(.inline)
     #endif
+    .refreshable {
+      await viewModel.load(showLoadingState: false)
+    }
     .task {
       await viewModel.load()
     }

@@ -22,7 +22,7 @@ struct ProfileEditorView: View {
     NavigationStack {
       VStack(alignment: .leading) {
         HStack {
-          Text("Display Name")
+          Text("Name")
             .font(.subheadline)
             .fontWeight(.bold)
             .foregroundStyle(.primary.opacity(0.7))
