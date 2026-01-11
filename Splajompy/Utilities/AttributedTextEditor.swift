@@ -164,7 +164,7 @@ struct AttributedTextEditor: UIViewRepresentable {
 
       let currentWord = String(text[wordStartIndex..<cursorIndex])
 
-      if currentWord.hasPrefix("@"), currentWord.count <= 21 {
+      if currentWord.hasPrefix("@"), currentWord.count <= 25 {
         let mentionPrefix = String(currentWord.dropFirst())
         DispatchQueue.main.async {
           self.currentMention.wrappedValue = mentionPrefix
