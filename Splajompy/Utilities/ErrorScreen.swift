@@ -7,16 +7,16 @@ struct ErrorScreen: View {
 
   var body: some View {
     VStack {
-      Spacer()
       VStack {
         Text("There was an error.")
-          .font(.title2)
           .fontWeight(.bold)
+          .font(.title2)
         Text(errorString)
+          .fontWeight(.semibold)
           .foregroundColor(.red)
-          .multilineTextAlignment(.center)
       }
-      .padding()
+      .multilineTextAlignment(.center)
+
       Button {
         Task {
           isRetrying = true
@@ -35,9 +35,22 @@ struct ErrorScreen: View {
         }
       }
       .disabled(isRetrying)
+      .modify {
+        if #available(iOS 26, macOS 26, *) {
+          $0.buttonStyle(.glass)
+        } else {
+          $0.buttonStyle(.borderless)
+        }
+      }
       .padding()
-      .buttonStyle(.bordered)
-      Spacer()
     }
+    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
   }
+}
+
+#Preview {
+  ErrorScreen(
+    errorString: "Could not connect to the server",
+    onRetry: { print("retrying") }
+  )
 }
