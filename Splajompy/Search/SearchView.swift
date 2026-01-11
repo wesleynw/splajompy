@@ -25,10 +25,6 @@ struct SearchView: View {
         }
       }
     }
-    .contentShape(Rectangle())
-    .onTapGesture {
-      isSearchBarFocused = false
-    }
     #if os(macOS)
       .contentMargins(.horizontal, 40, for: .scrollContent)
       .safeAreaPadding(.horizontal, 20)
@@ -91,6 +87,9 @@ struct SearchView: View {
         viewModel.clearResults()
       }
     }
+    //    .onTapGesture {
+    //      isSearchBarFocused = false
+    //    }
   }
 
   private var emptyState: some View {
@@ -100,6 +99,7 @@ struct SearchView: View {
         .foregroundColor(.gray)
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity)
+    .contentShape(Rectangle())
   }
 
   private var noResultsState: some View {
@@ -112,6 +112,7 @@ struct SearchView: View {
         .fontWeight(.bold)
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity)
+    .contentShape(Rectangle())
   }
 
   private func searchResults(users: [PublicUser]) -> some View {
@@ -131,11 +132,5 @@ struct SearchView: View {
       }
     }
     .listStyle(.plain)
-  }
-}
-
-#Preview {
-  NavigationStack {
-    SearchView()
   }
 }

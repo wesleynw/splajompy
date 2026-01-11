@@ -4,7 +4,7 @@ import SwiftUI
 struct MainFeedView: View {
   @State private var isShowingNewPostView = false
   @State private var isShowingWrappedView: Bool = false
-  @StateObject private var viewModel: FeedViewModel
+  @State private var viewModel: FeedViewModel
   @StateObject private var wrappedViewModel: WrappedViewModel =
     WrappedViewModel()
   @EnvironmentObject var authManager: AuthManager
@@ -15,7 +15,7 @@ struct MainFeedView: View {
 
   init(postManager: PostManager) {
     self.postManager = postManager
-    _viewModel = StateObject(
+    _viewModel = State(
       wrappedValue: FeedViewModel(feedType: .all, postManager: postManager)
     )
   }
