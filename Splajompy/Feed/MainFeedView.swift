@@ -13,6 +13,9 @@ struct MainFeedView: View {
   @AppStorage("selectedFeedType") private var selectedFeedType: FeedType = .all
   @AppStorage("hasViewedWrapped") private var hasViewedWrapped: Bool = false
 
+  let title =
+    PostHogSDK.shared.isFeatureEnabled("lemoade") ? "Lemoade" : "Splajompy"
+
   init(postManager: PostManager) {
     self.postManager = postManager
     _viewModel = State(
@@ -68,7 +71,7 @@ struct MainFeedView: View {
             }
           } label: {
             HStack {
-              Text("Splajompy")
+              Text(title)
                 .font(.title2)
                 .fontWeight(.black)
 
