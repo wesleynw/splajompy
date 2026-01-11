@@ -319,7 +319,7 @@ struct ProfileView: View {
       ProfileDisplayNameView(user: user, largeTitle: true, showUsername: false)
 
       if !user.bio.isEmpty {
-        Text(user.bio)
+        Text(.init(user.bio))
           .font(.body)
           .fixedSize(horizontal: false, vertical: true)
       }

@@ -153,7 +153,7 @@ struct PollOption: Decodable {
   var voteTotal: Int
 }
 
-struct AppStats: Decodable {
+struct AppStatistics: Decodable {
   let totalPosts: Int
   let totalComments: Int
   let totalLikes: Int

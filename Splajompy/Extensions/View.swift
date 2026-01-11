@@ -2,7 +2,11 @@ import SwiftUI
 
 extension View {
   @ViewBuilder
-  func modify(@ViewBuilder _ fn: (Self) -> some View) -> some View {
-    fn(self)
+  func modify(@ViewBuilder _ fn: (Self) -> (some View)?) -> some View {
+    if let view = fn(self), !(view is EmptyView) {
+      view
+    } else {
+      self
+    }
   }
 }

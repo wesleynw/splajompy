@@ -6,7 +6,9 @@ struct PollCreationView: View {
   @Environment(\.dismiss) private var dismiss
 
   @State private var title = ""
-  @State private var options: [(id: UUID, text: String)] = [(id: UUID(), text: "")]
+  @State private var options: [(id: UUID, text: String)] = [
+    (id: UUID(), text: "")
+  ]
   @FocusState private var focusedField: Int?
 
   var body: some View {
@@ -72,7 +74,8 @@ struct PollCreationView: View {
         title = existingPoll.title
         options =
           existingPoll.options.isEmpty
-          ? [(id: UUID(), text: "")] : existingPoll.options.map { (id: UUID(), text: $0) }
+          ? [(id: UUID(), text: "")]
+          : existingPoll.options.map { (id: UUID(), text: $0) }
       }
     }
   }
@@ -138,15 +141,20 @@ private struct PollFormContent<AddButton: View>: View {
 
   private func placeholder(for index: Int) -> String {
     let placeholders = ["Red", "Green", "Mauve", "Vermilion", "Periwinkle"]
-    return index < placeholders.count ? placeholders[index] : "Option \(index + 1)"
+    return index < placeholders.count
+      ? placeholders[index] : "Option \(index + 1)"
   }
 
   var body: some View {
     Section {
       VStack(alignment: .leading) {
         #if os(iOS)
-          TextField("What's your favorite color?", text: $title)
-            .disabled(editMode?.wrappedValue == .active)
+          TextField(
+            "What's your favorite color?",
+            text: $title,
+            axis: .vertical
+          )
+          .disabled(editMode?.wrappedValue == .active)
         #else
           TextField("What's your favorite color?", text: $title)
         #endif
@@ -192,7 +200,9 @@ private struct PollFormContent<AddButton: View>: View {
           if focusedField == index || options[index].text.count > 25 {
             Text("\(options[index].text.count)/25")
               .font(.caption2)
-              .foregroundColor(options[index].text.count > 25 ? .orange : .secondary)
+              .foregroundColor(
+                options[index].text.count > 25 ? .orange : .secondary
+              )
           }
         }
       }
@@ -202,7 +212,8 @@ private struct PollFormContent<AddButton: View>: View {
         }
       }
       .onDelete { offsets in
-        guard options.count > 1, offsets.allSatisfy({ $0 < options.count }) else {
+        guard options.count > 1, offsets.allSatisfy({ $0 < options.count })
+        else {
           return
         }
         withAnimation {

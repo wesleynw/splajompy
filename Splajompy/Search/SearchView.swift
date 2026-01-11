@@ -1,23 +1,28 @@
 import SwiftUI
 
 struct SearchView: View {
-  @StateObject private var viewModel: ViewModel
+  @State private var viewModel: ViewModel = ViewModel()
+  @FocusState private var isSearchBarFocused: Bool
   @State private var searchText = ""
-
-  init() {
-    _viewModel = StateObject(wrappedValue: ViewModel())
-  }
 
   var body: some View {
     Group {
-      if viewModel.isLoading {
-        ProgressView()
-      } else if searchText.isEmpty {
+      switch viewModel.state {
+      case .idle:
         emptyState
-      } else if viewModel.searchResults.isEmpty {
-        noResultsState
-      } else {
-        searchResults
+      case .loading:
+        ProgressView()
+      case .error(let error):
+        ErrorScreen(
+          errorString: error.localizedDescription,
+          onRetry: { await viewModel.searchUsers(prefix: searchText) }
+        )
+      case .loaded(let results):
+        if results.isEmpty {
+          noResultsState
+        } else {
+          searchResults(users: results)
+        }
       }
     }
     #if os(macOS)
@@ -60,19 +65,31 @@ struct SearchView: View {
       }
     }
     .searchable(text: $searchText)
+    .modify {
+      if #available(iOS 26, *) {
+        $0.searchFocused($isSearchBarFocused)
+      }
+    }
     .autocorrectionDisabled()
     .onSubmit(of: .search) {
       if !searchText.isEmpty {
-        viewModel.searchUsers(prefix: searchText.lowercased())
+        Task {
+          await viewModel.searchUsers(prefix: searchText.lowercased())
+        }
       }
     }
     .onChange(of: searchText) { _, newValue in
       if newValue.count >= 1 {
-        viewModel.searchUsers(prefix: newValue.lowercased())
+        Task {
+          await viewModel.searchUsers(prefix: newValue.lowercased())
+        }
       } else {
         viewModel.clearResults()
       }
     }
+    //    .onTapGesture {
+    //      isSearchBarFocused = false
+    //    }
   }
 
   private var emptyState: some View {
@@ -82,6 +99,7 @@ struct SearchView: View {
         .foregroundColor(.gray)
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity)
+    .contentShape(Rectangle())
   }
 
   private var noResultsState: some View {
@@ -94,11 +112,12 @@ struct SearchView: View {
         .fontWeight(.bold)
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity)
+    .contentShape(Rectangle())
   }
 
-  private var searchResults: some View {
+  private func searchResults(users: [PublicUser]) -> some View {
     List {
-      ForEach(viewModel.searchResults, id: \.userId) { user in
+      ForEach(users, id: \.userId) { user in
         NavigationLink(
           value: Route.profile(id: String(user.userId), username: user.username)
         ) {
@@ -113,11 +132,5 @@ struct SearchView: View {
       }
     }
     .listStyle(.plain)
-  }
-}
-
-#Preview {
-  NavigationStack {
-    SearchView()
   }
 }

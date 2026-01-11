@@ -8,13 +8,13 @@ enum FeedState {
   case failed(Error)
 }
 
-@MainActor class FeedViewModel: ObservableObject {
+@MainActor @Observable class FeedViewModel {
   var feedType: FeedType
   var userId: Int?
-  @Published var canLoadMore: Bool = true
-  @Published var state: FeedState = .idle
-  @Published var isLoadingMore: Bool = false
-  @Published var postIds: [Int] = []
+  var canLoadMore: Bool = true
+  var state: FeedState = .idle
+  var isLoadingMore: Bool = false
+  var postIds: [Int] = []
 
   var posts: [DetailedPost] {
     postManager.getPostsById(postIds)
@@ -22,7 +22,7 @@ enum FeedState {
 
   private var lastPostTimestamp: Date?
   private let fetchLimit = 10
-  @ObservedObject var postManager: PostManager
+  private var postManager: PostManager
 
   init(feedType: FeedType, userId: Int? = nil, postManager: PostManager) {
     self.feedType = feedType

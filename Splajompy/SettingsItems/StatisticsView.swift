@@ -17,66 +17,35 @@ struct StatRow: View {
 }
 
 struct StatisticsView: View {
-  @State private var stats: AppStats?
-  @State private var isLoading = false
-  @State private var errorMessage: String?
+  @State private var viewModel: ViewModel
 
-  private let profileService: ProfileServiceProtocol
-
-  init(profileService: ProfileServiceProtocol = ProfileService()) {
-    self.profileService = profileService
+  init(viewModel: ViewModel = ViewModel()) {
+    self.viewModel = viewModel
   }
 
   var body: some View {
     Group {
-      if stats == nil && errorMessage == nil {
-        VStack {
-          Spacer()
-          ProgressView()
-            .padding()
-          Spacer()
-        }
-      } else if let errorMessage = errorMessage, stats == nil {
-        VStack {
-          Spacer()
-          Text("Unable to load statistics")
-            .font(.headline)
-            .padding(.bottom, 4)
-          Text(errorMessage)
-            .font(.subheadline)
-            .foregroundColor(.secondary)
-            .multilineTextAlignment(.center)
-            .padding(.horizontal)
-          Button {
-            Task { await loadStats() }
-          } label: {
-            HStack {
-              if isLoading {
-                ProgressView()
-                  .scaleEffect(0.8)
-              } else {
-                Image(systemName: "arrow.clockwise")
-              }
-              Text("Retry")
-            }
-          }
-          .padding()
-          .buttonStyle(.bordered)
-          .disabled(isLoading)
-          Spacer()
-        }
-      } else if let stats = stats {
+      switch viewModel.state {
+      case .idle, .loading:
+        ProgressView()
+      case .loaded(let stats):
         List {
           StatRow(label: "Posts", value: stats.totalPosts)
           StatRow(label: "Comments", value: stats.totalComments)
           StatRow(label: "Likes", value: stats.totalLikes)
           StatRow(label: "Follows", value: stats.totalFollows)
-          StatRow(label: "Splajompians", value: stats.totalUsers)
+          StatRow(label: "Users", value: stats.totalUsers)
           StatRow(label: "Notifications", value: stats.totalNotifications)
         }
         .refreshable {
-          await loadStats()
+          await viewModel.load()
         }
+
+      case .failed(let error):
+        ErrorScreen(
+          errorString: error.localizedDescription,
+          onRetry: { await viewModel.load() }
+        )
       }
     }
     .navigationTitle("Statistics")
@@ -84,34 +53,16 @@ struct StatisticsView: View {
       .navigationBarTitleDisplayMode(.inline)
     #endif
     .task {
-      Task {
-        await loadStats()
-      }
+      await viewModel.load()
     }
-  }
-
-  private func loadStats() async {
-    isLoading = true
-    errorMessage = nil
-
-    let result = await profileService.getAppStats()
-
-    switch result {
-    case .success(let appStats):
-      stats = appStats
-      errorMessage = nil
-    case .error(let error):
-      if stats == nil {
-        errorMessage = error.localizedDescription
-      }
-    }
-
-    isLoading = false
   }
 }
 
 #Preview {
+  let viewModel: StatisticsView.ViewModel =
+    StatisticsView.ViewModel(profileService: MockProfileService())
+
   NavigationStack {
-    StatisticsView(profileService: MockProfileService())
+    StatisticsView(viewModel: viewModel)
   }
 }

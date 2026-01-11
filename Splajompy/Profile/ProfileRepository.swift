@@ -8,8 +8,14 @@ struct UpdateProfileRequest: Encodable {
 
 protocol ProfileServiceProtocol: Sendable {
   func getProfile(userId: Int) async -> AsyncResult<DetailedUser>
-  func getUserFromUsernamePrefix(prefix: String) async -> AsyncResult<[PublicUser]>
-  func updateProfile(name: String, bio: String, displayProperties: UserDisplayProperties) async
+  func getUserFromUsernamePrefix(prefix: String) async -> AsyncResult<
+    [PublicUser]
+  >
+  func updateProfile(
+    name: String,
+    bio: String,
+    displayProperties: UserDisplayProperties
+  ) async
     -> AsyncResult<
       EmptyResponse
     >
@@ -32,7 +38,8 @@ protocol ProfileServiceProtocol: Sendable {
   func getMutuals(userId: Int, offset: Int, limit: Int) async -> AsyncResult<
     [DetailedUser]
   >
-  func getAppStats() async -> AsyncResult<AppStats>
+  /// Fetch statistics about app.
+  func getAppStatistics() async -> AsyncResult<AppStatistics>
 }
 
 struct ProfileService: ProfileServiceProtocol {
@@ -43,7 +50,9 @@ struct ProfileService: ProfileServiceProtocol {
     )
   }
 
-  func getUserFromUsernamePrefix(prefix: String) async -> AsyncResult<[PublicUser]> {
+  func getUserFromUsernamePrefix(prefix: String) async -> AsyncResult<
+    [PublicUser]
+  > {
     let queryItems = [URLQueryItem(name: "prefix", value: "\(prefix)")]
     return await APIService.performRequest(
       endpoint: "users/search",
@@ -51,12 +60,20 @@ struct ProfileService: ProfileServiceProtocol {
     )
   }
 
-  func updateProfile(name: String, bio: String, displayProperties: UserDisplayProperties) async
+  func updateProfile(
+    name: String,
+    bio: String,
+    displayProperties: UserDisplayProperties
+  ) async
     -> AsyncResult<
       EmptyResponse
     >
   {
-    let request = UpdateProfileRequest(name: name, bio: bio, displayProperties: displayProperties)
+    let request = UpdateProfileRequest(
+      name: name,
+      bio: bio,
+      displayProperties: displayProperties
+    )
     let requestData: Data
     do {
       requestData = try JSONEncoder().encode(request)
@@ -155,7 +172,7 @@ struct ProfileService: ProfileServiceProtocol {
     )
   }
 
-  func getAppStats() async -> AsyncResult<AppStats> {
+  func getAppStatistics() async -> AsyncResult<AppStatistics> {
     return await APIService.performRequest(
       endpoint: "stats",
       method: "GET"

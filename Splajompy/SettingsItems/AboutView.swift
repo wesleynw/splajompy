@@ -67,7 +67,7 @@ struct AboutView: View {
           }
         }
 
-        if PostHogSDK.shared.isFeatureEnabled("statistics-page") {
+        if PostHogSDK.shared.isFeatureEnabled("statistics-page") || true {
           Section {
             NavigationLink(destination: StatisticsView()) {
               Label("Statistics", systemImage: "chart.xyaxis.line")

@@ -25,6 +25,8 @@ final class MockUserRepository: @unchecked Sendable {
         name: "Wesley Weisenberger",
         bio: """
           welcome to splajompy!\nno, I don't know your password, they're all encrypted and whatever.
+
+          https://splajompy.com
           """,
         isFollower: false,
         isFollowing: false,
@@ -402,10 +404,10 @@ struct MockProfileService: ProfileServiceProtocol {
     return .success(paginatedUsers)
   }
 
-  func getAppStats() async -> AsyncResult<AppStats> {
+  func getAppStatistics() async -> AsyncResult<AppStatistics> {
     try? await Task.sleep(nanoseconds: 500_000_000)
     return .success(
-      AppStats(
+      AppStatistics(
         totalPosts: 1234,
         totalComments: 5678,
         totalLikes: 9012,

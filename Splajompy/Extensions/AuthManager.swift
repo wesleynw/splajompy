@@ -310,6 +310,10 @@ class AuthManager: ObservableObject, Sendable {
       return "Username must be at least 1 character"
     }
 
+    if username.count > 25 {
+      return "Username must be 25 characters or less"
+    }
+
     let alphanumericRegex = "^[a-zA-Z0-9.]+$"
     let alphanumericPred = NSPredicate(
       format: "SELF MATCHES %@",
