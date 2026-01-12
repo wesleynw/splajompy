@@ -21,7 +21,7 @@ extension CommentsView {
     @ObservedObject var postManager: PostManager
 
     @Published var text: NSAttributedString = NSAttributedString(string: "")
-    @Published var cursorPosition: Int = 0
+    @Published var selectedRange: NSRange = NSRange(location: 0, length: 0)
 
     init(
       postId: Int,
@@ -142,7 +142,7 @@ extension CommentsView {
 
     func resetInputState() {
       text = NSAttributedString(string: "")
-      cursorPosition = 0
+      selectedRange = NSRange(location: 0, length: 0)
     }
 
     func deleteComment(_ comment: DetailedComment) async {

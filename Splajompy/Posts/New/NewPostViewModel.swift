@@ -14,7 +14,7 @@ extension NewPostView {
     @Published var errorDisplay: String?
 
     @Published var text: NSAttributedString = NSAttributedString(string: "")
-    @Published var cursorPosition: Int = 0
+    @Published var selectedRange: NSRange = NSRange(location: 0, length: 0)
     @Published var poll: PollCreationRequest?
 
     @Published var imageStates = [
@@ -114,7 +114,7 @@ extension NewPostView {
 
     func resetInputState() {
       text = NSAttributedString(string: "")
-      cursorPosition = 0
+      selectedRange = NSRange(location: 0, length: 0)
       poll = nil
     }
 

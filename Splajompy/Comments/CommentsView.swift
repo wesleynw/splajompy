@@ -169,7 +169,7 @@ struct CommentsView: View {
               text: $viewModel.text,
               viewModel: mentionViewModel,
               cursorY: $cursorY,
-              cursorPosition: $viewModel.cursorPosition,
+              selectedRange: $viewModel.selectedRange,
               isCompact: true
             )
             .focused($isInputFocused)
@@ -215,10 +215,10 @@ struct CommentsView: View {
               let result = mentionViewModel.insertMention(
                 user,
                 in: viewModel.text,
-                at: viewModel.cursorPosition
+                at: viewModel.selectedRange
               )
               viewModel.text = result.text
-              viewModel.cursorPosition = result.newCursorPosition
+              viewModel.selectedRange = result.newSelectedRange
             }
           )
           .padding(.horizontal, 16)

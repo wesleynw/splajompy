@@ -4,7 +4,7 @@ struct MentionTextEditor: View {
   @Binding var text: NSAttributedString
   @ObservedObject var viewModel: MentionViewModel
   @Binding var cursorY: CGFloat
-  @Binding var cursorPosition: Int
+  @Binding var selectedRange: NSRange
   var isCompact: Bool
   var autoFocusOnAppear: Bool
 
@@ -48,14 +48,14 @@ struct MentionTextEditor: View {
     text: Binding<NSAttributedString>,
     viewModel: MentionViewModel,
     cursorY: Binding<CGFloat>,
-    cursorPosition: Binding<Int>,
+    selectedRange: Binding<NSRange>,
     isCompact: Bool = false,
     autoFocusOnAppear: Bool = false
   ) {
     self._text = text
     self.viewModel = viewModel
     self._cursorY = cursorY
-    self._cursorPosition = cursorPosition
+    self._selectedRange = selectedRange
     self.isCompact = isCompact
     self._contentHeight = State(initialValue: 0)
     self.autoFocusOnAppear = autoFocusOnAppear
@@ -73,7 +73,7 @@ struct MentionTextEditor: View {
         AttributedTextEditor(
           text: $text,
           currentMention: $currentMention,
-          cursorPosition: $cursorPosition,
+          selectedRange: $selectedRange,
           cursorY: $cursorY,
           contentHeight: $contentHeight,
           isScrollEnabled: true
@@ -113,7 +113,7 @@ struct MentionTextEditor: View {
           AttributedTextEditor(
             text: $text,
             currentMention: $currentMention,
-            cursorPosition: $cursorPosition,
+            selectedRange: $selectedRange,
             cursorY: $cursorY,
             contentHeight: $contentHeight,
             isScrollEnabled: false
