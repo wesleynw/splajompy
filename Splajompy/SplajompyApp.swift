@@ -16,6 +16,8 @@ struct SplajompyApp: App {
   private var postManager = PostManager()
   @AppStorage("appearance_mode") var appearanceMode: String = "Automatic"
 
+  let isLemoade = PostHogSDK.shared.isFeatureEnabled("lemoade")
+
   init() {
     initializeOtel()
 
@@ -76,7 +78,11 @@ struct SplajompyApp: App {
           }
       }
       .tabItem {
-        Label("Home", systemImage: "house")
+        if isLemoade {
+          Label("Lemoade", systemImage: "waterbottle")
+        } else {
+          Label("Home", systemImage: "house")
+        }
       }
       .tag(0)
 
