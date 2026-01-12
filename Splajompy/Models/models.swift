@@ -25,7 +25,7 @@ struct PublicUser: Decodable, Identifiable {
   var id: Int { userId }
 
   init(
-    userId: Int, email: String, username: String, createdAt: String, name: String?,
+    userId: Int, username: String, createdAt: String, name: String?,
     isVerified: Bool, displayProperties: UserDisplayProperties
   ) {
     self.userId = userId

@@ -359,7 +359,6 @@ struct PostView: View {
 
   let user = PublicUser(
     userId: 456,
-    email: "wesleynw@pm.me",
     username: "wesleynw",
     createdAt: dateFormatter.string(
       from: dateFormatter.date(from: "2025-01-15T10:20:30.000Z")!
@@ -435,7 +434,6 @@ struct PostView: View {
 
   let user = PublicUser(
     userId: 456,
-    email: "wesleynw@pm.me",
     username: "wesleynw",
     createdAt: dateFormatter.string(
       from: dateFormatter.date(from: "2025-01-15T10:20:30.000Z")!

@@ -21,6 +21,103 @@ final class MockPostStore: @unchecked Sendable {
       "https://www.acouplecooks.com/wp-content/uploads/2021/05/Latte-Art-070.jpg"
 
     self.posts = [
+      4135: DetailedPost(
+        post: Post(
+          postId: 4135,
+          userId: 151,
+          text:
+            "I foresee the stained glass community on Splajompy growing rapidly in 2026",
+          createdAt: baseDate.addingTimeInterval(-200),
+          facets: nil
+        ),
+        user: PublicUser(
+          userId: 151,
+          username: "milesperhour",
+          createdAt: formatter.string(
+            from: baseDate.addingTimeInterval(-15_206_400)
+          ),
+          name: "Miles The Splajoracle",
+          isVerified: false,
+          displayProperties: UserDisplayProperties(fontChoiceId: 2)
+        ),
+        isLiked: true,
+        commentCount: 1,
+        images: [],
+        relevantLikes: [
+          RelevantLike(username: "sydknee", userId: 231),
+          RelevantLike(username: "freakoftheweek", userId: 43),
+        ],
+        hasOtherLikes: true,
+        isPinned: false
+      ),
+
+      4423: DetailedPost(
+        post: Post(
+          postId: 4423,
+          userId: 179,
+          text:
+            "i may not be an efficient stardew valley player, but no one's farm looks better than mine and that's a fact",
+          createdAt: baseDate.addingTimeInterval(-321),
+          facets: nil
+        ),
+        user: PublicUser(
+          userId: 179,
+          username: "camtalpa",
+          createdAt: formatter.string(
+            from: baseDate.addingTimeInterval(-13_392_000)
+          ),
+          name: "camalicious",
+          isVerified: false,
+          displayProperties: UserDisplayProperties(fontChoiceId: 7)
+        ),
+        isLiked: true,
+        commentCount: 4,
+        images: [],
+        relevantLikes: [
+          RelevantLike(username: "bessbb", userId: 139),
+          RelevantLike(username: "freakoftheweek", userId: 43),
+        ],
+        hasOtherLikes: true,
+        isPinned: false
+      ),
+
+      4107: DetailedPost(
+        post: Post(
+          postId: 4107,
+          userId: 231,
+          text: "Chickpeas.",
+          createdAt: baseDate.addingTimeInterval(-430),
+          facets: nil
+        ),
+        user: PublicUser(
+          userId: 231,
+          username: "sydknee",
+          createdAt: formatter.string(
+            from: baseDate.addingTimeInterval(-10_368_000)
+          ),
+          name: "🪲🐌🐞 Sydney 🐞🐌🪲",
+          isVerified: false,
+          displayProperties: UserDisplayProperties(fontChoiceId: 8)
+        ),
+        isLiked: true,
+        commentCount: 6,
+        images: [],
+        relevantLikes: [
+          RelevantLike(username: "freakoftheweek", userId: 43)
+        ],
+        hasOtherLikes: true,
+        poll: Poll(
+          title: "Chickpeas",
+          voteTotal: 24,
+          currentUserVote: 0,
+          options: [
+            PollOption(title: "Hot", voteTotal: 21),
+            PollOption(title: "Not", voteTotal: 3),
+          ]
+        ),
+        isPinned: false
+      ),
+
       2001: DetailedPost(
         post: Post(
           postId: 2001,
@@ -32,9 +129,10 @@ final class MockPostStore: @unchecked Sendable {
         ),
         user: PublicUser(
           userId: 6,
-          email: "wesley@example.com",
           username: "wesley",
-          createdAt: formatter.string(from: baseDate.addingTimeInterval(-25_920_000)),
+          createdAt: formatter.string(
+            from: baseDate.addingTimeInterval(-25_920_000)
+          ),
           name: "Wesley",
           isVerified: false,
           displayProperties: UserDisplayProperties(fontChoiceId: 0)
@@ -70,9 +168,10 @@ final class MockPostStore: @unchecked Sendable {
         ),
         user: PublicUser(
           userId: 6,
-          email: "wesley@example.com",
           username: "wesley",
-          createdAt: formatter.string(from: baseDate.addingTimeInterval(-25_920_000)),
+          createdAt: formatter.string(
+            from: baseDate.addingTimeInterval(-25_920_000)
+          ),
           name: "Wesley",
           isVerified: false,
           displayProperties: UserDisplayProperties(fontChoiceId: 0)
@@ -97,9 +196,10 @@ final class MockPostStore: @unchecked Sendable {
         ),
         user: PublicUser(
           userId: 1,
-          email: "wesleynw@pm.me",
           username: "wesleynw",
-          createdAt: formatter.string(from: baseDate.addingTimeInterval(-31_536_000)),
+          createdAt: formatter.string(
+            from: baseDate.addingTimeInterval(-31_536_000)
+          ),
           name: "Wesley 🌌",
           isVerified: true,
           displayProperties: UserDisplayProperties(fontChoiceId: 0)
@@ -123,9 +223,10 @@ final class MockPostStore: @unchecked Sendable {
         ),
         user: PublicUser(
           userId: 15,
-          email: "marketvendor@example.com",
           username: "marketvendor",
-          createdAt: formatter.string(from: baseDate.addingTimeInterval(-2_592_000)),
+          createdAt: formatter.string(
+            from: baseDate.addingTimeInterval(-2_592_000)
+          ),
           name: "Market Maven",
           isVerified: false,
           displayProperties: UserDisplayProperties(fontChoiceId: 0)
@@ -160,9 +261,10 @@ final class MockPostStore: @unchecked Sendable {
         ),
         user: PublicUser(
           userId: 30,
-          email: "showrunner@example.com",
           username: "giuseppe",
-          createdAt: formatter.string(from: baseDate.addingTimeInterval(-5_184_000)),
+          createdAt: formatter.string(
+            from: baseDate.addingTimeInterval(-5_184_000)
+          ),
           name: "DROP TABLE users; --",
           isVerified: false,
           displayProperties: UserDisplayProperties(fontChoiceId: 0)
@@ -188,9 +290,10 @@ final class MockPostStore: @unchecked Sendable {
         ),
         user: PublicUser(
           userId: 120,
-          email: "sophie@example.com",
           username: "realsophie",
-          createdAt: formatter.string(from: baseDate.addingTimeInterval(-18_144_000)),
+          createdAt: formatter.string(
+            from: baseDate.addingTimeInterval(-18_144_000)
+          ),
           name: "Sophie",
           isVerified: false,
           displayProperties: UserDisplayProperties(fontChoiceId: 0)
@@ -214,9 +317,10 @@ final class MockPostStore: @unchecked Sendable {
         ),
         user: PublicUser(
           userId: 25,
-          email: "joel@example.com",
           username: "joel",
-          createdAt: formatter.string(from: baseDate.addingTimeInterval(-20_736_000)),
+          createdAt: formatter.string(
+            from: baseDate.addingTimeInterval(-20_736_000)
+          ),
           name: "Joel",
           isVerified: false,
           displayProperties: UserDisplayProperties(fontChoiceId: 0)
@@ -228,123 +332,6 @@ final class MockPostStore: @unchecked Sendable {
         hasOtherLikes: true,
         isPinned: false
       ),
-
-      2008: DetailedPost(
-        post: Post(
-          postId: 2008,
-          userId: 1,
-          text:
-            "building splajompy has been such an incredible journey 🚀 excited to share what's coming next",
-          createdAt: baseDate.addingTimeInterval(0),
-          facets: nil
-        ),
-        user: PublicUser(
-          userId: 1,
-          email: "wesleynw@pm.me",
-          username: "wesleynw",
-          createdAt: formatter.string(from: baseDate.addingTimeInterval(-31_536_000)),
-          name: "Wesley 🔥",
-          isVerified: true,
-          displayProperties: UserDisplayProperties(fontChoiceId: 0)
-        ),
-        isLiked: true,
-        commentCount: 4,
-        images: nil,
-        relevantLikes: [
-          RelevantLike(username: "wesley", userId: 6),
-          RelevantLike(username: "giuseppe", userId: 113),
-        ],
-        hasOtherLikes: true,
-        isPinned: false
-      ),
-      1998: DetailedPost(
-        post: Post(
-          postId: 1998,
-          userId: 30,
-          text: "What's your favorite way to start the morning? ☀️",
-          createdAt: baseDate.addingTimeInterval(-1),
-          facets: nil
-        ),
-        user: PublicUser(
-          userId: 30,
-          email: "showrunner@example.com",
-          username: "giuseppe",
-          createdAt: formatter.string(from: baseDate.addingTimeInterval(-5_184_000)),
-          name: "DROP TABLE users; --",
-          isVerified: false,
-          displayProperties: UserDisplayProperties(fontChoiceId: 0)
-        ),
-        isLiked: false,
-        commentCount: 2,
-        images: nil,
-        relevantLikes: [
-          RelevantLike(username: "wesley", userId: 6)
-        ],
-        hasOtherLikes: true,
-        poll: Poll(
-          title: "Morning routine poll",
-          voteTotal: 12,
-          currentUserVote: 1,
-          options: [
-            PollOption(title: "Coffee first ☕", voteTotal: 7),
-            PollOption(title: "Exercise 💪", voteTotal: 3),
-            PollOption(title: "Check phone 📱", voteTotal: 2),
-          ]
-        ),
-        isPinned: false
-      ),
-
-      2000: DetailedPost(
-        post: Post(
-          postId: 2000,
-          userId: 1,
-          text:
-            "check this out: Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
-          createdAt: baseDate.addingTimeInterval(-10_800_000),
-          facets: nil
-        ),
-        user: PublicUser(
-          userId: 1,
-          email: "wesleynw@pm.me",
-          username: "wesleynw",
-          createdAt: formatter.string(from: baseDate.addingTimeInterval(-31_536_000)),
-          name: "Wesley 🌌",
-          isVerified: true,
-          displayProperties: UserDisplayProperties(fontChoiceId: 0)
-        ),
-        isLiked: false,
-        commentCount: 0,
-        images: nil,
-        relevantLikes: [],
-        hasOtherLikes: false,
-        isPinned: false
-      ),
-
-      1999: DetailedPost(
-        post: Post(
-          postId: 1999,
-          userId: 1,
-          text: "i just found this amazing coffee shop",
-          createdAt: baseDate.addingTimeInterval(-11_800_000),
-          facets: nil
-        ),
-        user: PublicUser(
-          userId: 1,
-          email: "wesleynw@pm.me",
-          username: "wesleynw",
-          createdAt: formatter.string(from: baseDate.addingTimeInterval(-31_536_000)),
-          name: "Wesley 🌌",
-          isVerified: true,
-          displayProperties: UserDisplayProperties(fontChoiceId: 0)
-        ),
-        isLiked: false,
-        commentCount: 0,
-        images: nil,
-        relevantLikes: [],
-        hasOtherLikes: false,
-        isPinned: false
-      ),
-
     ]
   }
 
