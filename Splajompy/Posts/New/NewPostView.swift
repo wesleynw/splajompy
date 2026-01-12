@@ -27,7 +27,7 @@ struct NewPostView: View {
               text: $viewModel.text,
               viewModel: mentionViewModel,
               cursorY: $cursorY,
-              cursorPosition: $viewModel.cursorPosition,
+              selectedRange: $viewModel.selectedRange,
               isCompact: false,
               autoFocusOnAppear: true
             )
@@ -53,10 +53,10 @@ struct NewPostView: View {
                   let result = mentionViewModel.insertMention(
                     user,
                     in: viewModel.text,
-                    at: viewModel.cursorPosition
+                    at: viewModel.selectedRange
                   )
                   viewModel.text = result.text
-                  viewModel.cursorPosition = result.newCursorPosition
+                  viewModel.selectedRange = result.newSelectedRange
                 }
               )
               .offset(y: cursorY + 40)

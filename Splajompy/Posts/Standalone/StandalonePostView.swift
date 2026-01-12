@@ -132,7 +132,7 @@ struct StandalonePostView: View {
         .safeAreaInset(edge: .bottom) {
           CommentInputView(
             text: $commentsViewModel.text,
-            cursorPosition: $commentsViewModel.cursorPosition,
+            selectedRange: $commentsViewModel.selectedRange,
             isSubmitting: $commentsViewModel.isSubmitting,
             isFocused: isFocused,
             onSubmit: {
