@@ -3,14 +3,14 @@ import PostHog
 import SwiftUI
 
 struct PostView: View {
-  let post: DetailedPost
-  let postManager: PostManager
+  let post: ObservablePost
+  let postManager: PostStore
   var showAuthor: Bool
   var isStandalone: Bool
 
   init(
-    post: DetailedPost,
-    postManager: PostManager,
+    post: ObservablePost,
+    postManager: PostStore,
     showAuthor: Bool = true,
     isStandalone: Bool = false,
     onLikeButtonTapped: @escaping () -> Void = {
@@ -402,11 +402,11 @@ struct PostView: View {
   )
 
   let authManager = AuthManager()
-  let postManager = PostManager()
+  let postManager = PostStore()
 
   NavigationStack {
     PostView(
-      post: detailedPost,
+      post: ObservablePost(from: detailedPost),
       postManager: postManager,
       onLikeButtonTapped: {},
       onPostDeleted: {},
@@ -478,11 +478,11 @@ struct PostView: View {
   )
 
   let authManager = AuthManager()
-  let postManager = PostManager()
+  let postManager = PostStore()
 
   NavigationStack {
     PostView(
-      post: detailedPost,
+      post: ObservablePost(from: detailedPost),
       postManager: postManager,
       isStandalone: true,
       onLikeButtonTapped: {},

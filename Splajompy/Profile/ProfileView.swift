@@ -9,7 +9,7 @@ struct ProfileView: View {
   @State private var activeAlert: ProfileAlertEnum?
   @StateObject private var viewModel: ViewModel
   @EnvironmentObject private var authManager: AuthManager
-  @ObservedObject var postManager: PostManager
+  var postManager: PostStore
 
   private var isCurrentUser: Bool {
     guard let currentUser = authManager.getCurrentUser() else { return false }
@@ -36,7 +36,7 @@ struct ProfileView: View {
   init(
     userId: Int,
     username: String,
-    postManager: PostManager,
+    postManager: PostStore,
     isProfileTab: Bool = false,
     viewModel: ViewModel? = nil
   ) {
@@ -432,7 +432,7 @@ enum ProfileAlertEnum: Identifiable {
 }
 
 #Preview {
-  let postManager = PostManager(postService: MockPostService())
+  let postManager = PostStore(postService: MockPostService())
 
   NavigationStack {
     ProfileView(

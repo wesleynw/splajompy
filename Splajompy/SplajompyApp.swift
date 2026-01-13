@@ -13,7 +13,7 @@ struct SplajompyApp: App {
   ]
 
   @StateObject private var authManager = AuthManager.shared
-  private var postManager = PostManager()
+  @State private var postManager = PostStore()
   @AppStorage("appearance_mode") var appearanceMode: String = "Automatic"
 
   let isLemoade = PostHogSDK.shared.isFeatureEnabled("lemoade")

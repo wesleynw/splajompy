@@ -2,7 +2,7 @@ import SwiftUI
 
 struct StandalonePostView: View {
   let postId: Int
-  @ObservedObject var postManager: PostManager
+  var postManager: PostStore
 
   @StateObject private var viewModel: ViewModel
   @StateObject private var commentsViewModel: CommentsView.ViewModel
@@ -10,7 +10,7 @@ struct StandalonePostView: View {
   @FocusState private var isCommentFocused: Bool
   @Environment(\.dismiss) private var dismiss
 
-  init(postId: Int, postManager: PostManager) {
+  init(postId: Int, postManager: PostStore) {
     self.postId = postId
     self.postManager = postManager
     _viewModel = StateObject(wrappedValue: ViewModel(postId: postId, postManager: postManager))

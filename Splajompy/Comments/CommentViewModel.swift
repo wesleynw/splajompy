@@ -18,7 +18,7 @@ extension CommentsView {
     @Published var isSubmitting: Bool = false
     @Published var showError: Bool = false
     @Published var errorMessage: String?
-    @ObservedObject var postManager: PostManager
+    var postManager: PostStore
 
     @Published var text: NSAttributedString = NSAttributedString(string: "")
     @Published var selectedRange: NSRange = NSRange(location: 0, length: 0)
@@ -26,7 +26,7 @@ extension CommentsView {
     init(
       postId: Int,
       service: CommentServiceProtocol = CommentService(),
-      postManager: PostManager
+      postManager: PostStore
     ) {
       self.postId = postId
       self.service = service

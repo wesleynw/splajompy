@@ -6,7 +6,7 @@ struct CommentsView: View {
   var isInSheet: Bool
   var showInput: Bool
 
-  @ObservedObject var postManager: PostManager
+  var postManager: PostStore
 
   @StateObject private var viewModel: ViewModel
   @Environment(\.dismiss) private var dismiss
@@ -20,7 +20,7 @@ struct CommentsView: View {
 
   init(
     postId: Int,
-    postManager: PostManager,
+    postManager: PostStore,
     isInSheet: Bool = true,
     showInput: Bool = true
   ) {
@@ -35,7 +35,7 @@ struct CommentsView: View {
 
   init(
     postId: Int,
-    postManager: PostManager,
+    postManager: PostStore,
     viewModel: ViewModel,
     isInSheet: Bool = true,
     showInput: Bool = true
@@ -370,10 +370,10 @@ struct LikeButton: View {
   let mockViewModel = CommentsView.ViewModel(
     postId: 1,
     service: MockCommentService(),
-    postManager: PostManager()
+    postManager: PostStore()
   )
 
-  let postManager = PostManager()
+  let postManager = PostStore()
 
   CommentsView(
     postId: 1,
@@ -386,10 +386,10 @@ struct LikeButton: View {
   let mockViewModel = CommentsView.ViewModel(
     postId: 1,
     service: MockCommentService_Loading(),
-    postManager: PostManager()
+    postManager: PostStore()
   )
 
-  let postManager = PostManager()
+  let postManager = PostStore()
 
   CommentsView(
     postId: 1,
@@ -403,10 +403,10 @@ struct LikeButton: View {
   let mockViewModel = CommentsView.ViewModel(
     postId: 1,
     service: MockCommentService_Empty(),
-    postManager: PostManager()
+    postManager: PostStore()
   )
 
-  let postManager = PostManager()
+  let postManager = PostStore()
 
   CommentsView(
     postId: 1,
@@ -420,10 +420,10 @@ struct LikeButton: View {
   let mockViewModel = CommentsView.ViewModel(
     postId: 1,
     service: MockCommentService_Error(),
-    postManager: PostManager()
+    postManager: PostStore()
   )
 
-  let postManager = PostManager()
+  let postManager = PostStore()
 
   CommentsView(
     postId: 1,
