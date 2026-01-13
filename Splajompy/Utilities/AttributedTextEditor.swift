@@ -3,7 +3,7 @@ import SwiftUI
 struct AttributedTextEditor: UIViewRepresentable {
   @Binding var text: NSAttributedString
   @Binding var currentMention: String?
-  @Binding var cursorPosition: Int
+  @Binding var selectedRange: NSRange
   @Binding var cursorY: CGFloat
   @Binding var contentHeight: CGFloat
 
@@ -46,8 +46,8 @@ struct AttributedTextEditor: UIViewRepresentable {
       uiView.attributedText = text
     }
 
-    if uiView.selectedRange.upperBound != cursorPosition {
-      uiView.selectedRange = NSRange(location: cursorPosition, length: 0)
+    if uiView.selectedRange != selectedRange {
+      uiView.selectedRange = selectedRange
     }
 
     let fixedWidth = uiView.bounds.width
@@ -63,24 +63,24 @@ struct AttributedTextEditor: UIViewRepresentable {
   }
 
   func makeCoordinator() -> Coordinator {
-    Coordinator($text, $currentMention, $cursorPosition, $cursorY)
+    Coordinator($text, $currentMention, $selectedRange, $cursorY)
   }
 
   class Coordinator: NSObject, UITextViewDelegate {
     var text: Binding<NSAttributedString>
     var currentMention: Binding<String?>
-    var cursorPosition: Binding<Int>
+    var selectedRange: Binding<NSRange>
     var cursorY: Binding<CGFloat>
 
     init(
       _ text: Binding<NSAttributedString>,
       _ currentMention: Binding<String?>,
-      _ cursorPosition: Binding<Int>,
+      _ selectedRange: Binding<NSRange>,
       _ cursorY: Binding<CGFloat>
     ) {
       self.text = text
       self.currentMention = currentMention
-      self.cursorPosition = cursorPosition
+      self.selectedRange = selectedRange
       self.cursorY = cursorY
     }
 
@@ -92,11 +92,15 @@ struct AttributedTextEditor: UIViewRepresentable {
       let styledText = applyMentionStyling(to: text)
       textView.attributedText = styledText
       textView.selectedRange = ranges
+
+      self.selectedRange.wrappedValue = ranges
       self.text.wrappedValue = styledText
       checkForMention(in: textView)
     }
 
     func textViewDidChangeSelection(_ textView: UITextView) {
+      let nsRange = textView.selectedRange
+
       if let selectedRange = textView.selectedTextRange {
         let position = textView.offset(
           from: textView.beginningOfDocument,
@@ -105,7 +109,7 @@ struct AttributedTextEditor: UIViewRepresentable {
 
         let caretRect = textView.caretRect(for: selectedRange.start)
         DispatchQueue.main.async {
-          self.cursorPosition.wrappedValue = position
+          self.selectedRange.wrappedValue = nsRange
           self.cursorY.wrappedValue = caretRect.origin.y
         }
 
@@ -171,8 +175,6 @@ struct AttributedTextEditor: UIViewRepresentable {
       let wordEndIndex =
         text[cursorIndex...].firstIndex(where: { $0.isWhitespace })
         ?? text.endIndex
-
-      print("start: \(wordStartIndex), end \(wordEndIndex)")
 
       let currentWord = String(text[wordStartIndex..<wordEndIndex])
 

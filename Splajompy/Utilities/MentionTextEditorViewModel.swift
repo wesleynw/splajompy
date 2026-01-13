@@ -66,9 +66,12 @@ extension MentionTextEditor {
     func insertMention(
       _ user: PublicUser,
       in attributedText: NSAttributedString,
-      at cursorPosition: Int
-    ) -> (text: NSAttributedString, newCursorPosition: Int) {
+      at selectedRange: NSRange
+    ) -> (text: NSAttributedString, newSelectedRange: NSRange) {
       let text = attributedText.string
+
+      // Use the start of the selection for cursor position
+      let cursorPosition = selectedRange.location
 
       let cursorIndex =
         text.index(
@@ -118,9 +121,11 @@ extension MentionTextEditor {
         text.distance(from: text.startIndex, to: wordStartIndex)
         + replacement.utf16.count
 
+      let newSelectedRange = NSRange(location: newCursorPosition, length: 0)
+
       clearMentionState()
 
-      return (mutableAttributedText, newCursorPosition)
+      return (mutableAttributedText, newSelectedRange)
     }
   }
 }

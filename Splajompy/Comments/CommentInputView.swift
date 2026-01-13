@@ -3,7 +3,7 @@ import SwiftUI
 #if os(iOS)
   struct CommentInputView: View {
     @Binding var text: NSAttributedString
-    @Binding var cursorPosition: Int
+    @Binding var selectedRange: NSRange
     @Binding var isSubmitting: Bool
     @FocusState.Binding var isFocused: Bool
 
@@ -21,7 +21,7 @@ import SwiftUI
             text: $text,
             viewModel: mentionViewModel,
             cursorY: $cursorY,
-            cursorPosition: $cursorPosition,
+            selectedRange: $selectedRange,
             isCompact: true
           )
           .focused($isFocused)
@@ -57,10 +57,10 @@ import SwiftUI
               let result = mentionViewModel.insertMention(
                 user,
                 in: text,
-                at: cursorPosition
+                at: selectedRange
               )
               text = result.text
-              cursorPosition = result.newCursorPosition
+              selectedRange = result.newSelectedRange
             }
           )
           .offset(x: 20, y: cursorY + 38)
