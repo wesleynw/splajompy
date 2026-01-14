@@ -5,6 +5,7 @@ import SwiftUI
 struct NewPostView: View {
   @State private var cursorY: CGFloat = 0
   @State private var showingPollCreation: Bool = false
+  @FocusState private var isFocused: Bool
 
   @StateObject private var viewModel: ViewModel
   @StateObject private var mentionViewModel =
@@ -28,6 +29,7 @@ struct NewPostView: View {
               viewModel: mentionViewModel,
               cursorY: $cursorY,
               selectedRange: $viewModel.selectedRange,
+              isFocused: $isFocused,
               isCompact: false,
               autoFocusOnAppear: true
             )

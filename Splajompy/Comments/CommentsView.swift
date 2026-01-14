@@ -98,6 +98,10 @@ struct CommentsView: View {
             .fontWeight(.bold)
             .font(.title3)
             .padding()
+          
+          Button("unfocus") {
+            isInputFocused = false
+          }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
       }
@@ -112,9 +116,6 @@ struct CommentsView: View {
             .padding()
           Spacer()
         }
-        .onTapGesture {
-          isInputFocused = false
-        }
       case .loaded(let comments):
         if comments.isEmpty {
           VStack(spacing: 16) {
@@ -125,9 +126,6 @@ struct CommentsView: View {
             Spacer()
           }
           .frame(maxWidth: .infinity, maxHeight: .infinity)
-          .onTapGesture {
-            isInputFocused = false
-          }
         } else {
           ScrollView {
             ForEach(comments, id: \.commentId) { comment in
@@ -147,9 +145,6 @@ struct CommentsView: View {
               )
             }
           }
-          .onTapGesture {
-            isInputFocused = false
-          }
           .animation(.easeInOut(duration: 0.3), value: comments)
         }
       case .failed(let error):
@@ -158,6 +153,9 @@ struct CommentsView: View {
           onRetry: viewModel.loadComments
         )
       }
+    }
+    .onTapGesture {
+      isInputFocused = false
     }
     #if os(iOS)
       .modify {

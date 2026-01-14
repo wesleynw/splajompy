@@ -36,16 +36,16 @@ struct CommentInputView: View {
   var onSubmit: () async -> Bool
 
   var body: some View {
-    VStack {
+    ZStack(alignment: .bottomLeading) {
       HStack(alignment: .center) {
         MentionTextEditor(
           text: $text,
           viewModel: mentionViewModel,
           cursorY: $cursorY,
           selectedRange: $selectedRange,
+          isFocused: $isFocused,
           isCompact: true
         )
-        .focused($isFocused)
 
         Button(action: {
           Task {
@@ -64,8 +64,7 @@ struct CommentInputView: View {
         )
       }
       .padding()
-    }
-    .overlay(alignment: .topLeading) {
+
       if mentionViewModel.isShowingSuggestions {
         MentionTextEditor.suggestionView(
           suggestions: mentionViewModel.mentionSuggestions,
@@ -80,7 +79,7 @@ struct CommentInputView: View {
             selectedRange = result.newSelectedRange
           }
         )
-        .offset(x: 20, y: cursorY + 38)
+        .offset(x: 20, y: -(cursorY + 68))
         .padding(.horizontal, 16)
         .animation(.default, value: mentionViewModel.isShowingSuggestions)
       }
