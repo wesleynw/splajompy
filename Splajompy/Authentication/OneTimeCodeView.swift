@@ -7,7 +7,7 @@ struct OneTimeCodeView: View {
   @State private var showError: Bool = false
 
   @State private var oneTimeCode: String = ""
-  @EnvironmentObject private var authManager: AuthManager
+  @Environment(AuthManager.self) private var authManager
 
   var body: some View {
     VStack(alignment: .leading) {
@@ -73,6 +73,6 @@ struct OneTimeCodeView: View {
 
   NavigationStack {
     OneTimeCodeView(identifier: "wesleynw")
-      .environmentObject(AuthManager())
+      .environment(AuthManager())
   }
 }

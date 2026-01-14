@@ -2,7 +2,7 @@ import PostHog
 import SwiftUI
 
 struct SettingsView: View {
-  @EnvironmentObject private var authManager: AuthManager
+  @Environment(AuthManager.self) private var authManager
   @State private var isShowingWrappedView: Bool = false
   @StateObject private var wrappedViewModel: WrappedViewModel =
     WrappedViewModel()
@@ -84,6 +84,6 @@ struct SettingsView: View {
   let authManager = AuthManager()
   NavigationStack {
     SettingsView()
-      .environmentObject(authManager)
+      .environment(authManager)
   }
 }

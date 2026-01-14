@@ -45,7 +45,7 @@ struct PostView: View {
   @State private var isReporting = false
   @State private var showReportAlert = false
   @State private var showDeleteConfirmation = false
-  @EnvironmentObject private var authManager: AuthManager
+  @Environment(AuthManager.self) private var authManager
 
   var body: some View {
     VStack {
@@ -413,7 +413,7 @@ struct PostView: View {
       onPostPinned: {},
       onPostUnpinned: {}
     )
-    .environmentObject(authManager)
+    .environment(authManager)
   }
 }
 
@@ -490,6 +490,6 @@ struct PostView: View {
       onPostPinned: {},
       onPostUnpinned: {}
     )
-    .environmentObject(authManager)
+    .environment(authManager)
   }
 }

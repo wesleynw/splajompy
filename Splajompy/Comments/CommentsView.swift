@@ -260,7 +260,7 @@ struct CommentRow: View {
 
   let formatter = RelativeDateTimeFormatter()
 
-  @EnvironmentObject private var authManager: AuthManager
+  @Environment(AuthManager.self) private var authManager
   @State private var showDeleteConfirmation = false
 
   var body: some View {
@@ -396,7 +396,7 @@ struct LikeButton: View {
     postManager: postManager,
     viewModel: mockViewModel
   )
-  .environmentObject(AuthManager())
+  .environment(AuthManager())
 }
 
 #Preview("No Comments") {
@@ -413,7 +413,7 @@ struct LikeButton: View {
     postManager: postManager,
     viewModel: mockViewModel
   )
-  .environmentObject(AuthManager())
+  .environment(AuthManager())
 }
 
 #Preview("Error") {
@@ -430,5 +430,5 @@ struct LikeButton: View {
     postManager: postManager,
     viewModel: mockViewModel
   )
-  .environmentObject(AuthManager())
+  .environment(AuthManager())
 }

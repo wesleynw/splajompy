@@ -7,7 +7,7 @@ struct MainFeedView: View {
   @State private var viewModel: FeedViewModel
   @StateObject private var wrappedViewModel: WrappedViewModel =
     WrappedViewModel()
-  @EnvironmentObject var authManager: AuthManager
+  @Environment(AuthManager.self) private var authManager
   var postManager: PostStore
 
   @AppStorage("selectedFeedType") private var selectedFeedType: FeedType = .all
@@ -236,7 +236,6 @@ struct MainFeedView: View {
         .frame(maxWidth: .infinity)
       #endif
     }
-    .environmentObject(authManager)
     .refreshable {
       await viewModel.loadPosts(reset: true)
     }

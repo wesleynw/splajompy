@@ -68,6 +68,6 @@ struct MostLikedPostView: View {
       data: Mocks.wrappedData,
       onContinue: { print("continue") }
     )
-    .environmentObject(AuthManager())
+    .environment(AuthManager())
   }
 }

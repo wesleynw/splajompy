@@ -3,7 +3,7 @@ import SwiftUI
 
 struct NotificationsView: View {
   @StateObject private var viewModel: ViewModel
-  @EnvironmentObject private var authManager: AuthManager
+  @Environment(AuthManager.self) private var authManager
   @State private var refreshId = UUID()
 
   init(viewModel: ViewModel = ViewModel()) {

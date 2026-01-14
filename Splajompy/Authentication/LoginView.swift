@@ -15,7 +15,7 @@ struct LoginView: View {
   @FocusState private var isIdentifierFieldFocused: Bool
   @FocusState private var isPasswordFieldFocused: Bool
 
-  @EnvironmentObject private var authManager: AuthManager
+  @Environment(AuthManager.self) private var authManager
 
   var body: some View {
     NavigationStack {
@@ -149,7 +149,6 @@ struct LoginView: View {
       }
       .navigationDestination(isPresented: $isShowingOtcVerify) {
         OneTimeCodeView(identifier: identifier)
-          .environmentObject(authManager)
       }
       .alert(isPresented: $showError) {
         Alert(
@@ -189,5 +188,5 @@ struct LoginView: View {
 
 #Preview {
   LoginView()
-    .environmentObject(AuthManager())
+    .environment(AuthManager())
 }

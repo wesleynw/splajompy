@@ -8,7 +8,7 @@ struct ProfileView: View {
   @State private var isShowingProfileEditor: Bool = false
   @State private var activeAlert: ProfileAlertEnum?
   @StateObject private var viewModel: ViewModel
-  @EnvironmentObject private var authManager: AuthManager
+  @Environment(AuthManager.self) private var authManager
   var postManager: PostStore
 
   private var isCurrentUser: Bool {
@@ -251,7 +251,6 @@ struct ProfileView: View {
           .frame(maxWidth: .infinity)
         #endif
       }
-      .environmentObject(authManager)
       .refreshable {
         await viewModel.loadProfileAndPosts()
       }
@@ -446,6 +445,6 @@ enum ProfileAlertEnum: Identifiable {
         profileService: MockProfileService()
       )
     )
-    .environmentObject(AuthManager())
+    .environment(AuthManager())
   }
 }

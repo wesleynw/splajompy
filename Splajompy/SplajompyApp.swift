@@ -12,7 +12,7 @@ struct SplajompyApp: App {
     NavigationPath(),
   ]
 
-  @StateObject private var authManager = AuthManager.shared
+  @State private var authManager = AuthManager.shared
   @State private var postManager = PostStore()
   @AppStorage("appearance_mode") var appearanceMode: String = "Automatic"
 
@@ -50,7 +50,7 @@ struct SplajompyApp: App {
         _ in
         handleUserSignOut()
       }
-      .environmentObject(authManager)
+      .environment(authManager)
       .preferredColorScheme(colorScheme)
     }
     #if os(macOS)
