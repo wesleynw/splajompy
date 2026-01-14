@@ -91,16 +91,15 @@ struct CommentsView: View {
 
   @ViewBuilder
   var content: some View {
-    VStack(spacing: 0) {
+    VStack {
       if !isInSheet {
-        HStack {
+        HStack(alignment: .firstTextBaseline) {
           Text("Comments")
             .fontWeight(.bold)
             .font(.title3)
             .padding()
-
-          Spacer()
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
       }
 
       switch viewModel.state {
@@ -159,71 +158,25 @@ struct CommentsView: View {
           onRetry: viewModel.loadComments
         )
       }
-
-      if showInput {
-        Divider()
-
-        #if os(iOS)
-          HStack(alignment: .bottom, spacing: 8) {
-            MentionTextEditor(
-              text: $viewModel.text,
-              viewModel: mentionViewModel,
-              cursorY: $cursorY,
-              selectedRange: $viewModel.selectedRange,
-              isCompact: true
-            )
-            .focused($isInputFocused)
-
-            Button(action: {
-              Task {
-                let result = await viewModel.submitComment(
-                  text: viewModel.text.string
-                )
-                if result == true {
-                  viewModel.resetInputState()
-                }
-              }
-            }) {
-              if viewModel.isSubmitting {
-                ProgressView()
-                  .frame(width: 32, height: 32)
-              } else {
-                Image(systemName: "arrow.up.circle.fill")
-                  .font(.system(size: 32))
-              }
-            }
-            .disabled(
-              viewModel.text.string.trimmingCharacters(
-                in: .whitespacesAndNewlines
-              ).isEmpty
-                || viewModel.isSubmitting
-            )
-          }
-
-          .padding(.horizontal, 12)
-          .padding(.vertical, 8)
-        #endif
-      }
     }
     #if os(iOS)
-      .overlay(alignment: .bottomLeading) {
-        if showInput && mentionViewModel.isShowingSuggestions {
-          MentionTextEditor.suggestionView(
-            suggestions: mentionViewModel.mentionSuggestions,
-            isLoading: mentionViewModel.isLoading,
-            onInsert: { user in
-              let result = mentionViewModel.insertMention(
-                user,
-                in: viewModel.text,
-                at: viewModel.selectedRange
+      .modify {
+        if showInput {
+          if #available(iOS 26, *) {
+            $0.safeAreaBar(edge: .bottom) {
+              CommentInputViewConstructor(
+                commentsViewModel: viewModel,
+                isFocused: $isInputFocused
               )
-              viewModel.text = result.text
-              viewModel.selectedRange = result.newSelectedRange
             }
-          )
-          .padding(.horizontal, 16)
-          .padding(.bottom, 60)
-          .animation(.default, value: mentionViewModel.isShowingSuggestions)
+          } else {
+            $0.safeAreaInset(edge: .bottom) {
+              CommentInputViewConstructor(
+                commentsViewModel: viewModel,
+                isFocused: $isInputFocused
+              )
+            }
+          }
         }
       }
     #endif
@@ -380,6 +333,7 @@ struct LikeButton: View {
     postManager: postManager,
     viewModel: mockViewModel
   )
+  .environmentObject(AuthManager())
 }
 
 #Preview("Loading") {

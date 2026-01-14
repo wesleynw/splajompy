@@ -13,9 +13,15 @@ struct StandalonePostView: View {
   init(postId: Int, postManager: PostManager) {
     self.postId = postId
     self.postManager = postManager
-    _viewModel = StateObject(wrappedValue: ViewModel(postId: postId, postManager: postManager))
+    _viewModel = StateObject(
+      wrappedValue: ViewModel(postId: postId, postManager: postManager)
+    )
     _commentsViewModel = StateObject(
-      wrappedValue: CommentsView.ViewModel(postId: postId, postManager: postManager))
+      wrappedValue: CommentsView.ViewModel(
+        postId: postId,
+        postManager: postManager
+      )
+    )
   }
 
   var body: some View {
@@ -52,7 +58,8 @@ struct StandalonePostView: View {
             }
           } else {
             ErrorScreen(
-              errorString: "The post you're looking for doesn't exist or has been removed.",
+              errorString:
+                "The post you're looking for doesn't exist or has been removed.",
               onRetry: { await reloadPost() }
             )
           }
@@ -80,11 +87,23 @@ struct StandalonePostView: View {
     .navigationTitle("Post")
     #if os(iOS)
       .navigationBarTitleDisplayMode(.inline)
-      .modifier(
-        CommentInputAccessoryModifier(
-          commentsViewModel: commentsViewModel,
-          isFocused: _isCommentFocused.projectedValue
-        ))
+      .modify {
+        if #available(iOS 26, *) {
+          $0.safeAreaBar(edge: .bottom) {
+            CommentInputViewConstructor(
+              commentsViewModel: commentsViewModel,
+              isFocused: _isCommentFocused.projectedValue
+            )
+          }
+        } else {
+          $0.safeAreaInset(edge: .bottom) {
+            CommentInputViewConstructor(
+              commentsViewModel: commentsViewModel,
+              isFocused: _isCommentFocused.projectedValue
+            )
+          }
+        }
+      }
     #endif
   }
 
@@ -105,7 +124,6 @@ struct StandalonePostView: View {
   }
 
   private func reloadPost() async {
-    // Check if post is already cached
     if postManager.getPost(id: postId) != nil {
       postState = .loaded(postId)
       return
@@ -122,29 +140,10 @@ struct StandalonePostView: View {
   }
 }
 
-#if os(iOS)
-  struct CommentInputAccessoryModifier: ViewModifier {
-    @ObservedObject var commentsViewModel: CommentsView.ViewModel
-    var isFocused: FocusState<Bool>.Binding
-
-    func body(content: Content) -> some View {
-      content
-        .safeAreaInset(edge: .bottom) {
-          CommentInputView(
-            text: $commentsViewModel.text,
-            selectedRange: $commentsViewModel.selectedRange,
-            isSubmitting: $commentsViewModel.isSubmitting,
-            isFocused: isFocused,
-            onSubmit: {
-              let result = await commentsViewModel.submitComment(
-                text: commentsViewModel.text.string)
-              if result {
-                commentsViewModel.resetInputState()
-              }
-              return result
-            }
-          )
-        }
-    }
-  }
-#endif
+#Preview {
+  StandalonePostView(
+    postId: 2001,
+    postManager: PostManager(postService: MockPostService())
+  )
+  .environmentObject(AuthManager())
+}
