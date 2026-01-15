@@ -51,7 +51,7 @@ struct ProfileView: View {
   }
 
   var body: some View {
-    Group {
+    VStack {
       switch viewModel.profileState {
       case .idle, .loading:
         ProgressView()
@@ -86,77 +86,9 @@ struct ProfileView: View {
       }
     #endif
     .toolbar {
-      if isProfileTab {
-        if #available(iOS 26, macOS 26, *) {
-          ToolbarItem(
-            placement: .principal
-          ) {
-            Text("@" + self.username)
-              .font(.title2)
-              .fontWeight(.black)
+      titleToolbar()
 
-          }
-          .sharedBackgroundVisibility(.hidden)
-        } else {
-          ToolbarItem(
-            placement: .principal
-          ) {
-            Text("@" + self.username)
-              .font(.title2)
-              .fontWeight(.black)
-          }
-        }
-      } else {
-        ToolbarItem(placement: .principal) {
-          Text("@" + self.username)
-            .font(.callout)
-            .fontWeight(.bold)
-        }
-      }
-    }
-    .toolbar {
-      if !isProfileTab && !isCurrentUser {
-        Menu {
-          if case .loaded(let user) = viewModel.profileState {
-            if user.isBlocking {
-              Button(role: .destructive, action: { activeAlert = .block }) {
-                Label(
-                  "Unblock @\(user.username)",
-                  systemImage: "person.fill.checkmark"
-                )
-              }
-            } else {
-              Button(role: .destructive, action: { activeAlert = .block }) {
-                Label(
-                  "Block @\(user.username)",
-                  systemImage: "person.fill.xmark"
-                )
-              }
-            }
-
-            if user.isMuting {
-              Button(action: { activeAlert = .mute }) {
-                Label(
-                  "Unmute @\(user.username)",
-                  systemImage: "speaker.wave.2"
-                )
-              }
-            } else {
-              Button(action: { activeAlert = .mute }) {
-                Label(
-                  "Mute @\(user.username)",
-                  systemImage: "speaker.slash"
-                )
-              }
-            }
-          }
-        } label: {
-          Image(systemName: "ellipsis.circle")
-        }
-        .disabled(
-          viewModel.isLoadingBlockButton || viewModel.isLoadingMuteButton
-        )
-      }
+      menuToolbar()
     }
     .alert(
       alertTitle,
@@ -218,6 +150,93 @@ struct ProfileView: View {
             )
           }
         }
+      }
+    }
+  }
+
+  @ToolbarContentBuilder
+  private func titleToolbar() -> some ToolbarContent {
+    if isProfileTab {
+      if #available(iOS 26, macOS 26, *) {
+        ToolbarItem(
+          placement: .principal
+        ) {
+          Text("@" + self.username)
+            .font(.title2)
+            .fontWeight(.black)
+
+        }
+        .sharedBackgroundVisibility(.hidden)
+      } else {
+        ToolbarItem(
+          placement: .principal
+        ) {
+          Text("@" + self.username)
+            .font(.title2)
+            .fontWeight(.black)
+        }
+      }
+    } else {
+      ToolbarItem(placement: .principal) {
+        Text("@" + self.username)
+          .font(.callout)
+          .fontWeight(.bold)
+      }
+    }
+  }
+
+  @ToolbarContentBuilder
+  private func menuToolbar() -> some ToolbarContent {
+    ToolbarItem(
+      placement: {
+        #if os(iOS)
+          .topBarTrailing
+        #else
+          .navigation
+        #endif
+      }()
+    ) {
+      if !isProfileTab && !isCurrentUser {
+        Menu {
+          if case .loaded(let user) = viewModel.profileState {
+            if user.isBlocking {
+              Button(role: .destructive, action: { activeAlert = .block }) {
+                Label(
+                  "Unblock @\(user.username)",
+                  systemImage: "person.fill.checkmark"
+                )
+              }
+            } else {
+              Button(role: .destructive, action: { activeAlert = .block }) {
+                Label(
+                  "Block @\(user.username)",
+                  systemImage: "person.fill.xmark"
+                )
+              }
+            }
+
+            if user.isMuting {
+              Button(action: { activeAlert = .mute }) {
+                Label(
+                  "Unmute @\(user.username)",
+                  systemImage: "speaker.wave.2"
+                )
+              }
+            } else {
+              Button(action: { activeAlert = .mute }) {
+                Label(
+                  "Mute @\(user.username)",
+                  systemImage: "speaker.slash"
+                )
+              }
+            }
+          }
+        } label: {
+          Image(systemName: "ellipsis.circle")
+        }
+        .disabled(
+          viewModel.isLoadingBlockButton || viewModel.isLoadingMuteButton
+        )
       }
     }
   }
