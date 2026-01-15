@@ -7,7 +7,7 @@ struct MentionTextEditor: View {
   @Binding var selectedRange: NSRange
   var isCompact: Bool
   var autoFocusOnAppear: Bool
-  @FocusState.Binding var isFocused: Bool
+  @FocusState var isFocused: Bool
 
   @State private var contentHeight: CGFloat
   @State private var currentMention: String?
@@ -53,7 +53,6 @@ struct MentionTextEditor: View {
     viewModel: MentionViewModel,
     cursorY: Binding<CGFloat>,
     selectedRange: Binding<NSRange>,
-    isFocused: FocusState<Bool>.Binding,
     isCompact: Bool = false,
     autoFocusOnAppear: Bool = false
   ) {
@@ -61,7 +60,6 @@ struct MentionTextEditor: View {
     self.viewModel = viewModel
     self._cursorY = cursorY
     self._selectedRange = selectedRange
-    self._isFocused = isFocused
     self.isCompact = isCompact
     self._contentHeight = State(initialValue: 0)
     self.autoFocusOnAppear = autoFocusOnAppear
@@ -215,7 +213,6 @@ struct MentionTextEditor: View {
     viewModel: MentionTextEditor.MentionViewModel(),
     cursorY: $cursorY,
     selectedRange: $selectedRange,
-    isFocused: $isFocused,
     isCompact: true
   )
   .padding()

@@ -92,14 +92,14 @@ struct StandalonePostView: View {
           $0.safeAreaBar(edge: .bottom) {
             CommentInputViewConstructor(
               commentsViewModel: commentsViewModel,
-              isFocused: _isCommentFocused.projectedValue
+              isFocused: $isCommentFocused
             )
           }
         } else {
           $0.safeAreaInset(edge: .bottom) {
             CommentInputViewConstructor(
               commentsViewModel: commentsViewModel,
-              isFocused: _isCommentFocused.projectedValue
+              isFocused: $isCommentFocused
             )
           }
         }

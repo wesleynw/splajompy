@@ -93,17 +93,11 @@ struct CommentsView: View {
   var content: some View {
     VStack {
       if !isInSheet {
-        HStack(alignment: .firstTextBaseline) {
-          Text("Comments")
-            .fontWeight(.bold)
-            .font(.title3)
-            .padding()
-          
-          Button("unfocus") {
-            isInputFocused = false
-          }
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
+        Text("Comments")
+          .fontWeight(.bold)
+          .font(.title3)
+          .padding()
+          .frame(maxWidth: .infinity, alignment: .leading)
       }
 
       switch viewModel.state {

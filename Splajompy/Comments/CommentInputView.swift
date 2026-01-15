@@ -2,14 +2,14 @@ import SwiftUI
 
 struct CommentInputViewConstructor: View {
   @ObservedObject var commentsViewModel: CommentsView.ViewModel
-  var isFocused: FocusState<Bool>.Binding
+  @FocusState.Binding var isFocused: Bool
 
   var body: some View {
     CommentInputView(
       text: $commentsViewModel.text,
       selectedRange: $commentsViewModel.selectedRange,
       isSubmitting: $commentsViewModel.isSubmitting,
-      isFocused: isFocused,
+      isFocused: $isFocused,
       onSubmit: {
         let result = await commentsViewModel.submitComment(
           text: commentsViewModel.text.string
@@ -27,11 +27,11 @@ struct CommentInputView: View {
   @Binding var text: NSAttributedString
   @Binding var selectedRange: NSRange
   @Binding var isSubmitting: Bool
-  @FocusState.Binding var isFocused: Bool
 
   @StateObject private var mentionViewModel =
     MentionTextEditor.MentionViewModel()
   @State private var cursorY: CGFloat = 0
+  @FocusState.Binding var isFocused: Bool
 
   var onSubmit: () async -> Bool
 
@@ -43,9 +43,9 @@ struct CommentInputView: View {
           viewModel: mentionViewModel,
           cursorY: $cursorY,
           selectedRange: $selectedRange,
-          isFocused: $isFocused,
           isCompact: true
         )
+        .focused($isFocused)
 
         Button(action: {
           Task {
@@ -56,6 +56,7 @@ struct CommentInputView: View {
             ProgressView()
           } else {
             Image(systemName: "arrow.up.circle.fill")
+              .font(.title)
           }
         }
         .disabled(
@@ -63,7 +64,18 @@ struct CommentInputView: View {
             || isSubmitting
         )
       }
-      .padding()
+      .modify {
+        if #available(iOS 26, *) {
+          $0.padding()
+        } else {
+          $0
+            .padding(8)
+            .background(.bar)
+            .overlay(alignment: .top) {
+              Divider()
+            }
+        }
+      }
 
       if mentionViewModel.isShowingSuggestions {
         MentionTextEditor.suggestionView(
