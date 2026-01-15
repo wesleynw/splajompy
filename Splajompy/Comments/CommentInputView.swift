@@ -97,6 +97,8 @@ struct CommentInputView: View {
               .regular.interactive(),
               in: RoundedRectangle(cornerRadius: 15)
             )
+            // https://jeffverkoeyen.com/blog/2025/06/11/OffsetButtonsInScrollViews/
+            .padding(.top, cursorY + 68)
           }
         }
         .offset(y: -(cursorY + 68))
