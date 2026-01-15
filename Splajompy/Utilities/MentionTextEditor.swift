@@ -7,10 +7,10 @@ struct MentionTextEditor: View {
   @Binding var selectedRange: NSRange
   var isCompact: Bool
   var autoFocusOnAppear: Bool
+  @FocusState var isFocused: Bool
 
   @State private var contentHeight: CGFloat
   @State private var currentMention: String?
-  @FocusState private var isFocused: Bool
 
   static let mentionPattern = "@([a-zA-Z0-9_.]+)"
 
@@ -25,7 +25,10 @@ struct MentionTextEditor: View {
     }
 
     let nsString = text as NSString
-    let matches = regex.matches(in: text, range: NSRange(location: 0, length: nsString.length))
+    let matches = regex.matches(
+      in: text,
+      range: NSRange(location: 0, length: nsString.length)
+    )
 
     return matches.compactMap { match in
       guard match.numberOfRanges > 1 else { return nil }
@@ -40,7 +43,8 @@ struct MentionTextEditor: View {
     return mentions.contains { mention in
       // Cursor must be INSIDE the mention, not at the start
       // If cursor is at mention.range.location (before the @), treat as normal text
-      position > mention.range.location && position < mention.range.location + mention.range.length
+      position > mention.range.location
+        && position < mention.range.location + mention.range.length
     }
   }
 
@@ -99,14 +103,15 @@ struct MentionTextEditor: View {
             .offset(x: 8, y: 4)
         }
       }
-      .padding(.horizontal, 4)
-      .padding(.vertical, 2)
-      .background(Color(.systemBackground))
-      .cornerRadius(18)
-      .overlay(
-        RoundedRectangle(cornerRadius: 18)
-          .stroke(Color(.separator), lineWidth: 0.5)
-      )
+      .padding(.horizontal, 9)
+      .padding(.vertical, 7)
+      .modify {
+        if #available(iOS 26, *) {
+          $0.glassEffect(
+            .regular.tint(.clear.opacity(0.15)).interactive(),
+            in: RoundedRectangle(cornerRadius: 25))
+        }
+      }
     } else {
       VStack(alignment: .leading, spacing: 0) {
         ZStack(alignment: .topLeading) {
@@ -195,4 +200,22 @@ struct MentionTextEditor: View {
         .stroke(Color.primary.opacity(0.2), lineWidth: 1)
     )
   }
+}
+
+#Preview {
+  @Previewable @State var text: NSAttributedString = NSAttributedString(
+    string: ""
+  )
+  @Previewable @State var cursorY: CGFloat = 0
+  @Previewable @State var selectedRange: NSRange = NSRange()
+  @Previewable @FocusState var isFocused: Bool
+
+  MentionTextEditor(
+    text: $text,
+    viewModel: MentionTextEditor.MentionViewModel(),
+    cursorY: $cursorY,
+    selectedRange: $selectedRange,
+    isCompact: true
+  )
+  .padding()
 }

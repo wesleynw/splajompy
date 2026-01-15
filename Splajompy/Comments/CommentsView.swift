@@ -91,16 +91,13 @@ struct CommentsView: View {
 
   @ViewBuilder
   var content: some View {
-    VStack(spacing: 0) {
+    VStack {
       if !isInSheet {
-        HStack {
-          Text("Comments")
-            .fontWeight(.bold)
-            .font(.title3)
-            .padding()
-
-          Spacer()
-        }
+        Text("Comments")
+          .fontWeight(.bold)
+          .font(.title3)
+          .padding()
+          .frame(maxWidth: .infinity, alignment: .leading)
       }
 
       switch viewModel.state {
@@ -113,9 +110,6 @@ struct CommentsView: View {
             .padding()
           Spacer()
         }
-        .onTapGesture {
-          isInputFocused = false
-        }
       case .loaded(let comments):
         if comments.isEmpty {
           VStack(spacing: 16) {
@@ -126,9 +120,6 @@ struct CommentsView: View {
             Spacer()
           }
           .frame(maxWidth: .infinity, maxHeight: .infinity)
-          .onTapGesture {
-            isInputFocused = false
-          }
         } else {
           ScrollView {
             ForEach(comments, id: \.commentId) { comment in
@@ -148,9 +139,6 @@ struct CommentsView: View {
               )
             }
           }
-          .onTapGesture {
-            isInputFocused = false
-          }
           .animation(.easeInOut(duration: 0.3), value: comments)
         }
       case .failed(let error):
@@ -159,71 +147,28 @@ struct CommentsView: View {
           onRetry: viewModel.loadComments
         )
       }
-
-      if showInput {
-        Divider()
-
-        #if os(iOS)
-          HStack(alignment: .bottom, spacing: 8) {
-            MentionTextEditor(
-              text: $viewModel.text,
-              viewModel: mentionViewModel,
-              cursorY: $cursorY,
-              selectedRange: $viewModel.selectedRange,
-              isCompact: true
-            )
-            .focused($isInputFocused)
-
-            Button(action: {
-              Task {
-                let result = await viewModel.submitComment(
-                  text: viewModel.text.string
-                )
-                if result == true {
-                  viewModel.resetInputState()
-                }
-              }
-            }) {
-              if viewModel.isSubmitting {
-                ProgressView()
-                  .frame(width: 32, height: 32)
-              } else {
-                Image(systemName: "arrow.up.circle.fill")
-                  .font(.system(size: 32))
-              }
-            }
-            .disabled(
-              viewModel.text.string.trimmingCharacters(
-                in: .whitespacesAndNewlines
-              ).isEmpty
-                || viewModel.isSubmitting
-            )
-          }
-
-          .padding(.horizontal, 12)
-          .padding(.vertical, 8)
-        #endif
-      }
+    }
+    .onTapGesture {
+      isInputFocused = false
     }
     #if os(iOS)
-      .overlay(alignment: .bottomLeading) {
-        if showInput && mentionViewModel.isShowingSuggestions {
-          MentionTextEditor.suggestionView(
-            suggestions: mentionViewModel.mentionSuggestions,
-            isLoading: mentionViewModel.isLoading,
-            onInsert: { user in
-              let result = mentionViewModel.insertMention(
-                user,
-                in: viewModel.text,
-                at: viewModel.selectedRange
+      .modify {
+        if showInput {
+          if #available(iOS 26, *) {
+            $0.safeAreaBar(edge: .bottom) {
+              CommentInputViewConstructor(
+                commentsViewModel: viewModel,
+                isFocused: $isInputFocused
               )
-              viewModel.text = result.text
-              viewModel.selectedRange = result.newSelectedRange
             }
-          )
-          .padding(.horizontal, 16)
-          .padding(.bottom, 60)
-          .animation(.default, value: mentionViewModel.isShowingSuggestions)
+          } else {
+            $0.safeAreaInset(edge: .bottom) {
+              CommentInputViewConstructor(
+                commentsViewModel: viewModel,
+                isFocused: $isInputFocused
+              )
+            }
+          }
         }
       }
     #endif
@@ -380,6 +325,7 @@ struct LikeButton: View {
     postManager: postManager,
     viewModel: mockViewModel
   )
+  .environmentObject(AuthManager())
 }
 
 #Preview("Loading") {
