@@ -27,7 +27,7 @@ struct AttributedTextEditor: UIViewRepresentable {
       .defaultLow,
       for: .horizontal
     )
-    
+
     textView.backgroundColor = .clear
 
     if isScrollEnabled {

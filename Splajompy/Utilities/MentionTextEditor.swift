@@ -107,7 +107,9 @@ struct MentionTextEditor: View {
       .padding(.vertical, 7)
       .modify {
         if #available(iOS 26, *) {
-          $0.glassEffect(.regular.tint(.clear.opacity(0.15)).interactive(), in: RoundedRectangle(cornerRadius: 25))
+          $0.glassEffect(
+            .regular.tint(.clear.opacity(0.15)).interactive(),
+            in: RoundedRectangle(cornerRadius: 25))
         }
       }
     } else {

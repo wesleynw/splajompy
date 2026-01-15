@@ -36,7 +36,7 @@ struct CommentInputView: View {
   var onSubmit: () async -> Bool
 
   var body: some View {
-    ZStack(alignment: .bottomLeading) {
+    ZStack(alignment: .bottom) {
       HStack(alignment: .center) {
         MentionTextEditor(
           text: $text,
@@ -91,7 +91,7 @@ struct CommentInputView: View {
             selectedRange = result.newSelectedRange
           }
         )
-        .offset(x: 20, y: -(cursorY + 68))
+        .offset(y: -(cursorY + 68))
         .padding(.horizontal, 16)
         .animation(.default, value: mentionViewModel.isShowingSuggestions)
       }
