@@ -94,6 +94,7 @@
 				Tests/GreatestRemainderQuotaTests.swift,
 			);
 			platformFiltersByRelativePath = {
+				Comments/CommentInputView.swift = (ios, );
 				Extensions/ImageResize.swift = (ios, );
 				Posts/Components/ZoomableAsyncImage.swift = (ios, );
 				Posts/New/NewPostRepository.swift = (ios, );
