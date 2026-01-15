@@ -91,8 +91,16 @@ struct CommentInputView: View {
             selectedRange = result.newSelectedRange
           }
         )
+        .modify {
+          if #available(iOS 26, *) {
+            $0.glassEffect(
+              .regular.interactive(),
+              in: RoundedRectangle(cornerRadius: 15)
+            )
+          }
+        }
         .offset(y: -(cursorY + 68))
-        .padding(.horizontal, 16)
+        .padding(.horizontal)
         .animation(.default, value: mentionViewModel.isShowingSuggestions)
       }
     }

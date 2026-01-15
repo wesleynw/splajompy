@@ -109,7 +109,8 @@ struct MentionTextEditor: View {
         if #available(iOS 26, *) {
           $0.glassEffect(
             .regular.tint(.clear.opacity(0.15)).interactive(),
-            in: RoundedRectangle(cornerRadius: 25))
+            in: RoundedRectangle(cornerRadius: 25)
+          )
         }
       }
     } else {
@@ -193,12 +194,18 @@ struct MentionTextEditor: View {
       }
     }
     .frame(maxWidth: .infinity)
-    .background(Color(.systemBackground))
-    .clipShape(RoundedRectangle(cornerRadius: 8))
-    .overlay(
-      RoundedRectangle(cornerRadius: 8)
-        .stroke(Color.primary.opacity(0.2), lineWidth: 1)
-    )
+    .modify {
+      if #available(iOS 26, *) {
+        $0
+      } else {
+        $0.background(.ultraThinMaterial)
+          .clipShape(RoundedRectangle(cornerRadius: 8))
+          .overlay(
+            RoundedRectangle(cornerRadius: 8)
+              .stroke(Color.primary.opacity(0.2), lineWidth: 1)
+          )
+      }
+    }
   }
 }
 
