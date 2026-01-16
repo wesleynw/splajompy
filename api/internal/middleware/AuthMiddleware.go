@@ -13,7 +13,6 @@ import (
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
-	"go.opentelemetry.io/otel/trace"
 	"golang.org/x/mod/semver"
 	"splajompy.com/api/v2/internal/db/queries"
 	"splajompy.com/api/v2/internal/utilities"
@@ -114,8 +113,8 @@ func AuthMiddleware(q *queries.Queries) func(http.Handler) http.Handler {
 			})
 
 			if err != nil {
-				span := trace.SpanFromContext(ctx)
-				span.AddEvent("unable to record latest app version")
+				span.SetStatus(codes.Error, "unable to record latest app version")
+				span.RecordError(err)
 			}
 
 			publicUser := utilities.MapUserToPublicUser(dbUser)
