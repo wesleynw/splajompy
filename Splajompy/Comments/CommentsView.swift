@@ -12,7 +12,6 @@ struct CommentsView: View {
   @Environment(\.dismiss) private var dismiss
 
   @State private var cursorY: CGFloat = 0
-  @FocusState private var isInputFocused: Bool
   #if os(iOS)
     @StateObject private var mentionViewModel =
       MentionTextEditor.MentionViewModel()
@@ -148,24 +147,19 @@ struct CommentsView: View {
         )
       }
     }
-    .onTapGesture {
-      isInputFocused = false
-    }
     #if os(iOS)
       .modify {
         if showInput {
           if #available(iOS 26, *) {
             $0.safeAreaBar(edge: .bottom) {
               CommentInputViewConstructor(
-                commentsViewModel: viewModel,
-                isFocused: $isInputFocused
+                commentsViewModel: viewModel
               )
             }
           } else {
             $0.safeAreaInset(edge: .bottom) {
               CommentInputViewConstructor(
-                commentsViewModel: viewModel,
-                isFocused: $isInputFocused
+                commentsViewModel: viewModel
               )
             }
           }

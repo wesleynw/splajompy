@@ -2,14 +2,12 @@ import SwiftUI
 
 struct CommentInputViewConstructor: View {
   @ObservedObject var commentsViewModel: CommentsView.ViewModel
-  @FocusState.Binding var isFocused: Bool
 
   var body: some View {
     CommentInputView(
       text: $commentsViewModel.text,
       selectedRange: $commentsViewModel.selectedRange,
       isSubmitting: $commentsViewModel.isSubmitting,
-      isFocused: $isFocused,
       onSubmit: {
         let result = await commentsViewModel.submitComment(
           text: commentsViewModel.text.string
@@ -31,52 +29,49 @@ struct CommentInputView: View {
   @StateObject private var mentionViewModel =
     MentionTextEditor.MentionViewModel()
   @State private var cursorY: CGFloat = 0
-  @FocusState.Binding var isFocused: Bool
 
   var onSubmit: () async -> Bool
 
   var body: some View {
-    ZStack(alignment: .bottom) {
-      HStack(alignment: .center) {
-        MentionTextEditor(
-          text: $text,
-          viewModel: mentionViewModel,
-          cursorY: $cursorY,
-          selectedRange: $selectedRange,
-          isCompact: true
-        )
-        .focused($isFocused)
+    HStack(alignment: .center) {
+      MentionTextEditor(
+        text: $text,
+        viewModel: mentionViewModel,
+        cursorY: $cursorY,
+        selectedRange: $selectedRange,
+        isCompact: true
+      )
 
-        Button(action: {
-          Task {
-            _ = await onSubmit()
-          }
-        }) {
-          if isSubmitting {
-            ProgressView()
-          } else {
-            Image(systemName: "arrow.up.circle.fill")
-              .font(.title)
-          }
+      Button(action: {
+        Task {
+          _ = await onSubmit()
         }
-        .disabled(
-          text.string.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-            || isSubmitting
-        )
-      }
-      .modify {
-        if #available(iOS 26, *) {
-          $0.padding()
+      }) {
+        if isSubmitting {
+          ProgressView()
         } else {
-          $0
-            .padding(8)
-            .background(.bar)
-            .overlay(alignment: .top) {
-              Divider()
-            }
+          Image(systemName: "arrow.up.circle.fill")
+            .font(.title)
         }
       }
-
+      .disabled(
+        text.string.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+          || isSubmitting
+      )
+    }
+    .modify {
+      if #available(iOS 26, *) {
+        $0.padding()
+      } else {
+        $0
+          .padding(8)
+          .background(.bar)
+          .overlay(alignment: .top) {
+            Divider()
+          }
+      }
+    }
+    .overlay(alignment: .top) {
       if mentionViewModel.isShowingSuggestions {
         MentionTextEditor.suggestionView(
           suggestions: mentionViewModel.mentionSuggestions,

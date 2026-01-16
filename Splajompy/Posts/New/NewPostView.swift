@@ -59,6 +59,14 @@ struct NewPostView: View {
                   viewModel.selectedRange = result.newSelectedRange
                 }
               )
+              .modify {
+                if #available(iOS 26, *) {
+                  $0.glassEffect(
+                    .regular.interactive(),
+                    in: RoundedRectangle(cornerRadius: 15)
+                  )
+                }
+              }
               .offset(y: cursorY + 40)
               .padding(.horizontal, 32)
               .animation(.default, value: mentionViewModel.isShowingSuggestions)

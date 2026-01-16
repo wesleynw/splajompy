@@ -7,7 +7,6 @@ struct StandalonePostView: View {
   @StateObject private var viewModel: ViewModel
   @StateObject private var commentsViewModel: CommentsView.ViewModel
   @State private var postState: PostState = .idle
-  @FocusState private var isCommentFocused: Bool
   @Environment(\.dismiss) private var dismiss
 
   init(postId: Int, postManager: PostManager) {
@@ -75,9 +74,6 @@ struct StandalonePostView: View {
         .frame(maxWidth: .infinity)
       #endif
     }
-    .onTapGesture {
-      isCommentFocused = false
-    }
     .refreshable(action: {
       Task { await loadPost() }
     })
@@ -91,15 +87,13 @@ struct StandalonePostView: View {
         if #available(iOS 26, *) {
           $0.safeAreaBar(edge: .bottom) {
             CommentInputViewConstructor(
-              commentsViewModel: commentsViewModel,
-              isFocused: $isCommentFocused
+              commentsViewModel: commentsViewModel
             )
           }
         } else {
           $0.safeAreaInset(edge: .bottom) {
             CommentInputViewConstructor(
-              commentsViewModel: commentsViewModel,
-              isFocused: $isCommentFocused
+              commentsViewModel: commentsViewModel
             )
           }
         }
