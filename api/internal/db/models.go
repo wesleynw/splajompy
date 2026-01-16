@@ -1,5 +1,7 @@
 package db
 
+import "time"
+
 type Facet struct {
 	Type       string `json:"type"`
 	UserId     int    `json:"userId"`
@@ -19,5 +21,7 @@ type Poll struct {
 }
 
 type UserDisplayProperties struct {
-	FontChoiceId *int `json:"fontChoiceId"`
+	FontChoiceId     *int       `json:"fontChoiceId"`
+	LatestAppVersion *string    `json:"latestAppVersion"`
+	LastLoginDate    *time.Time `json:"lastLoginDate"`
 }
