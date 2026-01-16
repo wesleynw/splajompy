@@ -13,6 +13,8 @@ import (
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
+	"go.opentelemetry.io/otel/trace"
+	"golang.org/x/mod/semver"
 	"splajompy.com/api/v2/internal/db/queries"
 	"splajompy.com/api/v2/internal/utilities"
 )
@@ -88,6 +90,32 @@ func AuthMiddleware(q *queries.Queries) func(http.Handler) http.Handler {
 			if err != nil {
 				utilities.HandleError(w, http.StatusBadRequest, err.Error())
 				return
+			}
+
+			// log latest app version in profile
+			versionAny := ctx.Value(AppVersionKey)
+			version, ok := versionAny.(string)
+			userDisplayProperties := dbUser.UserDisplayProperties
+			if ok && (userDisplayProperties.LatestAppVersion == nil || semver.Compare(version, *dbUser.UserDisplayProperties.LatestAppVersion) > 0) {
+				userDisplayProperties.LatestAppVersion = &version
+			}
+
+			now := time.Now().UTC()
+			if userDisplayProperties.LastLoginDate == nil ||
+				userDisplayProperties.LastLoginDate.UTC().Truncate(24*time.Hour).
+					Before(now.Truncate(24*time.Hour)) {
+
+				userDisplayProperties.LastLoginDate = &now
+			}
+
+			err = q.UpdateUserDisplayProperties(ctx, queries.UpdateUserDisplayPropertiesParams{
+				UserID:                dbUser.UserID,
+				UserDisplayProperties: userDisplayProperties,
+			})
+
+			if err != nil {
+				span := trace.SpanFromContext(ctx)
+				span.AddEvent("unable to record latest app version")
 			}
 
 			publicUser := utilities.MapUserToPublicUser(dbUser)

@@ -8,7 +8,9 @@ import (
 )
 
 type UserDisplayProperties struct {
-	FontChoiceId *int `json:"fontChoiceId"`
+	FontChoiceId     *int       `json:"fontChoiceId"`
+	LatestAppVersion *string    `json:"latestAppVersion"`
+	LastLoginDate    *time.Time `json:"lastLoginDate`
 }
 
 type NotificationType string
