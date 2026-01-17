@@ -8,7 +8,7 @@ struct CommentsView: View {
 
   var postManager: PostStore
 
-  @StateObject private var viewModel: ViewModel
+  @State private var viewModel: ViewModel
   @Environment(\.dismiss) private var dismiss
 
   @State private var cursorY: CGFloat = 0
@@ -25,7 +25,7 @@ struct CommentsView: View {
   ) {
     self.postId = postId
     self.postManager = postManager
-    _viewModel = StateObject(
+    _viewModel = State(
       wrappedValue: ViewModel(postId: postId, postManager: postManager)
     )
     self.isInSheet = isInSheet
@@ -41,7 +41,7 @@ struct CommentsView: View {
   ) {
     self.postId = postId
     self.postManager = postManager
-    _viewModel = StateObject(wrappedValue: viewModel)
+    _viewModel = State(wrappedValue: viewModel)
     self.isInSheet = isInSheet
     self.showInput = showInput
   }
@@ -319,7 +319,7 @@ struct LikeButton: View {
     postManager: postManager,
     viewModel: mockViewModel
   )
-  .environmentObject(AuthManager())
+  .environment(AuthManager())
 }
 
 #Preview("Loading") {

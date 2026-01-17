@@ -5,7 +5,7 @@ struct StandalonePostView: View {
   var postManager: PostStore
 
   @StateObject private var viewModel: ViewModel
-  @StateObject private var commentsViewModel: CommentsView.ViewModel
+  @State private var commentsViewModel: CommentsView.ViewModel
   @State private var postState: PostState = .idle
   @Environment(\.dismiss) private var dismiss
 
@@ -15,7 +15,7 @@ struct StandalonePostView: View {
     _viewModel = StateObject(
       wrappedValue: ViewModel(postId: postId, postManager: postManager)
     )
-    _commentsViewModel = StateObject(
+    _commentsViewModel = State(
       wrappedValue: CommentsView.ViewModel(
         postId: postId,
         postManager: postManager
@@ -137,7 +137,7 @@ struct StandalonePostView: View {
 #Preview {
   StandalonePostView(
     postId: 2001,
-    postManager: PostManager(postService: MockPostService())
+    postManager: PostStore(postService: MockPostService())
   )
-  .environmentObject(AuthManager())
+  .environment(AuthManager())
 }

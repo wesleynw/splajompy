@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct CommentInputViewConstructor: View {
-  @ObservedObject var commentsViewModel: CommentsView.ViewModel
+  @State var commentsViewModel: CommentsView.ViewModel
 
   var body: some View {
     CommentInputView(
