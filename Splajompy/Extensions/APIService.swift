@@ -47,7 +47,8 @@ public struct APIService {
 
     request.setValue(
       Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String,
-      forHTTPHeaderField: "X-App-Version")
+      forHTTPHeaderField: "X-App-Version"
+    )
 
     return request
   }
@@ -58,10 +59,14 @@ public struct APIService {
     queryItems: [URLQueryItem]? = nil,
     body: Data? = nil
   ) async -> AsyncResult<T> {
-    let tracer = OpenTelemetry.instance.tracerProvider.get(instrumentationName: "APIService")
-    let span = tracer.spanBuilder(spanName: "API Service: \(method) /\(endpoint)")
-      .setActive(true)
-      .startSpan()
+    let tracer = OpenTelemetry.instance.tracerProvider.get(
+      instrumentationName: "APIService"
+    )
+    let span = tracer.spanBuilder(
+      spanName: "API Service: \(method) /\(endpoint)"
+    )
+    .setActive(true)
+    .startSpan()
 
     defer {
       span.end()
@@ -91,17 +96,23 @@ public struct APIService {
       let (data, response) = try await URLSession.shared.data(for: request)
 
       if let httpResponse = response as? HTTPURLResponse {
-        span.setAttribute(key: "http.status_code", value: httpResponse.statusCode)
+        span.setAttribute(
+          key: "http.status_code",
+          value: httpResponse.statusCode
+        )
 
         if httpResponse.statusCode == 401 {
           span.status = .error(description: "Unauthorized")
           await AuthManager.shared.signOut()
-          return .error(APIErrorMessage(message: "Session expired. Please sign in again."))
+          return .error(
+            APIErrorMessage(message: "Session expired. Please sign in again.")
+          )
         }
-        if httpResponse.statusCode == 503 {
+        if httpResponse.statusCode == 503, httpResponse.statusCode == 504 {
           span.status = .error(description: "Service unavailable")
           return .error(
-            APIErrorMessage(message: "Service unavailable."))
+            APIErrorMessage(message: "Service unavailable.")
+          )
         }
       }
 
@@ -113,7 +124,9 @@ public struct APIService {
 
         let formatter = ISO8601DateFormatter()
 
-        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds, .withTimeZone]
+        formatter.formatOptions = [
+          .withInternetDateTime, .withFractionalSeconds, .withTimeZone,
+        ]
         if let date = formatter.date(from: dateString) {
           return date
         }
@@ -125,7 +138,9 @@ public struct APIService {
 
         throw DecodingError.dataCorrupted(
           DecodingError.Context(
-            codingPath: decoder.codingPath, debugDescription: "Invalid date format: \(dateString)")
+            codingPath: decoder.codingPath,
+            debugDescription: "Invalid date format: \(dateString)"
+          )
         )
       }
 
@@ -141,7 +156,9 @@ public struct APIService {
           }
 
           guard let responseData = decodedResponse.data else {
-            span.status = .error(description: "API returned success but no data")
+            span.status = .error(
+              description: "API returned success but no data"
+            )
             return .error(
               APIErrorMessage(message: "API returned success but no data")
             )
@@ -150,18 +167,24 @@ public struct APIService {
           span.status = .ok
           return .success(responseData)
         }
-        span.status = .error(description: decodedResponse.error ?? "Unknown API error")
+        span.status = .error(
+          description: decodedResponse.error ?? "Unknown API error"
+        )
         return .error(
           APIErrorMessage(message: decodedResponse.error ?? "Unknown API error")
         )
       } catch {
         print("API response decoding error: \(error)")
-        span.status = .error(description: "Decoding error: \(error.localizedDescription)")
+        span.status = .error(
+          description: "Decoding error: \(error.localizedDescription)"
+        )
         return .error(error)
       }
     } catch {
       print("API call error: \(error)")
-      span.status = .error(description: "Request error: \(error.localizedDescription)")
+      span.status = .error(
+        description: "Request error: \(error.localizedDescription)"
+      )
       return .error(error)
     }
   }

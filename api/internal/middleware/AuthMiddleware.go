@@ -14,6 +14,7 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
 	"golang.org/x/mod/semver"
+	"splajompy.com/api/v2/internal/db"
 	"splajompy.com/api/v2/internal/db/queries"
 	"splajompy.com/api/v2/internal/utilities"
 )
@@ -95,7 +96,10 @@ func AuthMiddleware(q *queries.Queries) func(http.Handler) http.Handler {
 			versionAny := ctx.Value(AppVersionKey)
 			version, ok := versionAny.(string)
 			userDisplayProperties := dbUser.UserDisplayProperties
-			if ok && (userDisplayProperties.LatestAppVersion == nil || semver.Compare(version, *dbUser.UserDisplayProperties.LatestAppVersion) > 0) {
+			if userDisplayProperties == nil {
+				userDisplayProperties = &db.UserDisplayProperties{}
+			}
+			if ok && (userDisplayProperties.LatestAppVersion == nil || semver.Compare(version, *userDisplayProperties.LatestAppVersion) > 0) {
 				userDisplayProperties.LatestAppVersion = &version
 			}
 
