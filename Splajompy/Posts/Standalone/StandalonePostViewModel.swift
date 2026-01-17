@@ -9,8 +9,8 @@ enum PostState {
 }
 
 extension StandalonePostView {
-  @MainActor class ViewModel: ObservableObject {
-    @Published var post: PostState = .idle
+  @MainActor @Observable class ViewModel {
+    var post: PostState = .idle
 
     var detailedPost: ObservablePost? {
       postManager.getPost(id: postId)

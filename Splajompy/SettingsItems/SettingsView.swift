@@ -4,7 +4,7 @@ import SwiftUI
 struct SettingsView: View {
   @Environment(AuthManager.self) private var authManager
   @State private var isShowingWrappedView: Bool = false
-  @StateObject private var wrappedViewModel: WrappedViewModel =
+  @State private var wrappedViewModel: WrappedViewModel =
     WrappedViewModel()
 
   var body: some View {

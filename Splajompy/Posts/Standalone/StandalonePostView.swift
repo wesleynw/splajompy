@@ -4,7 +4,7 @@ struct StandalonePostView: View {
   let postId: Int
   var postManager: PostStore
 
-  @StateObject private var viewModel: ViewModel
+  @State private var viewModel: ViewModel
   @State private var commentsViewModel: CommentsView.ViewModel
   @State private var postState: PostState = .idle
   @Environment(\.dismiss) private var dismiss
@@ -12,7 +12,7 @@ struct StandalonePostView: View {
   init(postId: Int, postManager: PostStore) {
     self.postId = postId
     self.postManager = postManager
-    _viewModel = StateObject(
+    _viewModel = State(
       wrappedValue: ViewModel(postId: postId, postManager: postManager)
     )
     _commentsViewModel = State(

@@ -16,21 +16,21 @@ enum PostsState {
 }
 
 extension ProfileView {
-  @MainActor class ViewModel: ObservableObject {
+  @MainActor @Observable class ViewModel {
     private let userId: Int
     private var profileService: ProfileServiceProtocol
     private var lastPostTimestamp: Date?
     private let fetchLimit = 10
     var postManager: PostStore
 
-    @Published var profileState: ProfileState = .idle
-    @Published var postsState: PostsState = .idle
-    @Published var isLoading: Bool = false
-    @Published var isLoadingFollowButton: Bool = false
-    @Published var isLoadingBlockButton: Bool = false
-    @Published var isLoadingMuteButton: Bool = false
-    @Published var canLoadMorePosts: Bool = true
-    @Published var isLoadingMorePosts: Bool = false
+    var profileState: ProfileState = .idle
+    var postsState: PostsState = .idle
+    var isLoading: Bool = false
+    var isLoadingFollowButton: Bool = false
+    var isLoadingBlockButton: Bool = false
+    var isLoadingMuteButton: Bool = false
+    var canLoadMorePosts: Bool = true
+    var isLoadingMorePosts: Bool = false
 
     init(
       userId: Int,

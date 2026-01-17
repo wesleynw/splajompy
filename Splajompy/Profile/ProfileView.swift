@@ -7,7 +7,7 @@ struct ProfileView: View {
 
   @State private var isShowingProfileEditor: Bool = false
   @State private var activeAlert: ProfileAlertEnum?
-  @StateObject private var viewModel: ViewModel
+  @State private var viewModel: ViewModel
   @Environment(AuthManager.self) private var authManager
   var postManager: PostStore
 
@@ -44,7 +44,7 @@ struct ProfileView: View {
     self.username = username
     self.isProfileTab = isProfileTab
     self.postManager = postManager
-    _viewModel = StateObject(
+    _viewModel = State(
       wrappedValue: viewModel
         ?? ViewModel(userId: userId, postManager: postManager)
     )

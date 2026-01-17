@@ -12,14 +12,14 @@ enum UserListVariantEnum {
   case mutuals
 }
 
-@MainActor
-class UserListViewModel: ObservableObject {
+@MainActor @Observable
+class UserListViewModel {
   let userId: Int
   let userListVariant: UserListVariantEnum
 
-  @Published var state: UserListState = .idle
-  @Published var isFetchingMore: Bool = false
-  @Published var hasMoreToFetch: Bool = false
+  var state: UserListState = .idle
+  var isFetchingMore: Bool = false
+  var hasMoreToFetch: Bool = false
 
   private let profileService: ProfileServiceProtocol
   private let fetchLimit = 20

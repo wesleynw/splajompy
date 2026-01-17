@@ -5,7 +5,7 @@ struct MainFeedView: View {
   @State private var isShowingNewPostView = false
   @State private var isShowingWrappedView: Bool = false
   @State private var viewModel: FeedViewModel
-  @StateObject private var wrappedViewModel: WrappedViewModel =
+  @State private var wrappedViewModel: WrappedViewModel =
     WrappedViewModel()
   @Environment(AuthManager.self) private var authManager
   var postManager: PostStore

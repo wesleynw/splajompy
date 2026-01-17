@@ -36,11 +36,11 @@ enum NotificationFilter: String, CaseIterable, Identifiable, Codable {
 }
 
 extension NotificationsView {
-  @MainActor class ViewModel: ObservableObject {
-    @Published var state: NotificationState = .idle
-    @Published var hasMoreToLoad: Bool = true
-    @Published var hasMoreUnreadToLoad: Bool = true
-    @Published var selectedFilter: NotificationFilter = .all {
+  @MainActor @Observable class ViewModel {
+    var state: NotificationState = .idle
+    var hasMoreToLoad: Bool = true
+    var hasMoreUnreadToLoad: Bool = true
+    var selectedFilter: NotificationFilter = .all {
       didSet {
         guard selectedFilter != oldValue else { return }
         state = .idle

@@ -1,11 +1,11 @@
 import SwiftUI
 
 extension MentionTextEditor {
-  @MainActor
-  class MentionViewModel: ObservableObject {
-    @Published var mentionSuggestions: [PublicUser] = []
-    @Published var isShowingSuggestions = false
-    @Published var isLoading = false
+  @MainActor @Observable
+  class MentionViewModel {
+    var mentionSuggestions: [PublicUser] = []
+    var isShowingSuggestions = false
+    var isLoading = false
 
     private var service: ProfileServiceProtocol = ProfileService()
     private var fetchTask: Task<Void, Never>?

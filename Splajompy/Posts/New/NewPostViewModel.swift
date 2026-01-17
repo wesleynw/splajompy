@@ -9,18 +9,18 @@ enum PhotoState {
 }
 
 extension NewPostView {
-  @MainActor class ViewModel: ObservableObject {
-    @Published var isLoading = false
-    @Published var errorDisplay: String?
+  @MainActor @Observable class ViewModel {
+    var isLoading = false
+    var errorDisplay: String?
 
-    @Published var text: NSAttributedString = NSAttributedString(string: "")
-    @Published var selectedRange: NSRange = NSRange(location: 0, length: 0)
-    @Published var poll: PollCreationRequest?
+    var text: NSAttributedString = NSAttributedString(string: "")
+    var selectedRange: NSRange = NSRange(location: 0, length: 0)
+    var poll: PollCreationRequest?
 
-    @Published var imageStates = [
+    var imageStates = [
       (itemIdentifier: String, pickerItem: PhotosPickerItem, state: PhotoState)
     ]()
-    @Published var imageSelection = [PhotosPickerItem]() {
+    var imageSelection = [PhotosPickerItem]() {
       didSet {
         let oldStates = imageStates
         imageStates = imageSelection.map { item in
@@ -63,13 +63,17 @@ extension NewPostView {
     }
 
     func retryImage(itemIdentifier: String) {
-      guard let index = imageStates.firstIndex(where: { $0.itemIdentifier == itemIdentifier })
+      guard
+        let index = imageStates.firstIndex(where: {
+          $0.itemIdentifier == itemIdentifier
+        })
       else {
         return
       }
       let pickerItem = imageStates[index].pickerItem
       imageStates[index].state = .loading(
-        loadTransferable(from: pickerItem, itemId: itemIdentifier))
+        loadTransferable(from: pickerItem, itemId: itemIdentifier)
+      )
     }
 
     func submitPost(

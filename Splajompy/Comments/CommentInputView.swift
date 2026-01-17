@@ -26,7 +26,7 @@ struct CommentInputView: View {
   @Binding var selectedRange: NSRange
   @Binding var isSubmitting: Bool
 
-  @StateObject private var mentionViewModel =
+  @State private var mentionViewModel =
     MentionTextEditor.MentionViewModel()
   @State private var cursorY: CGFloat = 0
 

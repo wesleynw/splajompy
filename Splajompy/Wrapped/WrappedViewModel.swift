@@ -55,9 +55,9 @@ enum WrappedEligibilityState: Equatable {
   case loaded(Bool)
 }
 
-@MainActor class WrappedViewModel: ObservableObject {
-  @Published var state: WrappedState = .idle
-  @Published var eligibility: WrappedEligibilityState = .idle
+@MainActor @Observable class WrappedViewModel {
+  var state: WrappedState = .idle
+  var eligibility: WrappedEligibilityState = .idle
 
   func loadEligibility() async {
     let result: AsyncResult<Bool> = await APIService.performRequest(

@@ -2,7 +2,7 @@ import PostHog
 import SwiftUI
 
 struct ProfileEditorView: View {
-  @StateObject var viewModel: ProfileView.ViewModel
+  var viewModel: ProfileView.ViewModel
   @State private var name: String = ""
   @State private var bio: String = ""
   @State private var isShowingFontPicker: Bool = false

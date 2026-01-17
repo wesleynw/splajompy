@@ -13,7 +13,7 @@ struct CommentsView: View {
 
   @State private var cursorY: CGFloat = 0
   #if os(iOS)
-    @StateObject private var mentionViewModel =
+    @State private var mentionViewModel =
       MentionTextEditor.MentionViewModel()
   #endif
 
