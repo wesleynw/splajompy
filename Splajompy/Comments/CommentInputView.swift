@@ -71,35 +71,35 @@ struct CommentInputView: View {
           }
       }
     }
-    .overlay(alignment: .top) {
-      if mentionViewModel.isShowingSuggestions {
-        MentionTextEditor.suggestionView(
-          suggestions: mentionViewModel.mentionSuggestions,
-          isLoading: mentionViewModel.isLoading,
-          onInsert: { user in
-            let result = mentionViewModel.insertMention(
-              user,
-              in: text,
-              at: selectedRange
-            )
-            text = result.text
-            selectedRange = result.newSelectedRange
+    .overlay(alignment: .bottom) {
+      VStack {
+        if mentionViewModel.isShowingSuggestions {
+          MentionTextEditor.suggestionView(
+            suggestions: mentionViewModel.mentionSuggestions,
+            isLoading: mentionViewModel.isLoading,
+            onInsert: { user in
+              let result = mentionViewModel.insertMention(
+                user,
+                in: text,
+                at: selectedRange
+              )
+              text = result.text
+              selectedRange = result.newSelectedRange
+            }
+          )
+          .modify {
+            if #available(iOS 26, *) {
+              $0.glassEffect(
+                .regular.interactive(),
+                in: RoundedRectangle(cornerRadius: 15)
+              )
+            }
           }
-        )
-        .modify {
-          if #available(iOS 26, *) {
-            $0.glassEffect(
-              .regular.interactive(),
-              in: RoundedRectangle(cornerRadius: 15)
-            )
-            // https://jeffverkoeyen.com/blog/2025/06/11/OffsetButtonsInScrollViews/
-            .padding(.top, cursorY + 68)
-          }
+          .animation(.default, value: mentionViewModel.isShowingSuggestions)
         }
-        .offset(y: -(cursorY + 68))
-        .padding(.horizontal)
-        .animation(.default, value: mentionViewModel.isShowingSuggestions)
       }
+      .offset(y: -(cursorY + 68))
+      .padding(.horizontal)
     }
   }
 }
