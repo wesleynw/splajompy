@@ -114,6 +114,11 @@ public struct APIService {
             APIErrorMessage(message: "Service unavailable.")
           )
         }
+
+        if 500...599 ~= httpResponse.statusCode {
+          span.status = .error(description: "internal server error")
+          return .error(APIErrorMessage(message: "Internal Server Error"))
+        }
       }
 
       let decoder = JSONDecoder()
