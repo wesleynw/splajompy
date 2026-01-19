@@ -2,7 +2,7 @@ import PostHog
 import SwiftUI
 
 struct ProfileEditorView: View {
-  @StateObject var viewModel: ProfileView.ViewModel
+  var viewModel: ProfileView.ViewModel
   @State private var name: String = ""
   @State private var bio: String = ""
   @State private var isShowingFontPicker: Bool = false
@@ -143,7 +143,7 @@ struct ProfileEditorView: View {
 
 #Preview {
   @Previewable @State var isPresenting: Bool = true
-  let viewModel = ProfileView.ViewModel(userId: 0, postManager: PostManager())
+  let viewModel = ProfileView.ViewModel(userId: 0, postManager: PostStore())
 
   Color.clear
     .sheet(isPresented: $isPresenting) {

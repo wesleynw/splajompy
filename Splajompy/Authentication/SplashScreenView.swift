@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct SplashScreenView: View {
-  @EnvironmentObject var authManager: AuthManager
+  @Environment(AuthManager.self) private var authManager
   @State private var isLoginViewPresenting: Bool = false
   @State private var isRegisterViewPresenting: Bool = false
 
@@ -78,11 +78,9 @@ struct SplashScreenView: View {
         RegisterView()
       }
     #endif
-    .environmentObject(authManager)
   }
 }
 
 #Preview {
   SplashScreenView()
-    .environmentObject(AuthManager())
 }

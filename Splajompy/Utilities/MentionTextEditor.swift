@@ -2,7 +2,7 @@ import SwiftUI
 
 struct MentionTextEditor: View {
   @Binding var text: NSAttributedString
-  @ObservedObject var viewModel: MentionViewModel
+  var viewModel: MentionViewModel
   @Binding var cursorY: CGFloat
   @Binding var selectedRange: NSRange
   var isCompact: Bool

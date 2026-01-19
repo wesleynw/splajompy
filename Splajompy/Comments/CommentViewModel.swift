@@ -8,25 +8,36 @@ enum CommentState {
 }
 
 extension CommentsView {
-  @MainActor class ViewModel: ObservableObject {
+  @MainActor @Observable class ViewModel {
     private let postId: Int
     private var service: CommentServiceProtocol
-    @AppStorage("comment_sort_order") private var commentSortOrder: String =
-      "Newest First"
 
-    @Published var state: CommentState = .idle
-    @Published var isSubmitting: Bool = false
-    @Published var showError: Bool = false
-    @Published var errorMessage: String?
-    @ObservedObject var postManager: PostManager
+    var commentSortOrder: String {
+      get {
+        UserDefaults.standard.string(forKey: "comment_sort_order")
+          ?? "Newest First"
+      }
+      set {
+        UserDefaults.standard.set(
+          newValue,
+          forKey: "comment_sort_order"
+        )
+      }
+    }
 
-    @Published var text: NSAttributedString = NSAttributedString(string: "")
-    @Published var selectedRange: NSRange = NSRange(location: 0, length: 0)
+    var state: CommentState = .idle
+    var isSubmitting: Bool = false
+    var showError: Bool = false
+    var errorMessage: String?
+    var postManager: PostStore
+
+    var text: NSAttributedString = NSAttributedString(string: "")
+    var selectedRange: NSRange = NSRange(location: 0, length: 0)
 
     init(
       postId: Int,
       service: CommentServiceProtocol = CommentService(),
-      postManager: PostManager
+      postManager: PostStore
     ) {
       self.postId = postId
       self.service = service

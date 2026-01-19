@@ -2,7 +2,7 @@ import PostHog
 import SwiftUI
 
 struct AccountSettingsView: View {
-  @EnvironmentObject private var authManager: AuthManager
+  @Environment(AuthManager.self) private var authManager
   @State var isShowingSignoutConfirm: Bool = false
   @State var isShowingDeleteAccountConfirm: Bool = false
   @State var isShowingDeleteAccountSheet: Bool = false
@@ -168,8 +168,10 @@ struct AccountSettingsView: View {
 }
 
 #Preview {
+  let authManager = AuthManager()
+
   NavigationStack {
     AccountSettingsView()
-      .environmentObject(AuthManager.shared)
+      .environment(authManager)
   }
 }

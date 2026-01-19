@@ -16,15 +16,15 @@ enum FeedState {
   var isLoadingMore: Bool = false
   var postIds: [Int] = []
 
-  var posts: [DetailedPost] {
+  var posts: [ObservablePost] {
     postManager.getPostsById(postIds)
   }
 
   private var lastPostTimestamp: Date?
   private let fetchLimit = 10
-  private var postManager: PostManager
+  private var postManager: PostStore
 
-  init(feedType: FeedType, userId: Int? = nil, postManager: PostManager) {
+  init(feedType: FeedType, userId: Int? = nil, postManager: PostStore) {
     self.feedType = feedType
     self.userId = userId
     self.postManager = postManager
@@ -77,19 +77,19 @@ enum FeedState {
     }
   }
 
-  func toggleLike(on post: DetailedPost) {
+  func toggleLike(on post: ObservablePost) {
     Task {
       await postManager.likePost(id: post.id)
     }
   }
 
-  func addComment(on post: DetailedPost, content: String) {
+  func addComment(on post: ObservablePost, content: String) {
     Task {
       postManager.incrementCommentCount(for: post.id)
     }
   }
 
-  func deletePost(on post: DetailedPost) {
+  func deletePost(on post: ObservablePost) {
     if let index = postIds.firstIndex(of: post.id) {
       postIds.remove(at: index)
       state = .loaded(postIds)

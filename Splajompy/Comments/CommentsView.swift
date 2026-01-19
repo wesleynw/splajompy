@@ -6,26 +6,26 @@ struct CommentsView: View {
   var isInSheet: Bool
   var showInput: Bool
 
-  @ObservedObject var postManager: PostManager
+  var postManager: PostStore
 
-  @StateObject private var viewModel: ViewModel
+  @State private var viewModel: ViewModel
   @Environment(\.dismiss) private var dismiss
 
   @State private var cursorY: CGFloat = 0
   #if os(iOS)
-    @StateObject private var mentionViewModel =
+    @State private var mentionViewModel =
       MentionTextEditor.MentionViewModel()
   #endif
 
   init(
     postId: Int,
-    postManager: PostManager,
+    postManager: PostStore,
     isInSheet: Bool = true,
     showInput: Bool = true
   ) {
     self.postId = postId
     self.postManager = postManager
-    _viewModel = StateObject(
+    _viewModel = State(
       wrappedValue: ViewModel(postId: postId, postManager: postManager)
     )
     self.isInSheet = isInSheet
@@ -34,14 +34,14 @@ struct CommentsView: View {
 
   init(
     postId: Int,
-    postManager: PostManager,
+    postManager: PostStore,
     viewModel: ViewModel,
     isInSheet: Bool = true,
     showInput: Bool = true
   ) {
     self.postId = postId
     self.postManager = postManager
-    _viewModel = StateObject(wrappedValue: viewModel)
+    _viewModel = State(wrappedValue: viewModel)
     self.isInSheet = isInSheet
     self.showInput = showInput
   }
@@ -199,7 +199,7 @@ struct CommentRow: View {
 
   let formatter = RelativeDateTimeFormatter()
 
-  @EnvironmentObject private var authManager: AuthManager
+  @Environment(AuthManager.self) private var authManager
   @State private var showDeleteConfirmation = false
 
   var body: some View {
@@ -309,66 +309,66 @@ struct LikeButton: View {
   let mockViewModel = CommentsView.ViewModel(
     postId: 1,
     service: MockCommentService(),
-    postManager: PostManager()
+    postManager: PostStore()
   )
 
-  let postManager = PostManager()
+  let postManager = PostStore()
 
   CommentsView(
     postId: 1,
     postManager: postManager,
     viewModel: mockViewModel
   )
-  .environmentObject(AuthManager())
+  .environment(AuthManager())
 }
 
 #Preview("Loading") {
   let mockViewModel = CommentsView.ViewModel(
     postId: 1,
     service: MockCommentService_Loading(),
-    postManager: PostManager()
+    postManager: PostStore()
   )
 
-  let postManager = PostManager()
+  let postManager = PostStore()
 
   CommentsView(
     postId: 1,
     postManager: postManager,
     viewModel: mockViewModel
   )
-  .environmentObject(AuthManager())
+  .environment(AuthManager())
 }
 
 #Preview("No Comments") {
   let mockViewModel = CommentsView.ViewModel(
     postId: 1,
     service: MockCommentService_Empty(),
-    postManager: PostManager()
+    postManager: PostStore()
   )
 
-  let postManager = PostManager()
+  let postManager = PostStore()
 
   CommentsView(
     postId: 1,
     postManager: postManager,
     viewModel: mockViewModel
   )
-  .environmentObject(AuthManager())
+  .environment(AuthManager())
 }
 
 #Preview("Error") {
   let mockViewModel = CommentsView.ViewModel(
     postId: 1,
     service: MockCommentService_Error(),
-    postManager: PostManager()
+    postManager: PostStore()
   )
 
-  let postManager = PostManager()
+  let postManager = PostStore()
 
   CommentsView(
     postId: 1,
     postManager: postManager,
     viewModel: mockViewModel
   )
-  .environmentObject(AuthManager())
+  .environment(AuthManager())
 }

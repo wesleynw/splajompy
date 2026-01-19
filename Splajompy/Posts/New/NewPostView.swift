@@ -6,14 +6,14 @@ struct NewPostView: View {
   @State private var cursorY: CGFloat = 0
   @State private var showingPollCreation: Bool = false
 
-  @StateObject private var viewModel: ViewModel
-  @StateObject private var mentionViewModel =
+  @State private var viewModel: ViewModel
+  @State private var mentionViewModel =
     MentionTextEditor.MentionViewModel()
 
   @Environment(\.dismiss) private var dismiss
 
   init(onPostCreated: @escaping () -> Void = {}) {
-    _viewModel = StateObject(
+    _viewModel = State(
       wrappedValue: ViewModel(onPostCreated: onPostCreated)
     )
   }

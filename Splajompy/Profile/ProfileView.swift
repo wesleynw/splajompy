@@ -7,9 +7,9 @@ struct ProfileView: View {
 
   @State private var isShowingProfileEditor: Bool = false
   @State private var activeAlert: ProfileAlertEnum?
-  @StateObject private var viewModel: ViewModel
-  @EnvironmentObject private var authManager: AuthManager
-  @ObservedObject var postManager: PostManager
+  @State private var viewModel: ViewModel
+  @Environment(AuthManager.self) private var authManager
+  var postManager: PostStore
 
   private var isCurrentUser: Bool {
     guard let currentUser = authManager.getCurrentUser() else { return false }
@@ -36,7 +36,7 @@ struct ProfileView: View {
   init(
     userId: Int,
     username: String,
-    postManager: PostManager,
+    postManager: PostStore,
     isProfileTab: Bool = false,
     viewModel: ViewModel? = nil
   ) {
@@ -44,7 +44,7 @@ struct ProfileView: View {
     self.username = username
     self.isProfileTab = isProfileTab
     self.postManager = postManager
-    _viewModel = StateObject(
+    _viewModel = State(
       wrappedValue: viewModel
         ?? ViewModel(userId: userId, postManager: postManager)
     )
@@ -270,7 +270,6 @@ struct ProfileView: View {
           .frame(maxWidth: .infinity)
         #endif
       }
-      .environmentObject(authManager)
       .refreshable {
         await viewModel.loadProfileAndPosts()
       }
@@ -451,7 +450,7 @@ enum ProfileAlertEnum: Identifiable {
 }
 
 #Preview {
-  let postManager = PostManager(postService: MockPostService())
+  let postManager = PostStore(postService: MockPostService())
 
   NavigationStack {
     ProfileView(
@@ -465,6 +464,6 @@ enum ProfileAlertEnum: Identifiable {
         profileService: MockProfileService()
       )
     )
-    .environmentObject(AuthManager())
+    .environment(AuthManager())
   }
 }

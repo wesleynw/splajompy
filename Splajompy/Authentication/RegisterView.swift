@@ -17,7 +17,7 @@ struct RegisterView: View {
 
   @State var errorMessage: String = ""
 
-  @EnvironmentObject private var authManager: AuthManager
+  @Environment(AuthManager.self) private var authManager
 
   var body: some View {
     NavigationStack {
@@ -318,8 +318,6 @@ struct RegisterView: View {
 }
 
 #Preview {
-  let authManager = AuthManager()
-
   RegisterView()
-    .environmentObject(authManager)
+    .environment(AuthManager())
 }

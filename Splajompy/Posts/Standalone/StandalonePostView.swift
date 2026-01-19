@@ -2,20 +2,20 @@ import SwiftUI
 
 struct StandalonePostView: View {
   let postId: Int
-  @ObservedObject var postManager: PostManager
+  var postManager: PostStore
 
-  @StateObject private var viewModel: ViewModel
-  @StateObject private var commentsViewModel: CommentsView.ViewModel
+  @State private var viewModel: ViewModel
+  @State private var commentsViewModel: CommentsView.ViewModel
   @State private var postState: PostState = .idle
   @Environment(\.dismiss) private var dismiss
 
-  init(postId: Int, postManager: PostManager) {
+  init(postId: Int, postManager: PostStore) {
     self.postId = postId
     self.postManager = postManager
-    _viewModel = StateObject(
+    _viewModel = State(
       wrappedValue: ViewModel(postId: postId, postManager: postManager)
     )
-    _commentsViewModel = StateObject(
+    _commentsViewModel = State(
       wrappedValue: CommentsView.ViewModel(
         postId: postId,
         postManager: postManager
@@ -137,7 +137,7 @@ struct StandalonePostView: View {
 #Preview {
   StandalonePostView(
     postId: 2001,
-    postManager: PostManager(postService: MockPostService())
+    postManager: PostStore(postService: MockPostService())
   )
-  .environmentObject(AuthManager())
+  .environment(AuthManager())
 }

@@ -12,8 +12,8 @@ struct SplajompyApp: App {
     NavigationPath(),
   ]
 
-  @StateObject private var authManager = AuthManager.shared
-  private var postManager = PostManager()
+  @State private var authManager = AuthManager.shared
+  @State private var postManager = PostStore()
   @AppStorage("appearance_mode") var appearanceMode: String = "Automatic"
 
   let isLemoade = PostHogSDK.shared.isFeatureEnabled("lemoade")
@@ -50,7 +50,7 @@ struct SplajompyApp: App {
         _ in
         handleUserSignOut()
       }
-      .environmentObject(authManager)
+      .environment(authManager)
       .preferredColorScheme(colorScheme)
     }
     #if os(macOS)

@@ -5,10 +5,10 @@ struct MainFeedView: View {
   @State private var isShowingNewPostView = false
   @State private var isShowingWrappedView: Bool = false
   @State private var viewModel: FeedViewModel
-  @StateObject private var wrappedViewModel: WrappedViewModel =
+  @State private var wrappedViewModel: WrappedViewModel =
     WrappedViewModel()
-  @EnvironmentObject var authManager: AuthManager
-  @ObservedObject var postManager: PostManager
+  @Environment(AuthManager.self) private var authManager
+  var postManager: PostStore
 
   @AppStorage("selectedFeedType") private var selectedFeedType: FeedType = .all
   @AppStorage("hasViewedWrapped") private var hasViewedWrapped: Bool = false
@@ -16,7 +16,7 @@ struct MainFeedView: View {
   let title =
     PostHogSDK.shared.isFeatureEnabled("lemoade") ? "Lemoade" : "Splajompy"
 
-  init(postManager: PostManager) {
+  init(postManager: PostStore) {
     self.postManager = postManager
     _viewModel = State(
       wrappedValue: FeedViewModel(feedType: .all, postManager: postManager)
@@ -236,7 +236,6 @@ struct MainFeedView: View {
         .frame(maxWidth: .infinity)
       #endif
     }
-    .environmentObject(authManager)
     .refreshable {
       await viewModel.loadPosts(reset: true)
     }
