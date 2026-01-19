@@ -171,9 +171,14 @@ struct ProfileView: View {
         ToolbarItem(
           placement: .principal
         ) {
-          Text("@" + self.username)
-            .font(.title2)
-            .fontWeight(.black)
+          HStack {
+            Text("@" + self.username)
+              .font(.title2)
+              .fontWeight(.black)
+
+            Spacer()
+          }
+          .frame(maxWidth: .infinity, alignment: .leading)
         }
       }
     } else {
