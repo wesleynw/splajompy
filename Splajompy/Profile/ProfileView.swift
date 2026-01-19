@@ -7,9 +7,9 @@ struct ProfileView: View {
 
   @State private var isShowingProfileEditor: Bool = false
   @State private var activeAlert: ProfileAlertEnum?
-  @StateObject private var viewModel: ViewModel
-  @EnvironmentObject private var authManager: AuthManager
-  @ObservedObject var postManager: PostManager
+  @State private var viewModel: ViewModel
+  @Environment(AuthManager.self) private var authManager
+  var postManager: PostStore
 
   private var isCurrentUser: Bool {
     guard let currentUser = authManager.getCurrentUser() else { return false }
@@ -36,7 +36,7 @@ struct ProfileView: View {
   init(
     userId: Int,
     username: String,
-    postManager: PostManager,
+    postManager: PostStore,
     isProfileTab: Bool = false,
     viewModel: ViewModel? = nil
   ) {
@@ -44,14 +44,14 @@ struct ProfileView: View {
     self.username = username
     self.isProfileTab = isProfileTab
     self.postManager = postManager
-    _viewModel = StateObject(
+    _viewModel = State(
       wrappedValue: viewModel
         ?? ViewModel(userId: userId, postManager: postManager)
     )
   }
 
   var body: some View {
-    Group {
+    VStack {
       switch viewModel.profileState {
       case .idle, .loading:
         ProgressView()
@@ -86,77 +86,9 @@ struct ProfileView: View {
       }
     #endif
     .toolbar {
-      if isProfileTab {
-        if #available(iOS 26, macOS 26, *) {
-          ToolbarItem(
-            placement: .principal
-          ) {
-            Text("@" + self.username)
-              .font(.title2)
-              .fontWeight(.black)
+      titleToolbar()
 
-          }
-          .sharedBackgroundVisibility(.hidden)
-        } else {
-          ToolbarItem(
-            placement: .principal
-          ) {
-            Text("@" + self.username)
-              .font(.title2)
-              .fontWeight(.black)
-          }
-        }
-      } else {
-        ToolbarItem(placement: .principal) {
-          Text("@" + self.username)
-            .font(.callout)
-            .fontWeight(.bold)
-        }
-      }
-    }
-    .toolbar {
-      if !isProfileTab && !isCurrentUser {
-        Menu {
-          if case .loaded(let user) = viewModel.profileState {
-            if user.isBlocking {
-              Button(role: .destructive, action: { activeAlert = .block }) {
-                Label(
-                  "Unblock @\(user.username)",
-                  systemImage: "person.fill.checkmark"
-                )
-              }
-            } else {
-              Button(role: .destructive, action: { activeAlert = .block }) {
-                Label(
-                  "Block @\(user.username)",
-                  systemImage: "person.fill.xmark"
-                )
-              }
-            }
-
-            if user.isMuting {
-              Button(action: { activeAlert = .mute }) {
-                Label(
-                  "Unmute @\(user.username)",
-                  systemImage: "speaker.wave.2"
-                )
-              }
-            } else {
-              Button(action: { activeAlert = .mute }) {
-                Label(
-                  "Mute @\(user.username)",
-                  systemImage: "speaker.slash"
-                )
-              }
-            }
-          }
-        } label: {
-          Image(systemName: "ellipsis.circle")
-        }
-        .disabled(
-          viewModel.isLoadingBlockButton || viewModel.isLoadingMuteButton
-        )
-      }
+      menuToolbar()
     }
     .alert(
       alertTitle,
@@ -222,6 +154,98 @@ struct ProfileView: View {
     }
   }
 
+  @ToolbarContentBuilder
+  private func titleToolbar() -> some ToolbarContent {
+    if isProfileTab {
+      if #available(iOS 26, macOS 26, *) {
+        ToolbarItem(
+          placement: .principal
+        ) {
+          Text("@" + self.username)
+            .font(.title2)
+            .fontWeight(.black)
+
+        }
+        .sharedBackgroundVisibility(.hidden)
+      } else {
+        ToolbarItem(
+          placement: .principal
+        ) {
+          HStack {
+            Text("@" + self.username)
+              .font(.title2)
+              .fontWeight(.black)
+
+            Spacer()
+          }
+          .frame(maxWidth: .infinity, alignment: .leading)
+        }
+      }
+    } else {
+      ToolbarItem(placement: .principal) {
+        Text("@" + self.username)
+          .font(.callout)
+          .fontWeight(.bold)
+      }
+    }
+  }
+
+  @ToolbarContentBuilder
+  private func menuToolbar() -> some ToolbarContent {
+    ToolbarItem(
+      placement: {
+        #if os(iOS)
+          .topBarTrailing
+        #else
+          .navigation
+        #endif
+      }()
+    ) {
+      if !isProfileTab && !isCurrentUser {
+        Menu {
+          if case .loaded(let user) = viewModel.profileState {
+            if user.isBlocking {
+              Button(role: .destructive, action: { activeAlert = .block }) {
+                Label(
+                  "Unblock @\(user.username)",
+                  systemImage: "person.fill.checkmark"
+                )
+              }
+            } else {
+              Button(role: .destructive, action: { activeAlert = .block }) {
+                Label(
+                  "Block @\(user.username)",
+                  systemImage: "person.fill.xmark"
+                )
+              }
+            }
+
+            if user.isMuting {
+              Button(action: { activeAlert = .mute }) {
+                Label(
+                  "Unmute @\(user.username)",
+                  systemImage: "speaker.wave.2"
+                )
+              }
+            } else {
+              Button(action: { activeAlert = .mute }) {
+                Label(
+                  "Mute @\(user.username)",
+                  systemImage: "speaker.slash"
+                )
+              }
+            }
+          }
+        } label: {
+          Image(systemName: "ellipsis.circle")
+        }
+        .disabled(
+          viewModel.isLoadingBlockButton || viewModel.isLoadingMuteButton
+        )
+      }
+    }
+  }
+
   private func profile(user: DetailedUser)
     -> some View
   {
@@ -251,7 +275,6 @@ struct ProfileView: View {
           .frame(maxWidth: .infinity)
         #endif
       }
-      .environmentObject(authManager)
       .refreshable {
         await viewModel.loadProfileAndPosts()
       }
@@ -432,7 +455,7 @@ enum ProfileAlertEnum: Identifiable {
 }
 
 #Preview {
-  let postManager = PostManager(postService: MockPostService())
+  let postManager = PostStore(postService: MockPostService())
 
   NavigationStack {
     ProfileView(
@@ -446,6 +469,6 @@ enum ProfileAlertEnum: Identifiable {
         profileService: MockProfileService()
       )
     )
-    .environmentObject(AuthManager())
+    .environment(AuthManager())
   }
 }

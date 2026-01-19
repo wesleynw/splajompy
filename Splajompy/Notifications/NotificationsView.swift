@@ -2,12 +2,12 @@ import PostHog
 import SwiftUI
 
 struct NotificationsView: View {
-  @StateObject private var viewModel: ViewModel
-  @EnvironmentObject private var authManager: AuthManager
+  @State private var viewModel: ViewModel
+  @Environment(AuthManager.self) private var authManager
   @State private var refreshId = UUID()
 
   init(viewModel: ViewModel = ViewModel()) {
-    self._viewModel = StateObject(wrappedValue: viewModel)
+    self._viewModel = State(wrappedValue: viewModel)
   }
 
   var body: some View {

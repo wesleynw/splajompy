@@ -16,25 +16,25 @@ enum PostsState {
 }
 
 extension ProfileView {
-  @MainActor class ViewModel: ObservableObject {
+  @MainActor @Observable class ViewModel {
     private let userId: Int
     private var profileService: ProfileServiceProtocol
     private var lastPostTimestamp: Date?
     private let fetchLimit = 10
-    @ObservedObject var postManager: PostManager
+    var postManager: PostStore
 
-    @Published var profileState: ProfileState = .idle
-    @Published var postsState: PostsState = .idle
-    @Published var isLoading: Bool = false
-    @Published var isLoadingFollowButton: Bool = false
-    @Published var isLoadingBlockButton: Bool = false
-    @Published var isLoadingMuteButton: Bool = false
-    @Published var canLoadMorePosts: Bool = true
-    @Published var isLoadingMorePosts: Bool = false
+    var profileState: ProfileState = .idle
+    var postsState: PostsState = .idle
+    var isLoading: Bool = false
+    var isLoadingFollowButton: Bool = false
+    var isLoadingBlockButton: Bool = false
+    var isLoadingMuteButton: Bool = false
+    var canLoadMorePosts: Bool = true
+    var isLoadingMorePosts: Bool = false
 
     init(
       userId: Int,
-      postManager: PostManager,
+      postManager: PostStore,
       profileService: ProfileServiceProtocol = ProfileService()
     ) {
       self.userId = userId
@@ -137,13 +137,13 @@ extension ProfileView {
       }
     }
 
-    func toggleLike(on post: DetailedPost) {
+    func toggleLike(on post: ObservablePost) {
       Task {
         await postManager.likePost(id: post.id)
       }
     }
 
-    func deletePost(on post: DetailedPost) {
+    func deletePost(on post: ObservablePost) {
       guard case .loaded(_) = profileState else { return }
       if case .loaded(let currentIds) = postsState,
         let index = currentIds.firstIndex(of: post.id)
@@ -157,7 +157,7 @@ extension ProfileView {
       }
     }
 
-    func pinPost(_ post: DetailedPost) {
+    func pinPost(_ post: ObservablePost) {
       Task {
         let success = await postManager.pinPost(id: post.id)
         if success {
@@ -166,7 +166,7 @@ extension ProfileView {
       }
     }
 
-    func unpinPost(_ post: DetailedPost) {
+    func unpinPost(_ post: ObservablePost) {
       Task {
         let success = await postManager.unpinPost()
         if success {

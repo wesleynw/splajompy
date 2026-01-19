@@ -16,7 +16,7 @@ enum WrappedPage {
 @available(macOS, unavailable)
 struct WrappedIntroView: View {
   @State private var path: [WrappedPage] = []
-  @StateObject private var viewModel: WrappedViewModel = WrappedViewModel()
+  @State private var viewModel: WrappedViewModel = WrappedViewModel()
   @AppStorage("hasViewedWrapped") private var hasViewedWrapped: Bool = false
   @Environment(\.dismiss) private var dismiss
 

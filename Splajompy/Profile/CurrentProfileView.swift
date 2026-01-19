@@ -1,8 +1,8 @@
 import SwiftUI
 
 struct CurrentProfileView: View {
-  @ObservedObject var postManager: PostManager
-  @EnvironmentObject private var authManager: AuthManager
+  var postManager: PostStore
+  @Environment(AuthManager.self) private var authManager
 
   var body: some View {
     if let currentUser = authManager.getCurrentUser() {
@@ -14,7 +14,7 @@ struct CurrentProfileView: View {
       )
       .toolbar {
         NavigationLink(
-          destination: SettingsView().environmentObject(authManager)
+          destination: SettingsView()
         ) {
           Image(systemName: "gearshape")
         }

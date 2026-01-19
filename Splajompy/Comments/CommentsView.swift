@@ -6,27 +6,26 @@ struct CommentsView: View {
   var isInSheet: Bool
   var showInput: Bool
 
-  @ObservedObject var postManager: PostManager
+  var postManager: PostStore
 
-  @StateObject private var viewModel: ViewModel
+  @State private var viewModel: ViewModel
   @Environment(\.dismiss) private var dismiss
 
   @State private var cursorY: CGFloat = 0
-  @FocusState private var isInputFocused: Bool
   #if os(iOS)
-    @StateObject private var mentionViewModel =
+    @State private var mentionViewModel =
       MentionTextEditor.MentionViewModel()
   #endif
 
   init(
     postId: Int,
-    postManager: PostManager,
+    postManager: PostStore,
     isInSheet: Bool = true,
     showInput: Bool = true
   ) {
     self.postId = postId
     self.postManager = postManager
-    _viewModel = StateObject(
+    _viewModel = State(
       wrappedValue: ViewModel(postId: postId, postManager: postManager)
     )
     self.isInSheet = isInSheet
@@ -35,14 +34,14 @@ struct CommentsView: View {
 
   init(
     postId: Int,
-    postManager: PostManager,
+    postManager: PostStore,
     viewModel: ViewModel,
     isInSheet: Bool = true,
     showInput: Bool = true
   ) {
     self.postId = postId
     self.postManager = postManager
-    _viewModel = StateObject(wrappedValue: viewModel)
+    _viewModel = State(wrappedValue: viewModel)
     self.isInSheet = isInSheet
     self.showInput = showInput
   }
@@ -91,16 +90,13 @@ struct CommentsView: View {
 
   @ViewBuilder
   var content: some View {
-    VStack(spacing: 0) {
+    VStack {
       if !isInSheet {
-        HStack {
-          Text("Comments")
-            .fontWeight(.bold)
-            .font(.title3)
-            .padding()
-
-          Spacer()
-        }
+        Text("Comments")
+          .fontWeight(.bold)
+          .font(.title3)
+          .padding()
+          .frame(maxWidth: .infinity, alignment: .leading)
       }
 
       switch viewModel.state {
@@ -113,9 +109,6 @@ struct CommentsView: View {
             .padding()
           Spacer()
         }
-        .onTapGesture {
-          isInputFocused = false
-        }
       case .loaded(let comments):
         if comments.isEmpty {
           VStack(spacing: 16) {
@@ -126,9 +119,6 @@ struct CommentsView: View {
             Spacer()
           }
           .frame(maxWidth: .infinity, maxHeight: .infinity)
-          .onTapGesture {
-            isInputFocused = false
-          }
         } else {
           ScrollView {
             ForEach(comments, id: \.commentId) { comment in
@@ -148,9 +138,6 @@ struct CommentsView: View {
               )
             }
           }
-          .onTapGesture {
-            isInputFocused = false
-          }
           .animation(.easeInOut(duration: 0.3), value: comments)
         }
       case .failed(let error):
@@ -159,71 +146,23 @@ struct CommentsView: View {
           onRetry: viewModel.loadComments
         )
       }
-
-      if showInput {
-        Divider()
-
-        #if os(iOS)
-          HStack(alignment: .bottom, spacing: 8) {
-            MentionTextEditor(
-              text: $viewModel.text,
-              viewModel: mentionViewModel,
-              cursorY: $cursorY,
-              selectedRange: $viewModel.selectedRange,
-              isCompact: true
-            )
-            .focused($isInputFocused)
-
-            Button(action: {
-              Task {
-                let result = await viewModel.submitComment(
-                  text: viewModel.text.string
-                )
-                if result == true {
-                  viewModel.resetInputState()
-                }
-              }
-            }) {
-              if viewModel.isSubmitting {
-                ProgressView()
-                  .frame(width: 32, height: 32)
-              } else {
-                Image(systemName: "arrow.up.circle.fill")
-                  .font(.system(size: 32))
-              }
-            }
-            .disabled(
-              viewModel.text.string.trimmingCharacters(
-                in: .whitespacesAndNewlines
-              ).isEmpty
-                || viewModel.isSubmitting
-            )
-          }
-
-          .padding(.horizontal, 12)
-          .padding(.vertical, 8)
-        #endif
-      }
     }
     #if os(iOS)
-      .overlay(alignment: .bottomLeading) {
-        if showInput && mentionViewModel.isShowingSuggestions {
-          MentionTextEditor.suggestionView(
-            suggestions: mentionViewModel.mentionSuggestions,
-            isLoading: mentionViewModel.isLoading,
-            onInsert: { user in
-              let result = mentionViewModel.insertMention(
-                user,
-                in: viewModel.text,
-                at: viewModel.selectedRange
+      .modify {
+        if showInput {
+          if #available(iOS 26, *) {
+            $0.safeAreaBar(edge: .bottom) {
+              CommentInputViewConstructor(
+                commentsViewModel: viewModel
               )
-              viewModel.text = result.text
-              viewModel.selectedRange = result.newSelectedRange
             }
-          )
-          .padding(.horizontal, 16)
-          .padding(.bottom, 60)
-          .animation(.default, value: mentionViewModel.isShowingSuggestions)
+          } else {
+            $0.safeAreaInset(edge: .bottom) {
+              CommentInputViewConstructor(
+                commentsViewModel: viewModel
+              )
+            }
+          }
         }
       }
     #endif
@@ -260,7 +199,7 @@ struct CommentRow: View {
 
   let formatter = RelativeDateTimeFormatter()
 
-  @EnvironmentObject private var authManager: AuthManager
+  @Environment(AuthManager.self) private var authManager
   @State private var showDeleteConfirmation = false
 
   var body: some View {
@@ -370,65 +309,66 @@ struct LikeButton: View {
   let mockViewModel = CommentsView.ViewModel(
     postId: 1,
     service: MockCommentService(),
-    postManager: PostManager()
+    postManager: PostStore()
   )
 
-  let postManager = PostManager()
+  let postManager = PostStore()
 
   CommentsView(
     postId: 1,
     postManager: postManager,
     viewModel: mockViewModel
   )
+  .environment(AuthManager())
 }
 
 #Preview("Loading") {
   let mockViewModel = CommentsView.ViewModel(
     postId: 1,
     service: MockCommentService_Loading(),
-    postManager: PostManager()
+    postManager: PostStore()
   )
 
-  let postManager = PostManager()
+  let postManager = PostStore()
 
   CommentsView(
     postId: 1,
     postManager: postManager,
     viewModel: mockViewModel
   )
-  .environmentObject(AuthManager())
+  .environment(AuthManager())
 }
 
 #Preview("No Comments") {
   let mockViewModel = CommentsView.ViewModel(
     postId: 1,
     service: MockCommentService_Empty(),
-    postManager: PostManager()
+    postManager: PostStore()
   )
 
-  let postManager = PostManager()
+  let postManager = PostStore()
 
   CommentsView(
     postId: 1,
     postManager: postManager,
     viewModel: mockViewModel
   )
-  .environmentObject(AuthManager())
+  .environment(AuthManager())
 }
 
 #Preview("Error") {
   let mockViewModel = CommentsView.ViewModel(
     postId: 1,
     service: MockCommentService_Error(),
-    postManager: PostManager()
+    postManager: PostStore()
   )
 
-  let postManager = PostManager()
+  let postManager = PostStore()
 
   CommentsView(
     postId: 1,
     postManager: postManager,
     viewModel: mockViewModel
   )
-  .environmentObject(AuthManager())
+  .environment(AuthManager())
 }

@@ -28,6 +28,8 @@ struct AttributedTextEditor: UIViewRepresentable {
       for: .horizontal
     )
 
+    textView.backgroundColor = .clear
+
     if isScrollEnabled {
       textView.textContainerInset = UIEdgeInsets(
         top: 4,

@@ -8,12 +8,9 @@ struct ErrorScreen: View {
   var body: some View {
     VStack {
       VStack {
-        Text("There was an error.")
-          .fontWeight(.bold)
-          .font(.title2)
         Text(errorString)
-          .fontWeight(.semibold)
-          .foregroundColor(.red)
+          .fontWeight(.bold)
+          .foregroundStyle(.red)
       }
       .multilineTextAlignment(.center)
 
@@ -45,6 +42,7 @@ struct ErrorScreen: View {
       .padding()
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+    .padding()
   }
 }
 

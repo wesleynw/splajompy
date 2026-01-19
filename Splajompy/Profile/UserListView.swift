@@ -2,10 +2,10 @@ import SwiftUI
 
 struct UserListView: View {
   private var userListVariant: UserListVariantEnum
-  @StateObject private var viewModel: UserListViewModel
+  @State private var viewModel: UserListViewModel
 
   init(userId: Int, userListVariant: UserListVariantEnum) {
-    _viewModel = StateObject(
+    _viewModel = State(
       wrappedValue: UserListViewModel(
         userId: userId,
         userListVariant: userListVariant
@@ -15,7 +15,7 @@ struct UserListView: View {
   }
 
   init(viewModel: UserListViewModel) {
-    _viewModel = StateObject(wrappedValue: viewModel)
+    _viewModel = State(wrappedValue: viewModel)
     self.userListVariant = viewModel.userListVariant
   }
 

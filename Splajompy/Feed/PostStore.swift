@@ -1,12 +1,47 @@
 import SwiftUI
 
 // TODO: I think it would make sense to have a utility funtion for optimistic updates, takes in an update, reversion, and server action?
-@MainActor
-class PostManager: ObservableObject {
+
+@MainActor @Observable class ObservablePost {
+  let post: Post
+  let user: PublicUser
+  var isLiked: Bool
+  var commentCount: Int
+  var images: [ImageDTO]?
+  let relevantLikes: [RelevantLike]
+  let hasOtherLikes: Bool
+  var poll: Poll?
+  var isPinned: Bool
+
+  var id: Int { post.postId }
+
+  init(from post: DetailedPost) {
+    self.post = post.post
+    self.user = post.user
+    self.isLiked = post.isLiked
+    self.commentCount = post.commentCount
+    self.images = post.images
+    self.relevantLikes = post.relevantLikes
+    self.hasOtherLikes = post.hasOtherLikes
+    self.poll = post.poll
+    self.isPinned = post.isPinned
+  }
+
+  func update(from post: DetailedPost) {
+    self.isLiked = post.isLiked
+    self.commentCount = post.commentCount
+    self.images = post.images
+    self.poll = post.poll
+    self.isPinned = post.isPinned
+  }
+}
+
+@MainActor @Observable
+class PostStore {
   private let postService: PostServiceProtocol
 
-  @Published private(set) var posts: [Int: DetailedPost] = [:]
-  @Published private(set) var isLoadingPost: [Int: Bool] = [:]
+  private(set) var posts: [Int: ObservablePost] = [:]
+  private(set) var isLoadingPost: [Int: Bool] = [:]
 
   private var cacheAccessOrder: [Int] = []
 
@@ -14,12 +49,12 @@ class PostManager: ObservableObject {
     self.postService = postService
   }
 
-  func getPost(id: Int) -> DetailedPost? {
+  func getPost(id: Int) -> ObservablePost? {
     updateAccessOrder(for: id)
     return posts[id]
   }
 
-  func getPostsById(_ ids: [Int]) -> [DetailedPost] {
+  func getPostsById(_ ids: [Int]) -> [ObservablePost] {
     return ids.compactMap { posts[$0] }
   }
 
@@ -31,27 +66,24 @@ class PostManager: ObservableObject {
     isLoadingPost[postId] = loading
   }
 
-  func cachePost(_ post: DetailedPost) {
-    posts[post.id] = post
-    updateAccessOrder(for: post.id)
+  func cachePost(_ apiPost: DetailedPost) {
+    if let existing = posts[apiPost.id] {
+      existing.update(from: apiPost)
+    } else {
+      posts[apiPost.id] = ObservablePost(from: apiPost)
+    }
+    updateAccessOrder(for: apiPost.id)
   }
 
-  func cachePosts(_ newPosts: [DetailedPost]) {
-    let updates = newPosts.reduce(into: [Int: DetailedPost]()) { dict, post in
-      dict[post.id] = post
-    }
-
-    posts.merge(updates) { _, new in new }
-
-    for post in newPosts {
-      updateAccessOrder(for: post.id)
+  func cachePosts(_ apiPosts: [DetailedPost]) {
+    for post in apiPosts {
+      cachePost(post)
     }
   }
 
-  func updatePost(id: Int, updates: @escaping (inout DetailedPost) -> Void) {
-    guard var post = posts[id] else { return }
-    updates(&post)
-    posts[id] = post
+  func updatePost(id: Int, updates: (ObservablePost) -> Void) {
+    guard let post = posts[id] else { return }
+    updates(post)
     updateAccessOrder(for: id)
   }
 
@@ -99,7 +131,7 @@ class PostManager: ObservableObject {
     // Sync with server
     let result = await postService.toggleLike(
       postId: id,
-      isLiked: currentPost.isLiked
+      isLiked: !currentPost.isLiked
     )
 
     if case .error(let error) = result {
@@ -114,7 +146,8 @@ class PostManager: ObservableObject {
   }
 
   func voteInPoll(postId: Int, optionIndex: Int) async {
-    guard let post = getPost(id: postId), post.poll?.currentUserVote == nil else { return }
+    guard let post = getPost(id: postId), post.poll?.currentUserVote == nil
+    else { return }
 
     // optimistic update
     if let poll = post.poll, poll.options.count > optionIndex {
@@ -124,7 +157,10 @@ class PostManager: ObservableObject {
         post.poll?.currentUserVote = optionIndex
       }
 
-      let result = await postService.voteOnPostPoll(postId: postId, optionIndex: optionIndex)
+      let result = await postService.voteOnPostPoll(
+        postId: postId,
+        optionIndex: optionIndex
+      )
 
       if case .error = result {
         print("error voting on post: \(postId)")
@@ -164,7 +200,12 @@ class PostManager: ObservableObject {
     }
   }
 
-  func loadFeed(feedType: FeedType, userId: Int? = nil, beforeTimestamp: Date?, limit: Int)
+  func loadFeed(
+    feedType: FeedType,
+    userId: Int? = nil,
+    beforeTimestamp: Date?,
+    limit: Int
+  )
     async
     -> AsyncResult<[DetailedPost]>
   {
@@ -196,7 +237,9 @@ class PostManager: ObservableObject {
     let result = await postService.pinPost(postId: id)
 
     if case .error(let error) = result {
-      print("PostManager: Failed to pin post \(id): \(error.localizedDescription)")
+      print(
+        "PostManager: Failed to pin post \(id): \(error.localizedDescription)"
+      )
       updatePost(id: id) { $0.isPinned = false }
       if let previousId = previouslyPinnedPostId {
         updatePost(id: previousId) { $0.isPinned = true }
@@ -224,8 +267,12 @@ class PostManager: ObservableObject {
   }
 
   private func currentUserPinnedPostId() -> Int? {
-    guard let currentUserId = AuthManager.shared.getCurrentUser()?.userId else { return nil }
-    return posts.first { $0.value.user.userId == currentUserId && $0.value.isPinned }?.key
+    guard let currentUserId = AuthManager.shared.getCurrentUser()?.userId else {
+      return nil
+    }
+    return posts.first {
+      $0.value.user.userId == currentUserId && $0.value.isPinned
+    }?.key
   }
 
   private func updateAccessOrder(for id: Int) {

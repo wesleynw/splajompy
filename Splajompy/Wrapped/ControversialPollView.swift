@@ -3,7 +3,7 @@ import SwiftUI
 struct ControversialPollView: View {
   var data: WrappedData
   var onContinue: () -> Void
-  @EnvironmentObject var authManager: AuthManager
+  @Environment(AuthManager.self) private var authManager
   @State private var isShowingIntroText: Bool = true
   @State private var isShowingContinueButton: Bool = false
   @State private var modifiedPoll: Poll?
@@ -118,5 +118,5 @@ struct TopographicBackground: View {
     data: Mocks.wrappedData,
     onContinue: {}
   )
-  .environmentObject(AuthManager())
+  .environment(AuthManager())
 }

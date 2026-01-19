@@ -2,20 +2,25 @@ import SwiftUI
 
 struct StandalonePostView: View {
   let postId: Int
-  @ObservedObject var postManager: PostManager
+  var postManager: PostStore
 
-  @StateObject private var viewModel: ViewModel
-  @StateObject private var commentsViewModel: CommentsView.ViewModel
+  @State private var viewModel: ViewModel
+  @State private var commentsViewModel: CommentsView.ViewModel
   @State private var postState: PostState = .idle
-  @FocusState private var isCommentFocused: Bool
   @Environment(\.dismiss) private var dismiss
 
-  init(postId: Int, postManager: PostManager) {
+  init(postId: Int, postManager: PostStore) {
     self.postId = postId
     self.postManager = postManager
-    _viewModel = StateObject(wrappedValue: ViewModel(postId: postId, postManager: postManager))
-    _commentsViewModel = StateObject(
-      wrappedValue: CommentsView.ViewModel(postId: postId, postManager: postManager))
+    _viewModel = State(
+      wrappedValue: ViewModel(postId: postId, postManager: postManager)
+    )
+    _commentsViewModel = State(
+      wrappedValue: CommentsView.ViewModel(
+        postId: postId,
+        postManager: postManager
+      )
+    )
   }
 
   var body: some View {
@@ -52,7 +57,8 @@ struct StandalonePostView: View {
             }
           } else {
             ErrorScreen(
-              errorString: "The post you're looking for doesn't exist or has been removed.",
+              errorString:
+                "The post you're looking for doesn't exist or has been removed.",
               onRetry: { await reloadPost() }
             )
           }
@@ -68,9 +74,6 @@ struct StandalonePostView: View {
         .frame(maxWidth: .infinity)
       #endif
     }
-    .onTapGesture {
-      isCommentFocused = false
-    }
     .refreshable(action: {
       Task { await loadPost() }
     })
@@ -80,11 +83,21 @@ struct StandalonePostView: View {
     .navigationTitle("Post")
     #if os(iOS)
       .navigationBarTitleDisplayMode(.inline)
-      .modifier(
-        CommentInputAccessoryModifier(
-          commentsViewModel: commentsViewModel,
-          isFocused: _isCommentFocused.projectedValue
-        ))
+      .modify {
+        if #available(iOS 26, *) {
+          $0.safeAreaBar(edge: .bottom) {
+            CommentInputViewConstructor(
+              commentsViewModel: commentsViewModel
+            )
+          }
+        } else {
+          $0.safeAreaInset(edge: .bottom) {
+            CommentInputViewConstructor(
+              commentsViewModel: commentsViewModel
+            )
+          }
+        }
+      }
     #endif
   }
 
@@ -105,7 +118,6 @@ struct StandalonePostView: View {
   }
 
   private func reloadPost() async {
-    // Check if post is already cached
     if postManager.getPost(id: postId) != nil {
       postState = .loaded(postId)
       return
@@ -122,29 +134,10 @@ struct StandalonePostView: View {
   }
 }
 
-#if os(iOS)
-  struct CommentInputAccessoryModifier: ViewModifier {
-    @ObservedObject var commentsViewModel: CommentsView.ViewModel
-    var isFocused: FocusState<Bool>.Binding
-
-    func body(content: Content) -> some View {
-      content
-        .safeAreaInset(edge: .bottom) {
-          CommentInputView(
-            text: $commentsViewModel.text,
-            selectedRange: $commentsViewModel.selectedRange,
-            isSubmitting: $commentsViewModel.isSubmitting,
-            isFocused: isFocused,
-            onSubmit: {
-              let result = await commentsViewModel.submitComment(
-                text: commentsViewModel.text.string)
-              if result {
-                commentsViewModel.resetInputState()
-              }
-              return result
-            }
-          )
-        }
-    }
-  }
-#endif
+#Preview {
+  StandalonePostView(
+    postId: 2001,
+    postManager: PostStore(postService: MockPostService())
+  )
+  .environment(AuthManager())
+}

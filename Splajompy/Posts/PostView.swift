@@ -3,14 +3,14 @@ import PostHog
 import SwiftUI
 
 struct PostView: View {
-  let post: DetailedPost
-  let postManager: PostManager
+  let post: ObservablePost
+  let postManager: PostStore
   var showAuthor: Bool
   var isStandalone: Bool
 
   init(
-    post: DetailedPost,
-    postManager: PostManager,
+    post: ObservablePost,
+    postManager: PostStore,
     showAuthor: Bool = true,
     isStandalone: Bool = false,
     onLikeButtonTapped: @escaping () -> Void = {
@@ -45,7 +45,7 @@ struct PostView: View {
   @State private var isReporting = false
   @State private var showReportAlert = false
   @State private var showDeleteConfirmation = false
-  @EnvironmentObject private var authManager: AuthManager
+  @Environment(AuthManager.self) private var authManager
 
   var body: some View {
     VStack {
@@ -401,18 +401,18 @@ struct PostView: View {
   )
 
   let authManager = AuthManager()
-  let postManager = PostManager()
+  let postManager = PostStore()
 
   NavigationStack {
     PostView(
-      post: detailedPost,
+      post: ObservablePost(from: detailedPost),
       postManager: postManager,
       onLikeButtonTapped: {},
       onPostDeleted: {},
       onPostPinned: {},
       onPostUnpinned: {}
     )
-    .environmentObject(authManager)
+    .environment(authManager)
   }
 }
 
@@ -476,11 +476,11 @@ struct PostView: View {
   )
 
   let authManager = AuthManager()
-  let postManager = PostManager()
+  let postManager = PostStore()
 
   NavigationStack {
     PostView(
-      post: detailedPost,
+      post: ObservablePost(from: detailedPost),
       postManager: postManager,
       isStandalone: true,
       onLikeButtonTapped: {},
@@ -488,6 +488,6 @@ struct PostView: View {
       onPostPinned: {},
       onPostUnpinned: {}
     )
-    .environmentObject(authManager)
+    .environment(authManager)
   }
 }

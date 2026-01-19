@@ -5,7 +5,7 @@ struct PollView: View {
   var authorId: Int
   var onVote: (Int) -> Void
 
-  @EnvironmentObject var authManager: AuthManager
+  @Environment(AuthManager.self) private var authManager
 
   private var adjustedPercentages: [Int] {
     guard poll.voteTotal > 0,
@@ -144,5 +144,5 @@ struct PollView: View {
     .padding()
   }
   .padding()
-  .environmentObject(AuthManager())
+  .environment(AuthManager())
 }

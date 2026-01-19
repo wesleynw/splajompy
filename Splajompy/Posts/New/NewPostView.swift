@@ -6,14 +6,14 @@ struct NewPostView: View {
   @State private var cursorY: CGFloat = 0
   @State private var showingPollCreation: Bool = false
 
-  @StateObject private var viewModel: ViewModel
-  @StateObject private var mentionViewModel =
+  @State private var viewModel: ViewModel
+  @State private var mentionViewModel =
     MentionTextEditor.MentionViewModel()
 
   @Environment(\.dismiss) private var dismiss
 
   init(onPostCreated: @escaping () -> Void = {}) {
-    _viewModel = StateObject(
+    _viewModel = State(
       wrappedValue: ViewModel(onPostCreated: onPostCreated)
     )
   }
@@ -59,6 +59,14 @@ struct NewPostView: View {
                   viewModel.selectedRange = result.newSelectedRange
                 }
               )
+              .modify {
+                if #available(iOS 26, *) {
+                  $0.glassEffect(
+                    .regular.interactive(),
+                    in: RoundedRectangle(cornerRadius: 15)
+                  )
+                }
+              }
               .offset(y: cursorY + 40)
               .padding(.horizontal, 32)
               .animation(.default, value: mentionViewModel.isShowingSuggestions)

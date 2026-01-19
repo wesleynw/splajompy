@@ -20,10 +20,10 @@ enum AuthError {
   case noToken
 }
 
-@MainActor
-class AuthManager: ObservableObject, Sendable {
-  @Published var isAuthenticated: Bool = false
-  @Published var isLoading: Bool = false
+@MainActor @Observable
+class AuthManager: Sendable {
+  var isAuthenticated: Bool = false
+  var isLoading: Bool = false
 
   static let shared = AuthManager()
 
