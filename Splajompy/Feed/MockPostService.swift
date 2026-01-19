@@ -11,14 +11,10 @@ final class MockPostStore: @unchecked Sendable {
 
   var posts: [Int: DetailedPost]
   var deletedPostIds: Set<Int> = []
-  var pinnedPostId: Int? = 2001
+  var pinnedPostId: Int? = nil
 
   init() {
     let baseDate = Date()
-    let imageUrl =
-      "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/posts/6/1055/2c741d27-325a-46dd-a721-d5a7594ba66a.jpeg"
-    let coffeeImageUrl =
-      "https://www.acouplecooks.com/wp-content/uploads/2021/05/Latte-Art-070.jpg"
 
     self.posts = [
       4135: DetailedPost(
@@ -118,69 +114,68 @@ final class MockPostStore: @unchecked Sendable {
         isPinned: false
       ),
 
-      2001: DetailedPost(
+      4705: DetailedPost(
         post: Post(
-          postId: 2001,
+          postId: 4705,
           userId: 6,
-          text:
-            "just discovered this amazing coffee shop ☕ perfect latte art and the vibes are immaculate",
-          createdAt: baseDate.addingTimeInterval(-7200),
+          text: "oh my god they finally fixed it",
+          createdAt: baseDate.addingTimeInterval(-432_000),
           facets: nil
         ),
         user: PublicUser(
           userId: 6,
           username: "wesley",
-          createdAt: formatter.string(
-            from: baseDate.addingTimeInterval(-25_920_000)
-          ),
+          createdAt: "2024-10-22T16:52:20-04:00",
           name: "Wesley",
           isVerified: false,
-          displayProperties: UserDisplayProperties(fontChoiceId: 0)
+          displayProperties: UserDisplayProperties(fontChoiceId: 8)
         ),
-        isLiked: true,
-        commentCount: 3,
+        isLiked: false,
+        commentCount: 0,
         images: [
           ImageDTO(
-            imageId: 1001,
-            postId: 2001,
-            height: 1000,
-            width: 800,
-            imageBlobUrl: coffeeImageUrl,
+            imageId: 3525,
+            postId: 4705,
+            height: 772,
+            width: 1179,
+            imageBlobUrl:
+              "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com//posts/6/4705/e37056fb-e2ba-4bf8-8e1e-523e01b745eb.jpeg",
             displayOrder: 0
           )
         ],
         relevantLikes: [
-          RelevantLike(username: "joel", userId: 25),
-          RelevantLike(username: "giuseppe", userId: 112),
+          RelevantLike(username: "milesperhour", userId: 151),
+          RelevantLike(username: "dramajompxx", userId: 169),
         ],
-        hasOtherLikes: false,
-        isPinned: true
+        hasOtherLikes: true,
+        isPinned: false
       ),
 
-      2002: DetailedPost(
+      4570: DetailedPost(
         post: Post(
-          postId: 2002,
+          postId: 4570,
           userId: 6,
           text:
-            "beautiful sunset from my balcony tonight 🌅 the colors are absolutely stunning",
-          createdAt: baseDate.addingTimeInterval(-14400),
+            "i hate it when i'm writing a really long comment and then i accidentally swipe down a little too hard while re-reading it before i post it and it dismisses the entire comment section :/",
+          createdAt: baseDate.addingTimeInterval(-950_400),
           facets: nil
         ),
         user: PublicUser(
           userId: 6,
           username: "wesley",
-          createdAt: formatter.string(
-            from: baseDate.addingTimeInterval(-25_920_000)
-          ),
+          createdAt: "2024-10-22T16:52:20-04:00",
           name: "Wesley",
           isVerified: false,
-          displayProperties: UserDisplayProperties(fontChoiceId: 0)
+          displayProperties: UserDisplayProperties(fontChoiceId: 8)
         ),
         isLiked: false,
-        commentCount: 1,
-        images: nil,
-        relevantLikes: [],
-        hasOtherLikes: false,
+        commentCount: 2,
+        images: [],
+        relevantLikes: [
+          RelevantLike(username: "palomitas", userId: 48),
+          RelevantLike(username: "irigoob", userId: 97),
+        ],
+        hasOtherLikes: true,
         isPinned: false
       ),
 
@@ -239,7 +234,8 @@ final class MockPostStore: @unchecked Sendable {
             postId: 2004,
             height: 600,
             width: 800,
-            imageBlobUrl: imageUrl,
+            imageBlobUrl:
+              "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/posts/6/1055/2c741d27-325a-46dd-a721-d5a7594ba66a.jpeg",
             displayOrder: 0
           )
         ],
