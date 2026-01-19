@@ -33,45 +33,7 @@ struct CommentInputView: View {
   var onSubmit: () async -> Bool
 
   var body: some View {
-    HStack(alignment: .center) {
-      MentionTextEditor(
-        text: $text,
-        viewModel: mentionViewModel,
-        cursorY: $cursorY,
-        selectedRange: $selectedRange,
-        isCompact: true
-      )
-
-      Button(action: {
-        Task {
-          _ = await onSubmit()
-        }
-      }) {
-        if isSubmitting {
-          ProgressView()
-        } else {
-          Image(systemName: "arrow.up.circle.fill")
-            .font(.title)
-        }
-      }
-      .disabled(
-        text.string.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-          || isSubmitting
-      )
-    }
-    .modify {
-      if #available(iOS 26, *) {
-        $0.padding()
-      } else {
-        $0
-          .padding(8)
-          .background(.bar)
-          .overlay(alignment: .top) {
-            Divider()
-          }
-      }
-    }
-    .overlay(alignment: .top) {
+    VStack {
       if mentionViewModel.isShowingSuggestions {
         MentionTextEditor.suggestionView(
           suggestions: mentionViewModel.mentionSuggestions,
@@ -92,14 +54,51 @@ struct CommentInputView: View {
               .regular.interactive(),
               in: RoundedRectangle(cornerRadius: 15)
             )
-            // https://jeffverkoeyen.com/blog/2025/06/11/OffsetButtonsInScrollViews/
-            .padding(.top, cursorY + 68)
           }
         }
-        .offset(y: -(cursorY + 68))
-        .padding(.horizontal)
         .animation(.default, value: mentionViewModel.isShowingSuggestions)
+        .padding(.horizontal)
       }
+
+      HStack(alignment: .center) {
+        MentionTextEditor(
+          text: $text,
+          viewModel: mentionViewModel,
+          cursorY: $cursorY,
+          selectedRange: $selectedRange,
+          isCompact: true
+        )
+
+        Button(action: {
+          Task {
+            _ = await onSubmit()
+          }
+        }) {
+          if isSubmitting {
+            ProgressView()
+          } else {
+            Image(systemName: "arrow.up.circle.fill")
+              .font(.title)
+          }
+        }
+        .disabled(
+          text.string.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            || isSubmitting
+        )
+      }
+      .modify {
+        if #available(iOS 26, *) {
+          $0.padding()
+        } else {
+          $0
+            .padding(8)
+            .background(.bar)
+            .overlay(alignment: .top) {
+              Divider()
+            }
+        }
+      }
+
     }
   }
 }
