@@ -70,7 +70,6 @@ extension MentionTextEditor {
     ) -> (text: NSAttributedString, newSelectedRange: NSRange) {
       let text = attributedText.string
 
-      // Use the start of the selection for cursor position
       let cursorPosition = selectedRange.location
 
       let cursorIndex =

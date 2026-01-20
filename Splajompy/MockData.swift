@@ -69,7 +69,6 @@ struct Mocks {
 
   static let testPublicUser1 = PublicUser(
     userId: 100,
-    email: "wesley@splajompy.com",
     username: "wesley",
     createdAt: formatter.string(from: Date()),
     name: "Wesley W",
@@ -79,7 +78,6 @@ struct Mocks {
 
   static let testPublicUser2 = PublicUser(
     userId: 101,
-    email: "bob@example.com",
     username: "bobsmith",
     createdAt: formatter.string(from: Date()),
     name: nil,
@@ -98,7 +96,6 @@ struct Mocks {
     ),
     user: PublicUser(
       userId: 1,
-      email: "wesleynw@pm.me",
       username: "wesleynw",
       createdAt: Date().ISO8601Format(),
       name: "Wesley 🌌",

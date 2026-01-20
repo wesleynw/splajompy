@@ -44,7 +44,6 @@ class MockCommentService: CommentServiceProtocol, @unchecked Sendable {
       mockUsers.first
       ?? PublicUser(
         userId: 1,
-        email: "test@example.com",
         username: "testuser",
         createdAt: ISO8601DateFormatter().string(from: Date()),
         name: "Test User",
@@ -95,7 +94,6 @@ class MockCommentService: CommentServiceProtocol, @unchecked Sendable {
     mockUsers = [
       PublicUser(
         userId: 1,
-        email: "john@example.com",
         username: "johndoe",
         createdAt: ISO8601DateFormatter().string(from: Date()),
         name: "John Doe",
@@ -104,7 +102,6 @@ class MockCommentService: CommentServiceProtocol, @unchecked Sendable {
       ),
       PublicUser(
         userId: 2,
-        email: "jane@example.com",
         username: "janedoe",
         createdAt: ISO8601DateFormatter().string(from: Date()),
         name: "Jane Doe",
@@ -113,7 +110,6 @@ class MockCommentService: CommentServiceProtocol, @unchecked Sendable {
       ),
       PublicUser(
         userId: 3,
-        email: "bob@example.com",
         username: "bobsmith",
         createdAt: ISO8601DateFormatter().string(from: Date()),
         name: "Bob Smith",
@@ -184,7 +180,6 @@ class MockCommentService_Empty: CommentServiceProtocol, @unchecked Sendable {
     let currentDate = Date()
     let user = PublicUser(
       userId: 1,
-      email: "test@example.com",
       username: "testuser",
       createdAt: ISO8601DateFormatter().string(from: currentDate),
       name: "Test User",
