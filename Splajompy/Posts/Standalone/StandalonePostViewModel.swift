@@ -4,17 +4,13 @@ import SwiftUI
 enum PostState {
   case idle
   case loading
-  case loaded(Int)
+  case loaded(ObservablePost)
   case failed(Error)
 }
 
 extension StandalonePostView {
   @MainActor @Observable class ViewModel {
-    var post: PostState = .idle
-
-    var detailedPost: ObservablePost? {
-      postManager.getPost(id: postId)
-    }
+    var state: PostState = .idle
 
     private var postId: Int
     private var postManager: PostStore
@@ -24,21 +20,12 @@ extension StandalonePostView {
       self.postManager = postManager
     }
 
-    func load() async {
-      // Check if post is already cached
-      if postManager.getPost(id: postId) != nil {
-        post = .loaded(postId)
-        return
+    func load(resetLoadingState: Bool = true) async {
+      if resetLoadingState {
+        state = .loading
       }
 
-      post = .loading
-      await postManager.loadPost(id: postId)
-
-      if postManager.getPost(id: postId) != nil {
-        post = .loaded(postId)
-      } else {
-        post = .failed(NSError(domain: "PostNotFound", code: 404))
-      }
+      state = await postManager.loadSingleCachedPost(postId: postId)
     }
 
     func toggleLike() {

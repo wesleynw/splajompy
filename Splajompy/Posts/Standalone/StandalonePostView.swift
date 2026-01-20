@@ -6,7 +6,6 @@ struct StandalonePostView: View {
 
   @State private var viewModel: ViewModel
   @State private var commentsViewModel: CommentsView.ViewModel
-  @State private var postState: PostState = .idle
   @Environment(\.dismiss) private var dismiss
 
   init(postId: Int, postManager: PostStore) {
@@ -26,46 +25,44 @@ struct StandalonePostView: View {
   var body: some View {
     ScrollView {
       Group {
-        switch postState {
+        switch viewModel.state {
         case .idle:
-          Color.clear
+          ProgressView()
         case .loading:
           ProgressView()
-        case .loaded:
-          if let detailedPost = postManager.getPost(id: postId) {
-            VStack {
-              PostView(
-                post: detailedPost,
-                postManager: postManager,
-                showAuthor: true,
-                isStandalone: true,
-                onLikeButtonTapped: { viewModel.toggleLike() },
-                onPostDeleted: {
-                  Task {
-                    await postManager.deletePost(id: postId)
-                    dismiss()
-                  }
+        case .loaded(let post):
+          VStack {
+            PostView(
+              post: post,
+              postManager: postManager,
+              showAuthor: true,
+              isStandalone: true,
+              onLikeButtonTapped: { viewModel.toggleLike() },
+              onPostDeleted: {
+                Task {
+                  await postManager.deletePost(id: postId)
+                  dismiss()
                 }
-              )
-              CommentsView(
-                postId: postId,
-                postManager: postManager,
-                viewModel: commentsViewModel,
-                isInSheet: false,
-                showInput: false
-              )
-            }
-          } else {
-            ErrorScreen(
-              errorString:
-                "The post you're looking for doesn't exist or has been removed.",
-              onRetry: { await reloadPost() }
+              }
+            )
+
+            CommentsView(
+              postId: postId,
+              postManager: postManager,
+              viewModel: commentsViewModel,
+              isInSheet: false,
+              showInput: false
             )
           }
         case .failed(let error):
           ErrorScreen(
             errorString: error.localizedDescription,
-            onRetry: { await reloadPost() }
+            onRetry: {
+              async let post: () = viewModel.load()
+              async let comments: () = commentsViewModel.loadComments()
+
+              let _ = await (post, comments)
+            }
           )
         }
       }
@@ -74,11 +71,14 @@ struct StandalonePostView: View {
         .frame(maxWidth: .infinity)
       #endif
     }
-    .refreshable(action: {
-      Task { await loadPost() }
-    })
+    .refreshable {
+      async let post: () = await viewModel.load(resetLoadingState: false)
+      async let comments: () = await commentsViewModel.loadComments()
+
+      let _ = await (post, comments)
+    }
     .task {
-      await reloadPost()
+      await viewModel.load()
     }
     .navigationTitle("Post")
     #if os(iOS)
@@ -99,38 +99,6 @@ struct StandalonePostView: View {
         }
       }
     #endif
-  }
-
-  private func loadPost() async {
-    if postManager.getPost(id: postId) != nil {
-      postState = .loaded(postId)
-      return
-    }
-
-    postState = .loading
-    await postManager.loadPost(id: postId)
-
-    if postManager.getPost(id: postId) != nil {
-      postState = .loaded(postId)
-    } else {
-      postState = .failed(NSError(domain: "PostNotFound", code: 404))
-    }
-  }
-
-  private func reloadPost() async {
-    if postManager.getPost(id: postId) != nil {
-      postState = .loaded(postId)
-      return
-    }
-
-    postState = .loading
-    await postManager.loadPost(id: postId)
-
-    if postManager.getPost(id: postId) != nil {
-      postState = .loaded(postId)
-    } else {
-      postState = .failed(NSError(domain: "PostNotFound", code: 404))
-    }
   }
 }
 
