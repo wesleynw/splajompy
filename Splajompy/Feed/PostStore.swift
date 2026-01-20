@@ -1,6 +1,8 @@
 import SwiftUI
 
 // TODO: I think it would make sense to have a utility funtion for optimistic updates, takes in an update, reversion, and server action?
+// TODO: this is also just super broken. i don't even think i'm checking access order, or reusing cached entries in many cases...
+// TODO: i hate this
 
 @MainActor @Observable class ObservablePost {
   let post: Post
@@ -117,6 +119,26 @@ class PostStore {
     setLoading(postId: id, loading: false)
   }
 
+  func loadSingleCachedPost(postId: Int) async -> PostState {
+    if let cachedPost = getPost(id: postId) {
+      return .loaded(cachedPost)
+    }
+
+    let result = await postService.getPostById(postId: postId)
+
+    switch result {
+    case .success(let post):
+      cachePost(post)
+      if let post = getPost(id: postId) {
+        return .loaded(post)
+      } else {
+        return .idle
+      }
+    case .error(let error):
+      return .failed(error)
+    }
+  }
+
   func likePost(id: Int) async {
     guard let currentPost = getPost(id: id) else {
       print("PostManager: Attempted to like non-existent post \(id)")
@@ -198,6 +220,12 @@ class PostStore {
         "PostManager: Failed to delete post \(id): \(error.localizedDescription)"
       )
     }
+  }
+
+  func loadSinglePost(postId: Int) async -> AsyncResult<DetailedPost> {
+    let result = await postService.getPostById(postId: postId)
+
+    return result
   }
 
   func loadFeed(
