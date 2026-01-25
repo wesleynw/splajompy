@@ -33,7 +33,7 @@ func (h *Handler) CreateNewPostV2(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := h.postService.NewPost(r.Context(), *currentUser, requestBody.Text, requestBody.ImageKeymap, requestBody.Poll)
+	err := h.postService.NewPost(r.Context(), *currentUser, requestBody.Text, requestBody.ImageKeymap, requestBody.Poll, nil)
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
 		return
@@ -147,6 +147,7 @@ func (h *Handler) GetPostsByUserId(w http.ResponseWriter, r *http.Request) {
 	utilities.HandleSuccess(w, posts)
 }
 
+// Deprecated: use GetAllPostsWithTimeOffset
 func (h *Handler) GetAllPosts(w http.ResponseWriter, r *http.Request) {
 	currentUser := h.getAuthenticatedUser(r)
 
@@ -171,7 +172,7 @@ func (h *Handler) GetPostsByFollowing(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if posts == nil {
-		posts = &[]models.DetailedPost{}
+		posts = []models.DetailedPost{}
 	}
 	utilities.HandleSuccess(w, posts)
 }
@@ -187,7 +188,7 @@ func (h *Handler) GetMutualFeed(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if posts == nil {
-		posts = &[]models.DetailedPost{}
+		posts = []models.DetailedPost{}
 	}
 	utilities.HandleSuccess(w, posts)
 }
@@ -207,7 +208,7 @@ func (h *Handler) GetPostsByUserIdWithTimeOffset(w http.ResponseWriter, r *http.
 		return
 	}
 
-	posts, err := h.postService.GetPostsWithTimeOffset(r.Context(), *currentUser, service.FeedTypeProfile, &userId, limit, beforeTimestamp)
+	posts, err := h.postService.GetPosts(r.Context(), *currentUser, service.FeedTypeProfile, &userId, limit, beforeTimestamp)
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
 		return
@@ -305,7 +306,7 @@ func (h *Handler) GetAllPostsWithTimeOffset(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	posts, err := h.postService.GetPostsWithTimeOffset(r.Context(), *currentUser, service.FeedTypeAll, nil, limit, beforeTimestamp)
+	posts, err := h.postService.GetPosts(r.Context(), *currentUser, service.FeedTypeAll, nil, limit, beforeTimestamp)
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
 		return
@@ -323,14 +324,14 @@ func (h *Handler) GetPostsByFollowingWithTimeOffset(w http.ResponseWriter, r *ht
 		return
 	}
 
-	posts, err := h.postService.GetPostsWithTimeOffset(r.Context(), *currentUser, service.FeedTypeFollowing, nil, limit, beforeTimestamp)
+	posts, err := h.postService.GetPosts(r.Context(), *currentUser, service.FeedTypeFollowing, nil, limit, beforeTimestamp)
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
 		return
 	}
 
 	if posts == nil {
-		posts = &[]models.DetailedPost{}
+		posts = []models.DetailedPost{}
 	}
 	utilities.HandleSuccess(w, posts)
 }
@@ -344,14 +345,14 @@ func (h *Handler) GetMutualFeedWithTimeOffset(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	posts, err := h.postService.GetPostsWithTimeOffset(r.Context(), *currentUser, service.FeedTypeMutual, nil, limit, beforeTimestamp)
+	posts, err := h.postService.GetPosts(r.Context(), *currentUser, service.FeedTypeMutual, nil, limit, beforeTimestamp)
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
 		return
 	}
 
 	if posts == nil {
-		posts = &[]models.DetailedPost{}
+		posts = []models.DetailedPost{}
 	}
 	utilities.HandleSuccess(w, posts)
 }

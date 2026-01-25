@@ -27,6 +27,7 @@ type FakeUserRepository struct {
 	sessions              map[string]queries.Session
 	mutex                 sync.RWMutex
 	nextUserId            int
+	userRelationships     map[int]map[int]time.Time
 }
 
 func NewFakeUserRepository() *FakeUserRepository {
@@ -43,6 +44,7 @@ func NewFakeUserRepository() *FakeUserRepository {
 		verificationCodes:     make(map[int]map[string]queries.VerificationCode),
 		sessions:              make(map[string]queries.Session),
 		nextUserId:            1,
+		userRelationships:     make(map[int]map[int]time.Time),
 	}
 }
 
@@ -668,4 +670,47 @@ func (r *FakeUserRepository) GetMutualsByUserId(ctx context.Context, currentUser
 
 func (r *FakeUserRepository) GetIsReferralCodeInUse(ctx context.Context, code string) (bool, error) {
 	return false, nil
+}
+
+func (r *FakeUserRepository) AddUserRelationship(ctx context.Context, userId int, targetUserId int) error {
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
+
+	if r.userRelationships[userId] == nil {
+		r.userRelationships[userId] = make(map[int]time.Time)
+	}
+
+	r.userRelationships[userId][targetUserId] = time.Now()
+
+	return nil
+}
+
+func (r *FakeUserRepository) RemoveUserRelationship(ctx context.Context, userId int, targetUserId int) error {
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
+
+	if r.userRelationships[userId] != nil {
+		delete(r.userRelationships[userId], targetUserId)
+	}
+
+	return nil
+}
+
+func (r *FakeUserRepository) GetRelationshipByUserId(ctx context.Context, userId int, before *time.Time) ([]models.PublicUser, error) {
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
+
+	var users []models.PublicUser
+	if r.userRelationships[userId] == nil {
+		return users, nil
+	}
+
+	for targetUserId, createdAt := range r.userRelationships[userId] {
+		if before == nil || !createdAt.Before(*before) {
+			user := r.users[targetUserId]
+			users = append(users, user)
+		}
+	}
+
+	return users, nil
 }

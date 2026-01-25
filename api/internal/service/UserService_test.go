@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -52,4 +53,71 @@ func TestGetUserById_WithNoMutuals_ReturnsEmptyArray(t *testing.T) {
 	assert.NotNil(t, profile.Mutuals)
 	assert.Equal(t, []string{}, profile.Mutuals)
 	assert.Equal(t, 0, len(profile.Mutuals))
+}
+
+func TestUserRelationship_AddAndRetrieve(t *testing.T) {
+	ctx := context.Background()
+
+	fakeUserRepo := fakes.NewFakeUserRepository()
+
+	service := NewUserService(fakeUserRepo, nil, nil)
+
+	user0, err := fakeUserRepo.CreateUser(ctx, "user0", "email@email.com", "123", "123")
+	require.NoError(t, err)
+
+	user1, err := fakeUserRepo.CreateUser(ctx, "user1", "email-1@email.com", "123", "123")
+	require.NoError(t, err)
+
+	err = service.AddUserToCloseFriendsList(ctx, user0, user1.UserID)
+	assert.NoError(t, err)
+
+	users, err := service.GetCloseFriendsByUserId(ctx, user0, nil)
+	assert.NoError(t, err)
+	assert.Contains(t, users, user1, "returned friends list does not contain target user")
+}
+
+func TestUserRelationship_AddRemoveAndRetrieve(t *testing.T) {
+	ctx := context.Background()
+
+	fakeUserRepo := fakes.NewFakeUserRepository()
+
+	service := NewUserService(fakeUserRepo, nil, nil)
+
+	user0, err := fakeUserRepo.CreateUser(ctx, "user0", "email@email.com", "123", "123")
+	require.NoError(t, err)
+
+	user1, err := fakeUserRepo.CreateUser(ctx, "user1", "email-1@email.com", "123", "123")
+	require.NoError(t, err)
+
+	err = service.AddUserToCloseFriendsList(ctx, user0, user1.UserID)
+	assert.NoError(t, err)
+
+	err = service.RemoveUserFromCloseFriendsList(ctx, user0, user1.UserID)
+	assert.NoError(t, err)
+
+	users, err := service.GetCloseFriendsByUserId(ctx, user0, nil)
+	assert.NoError(t, err)
+	assert.NotContains(t, users, user1, "returned friends list contains target user when it should have been removed")
+}
+
+func TestUserRelationship_AddAndGetPaged(t *testing.T) {
+	ctx := context.Background()
+
+	fakeUserRepo := fakes.NewFakeUserRepository()
+
+	service := NewUserService(fakeUserRepo, nil, nil)
+
+	user0, err := fakeUserRepo.CreateUser(ctx, "user0", "email@email.com", "123", "123")
+	require.NoError(t, err)
+
+	user1, err := fakeUserRepo.CreateUser(ctx, "user1", "email-1@email.com", "123", "123")
+	require.NoError(t, err)
+
+	err = service.AddUserToCloseFriendsList(ctx, user0, user1.UserID)
+	assert.NoError(t, err)
+
+	before := time.Now().AddDate(1, 0, 0)
+	users, err := service.GetCloseFriendsByUserId(ctx, user0, &before)
+	assert.NoError(t, err)
+	assert.NotContains(t, users, user1, "returned friends list contains target user when it should have been removed")
 }

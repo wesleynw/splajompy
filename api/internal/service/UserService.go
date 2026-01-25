@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/resend/resend-go/v2"
 	"golang.org/x/sync/errgroup"
@@ -227,6 +228,21 @@ func (s *UserService) GetMutualsByUserId(ctx context.Context, currentUser models
 	}
 
 	return s.fetchDetailedUsersFromIDs(ctx, currentUser, userIDs)
+}
+
+// AddUserToCloseFriendsList creates a relationship to mark the given userId as close friend of the current user.
+func (s *UserService) AddUserToCloseFriendsList(ctx context.Context, currentUser models.PublicUser, userId int) error {
+	return s.userRepository.AddUserRelationship(ctx, currentUser.UserID, userId)
+}
+
+// RemoveUserFromCloseFriendsList destroys a relationship between the given userId and the current user.
+func (s *UserService) RemoveUserFromCloseFriendsList(ctx context.Context, currentUser models.PublicUser, userId int) error {
+	return s.userRepository.RemoveUserRelationship(ctx, currentUser.UserID, userId)
+}
+
+// GetCloseFriendsByUserId returns a list of users on the current users close friends list, using the creation date of the relationsthip as a cursor.
+func (s *UserService) GetCloseFriendsByUserId(ctx context.Context, currentUser models.PublicUser, before *time.Time) ([]models.PublicUser, error) {
+	return s.userRepository.GetRelationshipByUserId(ctx, currentUser.UserID, before)
 }
 
 // fetchDetailedUsersFromIDs concurrently fetches detailed user information for the given user IDs.

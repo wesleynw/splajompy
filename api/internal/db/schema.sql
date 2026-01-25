@@ -11,6 +11,13 @@ CREATE TABLE users (
     referral_code TEXT NOT NULL
 );
 
+CREATE TABLE user_relationship (
+    user_id INT REFERENCES users(user_id),
+    target_user_id INT REFERENCES users(user_id),
+    created_at TIMESTAMP,
+    PRIMARY KEY (user_id, target_user_id)
+);
+
 CREATE TABLE bios (
     id SERIAL PRIMARY KEY NOT NULL,
     user_id INT NOT NULL,
@@ -25,6 +32,7 @@ CREATE TABLE posts (
     created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     facets JSON,
     attributes JSON,
+    visibilityType INT NULL DEFAULT 0,
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
 

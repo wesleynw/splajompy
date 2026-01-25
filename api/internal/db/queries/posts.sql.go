@@ -189,8 +189,8 @@ func (q *Queries) GetImagesByPostId(ctx context.Context, postID int) ([]Image, e
 }
 
 const getPinnedPostId = `-- name: GetPinnedPostId :one
-SELECT pinned_post_id 
-FROM users 
+SELECT pinned_post_id
+FROM users
 WHERE user_id = $1
 `
 
@@ -234,7 +234,7 @@ func (q *Queries) GetPollVotesGrouped(ctx context.Context, postID int) ([]GetPol
 }
 
 const getPostById = `-- name: GetPostById :one
-SELECT post_id, user_id, text, created_at, facets, attributes
+SELECT post_id, user_id, text, created_at, facets, attributes, visibilitytype
 FROM posts
 WHERE post_id = $1
 `
@@ -249,6 +249,7 @@ func (q *Queries) GetPostById(ctx context.Context, postID int) (Post, error) {
 		&i.CreatedAt,
 		&i.Facets,
 		&i.Attributes,
+		&i.Visibilitytype,
 	)
 	return i, err
 }
@@ -397,11 +398,11 @@ WITH user_relationships AS (
     AND NOT EXISTS (SELECT 1 FROM block WHERE user_id = $1 AND target_user_id = posts.user_id)
     AND NOT EXISTS (SELECT 1 FROM mute WHERE user_id = $1 AND target_user_id = posts.user_id)
 )
-SELECT post_id, user_id, relationship_type, 
-  CASE WHEN relationship_type = 'mutual' THEN 
-    (SELECT ARRAY_AGG(u.username) FROM follows f1 
-     INNER JOIN follows f2 ON f1.following_id = f2.follower_id 
-     INNER JOIN users u ON f2.follower_id = u.user_id 
+SELECT post_id, user_id, relationship_type,
+  CASE WHEN relationship_type = 'mutual' THEN
+    (SELECT ARRAY_AGG(u.username) FROM follows f1
+     INNER JOIN follows f2 ON f1.following_id = f2.follower_id
+     INNER JOIN users u ON f2.follower_id = u.user_id
      WHERE f1.follower_id = $1 AND f2.following_id = user_relationships.user_id LIMIT 5)
   ELSE NULL END as mutual_usernames
 FROM user_relationships
@@ -465,11 +466,11 @@ WITH user_relationships AS (
     AND NOT EXISTS (SELECT 1 FROM mute WHERE user_id = $1 AND target_user_id = posts.user_id)
     AND ($3::timestamp IS NULL OR posts.created_at < $3::timestamp)
 )
-SELECT post_id, user_id, relationship_type, 
-  CASE WHEN relationship_type = 'mutual' THEN 
-    (SELECT ARRAY_AGG(u.username) FROM follows f1 
-     INNER JOIN follows f2 ON f1.following_id = f2.follower_id 
-     INNER JOIN users u ON f2.follower_id = u.user_id 
+SELECT post_id, user_id, relationship_type,
+  CASE WHEN relationship_type = 'mutual' THEN
+    (SELECT ARRAY_AGG(u.username) FROM follows f1
+     INNER JOIN follows f2 ON f1.following_id = f2.follower_id
+     INNER JOIN users u ON f2.follower_id = u.user_id
      WHERE f1.follower_id = $1 AND f2.following_id = user_relationships.user_id LIMIT 5)
   ELSE NULL END as mutual_usernames
 FROM user_relationships
@@ -603,16 +604,17 @@ func (q *Queries) InsertImage(ctx context.Context, arg InsertImageParams) (Image
 }
 
 const insertPost = `-- name: InsertPost :one
-INSERT INTO posts (user_id, text, facets, attributes)
-VALUES ($1, $2, $3, $4)
-RETURNING post_id, user_id, text, created_at, facets, attributes
+INSERT INTO posts (user_id, text, facets, attributes, visibilityType)
+VALUES ($1, $2, $3, $4, $5)
+RETURNING post_id, user_id, text, created_at, facets, attributes, visibilitytype
 `
 
 type InsertPostParams struct {
-	UserID     int            `json:"userId"`
-	Text       pgtype.Text    `json:"text"`
-	Facets     db.Facets      `json:"facets"`
-	Attributes *db.Attributes `json:"attributes"`
+	UserID         int            `json:"userId"`
+	Text           pgtype.Text    `json:"text"`
+	Facets         db.Facets      `json:"facets"`
+	Attributes     *db.Attributes `json:"attributes"`
+	Visibilitytype pgtype.Int4    `json:"visibilitytype"`
 }
 
 func (q *Queries) InsertPost(ctx context.Context, arg InsertPostParams) (Post, error) {
@@ -621,6 +623,7 @@ func (q *Queries) InsertPost(ctx context.Context, arg InsertPostParams) (Post, e
 		arg.Text,
 		arg.Facets,
 		arg.Attributes,
+		arg.Visibilitytype,
 	)
 	var i Post
 	err := row.Scan(
@@ -630,6 +633,7 @@ func (q *Queries) InsertPost(ctx context.Context, arg InsertPostParams) (Post, e
 		&i.CreatedAt,
 		&i.Facets,
 		&i.Attributes,
+		&i.Visibilitytype,
 	)
 	return i, err
 }
@@ -651,8 +655,8 @@ func (q *Queries) InsertVote(ctx context.Context, arg InsertVoteParams) error {
 }
 
 const pinPost = `-- name: PinPost :exec
-UPDATE users 
-SET pinned_post_id = $2 
+UPDATE users
+SET pinned_post_id = $2
 WHERE user_id = $1
 `
 
@@ -667,8 +671,8 @@ func (q *Queries) PinPost(ctx context.Context, arg PinPostParams) error {
 }
 
 const unpinPost = `-- name: UnpinPost :exec
-UPDATE users 
-SET pinned_post_id = NULL 
+UPDATE users
+SET pinned_post_id = NULL
 WHERE user_id = $1
 `
 

@@ -40,7 +40,8 @@ func NewPostService(postRepository repositories.PostRepository, userRepository r
 	}
 }
 
-func (s *PostService) NewPost(ctx context.Context, currentUser models.PublicUser, text string, imageKeymap map[int]models.ImageData, poll *db.Poll) error {
+// NewPost preprocesses a new post and stores it in the database.
+func (s *PostService) NewPost(ctx context.Context, currentUser models.PublicUser, text string, imageKeymap map[int]models.ImageData, poll *db.Poll, visibilityEnum *int) error {
 	facets, err := repositories.GenerateFacets(ctx, s.userRepository, text)
 	if err != nil {
 		return err
@@ -53,7 +54,12 @@ func (s *PostService) NewPost(ctx context.Context, currentUser models.PublicUser
 		}
 	}
 
-	post, err := s.postRepository.InsertPost(ctx, currentUser.UserID, text, facets, attributes)
+	var visibilityType models.VisibilityTypeEnum = models.VisibilityCloseFriends
+	if visibilityEnum != nil {
+		visibilityType = models.VisibilityTypeEnum(*visibilityEnum)
+	}
+
+	post, err := s.postRepository.InsertPost(ctx, currentUser.UserID, text, facets, attributes, &visibilityType)
 	if err != nil {
 		return errors.New("unable to create post")
 	}
@@ -170,7 +176,8 @@ func (s *PostService) GetPostById(ctx context.Context, userId int, postId int) (
 	}, nil
 }
 
-func (s *PostService) GetAllPosts(ctx context.Context, currentUser models.PublicUser, limit int, offset int) (*[]models.DetailedPost, error) {
+// Deprecated: use GetPostsWithTimeOffset instead
+func (s *PostService) GetAllPosts(ctx context.Context, currentUser models.PublicUser, limit int, offset int) ([]models.DetailedPost, error) {
 	postIds, err := s.postRepository.GetAllPostIds(ctx, limit, offset, currentUser.UserID)
 	if err != nil {
 		return nil, err
@@ -178,9 +185,10 @@ func (s *PostService) GetAllPosts(ctx context.Context, currentUser models.Public
 	return s.getPostsByPostIDs(ctx, currentUser, postIds)
 }
 
-func (s *PostService) GetPostsByUserId(ctx context.Context, currentUser models.PublicUser, userID int, limit int, offset int) (*[]models.DetailedPost, error) {
+// Deprecated: use GetPostsWithTimeOffset instead
+func (s *PostService) GetPostsByUserId(ctx context.Context, currentUser models.PublicUser, userID int, limit int, offset int) ([]models.DetailedPost, error) {
 	if blocked, _ := s.userRepository.IsUserBlockingUser(ctx, userID, currentUser.UserID); blocked {
-		return &[]models.DetailedPost{}, nil
+		return []models.DetailedPost{}, nil
 	}
 
 	postIds, err := s.postRepository.GetPostIdsForUser(ctx, userID, limit, offset)
@@ -190,7 +198,8 @@ func (s *PostService) GetPostsByUserId(ctx context.Context, currentUser models.P
 	return s.getPostsByPostIDs(ctx, currentUser, postIds)
 }
 
-func (s *PostService) GetPostsByFollowing(ctx context.Context, currentUser models.PublicUser, limit int, offset int) (*[]models.DetailedPost, error) {
+// Deprecated: use GetPostsWithTimeOffset instead
+func (s *PostService) GetPostsByFollowing(ctx context.Context, currentUser models.PublicUser, limit int, offset int) ([]models.DetailedPost, error) {
 	postIds, err := s.postRepository.GetPostIdsForFollowing(ctx, currentUser.UserID, limit, offset)
 	if err != nil {
 		return nil, err
@@ -198,7 +207,8 @@ func (s *PostService) GetPostsByFollowing(ctx context.Context, currentUser model
 	return s.getPostsByPostIDs(ctx, currentUser, postIds)
 }
 
-func (s *PostService) GetMutualFeed(ctx context.Context, currentUser models.PublicUser, limit int, offset int) (*[]models.DetailedPost, error) {
+// Deprecated: use GetPostsWithTimeOffset instead
+func (s *PostService) GetMutualFeed(ctx context.Context, currentUser models.PublicUser, limit int, offset int) ([]models.DetailedPost, error) {
 	postRows, err := s.postRepository.GetPostIdsForMutualFeed(ctx, currentUser.UserID, limit, offset)
 	if err != nil {
 		return nil, err
@@ -213,7 +223,7 @@ func (s *PostService) GetMutualFeed(ctx context.Context, currentUser models.Publ
 	return s.getPostsByPostIDs(ctx, currentUser, postIDs)
 }
 
-func (s *PostService) getPostsByPostIDs(ctx context.Context, currentUser models.PublicUser, postIDs []int) (*[]models.DetailedPost, error) {
+func (s *PostService) getPostsByPostIDs(ctx context.Context, currentUser models.PublicUser, postIDs []int) ([]models.DetailedPost, error) {
 	posts := make([]models.DetailedPost, len(postIDs))
 
 	g, ctx := errgroup.WithContext(ctx)
@@ -233,7 +243,7 @@ func (s *PostService) getPostsByPostIDs(ctx context.Context, currentUser models.
 		return nil, err
 	}
 
-	return &posts, nil
+	return posts, nil
 }
 
 func (s *PostService) AddLikeToPost(ctx context.Context, currentUser models.PublicUser, postId int) error {
@@ -445,7 +455,8 @@ const (
 	FeedTypeProfile   FeedType = "profile"
 )
 
-func (s *PostService) GetPostsWithTimeOffset(ctx context.Context, currentUser models.PublicUser, feedType FeedType, userId *int, limit int, beforeTimestamp *time.Time) (*[]models.DetailedPost, error) {
+// GetPosts returns paginated posts from the source defined by feedType
+func (s *PostService) GetPosts(ctx context.Context, currentUser models.PublicUser, feedType FeedType, userId *int, limit int, beforeTimestamp *time.Time) ([]models.DetailedPost, error) {
 	var postIDs []int
 	var err error
 

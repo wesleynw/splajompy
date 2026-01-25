@@ -46,6 +46,12 @@ type UserRepository interface {
 	GetFollowingByUserId(ctx context.Context, userId int, limit int, offset int) ([]queries.GetFollowingByUserIdRow, error)
 	GetMutualsByUserId(ctx context.Context, currentUserId int, targetUserId int, limit int, offset int) ([]queries.GetMutualsByUserIdRow, error)
 	GetIsReferralCodeInUse(ctx context.Context, code string) (bool, error)
+	// AddUserRelationship creates a user relationship (right now only "close friends")
+	AddUserRelationship(ctx context.Context, userId int, targetUserId int) error
+	// RemoveUserRelationship deletes a user relationship (right now only "close friends")
+	RemoveUserRelationship(ctx context.Context, userId int, targetUserId int) error
+	// GetCloseFriendsByUserId returns a list of user relationships, paginated by the timestamp they were created.
+	GetRelationshipByUserId(ctx context.Context, userId int, before *time.Time) ([]models.PublicUser, error)
 }
 
 type DBUserRepository struct {
@@ -300,6 +306,18 @@ func (r DBUserRepository) GetMutualsByUserId(ctx context.Context, currentUserId 
 
 func (r DBUserRepository) GetIsReferralCodeInUse(ctx context.Context, code string) (bool, error) {
 	return r.querier.GetIsReferralCodeInUse(ctx, code)
+}
+
+func (r DBUserRepository) AddUserRelationship(ctx context.Context, userId int, targetUserId int) error {
+	return nil
+}
+
+func (r DBUserRepository) RemoveUserRelationship(ctx context.Context, userId int, targetUserId int) error {
+	return nil
+}
+
+func (r DBUserRepository) GetRelationshipByUserId(ctx context.Context, userId int, before *time.Time) ([]models.PublicUser, error) {
+	return nil, nil
 }
 
 // NewDBUserRepository creates a new user repository

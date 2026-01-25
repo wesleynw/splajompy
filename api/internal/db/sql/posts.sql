@@ -60,8 +60,8 @@ FROM posts
 WHERE post_id = $1;
 
 -- name: InsertPost :one
-INSERT INTO posts (user_id, text, facets, attributes)
-VALUES ($1, $2, $3, $4)
+INSERT INTO posts (user_id, text, facets, attributes, visibilityType)
+VALUES ($1, $2, $3, $4, $5)
 RETURNING *;
 
 -- name: DeletePost :exec
@@ -102,11 +102,11 @@ WITH user_relationships AS (
     AND NOT EXISTS (SELECT 1 FROM block WHERE user_id = $1 AND target_user_id = posts.user_id)
     AND NOT EXISTS (SELECT 1 FROM mute WHERE user_id = $1 AND target_user_id = posts.user_id)
 )
-SELECT post_id, user_id, relationship_type, 
-  CASE WHEN relationship_type = 'mutual' THEN 
-    (SELECT ARRAY_AGG(u.username) FROM follows f1 
-     INNER JOIN follows f2 ON f1.following_id = f2.follower_id 
-     INNER JOIN users u ON f2.follower_id = u.user_id 
+SELECT post_id, user_id, relationship_type,
+  CASE WHEN relationship_type = 'mutual' THEN
+    (SELECT ARRAY_AGG(u.username) FROM follows f1
+     INNER JOIN follows f2 ON f1.following_id = f2.follower_id
+     INNER JOIN users u ON f2.follower_id = u.user_id
      WHERE f1.follower_id = $1 AND f2.following_id = user_relationships.user_id LIMIT 5)
   ELSE NULL END as mutual_usernames
 FROM user_relationships
@@ -180,11 +180,11 @@ WITH user_relationships AS (
     AND NOT EXISTS (SELECT 1 FROM mute WHERE user_id = $1 AND target_user_id = posts.user_id)
     AND ($3::timestamp IS NULL OR posts.created_at < $3::timestamp)
 )
-SELECT post_id, user_id, relationship_type, 
-  CASE WHEN relationship_type = 'mutual' THEN 
-    (SELECT ARRAY_AGG(u.username) FROM follows f1 
-     INNER JOIN follows f2 ON f1.following_id = f2.follower_id 
-     INNER JOIN users u ON f2.follower_id = u.user_id 
+SELECT post_id, user_id, relationship_type,
+  CASE WHEN relationship_type = 'mutual' THEN
+    (SELECT ARRAY_AGG(u.username) FROM follows f1
+     INNER JOIN follows f2 ON f1.following_id = f2.follower_id
+     INNER JOIN users u ON f2.follower_id = u.user_id
      WHERE f1.follower_id = $1 AND f2.following_id = user_relationships.user_id LIMIT 5)
   ELSE NULL END as mutual_usernames
 FROM user_relationships
@@ -192,16 +192,16 @@ ORDER BY (SELECT created_at FROM posts WHERE posts.post_id = user_relationships.
 LIMIT $2;
 
 -- name: PinPost :exec
-UPDATE users 
-SET pinned_post_id = $2 
+UPDATE users
+SET pinned_post_id = $2
 WHERE user_id = $1;
 
 -- name: UnpinPost :exec
-UPDATE users 
-SET pinned_post_id = NULL 
+UPDATE users
+SET pinned_post_id = NULL
 WHERE user_id = $1;
 
 -- name: GetPinnedPostId :one
-SELECT pinned_post_id 
-FROM users 
+SELECT pinned_post_id
+FROM users
 WHERE user_id = $1;

@@ -14,7 +14,7 @@ import (
 )
 
 type PostRepository interface {
-	InsertPost(ctx context.Context, userId int, content string, facets db.Facets, attributes *db.Attributes) (*models.Post, error)
+	InsertPost(ctx context.Context, userId int, content string, facets db.Facets, attributes *db.Attributes, visibilityType *models.VisibilityTypeEnum) (*models.Post, error)
 	DeletePost(ctx context.Context, postId int) error
 	GetPostById(ctx context.Context, postId int) (*models.Post, error)
 	IsPostLikedByUserId(ctx context.Context, userId int, postId int) (bool, error)
@@ -43,12 +43,13 @@ type DBPostRepository struct {
 }
 
 // InsertPost creates a new post
-func (r DBPostRepository) InsertPost(ctx context.Context, userId int, content string, facets db.Facets, attributes *db.Attributes) (*models.Post, error) {
+func (r DBPostRepository) InsertPost(ctx context.Context, userId int, content string, facets db.Facets, attributes *db.Attributes, visibilityType *models.VisibilityTypeEnum) (*models.Post, error) {
 	var post, err = r.querier.InsertPost(ctx, queries.InsertPostParams{
-		UserID:     userId,
-		Text:       pgtype.Text{String: content, Valid: true},
-		Facets:     facets,
-		Attributes: attributes,
+		UserID:         userId,
+		Text:           pgtype.Text{String: content, Valid: true},
+		Facets:         facets,
+		Attributes:     attributes,
+		Visibilitytype: pgtype.Int4{Int32: int32(*visibilityType), Valid: visibilityType != nil},
 	})
 	if err != nil {
 		return nil, err
