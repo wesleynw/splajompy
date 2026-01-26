@@ -47,7 +47,7 @@ type Querier interface {
 	GetNotificationsForUserId(ctx context.Context, arg GetNotificationsForUserIdParams) ([]Notification, error)
 	GetPinnedPostId(ctx context.Context, userID int) (*int, error)
 	GetPollVotesGrouped(ctx context.Context, postID int) ([]GetPollVotesGroupedRow, error)
-	GetPostById(ctx context.Context, postID int) (Post, error)
+	GetPostById(ctx context.Context, arg GetPostByIdParams) (Post, error)
 	GetPostIdsByFollowing(ctx context.Context, arg GetPostIdsByFollowingParams) ([]int, error)
 	GetPostIdsByFollowingCursor(ctx context.Context, arg GetPostIdsByFollowingCursorParams) ([]int, error)
 	GetPostIdsByUserIdCursor(ctx context.Context, arg GetPostIdsByUserIdCursorParams) ([]int, error)

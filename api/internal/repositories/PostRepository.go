@@ -16,7 +16,7 @@ import (
 type PostRepository interface {
 	InsertPost(ctx context.Context, userId int, content string, facets db.Facets, attributes *db.Attributes, visibilityType *models.VisibilityTypeEnum) (*models.Post, error)
 	DeletePost(ctx context.Context, postId int) error
-	GetPostById(ctx context.Context, postId int) (*models.Post, error)
+	GetPostById(ctx context.Context, postId int, currentUserId int) (*models.Post, error)
 	IsPostLikedByUserId(ctx context.Context, userId int, postId int) (bool, error)
 	GetImagesForPost(ctx context.Context, postId int) ([]queries.Image, error)
 	GetAllImagesForUser(ctx context.Context, userId int) ([]queries.Image, error)
@@ -65,8 +65,11 @@ func (r DBPostRepository) DeletePost(ctx context.Context, postId int) error {
 }
 
 // GetPostById retrieves a post by ID
-func (r DBPostRepository) GetPostById(ctx context.Context, postId int) (*models.Post, error) {
-	var dbPost, err = r.querier.GetPostById(ctx, postId)
+func (r DBPostRepository) GetPostById(ctx context.Context, postId int, currentUserId int) (*models.Post, error) {
+	var dbPost, err = r.querier.GetPostById(ctx, queries.GetPostByIdParams{
+		PostID:       postId,
+		TargetUserID: currentUserId,
+	})
 	if err != nil {
 		return nil, err
 	}

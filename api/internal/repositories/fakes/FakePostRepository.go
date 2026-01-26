@@ -84,7 +84,7 @@ func (r *FakePostRepository) DeletePost(ctx context.Context, postId int) error {
 	return nil
 }
 
-func (r *FakePostRepository) GetPostById(ctx context.Context, postId int) (*models.Post, error) {
+func (r *FakePostRepository) GetPostById(ctx context.Context, postId int, currentUserId int) (*models.Post, error) {
 	r.mutex.RLock()
 	defer r.mutex.RUnlock()
 

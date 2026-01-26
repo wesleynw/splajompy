@@ -44,7 +44,7 @@ func (s *NotificationService) GetNotificationsByUserId(ctx context.Context, user
 		detailedNotification.Notification = *notification
 
 		if notification.PostID != nil {
-			post, err := s.postRepository.GetPostById(ctx, *notification.PostID)
+			post, err := s.postRepository.GetPostById(ctx, *notification.PostID, user.UserID)
 			if err != nil {
 				return nil, errors.New("unable to retrieve post")
 			}
@@ -124,7 +124,7 @@ func (s *NotificationService) GetUnreadNotificationsByUserId(ctx context.Context
 		detailedNotification.Notification = *notification
 
 		if notification.PostID != nil {
-			post, err := s.postRepository.GetPostById(ctx, *notification.PostID)
+			post, err := s.postRepository.GetPostById(ctx, *notification.PostID, user.UserID)
 			if err != nil {
 				return nil, errors.New("unable to retrieve post")
 			}
@@ -167,7 +167,7 @@ func (s *NotificationService) GetReadNotificationsByUserIdWithTimeOffset(ctx con
 		return []models.DetailedNotification{}, nil
 	}
 
-	return s.buildDetailedNotifications(ctx, notifications)
+	return s.buildDetailedNotifications(ctx, user.UserID, notifications)
 }
 
 func (s *NotificationService) GetUnreadNotificationsByUserIdWithTimeOffset(ctx context.Context, user models.PublicUser, beforeTime time.Time, limit int, notificationType *string) ([]models.DetailedNotification, error) {
@@ -180,10 +180,10 @@ func (s *NotificationService) GetUnreadNotificationsByUserIdWithTimeOffset(ctx c
 		return []models.DetailedNotification{}, nil
 	}
 
-	return s.buildDetailedNotifications(ctx, notifications)
+	return s.buildDetailedNotifications(ctx, user.UserID, notifications)
 }
 
-func (s *NotificationService) buildDetailedNotifications(ctx context.Context, notifications []*models.Notification) ([]models.DetailedNotification, error) {
+func (s *NotificationService) buildDetailedNotifications(ctx context.Context, currentUserId int, notifications []*models.Notification) ([]models.DetailedNotification, error) {
 	detailedNotifications := make([]models.DetailedNotification, 0, len(notifications))
 
 	for _, notification := range notifications {
@@ -191,7 +191,7 @@ func (s *NotificationService) buildDetailedNotifications(ctx context.Context, no
 		detailedNotification.Notification = *notification
 
 		if notification.PostID != nil {
-			post, err := s.postRepository.GetPostById(ctx, *notification.PostID)
+			post, err := s.postRepository.GetPostById(ctx, *notification.PostID, currentUserId)
 			if err != nil {
 				return nil, errors.New("unable to retrieve post")
 			}

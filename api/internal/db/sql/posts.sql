@@ -57,7 +57,16 @@ WHERE post_id = $1;
 -- name: GetPostById :one
 SELECT *
 FROM posts
-WHERE post_id = $1;
+WHERE post_id = $1
+AND (
+    posts.visibilityType = 0 -- public
+    OR EXISTS (
+        SELECT 1
+        FROM user_relationship
+        WHERE user_id = posts.user_id
+            AND target_user_id = $2
+    )
+);
 
 -- name: InsertPost :one
 INSERT INTO posts (user_id, text, facets, attributes, visibilityType)
@@ -139,6 +148,14 @@ WHERE NOT EXISTS (
     SELECT 1
     FROM mute
     WHERE mute.user_id = $3 AND target_user_id = posts.user_id
+) AND (
+    posts.visibilityType = 0 -- public
+    OR EXISTS (
+        SELECT 1
+        FROM user_relationship
+        WHERE user_id = posts.user_id
+            AND target_user_id = $3
+    )
 ) AND ($2::timestamp IS NULL OR posts.created_at < $2::timestamp)
 ORDER BY posts.created_at DESC
 LIMIT $1;
@@ -158,6 +175,14 @@ WHERE (posts.user_id = $1 OR EXISTS (
     SELECT 1
     FROM mute
     WHERE user_id = $1 AND target_user_id = posts.user_id
+) AND (
+    posts.visibilityType = 0 -- public
+    OR EXISTS (
+        SELECT 1
+        FROM user_relationship
+        WHERE user_id = posts.user_id
+            AND target_user_id = $1
+    )
 ) AND ($3::timestamp IS NULL OR posts.created_at < $3::timestamp)
 ORDER BY posts.created_at DESC
 LIMIT $2;
@@ -178,6 +203,15 @@ WITH user_relationships AS (
                  WHERE f1.follower_id = $1 AND f2.following_id = posts.user_id))
     AND NOT EXISTS (SELECT 1 FROM block WHERE user_id = $1 AND target_user_id = posts.user_id)
     AND NOT EXISTS (SELECT 1 FROM mute WHERE user_id = $1 AND target_user_id = posts.user_id)
+    AND (
+        posts.visibilityType = 0 -- public
+        OR EXISTS (
+            SELECT 1
+            FROM user_relationship
+            WHERE user_id = posts.user_id
+                AND target_user_id = $1
+        )
+    )
     AND ($3::timestamp IS NULL OR posts.created_at < $3::timestamp)
 )
 SELECT post_id, user_id, relationship_type,

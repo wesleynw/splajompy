@@ -119,8 +119,9 @@ func (s *PostService) NewPresignedStagingUrl(ctx context.Context, currentUser mo
 	return s.bucketRepository.GeneratePresignedURL(ctx, currentUser.UserID, extension, folder)
 }
 
+// GetPostById fetches a post by its id.
 func (s *PostService) GetPostById(ctx context.Context, userId int, postId int) (*models.DetailedPost, error) {
-	post, err := s.postRepository.GetPostById(ctx, postId)
+	post, err := s.postRepository.GetPostById(ctx, postId, userId)
 	if err != nil {
 		return nil, err
 	}
@@ -252,7 +253,7 @@ func (s *PostService) AddLikeToPost(ctx context.Context, currentUser models.Publ
 		return err
 	}
 
-	post, err := s.postRepository.GetPostById(ctx, postId)
+	post, err := s.postRepository.GetPostById(ctx, postId, currentUser.UserID)
 	if err != nil {
 		return err
 	}
@@ -280,7 +281,7 @@ func (s *PostService) RemoveLikeFromPost(ctx context.Context, currentUser models
 		return err
 	}
 
-	post, err := s.postRepository.GetPostById(ctx, postId)
+	post, err := s.postRepository.GetPostById(ctx, postId, currentUser.UserID)
 	if err != nil {
 		return err
 	}
@@ -299,7 +300,7 @@ func (s *PostService) RemoveLikeFromPost(ctx context.Context, currentUser models
 }
 
 func (s *PostService) DeletePost(ctx context.Context, currentUser models.PublicUser, postId int) error {
-	post, err := s.postRepository.GetPostById(ctx, postId)
+	post, err := s.postRepository.GetPostById(ctx, postId, currentUser.UserID)
 	if err != nil {
 		return err
 	}
@@ -346,7 +347,7 @@ func (s *PostService) getRelevantLikes(ctx context.Context, userId int, postId i
 }
 
 func (s *PostService) ReportPost(ctx context.Context, currentUser *models.PublicUser, postId int) error {
-	post, err := s.postRepository.GetPostById(ctx, postId)
+	post, err := s.postRepository.GetPostById(ctx, postId, currentUser.UserID)
 	if err != nil {
 		return err
 	}
@@ -415,7 +416,7 @@ func (s *PostService) GetPollDetails(ctx context.Context, userId int, postId int
 }
 
 func (s *PostService) VoteOnPoll(ctx context.Context, currentUser models.PublicUser, postId int, optionIndex int) error {
-	post, err := s.postRepository.GetPostById(ctx, postId)
+	post, err := s.postRepository.GetPostById(ctx, postId, currentUser.UserID)
 	if err != nil {
 		return err
 	}
@@ -522,7 +523,7 @@ func seededRandom(seed int) float64 {
 
 // PinPost pins a post for the current user
 func (s *PostService) PinPost(ctx context.Context, currentUser models.PublicUser, postId int) error {
-	post, err := s.postRepository.GetPostById(ctx, postId)
+	post, err := s.postRepository.GetPostById(ctx, postId, currentUser.UserID)
 	if err != nil {
 		return errors.New("post not found")
 	}

@@ -110,6 +110,14 @@ WHERE NOT EXISTS (
     SELECT 1
     FROM mute
     WHERE mute.user_id = $3 AND target_user_id = posts.user_id
+) AND (
+    posts.visibilityType = 0 -- public
+    OR EXISTS (
+        SELECT 1
+        FROM user_relationship
+        WHERE user_id = posts.user_id
+            AND target_user_id = $3
+    )
 ) AND ($2::timestamp IS NULL OR posts.created_at < $2::timestamp)
 ORDER BY posts.created_at DESC
 LIMIT $1
@@ -237,10 +245,24 @@ const getPostById = `-- name: GetPostById :one
 SELECT post_id, user_id, text, created_at, facets, attributes, visibilitytype
 FROM posts
 WHERE post_id = $1
+AND (
+    posts.visibilityType = 0 -- public
+    OR EXISTS (
+        SELECT 1
+        FROM user_relationship
+        WHERE user_id = posts.user_id
+            AND target_user_id = $2
+    )
+)
 `
 
-func (q *Queries) GetPostById(ctx context.Context, postID int) (Post, error) {
-	row := q.db.QueryRow(ctx, getPostById, postID)
+type GetPostByIdParams struct {
+	PostID       int `json:"postId"`
+	TargetUserID int `json:"targetUserId"`
+}
+
+func (q *Queries) GetPostById(ctx context.Context, arg GetPostByIdParams) (Post, error) {
+	row := q.db.QueryRow(ctx, getPostById, arg.PostID, arg.TargetUserID)
 	var i Post
 	err := row.Scan(
 		&i.PostID,
@@ -316,6 +338,14 @@ WHERE (posts.user_id = $1 OR EXISTS (
     SELECT 1
     FROM mute
     WHERE user_id = $1 AND target_user_id = posts.user_id
+) AND (
+    posts.visibilityType = 0 -- public
+    OR EXISTS (
+        SELECT 1
+        FROM user_relationship
+        WHERE user_id = posts.user_id
+            AND target_user_id = $1
+    )
 ) AND ($3::timestamp IS NULL OR posts.created_at < $3::timestamp)
 ORDER BY posts.created_at DESC
 LIMIT $2
@@ -464,6 +494,15 @@ WITH user_relationships AS (
                  WHERE f1.follower_id = $1 AND f2.following_id = posts.user_id))
     AND NOT EXISTS (SELECT 1 FROM block WHERE user_id = $1 AND target_user_id = posts.user_id)
     AND NOT EXISTS (SELECT 1 FROM mute WHERE user_id = $1 AND target_user_id = posts.user_id)
+    AND (
+        posts.visibilityType = 0 -- public
+        OR EXISTS (
+            SELECT 1
+            FROM user_relationship
+            WHERE user_id = posts.user_id
+                AND target_user_id = $1
+        )
+    )
     AND ($3::timestamp IS NULL OR posts.created_at < $3::timestamp)
 )
 SELECT post_id, user_id, relationship_type,
