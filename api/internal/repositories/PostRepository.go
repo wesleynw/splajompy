@@ -49,7 +49,7 @@ func (r DBPostRepository) InsertPost(ctx context.Context, userId int, content st
 		Text:           pgtype.Text{String: content, Valid: true},
 		Facets:         facets,
 		Attributes:     attributes,
-		Visibilitytype: pgtype.Int4{Int32: int32(*visibilityType), Valid: visibilityType != nil},
+		Visibilitytype: int(*visibilityType),
 	})
 	if err != nil {
 		return nil, err
@@ -67,8 +67,8 @@ func (r DBPostRepository) DeletePost(ctx context.Context, postId int) error {
 // GetPostById retrieves a post by ID
 func (r DBPostRepository) GetPostById(ctx context.Context, postId int, currentUserId int) (*models.Post, error) {
 	var dbPost, err = r.querier.GetPostById(ctx, queries.GetPostByIdParams{
-		PostID:       postId,
-		TargetUserID: currentUserId,
+		PostID: postId,
+		UserID: currentUserId,
 	})
 	if err != nil {
 		return nil, err
@@ -80,6 +80,7 @@ func (r DBPostRepository) GetPostById(ctx context.Context, postId int, currentUs
 		CreatedAt:  dbPost.CreatedAt.Time.UTC(),
 		Facets:     dbPost.Facets,
 		Attributes: dbPost.Attributes,
+		Visibility: (*models.VisibilityTypeEnum)(&dbPost.Visibilitytype),
 	}, nil
 }
 

@@ -60,6 +60,7 @@ FROM posts
 WHERE post_id = $1
 AND (
     posts.visibilityType = 0 -- public
+    OR posts.user_id = $2
     OR EXISTS (
         SELECT 1
         FROM user_relationship
@@ -177,6 +178,7 @@ WHERE (posts.user_id = $1 OR EXISTS (
     WHERE user_id = $1 AND target_user_id = posts.user_id
 ) AND (
     posts.visibilityType = 0 -- public
+    OR posts.user_id = $1
     OR EXISTS (
         SELECT 1
         FROM user_relationship
@@ -205,6 +207,7 @@ WITH user_relationships AS (
     AND NOT EXISTS (SELECT 1 FROM mute WHERE user_id = $1 AND target_user_id = posts.user_id)
     AND (
         posts.visibilityType = 0 -- public
+        OR posts.user_id = $1
         OR EXISTS (
             SELECT 1
             FROM user_relationship

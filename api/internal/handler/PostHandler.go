@@ -20,6 +20,7 @@ func (h *Handler) CreateNewPostV2(w http.ResponseWriter, r *http.Request) {
 	var requestBody struct {
 		Text        string                   `json:"text"`
 		ImageKeymap map[int]models.ImageData `json:"imageKeymap"`
+		Visibility  *int                     `json:"visibility"`
 		Poll        *db.Poll                 `json:"poll"`
 	}
 
@@ -33,7 +34,7 @@ func (h *Handler) CreateNewPostV2(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := h.postService.NewPost(r.Context(), *currentUser, requestBody.Text, requestBody.ImageKeymap, requestBody.Poll, nil)
+	err := h.postService.NewPost(r.Context(), *currentUser, requestBody.Text, requestBody.ImageKeymap, requestBody.Poll, requestBody.Visibility)
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
 		return

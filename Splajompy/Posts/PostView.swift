@@ -70,6 +70,8 @@ struct PostView: View {
 
   private var postContent: some View {
     VStack(alignment: .leading, spacing: 10) {
+      PostVisibilityIndicator(visibility: post.post.visibility)
+
       if showAuthor {
         authorHeader
       }

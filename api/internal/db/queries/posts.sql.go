@@ -247,6 +247,7 @@ FROM posts
 WHERE post_id = $1
 AND (
     posts.visibilityType = 0 -- public
+    OR posts.user_id = $2
     OR EXISTS (
         SELECT 1
         FROM user_relationship
@@ -257,12 +258,12 @@ AND (
 `
 
 type GetPostByIdParams struct {
-	PostID       int `json:"postId"`
-	TargetUserID int `json:"targetUserId"`
+	PostID int `json:"postId"`
+	UserID int `json:"userId"`
 }
 
 func (q *Queries) GetPostById(ctx context.Context, arg GetPostByIdParams) (Post, error) {
-	row := q.db.QueryRow(ctx, getPostById, arg.PostID, arg.TargetUserID)
+	row := q.db.QueryRow(ctx, getPostById, arg.PostID, arg.UserID)
 	var i Post
 	err := row.Scan(
 		&i.PostID,
@@ -340,6 +341,7 @@ WHERE (posts.user_id = $1 OR EXISTS (
     WHERE user_id = $1 AND target_user_id = posts.user_id
 ) AND (
     posts.visibilityType = 0 -- public
+    OR posts.user_id = $1
     OR EXISTS (
         SELECT 1
         FROM user_relationship
@@ -496,6 +498,7 @@ WITH user_relationships AS (
     AND NOT EXISTS (SELECT 1 FROM mute WHERE user_id = $1 AND target_user_id = posts.user_id)
     AND (
         posts.visibilityType = 0 -- public
+        OR posts.user_id = $1
         OR EXISTS (
             SELECT 1
             FROM user_relationship
@@ -653,7 +656,7 @@ type InsertPostParams struct {
 	Text           pgtype.Text    `json:"text"`
 	Facets         db.Facets      `json:"facets"`
 	Attributes     *db.Attributes `json:"attributes"`
-	Visibilitytype pgtype.Int4    `json:"visibilitytype"`
+	Visibilitytype int            `json:"visibilitytype"`
 }
 
 func (q *Queries) InsertPost(ctx context.Context, arg InsertPostParams) (Post, error) {

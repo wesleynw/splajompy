@@ -89,7 +89,7 @@ type Post struct {
 	CreatedAt      pgtype.Timestamp `json:"createdAt"`
 	Facets         db.Facets        `json:"facets"`
 	Attributes     *db.Attributes   `json:"attributes"`
-	Visibilitytype pgtype.Int4      `json:"visibilitytype"`
+	Visibilitytype int              `json:"visibilitytype"`
 }
 
 type Session struct {

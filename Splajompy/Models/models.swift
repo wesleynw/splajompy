@@ -25,8 +25,12 @@ struct PublicUser: Decodable, Identifiable {
   var id: Int { userId }
 
   init(
-    userId: Int, username: String, createdAt: String, name: String?,
-    isVerified: Bool, displayProperties: UserDisplayProperties
+    userId: Int,
+    username: String,
+    createdAt: String,
+    name: String?,
+    isVerified: Bool,
+    displayProperties: UserDisplayProperties
   ) {
     self.userId = userId
     self.username = username
@@ -94,6 +98,7 @@ struct Post: Decodable {
   let text: String?
   let createdAt: Date
   let facets: [Facet]?
+  var visibility: VisibilityType = .Public
 
   var richContent: AttributedString? {
     guard let text, !text.isEmpty else { return nil }
@@ -160,4 +165,11 @@ struct AppStatistics: Decodable {
   let totalFollows: Int
   let totalUsers: Int
   let totalNotifications: Int
+}
+
+enum VisibilityType: Int, Decodable, Identifiable, CaseIterable {
+  case Public = 0
+  case CloseFriends = 1
+
+  var id: Int { rawValue }
 }

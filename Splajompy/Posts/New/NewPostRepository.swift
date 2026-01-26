@@ -11,6 +11,7 @@ struct ImageData: Encodable {
 struct CreatePostRequest: Encodable {
   let text: String
   let imageKeymap: [Int: ImageData]  // [displayOrder : ImageData]
+  let visibility: Int
   let poll: PollCreationRequest?
 }
 
@@ -24,6 +25,7 @@ struct PostCreationService {
     text: String,
     images: [UIImage],
     items: [PhotosPickerItem],
+    visibility: VisibilityType,
     poll: PollCreationRequest? = nil
   ) async -> AsyncResult<EmptyResponse> {
     do {
@@ -121,6 +123,7 @@ struct PostCreationService {
       let createPostRequest = CreatePostRequest(
         text: text,
         imageKeymap: imageKeymap,
+        visibility: visibility.id,
         poll: poll
       )
       let jsonData = try JSONEncoder().encode(createPostRequest)

@@ -355,7 +355,7 @@ type WrappedGetPollsThatUserVotedInRow struct {
 	CreatedAt      pgtype.Timestamp `json:"createdAt"`
 	Facets         db.Facets        `json:"facets"`
 	Attributes     *db.Attributes   `json:"attributes"`
-	Visibilitytype pgtype.Int4      `json:"visibilitytype"`
+	Visibilitytype int              `json:"visibilitytype"`
 	ID             int              `json:"id"`
 	PostID_2       int              `json:"postId2"`
 	UserID_2       int              `json:"userId2"`

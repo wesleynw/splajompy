@@ -32,7 +32,7 @@ CREATE TABLE posts (
     created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     facets JSON,
     attributes JSON,
-    visibilityType INT NULL DEFAULT 0,
+    visibilityType INT NOT NULL DEFAULT 0,
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
 
