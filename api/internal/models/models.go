@@ -118,7 +118,6 @@ type DetailedNotification struct {
 	TargetUserUsername *string          `json:"targetUserUsername"`
 }
 
-// PublicUser Related to queries.GetUserByIdentifierRow
 type PublicUser struct {
 	UserID            int                   `json:"userId"`
 	Email             string                `json:"email"`

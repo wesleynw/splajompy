@@ -696,7 +696,7 @@ func (r *FakeUserRepository) RemoveUserRelationship(ctx context.Context, userId 
 	return nil
 }
 
-func (r *FakeUserRepository) GetRelationshipByUserId(ctx context.Context, userId int, before *time.Time) ([]models.PublicUser, error) {
+func (r *FakeUserRepository) GetRelationshipByUserId(ctx context.Context, userId int, limit int, before *time.Time) ([]models.PublicUser, error) {
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
 

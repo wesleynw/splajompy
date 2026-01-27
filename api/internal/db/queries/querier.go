@@ -11,6 +11,7 @@ import (
 type Querier interface {
 	AddCommentToPost(ctx context.Context, arg AddCommentToPostParams) (Comment, error)
 	AddLike(ctx context.Context, arg AddLikeParams) error
+	AddUserRelationship(ctx context.Context, arg AddUserRelationshipParams) error
 	BlockUser(ctx context.Context, arg BlockUserParams) error
 	CreateSession(ctx context.Context, arg CreateSessionParams) error
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
@@ -84,11 +85,13 @@ type Querier interface {
 	InsertNotification(ctx context.Context, arg InsertNotificationParams) error
 	InsertPost(ctx context.Context, arg InsertPostParams) (Post, error)
 	InsertVote(ctx context.Context, arg InsertVoteParams) error
+	ListUserRelationships(ctx context.Context, arg ListUserRelationshipsParams) ([]User, error)
 	MarkAllNotificationsAsReadForUser(ctx context.Context, userID int) error
 	MarkNotificationAsReadById(ctx context.Context, notificationID int) error
 	MuteUser(ctx context.Context, arg MuteUserParams) error
 	PinPost(ctx context.Context, arg PinPostParams) error
 	RemoveLike(ctx context.Context, arg RemoveLikeParams) error
+	RemoveUserRelationship(ctx context.Context, arg RemoveUserRelationshipParams) error
 	UnblockUser(ctx context.Context, arg UnblockUserParams) error
 	UnmuteUser(ctx context.Context, arg UnmuteUserParams) error
 	UnpinPost(ctx context.Context, userID int) error

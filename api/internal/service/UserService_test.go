@@ -71,7 +71,7 @@ func TestUserRelationship_AddAndRetrieve(t *testing.T) {
 	err = service.AddUserToCloseFriendsList(ctx, user0, user1.UserID)
 	assert.NoError(t, err)
 
-	users, err := service.GetCloseFriendsByUserId(ctx, user0, nil)
+	users, err := service.GetCloseFriendsByUserId(ctx, user0, 10, nil)
 	assert.NoError(t, err)
 	assert.Contains(t, users, user1, "returned friends list does not contain target user")
 }
@@ -95,7 +95,7 @@ func TestUserRelationship_AddRemoveAndRetrieve(t *testing.T) {
 	err = service.RemoveUserFromCloseFriendsList(ctx, user0, user1.UserID)
 	assert.NoError(t, err)
 
-	users, err := service.GetCloseFriendsByUserId(ctx, user0, nil)
+	users, err := service.GetCloseFriendsByUserId(ctx, user0, 10, nil)
 	assert.NoError(t, err)
 	assert.NotContains(t, users, user1, "returned friends list contains target user when it should have been removed")
 }
@@ -117,7 +117,7 @@ func TestUserRelationship_AddAndGetPaged(t *testing.T) {
 	assert.NoError(t, err)
 
 	before := time.Now().AddDate(1, 0, 0)
-	users, err := service.GetCloseFriendsByUserId(ctx, user0, &before)
+	users, err := service.GetCloseFriendsByUserId(ctx, user0, 10, &before)
 	assert.NoError(t, err)
 	assert.NotContains(t, users, user1, "returned friends list contains target user when it should have been removed")
 }

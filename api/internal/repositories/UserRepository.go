@@ -51,7 +51,7 @@ type UserRepository interface {
 	// RemoveUserRelationship deletes a user relationship (right now only "close friends")
 	RemoveUserRelationship(ctx context.Context, userId int, targetUserId int) error
 	// GetCloseFriendsByUserId returns a list of user relationships, paginated by the timestamp they were created.
-	GetRelationshipByUserId(ctx context.Context, userId int, before *time.Time) ([]models.PublicUser, error)
+	GetRelationshipByUserId(ctx context.Context, userId int, limit int, before *time.Time) ([]models.PublicUser, error)
 }
 
 type DBUserRepository struct {
@@ -309,15 +309,35 @@ func (r DBUserRepository) GetIsReferralCodeInUse(ctx context.Context, code strin
 }
 
 func (r DBUserRepository) AddUserRelationship(ctx context.Context, userId int, targetUserId int) error {
-	return nil
+	return r.querier.AddUserRelationship(ctx, queries.AddUserRelationshipParams{
+		UserID:       userId,
+		TargetUserID: targetUserId,
+	})
 }
 
 func (r DBUserRepository) RemoveUserRelationship(ctx context.Context, userId int, targetUserId int) error {
-	return nil
+	return r.querier.RemoveUserRelationship(ctx, queries.RemoveUserRelationshipParams{
+		UserID:       userId,
+		TargetUserID: targetUserId,
+	})
 }
 
-func (r DBUserRepository) GetRelationshipByUserId(ctx context.Context, userId int, before *time.Time) ([]models.PublicUser, error) {
-	return nil, nil
+func (r DBUserRepository) GetRelationshipByUserId(ctx context.Context, userId int, limit int, before *time.Time) ([]models.PublicUser, error) {
+	users, err := r.querier.ListUserRelationships(ctx, queries.ListUserRelationshipsParams{
+		UserID: userId,
+		Limit:  limit,
+		Before: before,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	publicUsers := make([]models.PublicUser, len(users))
+	for i, user := range users {
+		publicUsers[i] = utilities.MapUserToPublicUser(user)
+	}
+
+	return publicUsers, nil
 }
 
 // NewDBUserRepository creates a new user repository

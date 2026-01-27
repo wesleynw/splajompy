@@ -92,8 +92,8 @@ func (h *Handler) UnfollowUser(w http.ResponseWriter, r *http.Request) {
 }
 
 type UpdateProfileRequest struct {
-	Name              string                     `json:"name"`
-	Bio               string                     `json:"bio"`
+	Name              string                       `json:"name"`
+	Bio               string                       `json:"bio"`
 	DisplayProperties models.UserDisplayProperties `json:"displayProperties"`
 }
 
@@ -272,4 +272,62 @@ func (h *Handler) RequestFeature(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utilities.HandleEmptySuccess(w)
+}
+
+func (h Handler) AddUserToCloseFriendsList(w http.ResponseWriter, r *http.Request) {
+	targetUserId, err := h.GetIntPathParam(r, "id")
+	if err != nil {
+		utilities.HandleError(w, http.StatusBadRequest, "Missing ID parameter")
+		return
+	}
+
+	user := h.getAuthenticatedUser(r)
+
+	err = h.userService.AddUserToCloseFriendsList(r.Context(), *user, targetUserId)
+	if err != nil {
+		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
+		return
+	}
+
+	utilities.HandleEmptySuccess(w)
+}
+
+func (h Handler) RemoveUserFromCloseFriendsList(w http.ResponseWriter, r *http.Request) {
+	targetUserId, err := h.GetIntPathParam(r, "id")
+	if err != nil {
+		utilities.HandleError(w, http.StatusBadRequest, "Missing ID parameter")
+		return
+	}
+
+	user := h.getAuthenticatedUser(r)
+
+	err = h.userService.RemoveUserFromCloseFriendsList(r.Context(), *user, targetUserId)
+	if err != nil {
+		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
+		return
+	}
+
+	utilities.HandleEmptySuccess(w)
+}
+
+func (h Handler) ListUserCloseFriends(w http.ResponseWriter, r *http.Request) {
+	limit, before, err := h.parseTimeBasedPagination(r)
+	if err != nil {
+		utilities.HandleError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+	if err != nil {
+		utilities.HandleError(w, http.StatusBadRequest, "Unable to parse pagination parameters ('limit' and 'before'")
+		return
+	}
+
+	user := h.getAuthenticatedUser(r)
+
+	users, err := h.userService.GetCloseFriendsByUserId(r.Context(), *user, limit, before)
+	if err != nil {
+		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
+		return
+	}
+
+	utilities.HandleSuccess(w, users)
 }

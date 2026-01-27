@@ -199,3 +199,20 @@ SELECT EXISTS (
     FROM users
     WHERE referral_code = $1
 );
+
+-- name: AddUserRelationship :exec
+INSERT INTO user_relationship (user_id, target_user_id)
+VALUES ($1, $2);
+
+-- name: RemoveUserRelationship :exec
+DELETE FROM user_relationship
+WHERE user_id = $1 AND target_user_id = $2;
+
+-- name: ListUserRelationships :many
+SELECT users.*
+FROM users
+JOIN user_relationship ON user_relationship.user_id = $1
+WHERE users.user_id = user_relationship.target_user_id
+    AND (@before IS NULL OR user_relationship.created_at < @before)
+ORDER BY user_relationship.created_at DESC
+LIMIT $2;

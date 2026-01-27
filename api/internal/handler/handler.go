@@ -110,6 +110,10 @@ func (h *Handler) RegisterRoutes(handleFunc func(pattern string, handlerFunc fun
 	handleFuncWithAuth("GET /user/{id}/mutuals", h.GetMutualsByUserId)
 	handleFuncWithAuth("GET /users/search", h.SearchUsers)
 
+	handleFuncWithAuth("POST /user/{id}/friend", h.AddUserToCloseFriendsList)
+	handleFuncWithAuth("DELETE /user/{id}/friend", h.RemoveUserFromCloseFriendsList)
+	handleFuncWithAuth("GET /user/friend", h.ListUserCloseFriends)
+
 	// posts
 	handleFuncWithAuth("GET /posts/following", h.GetPostsByFollowing)
 	handleFuncWithAuth("GET /posts/all", h.GetAllPosts)
