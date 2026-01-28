@@ -313,10 +313,6 @@ func (h Handler) RemoveUserFromCloseFriendsList(w http.ResponseWriter, r *http.R
 func (h Handler) ListUserCloseFriends(w http.ResponseWriter, r *http.Request) {
 	limit, before, err := h.parseTimeBasedPagination(r)
 	if err != nil {
-		utilities.HandleError(w, http.StatusBadRequest, err.Error())
-		return
-	}
-	if err != nil {
 		utilities.HandleError(w, http.StatusBadRequest, "Unable to parse pagination parameters ('limit' and 'before'")
 		return
 	}

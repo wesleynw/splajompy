@@ -169,44 +169,6 @@ final class MockUserRepository: @unchecked Sendable {
         isVerified: false,
         displayProperties: UserDisplayProperties(fontChoiceId: 0)
       ),
-      30: DetailedUser(
-        userId: 30,
-        email: "showrunner@example.com",
-        username: "showrunner",
-        createdAt: formatter.string(
-          from: baseDate.addingTimeInterval(-5_184_000)
-        ),
-        name: "The Showrunner",
-        bio:
-          "season finale specialist 📺 | creating conversations about the stories we love",
-        isFollower: false,
-        isFollowing: true,
-        isBlocking: false,
-        isMuting: false,
-        mutuals: [],
-        mutualCount: 0,
-        isVerified: false,
-        displayProperties: UserDisplayProperties(fontChoiceId: 0)
-      ),
-      15: DetailedUser(
-        userId: 15,
-        email: "marketvendor@example.com",
-        username: "marketvendor",
-        createdAt: formatter.string(
-          from: baseDate.addingTimeInterval(-2_592_000)
-        ),
-        name: "Market Maven",
-        bio:
-          "weekend farmer's market haul curator 🥕 | fresh produce enthusiast | feeding the community",
-        isFollower: true,
-        isFollowing: false,
-        isBlocking: false,
-        isMuting: false,
-        mutuals: [],
-        mutualCount: 0,
-        isVerified: false,
-        displayProperties: UserDisplayProperties(fontChoiceId: 0)
-      ),
     ]
   }
 }

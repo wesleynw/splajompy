@@ -10,6 +10,18 @@ enum UserListState {
 enum UserListVariantEnum {
   case following
   case mutuals
+  case CloseFriends
+
+  var title: String {
+    switch self {
+    case .following:
+      "Following"
+    case .mutuals:
+      "Mutuals"
+    case .CloseFriends:
+      "Friends"
+    }
+  }
 }
 
 @MainActor @Observable
@@ -24,6 +36,7 @@ class UserListViewModel {
   private let profileService: ProfileServiceProtocol
   private let fetchLimit = 20
   private var offset: Int = 0
+  private var beforeCursor: Date? = nil
 
   init(
     userId: Int,

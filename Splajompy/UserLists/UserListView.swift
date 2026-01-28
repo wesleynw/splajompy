@@ -1,5 +1,6 @@
 import SwiftUI
 
+/// A flexible view to display a list of users.
 struct UserListView: View {
   private var userListVariant: UserListVariantEnum
   @State private var viewModel: UserListViewModel
@@ -46,26 +47,10 @@ struct UserListView: View {
         )
       }
     }
-    .navigationTitle(userListVariant == .following ? "Following" : "Mutuals")
+    .navigationTitle(userListVariant.title)
     #if os(iOS)
       .navigationBarTitleDisplayMode(.inline)
     #endif
-  }
-
-  private func errorView(error: Error) -> some View {
-    VStack {
-      Spacer()
-      Text("Failed to load connections")
-        .foregroundColor(.secondary)
-      Button("Retry") {
-        Task {
-          await viewModel.loadUsers(reset: true)
-        }
-      }
-      .buttonStyle(.bordered)
-      .padding()
-      Spacer()
-    }
   }
 
   private var noUsersView: some View {
