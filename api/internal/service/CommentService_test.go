@@ -10,10 +10,11 @@ import (
 	"github.com/stretchr/testify/require"
 	"splajompy.com/api/v2/internal/db/queries"
 	"splajompy.com/api/v2/internal/models"
+	"splajompy.com/api/v2/internal/repositories"
 	"splajompy.com/api/v2/internal/repositories/fakes"
 )
 
-func setupCommentTest(t *testing.T) (*CommentService, *fakes.FakeCommentRepository, *fakes.FakePostRepository, *fakes.FakeNotificationRepository, *fakes.FakeUserRepository, *fakes.FakeLikeRepository, models.PublicUser) {
+func setupCommentTest(t *testing.T) (*CommentService, *fakes.FakeCommentRepository, *fakes.FakePostRepository, *fakes.FakeNotificationRepository, repositories.UserRepository, *fakes.FakeLikeRepository, models.PublicUser) {
 	commentRepo := fakes.NewFakeCommentRepository()
 	postRepo := fakes.NewFakePostRepository()
 	notificationRepo := fakes.NewFakeNotificationRepository()

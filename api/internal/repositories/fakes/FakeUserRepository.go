@@ -11,6 +11,7 @@ import (
 	"splajompy.com/api/v2/internal/db"
 	"splajompy.com/api/v2/internal/db/queries"
 	"splajompy.com/api/v2/internal/models"
+	"splajompy.com/api/v2/internal/repositories"
 )
 
 type FakeUserRepository struct {
@@ -30,7 +31,7 @@ type FakeUserRepository struct {
 	userRelationships     map[int]map[int]time.Time
 }
 
-func NewFakeUserRepository() *FakeUserRepository {
+func NewFakeUserRepository() repositories.UserRepository {
 	return &FakeUserRepository{
 		users:                 make(map[int]models.PublicUser),
 		usersByUsername:       make(map[string]int),
@@ -543,7 +544,7 @@ func (r *FakeUserRepository) GetMutualConnectionsForUser(ctx context.Context, us
 	return nil, nil
 }
 
-func (r *FakeUserRepository) GetFollowersByUserId(ctx context.Context, userId int, limit int, offset int) ([]queries.GetFollowersByUserIdRow, error) {
+func (r *FakeUserRepository) GetFollowersByUserId_old(ctx context.Context, userId int, limit int, offset int) ([]queries.GetFollowersByUserIdRow, error) {
 	r.mutex.RLock()
 	defer r.mutex.RUnlock()
 
@@ -582,7 +583,17 @@ func (r *FakeUserRepository) GetFollowersByUserId(ctx context.Context, userId in
 	return followers[start:end], nil
 }
 
-func (r *FakeUserRepository) GetFollowingByUserId(ctx context.Context, userId int, limit int, offset int) ([]queries.GetFollowingByUserIdRow, error) {
+// TODO
+func (r *FakeUserRepository) GetFollowersByUserId(ctx context.Context, userId int, limit int, before *time.Time) ([]models.PublicUser, error) {
+	return nil, nil
+}
+
+// TODO
+func (r *FakeUserRepository) GetFollowingUserIds(ctx context.Context, userId int, limit int, before *time.Time) ([]int, error) {
+	return nil, nil
+}
+
+func (r *FakeUserRepository) GetFollowingByUserId_old(ctx context.Context, userId int, limit int, offset int) ([]queries.GetFollowingByUserIdRow, error) {
 	r.mutex.RLock()
 	defer r.mutex.RUnlock()
 
@@ -623,7 +634,7 @@ func (r *FakeUserRepository) GetFollowingByUserId(ctx context.Context, userId in
 	return following[start:end], nil
 }
 
-func (r *FakeUserRepository) GetMutualsByUserId(ctx context.Context, currentUserId int, targetUserId int, limit int, offset int) ([]queries.GetMutualsByUserIdRow, error) {
+func (r *FakeUserRepository) GetMutualsByUserId_old(ctx context.Context, currentUserId int, targetUserId int, limit int, offset int) ([]queries.GetMutualsByUserIdRow, error) {
 	r.mutex.RLock()
 	defer r.mutex.RUnlock()
 

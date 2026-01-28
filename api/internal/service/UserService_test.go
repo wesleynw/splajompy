@@ -11,25 +11,26 @@ import (
 )
 
 func TestFollowUser(t *testing.T) {
-	ctx := context.Background()
-	fakeUserRepo := fakes.NewFakeUserRepository()
+	userRepository := fakes.NewFakeUserRepository()
 	fakeNotificationRepo := fakes.NewFakeNotificationRepository()
 
-	user1, err := fakeUserRepo.CreateUser(ctx, "user1", "user1@splajompy.com", "password", "123")
+	user1, err := userRepository.CreateUser(t.Context(), "user1", "user1@splajompy.com", "password", "123")
 	require.NoError(t, err)
-	user2, err := fakeUserRepo.CreateUser(ctx, "user2", "user2@splajompy.com", "password", "123")
-	require.NoError(t, err)
-
-	service := NewUserService(fakeUserRepo, fakeNotificationRepo, nil)
-
-	err = service.FollowUser(ctx, user1, user2.UserID)
+	user2, err := userRepository.CreateUser(t.Context(), "user2", "user2@splajompy.com", "password", "123")
 	require.NoError(t, err)
 
-	following := fakeUserRepo.GetFollowingForUser(user1.UserID)
+	service := NewUserService(userRepository, fakeNotificationRepo, nil)
+
+	err = service.FollowUser(t.Context(), user1, user2.UserID)
+	require.NoError(t, err)
+
+	following, err := userRepository.GetFollowingByUserId_old(t.Context(), user1.UserID, 10, 0)
+	assert.NoError(t, err)
 	assert.Equal(t, 1, len(following))
 	assert.Contains(t, following, user2.UserID)
 
-	followers := fakeUserRepo.GetFollowersForUser(user2.UserID)
+	followers, err := userRepository.GetFollowersByUserId_old(t.Context(), user2.UserID, 10, 0)
+	assert.NoError(t, err)
 	assert.Equal(t, 1, len(followers))
 	assert.Contains(t, followers, user1.UserID)
 }

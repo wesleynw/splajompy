@@ -99,6 +99,7 @@ func (h *Handler) DeletePostById(w http.ResponseWriter, r *http.Request) {
 	utilities.HandleEmptySuccess(w)
 }
 
+// Deprecated: in factor of parseTimeBasedPagination
 func (h *Handler) parsePagination(r *http.Request) (int, int) {
 	limit, offset := 10, 0
 	if l, err := strconv.Atoi(r.URL.Query().Get("limit")); err == nil && l > 0 {

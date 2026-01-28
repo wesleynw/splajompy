@@ -16,7 +16,7 @@ import (
 	"splajompy.com/api/v2/internal/repositories/fakes"
 )
 
-func setupTest(t *testing.T) (*PostService, *fakes.FakePostRepository, *fakes.FakeUserRepository, *fakes.FakeLikeRepository, *fakes.FakeNotificationRepository, *fakes.FakeBucketRepository, models.PublicUser) {
+func setupTest(t *testing.T) (*PostService, *fakes.FakePostRepository, repositories.UserRepository, *fakes.FakeLikeRepository, *fakes.FakeNotificationRepository, *fakes.FakeBucketRepository, models.PublicUser) {
 	postRepo := fakes.NewFakePostRepository()
 	userRepo := fakes.NewFakeUserRepository()
 	likeRepo := fakes.NewFakeLikeRepository()

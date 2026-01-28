@@ -15,45 +15,6 @@ import (
 	"splajompy.com/api/v2/internal/models"
 )
 
-type UserRepository interface {
-	GetUserById(ctx context.Context, userId int) (models.PublicUser, error)
-	GetUserByUsername(ctx context.Context, username string) (models.PublicUser, error)
-	GetUserByIdentifier(ctx context.Context, identifier string) (models.PublicUser, error)
-	GetBioForUser(ctx context.Context, userId int) (string, error)
-	UpdateBio(ctx context.Context, userId int, bio string) error
-	IsUserFollowingUser(ctx context.Context, followerId int, followingId int) (bool, error)
-	FollowUser(ctx context.Context, followerId int, followingId int) error
-	UnfollowUser(ctx context.Context, followerId int, followingId int) error
-	SearchUsername(ctx context.Context, prefix string, limit int, currentUserId int) ([]models.PublicUser, error)
-	UpdateUserName(ctx context.Context, userId int, newName string) error
-	UpdateUserDisplayProperties(ctx context.Context, userId int, displayProperties *db.UserDisplayProperties) error
-	GetIsUsernameInUse(ctx context.Context, username string) (bool, error)
-	GetIsEmailInUse(ctx context.Context, email string) (bool, error)
-	CreateUser(ctx context.Context, username string, email string, password string, referralCode string) (models.PublicUser, error)
-	GetVerificationCode(ctx context.Context, userId int, code string) (queries.VerificationCode, error)
-	CreateVerificationCode(ctx context.Context, userId int, code string, expiresAt time.Time) error
-	GetUserPasswordByIdentifier(ctx context.Context, identifier string) (string, error)
-	CreateSession(ctx context.Context, sessionId string, userId int, expiresAt time.Time) error
-	BlockUser(ctx context.Context, currentUserId int, targetUserId int) error
-	UnblockUser(ctx context.Context, currentUserId int, targetUserId int) error
-	IsUserBlockingUser(ctx context.Context, blockerId int, blockedId int) (bool, error)
-	MuteUser(ctx context.Context, currentUserId int, targetUserId int) error
-	UnmuteUser(ctx context.Context, currentUserId int, targetUserId int) error
-	IsUserMutingUser(ctx context.Context, muterId int, mutedId int) (bool, error)
-	DeleteAccount(ctx context.Context, userId int) error
-	GetMutualConnectionsForUser(ctx context.Context, currentUserId int, targetUserId int) ([]string, error)
-	GetFollowersByUserId(ctx context.Context, userId int, limit int, offset int) ([]queries.GetFollowersByUserIdRow, error)
-	GetFollowingByUserId(ctx context.Context, userId int, limit int, offset int) ([]queries.GetFollowingByUserIdRow, error)
-	GetMutualsByUserId(ctx context.Context, currentUserId int, targetUserId int, limit int, offset int) ([]queries.GetMutualsByUserIdRow, error)
-	GetIsReferralCodeInUse(ctx context.Context, code string) (bool, error)
-	// AddUserRelationship creates a user relationship (right now only "close friends")
-	AddUserRelationship(ctx context.Context, userId int, targetUserId int) error
-	// RemoveUserRelationship deletes a user relationship (right now only "close friends")
-	RemoveUserRelationship(ctx context.Context, userId int, targetUserId int) error
-	// GetCloseFriendsByUserId returns a list of user relationships, paginated by the timestamp they were created.
-	GetRelationshipByUserId(ctx context.Context, userId int, limit int, before *time.Time) ([]models.PublicUser, error)
-}
-
 type DBUserRepository struct {
 	querier queries.Querier
 }
@@ -279,7 +240,7 @@ func (r DBUserRepository) GetMutualConnectionsForUser(ctx context.Context, curre
 	})
 }
 
-func (r DBUserRepository) GetFollowersByUserId(ctx context.Context, userId int, limit int, offset int) ([]queries.GetFollowersByUserIdRow, error) {
+func (r DBUserRepository) GetFollowersByUserId_old(ctx context.Context, userId int, limit int, offset int) ([]queries.GetFollowersByUserIdRow, error) {
 	return r.querier.GetFollowersByUserId(ctx, queries.GetFollowersByUserIdParams{
 		FollowingID: userId,
 		Limit:       limit,
@@ -287,7 +248,7 @@ func (r DBUserRepository) GetFollowersByUserId(ctx context.Context, userId int, 
 	})
 }
 
-func (r DBUserRepository) GetFollowingByUserId(ctx context.Context, userId int, limit int, offset int) ([]queries.GetFollowingByUserIdRow, error) {
+func (r DBUserRepository) GetFollowingByUserId_old(ctx context.Context, userId int, limit int, offset int) ([]queries.GetFollowingByUserIdRow, error) {
 	return r.querier.GetFollowingByUserId(ctx, queries.GetFollowingByUserIdParams{
 		FollowerID: userId,
 		Limit:      limit,
@@ -295,12 +256,20 @@ func (r DBUserRepository) GetFollowingByUserId(ctx context.Context, userId int, 
 	})
 }
 
-func (r DBUserRepository) GetMutualsByUserId(ctx context.Context, currentUserId int, targetUserId int, limit int, offset int) ([]queries.GetMutualsByUserIdRow, error) {
+func (r DBUserRepository) GetMutualsByUserId_old(ctx context.Context, currentUserId int, targetUserId int, limit int, offset int) ([]queries.GetMutualsByUserIdRow, error) {
 	return r.querier.GetMutualsByUserId(ctx, queries.GetMutualsByUserIdParams{
 		FollowerID:   currentUserId,
 		FollowerID_2: targetUserId,
 		Limit:        limit,
 		Offset:       offset,
+	})
+}
+
+func (r DBUserRepository) GetFollowingUserIds(ctx context.Context, userId int, limit int, before *time.Time) ([]int, error) {
+	return r.querier.GetFollowersUserIds(ctx, queries.GetFollowersUserIdsParams{
+		UserID: userId,
+		Before: before,
+		Limit:  limit,
 	})
 }
 

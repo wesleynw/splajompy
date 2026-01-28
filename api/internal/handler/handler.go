@@ -105,8 +105,9 @@ func (h *Handler) RegisterRoutes(handleFunc func(pattern string, handlerFunc fun
 
 	// users
 	handleFuncWithAuth("GET /user/{id}", h.GetUserById)
-	handleFuncWithAuth("GET /user/{id}/followers", h.GetFollowersByUserId)
-	handleFuncWithAuth("GET /user/{id}/following", h.GetFollowingByUserId)
+	handleFuncWithAuth("GET /user/{id}/followers", h.GetFollowersByUserId_old)
+	handleFuncWithAuth("GET /user/{id}/following", h.GetFollowingByUserId_old)
+	handleFuncWithAuth("GET /v2/user/{id}/following", h.GetFollowingByUserId)
 	handleFuncWithAuth("GET /user/{id}/mutuals", h.GetMutualsByUserId)
 	handleFuncWithAuth("GET /users/search", h.SearchUsers)
 

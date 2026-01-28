@@ -28,6 +28,15 @@ WHERE f.following_id = $1
 ORDER BY f.created_at DESC
 LIMIT $2 OFFSET $3;
 
+-- name: GetFollowersUserIds :many
+SELECT users.user_id
+FROM users
+INNER JOIN follows ON users.user_id = follows.follower_id
+WHERE follows.following_id = @user_id
+    AND (@before IS NULL OR follows.created_at < @before)
+ORDER BY follows.created_at DESC
+LIMIT sqlc.arg('limit');
+
 -- name: GetFollowingByUserId :many
 SELECT u.user_id, u.email, u.username, u.created_at, u.name
 FROM users u
@@ -35,6 +44,15 @@ INNER JOIN follows f ON u.user_id = f.following_id
 WHERE f.follower_id = $1
 ORDER BY f.created_at DESC
 LIMIT $2 OFFSET $3;
+
+-- name: GetFollowingUserIds :many
+SELECT users.user_id
+FROM users
+INNER JOIN follows ON users.user_id = follows.follower_id
+WHERE follows.follower_id = @user_id
+    AND (@before IS NULL OR follows.created_at < @before)
+ORDER BY follows.created_at DESC
+LIMIT sqlc.arg('limit');
 
 -- name: GetMutualsByUserId :many
 SELECT DISTINCT u.user_id, u.email, u.username, u.created_at, u.name

@@ -75,6 +75,42 @@ func (q *Queries) GetFollowersByUserId(ctx context.Context, arg GetFollowersByUs
 	return items, nil
 }
 
+const getFollowersUserIds = `-- name: GetFollowersUserIds :many
+SELECT users.user_id
+FROM users
+INNER JOIN follows ON users.user_id = follows.follower_id
+WHERE follows.following_id = $1
+    AND ($2 IS NULL OR follows.created_at < $2)
+ORDER BY follows.created_at DESC
+LIMIT $3
+`
+
+type GetFollowersUserIdsParams struct {
+	UserID int         `json:"userId"`
+	Before interface{} `json:"before"`
+	Limit  int         `json:"limit"`
+}
+
+func (q *Queries) GetFollowersUserIds(ctx context.Context, arg GetFollowersUserIdsParams) ([]int, error) {
+	rows, err := q.db.Query(ctx, getFollowersUserIds, arg.UserID, arg.Before, arg.Limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []int
+	for rows.Next() {
+		var user_id int
+		if err := rows.Scan(&user_id); err != nil {
+			return nil, err
+		}
+		items = append(items, user_id)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getFollowingByUserId = `-- name: GetFollowingByUserId :many
 SELECT u.user_id, u.email, u.username, u.created_at, u.name
 FROM users u
@@ -117,6 +153,42 @@ func (q *Queries) GetFollowingByUserId(ctx context.Context, arg GetFollowingByUs
 			return nil, err
 		}
 		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getFollowingUserIds = `-- name: GetFollowingUserIds :many
+SELECT users.user_id
+FROM users
+INNER JOIN follows ON users.user_id = follows.follower_id
+WHERE follows.follower_id = $1
+    AND ($2 IS NULL OR follows.created_at < $2)
+ORDER BY follows.created_at DESC
+LIMIT $3
+`
+
+type GetFollowingUserIdsParams struct {
+	UserID int         `json:"userId"`
+	Before interface{} `json:"before"`
+	Limit  int         `json:"limit"`
+}
+
+func (q *Queries) GetFollowingUserIds(ctx context.Context, arg GetFollowingUserIdsParams) ([]int, error) {
+	rows, err := q.db.Query(ctx, getFollowingUserIds, arg.UserID, arg.Before, arg.Limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []int
+	for rows.Next() {
+		var user_id int
+		if err := rows.Scan(&user_id); err != nil {
+			return nil, err
+		}
+		items = append(items, user_id)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
