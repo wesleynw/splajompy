@@ -3,12 +3,6 @@ import Foundation
 final class MockUserRepository: @unchecked Sendable {
   static let shared = MockUserRepository()
 
-  private let formatter: ISO8601DateFormatter = {
-    let formatter = ISO8601DateFormatter()
-    formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-    return formatter
-  }()
-
   var users: [Int: DetailedUser]
 
   init() {
@@ -19,9 +13,7 @@ final class MockUserRepository: @unchecked Sendable {
         userId: 1,
         email: "wesleynw@pm.me",
         username: "wesleynw",
-        createdAt: formatter.string(
-          from: baseDate.addingTimeInterval(-31_536_000)
-        ),
+        createdAt: baseDate.addingTimeInterval(-31_536_000),
         name: "Wesley Weisenberger",
         bio: """
           welcome to splajompy!\nno, I don't know your password, they're all encrypted and whatever.
@@ -41,9 +33,7 @@ final class MockUserRepository: @unchecked Sendable {
         userId: 6,
         email: "wesley@example.com",
         username: "wesley",
-        createdAt: formatter.string(
-          from: baseDate.addingTimeInterval(-25_920_000)
-        ),
+        createdAt: baseDate.addingTimeInterval(-25_920_000),
         name: "Wesley",
         bio:
           "coffee enthusiast ☕ | sunset photographer 📸 | always up for a good conversation",
@@ -60,9 +50,7 @@ final class MockUserRepository: @unchecked Sendable {
         userId: 25,
         email: "joel@example.com",
         username: "joel",
-        createdAt: formatter.string(
-          from: baseDate.addingTimeInterval(-20_736_000)
-        ),
+        createdAt: baseDate.addingTimeInterval(-20_736_000),
         name: "Joel",
         bio: "heart collector 💕 spreading good vibes everywhere I go",
         isFollower: false,
@@ -78,9 +66,7 @@ final class MockUserRepository: @unchecked Sendable {
         userId: 120,
         email: "sophie@example.com",
         username: "realsophie",
-        createdAt: formatter.string(
-          from: baseDate.addingTimeInterval(-18_144_000)
-        ),
+        createdAt: baseDate.addingTimeInterval(-18_144_000),
         name: "Sophie",
         bio:
           "curious about everything • sunset appreciator • always asking the right questions ✨",
@@ -97,9 +83,7 @@ final class MockUserRepository: @unchecked Sendable {
         userId: 103,
         email: "splazackly@example.com",
         username: "splazackly",
-        createdAt: formatter.string(
-          from: baseDate.addingTimeInterval(-15_552_000)
-        ),
+        createdAt: baseDate.addingTimeInterval(-15_552_000),
         name: "Splazackly",
         bio:
           "comment connoisseur 😛 | farmer's market regular | living life one incredible moment at a time",
@@ -116,9 +100,7 @@ final class MockUserRepository: @unchecked Sendable {
         userId: 112,
         email: "giuseppe@example.com",
         username: "giuseppe",
-        createdAt: formatter.string(
-          from: baseDate.addingTimeInterval(-12_960_000)
-        ),
+        createdAt: baseDate.addingTimeInterval(-12_960_000),
         name: "Giuseppe",
         bio:
           "coffee shop discoverer ☕ | post appreciator | finding amazing places in the city",
@@ -135,9 +117,7 @@ final class MockUserRepository: @unchecked Sendable {
         userId: 97,
         email: "elena@example.com",
         username: "elena",
-        createdAt: formatter.string(
-          from: baseDate.addingTimeInterval(-10_368_000)
-        ),
+        createdAt: baseDate.addingTimeInterval(-10_368_000),
         name: "Elena",
         bio:
           "plot twist enthusiast 📺 | thoughtful commenter | always here for a good discussion",
@@ -154,9 +134,7 @@ final class MockUserRepository: @unchecked Sendable {
         userId: 113,
         email: "pari@example.com",
         username: "pari",
-        createdAt: formatter.string(
-          from: baseDate.addingTimeInterval(-7_776_000)
-        ),
+        createdAt: baseDate.addingTimeInterval(-7_776_000),
         name: "Pari",
         bio:
           "new follower alert! 🎉 | community builder | excited to connect with everyone",
@@ -188,14 +166,11 @@ struct MockProfileService: ProfileServiceProtocol {
   func getUserFromUsernamePrefix(prefix: String) async -> AsyncResult<[PublicUser]> {
     let baseDate = Date()
 
-    let formatter = ISO8601DateFormatter()
-    formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-
     return .success([
       PublicUser(
         userId: 1001,
         username: prefix + "_janesmith",
-        createdAt: formatter.string(from: baseDate.addingTimeInterval(-8_640_000)),
+        createdAt: baseDate.addingTimeInterval(-8_640_000),
         name: "Jane Smith",
         isVerified: false,
         displayProperties: UserDisplayProperties(fontChoiceId: 0)
@@ -203,7 +178,7 @@ struct MockProfileService: ProfileServiceProtocol {
       PublicUser(
         userId: 1002,
         username: prefix + "davewilson",
-        createdAt: formatter.string(from: baseDate.addingTimeInterval(-4_320_000)),
+        createdAt: baseDate.addingTimeInterval(-4_320_000),
         name: "David Wilson",
         isVerified: false,
         displayProperties: UserDisplayProperties(fontChoiceId: 0)
@@ -211,7 +186,7 @@ struct MockProfileService: ProfileServiceProtocol {
       PublicUser(
         userId: 1003,
         username: prefix + "mariagarcia",
-        createdAt: formatter.string(from: baseDate.addingTimeInterval(-2_160_000)),
+        createdAt: baseDate.addingTimeInterval(-2_160_000),
         name: "Maria Garcia",
         isVerified: false,
         displayProperties: UserDisplayProperties(fontChoiceId: 0)
@@ -272,15 +247,13 @@ struct MockProfileService: ProfileServiceProtocol {
     return .success(EmptyResponse())
   }
 
-  func getFollowers(userId: Int, offset: Int, limit: Int) async -> AsyncResult<
+  func getFollowers(userId: Int, limit: Int, before: Date?) async -> AsyncResult<
     [DetailedUser]
   > {
     try? await Task.sleep(nanoseconds: 300_000_000)
     let allUsers = Array(store.users.values)
-    let startIndex = min(offset, allUsers.count)
-    let endIndex = min(offset + limit, allUsers.count)
 
-    let paginatedUsers = Array(allUsers[startIndex..<endIndex]).map { profile in
+    let paginatedUsers = Array(allUsers).map { profile in
       DetailedUser(
         userId: profile.userId,
         email: profile.email,
@@ -301,15 +274,13 @@ struct MockProfileService: ProfileServiceProtocol {
     return .success(paginatedUsers)
   }
 
-  func getFollowing(userId: Int, offset: Int, limit: Int) async -> AsyncResult<
+  func getFollowing(userId: Int, limit: Int, before: Date?) async -> AsyncResult<
     [DetailedUser]
   > {
     try? await Task.sleep(nanoseconds: 300_000_000)
     let allUsers = Array(store.users.values)
-    let startIndex = min(offset, allUsers.count)
-    let endIndex = min(offset + limit, allUsers.count)
 
-    let paginatedUsers = Array(allUsers[startIndex..<endIndex]).map { profile in
+    let paginatedUsers = Array(allUsers).map { profile in
       DetailedUser(
         userId: profile.userId,
         email: profile.email,
@@ -330,18 +301,15 @@ struct MockProfileService: ProfileServiceProtocol {
     return .success(paginatedUsers)
   }
 
-  func getMutuals(userId: Int, offset: Int, limit: Int) async -> AsyncResult<
+  func getMutuals(userId: Int, limit: Int, before: Date?) async -> AsyncResult<
     [DetailedUser]
   > {
     try? await Task.sleep(nanoseconds: 300_000_000)
-    // Filter users who are mutuals (both isFollower and isFollowing are true)
     let mutualUsers = Array(store.users.values).filter {
       $0.isFollower && $0.isFollowing
     }
-    let startIndex = min(offset, mutualUsers.count)
-    let endIndex = min(offset + limit, mutualUsers.count)
 
-    let paginatedUsers = Array(mutualUsers[startIndex..<endIndex]).map {
+    let paginatedUsers = Array(mutualUsers).map {
       profile in
       DetailedUser(
         userId: profile.userId,

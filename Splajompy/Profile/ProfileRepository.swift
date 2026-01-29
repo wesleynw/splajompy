@@ -29,13 +29,18 @@ protocol ProfileServiceProtocol: Sendable {
     EmptyResponse
   >
   func requestFeature(text: String) async -> AsyncResult<EmptyResponse>
-  func getFollowers(userId: Int, offset: Int, limit: Int) async -> AsyncResult<
-    [DetailedUser]
-  >
-  func getFollowing(userId: Int, offset: Int, limit: Int) async -> AsyncResult<
-    [DetailedUser]
-  >
-  func getMutuals(userId: Int, offset: Int, limit: Int) async -> AsyncResult<
+
+  //  func getFollowers(userId: Int, offset: Int, limit: Int) async -> AsyncResult<
+  //    [DetailedUser]
+  //  >
+
+  /// Fetch users that the given user is following.
+  func getFollowing(userId: Int, limit: Int, before: Date?) async
+    -> AsyncResult<
+      [DetailedUser]
+    >
+
+  func getMutuals(userId: Int, limit: Int, before: Date?) async -> AsyncResult<
     [DetailedUser]
   >
   /// Fetch statistics about app.
@@ -146,28 +151,52 @@ struct ProfileService: ProfileServiceProtocol {
     )
   }
 
-  func getFollowing(userId: Int, offset: Int, limit: Int) async -> AsyncResult<
-    [DetailedUser]
-  > {
-    let queryItems = [
-      URLQueryItem(name: "offset", value: "\(offset)"),
-      URLQueryItem(name: "limit", value: "\(limit)"),
+  func getFollowing(userId: Int, limit: Int, before: Date?) async
+    -> AsyncResult<
+      [DetailedUser]
+    >
+  {
+    var queryItems = [
+      URLQueryItem(name: "limit", value: "\(limit)")
     ]
+
+    if let before = before {
+      let formatter = ISO8601DateFormatter()
+      formatter.formatOptions = [.withInternetDateTime, .withTimeZone]
+      queryItems.append(
+        URLQueryItem(
+          name: "before",
+          value: formatter.string(from: before)
+        )
+      )
+    }
+
     return await APIService.performRequest(
-      endpoint: "user/\(userId)/following",
+      endpoint: "v2/user/\(userId)/following",
       queryItems: queryItems
     )
   }
 
-  func getMutuals(userId: Int, offset: Int, limit: Int) async -> AsyncResult<
+  func getMutuals(userId: Int, limit: Int, before: Date?) async -> AsyncResult<
     [DetailedUser]
   > {
-    let queryItems = [
-      URLQueryItem(name: "offset", value: "\(offset)"),
-      URLQueryItem(name: "limit", value: "\(limit)"),
+    var queryItems = [
+      URLQueryItem(name: "limit", value: "\(limit)")
     ]
+
+    if let before = before {
+      let formatter = ISO8601DateFormatter()
+      formatter.formatOptions = [.withInternetDateTime, .withTimeZone]
+      queryItems.append(
+        URLQueryItem(
+          name: "before",
+          value: formatter.string(from: before)
+        )
+      )
+    }
+
     return await APIService.performRequest(
-      endpoint: "user/\(userId)/mutuals",
+      endpoint: "v2/user/\(userId)/mutuals",
       queryItems: queryItems
     )
   }

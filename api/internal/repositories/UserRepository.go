@@ -266,10 +266,29 @@ func (r DBUserRepository) GetMutualsByUserId_old(ctx context.Context, currentUse
 }
 
 func (r DBUserRepository) GetFollowingUserIds(ctx context.Context, userId int, limit int, before *time.Time) ([]int, error) {
-	return r.querier.GetFollowersUserIds(ctx, queries.GetFollowersUserIdsParams{
+	var beforeParam pgtype.Timestamptz
+	if before != nil {
+		beforeParam = pgtype.Timestamptz{Time: *before, Valid: true}
+	}
+
+	return r.querier.GetFollowingUserIds(ctx, queries.GetFollowingUserIdsParams{
 		UserID: userId,
-		Before: before,
+		Before: beforeParam,
 		Limit:  limit,
+	})
+}
+
+func (r DBUserRepository) GetMutualUserIds(ctx context.Context, userId int, targetUserId int, limit int, before *time.Time) ([]int, error) {
+	var beforeParam pgtype.Timestamptz
+	if before != nil {
+		beforeParam = pgtype.Timestamptz{Time: *before, Valid: true}
+	}
+
+	return r.querier.GetMutualsByUserIdV2(ctx, queries.GetMutualsByUserIdV2Params{
+		UserID:       userId,
+		TargetUserID: targetUserId,
+		Before:       beforeParam,
+		Limit:        limit,
 	})
 }
 

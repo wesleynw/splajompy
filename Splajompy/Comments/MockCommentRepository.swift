@@ -45,7 +45,7 @@ class MockCommentService: CommentServiceProtocol, @unchecked Sendable {
       ?? PublicUser(
         userId: 1,
         username: "testuser",
-        createdAt: ISO8601DateFormatter().string(from: Date()),
+        createdAt: Date(),
         name: "Test User",
         isVerified: false,
         displayProperties: UserDisplayProperties(fontChoiceId: 0)
@@ -95,7 +95,7 @@ class MockCommentService: CommentServiceProtocol, @unchecked Sendable {
       PublicUser(
         userId: 1,
         username: "johndoe",
-        createdAt: ISO8601DateFormatter().string(from: Date()),
+        createdAt: Date(),
         name: "John Doe",
         isVerified: false,
         displayProperties: UserDisplayProperties(fontChoiceId: 0)
@@ -103,7 +103,7 @@ class MockCommentService: CommentServiceProtocol, @unchecked Sendable {
       PublicUser(
         userId: 2,
         username: "janedoe",
-        createdAt: ISO8601DateFormatter().string(from: Date()),
+        createdAt: Date(),
         name: "Jane Doe",
         isVerified: false,
         displayProperties: UserDisplayProperties(fontChoiceId: 0)
@@ -111,7 +111,7 @@ class MockCommentService: CommentServiceProtocol, @unchecked Sendable {
       PublicUser(
         userId: 3,
         username: "bobsmith",
-        createdAt: ISO8601DateFormatter().string(from: Date()),
+        createdAt: Date(),
         name: "Bob Smith",
         isVerified: false,
         displayProperties: UserDisplayProperties(fontChoiceId: 0)
@@ -181,7 +181,7 @@ class MockCommentService_Empty: CommentServiceProtocol, @unchecked Sendable {
     let user = PublicUser(
       userId: 1,
       username: "testuser",
-      createdAt: ISO8601DateFormatter().string(from: currentDate),
+      createdAt: currentDate,
       name: "Test User",
       isVerified: false,
       displayProperties: UserDisplayProperties(fontChoiceId: 0)

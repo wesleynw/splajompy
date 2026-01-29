@@ -226,8 +226,10 @@ func (s *UserService) GetFollowingByUserId_old(ctx context.Context, currentUser 
 	return s.fetchDetailedUsersFromIDs(ctx, currentUser, userIDs)
 }
 
-// GetMutualsByUserId retrieves users that both the current user and the target user follow.
-func (s *UserService) GetMutualsByUserId(ctx context.Context, currentUser models.PublicUser, userId int, offset int, limit int) ([]models.DetailedUser, error) {
+// GetMutualsByUserId_old retrieves users that both the current user and the target user follow.
+//
+// Deprecated: prefer GetMutualsByUserId
+func (s *UserService) GetMutualsByUserId_old(ctx context.Context, currentUser models.PublicUser, userId int, offset int, limit int) ([]models.DetailedUser, error) {
 	mutuals, err := s.userRepository.GetMutualsByUserId_old(ctx, currentUser.UserID, userId, limit, offset)
 	if err != nil {
 		return nil, err
@@ -239,6 +241,16 @@ func (s *UserService) GetMutualsByUserId(ctx context.Context, currentUser models
 	}
 
 	return s.fetchDetailedUsersFromIDs(ctx, currentUser, userIDs)
+}
+
+// GetMutualsByUserId returns users who are 'mutuals' with the current user and target user. That is, who follow both the current user and target user.
+func (s *UserService) GetMutualsByUserId(ctx context.Context, user models.PublicUser, targetUserId int, limit int, before *time.Time) ([]models.DetailedUser, error) {
+	users, err := s.userRepository.GetMutualUserIds(ctx, user.UserID, targetUserId, limit, before)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.fetchDetailedUsersFromIDs(ctx, user, users)
 }
 
 // AddUserToCloseFriendsList creates a relationship to mark the given userId as close friend of the current user.

@@ -255,7 +255,8 @@ func (h *Handler) GetFollowingByUserId_old(w http.ResponseWriter, r *http.Reques
 	utilities.HandleSuccess(w, following)
 }
 
-func (h *Handler) GetMutualsByUserId(w http.ResponseWriter, r *http.Request) {
+// Deprecated: prefer GetMutualsByUserId
+func (h *Handler) GetMutualsByUserId_old(w http.ResponseWriter, r *http.Request) {
 	currentUser := h.getAuthenticatedUser(r)
 
 	userId, err := h.GetIntPathParam(r, "id")
@@ -266,13 +267,37 @@ func (h *Handler) GetMutualsByUserId(w http.ResponseWriter, r *http.Request) {
 
 	limit, offset := h.parsePagination(r)
 
-	mutuals, err := h.userService.GetMutualsByUserId(r.Context(), *currentUser, userId, offset, limit)
+	mutuals, err := h.userService.GetMutualsByUserId_old(r.Context(), *currentUser, userId, offset, limit)
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
 		return
 	}
 
 	utilities.HandleSuccess(w, mutuals)
+}
+
+func (h Handler) GetMutualsByUserId(w http.ResponseWriter, r *http.Request) {
+	user := h.getAuthenticatedUser(r)
+
+	targetUserId, err := h.GetIntPathParam(r, "id")
+	if err != nil {
+		utilities.HandleError(w, http.StatusBadRequest, "Missing user ID parameter")
+		return
+	}
+
+	limit, before, err := h.parseTimeBasedPagination(r)
+	if err != nil {
+		utilities.HandleError(w, http.StatusBadRequest, "Unable to parse pagination parameters ('limit' and 'before'")
+		return
+	}
+
+	users, err := h.userService.GetMutualsByUserId(r.Context(), *user, targetUserId, limit, before)
+	if err != nil {
+		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
+		return
+	}
+
+	utilities.HandleSuccess(w, users)
 }
 
 type RequestFeaturePayload struct {

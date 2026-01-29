@@ -46,6 +46,7 @@ type Querier interface {
 	GetIsUsernameInUse(ctx context.Context, username string) (bool, error)
 	GetMutualConnectionsForUser(ctx context.Context, arg GetMutualConnectionsForUserParams) ([]string, error)
 	GetMutualsByUserId(ctx context.Context, arg GetMutualsByUserIdParams) ([]GetMutualsByUserIdRow, error)
+	GetMutualsByUserIdV2(ctx context.Context, arg GetMutualsByUserIdV2Params) ([]int, error)
 	GetNotificationById(ctx context.Context, notificationID int) (Notification, error)
 	GetNotificationsForUserId(ctx context.Context, arg GetNotificationsForUserIdParams) ([]Notification, error)
 	GetPinnedPostId(ctx context.Context, userID int) (*int, error)

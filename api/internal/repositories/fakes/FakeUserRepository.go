@@ -679,6 +679,11 @@ func (r *FakeUserRepository) GetMutualsByUserId_old(ctx context.Context, current
 	return mutuals[start:end], nil
 }
 
+// TODO
+func (r *FakeUserRepository) GetMutualUserIds(ctx context.Context, userId int, targetUserId int, limit int, before *time.Time) ([]int, error) {
+	return nil, nil
+}
+
 func (r *FakeUserRepository) GetIsReferralCodeInUse(ctx context.Context, code string) (bool, error) {
 	return false, nil
 }

@@ -33,7 +33,7 @@ SELECT users.user_id
 FROM users
 INNER JOIN follows ON users.user_id = follows.follower_id
 WHERE follows.following_id = @user_id
-    AND (@before IS NULL OR follows.created_at < @before)
+    AND (sqlc.narg('before')::timestamptz IS NULL OR follows.created_at < sqlc.narg('before'))
 ORDER BY follows.created_at DESC
 LIMIT sqlc.arg('limit');
 
@@ -48,11 +48,11 @@ LIMIT $2 OFFSET $3;
 -- name: GetFollowingUserIds :many
 SELECT users.user_id
 FROM users
-INNER JOIN follows ON users.user_id = follows.follower_id
-WHERE follows.follower_id = @user_id
-    AND (@before IS NULL OR follows.created_at < @before)
+INNER JOIN follows ON users.user_id = follows.following_id
+WHERE follows.follower_id = @user_id::int
+    AND (sqlc.narg('before')::timestamptz IS NULL OR follows.created_at < sqlc.narg('before'))
 ORDER BY follows.created_at DESC
-LIMIT sqlc.arg('limit');
+LIMIT sqlc.arg('limit')::int;
 
 -- name: GetMutualsByUserId :many
 SELECT DISTINCT u.user_id, u.email, u.username, u.created_at, u.name
@@ -61,3 +61,12 @@ INNER JOIN follows f1 ON f1.following_id = u.user_id AND f1.follower_id = $1
 INNER JOIN follows f2 ON f2.following_id = u.user_id AND f2.follower_id = $2
 ORDER BY u.created_at DESC
 LIMIT $3 OFFSET $4;
+
+-- name: GetMutualsByUserIdV2 :many
+SELECT u.user_id
+FROM users u
+INNER JOIN follows f1 ON f1.following_id = u.user_id AND f1.follower_id = @user_id::int
+INNER JOIN follows f2 ON f2.following_id = u.user_id AND f2.follower_id = @target_user_id::int
+WHERE sqlc.narg('before')::timestamptz IS NULL OR u.created_at < sqlc.narg('before')
+ORDER BY u.created_at DESC
+LIMIT sqlc.arg('limit')::int;

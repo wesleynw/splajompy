@@ -10,7 +10,7 @@ enum UserListState {
 enum UserListVariantEnum {
   case following
   case mutuals
-  case CloseFriends
+  //  case CloseFriends
 
   var title: String {
     switch self {
@@ -18,8 +18,8 @@ enum UserListVariantEnum {
       "Following"
     case .mutuals:
       "Mutuals"
-    case .CloseFriends:
-      "Friends"
+    //    case .CloseFriends:
+    //      "Friends"
     }
   }
 }
@@ -30,12 +30,10 @@ class UserListViewModel {
   let userListVariant: UserListVariantEnum
 
   var state: UserListState = .idle
-  var isFetchingMore: Bool = false
   var hasMoreToFetch: Bool = false
 
   private let profileService: ProfileServiceProtocol
   private let fetchLimit = 20
-  private var offset: Int = 0
   private var beforeCursor: Date? = nil
 
   init(
@@ -49,15 +47,10 @@ class UserListViewModel {
   }
 
   func loadUsers(reset: Bool = false) async {
-    guard !isFetchingMore else { return }
-
-    isFetchingMore = true
-    defer {
-      isFetchingMore = false
-    }
+    if case .loading = state { return }
 
     if reset {
-      offset = 0
+      beforeCursor = nil
     }
 
     let result: AsyncResult<[DetailedUser]>
@@ -65,14 +58,14 @@ class UserListViewModel {
     case .following:
       result = await profileService.getFollowing(
         userId: userId,
-        offset: offset,
-        limit: fetchLimit
+        limit: fetchLimit,
+        before: beforeCursor
       )
     case .mutuals:
       result = await profileService.getMutuals(
         userId: userId,
-        offset: offset,
-        limit: fetchLimit
+        limit: fetchLimit,
+        before: beforeCursor
       )
     }
 
@@ -83,7 +76,7 @@ class UserListViewModel {
       } else {
         state = .loaded(users)
       }
-      offset += users.count
+      beforeCursor = users.last?.createdAt
       hasMoreToFetch = users.count == fetchLimit
     case .error(let error):
       if case .idle = state {

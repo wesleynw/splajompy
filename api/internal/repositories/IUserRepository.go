@@ -68,11 +68,16 @@ type UserRepository interface {
 	// Deprecated: Use GetFollowingByUserId instead
 	GetFollowingByUserId_old(ctx context.Context, userId int, limit int, offset int) ([]queries.GetFollowingByUserIdRow, error)
 
-	// GetMutualsByUserId returns a list of users who the current user has mutual connections with.
+	// GetMutualsByUserId returns a list of users who the current user has mutual connections with
+	//
+	// Deprecated: use GetMutualUserIds instead
 	GetMutualsByUserId_old(ctx context.Context, currentUserId int, targetUserId int, limit int, offset int) ([]queries.GetMutualsByUserIdRow, error)
 
 	// GetFollowingByUserId returns a list of user ids for users who the given user follows
 	GetFollowingUserIds(ctx context.Context, userId int, limit int, before *time.Time) ([]int, error)
+
+	// GetMutualUserIds returns a list of user ids who are 'mutuals' with the current user
+	GetMutualUserIds(ctx context.Context, userId int, targetUserId int, limit int, before *time.Time) ([]int, error)
 
 	GetIsReferralCodeInUse(ctx context.Context, code string) (bool, error)
 
