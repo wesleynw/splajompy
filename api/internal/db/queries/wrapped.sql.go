@@ -182,7 +182,7 @@ func (q *Queries) WrappedGetAllUserLikesWithCursor(ctx context.Context, arg Wrap
 }
 
 const wrappedGetAllUserPostsWithCursor = `-- name: WrappedGetAllUserPostsWithCursor :many
-SELECT post_id, user_id, text, created_at, facets, attributes
+SELECT post_id, user_id, text, created_at, facets, attributes, is_hidden
 FROM posts
 WHERE user_id = $1
   AND EXTRACT(YEAR FROM created_at) = 2025
@@ -213,6 +213,7 @@ func (q *Queries) WrappedGetAllUserPostsWithCursor(ctx context.Context, arg Wrap
 			&i.CreatedAt,
 			&i.Facets,
 			&i.Attributes,
+			&i.IsHidden,
 		); err != nil {
 			return nil, err
 		}
@@ -340,7 +341,7 @@ func (q *Queries) WrappedGetMostLikedPostId(ctx context.Context, userID int) (Wr
 }
 
 const wrappedGetPollsThatUserVotedIn = `-- name: WrappedGetPollsThatUserVotedIn :many
-SELECT posts.post_id, posts.user_id, text, posts.created_at, facets, attributes, id, poll_vote.post_id, poll_vote.user_id, option_index, poll_vote.created_at
+SELECT posts.post_id, posts.user_id, text, posts.created_at, facets, attributes, is_hidden, id, poll_vote.post_id, poll_vote.user_id, option_index, poll_vote.created_at
 FROM posts
 JOIN poll_vote ON posts.post_id = poll_vote.post_id
 WHERE attributes->'poll' IS NOT NULL AND poll_vote.user_id = $1
@@ -354,6 +355,7 @@ type WrappedGetPollsThatUserVotedInRow struct {
 	CreatedAt   pgtype.Timestamp `json:"createdAt"`
 	Facets      db.Facets        `json:"facets"`
 	Attributes  *db.Attributes   `json:"attributes"`
+	IsHidden    bool             `json:"isHidden"`
 	ID          int              `json:"id"`
 	PostID_2    int              `json:"postId2"`
 	UserID_2    int              `json:"userId2"`
@@ -377,6 +379,7 @@ func (q *Queries) WrappedGetPollsThatUserVotedIn(ctx context.Context, userID int
 			&i.CreatedAt,
 			&i.Facets,
 			&i.Attributes,
+			&i.IsHidden,
 			&i.ID,
 			&i.PostID_2,
 			&i.UserID_2,

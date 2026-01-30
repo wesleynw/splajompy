@@ -24,8 +24,8 @@ type PostRepository interface {
 	GetCommentCountForPost(ctx context.Context, postId int) (int, error)
 	GetAllPostIds(ctx context.Context, limit int, offset int, currentUserId int) ([]int, error)
 	GetPostIdsForFollowing(ctx context.Context, userId int, limit int, offset int) ([]int, error)
-	GetPostIdsForUser(ctx context.Context, userId int, limit int, offset int) ([]int, error)
-	GetPostIdsByUserIdCursor(ctx context.Context, userId int, limit int, beforeTimestamp *time.Time) ([]int, error)
+	GetPostIdsForUser(ctx context.Context, userId int, currentUserId int, limit int, offset int) ([]int, error)
+	GetPostIdsByUserIdCursor(ctx context.Context, userId int, currentUserId int, limit int, beforeTimestamp *time.Time) ([]int, error)
 	GetPostIdsForMutualFeed(ctx context.Context, userId int, limit int, offset int) ([]queries.GetPostIdsForMutualFeedRow, error)
 	GetAllPostIdsCursor(ctx context.Context, limit int, beforeTimestamp *time.Time, currentUserId int) ([]int, error)
 	GetPostIdsForFollowingCursor(ctx context.Context, userId int, limit int, beforeTimestamp *time.Time) ([]int, error)
@@ -36,6 +36,7 @@ type PostRepository interface {
 	PinPost(ctx context.Context, userId int, postId int) error
 	UnpinPost(ctx context.Context, userId int) error
 	GetPinnedPostId(ctx context.Context, userId int) (*int, error)
+	SetPostHidden(ctx context.Context, postId int, isHidden bool) error
 }
 
 type DBPostRepository struct {
@@ -133,11 +134,12 @@ func (r DBPostRepository) GetPostIdsForFollowing(ctx context.Context, userId int
 }
 
 // GetPostIdsForUser retrieves all post IDs for a specific user
-func (r DBPostRepository) GetPostIdsForUser(ctx context.Context, userId int, limit int, offset int) ([]int, error) {
+func (r DBPostRepository) GetPostIdsForUser(ctx context.Context, userId int, currentUserId int, limit int, offset int) ([]int, error) {
 	return r.querier.GetPostsIdsByUserId(ctx, queries.GetPostsIdsByUserIdParams{
-		UserID: userId,
-		Limit:  limit,
-		Offset: offset,
+		UserID:   userId,
+		Limit:    limit,
+		Offset:   offset,
+		UserID_2: currentUserId,
 	})
 }
 
@@ -223,16 +225,17 @@ func (r DBPostRepository) GetPostIdsForMutualFeedCursor(ctx context.Context, use
 }
 
 // GetPostIdsByUserIdCursor retrieves post IDs for a specific user
-func (r DBPostRepository) GetPostIdsByUserIdCursor(ctx context.Context, userId int, limit int, beforeTimestamp *time.Time) ([]int, error) {
+func (r DBPostRepository) GetPostIdsByUserIdCursor(ctx context.Context, userId int, currentUserId int, limit int, beforeTimestamp *time.Time) ([]int, error) {
 	var timestamp pgtype.Timestamp
 	if beforeTimestamp != nil {
 		timestamp = pgtype.Timestamp{Time: *beforeTimestamp, Valid: true}
 	}
 
 	return r.querier.GetPostIdsByUserIdCursor(ctx, queries.GetPostIdsByUserIdCursorParams{
-		UserID:  userId,
-		Limit:   limit,
-		Column3: timestamp,
+		UserID:   userId,
+		Limit:    limit,
+		Column3:  timestamp,
+		UserID_2: currentUserId,
 	})
 }
 
@@ -252,6 +255,14 @@ func (r DBPostRepository) UnpinPost(ctx context.Context, userId int) error {
 // GetPinnedPostId retrieves the pinned post ID for a user
 func (r DBPostRepository) GetPinnedPostId(ctx context.Context, userId int) (*int, error) {
 	return r.querier.GetPinnedPostId(ctx, userId)
+}
+
+// SetPostHidden sets the hidden status of a post
+func (r DBPostRepository) SetPostHidden(ctx context.Context, postId int, isHidden bool) error {
+	return r.querier.SetPostHidden(ctx, queries.SetPostHiddenParams{
+		PostID:   postId,
+		IsHidden: isHidden,
+	})
 }
 
 // NewDBPostRepository creates a new post repository instance

@@ -198,7 +198,7 @@ func (r *FakePostRepository) GetPostIdsForFollowing(ctx context.Context, userId 
 	return r.GetAllPostIds(ctx, limit, offset, userId)
 }
 
-func (r *FakePostRepository) GetPostIdsForUser(ctx context.Context, userId int, limit int, offset int) ([]int, error) {
+func (r *FakePostRepository) GetPostIdsForUser(ctx context.Context, userId int, currentUserId int, limit int, offset int) ([]int, error) {
 	r.mutex.RLock()
 	defer r.mutex.RUnlock()
 
@@ -419,7 +419,7 @@ func (r *FakePostRepository) GetPostIdsForMutualFeedCursor(ctx context.Context, 
 }
 
 // GetPostIdsByUserIdCursor retrieves post IDs for a specific user using cursor-based pagination
-func (r *FakePostRepository) GetPostIdsByUserIdCursor(ctx context.Context, userId int, limit int, beforeTimestamp *time.Time) ([]int, error) {
+func (r *FakePostRepository) GetPostIdsByUserIdCursor(ctx context.Context, userId int, currentUserId int, limit int, beforeTimestamp *time.Time) ([]int, error) {
 	r.mutex.RLock()
 	defer r.mutex.RUnlock()
 
@@ -474,4 +474,15 @@ func (r *FakePostRepository) GetPinnedPostId(ctx context.Context, userId int) (*
 		return &postId, nil
 	}
 	return nil, nil
+}
+
+// SetPostHidden sets the hidden status of a post
+func (r *FakePostRepository) SetPostHidden(ctx context.Context, postId int, isHidden bool) error {
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
+
+	if _, exists := r.posts[postId]; !exists {
+		return errors.New("post not found")
+	}
+	return nil
 }
