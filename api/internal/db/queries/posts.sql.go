@@ -68,6 +68,7 @@ WHERE NOT EXISTS (
     FROM mute
     WHERE mute.user_id = $3 AND target_user_id = posts.user_id
 )
+AND (posts.is_hidden = FALSE OR posts.user_id = $3)
 ORDER BY posts.created_at DESC
 LIMIT $1
 OFFSET $2
@@ -111,6 +112,7 @@ WHERE NOT EXISTS (
     FROM mute
     WHERE mute.user_id = $3 AND target_user_id = posts.user_id
 ) AND ($2::timestamp IS NULL OR posts.created_at < $2::timestamp)
+AND (posts.is_hidden = FALSE OR posts.user_id = $3)
 ORDER BY posts.created_at DESC
 LIMIT $1
 `
@@ -189,8 +191,8 @@ func (q *Queries) GetImagesByPostId(ctx context.Context, postID int) ([]Image, e
 }
 
 const getPinnedPostId = `-- name: GetPinnedPostId :one
-SELECT pinned_post_id 
-FROM users 
+SELECT pinned_post_id
+FROM users
 WHERE user_id = $1
 `
 
@@ -234,7 +236,7 @@ func (q *Queries) GetPollVotesGrouped(ctx context.Context, postID int) ([]GetPol
 }
 
 const getPostById = `-- name: GetPostById :one
-SELECT post_id, user_id, text, created_at, facets, attributes
+SELECT post_id, user_id, text, created_at, facets, attributes, is_hidden
 FROM posts
 WHERE post_id = $1
 `
@@ -249,6 +251,7 @@ func (q *Queries) GetPostById(ctx context.Context, postID int) (Post, error) {
 		&i.CreatedAt,
 		&i.Facets,
 		&i.Attributes,
+		&i.IsHidden,
 	)
 	return i, err
 }
@@ -269,6 +272,7 @@ WHERE posts.user_id = $1 OR EXISTS (
     FROM mute
     WHERE user_id = $1 AND target_user_id = posts.user_id
 )
+AND (posts.is_hidden = FALSE OR posts.user_id = $1)
 ORDER BY posts.created_at DESC
 LIMIT $2
 OFFSET $3
@@ -316,6 +320,7 @@ WHERE (posts.user_id = $1 OR EXISTS (
     FROM mute
     WHERE user_id = $1 AND target_user_id = posts.user_id
 ) AND ($3::timestamp IS NULL OR posts.created_at < $3::timestamp)
+AND (posts.is_hidden = FALSE OR posts.user_id = $1)
 ORDER BY posts.created_at DESC
 LIMIT $2
 `
@@ -350,18 +355,25 @@ const getPostIdsByUserIdCursor = `-- name: GetPostIdsByUserIdCursor :many
 SELECT post_id
 FROM posts
 WHERE user_id = $1 AND ($3::timestamp IS NULL OR posts.created_at < $3::timestamp)
+  AND (is_hidden = FALSE OR user_id = $4)
 ORDER BY created_at DESC
 LIMIT $2
 `
 
 type GetPostIdsByUserIdCursorParams struct {
-	UserID  int              `json:"userId"`
-	Limit   int              `json:"limit"`
-	Column3 pgtype.Timestamp `json:"column3"`
+	UserID   int              `json:"userId"`
+	Limit    int              `json:"limit"`
+	Column3  pgtype.Timestamp `json:"column3"`
+	UserID_2 int              `json:"userId2"`
 }
 
 func (q *Queries) GetPostIdsByUserIdCursor(ctx context.Context, arg GetPostIdsByUserIdCursorParams) ([]int, error) {
-	rows, err := q.db.Query(ctx, getPostIdsByUserIdCursor, arg.UserID, arg.Limit, arg.Column3)
+	rows, err := q.db.Query(ctx, getPostIdsByUserIdCursor,
+		arg.UserID,
+		arg.Limit,
+		arg.Column3,
+		arg.UserID_2,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -396,12 +408,13 @@ WITH user_relationships AS (
                  WHERE f1.follower_id = $1 AND f2.following_id = posts.user_id))
     AND NOT EXISTS (SELECT 1 FROM block WHERE user_id = $1 AND target_user_id = posts.user_id)
     AND NOT EXISTS (SELECT 1 FROM mute WHERE user_id = $1 AND target_user_id = posts.user_id)
+    AND (posts.is_hidden = FALSE OR posts.user_id = $1)
 )
-SELECT post_id, user_id, relationship_type, 
-  CASE WHEN relationship_type = 'mutual' THEN 
-    (SELECT ARRAY_AGG(u.username) FROM follows f1 
-     INNER JOIN follows f2 ON f1.following_id = f2.follower_id 
-     INNER JOIN users u ON f2.follower_id = u.user_id 
+SELECT post_id, user_id, relationship_type,
+  CASE WHEN relationship_type = 'mutual' THEN
+    (SELECT ARRAY_AGG(u.username) FROM follows f1
+     INNER JOIN follows f2 ON f1.following_id = f2.follower_id
+     INNER JOIN users u ON f2.follower_id = u.user_id
      WHERE f1.follower_id = $1 AND f2.following_id = user_relationships.user_id LIMIT 5)
   ELSE NULL END as mutual_usernames
 FROM user_relationships
@@ -464,12 +477,13 @@ WITH user_relationships AS (
     AND NOT EXISTS (SELECT 1 FROM block WHERE user_id = $1 AND target_user_id = posts.user_id)
     AND NOT EXISTS (SELECT 1 FROM mute WHERE user_id = $1 AND target_user_id = posts.user_id)
     AND ($3::timestamp IS NULL OR posts.created_at < $3::timestamp)
+    AND (posts.is_hidden = FALSE OR posts.user_id = $1)
 )
-SELECT post_id, user_id, relationship_type, 
-  CASE WHEN relationship_type = 'mutual' THEN 
-    (SELECT ARRAY_AGG(u.username) FROM follows f1 
-     INNER JOIN follows f2 ON f1.following_id = f2.follower_id 
-     INNER JOIN users u ON f2.follower_id = u.user_id 
+SELECT post_id, user_id, relationship_type,
+  CASE WHEN relationship_type = 'mutual' THEN
+    (SELECT ARRAY_AGG(u.username) FROM follows f1
+     INNER JOIN follows f2 ON f1.following_id = f2.follower_id
+     INNER JOIN users u ON f2.follower_id = u.user_id
      WHERE f1.follower_id = $1 AND f2.following_id = user_relationships.user_id LIMIT 5)
   ELSE NULL END as mutual_usernames
 FROM user_relationships
@@ -518,20 +532,26 @@ func (q *Queries) GetPostIdsForMutualFeedCursor(ctx context.Context, arg GetPost
 const getPostsIdsByUserId = `-- name: GetPostsIdsByUserId :many
 SELECT post_id
 FROM posts
-WHERE user_id = $1
+WHERE user_id = $1 AND (is_hidden = FALSE OR user_id = $4)
 ORDER BY created_at DESC
 OFFSET $2
 LIMIT $3
 `
 
 type GetPostsIdsByUserIdParams struct {
-	UserID int `json:"userId"`
-	Offset int `json:"offset"`
-	Limit  int `json:"limit"`
+	UserID   int `json:"userId"`
+	Offset   int `json:"offset"`
+	Limit    int `json:"limit"`
+	UserID_2 int `json:"userId2"`
 }
 
 func (q *Queries) GetPostsIdsByUserId(ctx context.Context, arg GetPostsIdsByUserIdParams) ([]int, error) {
-	rows, err := q.db.Query(ctx, getPostsIdsByUserId, arg.UserID, arg.Offset, arg.Limit)
+	rows, err := q.db.Query(ctx, getPostsIdsByUserId,
+		arg.UserID,
+		arg.Offset,
+		arg.Limit,
+		arg.UserID_2,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -605,7 +625,7 @@ func (q *Queries) InsertImage(ctx context.Context, arg InsertImageParams) (Image
 const insertPost = `-- name: InsertPost :one
 INSERT INTO posts (user_id, text, facets, attributes)
 VALUES ($1, $2, $3, $4)
-RETURNING post_id, user_id, text, created_at, facets, attributes
+RETURNING post_id, user_id, text, created_at, facets, attributes, is_hidden
 `
 
 type InsertPostParams struct {
@@ -630,6 +650,7 @@ func (q *Queries) InsertPost(ctx context.Context, arg InsertPostParams) (Post, e
 		&i.CreatedAt,
 		&i.Facets,
 		&i.Attributes,
+		&i.IsHidden,
 	)
 	return i, err
 }
@@ -663,6 +684,20 @@ type PinPostParams struct {
 
 func (q *Queries) PinPost(ctx context.Context, arg PinPostParams) error {
 	_, err := q.db.Exec(ctx, pinPost, arg.UserID, arg.PinnedPostID)
+	return err
+}
+
+const setPostHidden = `-- name: SetPostHidden :exec
+UPDATE posts SET is_hidden = $2 WHERE post_id = $1
+`
+
+type SetPostHiddenParams struct {
+	PostID   int  `json:"postId"`
+	IsHidden bool `json:"isHidden"`
+}
+
+func (q *Queries) SetPostHidden(ctx context.Context, arg SetPostHiddenParams) error {
+	_, err := q.db.Exec(ctx, setPostHidden, arg.PostID, arg.IsHidden)
 	return err
 }
 

@@ -89,6 +89,7 @@ type Querier interface {
 	MuteUser(ctx context.Context, arg MuteUserParams) error
 	PinPost(ctx context.Context, arg PinPostParams) error
 	RemoveLike(ctx context.Context, arg RemoveLikeParams) error
+	SetPostHidden(ctx context.Context, arg SetPostHiddenParams) error
 	UnblockUser(ctx context.Context, arg UnblockUserParams) error
 	UnmuteUser(ctx context.Context, arg UnmuteUserParams) error
 	UnpinPost(ctx context.Context, userID int) error

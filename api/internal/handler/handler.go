@@ -78,6 +78,9 @@ func (h *Handler) RegisterRoutes(handleFunc func(pattern string, handlerFunc fun
 	handleFuncWithAuth("POST /posts/{id}/pin", h.PinPost)
 	handleFuncWithAuth("DELETE /posts/pin", h.UnpinPost)
 
+	// admin
+	handleFuncWithAuth("POST /admin/post/{id}/hide", h.HidePost)
+
 	// notifications
 	handleFuncWithAuth("GET /notifications", h.GetAllNotificationByUserId)
 	handleFuncWithAuth("GET /notifications/unread", h.GetUnreadNotificationsByUserId)

@@ -395,3 +395,32 @@ func (h *Handler) UnpinPost(w http.ResponseWriter, r *http.Request) {
 
 	utilities.HandleEmptySuccess(w)
 }
+
+// HidePost POST /admin/post/{id}/hide
+func (h *Handler) HidePost(w http.ResponseWriter, r *http.Request) {
+	currentUser := h.getAuthenticatedUser(r)
+
+	// Admin check - only user_id=6 can hide posts
+	if currentUser.UserID != 6 {
+		utilities.HandleError(w, http.StatusForbidden, "Forbidden")
+		return
+	}
+
+	postId, err := h.GetIntPathParam(r, "id")
+	if err != nil {
+		utilities.HandleError(w, http.StatusBadRequest, "Invalid post ID")
+		return
+	}
+
+	err = h.postService.HidePost(r.Context(), postId, true)
+	if err != nil {
+		if err.Error() == "post not found" {
+			utilities.HandleError(w, http.StatusNotFound, "Post not found")
+			return
+		}
+		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
+		return
+	}
+
+	utilities.HandleEmptySuccess(w)
+}
