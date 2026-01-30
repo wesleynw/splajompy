@@ -152,6 +152,13 @@ final class MockUserRepository: @unchecked Sendable {
 }
 
 struct MockProfileService: ProfileServiceProtocol {
+  // TODO
+  func getFriends(userId: Int, limit: Int, before: Date?) async -> AsyncResult<
+    [DetailedUser]
+  > {
+    return .success([])
+  }
+
   private let store = MockUserRepository.shared
 
   func getProfile(userId: Int) async -> AsyncResult<DetailedUser> {
@@ -163,7 +170,9 @@ struct MockProfileService: ProfileServiceProtocol {
     }
   }
 
-  func getUserFromUsernamePrefix(prefix: String) async -> AsyncResult<[PublicUser]> {
+  func getUserFromUsernamePrefix(prefix: String) async -> AsyncResult<
+    [PublicUser]
+  > {
     let baseDate = Date()
 
     return .success([
@@ -194,7 +203,11 @@ struct MockProfileService: ProfileServiceProtocol {
     ])
   }
 
-  func updateProfile(name: String, bio: String, displayProperties: UserDisplayProperties) async
+  func updateProfile(
+    name: String,
+    bio: String,
+    displayProperties: UserDisplayProperties
+  ) async
     -> AsyncResult<
       EmptyResponse
     >
@@ -247,9 +260,11 @@ struct MockProfileService: ProfileServiceProtocol {
     return .success(EmptyResponse())
   }
 
-  func getFollowers(userId: Int, limit: Int, before: Date?) async -> AsyncResult<
-    [DetailedUser]
-  > {
+  func getFollowers(userId: Int, limit: Int, before: Date?) async
+    -> AsyncResult<
+      [DetailedUser]
+    >
+  {
     try? await Task.sleep(nanoseconds: 300_000_000)
     let allUsers = Array(store.users.values)
 
@@ -274,9 +289,11 @@ struct MockProfileService: ProfileServiceProtocol {
     return .success(paginatedUsers)
   }
 
-  func getFollowing(userId: Int, limit: Int, before: Date?) async -> AsyncResult<
-    [DetailedUser]
-  > {
+  func getFollowing(userId: Int, limit: Int, before: Date?) async
+    -> AsyncResult<
+      [DetailedUser]
+    >
+  {
     try? await Task.sleep(nanoseconds: 300_000_000)
     let allUsers = Array(store.users.values)
 

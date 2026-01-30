@@ -105,32 +105,33 @@ FROM posts
 WHERE NOT EXISTS (
     SELECT 1
     FROM block
-    WHERE block.user_id = $3 AND target_user_id = posts.user_id
+    WHERE block.user_id = $1::int AND target_user_id = posts.user_id
 ) AND NOT EXISTS (
     SELECT 1
     FROM mute
-    WHERE mute.user_id = $3 AND target_user_id = posts.user_id
+    WHERE mute.user_id = $1::int AND target_user_id = posts.user_id
 ) AND (
     posts.visibilityType = 0 -- public
+    OR posts.user_id = $1::int
     OR EXISTS (
         SELECT 1
         FROM user_relationship
         WHERE user_id = posts.user_id
-            AND target_user_id = $3
+            AND target_user_id = $1::int
     )
 ) AND ($2::timestamp IS NULL OR posts.created_at < $2::timestamp)
 ORDER BY posts.created_at DESC
-LIMIT $1
+LIMIT $3::int
 `
 
 type GetAllPostIdsCursorParams struct {
-	Limit   int              `json:"limit"`
-	Column2 pgtype.Timestamp `json:"column2"`
-	UserID  int              `json:"userId"`
+	UserID int              `json:"userId"`
+	Before pgtype.Timestamp `json:"before"`
+	Limit  int              `json:"limit"`
 }
 
 func (q *Queries) GetAllPostIdsCursor(ctx context.Context, arg GetAllPostIdsCursorParams) ([]int, error) {
-	rows, err := q.db.Query(ctx, getAllPostIdsCursor, arg.Limit, arg.Column2, arg.UserID)
+	rows, err := q.db.Query(ctx, getAllPostIdsCursor, arg.UserID, arg.Before, arg.Limit)
 	if err != nil {
 		return nil, err
 	}
@@ -382,19 +383,35 @@ func (q *Queries) GetPostIdsByFollowingCursor(ctx context.Context, arg GetPostId
 const getPostIdsByUserIdCursor = `-- name: GetPostIdsByUserIdCursor :many
 SELECT post_id
 FROM posts
-WHERE user_id = $1 AND ($3::timestamp IS NULL OR posts.created_at < $3::timestamp)
+WHERE user_id = $1::int AND ($2::timestamp IS NULL OR posts.created_at < $2::timestamp)
+AND (
+    posts.visibilityType = 0 -- public
+    OR posts.user_id = $3
+    OR EXISTS (
+        SELECT 1
+        FROM user_relationship
+        WHERE user_id = posts.user_id
+            AND target_user_id = $1
+    )
+)
 ORDER BY created_at DESC
-LIMIT $2
+LIMIT $4::int
 `
 
 type GetPostIdsByUserIdCursorParams struct {
-	UserID  int              `json:"userId"`
-	Limit   int              `json:"limit"`
-	Column3 pgtype.Timestamp `json:"column3"`
+	TargetUserID int              `json:"targetUserId"`
+	Before       pgtype.Timestamp `json:"before"`
+	UserID       int              `json:"userId"`
+	Limit        int              `json:"limit"`
 }
 
 func (q *Queries) GetPostIdsByUserIdCursor(ctx context.Context, arg GetPostIdsByUserIdCursorParams) ([]int, error) {
-	rows, err := q.db.Query(ctx, getPostIdsByUserIdCursor, arg.UserID, arg.Limit, arg.Column3)
+	rows, err := q.db.Query(ctx, getPostIdsByUserIdCursor,
+		arg.TargetUserID,
+		arg.Before,
+		arg.UserID,
+		arg.Limit,
+	)
 	if err != nil {
 		return nil, err
 	}

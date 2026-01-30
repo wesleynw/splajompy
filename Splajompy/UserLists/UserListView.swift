@@ -4,6 +4,7 @@ import SwiftUI
 struct UserListView: View {
   private var userListVariant: UserListVariantEnum
   @State private var viewModel: UserListViewModel
+  @State private var isPresentingUserSearch: Bool = false
 
   init(userId: Int, userListVariant: UserListVariantEnum) {
     _viewModel = State(
@@ -51,15 +52,38 @@ struct UserListView: View {
     #if os(iOS)
       .navigationBarTitleDisplayMode(.inline)
     #endif
+    .toolbar {
+      ToolbarItem(placement: .topBarTrailing) {
+        Button("Add Friend", systemImage: "plus") {
+          isPresentingUserSearch = true
+        }
+        .buttonStyle(.borderedProminent)
+      }
+    }
+    .sheet(isPresented: $isPresentingUserSearch) {
+      NavigationStack {
+        SearchView()
+          .toolbar {
+            ToolbarItem(placement: .topBarLeading) {
+              if #available(iOS 26, macOS 26, *) {
+                Button(role: .close) {
+                  isPresentingUserSearch = false
+                }
+              } else {
+                Button("Cancel") {
+                  isPresentingUserSearch = false
+                }
+              }
+            }
+          }
+      }
+    }
   }
 
   private var noUsersView: some View {
-    VStack {
-      Spacer()
-      Text("No users found")
-        .foregroundColor(.secondary)
-      Spacer()
-    }
+    Text("There's nobody here")
+      .fontWeight(.bold)
+      .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
   }
 
   private func userList(

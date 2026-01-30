@@ -211,8 +211,8 @@ WHERE user_id = $1 AND target_user_id = $2;
 -- name: ListUserRelationships :many
 SELECT users.*
 FROM users
-JOIN user_relationship ON user_relationship.user_id = $1
+JOIN user_relationship ON user_relationship.user_id = @user_id::int
 WHERE users.user_id = user_relationship.target_user_id
-    AND (@before IS NULL OR user_relationship.created_at < @before)
+    AND (sqlc.narg('before')::timestamptz IS NULL OR user_relationship.created_at < sqlc.narg('before'))
 ORDER BY user_relationship.created_at DESC
-LIMIT $2;
+LIMIT sqlc.arg('limit')::int;

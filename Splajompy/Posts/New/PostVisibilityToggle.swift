@@ -3,9 +3,19 @@ import SwiftUI
 /// A label that displays the currently selected post visibility option and can be tapped to toggle it.
 struct PostVisibilityToggle: View {
   @Binding var selectedVisibility: VisibilityType
+  @State private var isPresentingUserList: Bool = false
+  @Environment(AuthManager.self) var authManager
 
   var body: some View {
     Menu {
+      Button {
+        isPresentingUserList = true
+      } label: {
+        HStack {
+          Label("Edit Friend List", systemImage: "pencil")
+        }
+      }
+
       ForEach(VisibilityType.allCases) { visibility in
         Button {
           selectedVisibility = visibility
@@ -19,22 +29,49 @@ struct PostVisibilityToggle: View {
         }
       }
     } label: {
-      HStack(spacing: 4) {
-        Image(systemName: icon(for: selectedVisibility))
-        Text(title(for: selectedVisibility))
-        Image(systemName: "chevron.down")
-          .font(.caption)
-      }
-      .padding(.horizontal, 10)
-      .padding(.vertical, 5)
-      .foregroundStyle(.white)
-      .modify {
-        if #available(iOS 26, macOS 26, *) {
-          $0.glassEffect(.regular.tint(glassColor.opacity(0.7)).interactive(), in: .capsule)
-        } else {
-          $0.background(backgroundColor, in: Capsule())
+      menuLabel
+    }
+    .sheet(isPresented: $isPresentingUserList) {
+      if let userId = authManager.getCurrentUser()?.userId {
+        NavigationStack {
+          UserListView(userId: userId, userListVariant: .CloseFriends)
+            .toolbar {
+              ToolbarItem(placement: .topBarLeading) {
+                if #available(iOS 26, macOS 26, *) {
+                  Button(role: .close) {
+                    isPresentingUserList = false
+                  }
+                } else {
+                  Button("Close") {
+                    isPresentingUserList = false
+                  }
+                }
+              }
+            }
         }
       }
+    }
+  }
+
+  @ViewBuilder
+  private var menuLabel: some View {
+    let label = HStack(spacing: 4) {
+      Image(systemName: icon(for: selectedVisibility))
+      Text(title(for: selectedVisibility))
+      Image(systemName: "chevron.down")
+        .font(.caption)
+    }
+    .padding(.horizontal, 10)
+    .padding(.vertical, 5)
+    .foregroundStyle(.white)
+
+    if #available(iOS 26, macOS 26, *) {
+      label.glassEffect(
+        .regular.tint(glassColor.opacity(0.7)).interactive(),
+        in: .capsule
+      )
+    } else {
+      label.background(backgroundColor, in: .capsule)
     }
   }
 
@@ -54,8 +91,8 @@ struct PostVisibilityToggle: View {
 
   private func title(for visibility: VisibilityType) -> String {
     switch visibility {
-    case .Public: return "Anyone"
-    case .CloseFriends: return "Close Friends"
+    case .Public: return "Everyone"
+    case .CloseFriends: return "Friends"
     }
   }
 

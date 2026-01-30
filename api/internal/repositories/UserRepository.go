@@ -311,10 +311,15 @@ func (r DBUserRepository) RemoveUserRelationship(ctx context.Context, userId int
 }
 
 func (r DBUserRepository) GetRelationshipByUserId(ctx context.Context, userId int, limit int, before *time.Time) ([]models.PublicUser, error) {
+	var beforeParam pgtype.Timestamptz
+	if before != nil {
+		beforeParam = pgtype.Timestamptz{Time: *before, Valid: true}
+	}
+
 	users, err := r.querier.ListUserRelationships(ctx, queries.ListUserRelationshipsParams{
 		UserID: userId,
 		Limit:  limit,
-		Before: before,
+		Before: beforeParam,
 	})
 	if err != nil {
 		return nil, err

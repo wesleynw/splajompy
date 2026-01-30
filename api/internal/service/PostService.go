@@ -479,7 +479,7 @@ func (s *PostService) GetPosts(ctx context.Context, currentUser models.PublicUse
 		if userId == nil {
 			return nil, errors.New("userId required for profile feed")
 		}
-		postIDs, err = s.postRepository.GetPostIdsByUserIdCursor(ctx, *userId, limit, beforeTimestamp)
+		postIDs, err = s.postRepository.GetPostIdsByUserIdCursor(ctx, currentUser.UserID, *userId, limit, beforeTimestamp)
 
 		if err == nil {
 			// get pinned post id for filtering (only for version >= 1.4.0)

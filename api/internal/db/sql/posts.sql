@@ -9,9 +9,19 @@ LIMIT $3;
 -- name: GetPostIdsByUserIdCursor :many
 SELECT post_id
 FROM posts
-WHERE user_id = $1 AND ($3::timestamp IS NULL OR posts.created_at < $3::timestamp)
+WHERE user_id = @target_user_id::int AND (@before::timestamp IS NULL OR posts.created_at < @before::timestamp)
+AND (
+    posts.visibilityType = 0 -- public
+    OR posts.user_id = @user_id
+    OR EXISTS (
+        SELECT 1
+        FROM user_relationship
+        WHERE user_id = posts.user_id
+            AND target_user_id = @target_user_id
+    )
+)
 ORDER BY created_at DESC
-LIMIT $2;
+LIMIT sqlc.arg('limit')::int;
 
 -- name: GetPostIdsByFollowing :many
 SELECT post_id
@@ -144,22 +154,23 @@ FROM posts
 WHERE NOT EXISTS (
     SELECT 1
     FROM block
-    WHERE block.user_id = $3 AND target_user_id = posts.user_id
+    WHERE block.user_id = @user_id::int AND target_user_id = posts.user_id
 ) AND NOT EXISTS (
     SELECT 1
     FROM mute
-    WHERE mute.user_id = $3 AND target_user_id = posts.user_id
+    WHERE mute.user_id = @user_id::int AND target_user_id = posts.user_id
 ) AND (
     posts.visibilityType = 0 -- public
+    OR posts.user_id = @user_id::int
     OR EXISTS (
         SELECT 1
         FROM user_relationship
         WHERE user_id = posts.user_id
-            AND target_user_id = $3
+            AND target_user_id = @user_id::int
     )
-) AND ($2::timestamp IS NULL OR posts.created_at < $2::timestamp)
+) AND (@before::timestamp IS NULL OR posts.created_at < @before::timestamp)
 ORDER BY posts.created_at DESC
-LIMIT $1;
+LIMIT sqlc.arg('limit')::int;
 
 -- name: GetPostIdsByFollowingCursor :many
 SELECT post_id

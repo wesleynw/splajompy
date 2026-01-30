@@ -114,7 +114,7 @@ func (h *Handler) RegisterRoutes(handleFunc func(pattern string, handlerFunc fun
 
 	handleFuncWithAuth("POST /user/{id}/friend", h.AddUserToCloseFriendsList)
 	handleFuncWithAuth("DELETE /user/{id}/friend", h.RemoveUserFromCloseFriendsList)
-	handleFuncWithAuth("GET /user/friend", h.ListUserCloseFriends)
+	handleFuncWithAuth("GET /user/friends", h.ListUserCloseFriends)
 
 	// posts
 	handleFuncWithAuth("GET /posts/following", h.GetPostsByFollowing)

@@ -446,21 +446,21 @@ func (q *Queries) GetVerificationCode(ctx context.Context, arg GetVerificationCo
 const listUserRelationships = `-- name: ListUserRelationships :many
 SELECT users.user_id, users.email, users.password, users.username, users.created_at, users.name, users.is_verified, users.pinned_post_id, users.user_display_properties, users.referral_code
 FROM users
-JOIN user_relationship ON user_relationship.user_id = $1
+JOIN user_relationship ON user_relationship.user_id = $1::int
 WHERE users.user_id = user_relationship.target_user_id
-    AND ($3 IS NULL OR user_relationship.created_at < $3)
+    AND ($2::timestamptz IS NULL OR user_relationship.created_at < $2)
 ORDER BY user_relationship.created_at DESC
-LIMIT $2
+LIMIT $3::int
 `
 
 type ListUserRelationshipsParams struct {
-	UserID int         `json:"userId"`
-	Limit  int         `json:"limit"`
-	Before interface{} `json:"before"`
+	UserID int                `json:"userId"`
+	Before pgtype.Timestamptz `json:"before"`
+	Limit  int                `json:"limit"`
 }
 
 func (q *Queries) ListUserRelationships(ctx context.Context, arg ListUserRelationshipsParams) ([]User, error) {
-	rows, err := q.db.Query(ctx, listUserRelationships, arg.UserID, arg.Limit, arg.Before)
+	rows, err := q.db.Query(ctx, listUserRelationships, arg.UserID, arg.Before, arg.Limit)
 	if err != nil {
 		return nil, err
 	}

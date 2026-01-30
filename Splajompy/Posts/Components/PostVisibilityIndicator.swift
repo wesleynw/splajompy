@@ -8,7 +8,7 @@ struct PostVisibilityIndicator: View {
     if visibility == .CloseFriends {
       HStack(spacing: 4) {
         Image(systemName: "star.circle.fill")
-        Text("Close Friends")
+        Text("Friends")
       }
       .font(.caption)
       .foregroundStyle(.primary)

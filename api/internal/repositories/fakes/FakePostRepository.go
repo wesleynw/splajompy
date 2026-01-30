@@ -420,7 +420,7 @@ func (r *FakePostRepository) GetPostIdsForMutualFeedCursor(ctx context.Context, 
 }
 
 // GetPostIdsByUserIdCursor retrieves post IDs for a specific user using cursor-based pagination
-func (r *FakePostRepository) GetPostIdsByUserIdCursor(ctx context.Context, userId int, limit int, beforeTimestamp *time.Time) ([]int, error) {
+func (r *FakePostRepository) GetPostIdsByUserIdCursor(ctx context.Context, userId int, targetUserId int, limit int, beforeTimestamp *time.Time) ([]int, error) {
 	r.mutex.RLock()
 	defer r.mutex.RUnlock()
 

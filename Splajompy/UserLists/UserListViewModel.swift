@@ -10,7 +10,7 @@ enum UserListState {
 enum UserListVariantEnum {
   case following
   case mutuals
-  //  case CloseFriends
+  case CloseFriends
 
   var title: String {
     switch self {
@@ -18,8 +18,8 @@ enum UserListVariantEnum {
       "Following"
     case .mutuals:
       "Mutuals"
-    //    case .CloseFriends:
-    //      "Friends"
+    case .CloseFriends:
+      "Friends"
     }
   }
 }
@@ -34,6 +34,7 @@ class UserListViewModel {
 
   private let profileService: ProfileServiceProtocol
   private let fetchLimit = 20
+  private var isFetching: Bool = false
   private var beforeCursor: Date? = nil
 
   init(
@@ -48,6 +49,14 @@ class UserListViewModel {
 
   func loadUsers(reset: Bool = false) async {
     if case .loading = state { return }
+    guard isFetching == false else {
+      return
+    }
+
+    isFetching = true
+    defer {
+      isFetching = false
+    }
 
     if reset {
       beforeCursor = nil
@@ -63,6 +72,12 @@ class UserListViewModel {
       )
     case .mutuals:
       result = await profileService.getMutuals(
+        userId: userId,
+        limit: fetchLimit,
+        before: beforeCursor
+      )
+    case .CloseFriends:
+      result = await profileService.getFriends(
         userId: userId,
         limit: fetchLimit,
         before: beforeCursor

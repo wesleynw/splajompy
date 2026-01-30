@@ -43,6 +43,12 @@ protocol ProfileServiceProtocol: Sendable {
   func getMutuals(userId: Int, limit: Int, before: Date?) async -> AsyncResult<
     [DetailedUser]
   >
+
+  /// Fetch friends of a target user.
+  func getFriends(userId: Int, limit: Int, before: Date?) async -> AsyncResult<
+    [DetailedUser]
+  >
+
   /// Fetch statistics about app.
   func getAppStatistics() async -> AsyncResult<AppStatistics>
 }
@@ -197,6 +203,28 @@ struct ProfileService: ProfileServiceProtocol {
 
     return await APIService.performRequest(
       endpoint: "v2/user/\(userId)/mutuals",
+      queryItems: queryItems
+    )
+  }
+
+  func getFriends(userId: Int, limit: Int, before: Date?) async -> AsyncResult<
+    [DetailedUser]
+  > {
+    var queryItems = [URLQueryItem(name: "limit", value: "\(limit)")]
+
+    if let before = before {
+      let formatter = ISO8601DateFormatter()
+      formatter.formatOptions = [.withInternetDateTime, .withTimeZone]
+      queryItems.append(
+        URLQueryItem(
+          name: "before",
+          value: formatter.string(from: before)
+        )
+      )
+    }
+
+    return await APIService.performRequest(
+      endpoint: "user/friends",
       queryItems: queryItems
     )
   }
