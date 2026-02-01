@@ -341,6 +341,11 @@ func (s *PostService) ReportPost(ctx context.Context, currentUser *models.Public
 		return err
 	}
 
+	author, err := s.userRepository.GetUserById(ctx, post.UserID)
+	if err != nil {
+		return err
+	}
+
 	images, err := s.postRepository.GetImagesForPost(ctx, post.PostID)
 	if err != nil {
 		return err
@@ -353,7 +358,7 @@ func (s *PostService) ReportPost(ctx context.Context, currentUser *models.Public
 		images[i].ImageBlobUrl = s.bucketRepository.GetObjectURL(images[i].ImageBlobUrl)
 	}
 
-	html, err := templates.GeneratePostReportEmail(currentUser.Username, *post, images)
+	html, err := templates.GeneratePostReportEmail(currentUser.Username, author.Username, author.UserID, *post, images)
 	if err != nil {
 		return err
 	}
