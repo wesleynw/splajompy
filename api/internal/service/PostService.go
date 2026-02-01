@@ -183,7 +183,7 @@ func (s *PostService) GetPostsByUserId(ctx context.Context, currentUser models.P
 		return &[]models.DetailedPost{}, nil
 	}
 
-	postIds, err := s.postRepository.GetPostIdsForUser(ctx, userID, currentUser.UserID, limit, offset)
+	postIds, err := s.postRepository.GetPostIdsForUser(ctx, userID, limit, offset)
 	if err != nil {
 		return nil, err
 	}
@@ -467,7 +467,7 @@ func (s *PostService) GetPostsWithTimeOffset(ctx context.Context, currentUser mo
 		if userId == nil {
 			return nil, errors.New("userId required for profile feed")
 		}
-		postIDs, err = s.postRepository.GetPostIdsByUserIdCursor(ctx, *userId, currentUser.UserID, limit, beforeTimestamp)
+		postIDs, err = s.postRepository.GetPostIdsByUserIdCursor(ctx, *userId, limit, beforeTimestamp)
 
 		if err == nil {
 			// get pinned post id for filtering (only for version >= 1.4.0)
@@ -531,13 +531,4 @@ func (s *PostService) UnpinPost(ctx context.Context, currentUser models.PublicUs
 // GetPinnedPostId retrieves the pinned post ID for a user
 func (s *PostService) GetPinnedPostId(ctx context.Context, userId int) (*int, error) {
 	return s.postRepository.GetPinnedPostId(ctx, userId)
-}
-
-// HidePost sets the hidden status of a post
-func (s *PostService) HidePost(ctx context.Context, postId int, isHidden bool) error {
-	_, err := s.postRepository.GetPostById(ctx, postId)
-	if err != nil {
-		return errors.New("post not found")
-	}
-	return s.postRepository.SetPostHidden(ctx, postId, isHidden)
 }
