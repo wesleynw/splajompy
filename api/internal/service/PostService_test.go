@@ -54,7 +54,7 @@ func TestNewPost(t *testing.T) {
 	err := svc.NewPost(ctx, user, text, imageKeymap, nil)
 	assert.NoError(t, err)
 
-	postIds, err := postRepo.GetPostIdsForUser(ctx, user.UserID, user.UserID, 10, 0)
+	postIds, err := postRepo.GetPostIdsForUser(ctx, user.UserID, 10, 0)
 	assert.NoError(t, err)
 	assert.Len(t, postIds, 1)
 
