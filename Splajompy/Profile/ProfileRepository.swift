@@ -49,6 +49,12 @@ protocol ProfileServiceProtocol: Sendable {
     [DetailedUser]
   >
 
+  /// Add a user to the current user's friends list.
+  func addFriend(userId: Int) async -> AsyncResult<EmptyResponse>
+
+  /// Remove a user from the current user's friends list.
+  func removeFriend(userId: Int) async -> AsyncResult<EmptyResponse>
+
   /// Fetch statistics about app.
   func getAppStatistics() async -> AsyncResult<AppStatistics>
 }
@@ -226,6 +232,20 @@ struct ProfileService: ProfileServiceProtocol {
     return await APIService.performRequest(
       endpoint: "user/friends",
       queryItems: queryItems
+    )
+  }
+
+  func addFriend(userId: Int) async -> AsyncResult<EmptyResponse> {
+    return await APIService.performRequest(
+      endpoint: "user/\(userId)/friend",
+      method: "POST"
+    )
+  }
+
+  func removeFriend(userId: Int) async -> AsyncResult<EmptyResponse> {
+    return await APIService.performRequest(
+      endpoint: "user/\(userId)/friend",
+      method: "DELETE"
     )
   }
 

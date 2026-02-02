@@ -31,6 +31,7 @@ class UserListViewModel {
 
   var state: UserListState = .idle
   var hasMoreToFetch: Bool = false
+  var errorMessage: String? = nil
 
   private let profileService: ProfileServiceProtocol
   private let fetchLimit = 20
@@ -102,22 +103,99 @@ class UserListViewModel {
   }
 
   func toggleFollow(for user: DetailedUser) async {
+    if case .loaded(var users) = state {
+      if let index = users.firstIndex(where: { $0.userId == user.userId }) {
+        users[index].isFollowing.toggle()
+        state = .loaded(users)
+      }
+    }
+
     let result = await profileService.toggleFollowing(
       userId: user.userId,
       isFollowing: user.isFollowing
     )
 
-    switch result {
-    case .success:
+    if case .error(let error) = result {
+      // Rollback
       if case .loaded(var users) = state {
         if let index = users.firstIndex(where: { $0.userId == user.userId }) {
           users[index].isFollowing.toggle()
           state = .loaded(users)
         }
       }
-      break
-    case .error(let error):
+      errorMessage = "Failed to update follow status"
       print("Failed to toggle follow: \(error)")
     }
+  }
+
+  func addFriend(publicUser: PublicUser) async {
+    if case .loaded(let users) = state {
+      if users.contains(where: { $0.userId == publicUser.userId }) {
+        return
+      }
+    }
+
+    // Create a temporary DetailedUser for optimistic update
+    let tempUser = DetailedUser(
+      userId: publicUser.userId,
+      email: "",
+      username: publicUser.username,
+      createdAt: publicUser.createdAt,
+      name: publicUser.name,
+      bio: "",
+      isFollower: false,
+      isFollowing: false,
+      isBlocking: false,
+      isMuting: false,
+      mutuals: [],
+      mutualCount: 0,
+      isVerified: publicUser.isVerified,
+      displayProperties: publicUser.displayProperties ?? UserDisplayProperties(fontChoiceId: 0)
+    )
+
+    switch state {
+    case .loaded(var users):
+      users.insert(tempUser, at: 0)
+      state = .loaded(users)
+    case .idle, .loading, .failed:
+      state = .loaded([tempUser])
+    }
+
+    let result = await profileService.addFriend(userId: publicUser.userId)
+    if case .error(let error) = result {
+      if case .loaded(var users) = state {
+        users.removeAll { $0.userId == publicUser.userId }
+        state = .loaded(users)
+      }
+      errorMessage = "Failed to add friend"
+      print("Failed to add friend: \(error)")
+    }
+  }
+
+  func removeFriend(user: DetailedUser) async {
+    var originalIndex: Int?
+    if case .loaded(let users) = state {
+      originalIndex = users.firstIndex(where: { $0.userId == user.userId })
+    }
+
+    if case .loaded(var users) = state {
+      users.removeAll { $0.userId == user.userId }
+      state = .loaded(users)
+    }
+
+    let result = await profileService.removeFriend(userId: user.userId)
+    if case .error(let error) = result {
+      if case .loaded(var users) = state {
+        let insertIndex = min(originalIndex ?? 0, users.count)
+        users.insert(user, at: insertIndex)
+        state = .loaded(users)
+      }
+      errorMessage = "Failed to remove friend"
+      print("Failed to remove friend: \(error)")
+    }
+  }
+
+  func clearError() {
+    errorMessage = nil
   }
 }

@@ -264,8 +264,12 @@ func (s UserService) RemoveUserFromCloseFriendsList(ctx context.Context, current
 }
 
 // GetCloseFriendsByUserId returns a list of users on the current users close friends list, using the creation date of the relationsthip as a cursor.
-func (s UserService) GetCloseFriendsByUserId(ctx context.Context, currentUser models.PublicUser, limit int, before *time.Time) ([]models.PublicUser, error) {
-	return s.userRepository.GetRelationshipByUserId(ctx, currentUser.UserID, limit, before)
+func (s UserService) GetCloseFriendsByUserId(ctx context.Context, currentUser models.PublicUser, limit int, before *time.Time) ([]models.DetailedUser, error) {
+	userIds, err := s.userRepository.GetRelationshipUserIds(ctx, currentUser.UserID, limit, before)
+	if err != nil {
+		return nil, err
+	}
+	return s.fetchDetailedUsersFromIDs(ctx, currentUser, userIds)
 }
 
 // fetchDetailedUsersFromIDs concurrently fetches detailed user information for the given user IDs.

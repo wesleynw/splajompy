@@ -730,3 +730,21 @@ func (r *FakeUserRepository) GetRelationshipByUserId(ctx context.Context, userId
 
 	return users, nil
 }
+
+func (r *FakeUserRepository) GetRelationshipUserIds(ctx context.Context, userId int, limit int, before *time.Time) ([]int, error) {
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
+
+	var userIds []int
+	if r.userRelationships[userId] == nil {
+		return userIds, nil
+	}
+
+	for targetUserId, createdAt := range r.userRelationships[userId] {
+		if before == nil || !createdAt.Before(*before) {
+			userIds = append(userIds, targetUserId)
+		}
+	}
+
+	return userIds, nil
+}

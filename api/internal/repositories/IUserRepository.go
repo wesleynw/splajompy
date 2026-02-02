@@ -89,4 +89,7 @@ type UserRepository interface {
 
 	// GetCloseFriendsByUserId returns a list of user relationships, paginated by the timestamp they were created.
 	GetRelationshipByUserId(ctx context.Context, userId int, limit int, before *time.Time) ([]models.PublicUser, error)
+
+	// GetRelationshipUserIds returns a list of user ids for users on the close friends list.
+	GetRelationshipUserIds(ctx context.Context, userId int, limit int, before *time.Time) ([]int, error)
 }

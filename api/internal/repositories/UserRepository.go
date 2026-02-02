@@ -333,6 +333,29 @@ func (r DBUserRepository) GetRelationshipByUserId(ctx context.Context, userId in
 	return publicUsers, nil
 }
 
+func (r DBUserRepository) GetRelationshipUserIds(ctx context.Context, userId int, limit int, before *time.Time) ([]int, error) {
+	var beforeParam pgtype.Timestamptz
+	if before != nil {
+		beforeParam = pgtype.Timestamptz{Time: *before, Valid: true}
+	}
+
+	users, err := r.querier.ListUserRelationships(ctx, queries.ListUserRelationshipsParams{
+		UserID: userId,
+		Limit:  limit,
+		Before: beforeParam,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	userIds := make([]int, len(users))
+	for i, user := range users {
+		userIds[i] = user.UserID
+	}
+
+	return userIds, nil
+}
+
 // NewDBUserRepository creates a new user repository
 func NewDBUserRepository(querier queries.Querier) UserRepository {
 	return &DBUserRepository{querier: querier}

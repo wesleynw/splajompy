@@ -53,30 +53,52 @@ struct UserListView: View {
       .navigationBarTitleDisplayMode(.inline)
     #endif
     .toolbar {
-      ToolbarItem(placement: .topBarTrailing) {
-        Button("Add Friend", systemImage: "plus") {
-          isPresentingUserSearch = true
+      if userListVariant == .CloseFriends {
+        ToolbarItem(placement: .topBarTrailing) {
+          Button("Add Friend", systemImage: "plus") {
+            isPresentingUserSearch = true
+          }
+          .buttonStyle(.borderedProminent)
         }
-        .buttonStyle(.borderedProminent)
       }
     }
     .sheet(isPresented: $isPresentingUserSearch) {
       NavigationStack {
-        SearchView()
-          .toolbar {
-            ToolbarItem(placement: .topBarLeading) {
-              if #available(iOS 26, macOS 26, *) {
-                Button(role: .close) {
-                  isPresentingUserSearch = false
-                }
-              } else {
-                Button("Cancel") {
-                  isPresentingUserSearch = false
-                }
+        SearchView(onUserSelected: { selectedUser in
+          // Don't allow adding self
+          guard selectedUser.userId != viewModel.userId else { return }
+          isPresentingUserSearch = false
+          Task {
+            await viewModel.addFriend(publicUser: selectedUser)
+          }
+        })
+        .toolbar {
+          ToolbarItem(placement: .topBarLeading) {
+            if #available(iOS 26, macOS 26, *) {
+              Button(role: .close) {
+                isPresentingUserSearch = false
+              }
+            } else {
+              Button("Cancel") {
+                isPresentingUserSearch = false
               }
             }
           }
+        }
       }
+    }
+    .alert(
+      "Error",
+      isPresented: .init(
+        get: { viewModel.errorMessage != nil },
+        set: { if !$0 { viewModel.clearError() } }
+      )
+    ) {
+      Button("OK") {
+        viewModel.clearError()
+      }
+    } message: {
+      Text(viewModel.errorMessage ?? "")
     }
   }
 
@@ -87,7 +109,7 @@ struct UserListView: View {
   }
 
   private func userList(
-    users: [DetailedUser],
+    users: [DetailedUser]
   )
     -> some View
   {
@@ -96,10 +118,12 @@ struct UserListView: View {
         ForEach(users) { user in
           UserRowView(
             user: user,
+            variant: userListVariant,
             onFollowToggle: { user in
-              Task {
-                await viewModel.toggleFollow(for: user)
-              }
+              await viewModel.toggleFollow(for: user)
+            },
+            onRemove: { user in
+              await viewModel.removeFriend(user: user)
             }
           )
           .onAppear {
@@ -137,22 +161,32 @@ struct UserListView: View {
 
 struct UserRowView: View {
   let user: DetailedUser
-  let onFollowToggle: (DetailedUser) -> Void
+  let variant: UserListVariantEnum
+  let onFollowToggle: (DetailedUser) async -> Void
+  let onRemove: (DetailedUser) async -> Void
   @State private var isLoading = false
 
   init(
     user: DetailedUser,
-    onFollowToggle: @escaping (DetailedUser) -> Void
+    variant: UserListVariantEnum,
+    onFollowToggle: @escaping (DetailedUser) async -> Void,
+    onRemove: @escaping (DetailedUser) async -> Void
   ) {
     self.user = user
+    self.variant = variant
     self.onFollowToggle = onFollowToggle
+    self.onRemove = onRemove
   }
 
   var body: some View {
     HStack(spacing: 8) {
       ProfileDisplayNameView(user: user, alignVertically: false)
       Spacer()
-      followButton
+      if variant == .CloseFriends {
+        removeButton
+      } else {
+        followButton
+      }
     }
     .padding(.horizontal, 16)
     .padding(.vertical, 12)
@@ -167,12 +201,38 @@ struct UserRowView: View {
     )
   }
 
+  private var removeButton: some View {
+    Button(action: {
+      guard !isLoading else { return }
+      Task {
+        isLoading = true
+        await onRemove(user)
+        isLoading = false
+      }
+    }) {
+      if isLoading {
+        ProgressView()
+          .scaleEffect(0.8)
+      } else {
+        Text("Remove")
+          .font(.caption)
+          .fontWeight(.medium)
+      }
+    }
+    .frame(width: 70)
+    .padding(.vertical, 6)
+    .background(Color.red.opacity(0.15).gradient)
+    .foregroundColor(.red)
+    .clipShape(RoundedRectangle(cornerRadius: 6))
+    .disabled(isLoading)
+  }
+
   private var followButton: some View {
     Button(action: {
       guard !isLoading else { return }
       Task {
         isLoading = true
-        onFollowToggle(user)
+        await onFollowToggle(user)
         isLoading = false
       }
     }) {

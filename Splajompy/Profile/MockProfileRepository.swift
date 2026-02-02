@@ -348,6 +348,16 @@ struct MockProfileService: ProfileServiceProtocol {
     return .success(paginatedUsers)
   }
 
+  func addFriend(userId: Int) async -> AsyncResult<EmptyResponse> {
+    try? await Task.sleep(nanoseconds: 300_000_000)
+    return .success(EmptyResponse())
+  }
+
+  func removeFriend(userId: Int) async -> AsyncResult<EmptyResponse> {
+    try? await Task.sleep(nanoseconds: 300_000_000)
+    return .success(EmptyResponse())
+  }
+
   func getAppStatistics() async -> AsyncResult<AppStatistics> {
     try? await Task.sleep(nanoseconds: 500_000_000)
     return .success(
