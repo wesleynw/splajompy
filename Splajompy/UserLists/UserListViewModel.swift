@@ -10,7 +10,7 @@ enum UserListState {
 enum UserListVariantEnum {
   case following
   case mutuals
-  case CloseFriends
+  case friends
 
   var title: String {
     switch self {
@@ -18,7 +18,7 @@ enum UserListVariantEnum {
       "Following"
     case .mutuals:
       "Mutuals"
-    case .CloseFriends:
+    case .friends:
       "Friends"
     }
   }
@@ -77,7 +77,7 @@ class UserListViewModel {
         limit: fetchLimit,
         before: beforeCursor
       )
-    case .CloseFriends:
+    case .friends:
       result = await profileService.getFriends(
         userId: userId,
         limit: fetchLimit,

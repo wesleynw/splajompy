@@ -5,7 +5,7 @@ struct PostVisibilityIndicator: View {
   let visibility: VisibilityType
 
   var body: some View {
-    if visibility == .CloseFriends {
+    if visibility == .friends {
       HStack(spacing: 4) {
         Image(systemName: "star.circle.fill")
         Text("Friends")
@@ -20,6 +20,6 @@ struct PostVisibilityIndicator: View {
 }
 
 #Preview {
-  PostVisibilityIndicator(visibility: .CloseFriends)
+  PostVisibilityIndicator(visibility: .friends)
     .padding()
 }

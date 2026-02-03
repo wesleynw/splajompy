@@ -98,7 +98,7 @@ struct Post: Decodable {
   let text: String?
   let createdAt: Date
   let facets: [Facet]?
-  var visibility: VisibilityType = .Public
+  var visibility: VisibilityType = .everyone
 
   var richContent: AttributedString? {
     guard let text, !text.isEmpty else { return nil }
@@ -168,8 +168,8 @@ struct AppStatistics: Decodable {
 }
 
 enum VisibilityType: Int, Decodable, Identifiable, CaseIterable {
-  case Public = 0
-  case CloseFriends = 1
+  case everyone = 0
+  case friends = 1
 
   var id: Int { rawValue }
 }

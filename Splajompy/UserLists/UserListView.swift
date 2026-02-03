@@ -53,7 +53,7 @@ struct UserListView: View {
       .navigationBarTitleDisplayMode(.inline)
     #endif
     .toolbar {
-      if userListVariant == .CloseFriends {
+      if userListVariant == .friends {
         ToolbarItem(
           placement: {
             #if os(iOS)
@@ -190,7 +190,7 @@ struct UserRowView: View {
     HStack(spacing: 8) {
       ProfileDisplayNameView(user: user, alignVertically: false)
       Spacer()
-      if variant == .CloseFriends {
+      if variant == .friends {
         removeButton
       } else {
         followButton
@@ -273,6 +273,6 @@ struct UserRowView: View {
   )
 
   NavigationStack {
-    UserListView(viewModel: viewModel, userListVariant: .CloseFriends)
+    UserListView(viewModel: viewModel, userListVariant: .friends)
   }
 }

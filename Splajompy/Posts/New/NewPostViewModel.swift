@@ -16,7 +16,7 @@ extension NewPostView {
     var text: NSAttributedString = NSAttributedString(string: "")
     var selectedRange: NSRange = NSRange(location: 0, length: 0)
     var poll: PollCreationRequest?
-    var visibility: VisibilityType = .Public
+    var visibility: VisibilityType = .public
 
     var imageStates = [
       (itemIdentifier: String, pickerItem: PhotosPickerItem, state: PhotoState)

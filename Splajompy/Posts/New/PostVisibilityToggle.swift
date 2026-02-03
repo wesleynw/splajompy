@@ -34,7 +34,7 @@ struct PostVisibilityToggle: View {
     .sheet(isPresented: $isPresentingUserList) {
       if let userId = authManager.getCurrentUser()?.userId {
         NavigationStack {
-          UserListView(userId: userId, userListVariant: .CloseFriends)
+          UserListView(userId: userId, userListVariant: .friends)
             .toolbar {
               ToolbarItem(
                 placement: {
@@ -85,35 +85,35 @@ struct PostVisibilityToggle: View {
 
   private var backgroundColor: Color {
     switch selectedVisibility {
-    case .Public: return .blue
-    case .CloseFriends: return .green
+    case .public: return .blue
+    case .friends: return .green
     }
   }
 
   private var glassColor: Color {
     switch selectedVisibility {
-    case .Public: return .blue
-    case .CloseFriends: return .green
+    case .public: return .blue
+    case .friends: return .green
     }
   }
 
   private func title(for visibility: VisibilityType) -> String {
     switch visibility {
-    case .Public: return "Everyone"
-    case .CloseFriends: return "Friends"
+    case .public: return "Everyone"
+    case .friends: return "Friends"
     }
   }
 
   private func icon(for visibility: VisibilityType) -> String {
     switch visibility {
-    case .Public: return "globe"
-    case .CloseFriends: return "star.circle"
+    case .public: return "globe"
+    case .friends: return "star.circle"
     }
   }
 }
 
 #Preview {
-  @Previewable @State var selectedVisibility: VisibilityType = .Public
+  @Previewable @State var selectedVisibility: VisibilityType = .public
 
   NavigationStack {
     PostVisibilityToggle(selectedVisibility: $selectedVisibility)
