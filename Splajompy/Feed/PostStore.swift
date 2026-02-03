@@ -5,13 +5,13 @@ import SwiftUI
 // TODO: i hate this
 
 @MainActor @Observable class ObservablePost {
-  let post: Post
-  let user: PublicUser
+  var post: Post
+  var user: PublicUser
   var isLiked: Bool
   var commentCount: Int
   var images: [ImageDTO]?
-  let relevantLikes: [RelevantLike]
-  let hasOtherLikes: Bool
+  var relevantLikes: [RelevantLike]
+  var hasOtherLikes: Bool
   var poll: Poll?
   var isPinned: Bool
 
@@ -30,9 +30,13 @@ import SwiftUI
   }
 
   func update(from post: DetailedPost) {
+    self.post = post.post
+    self.user = post.user
     self.isLiked = post.isLiked
     self.commentCount = post.commentCount
     self.images = post.images
+    self.relevantLikes = post.relevantLikes
+    self.hasOtherLikes = post.hasOtherLikes
     self.poll = post.poll
     self.isPinned = post.isPinned
   }

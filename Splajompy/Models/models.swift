@@ -124,13 +124,13 @@ struct RelevantLike: Decodable {
 }
 
 struct DetailedPost: Decodable, Equatable, Identifiable {
-  let post: Post
-  let user: PublicUser
+  var post: Post
+  var user: PublicUser
   var isLiked: Bool
   var commentCount: Int
   var images: [ImageDTO]?
-  let relevantLikes: [RelevantLike]
-  let hasOtherLikes: Bool
+  var relevantLikes: [RelevantLike]
+  var hasOtherLikes: Bool
   var poll: Poll?
   var isPinned: Bool
 
