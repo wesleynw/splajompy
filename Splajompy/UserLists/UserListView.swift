@@ -16,9 +16,9 @@ struct UserListView: View {
     self.userListVariant = userListVariant
   }
 
-  init(viewModel: UserListViewModel) {
+  init(viewModel: UserListViewModel, userListVariant: UserListVariantEnum) {
     _viewModel = State(wrappedValue: viewModel)
-    self.userListVariant = viewModel.userListVariant
+    self.userListVariant = userListVariant
   }
 
   var body: some View {
@@ -54,7 +54,15 @@ struct UserListView: View {
     #endif
     .toolbar {
       if userListVariant == .CloseFriends {
-        ToolbarItem(placement: .topBarTrailing) {
+        ToolbarItem(
+          placement: {
+            #if os(iOS)
+              .topBarTrailing
+            #else
+              .primaryAction
+            #endif
+          }()
+        ) {
           Button("Add Friend", systemImage: "plus") {
             isPresentingUserSearch = true
           }
@@ -65,7 +73,7 @@ struct UserListView: View {
     .sheet(isPresented: $isPresentingUserSearch) {
       NavigationStack {
         SearchView(onUserSelected: { selectedUser in
-          // Don't allow adding self
+          // don't allow adding self
           guard selectedUser.userId != viewModel.userId else { return }
           isPresentingUserSearch = false
           Task {
@@ -73,7 +81,7 @@ struct UserListView: View {
           }
         })
         .toolbar {
-          ToolbarItem(placement: .topBarLeading) {
+          ToolbarItem(placement: .primaryAction) {
             if #available(iOS 26, macOS 26, *) {
               Button(role: .close) {
                 isPresentingUserSearch = false
@@ -265,6 +273,6 @@ struct UserRowView: View {
   )
 
   NavigationStack {
-    UserListView(viewModel: viewModel)
+    UserListView(viewModel: viewModel, userListVariant: .CloseFriends)
   }
 }

@@ -36,7 +36,15 @@ struct PostVisibilityToggle: View {
         NavigationStack {
           UserListView(userId: userId, userListVariant: .CloseFriends)
             .toolbar {
-              ToolbarItem(placement: .topBarLeading) {
+              ToolbarItem(
+                placement: {
+                  #if os(iOS)
+                    .topBarLeading
+                  #else
+                    .secondaryAction
+                  #endif
+                }()
+              ) {
                 if #available(iOS 26, macOS 26, *) {
                   Button(role: .close) {
                     isPresentingUserList = false
@@ -106,5 +114,9 @@ struct PostVisibilityToggle: View {
 
 #Preview {
   @Previewable @State var selectedVisibility: VisibilityType = .Public
-  PostVisibilityToggle(selectedVisibility: $selectedVisibility)
+
+  NavigationStack {
+    PostVisibilityToggle(selectedVisibility: $selectedVisibility)
+  }
+  .environment(AuthManager())
 }
