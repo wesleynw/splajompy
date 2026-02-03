@@ -27,12 +27,12 @@ func TestFollowUser(t *testing.T) {
 	following, err := userRepository.GetFollowingByUserId_old(t.Context(), user1.UserID, 10, 0)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(following))
-	assert.Contains(t, following, user2.UserID)
+	assert.Equal(t, user2.UserID, following[0].UserID)
 
 	followers, err := userRepository.GetFollowersByUserId_old(t.Context(), user2.UserID, 10, 0)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(followers))
-	assert.Contains(t, followers, user1.UserID)
+	assert.Equal(t, user1.UserID, followers[0].UserID)
 }
 
 func TestGetUserById_WithNoMutuals_ReturnsEmptyArray(t *testing.T) {
@@ -74,7 +74,8 @@ func TestUserRelationship_AddAndRetrieve(t *testing.T) {
 
 	users, err := service.GetCloseFriendsByUserId(ctx, user0, 10, nil)
 	assert.NoError(t, err)
-	assert.Contains(t, users, user1, "returned friends list does not contain target user")
+	require.Equal(t, 1, len(users), "returned friends list should have 1 user")
+	assert.Equal(t, user1.UserID, users[0].UserID, "returned friends list does not contain target user")
 }
 
 func TestUserRelationship_AddRemoveAndRetrieve(t *testing.T) {
