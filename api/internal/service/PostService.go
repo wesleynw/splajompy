@@ -54,7 +54,7 @@ func (s *PostService) NewPost(ctx context.Context, currentUser models.PublicUser
 		}
 	}
 
-	var visibilityType = models.VisibilityCloseFriends
+	var visibilityType = models.VisibilityPublic
 	if visibilityEnum != nil {
 		visibilityType = models.VisibilityTypeEnum(*visibilityEnum)
 	}
