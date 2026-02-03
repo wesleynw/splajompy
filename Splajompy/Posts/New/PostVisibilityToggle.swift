@@ -85,35 +85,35 @@ struct PostVisibilityToggle: View {
 
   private var backgroundColor: Color {
     switch selectedVisibility {
-    case .public: return .blue
+    case .everyone: return .blue
     case .friends: return .green
     }
   }
 
   private var glassColor: Color {
     switch selectedVisibility {
-    case .public: return .blue
+    case .everyone: return .blue
     case .friends: return .green
     }
   }
 
   private func title(for visibility: VisibilityType) -> String {
     switch visibility {
-    case .public: return "Everyone"
+    case .everyone: return "Everyone"
     case .friends: return "Friends"
     }
   }
 
   private func icon(for visibility: VisibilityType) -> String {
     switch visibility {
-    case .public: return "globe"
+    case .everyone: return "globe"
     case .friends: return "star.circle"
     }
   }
 }
 
 #Preview {
-  @Previewable @State var selectedVisibility: VisibilityType = .public
+  @Previewable @State var selectedVisibility: VisibilityType = .everyone
 
   NavigationStack {
     PostVisibilityToggle(selectedVisibility: $selectedVisibility)
