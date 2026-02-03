@@ -189,7 +189,7 @@ func (h *Handler) UnmuteUser(w http.ResponseWriter, r *http.Request) {
 	utilities.HandleEmptySuccess(w)
 }
 
-// Deprecated: in favor of new pagination pattern in
+// Deprecated in favor of new pagination pattern in
 func (h *Handler) GetFollowersByUserId_old(w http.ResponseWriter, r *http.Request) {
 	currentUser := h.getAuthenticatedUser(r)
 

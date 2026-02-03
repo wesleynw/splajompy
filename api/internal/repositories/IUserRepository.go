@@ -62,10 +62,10 @@ type UserRepository interface {
 
 	GetMutualConnectionsForUser(ctx context.Context, currentUserId int, targetUserId int) ([]string, error)
 
-	// Deprecated: Use GetFollowersByUserId instead (make a route that uses a cursor offset)
+	// Deprecated Use GetFollowersByUserId instead (make a route that uses a cursor offset)
 	GetFollowersByUserId_old(ctx context.Context, userId int, limit int, offset int) ([]queries.GetFollowersByUserIdRow, error)
 
-	// Deprecated: Use GetFollowingByUserId instead
+	// Deprecated Use GetFollowingByUserId instead
 	GetFollowingByUserId_old(ctx context.Context, userId int, limit int, offset int) ([]queries.GetFollowingByUserIdRow, error)
 
 	// GetMutualsByUserId returns a list of users who the current user has mutual connections with
