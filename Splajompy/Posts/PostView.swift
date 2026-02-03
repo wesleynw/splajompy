@@ -70,6 +70,8 @@ struct PostView: View {
 
   private var postContent: some View {
     VStack(alignment: .leading, spacing: 10) {
+      PostVisibilityIndicator(visibility: post.post.visibility)
+
       if showAuthor {
         authorHeader
       }
@@ -342,27 +344,19 @@ struct PostView: View {
 }
 
 #Preview {
-  @Previewable @State var dateFormatter: ISO8601DateFormatter = {
-    let formatter = ISO8601DateFormatter()
-    formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-    return formatter
-  }()
-
   let post = Post(
     postId: 123,
     userId: 456,
     text:
       "This is a sample post with some text content. also here's a link: https://google.com, another link: splajompy.com",
-    createdAt: dateFormatter.date(from: "2025-04-01T12:30:45.123Z")!,
+    createdAt: Date(),
     facets: nil
   )
 
   let user = PublicUser(
     userId: 456,
     username: "wesleynw",
-    createdAt: dateFormatter.string(
-      from: dateFormatter.date(from: "2025-01-15T10:20:30.000Z")!
-    ),
+    createdAt: Date(),
     name: "John Doe",
     isVerified: false,
     displayProperties: UserDisplayProperties(fontChoiceId: 0)
@@ -417,27 +411,19 @@ struct PostView: View {
 }
 
 #Preview("Standalone") {
-  @Previewable @State var dateFormatter: ISO8601DateFormatter = {
-    let formatter = ISO8601DateFormatter()
-    formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-    return formatter
-  }()
-
   let post = Post(
     postId: 123,
     userId: 456,
     text:
       "This is a sample post with some text content. also here's a link: https://google.com, another link: splajompy.com",
-    createdAt: dateFormatter.date(from: "2025-04-01T12:30:45.123Z")!,
+    createdAt: Date(),
     facets: nil
   )
 
   let user = PublicUser(
     userId: 456,
     username: "wesleynw",
-    createdAt: dateFormatter.string(
-      from: dateFormatter.date(from: "2025-01-15T10:20:30.000Z")!
-    ),
+    createdAt: Date(),
     name: "John Doe",
     isVerified: false,
     displayProperties: UserDisplayProperties(fontChoiceId: 0)

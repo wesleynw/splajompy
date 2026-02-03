@@ -19,7 +19,7 @@ type FakePostRepository struct {
 	postLikes    map[int]map[int]bool
 	commentCount map[int]int
 	pollVotes    map[int]map[int]int
-	pinnedPosts  map[int]int  // userId -> postId
+	pinnedPosts  map[int]int // userId -> postId
 	mutex        sync.RWMutex
 	nextPostId   int
 	nextImageId  int
@@ -40,7 +40,7 @@ func NewFakePostRepository() *FakePostRepository {
 	}
 }
 
-func (r *FakePostRepository) InsertPost(ctx context.Context, userId int, content string, facets db.Facets, attributes *db.Attributes) (*models.Post, error) {
+func (r *FakePostRepository) InsertPost(ctx context.Context, userId int, content string, facets db.Facets, attributes *db.Attributes, visibilityType *models.VisibilityTypeEnum) (*models.Post, error) {
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
 
@@ -54,6 +54,7 @@ func (r *FakePostRepository) InsertPost(ctx context.Context, userId int, content
 		Text:       content,
 		Facets:     facets,
 		Attributes: attributes,
+		Visibility: visibilityType,
 		CreatedAt:  now,
 	}
 
@@ -83,7 +84,7 @@ func (r *FakePostRepository) DeletePost(ctx context.Context, postId int) error {
 	return nil
 }
 
-func (r *FakePostRepository) GetPostById(ctx context.Context, postId int) (*models.Post, error) {
+func (r *FakePostRepository) GetPostById(ctx context.Context, postId int, currentUserId int) (*models.Post, error) {
 	r.mutex.RLock()
 	defer r.mutex.RUnlock()
 
@@ -419,7 +420,7 @@ func (r *FakePostRepository) GetPostIdsForMutualFeedCursor(ctx context.Context, 
 }
 
 // GetPostIdsByUserIdCursor retrieves post IDs for a specific user using cursor-based pagination
-func (r *FakePostRepository) GetPostIdsByUserIdCursor(ctx context.Context, userId int, limit int, beforeTimestamp *time.Time) ([]int, error) {
+func (r *FakePostRepository) GetPostIdsByUserIdCursor(ctx context.Context, userId int, targetUserId int, limit int, beforeTimestamp *time.Time) ([]int, error) {
 	r.mutex.RLock()
 	defer r.mutex.RUnlock()
 

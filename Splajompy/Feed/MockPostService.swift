@@ -3,12 +3,6 @@ import Foundation
 final class MockPostStore: @unchecked Sendable {
   static let shared = MockPostStore()
 
-  private let formatter: ISO8601DateFormatter = {
-    let formatter = ISO8601DateFormatter()
-    formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-    return formatter
-  }()
-
   var posts: [Int: DetailedPost]
   var deletedPostIds: Set<Int> = []
   var pinnedPostId: Int? = nil
@@ -29,9 +23,7 @@ final class MockPostStore: @unchecked Sendable {
         user: PublicUser(
           userId: 151,
           username: "milesperhour",
-          createdAt: formatter.string(
-            from: baseDate.addingTimeInterval(-15_206_400)
-          ),
+          createdAt: baseDate.addingTimeInterval(-15_206_400),
           name: "Miles The Splajoracle",
           isVerified: false,
           displayProperties: UserDisplayProperties(fontChoiceId: 2)
@@ -59,9 +51,7 @@ final class MockPostStore: @unchecked Sendable {
         user: PublicUser(
           userId: 179,
           username: "camtalpa",
-          createdAt: formatter.string(
-            from: baseDate.addingTimeInterval(-13_392_000)
-          ),
+          createdAt: baseDate.addingTimeInterval(-13_392_000),
           name: "camalicious",
           isVerified: false,
           displayProperties: UserDisplayProperties(fontChoiceId: 7)
@@ -88,9 +78,7 @@ final class MockPostStore: @unchecked Sendable {
         user: PublicUser(
           userId: 231,
           username: "sydknee",
-          createdAt: formatter.string(
-            from: baseDate.addingTimeInterval(-10_368_000)
-          ),
+          createdAt: baseDate.addingTimeInterval(-10_368_000),
           name: "🪲🐌🐞 Sydney 🐞🐌🪲",
           isVerified: false,
           displayProperties: UserDisplayProperties(fontChoiceId: 8)
@@ -125,7 +113,7 @@ final class MockPostStore: @unchecked Sendable {
         user: PublicUser(
           userId: 6,
           username: "wesley",
-          createdAt: "2024-10-22T16:52:20-04:00",
+          createdAt: baseDate.addingTimeInterval(-31_536_000),
           name: "Wesley",
           isVerified: false,
           displayProperties: UserDisplayProperties(fontChoiceId: 8)
@@ -163,7 +151,7 @@ final class MockPostStore: @unchecked Sendable {
         user: PublicUser(
           userId: 6,
           username: "wesley",
-          createdAt: "2024-10-22T16:52:20-04:00",
+          createdAt: baseDate.addingTimeInterval(-31_536_000),
           name: "Wesley",
           isVerified: false,
           displayProperties: UserDisplayProperties(fontChoiceId: 8)
@@ -192,9 +180,7 @@ final class MockPostStore: @unchecked Sendable {
         user: PublicUser(
           userId: 1,
           username: "wesleynw",
-          createdAt: formatter.string(
-            from: baseDate.addingTimeInterval(-31_536_000)
-          ),
+          createdAt: baseDate.addingTimeInterval(-31_536_000),
           name: "Wesley 🌌",
           isVerified: true,
           displayProperties: UserDisplayProperties(fontChoiceId: 0)
@@ -219,9 +205,7 @@ final class MockPostStore: @unchecked Sendable {
         user: PublicUser(
           userId: 15,
           username: "marketvendor",
-          createdAt: formatter.string(
-            from: baseDate.addingTimeInterval(-2_592_000)
-          ),
+          createdAt: baseDate.addingTimeInterval(-2_592_000),
           name: "Market Maven",
           isVerified: false,
           displayProperties: UserDisplayProperties(fontChoiceId: 0)
@@ -258,9 +242,7 @@ final class MockPostStore: @unchecked Sendable {
         user: PublicUser(
           userId: 30,
           username: "giuseppe",
-          createdAt: formatter.string(
-            from: baseDate.addingTimeInterval(-5_184_000)
-          ),
+          createdAt: baseDate.addingTimeInterval(-5_184_000),
           name: "DROP TABLE users; --",
           isVerified: false,
           displayProperties: UserDisplayProperties(fontChoiceId: 0)
@@ -287,9 +269,7 @@ final class MockPostStore: @unchecked Sendable {
         user: PublicUser(
           userId: 120,
           username: "realsophie",
-          createdAt: formatter.string(
-            from: baseDate.addingTimeInterval(-18_144_000)
-          ),
+          createdAt: baseDate.addingTimeInterval(-18_144_000),
           name: "Sophie",
           isVerified: false,
           displayProperties: UserDisplayProperties(fontChoiceId: 0)
@@ -314,9 +294,7 @@ final class MockPostStore: @unchecked Sendable {
         user: PublicUser(
           userId: 25,
           username: "joel",
-          createdAt: formatter.string(
-            from: baseDate.addingTimeInterval(-20_736_000)
-          ),
+          createdAt: baseDate.addingTimeInterval(-20_736_000),
           name: "Joel",
           isVerified: false,
           displayProperties: UserDisplayProperties(fontChoiceId: 0)

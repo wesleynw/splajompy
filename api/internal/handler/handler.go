@@ -57,7 +57,7 @@ func (h *Handler) RegisterRoutes(handleFunc func(pattern string, handlerFunc fun
 	handleFuncWithAuth("GET /post/presignedUrl", h.GetPresignedUrl)
 	handleFuncWithAuth("POST /v2/post/new", h.CreateNewPostV2)
 	handleFuncWithAuth("GET /post/{id}", h.GetPostById)
-	handleFuncWithAuth("GET /user/{id}/posts", h.GetPostsByUserId)
+	// handleFuncWithAuth("GET /user/{id}/posts", h.GetPostsByUserId)
 	handleFuncWithAuth("DELETE /post/{id}", h.DeletePostById)
 	handleFuncWithAuth("POST /post/{id}/report", h.ReportPost)
 
@@ -105,15 +105,20 @@ func (h *Handler) RegisterRoutes(handleFunc func(pattern string, handlerFunc fun
 
 	// users
 	handleFuncWithAuth("GET /user/{id}", h.GetUserById)
-	handleFuncWithAuth("GET /user/{id}/followers", h.GetFollowersByUserId)
-	handleFuncWithAuth("GET /user/{id}/following", h.GetFollowingByUserId)
-	handleFuncWithAuth("GET /user/{id}/mutuals", h.GetMutualsByUserId)
+	handleFuncWithAuth("GET /user/{id}/followers", h.GetFollowersByUserId_old)
+	handleFuncWithAuth("GET /user/{id}/following", h.GetFollowingByUserId_old)
+	handleFuncWithAuth("GET /v2/user/{id}/following", h.GetFollowingByUserId)
+	handleFuncWithAuth("GET /user/{id}/mutuals", h.GetMutualsByUserId_old)
+	handleFuncWithAuth("GET /v2/user/{id}/mutuals", h.GetMutualsByUserId)
 	handleFuncWithAuth("GET /users/search", h.SearchUsers)
 
-	// posts
-	handleFuncWithAuth("GET /posts/following", h.GetPostsByFollowing)
-	handleFuncWithAuth("GET /posts/all", h.GetAllPosts)
-	handleFuncWithAuth("GET /posts/mutual", h.GetMutualFeed)
+	handleFuncWithAuth("POST /user/{id}/friend", h.AddUserToCloseFriendsList)
+	handleFuncWithAuth("DELETE /user/{id}/friend", h.RemoveUserFromCloseFriendsList)
+	handleFuncWithAuth("GET /user/friends", h.ListUserCloseFriends)
+
+	// handleFuncWithAuth("GET /posts/following", h.GetPostsByFollowing)
+	// handleFuncWithAuth("GET /posts/all", h.GetAllPosts)
+	// handleFuncWithAuth("GET /posts/mutual", h.GetMutualFeed)
 
 	// post routes with time-based offset
 	handleFuncWithAuth("GET /v2/posts/following", h.GetPostsByFollowingWithTimeOffset)

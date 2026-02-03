@@ -11,6 +11,7 @@ import (
 type Querier interface {
 	AddCommentToPost(ctx context.Context, arg AddCommentToPostParams) (Comment, error)
 	AddLike(ctx context.Context, arg AddLikeParams) error
+	AddUserRelationship(ctx context.Context, arg AddUserRelationshipParams) error
 	BlockUser(ctx context.Context, arg BlockUserParams) error
 	CreateSession(ctx context.Context, arg CreateSessionParams) error
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
@@ -31,7 +32,9 @@ type Querier interface {
 	GetCommentCountByPostID(ctx context.Context, postID int) (int64, error)
 	GetCommentsByPostId(ctx context.Context, postID int) ([]GetCommentsByPostIdRow, error)
 	GetFollowersByUserId(ctx context.Context, arg GetFollowersByUserIdParams) ([]GetFollowersByUserIdRow, error)
+	GetFollowersUserIds(ctx context.Context, arg GetFollowersUserIdsParams) ([]int, error)
 	GetFollowingByUserId(ctx context.Context, arg GetFollowingByUserIdParams) ([]GetFollowingByUserIdRow, error)
+	GetFollowingUserIds(ctx context.Context, arg GetFollowingUserIdsParams) ([]int, error)
 	GetImagesByPostId(ctx context.Context, postID int) ([]Image, error)
 	GetIsEmailInUse(ctx context.Context, email string) (bool, error)
 	GetIsLikedByUser(ctx context.Context, arg GetIsLikedByUserParams) (bool, error)
@@ -43,11 +46,12 @@ type Querier interface {
 	GetIsUsernameInUse(ctx context.Context, username string) (bool, error)
 	GetMutualConnectionsForUser(ctx context.Context, arg GetMutualConnectionsForUserParams) ([]string, error)
 	GetMutualsByUserId(ctx context.Context, arg GetMutualsByUserIdParams) ([]GetMutualsByUserIdRow, error)
+	GetMutualsByUserIdV2(ctx context.Context, arg GetMutualsByUserIdV2Params) ([]int, error)
 	GetNotificationById(ctx context.Context, notificationID int) (Notification, error)
 	GetNotificationsForUserId(ctx context.Context, arg GetNotificationsForUserIdParams) ([]Notification, error)
 	GetPinnedPostId(ctx context.Context, userID int) (*int, error)
 	GetPollVotesGrouped(ctx context.Context, postID int) ([]GetPollVotesGroupedRow, error)
-	GetPostById(ctx context.Context, postID int) (Post, error)
+	GetPostById(ctx context.Context, arg GetPostByIdParams) (Post, error)
 	GetPostIdsByFollowing(ctx context.Context, arg GetPostIdsByFollowingParams) ([]int, error)
 	GetPostIdsByFollowingCursor(ctx context.Context, arg GetPostIdsByFollowingCursorParams) ([]int, error)
 	GetPostIdsByUserIdCursor(ctx context.Context, arg GetPostIdsByUserIdCursorParams) ([]int, error)
@@ -84,11 +88,13 @@ type Querier interface {
 	InsertNotification(ctx context.Context, arg InsertNotificationParams) error
 	InsertPost(ctx context.Context, arg InsertPostParams) (Post, error)
 	InsertVote(ctx context.Context, arg InsertVoteParams) error
+	ListUserRelationships(ctx context.Context, arg ListUserRelationshipsParams) ([]User, error)
 	MarkAllNotificationsAsReadForUser(ctx context.Context, userID int) error
 	MarkNotificationAsReadById(ctx context.Context, notificationID int) error
 	MuteUser(ctx context.Context, arg MuteUserParams) error
 	PinPost(ctx context.Context, arg PinPostParams) error
 	RemoveLike(ctx context.Context, arg RemoveLikeParams) error
+	RemoveUserRelationship(ctx context.Context, arg RemoveUserRelationshipParams) error
 	UnblockUser(ctx context.Context, arg UnblockUserParams) error
 	UnmuteUser(ctx context.Context, arg UnmuteUserParams) error
 	UnpinPost(ctx context.Context, userID int) error

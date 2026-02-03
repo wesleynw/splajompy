@@ -16,7 +16,7 @@ import (
 	"splajompy.com/api/v2/internal/repositories/fakes"
 )
 
-func setupTest(t *testing.T) (*PostService, *fakes.FakePostRepository, *fakes.FakeUserRepository, *fakes.FakeLikeRepository, *fakes.FakeNotificationRepository, *fakes.FakeBucketRepository, models.PublicUser) {
+func setupTest(t *testing.T) (*PostService, *fakes.FakePostRepository, repositories.UserRepository, *fakes.FakeLikeRepository, *fakes.FakeNotificationRepository, *fakes.FakeBucketRepository, models.PublicUser) {
 	postRepo := fakes.NewFakePostRepository()
 	userRepo := fakes.NewFakeUserRepository()
 	likeRepo := fakes.NewFakeLikeRepository()
@@ -51,14 +51,14 @@ func TestNewPost(t *testing.T) {
 
 	bucketRepo.SetObject(imageKeymap[0].S3Key, []byte("test image data"))
 
-	err := svc.NewPost(ctx, user, text, imageKeymap, nil)
+	err := svc.NewPost(ctx, user, text, imageKeymap, nil, nil)
 	assert.NoError(t, err)
 
 	postIds, err := postRepo.GetPostIdsForUser(ctx, user.UserID, 10, 0)
 	assert.NoError(t, err)
 	assert.Len(t, postIds, 1)
 
-	post, err := postRepo.GetPostById(ctx, postIds[0])
+	post, err := postRepo.GetPostById(ctx, postIds[0], 0)
 	assert.NoError(t, err)
 	assert.Equal(t, text, post.Text)
 	assert.Equal(t, user.UserID, post.UserID)
@@ -104,7 +104,7 @@ func TestGetPostById(t *testing.T) {
 	ctx := context.Background()
 
 	postContent := "Test post content"
-	post, err := postRepo.InsertPost(ctx, user.UserID, postContent, nil, nil)
+	post, err := postRepo.InsertPost(ctx, user.UserID, postContent, nil, nil, nil)
 	require.NoError(t, err)
 
 	imageUrl := "test/posts/1/images/123.jpg"
@@ -130,25 +130,25 @@ func TestGetAllPosts(t *testing.T) {
 	ctx := context.Background()
 
 	for i := 0; i < 5; i++ {
-		_, err := postRepo.InsertPost(ctx, user.UserID, "Post content "+string(rune(i+48)), nil, nil)
+		_, err := postRepo.InsertPost(ctx, user.UserID, "Post content "+string(rune(i+48)), nil, nil, nil)
 		require.NoError(t, err)
 	}
 
 	posts, err := svc.GetAllPosts(ctx, user, 10, 0)
 	assert.NoError(t, err)
-	assert.Len(t, *posts, 5)
+	assert.Len(t, posts, 5)
 
 	posts, err = svc.GetAllPosts(ctx, user, 2, 0)
 	assert.NoError(t, err)
-	assert.Len(t, *posts, 2)
+	assert.Len(t, posts, 2)
 
 	posts, err = svc.GetAllPosts(ctx, user, 2, 2)
 	assert.NoError(t, err)
-	assert.Len(t, *posts, 2)
+	assert.Len(t, posts, 2)
 
 	posts, err = svc.GetAllPosts(ctx, user, 2, 4)
 	assert.NoError(t, err)
-	assert.Len(t, *posts, 1)
+	assert.Len(t, posts, 1)
 }
 
 func TestGetPostsByUserId(t *testing.T) {
@@ -160,22 +160,22 @@ func TestGetPostsByUserId(t *testing.T) {
 	require.NoError(t, err)
 
 	for i := 0; i < 3; i++ {
-		_, err := postRepo.InsertPost(ctx, user.UserID, "User 1 post "+string(rune(i+48)), nil, nil)
+		_, err := postRepo.InsertPost(ctx, user.UserID, "User 1 post "+string(rune(i+48)), nil, nil, nil)
 		require.NoError(t, err)
 	}
 
 	for i := 0; i < 2; i++ {
-		_, err := postRepo.InsertPost(ctx, user2.UserID, "User 2 post "+string(rune(i+48)), nil, nil)
+		_, err := postRepo.InsertPost(ctx, user2.UserID, "User 2 post "+string(rune(i+48)), nil, nil, nil)
 		require.NoError(t, err)
 	}
 
 	posts, err := svc.GetPostsByUserId(ctx, user, user.UserID, 10, 0)
 	assert.NoError(t, err)
-	assert.Len(t, *posts, 3)
+	assert.Len(t, posts, 3)
 
 	posts, err = svc.GetPostsByUserId(ctx, user, user2.UserID, 10, 0)
 	assert.NoError(t, err)
-	assert.Len(t, *posts, 2)
+	assert.Len(t, posts, 2)
 }
 
 func TestDeletePost(t *testing.T) {
@@ -183,25 +183,25 @@ func TestDeletePost(t *testing.T) {
 
 	ctx := context.Background()
 
-	post, err := postRepo.InsertPost(ctx, user.UserID, "Test post for deletion", nil, nil)
+	post, err := postRepo.InsertPost(ctx, user.UserID, "Test post for deletion", nil, nil, nil)
 	require.NoError(t, err)
 
 	err = svc.DeletePost(ctx, user, post.PostID)
 	assert.NoError(t, err)
 
-	_, err = postRepo.GetPostById(ctx, post.PostID)
+	_, err = postRepo.GetPostById(ctx, post.PostID, 0)
 	assert.Error(t, err)
 
 	otherUser, err := userRepo.CreateUser(ctx, "otheruser", "other@example.com", "password", "123")
 	require.NoError(t, err)
 
-	post2, err := postRepo.InsertPost(ctx, otherUser.UserID, "Other user's post", nil, nil)
+	post2, err := postRepo.InsertPost(ctx, otherUser.UserID, "Other user's post", nil, nil, nil)
 	require.NoError(t, err)
 
 	err = svc.DeletePost(ctx, user, post2.PostID)
 	assert.Error(t, err)
 
-	_, err = postRepo.GetPostById(ctx, post2.PostID)
+	_, err = postRepo.GetPostById(ctx, post2.PostID, 0)
 	assert.NoError(t, err)
 }
 
@@ -214,7 +214,7 @@ func TestAddLikeToPost(t *testing.T) {
 	secondUser, err := userRepo.CreateUser(ctx, "otherUser", "otheruser@splajompy.com", "password", "123")
 	require.NoError(t, err)
 
-	post0, err := postRepo.InsertPost(ctx, postOwner.UserID, "Test post for liking", nil, nil)
+	post0, err := postRepo.InsertPost(ctx, postOwner.UserID, "Test post for liking", nil, nil, nil)
 	require.NoError(t, err)
 
 	err = svc.AddLikeToPost(ctx, postOwner, post0.PostID)
@@ -249,7 +249,7 @@ func TestRemoveLikeFromPost(t *testing.T) {
 	secondUser, err := userRepo.CreateUser(ctx, "otherUser", "otheruser@splajompy.com", "password", "123")
 	require.NoError(t, err)
 
-	post0, err := postRepo.InsertPost(ctx, postOwner.UserID, "Test post for liking", nil, nil)
+	post0, err := postRepo.InsertPost(ctx, postOwner.UserID, "Test post for liking", nil, nil, nil)
 	require.NoError(t, err)
 
 	err = svc.AddLikeToPost(ctx, postOwner, post0.PostID)
@@ -290,7 +290,7 @@ func TestGetPostWithPoll_ReturnsEmptyPoll(t *testing.T) {
 		},
 	}}
 
-	post, err := postRepo.InsertPost(ctx, user.UserID, "Test post for vote on saving", nil, &attributes)
+	post, err := postRepo.InsertPost(ctx, user.UserID, "Test post for vote on saving", nil, &attributes, nil)
 	require.NoError(t, err)
 
 	updatedPost, err := svc.GetPostById(ctx, currentUser.UserID, post.PostID)
@@ -324,7 +324,7 @@ func TestVoteOnPoll_NegativeOptionIndex_ReturnsError(t *testing.T) {
 		},
 	}}
 
-	post, err := postRepo.InsertPost(ctx, user.UserID, "Test post for vote on saving", nil, &attributes)
+	post, err := postRepo.InsertPost(ctx, user.UserID, "Test post for vote on saving", nil, &attributes, nil)
 	require.NoError(t, err)
 
 	err = svc.VoteOnPoll(ctx, currentUser, post.PostID+1, -10)
@@ -345,7 +345,7 @@ func TestVoteOnPoll_Nonexistent_ReturnsError(t *testing.T) {
 		},
 	}}
 
-	post, err := postRepo.InsertPost(ctx, user.UserID, "Test post for vote on saving", nil, &attributes)
+	post, err := postRepo.InsertPost(ctx, user.UserID, "Test post for vote on saving", nil, &attributes, nil)
 	require.NoError(t, err)
 
 	err = svc.VoteOnPoll(ctx, currentUser, post.PostID+1, 2)
@@ -366,7 +366,7 @@ func TestVoteOnPoll_InvalidOptionIndex_ReturnsError(t *testing.T) {
 		},
 	}}
 
-	post, err := postRepo.InsertPost(ctx, user.UserID, "Test post for vote on saving", nil, &attributes)
+	post, err := postRepo.InsertPost(ctx, user.UserID, "Test post for vote on saving", nil, &attributes, nil)
 	require.NoError(t, err)
 
 	err = svc.VoteOnPoll(ctx, currentUser, post.PostID, 2)
@@ -401,7 +401,7 @@ func TestVoteOnPoll_SavesVote(t *testing.T) {
 		},
 	}
 
-	post, err := postRepo.InsertPost(ctx, user.UserID, "Test post for vote on saving", nil, &db.Attributes{Poll: poll})
+	post, err := postRepo.InsertPost(ctx, user.UserID, "Test post for vote on saving", nil, &db.Attributes{Poll: poll}, nil)
 	require.NoError(t, err)
 
 	err = svc.VoteOnPoll(ctx, currentUser, post.PostID, 0)
@@ -440,7 +440,7 @@ func TestVoteOnPoll_SavesVote_Multi(t *testing.T) {
 		},
 	}
 
-	post, err := postRepo.InsertPost(ctx, user0.UserID, "Test post for vote on saving", nil, &db.Attributes{Poll: poll})
+	post, err := postRepo.InsertPost(ctx, user0.UserID, "Test post for vote on saving", nil, &db.Attributes{Poll: poll}, nil)
 	require.NoError(t, err)
 
 	err = svc.VoteOnPoll(ctx, currentUser, post.PostID, 1)
@@ -477,7 +477,7 @@ func TestRemoveLikeFromPost_DeletesRecentNotification(t *testing.T) {
 	otherUser, err := userRepo.CreateUser(ctx, "otheruser", "other@example.com", "password", "123")
 	require.NoError(t, err)
 
-	post, err := svc.postRepository.InsertPost(ctx, otherUser.UserID, "Test post", nil, nil)
+	post, err := svc.postRepository.InsertPost(ctx, otherUser.UserID, "Test post", nil, nil, nil)
 	require.NoError(t, err)
 
 	err = likeRepo.AddLike(ctx, user.UserID, post.PostID, nil)
@@ -499,7 +499,7 @@ func TestRemoveLikeFromPost_KeepsOldNotification(t *testing.T) {
 	otherUser, err := userRepo.CreateUser(ctx, "otheruser", "other@example.com", "password", "123")
 	require.NoError(t, err)
 
-	post, err := svc.postRepository.InsertPost(ctx, otherUser.UserID, "Test post", nil, nil)
+	post, err := svc.postRepository.InsertPost(ctx, otherUser.UserID, "Test post", nil, nil, nil)
 	require.NoError(t, err)
 
 	err = likeRepo.AddLike(ctx, user.UserID, post.PostID, nil)
@@ -529,7 +529,7 @@ func TestRemoveLikeFromPost_NoNotificationExists(t *testing.T) {
 	otherUser, err := userRepo.CreateUser(ctx, "otheruser", "other@example.com", "password", "123")
 	require.NoError(t, err)
 
-	post, err := svc.postRepository.InsertPost(ctx, otherUser.UserID, "Test post", nil, nil)
+	post, err := svc.postRepository.InsertPost(ctx, otherUser.UserID, "Test post", nil, nil, nil)
 	require.NoError(t, err)
 
 	err = likeRepo.AddLike(ctx, user.UserID, post.PostID, nil)
@@ -549,7 +549,7 @@ func TestNewPost_DoesntSelfNotify(t *testing.T) {
 	require.NoError(t, err)
 
 	postText := "test post that mentions the current user @user0 @user0"
-	err = svc.NewPost(ctx, user0, postText, nil, nil)
+	err = svc.NewPost(ctx, user0, postText, nil, nil, nil)
 	require.NoError(t, err)
 
 	notifications, err := notificationRepo.GetNotificationsForUserId(ctx, user0.UserID, 0, 10)
@@ -568,7 +568,7 @@ func TestSendOneNotificationToEachMentionedUser(t *testing.T) {
 	require.NoError(t, err)
 
 	postText := "this is a test post which mentions users: @user1 @user1 @user2 @user2 @user2"
-	err = svc.NewPost(ctx, user0, postText, nil, nil)
+	err = svc.NewPost(ctx, user0, postText, nil, nil, nil)
 	require.NoError(t, err)
 
 	user1Notifications, err := notificationRepo.GetNotificationsForUserId(ctx, user1.UserID, 0, 10)
@@ -581,3 +581,37 @@ func TestSendOneNotificationToEachMentionedUser(t *testing.T) {
 
 	assert.Len(t, user2Notifications, 1)
 }
+
+// TODO: this type of test isn't gonna work now because the business logic for filtering visibility is in the repository/SQL
+// func TestGetPosts_DoesNotReturnPrivatePosts(t *testing.T) {
+// 	var svc, _, userRepository, _, _, _, _ = setupTest(t)
+
+// 	user0, err := userRepository.CreateUser(t.Context(), "user0", "email-0@email.com", "123", "123")
+// 	assert.NoError(t, err)
+
+// 	user1, err := userRepository.CreateUser(t.Context(), "user1", "email-1@email.com", "123", "123")
+// 	assert.NoError(t, err)
+
+// 	visibility := models.VisibilityCloseFriends
+// 	err = svc.NewPost(t.Context(), user0, "test post please ignore", nil, nil, (*int)(&visibility))
+// 	assert.NoError(t, err)
+
+// 	posts, err := svc.GetAllPosts(t.Context(), user0, 10, 0)
+// 	assert.NoError(t, err)
+// 	assert.Len(t, posts, 1)
+
+// 	postId := posts[0].Post.PostID
+
+// 	// no post fetching method should return this private post
+// 	posts, err = svc.GetPosts(t.Context(), user1, FeedTypeAll, nil, 10, nil)
+// 	assert.NoError(t, err)
+// 	assert.Empty(t, posts, "PostService returned a private post for another user")
+
+// 	posts, err = svc.GetPosts(t.Context(), user1, FeedTypeProfile, &user0.UserID, 10, nil)
+// 	assert.NoError(t, err)
+// 	assert.Empty(t, posts, "PostService returned a private post for another user")
+
+// 	post, err := svc.GetPostById(t.Context(), user1.UserID, postId)
+// 	assert.NoError(t, err)
+// 	assert.Nil(t, post, "PostService returned a private post for another user")
+// }

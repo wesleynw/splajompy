@@ -83,12 +83,13 @@ type PollVote struct {
 }
 
 type Post struct {
-	PostID     int              `json:"postId"`
-	UserID     int              `json:"userId"`
-	Text       pgtype.Text      `json:"text"`
-	CreatedAt  pgtype.Timestamp `json:"createdAt"`
-	Facets     db.Facets        `json:"facets"`
-	Attributes *db.Attributes   `json:"attributes"`
+	PostID         int              `json:"postId"`
+	UserID         int              `json:"userId"`
+	Text           pgtype.Text      `json:"text"`
+	CreatedAt      pgtype.Timestamp `json:"createdAt"`
+	Facets         db.Facets        `json:"facets"`
+	Attributes     *db.Attributes   `json:"attributes"`
+	Visibilitytype int              `json:"visibilitytype"`
 }
 
 type Session struct {
@@ -108,6 +109,12 @@ type User struct {
 	PinnedPostID          *int                      `json:"pinnedPostId"`
 	UserDisplayProperties *db.UserDisplayProperties `json:"userDisplayProperties"`
 	ReferralCode          string                    `json:"referralCode"`
+}
+
+type UserRelationship struct {
+	UserID       int              `json:"userId"`
+	TargetUserID int              `json:"targetUserId"`
+	CreatedAt    pgtype.Timestamp `json:"createdAt"`
 }
 
 type VerificationCode struct {

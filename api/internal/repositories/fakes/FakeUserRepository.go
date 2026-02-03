@@ -11,6 +11,7 @@ import (
 	"splajompy.com/api/v2/internal/db"
 	"splajompy.com/api/v2/internal/db/queries"
 	"splajompy.com/api/v2/internal/models"
+	"splajompy.com/api/v2/internal/repositories"
 )
 
 type FakeUserRepository struct {
@@ -27,9 +28,10 @@ type FakeUserRepository struct {
 	sessions              map[string]queries.Session
 	mutex                 sync.RWMutex
 	nextUserId            int
+	userRelationships     map[int]map[int]time.Time
 }
 
-func NewFakeUserRepository() *FakeUserRepository {
+func NewFakeUserRepository() repositories.UserRepository {
 	return &FakeUserRepository{
 		users:                 make(map[int]models.PublicUser),
 		usersByUsername:       make(map[string]int),
@@ -43,6 +45,7 @@ func NewFakeUserRepository() *FakeUserRepository {
 		verificationCodes:     make(map[int]map[string]queries.VerificationCode),
 		sessions:              make(map[string]queries.Session),
 		nextUserId:            1,
+		userRelationships:     make(map[int]map[int]time.Time),
 	}
 }
 
@@ -541,7 +544,7 @@ func (r *FakeUserRepository) GetMutualConnectionsForUser(ctx context.Context, us
 	return nil, nil
 }
 
-func (r *FakeUserRepository) GetFollowersByUserId(ctx context.Context, userId int, limit int, offset int) ([]queries.GetFollowersByUserIdRow, error) {
+func (r *FakeUserRepository) GetFollowersByUserId_old(ctx context.Context, userId int, limit int, offset int) ([]queries.GetFollowersByUserIdRow, error) {
 	r.mutex.RLock()
 	defer r.mutex.RUnlock()
 
@@ -580,7 +583,17 @@ func (r *FakeUserRepository) GetFollowersByUserId(ctx context.Context, userId in
 	return followers[start:end], nil
 }
 
-func (r *FakeUserRepository) GetFollowingByUserId(ctx context.Context, userId int, limit int, offset int) ([]queries.GetFollowingByUserIdRow, error) {
+// TODO
+func (r *FakeUserRepository) GetFollowersByUserId(ctx context.Context, userId int, limit int, before *time.Time) ([]models.PublicUser, error) {
+	return nil, nil
+}
+
+// TODO
+func (r *FakeUserRepository) GetFollowingUserIds(ctx context.Context, userId int, limit int, before *time.Time) ([]int, error) {
+	return nil, nil
+}
+
+func (r *FakeUserRepository) GetFollowingByUserId_old(ctx context.Context, userId int, limit int, offset int) ([]queries.GetFollowingByUserIdRow, error) {
 	r.mutex.RLock()
 	defer r.mutex.RUnlock()
 
@@ -621,7 +634,7 @@ func (r *FakeUserRepository) GetFollowingByUserId(ctx context.Context, userId in
 	return following[start:end], nil
 }
 
-func (r *FakeUserRepository) GetMutualsByUserId(ctx context.Context, currentUserId int, targetUserId int, limit int, offset int) ([]queries.GetMutualsByUserIdRow, error) {
+func (r *FakeUserRepository) GetMutualsByUserId_old(ctx context.Context, currentUserId int, targetUserId int, limit int, offset int) ([]queries.GetMutualsByUserIdRow, error) {
 	r.mutex.RLock()
 	defer r.mutex.RUnlock()
 
@@ -666,6 +679,72 @@ func (r *FakeUserRepository) GetMutualsByUserId(ctx context.Context, currentUser
 	return mutuals[start:end], nil
 }
 
+// TODO
+func (r *FakeUserRepository) GetMutualUserIds(ctx context.Context, userId int, targetUserId int, limit int, before *time.Time) ([]int, error) {
+	return nil, nil
+}
+
 func (r *FakeUserRepository) GetIsReferralCodeInUse(ctx context.Context, code string) (bool, error) {
 	return false, nil
+}
+
+func (r *FakeUserRepository) AddUserRelationship(ctx context.Context, userId int, targetUserId int) error {
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
+
+	if r.userRelationships[userId] == nil {
+		r.userRelationships[userId] = make(map[int]time.Time)
+	}
+
+	r.userRelationships[userId][targetUserId] = time.Now()
+
+	return nil
+}
+
+func (r *FakeUserRepository) RemoveUserRelationship(ctx context.Context, userId int, targetUserId int) error {
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
+
+	if r.userRelationships[userId] != nil {
+		delete(r.userRelationships[userId], targetUserId)
+	}
+
+	return nil
+}
+
+func (r *FakeUserRepository) GetRelationshipByUserId(ctx context.Context, userId int, limit int, before *time.Time) ([]models.PublicUser, error) {
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
+
+	var users []models.PublicUser
+	if r.userRelationships[userId] == nil {
+		return users, nil
+	}
+
+	for targetUserId, createdAt := range r.userRelationships[userId] {
+		if before == nil || !createdAt.Before(*before) {
+			user := r.users[targetUserId]
+			users = append(users, user)
+		}
+	}
+
+	return users, nil
+}
+
+func (r *FakeUserRepository) GetRelationshipUserIds(ctx context.Context, userId int, limit int, before *time.Time) ([]int, error) {
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
+
+	var userIds []int
+	if r.userRelationships[userId] == nil {
+		return userIds, nil
+	}
+
+	for targetUserId, createdAt := range r.userRelationships[userId] {
+		if before == nil || !createdAt.Before(*before) {
+			userIds = append(userIds, targetUserId)
+		}
+	}
+
+	return userIds, nil
 }

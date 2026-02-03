@@ -14,12 +14,12 @@ const UserContextKey ContextKey = "user"
 
 func MapUserToPublicUser(user queries.User) models.PublicUser {
 	publicUser := models.PublicUser{
-		UserID:            user.UserID,
-		Username:          user.Username,
-		Email:             user.Email,
-		Name:              user.Name.String,
-		CreatedAt:         user.CreatedAt.Time,
-		IsVerified:        user.IsVerified,
+		UserID:     user.UserID,
+		Username:   user.Username,
+		Email:      user.Email,
+		Name:       user.Name.String,
+		CreatedAt:  user.CreatedAt.Time,
+		IsVerified: user.IsVerified,
 	}
 
 	if user.UserDisplayProperties != nil {
@@ -32,11 +32,12 @@ func MapUserToPublicUser(user queries.User) models.PublicUser {
 // MapPost is a utility function to convert from queries.Post to models.Post.
 func MapPost(post queries.Post) models.Post {
 	return models.Post{
-		PostID:    post.PostID,
-		UserID:    post.UserID,
-		Text:      post.Text.String,
-		CreatedAt: post.CreatedAt.Time.UTC(),
-		Facets:    post.Facets,
+		PostID:     post.PostID,
+		UserID:     post.UserID,
+		Text:       post.Text.String,
+		CreatedAt:  post.CreatedAt.Time.UTC(),
+		Facets:     post.Facets,
+		Visibility: (*models.VisibilityTypeEnum)(&post.Visibilitytype),
 	}
 }
 

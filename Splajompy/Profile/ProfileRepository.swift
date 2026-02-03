@@ -29,15 +29,32 @@ protocol ProfileServiceProtocol: Sendable {
     EmptyResponse
   >
   func requestFeature(text: String) async -> AsyncResult<EmptyResponse>
-  func getFollowers(userId: Int, offset: Int, limit: Int) async -> AsyncResult<
+
+  //  func getFollowers(userId: Int, offset: Int, limit: Int) async -> AsyncResult<
+  //    [DetailedUser]
+  //  >
+
+  /// Fetch users that the given user is following.
+  func getFollowing(userId: Int, limit: Int, before: Date?) async
+    -> AsyncResult<
+      [DetailedUser]
+    >
+
+  func getMutuals(userId: Int, limit: Int, before: Date?) async -> AsyncResult<
     [DetailedUser]
   >
-  func getFollowing(userId: Int, offset: Int, limit: Int) async -> AsyncResult<
+
+  /// Fetch friends of a target user.
+  func getFriends(userId: Int, limit: Int, before: Date?) async -> AsyncResult<
     [DetailedUser]
   >
-  func getMutuals(userId: Int, offset: Int, limit: Int) async -> AsyncResult<
-    [DetailedUser]
-  >
+
+  /// Add a user to the current user's friends list.
+  func addFriend(userId: Int) async -> AsyncResult<EmptyResponse>
+
+  /// Remove a user from the current user's friends list.
+  func removeFriend(userId: Int) async -> AsyncResult<EmptyResponse>
+
   /// Fetch statistics about app.
   func getAppStatistics() async -> AsyncResult<AppStatistics>
 }
@@ -146,29 +163,89 @@ struct ProfileService: ProfileServiceProtocol {
     )
   }
 
-  func getFollowing(userId: Int, offset: Int, limit: Int) async -> AsyncResult<
-    [DetailedUser]
-  > {
-    let queryItems = [
-      URLQueryItem(name: "offset", value: "\(offset)"),
-      URLQueryItem(name: "limit", value: "\(limit)"),
+  func getFollowing(userId: Int, limit: Int, before: Date?) async
+    -> AsyncResult<
+      [DetailedUser]
+    >
+  {
+    var queryItems = [
+      URLQueryItem(name: "limit", value: "\(limit)")
     ]
+
+    if let before = before {
+      let formatter = ISO8601DateFormatter()
+      formatter.formatOptions = [.withInternetDateTime, .withTimeZone]
+      queryItems.append(
+        URLQueryItem(
+          name: "before",
+          value: formatter.string(from: before)
+        )
+      )
+    }
+
     return await APIService.performRequest(
-      endpoint: "user/\(userId)/following",
+      endpoint: "v2/user/\(userId)/following",
       queryItems: queryItems
     )
   }
 
-  func getMutuals(userId: Int, offset: Int, limit: Int) async -> AsyncResult<
+  func getMutuals(userId: Int, limit: Int, before: Date?) async -> AsyncResult<
     [DetailedUser]
   > {
-    let queryItems = [
-      URLQueryItem(name: "offset", value: "\(offset)"),
-      URLQueryItem(name: "limit", value: "\(limit)"),
+    var queryItems = [
+      URLQueryItem(name: "limit", value: "\(limit)")
     ]
+
+    if let before = before {
+      let formatter = ISO8601DateFormatter()
+      formatter.formatOptions = [.withInternetDateTime, .withTimeZone]
+      queryItems.append(
+        URLQueryItem(
+          name: "before",
+          value: formatter.string(from: before)
+        )
+      )
+    }
+
     return await APIService.performRequest(
-      endpoint: "user/\(userId)/mutuals",
+      endpoint: "v2/user/\(userId)/mutuals",
       queryItems: queryItems
+    )
+  }
+
+  func getFriends(userId: Int, limit: Int, before: Date?) async -> AsyncResult<
+    [DetailedUser]
+  > {
+    var queryItems = [URLQueryItem(name: "limit", value: "\(limit)")]
+
+    if let before = before {
+      let formatter = ISO8601DateFormatter()
+      formatter.formatOptions = [.withInternetDateTime, .withTimeZone]
+      queryItems.append(
+        URLQueryItem(
+          name: "before",
+          value: formatter.string(from: before)
+        )
+      )
+    }
+
+    return await APIService.performRequest(
+      endpoint: "user/friends",
+      queryItems: queryItems
+    )
+  }
+
+  func addFriend(userId: Int) async -> AsyncResult<EmptyResponse> {
+    return await APIService.performRequest(
+      endpoint: "user/\(userId)/friend",
+      method: "POST"
+    )
+  }
+
+  func removeFriend(userId: Int) async -> AsyncResult<EmptyResponse> {
+    return await APIService.performRequest(
+      endpoint: "user/\(userId)/friend",
+      method: "DELETE"
     )
   }
 

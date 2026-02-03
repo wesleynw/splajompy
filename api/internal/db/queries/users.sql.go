@@ -12,6 +12,21 @@ import (
 	db "splajompy.com/api/v2/internal/db"
 )
 
+const addUserRelationship = `-- name: AddUserRelationship :exec
+INSERT INTO user_relationship (user_id, target_user_id)
+VALUES ($1, $2)
+`
+
+type AddUserRelationshipParams struct {
+	UserID       int `json:"userId"`
+	TargetUserID int `json:"targetUserId"`
+}
+
+func (q *Queries) AddUserRelationship(ctx context.Context, arg AddUserRelationshipParams) error {
+	_, err := q.db.Exec(ctx, addUserRelationship, arg.UserID, arg.TargetUserID)
+	return err
+}
+
 const blockUser = `-- name: BlockUser :exec
 INSERT INTO block (user_id, target_user_id)
 VALUES ($1, $2)
@@ -428,6 +443,53 @@ func (q *Queries) GetVerificationCode(ctx context.Context, arg GetVerificationCo
 	return i, err
 }
 
+const listUserRelationships = `-- name: ListUserRelationships :many
+SELECT users.user_id, users.email, users.password, users.username, users.created_at, users.name, users.is_verified, users.pinned_post_id, users.user_display_properties, users.referral_code
+FROM users
+JOIN user_relationship ON user_relationship.user_id = $1::int
+WHERE users.user_id = user_relationship.target_user_id
+    AND ($2::timestamptz IS NULL OR user_relationship.created_at < $2)
+ORDER BY user_relationship.created_at DESC
+LIMIT $3::int
+`
+
+type ListUserRelationshipsParams struct {
+	UserID int                `json:"userId"`
+	Before pgtype.Timestamptz `json:"before"`
+	Limit  int                `json:"limit"`
+}
+
+func (q *Queries) ListUserRelationships(ctx context.Context, arg ListUserRelationshipsParams) ([]User, error) {
+	rows, err := q.db.Query(ctx, listUserRelationships, arg.UserID, arg.Before, arg.Limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []User
+	for rows.Next() {
+		var i User
+		if err := rows.Scan(
+			&i.UserID,
+			&i.Email,
+			&i.Password,
+			&i.Username,
+			&i.CreatedAt,
+			&i.Name,
+			&i.IsVerified,
+			&i.PinnedPostID,
+			&i.UserDisplayProperties,
+			&i.ReferralCode,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const muteUser = `-- name: MuteUser :exec
 INSERT INTO mute (user_id, target_user_id)
 VALUES ($1, $2)
@@ -441,6 +503,21 @@ type MuteUserParams struct {
 
 func (q *Queries) MuteUser(ctx context.Context, arg MuteUserParams) error {
 	_, err := q.db.Exec(ctx, muteUser, arg.UserID, arg.TargetUserID)
+	return err
+}
+
+const removeUserRelationship = `-- name: RemoveUserRelationship :exec
+DELETE FROM user_relationship
+WHERE user_id = $1 AND target_user_id = $2
+`
+
+type RemoveUserRelationshipParams struct {
+	UserID       int `json:"userId"`
+	TargetUserID int `json:"targetUserId"`
+}
+
+func (q *Queries) RemoveUserRelationship(ctx context.Context, arg RemoveUserRelationshipParams) error {
+	_, err := q.db.Exec(ctx, removeUserRelationship, arg.UserID, arg.TargetUserID)
 	return err
 }
 
