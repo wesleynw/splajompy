@@ -391,7 +391,7 @@ AND (
         SELECT 1
         FROM user_relationship
         WHERE user_id = posts.user_id
-            AND target_user_id = $1
+            AND target_user_id = $3
     )
 )
 ORDER BY created_at DESC
