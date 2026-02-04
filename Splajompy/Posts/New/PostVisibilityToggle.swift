@@ -65,7 +65,6 @@ struct PostVisibilityToggle: View {
   private var menuLabel: some View {
     let label = HStack(spacing: 4) {
       Image(systemName: icon(for: selectedVisibility))
-      Text(title(for: selectedVisibility))
       Image(systemName: "chevron.down")
         .font(.caption)
     }
