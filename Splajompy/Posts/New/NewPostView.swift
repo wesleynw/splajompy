@@ -235,6 +235,7 @@ struct NewPostView: View {
       PostVisibilityToggle(selectedVisibility: $viewModel.visibility)
 
       Text("\(viewModel.text.string.count)/2500")
+        .monospacedDigit()
         .foregroundStyle(
           viewModel.text.string.count > 2500
             ? Color.red.opacity(0.7) : Color.primary.opacity(0.5)
