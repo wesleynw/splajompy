@@ -169,7 +169,7 @@ func (s *UserService) RequestFeature(ctx context.Context, user models.PublicUser
 		return err
 	}
 
-	html, err := templates.GenerateFeatureRequestEmail(requestingUser.Username, text)
+	body, err := templates.GenerateSupportEmail(requestingUser.Username, text)
 	if err != nil {
 		return err
 	}
@@ -177,8 +177,8 @@ func (s *UserService) RequestFeature(ctx context.Context, user models.PublicUser
 	params := &resend.SendEmailRequest{
 		From:    "Splajompy <no-reply@splajompy.com>",
 		To:      []string{"wesleynw@pm.me"},
-		Subject: fmt.Sprintf("@%s requested a feature", requestingUser.Username),
-		Html:    html,
+		Subject: fmt.Sprintf("Support request from @%s", requestingUser.Username),
+		Text:    body,
 	}
 
 	_, err = s.emailService.Emails.Send(params)
