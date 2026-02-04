@@ -14,7 +14,7 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
-	"github.com/resend/resend-go/v2"
+	"github.com/resend/resend-go/v3"
 
 	"splajompy.com/api/v2/internal/handler"
 	"splajompy.com/api/v2/internal/middleware"
