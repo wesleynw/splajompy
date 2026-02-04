@@ -322,7 +322,7 @@ func (s *AuthService) sendSignInEmail(email, username string) {
 		Text:    text,
 	}
 
-	s.resendClient.Emails.Send(params)
+	_, _ = s.resendClient.Emails.Send(params)
 }
 
 func (s *AuthService) DeleteAccount(ctx context.Context, currentUser models.PublicUser) error {
