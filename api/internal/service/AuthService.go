@@ -186,6 +186,8 @@ func (s *AuthService) LoginWithCredentials(ctx context.Context, credentials *Cre
 		return nil, ErrGeneral
 	}
 
+	go s.sendSignInEmail(user.Email, user.Username)
+
 	return &AuthResponse{
 		Token: token,
 		User:  user,
@@ -213,6 +215,8 @@ func (s *AuthService) VerifyOTCCode(ctx context.Context, identifier string, code
 	if err != nil {
 		return nil, ErrGeneral
 	}
+
+	go s.sendSignInEmail(user.Email, user.Username)
 
 	return &AuthResponse{
 		Token: token,
@@ -303,6 +307,22 @@ func (s *AuthService) generateReferralCode(ctx context.Context) (*string, error)
 
 	formattedCode := strings.ToUpper(code)
 	return &formattedCode, nil
+}
+
+func (s *AuthService) sendSignInEmail(email, username string) {
+	text, err := templates.GenerateSignInEmail(username)
+	if err != nil {
+		return
+	}
+
+	params := &resend.SendEmailRequest{
+		From:    "Splajompy <no-reply@splajompy.com>",
+		To:      []string{email},
+		Subject: "New sign-in to your Splajompy account",
+		Text:    text,
+	}
+
+	_, _ = s.resendClient.Emails.Send(params)
 }
 
 func (s *AuthService) DeleteAccount(ctx context.Context, currentUser models.PublicUser) error {
