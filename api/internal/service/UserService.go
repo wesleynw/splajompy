@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/resend/resend-go/v2"
+	"github.com/resend/resend-go/v3"
 	"golang.org/x/sync/errgroup"
 	"splajompy.com/api/v2/internal/db"
 	"splajompy.com/api/v2/internal/templates"
