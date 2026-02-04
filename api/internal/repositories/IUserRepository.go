@@ -30,6 +30,8 @@ type UserRepository interface {
 
 	UpdateUserName(ctx context.Context, userId int, newName string) error
 
+	GetUserDisplayProperties(ctx context.Context, userId int) (*db.UserDisplayProperties, error)
+
 	UpdateUserDisplayProperties(ctx context.Context, userId int, displayProperties *db.UserDisplayProperties) error
 
 	GetIsUsernameInUse(ctx context.Context, username string) (bool, error)

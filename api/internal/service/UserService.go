@@ -119,9 +119,20 @@ func (s *UserService) UpdateProfile(ctx context.Context, userId int, name *strin
 		}
 	}
 	if displayProperties != nil {
-		dbDisplayProperties := db.UserDisplayProperties{
-			FontChoiceId: displayProperties.FontChoiceId,
+		// fetch current properties to preserve sensitive server-tracked fields
+		currentProps, err := s.userRepository.GetUserDisplayProperties(ctx, userId)
+		if err != nil {
+			return err
 		}
+
+		var dbDisplayProperties db.UserDisplayProperties
+		if currentProps != nil {
+			dbDisplayProperties = *currentProps
+		}
+
+		// only update user-editable fields
+		dbDisplayProperties.FontChoiceId = displayProperties.FontChoiceId
+
 		if err := s.userRepository.UpdateUserDisplayProperties(ctx, userId, &dbDisplayProperties); err != nil {
 			return err
 		}

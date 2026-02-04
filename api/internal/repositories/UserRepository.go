@@ -117,6 +117,15 @@ func (r DBUserRepository) UpdateUserName(ctx context.Context, userId int, newNam
 	})
 }
 
+// GetUserDisplayProperties retrieves a user's display properties
+func (r DBUserRepository) GetUserDisplayProperties(ctx context.Context, userId int) (*db.UserDisplayProperties, error) {
+	user, err := r.querier.GetUserById(ctx, userId)
+	if err != nil {
+		return nil, err
+	}
+	return user.UserDisplayProperties, nil
+}
+
 // UpdateUserDisplayProperties updates a user's display properties
 func (r DBUserRepository) UpdateUserDisplayProperties(ctx context.Context, userId int, displayProperties *db.UserDisplayProperties) error {
 	return r.querier.UpdateUserDisplayProperties(ctx, queries.UpdateUserDisplayPropertiesParams{
