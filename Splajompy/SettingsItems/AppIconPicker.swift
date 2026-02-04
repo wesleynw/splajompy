@@ -8,59 +8,42 @@ struct AppIconPickerView: View {
   }
 
   var body: some View {
-    HStack(spacing: 20) {
-      Image("icon-png")
-        .resizable()
-        .frame(width: 80, height: 80)
-        .cornerRadius(16)
-        .overlay(
-          RoundedRectangle(cornerRadius: 16)
-            .stroke(
-              selectedIcon == nil ? Color.blue : Color.clear,
-              lineWidth: 5
-            )
-        )
-        .onTapGesture {
-          selectedIcon = nil
-          setAppIcon(nil)
-        }
-
-      Image("rainbow-icon-png")
-        .resizable()
-        .frame(width: 80, height: 80)
-        .cornerRadius(16)
-        .overlay(
-          RoundedRectangle(cornerRadius: 16)
-            .stroke(
-              selectedIcon == "rainbow-icon" ? Color.blue : Color.clear,
-              lineWidth: 5
-            )
-        )
-        .onTapGesture {
-          selectedIcon = "rainbow-icon"
-          setAppIcon("rainbow-icon")
-        }
-
-      Image("pumpkin-icon-png")
-        .resizable()
-        .frame(width: 80, height: 80)
-        .cornerRadius(16)
-        .overlay(
-          RoundedRectangle(cornerRadius: 16)
-            .stroke(
-              selectedIcon == "pumpkin-icon" ? Color.blue : Color.clear,
-              lineWidth: 5
-            )
-        )
-        .onTapGesture {
-          selectedIcon = "pumpkin-icon"
-          setAppIcon("pumpkin-icon")
-        }
+    ScrollView {
+      LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 20) {
+        iconCell(image: "icon-png", iconName: nil)
+        iconCell(image: "rainbow-icon-png", iconName: "rainbow-icon")
+        iconCell(image: "pumpkin-icon-png", iconName: "pumpkin-icon")
+        iconCell(image: "exploding-icon-png", iconName: "exploding-icon")
+      }
+      .padding()
     }
-    .frame(maxWidth: .infinity)
-    .padding()
+    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
     .navigationTitle("App Icon")
     .navigationBarTitleDisplayMode(.inline)
+  }
+
+  private func iconCell(image: String, iconName: String?) -> some View {
+    Color.clear
+      .aspectRatio(1, contentMode: .fit)
+      .background(.thinMaterial)
+      .clipShape(RoundedRectangle(cornerRadius: 16))
+      .overlay(
+        Image(image)
+          .resizable()
+          .frame(width: 100, height: 100)
+          .cornerRadius(16)
+      )
+      .overlay(
+        RoundedRectangle(cornerRadius: 16)
+          .stroke(
+            selectedIcon == iconName ? Color.blue : Color.clear,
+            lineWidth: 3
+          )
+      )
+      .onTapGesture {
+        selectedIcon = iconName
+        setAppIcon(iconName)
+      }
   }
 
   /// Set app icon. Call with nil as the icon name to reset the app icon to default.
@@ -76,5 +59,7 @@ struct AppIconPickerView: View {
 }
 
 #Preview {
-  AppIconPickerView()
+  NavigationStack {
+    AppIconPickerView()
+  }
 }
