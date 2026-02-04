@@ -220,6 +220,26 @@ func (r *FakeUserRepository) UpdateUserName(ctx context.Context, userId int, new
 	return nil
 }
 
+func (r *FakeUserRepository) GetUserDisplayProperties(ctx context.Context, userId int) (*db.UserDisplayProperties, error) {
+	r.mutex.RLock()
+	defer r.mutex.RUnlock()
+
+	if _, exists := r.users[userId]; !exists {
+		return nil, errors.New("user not found")
+	}
+
+	props, exists := r.userDisplayProperties[userId]
+	if !exists {
+		return nil, nil
+	}
+
+	return &db.UserDisplayProperties{
+		FontChoiceId:     props.FontChoiceId,
+		LatestAppVersion: props.LatestAppVersion,
+		LastLoginDate:    props.LastLoginDate,
+	}, nil
+}
+
 func (r *FakeUserRepository) UpdateUserDisplayProperties(ctx context.Context, userId int, displayProperties *db.UserDisplayProperties) error {
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
@@ -230,7 +250,9 @@ func (r *FakeUserRepository) UpdateUserDisplayProperties(ctx context.Context, us
 	}
 
 	r.userDisplayProperties[id] = models.UserDisplayProperties{
-		FontChoiceId: displayProperties.FontChoiceId,
+		FontChoiceId:     displayProperties.FontChoiceId,
+		LatestAppVersion: displayProperties.LatestAppVersion,
+		LastLoginDate:    displayProperties.LastLoginDate,
 	}
 
 	return nil

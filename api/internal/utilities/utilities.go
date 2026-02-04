@@ -23,7 +23,9 @@ func MapUserToPublicUser(user queries.User) models.PublicUser {
 	}
 
 	if user.UserDisplayProperties != nil {
-		publicUser.DisplayProperties = models.UserDisplayProperties(*user.UserDisplayProperties)
+		publicUser.DisplayProperties = models.PublicUserDisplayProperties{
+			FontChoiceId: user.UserDisplayProperties.FontChoiceId,
+		}
 	}
 
 	return publicUser
