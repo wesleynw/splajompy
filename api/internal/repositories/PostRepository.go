@@ -14,9 +14,9 @@ import (
 )
 
 type PostRepository interface {
-	InsertPost(ctx context.Context, userId int, content string, facets db.Facets, attributes *db.Attributes) (*models.Post, error)
+	InsertPost(ctx context.Context, userId int, content string, facets db.Facets, attributes *db.Attributes, visibilityType *models.VisibilityTypeEnum) (*models.Post, error)
 	DeletePost(ctx context.Context, postId int) error
-	GetPostById(ctx context.Context, postId int) (*models.Post, error)
+	GetPostById(ctx context.Context, postId int, currentUserId int) (*models.Post, error)
 	IsPostLikedByUserId(ctx context.Context, userId int, postId int) (bool, error)
 	GetImagesForPost(ctx context.Context, postId int) ([]queries.Image, error)
 	GetAllImagesForUser(ctx context.Context, userId int) ([]queries.Image, error)
@@ -24,8 +24,8 @@ type PostRepository interface {
 	GetCommentCountForPost(ctx context.Context, postId int) (int, error)
 	GetAllPostIds(ctx context.Context, limit int, offset int, currentUserId int) ([]int, error)
 	GetPostIdsForFollowing(ctx context.Context, userId int, limit int, offset int) ([]int, error)
-	GetPostIdsForUser(ctx context.Context, userId int, currentUserId int, limit int, offset int) ([]int, error)
-	GetPostIdsByUserIdCursor(ctx context.Context, userId int, currentUserId int, limit int, beforeTimestamp *time.Time) ([]int, error)
+	GetPostIdsForUser(ctx context.Context, userId int, limit int, offset int) ([]int, error)
+	GetPostIdsByUserIdCursor(ctx context.Context, userId int, targetUserId int, limit int, beforeTimestamp *time.Time) ([]int, error)
 	GetPostIdsForMutualFeed(ctx context.Context, userId int, limit int, offset int) ([]queries.GetPostIdsForMutualFeedRow, error)
 	GetAllPostIdsCursor(ctx context.Context, limit int, beforeTimestamp *time.Time, currentUserId int) ([]int, error)
 	GetPostIdsForFollowingCursor(ctx context.Context, userId int, limit int, beforeTimestamp *time.Time) ([]int, error)
@@ -36,7 +36,6 @@ type PostRepository interface {
 	PinPost(ctx context.Context, userId int, postId int) error
 	UnpinPost(ctx context.Context, userId int) error
 	GetPinnedPostId(ctx context.Context, userId int) (*int, error)
-	SetPostHidden(ctx context.Context, postId int, isHidden bool) error
 }
 
 type DBPostRepository struct {
@@ -44,12 +43,13 @@ type DBPostRepository struct {
 }
 
 // InsertPost creates a new post
-func (r DBPostRepository) InsertPost(ctx context.Context, userId int, content string, facets db.Facets, attributes *db.Attributes) (*models.Post, error) {
+func (r DBPostRepository) InsertPost(ctx context.Context, userId int, content string, facets db.Facets, attributes *db.Attributes, visibilityType *models.VisibilityTypeEnum) (*models.Post, error) {
 	var post, err = r.querier.InsertPost(ctx, queries.InsertPostParams{
-		UserID:     userId,
-		Text:       pgtype.Text{String: content, Valid: true},
-		Facets:     facets,
-		Attributes: attributes,
+		UserID:         userId,
+		Text:           pgtype.Text{String: content, Valid: true},
+		Facets:         facets,
+		Attributes:     attributes,
+		Visibilitytype: int(*visibilityType),
 	})
 	if err != nil {
 		return nil, err
@@ -65,8 +65,11 @@ func (r DBPostRepository) DeletePost(ctx context.Context, postId int) error {
 }
 
 // GetPostById retrieves a post by ID
-func (r DBPostRepository) GetPostById(ctx context.Context, postId int) (*models.Post, error) {
-	var dbPost, err = r.querier.GetPostById(ctx, postId)
+func (r DBPostRepository) GetPostById(ctx context.Context, postId int, currentUserId int) (*models.Post, error) {
+	var dbPost, err = r.querier.GetPostById(ctx, queries.GetPostByIdParams{
+		PostID: postId,
+		UserID: currentUserId,
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -77,6 +80,7 @@ func (r DBPostRepository) GetPostById(ctx context.Context, postId int) (*models.
 		CreatedAt:  dbPost.CreatedAt.Time.UTC(),
 		Facets:     dbPost.Facets,
 		Attributes: dbPost.Attributes,
+		Visibility: (*models.VisibilityTypeEnum)(&dbPost.Visibilitytype),
 	}, nil
 }
 
@@ -134,12 +138,11 @@ func (r DBPostRepository) GetPostIdsForFollowing(ctx context.Context, userId int
 }
 
 // GetPostIdsForUser retrieves all post IDs for a specific user
-func (r DBPostRepository) GetPostIdsForUser(ctx context.Context, userId int, currentUserId int, limit int, offset int) ([]int, error) {
+func (r DBPostRepository) GetPostIdsForUser(ctx context.Context, userId int, limit int, offset int) ([]int, error) {
 	return r.querier.GetPostsIdsByUserId(ctx, queries.GetPostsIdsByUserIdParams{
-		UserID:   userId,
-		Limit:    limit,
-		Offset:   offset,
-		UserID_2: currentUserId,
+		UserID: userId,
+		Limit:  limit,
+		Offset: offset,
 	})
 }
 
@@ -190,9 +193,9 @@ func (r DBPostRepository) GetAllPostIdsCursor(ctx context.Context, limit int, be
 	}
 
 	return r.querier.GetAllPostIdsCursor(ctx, queries.GetAllPostIdsCursorParams{
-		Limit:   limit,
-		Column2: timestamp,
-		UserID:  currentUserId,
+		UserID: currentUserId,
+		Limit:  limit,
+		Before: timestamp,
 	})
 }
 
@@ -225,17 +228,17 @@ func (r DBPostRepository) GetPostIdsForMutualFeedCursor(ctx context.Context, use
 }
 
 // GetPostIdsByUserIdCursor retrieves post IDs for a specific user
-func (r DBPostRepository) GetPostIdsByUserIdCursor(ctx context.Context, userId int, currentUserId int, limit int, beforeTimestamp *time.Time) ([]int, error) {
+func (r DBPostRepository) GetPostIdsByUserIdCursor(ctx context.Context, userId int, targetUserId int, limit int, beforeTimestamp *time.Time) ([]int, error) {
 	var timestamp pgtype.Timestamp
 	if beforeTimestamp != nil {
 		timestamp = pgtype.Timestamp{Time: *beforeTimestamp, Valid: true}
 	}
 
 	return r.querier.GetPostIdsByUserIdCursor(ctx, queries.GetPostIdsByUserIdCursorParams{
-		UserID:   userId,
-		Limit:    limit,
-		Column3:  timestamp,
-		UserID_2: currentUserId,
+		UserID:       userId,
+		Before:       timestamp,
+		TargetUserID: targetUserId,
+		Limit:        limit,
 	})
 }
 
@@ -255,14 +258,6 @@ func (r DBPostRepository) UnpinPost(ctx context.Context, userId int) error {
 // GetPinnedPostId retrieves the pinned post ID for a user
 func (r DBPostRepository) GetPinnedPostId(ctx context.Context, userId int) (*int, error) {
 	return r.querier.GetPinnedPostId(ctx, userId)
-}
-
-// SetPostHidden sets the hidden status of a post
-func (r DBPostRepository) SetPostHidden(ctx context.Context, postId int, isHidden bool) error {
-	return r.querier.SetPostHidden(ctx, queries.SetPostHiddenParams{
-		PostID:   postId,
-		IsHidden: isHidden,
-	})
 }
 
 // NewDBPostRepository creates a new post repository instance

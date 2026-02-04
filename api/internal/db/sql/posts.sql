@@ -1,7 +1,7 @@
 -- name: GetPostsIdsByUserId :many
 SELECT post_id
 FROM posts
-WHERE user_id = $1 AND (is_hidden = FALSE OR user_id = $4)
+WHERE user_id = $1
 ORDER BY created_at DESC
 OFFSET $2
 LIMIT $3;
@@ -9,10 +9,19 @@ LIMIT $3;
 -- name: GetPostIdsByUserIdCursor :many
 SELECT post_id
 FROM posts
-WHERE user_id = $1 AND ($3::timestamp IS NULL OR posts.created_at < $3::timestamp)
-  AND (is_hidden = FALSE OR user_id = $4)
+WHERE user_id = @target_user_id::int AND (@before::timestamp IS NULL OR posts.created_at < @before::timestamp)
+AND (
+    posts.visibilityType = 0 -- public
+    OR posts.user_id = @user_id
+    OR EXISTS (
+        SELECT 1
+        FROM user_relationship
+        WHERE user_id = posts.user_id
+            AND target_user_id = @user_id
+    )
+)
 ORDER BY created_at DESC
-LIMIT $2;
+LIMIT sqlc.arg('limit')::int;
 
 -- name: GetPostIdsByFollowing :many
 SELECT post_id
@@ -30,7 +39,6 @@ WHERE posts.user_id = $1 OR EXISTS (
     FROM mute
     WHERE user_id = $1 AND target_user_id = posts.user_id
 )
-AND (posts.is_hidden = FALSE OR posts.user_id = $1)
 ORDER BY posts.created_at DESC
 LIMIT $2
 OFFSET $3;
@@ -47,7 +55,6 @@ WHERE NOT EXISTS (
     FROM mute
     WHERE mute.user_id = $3 AND target_user_id = posts.user_id
 )
-AND (posts.is_hidden = FALSE OR posts.user_id = $3)
 ORDER BY posts.created_at DESC
 LIMIT $1
 OFFSET $2;
@@ -60,11 +67,21 @@ WHERE post_id = $1;
 -- name: GetPostById :one
 SELECT *
 FROM posts
-WHERE post_id = $1;
+WHERE post_id = $1
+AND (
+    posts.visibilityType = 0 -- public
+    OR posts.user_id = $2
+    OR EXISTS (
+        SELECT 1
+        FROM user_relationship
+        WHERE user_id = posts.user_id
+            AND target_user_id = $2
+    )
+);
 
 -- name: InsertPost :one
-INSERT INTO posts (user_id, text, facets, attributes)
-VALUES ($1, $2, $3, $4)
+INSERT INTO posts (user_id, text, facets, attributes, visibilityType)
+VALUES ($1, $2, $3, $4, $5)
 RETURNING *;
 
 -- name: DeletePost :exec
@@ -104,7 +121,6 @@ WITH user_relationships AS (
                  WHERE f1.follower_id = $1 AND f2.following_id = posts.user_id))
     AND NOT EXISTS (SELECT 1 FROM block WHERE user_id = $1 AND target_user_id = posts.user_id)
     AND NOT EXISTS (SELECT 1 FROM mute WHERE user_id = $1 AND target_user_id = posts.user_id)
-    AND (posts.is_hidden = FALSE OR posts.user_id = $1)
 )
 SELECT post_id, user_id, relationship_type,
   CASE WHEN relationship_type = 'mutual' THEN
@@ -138,15 +154,23 @@ FROM posts
 WHERE NOT EXISTS (
     SELECT 1
     FROM block
-    WHERE block.user_id = $3 AND target_user_id = posts.user_id
+    WHERE block.user_id = @user_id::int AND target_user_id = posts.user_id
 ) AND NOT EXISTS (
     SELECT 1
     FROM mute
-    WHERE mute.user_id = $3 AND target_user_id = posts.user_id
-) AND ($2::timestamp IS NULL OR posts.created_at < $2::timestamp)
-AND (posts.is_hidden = FALSE OR posts.user_id = $3)
+    WHERE mute.user_id = @user_id::int AND target_user_id = posts.user_id
+) AND (
+    posts.visibilityType = 0 -- public
+    OR posts.user_id = @user_id::int
+    OR EXISTS (
+        SELECT 1
+        FROM user_relationship
+        WHERE user_id = posts.user_id
+            AND target_user_id = @user_id::int
+    )
+) AND (@before::timestamp IS NULL OR posts.created_at < @before::timestamp)
 ORDER BY posts.created_at DESC
-LIMIT $1;
+LIMIT sqlc.arg('limit')::int;
 
 -- name: GetPostIdsByFollowingCursor :many
 SELECT post_id
@@ -163,8 +187,16 @@ WHERE (posts.user_id = $1 OR EXISTS (
     SELECT 1
     FROM mute
     WHERE user_id = $1 AND target_user_id = posts.user_id
+) AND (
+    posts.visibilityType = 0 -- public
+    OR posts.user_id = $1
+    OR EXISTS (
+        SELECT 1
+        FROM user_relationship
+        WHERE user_id = posts.user_id
+            AND target_user_id = $1
+    )
 ) AND ($3::timestamp IS NULL OR posts.created_at < $3::timestamp)
-AND (posts.is_hidden = FALSE OR posts.user_id = $1)
 ORDER BY posts.created_at DESC
 LIMIT $2;
 
@@ -184,8 +216,17 @@ WITH user_relationships AS (
                  WHERE f1.follower_id = $1 AND f2.following_id = posts.user_id))
     AND NOT EXISTS (SELECT 1 FROM block WHERE user_id = $1 AND target_user_id = posts.user_id)
     AND NOT EXISTS (SELECT 1 FROM mute WHERE user_id = $1 AND target_user_id = posts.user_id)
+    AND (
+        posts.visibilityType = 0 -- public
+        OR posts.user_id = $1
+        OR EXISTS (
+            SELECT 1
+            FROM user_relationship
+            WHERE user_id = posts.user_id
+                AND target_user_id = $1
+        )
+    )
     AND ($3::timestamp IS NULL OR posts.created_at < $3::timestamp)
-    AND (posts.is_hidden = FALSE OR posts.user_id = $1)
 )
 SELECT post_id, user_id, relationship_type,
   CASE WHEN relationship_type = 'mutual' THEN
@@ -199,19 +240,16 @@ ORDER BY (SELECT created_at FROM posts WHERE posts.post_id = user_relationships.
 LIMIT $2;
 
 -- name: PinPost :exec
-UPDATE users 
-SET pinned_post_id = $2 
+UPDATE users
+SET pinned_post_id = $2
 WHERE user_id = $1;
 
 -- name: UnpinPost :exec
-UPDATE users 
-SET pinned_post_id = NULL 
+UPDATE users
+SET pinned_post_id = NULL
 WHERE user_id = $1;
 
 -- name: GetPinnedPostId :one
 SELECT pinned_post_id
 FROM users
 WHERE user_id = $1;
-
--- name: SetPostHidden :exec
-UPDATE posts SET is_hidden = $2 WHERE post_id = $1;

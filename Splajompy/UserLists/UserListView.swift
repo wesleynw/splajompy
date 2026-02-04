@@ -1,8 +1,10 @@
 import SwiftUI
 
+/// A flexible view to display a list of users.
 struct UserListView: View {
   private var userListVariant: UserListVariantEnum
   @State private var viewModel: UserListViewModel
+  @State private var isPresentingUserSearch: Bool = false
 
   init(userId: Int, userListVariant: UserListVariantEnum) {
     _viewModel = State(
@@ -14,9 +16,9 @@ struct UserListView: View {
     self.userListVariant = userListVariant
   }
 
-  init(viewModel: UserListViewModel) {
+  init(viewModel: UserListViewModel, userListVariant: UserListVariantEnum) {
     _viewModel = State(wrappedValue: viewModel)
-    self.userListVariant = viewModel.userListVariant
+    self.userListVariant = userListVariant
   }
 
   var body: some View {
@@ -46,39 +48,76 @@ struct UserListView: View {
         )
       }
     }
-    .navigationTitle(userListVariant == .following ? "Following" : "Mutuals")
+    .navigationTitle(userListVariant.title)
     #if os(iOS)
       .navigationBarTitleDisplayMode(.inline)
     #endif
-  }
-
-  private func errorView(error: Error) -> some View {
-    VStack {
-      Spacer()
-      Text("Failed to load connections")
-        .foregroundColor(.secondary)
-      Button("Retry") {
-        Task {
-          await viewModel.loadUsers(reset: true)
+    .toolbar {
+      if userListVariant == .friends {
+        ToolbarItem(
+          placement: {
+            #if os(iOS)
+              .topBarTrailing
+            #else
+              .primaryAction
+            #endif
+          }()
+        ) {
+          Button("Add Friend", systemImage: "plus") {
+            isPresentingUserSearch = true
+          }
+          .buttonStyle(.borderedProminent)
         }
       }
-      .buttonStyle(.bordered)
-      .padding()
-      Spacer()
+    }
+    .sheet(isPresented: $isPresentingUserSearch) {
+      NavigationStack {
+        SearchView(onUserSelected: { selectedUser in
+          // don't allow adding self
+          guard selectedUser.userId != viewModel.userId else { return }
+          isPresentingUserSearch = false
+          Task {
+            await viewModel.addFriend(publicUser: selectedUser)
+          }
+        })
+        .toolbar {
+          ToolbarItem(placement: .primaryAction) {
+            if #available(iOS 26, macOS 26, *) {
+              Button(role: .close) {
+                isPresentingUserSearch = false
+              }
+            } else {
+              Button("Cancel") {
+                isPresentingUserSearch = false
+              }
+            }
+          }
+        }
+      }
+    }
+    .alert(
+      "Error",
+      isPresented: .init(
+        get: { viewModel.errorMessage != nil },
+        set: { if !$0 { viewModel.clearError() } }
+      )
+    ) {
+      Button("OK") {
+        viewModel.clearError()
+      }
+    } message: {
+      Text(viewModel.errorMessage ?? "")
     }
   }
 
   private var noUsersView: some View {
-    VStack {
-      Spacer()
-      Text("No users found")
-        .foregroundColor(.secondary)
-      Spacer()
-    }
+    Text("There's nobody here")
+      .fontWeight(.bold)
+      .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
   }
 
   private func userList(
-    users: [DetailedUser],
+    users: [DetailedUser]
   )
     -> some View
   {
@@ -87,10 +126,12 @@ struct UserListView: View {
         ForEach(users) { user in
           UserRowView(
             user: user,
+            variant: userListVariant,
             onFollowToggle: { user in
-              Task {
-                await viewModel.toggleFollow(for: user)
-              }
+              await viewModel.toggleFollow(for: user)
+            },
+            onRemove: { user in
+              await viewModel.removeFriend(user: user)
             }
           )
           .onAppear {
@@ -128,22 +169,32 @@ struct UserListView: View {
 
 struct UserRowView: View {
   let user: DetailedUser
-  let onFollowToggle: (DetailedUser) -> Void
+  let variant: UserListVariantEnum
+  let onFollowToggle: (DetailedUser) async -> Void
+  let onRemove: (DetailedUser) async -> Void
   @State private var isLoading = false
 
   init(
     user: DetailedUser,
-    onFollowToggle: @escaping (DetailedUser) -> Void
+    variant: UserListVariantEnum,
+    onFollowToggle: @escaping (DetailedUser) async -> Void,
+    onRemove: @escaping (DetailedUser) async -> Void
   ) {
     self.user = user
+    self.variant = variant
     self.onFollowToggle = onFollowToggle
+    self.onRemove = onRemove
   }
 
   var body: some View {
     HStack(spacing: 8) {
       ProfileDisplayNameView(user: user, alignVertically: false)
       Spacer()
-      followButton
+      if variant == .friends {
+        removeButton
+      } else {
+        followButton
+      }
     }
     .padding(.horizontal, 16)
     .padding(.vertical, 12)
@@ -158,12 +209,38 @@ struct UserRowView: View {
     )
   }
 
+  private var removeButton: some View {
+    Button(action: {
+      guard !isLoading else { return }
+      Task {
+        isLoading = true
+        await onRemove(user)
+        isLoading = false
+      }
+    }) {
+      if isLoading {
+        ProgressView()
+          .scaleEffect(0.8)
+      } else {
+        Text("Remove")
+          .font(.caption)
+          .fontWeight(.medium)
+      }
+    }
+    .frame(width: 70)
+    .padding(.vertical, 6)
+    .background(Color.red.opacity(0.15).gradient)
+    .foregroundColor(.red)
+    .clipShape(RoundedRectangle(cornerRadius: 6))
+    .disabled(isLoading)
+  }
+
   private var followButton: some View {
     Button(action: {
       guard !isLoading else { return }
       Task {
         isLoading = true
-        onFollowToggle(user)
+        await onFollowToggle(user)
         isLoading = false
       }
     }) {
@@ -196,6 +273,6 @@ struct UserRowView: View {
   )
 
   NavigationStack {
-    UserListView(viewModel: viewModel)
+    UserListView(viewModel: viewModel, userListVariant: .friends)
   }
 }

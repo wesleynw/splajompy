@@ -17,7 +17,7 @@ struct User: Decodable {
 struct PublicUser: Decodable, Identifiable {
   let userId: Int
   let username: String
-  let createdAt: String
+  let createdAt: Date
   let name: String?
   let isVerified: Bool
   let displayProperties: UserDisplayProperties?
@@ -25,8 +25,12 @@ struct PublicUser: Decodable, Identifiable {
   var id: Int { userId }
 
   init(
-    userId: Int, username: String, createdAt: String, name: String?,
-    isVerified: Bool, displayProperties: UserDisplayProperties
+    userId: Int,
+    username: String,
+    createdAt: Date,
+    name: String?,
+    isVerified: Bool,
+    displayProperties: UserDisplayProperties
   ) {
     self.userId = userId
     self.username = username
@@ -50,7 +54,7 @@ struct DetailedUser: Decodable, Identifiable {
   let userId: Int
   let email: String
   let username: String
-  let createdAt: String
+  let createdAt: Date
   var name: String?
   var bio: String
   var isFollower: Bool
@@ -94,6 +98,7 @@ struct Post: Decodable {
   let text: String?
   let createdAt: Date
   let facets: [Facet]?
+  var visibility: VisibilityType = .everyone
 
   var richContent: AttributedString? {
     guard let text, !text.isEmpty else { return nil }
@@ -160,4 +165,11 @@ struct AppStatistics: Decodable {
   let totalFollows: Int
   let totalUsers: Int
   let totalNotifications: Int
+}
+
+enum VisibilityType: Int, Decodable, Identifiable, CaseIterable {
+  case everyone = 0
+  case friends = 1
+
+  var id: Int { rawValue }
 }

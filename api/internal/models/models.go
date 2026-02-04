@@ -64,12 +64,13 @@ type Notification struct {
 }
 
 type Post struct {
-	PostID     int            `json:"postId"`
-	UserID     int            `json:"userId"`
-	Text       string         `json:"text"`
-	CreatedAt  time.Time      `json:"createdAt"`
-	Facets     db.Facets      `json:"facets"`
-	Attributes *db.Attributes `json:"attributes"`
+	PostID     int                 `json:"postId"`
+	UserID     int                 `json:"userId"`
+	Text       string              `json:"text"`
+	CreatedAt  time.Time           `json:"createdAt"`
+	Facets     db.Facets           `json:"facets"`
+	Attributes *db.Attributes      `json:"attributes"`
+	Visibility *VisibilityTypeEnum `json:"visibility"`
 }
 
 type DetailedPost struct {
@@ -117,7 +118,6 @@ type DetailedNotification struct {
 	TargetUserUsername *string          `json:"targetUserUsername"`
 }
 
-// PublicUser Related to queries.GetUserByIdentifierRow
 type PublicUser struct {
 	UserID            int                   `json:"userId"`
 	Email             string                `json:"email"`
@@ -159,3 +159,10 @@ type AppStats struct {
 	TotalUsers         int64 `json:"totalUsers"`
 	TotalNotifications int64 `json:"totalNotifications"`
 }
+
+type VisibilityTypeEnum int
+
+const (
+	VisibilityPublic       VisibilityTypeEnum = 0
+	VisibilityCloseFriends VisibilityTypeEnum = 1
+)

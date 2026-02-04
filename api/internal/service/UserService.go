@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/resend/resend-go/v2"
 	"golang.org/x/sync/errgroup"
@@ -184,9 +185,10 @@ func (s *UserService) RequestFeature(ctx context.Context, user models.PublicUser
 	return err
 }
 
-// GetFollowersByUserId retrieves users that are following the specified user.
-func (s *UserService) GetFollowersByUserId(ctx context.Context, currentUser models.PublicUser, userId int, offset int, limit int) (*[]models.DetailedUser, error) {
-	followers, err := s.userRepository.GetFollowersByUserId(ctx, userId, limit, offset)
+// GetFollowersByUserId_old retrieves users that are following the specified user.
+// Deprecated in favor of updated cursor based pagination in
+func (s *UserService) GetFollowersByUserId_old(ctx context.Context, currentUser models.PublicUser, userId int, offset int, limit int) ([]models.DetailedUser, error) {
+	followers, err := s.userRepository.GetFollowersByUserId_old(ctx, userId, limit, offset)
 	if err != nil {
 		return nil, err
 	}
@@ -199,9 +201,19 @@ func (s *UserService) GetFollowersByUserId(ctx context.Context, currentUser mode
 	return s.fetchDetailedUsersFromIDs(ctx, currentUser, userIDs)
 }
 
+func (s *UserService) GetFollowingByUserId(ctx context.Context, user models.PublicUser, targetUserId int, limit int, before *time.Time) ([]models.DetailedUser, error) {
+	users, err := s.userRepository.GetFollowingUserIds(ctx, targetUserId, limit, before)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.fetchDetailedUsersFromIDs(ctx, user, users)
+}
+
 // GetFollowingByUserId retrieves users that the specified user is following.
-func (s *UserService) GetFollowingByUserId(ctx context.Context, currentUser models.PublicUser, userId int, offset int, limit int) (*[]models.DetailedUser, error) {
-	following, err := s.userRepository.GetFollowingByUserId(ctx, userId, limit, offset)
+// Deprecated Use GetFollowingByUserId instead
+func (s *UserService) GetFollowingByUserId_old(ctx context.Context, currentUser models.PublicUser, userId int, offset int, limit int) ([]models.DetailedUser, error) {
+	following, err := s.userRepository.GetFollowingByUserId_old(ctx, userId, limit, offset)
 	if err != nil {
 		return nil, err
 	}
@@ -214,9 +226,11 @@ func (s *UserService) GetFollowingByUserId(ctx context.Context, currentUser mode
 	return s.fetchDetailedUsersFromIDs(ctx, currentUser, userIDs)
 }
 
-// GetMutualsByUserId retrieves users that both the current user and the target user follow.
-func (s *UserService) GetMutualsByUserId(ctx context.Context, currentUser models.PublicUser, userId int, offset int, limit int) (*[]models.DetailedUser, error) {
-	mutuals, err := s.userRepository.GetMutualsByUserId(ctx, currentUser.UserID, userId, limit, offset)
+// GetMutualsByUserId_old retrieves users that both the current user and the target user follow.
+//
+// Deprecated: prefer GetMutualsByUserId
+func (s *UserService) GetMutualsByUserId_old(ctx context.Context, currentUser models.PublicUser, userId int, offset int, limit int) ([]models.DetailedUser, error) {
+	mutuals, err := s.userRepository.GetMutualsByUserId_old(ctx, currentUser.UserID, userId, limit, offset)
 	if err != nil {
 		return nil, err
 	}
@@ -229,10 +243,39 @@ func (s *UserService) GetMutualsByUserId(ctx context.Context, currentUser models
 	return s.fetchDetailedUsersFromIDs(ctx, currentUser, userIDs)
 }
 
+// GetMutualsByUserId returns users who are 'mutuals' with the current user and target user. That is, who follow both the current user and target user.
+func (s *UserService) GetMutualsByUserId(ctx context.Context, user models.PublicUser, targetUserId int, limit int, before *time.Time) ([]models.DetailedUser, error) {
+	users, err := s.userRepository.GetMutualUserIds(ctx, user.UserID, targetUserId, limit, before)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.fetchDetailedUsersFromIDs(ctx, user, users)
+}
+
+// AddUserToCloseFriendsList creates a relationship to mark the given userId as close friend of the current user.
+func (s UserService) AddUserToCloseFriendsList(ctx context.Context, currentUser models.PublicUser, userId int) error {
+	return s.userRepository.AddUserRelationship(ctx, currentUser.UserID, userId)
+}
+
+// RemoveUserFromCloseFriendsList destroys a relationship between the given userId and the current user.
+func (s UserService) RemoveUserFromCloseFriendsList(ctx context.Context, currentUser models.PublicUser, userId int) error {
+	return s.userRepository.RemoveUserRelationship(ctx, currentUser.UserID, userId)
+}
+
+// GetCloseFriendsByUserId returns a list of users on the current users close friends list, using the creation date of the relationsthip as a cursor.
+func (s UserService) GetCloseFriendsByUserId(ctx context.Context, currentUser models.PublicUser, limit int, before *time.Time) ([]models.DetailedUser, error) {
+	userIds, err := s.userRepository.GetRelationshipUserIds(ctx, currentUser.UserID, limit, before)
+	if err != nil {
+		return nil, err
+	}
+	return s.fetchDetailedUsersFromIDs(ctx, currentUser, userIds)
+}
+
 // fetchDetailedUsersFromIDs concurrently fetches detailed user information for the given user IDs.
 // It uses an errgroup to parallelize the individual GetUserById calls and returns all results
 // once complete, or the first error encountered.
-func (s *UserService) fetchDetailedUsersFromIDs(ctx context.Context, currentUser models.PublicUser, userIDs []int) (*[]models.DetailedUser, error) {
+func (s *UserService) fetchDetailedUsersFromIDs(ctx context.Context, currentUser models.PublicUser, userIDs []int) ([]models.DetailedUser, error) {
 	detailedUsers := make([]models.DetailedUser, len(userIDs))
 	g, ctx := errgroup.WithContext(ctx)
 
@@ -251,5 +294,5 @@ func (s *UserService) fetchDetailedUsersFromIDs(ctx context.Context, currentUser
 		return nil, err
 	}
 
-	return &detailedUsers, nil
+	return detailedUsers, nil
 }

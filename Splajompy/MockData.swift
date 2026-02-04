@@ -1,17 +1,11 @@
 import Foundation
 
 struct Mocks {
-  private nonisolated(unsafe) static let formatter: ISO8601DateFormatter = {
-    let formatter = ISO8601DateFormatter()
-    formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-    return formatter
-  }()
-
   static let testUser1 = DetailedUser(
     userId: 1,
     email: "wesleynw@pm.me",
     username: "wesley",
-    createdAt: formatter.string(from: Date()),
+    createdAt: Date(),
     name: "Wesley Weisenberger",
     bio: "iOS Developer",
     isFollower: false,
@@ -28,7 +22,7 @@ struct Mocks {
     userId: 2,
     email: "john@example.com",
     username: "johndoe",
-    createdAt: formatter.string(from: Date()),
+    createdAt: Date(),
     name: "John Doe",
     bio: "iOS Developer",
     isFollower: true,
@@ -45,7 +39,7 @@ struct Mocks {
     userId: 3,
     email: "john@example.com",
     username: "johndoe",
-    createdAt: formatter.string(from: Date()),
+    createdAt: Date(),
     name: nil,
     bio: "iOS Developer",
     isFollower: true,
@@ -70,7 +64,7 @@ struct Mocks {
   static let testPublicUser1 = PublicUser(
     userId: 100,
     username: "wesley",
-    createdAt: formatter.string(from: Date()),
+    createdAt: Date(),
     name: "Wesley W",
     isVerified: true,
     displayProperties: UserDisplayProperties(fontChoiceId: 0)
@@ -79,7 +73,7 @@ struct Mocks {
   static let testPublicUser2 = PublicUser(
     userId: 101,
     username: "bobsmith",
-    createdAt: formatter.string(from: Date()),
+    createdAt: Date(),
     name: nil,
     isVerified: false,
     displayProperties: UserDisplayProperties(fontChoiceId: 1)
@@ -97,7 +91,7 @@ struct Mocks {
     user: PublicUser(
       userId: 1,
       username: "wesleynw",
-      createdAt: Date().ISO8601Format(),
+      createdAt: Date(),
       name: "Wesley 🌌",
       isVerified: true,
       displayProperties: UserDisplayProperties(fontChoiceId: 0)

@@ -1,5 +1,6 @@
 import SwiftUI
 
+/// The primary view for displaying a user's profile
 struct ProfileView: View {
   let username: String
   let userId: Int

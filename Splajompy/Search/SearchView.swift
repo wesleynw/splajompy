@@ -5,6 +5,8 @@ struct SearchView: View {
   @FocusState private var isSearchBarFocused: Bool
   @State private var searchText = ""
 
+  var onUserSelected: ((PublicUser) -> Void)?
+
   var body: some View {
     Group {
       switch viewModel.state {
@@ -64,7 +66,16 @@ struct SearchView: View {
         }
       }
     }
-    .searchable(text: $searchText)
+    .searchable(
+      text: $searchText,
+      placement: {
+        #if os(iOS)
+          .navigationBarDrawer(displayMode: .always)
+        #else
+          .toolbar
+        #endif
+      }()
+    )
     .modify {
       if #available(iOS 26, *) {
         $0.searchFocused($isSearchBarFocused)
@@ -118,16 +129,28 @@ struct SearchView: View {
   private func searchResults(users: [PublicUser]) -> some View {
     List {
       ForEach(users, id: \.userId) { user in
-        NavigationLink(
-          value: Route.profile(id: String(user.userId), username: user.username)
-        ) {
-          HStack {
-            HStack(alignment: .firstTextBaseline, spacing: 2) {
+        if let onUserSelected {
+          Button {
+            onUserSelected(user)
+          } label: {
+            HStack {
               ProfileDisplayNameView(user: user, alignVertically: false)
+              Spacer()
             }
-            Spacer()
+            .padding(.vertical, 8)
+            .contentShape(Rectangle())
           }
-          .padding(.vertical, 8)
+          .buttonStyle(.plain)
+        } else {
+          NavigationLink(
+            value: Route.profile(id: String(user.userId), username: user.username)
+          ) {
+            HStack {
+              ProfileDisplayNameView(user: user, alignVertically: false)
+              Spacer()
+            }
+            .padding(.vertical, 8)
+          }
         }
       }
     }
