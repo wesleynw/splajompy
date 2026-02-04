@@ -9,7 +9,7 @@ struct AppIconPickerView: View {
 
   var body: some View {
     ScrollView {
-      LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 20) {
+      LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())]) {
         iconCell(image: "icon-png", iconName: nil)
         iconCell(image: "rainbow-icon-png", iconName: "rainbow-icon")
         iconCell(image: "pumpkin-icon-png", iconName: "pumpkin-icon")
@@ -31,7 +31,6 @@ struct AppIconPickerView: View {
         Image(image)
           .resizable()
           .frame(width: 100, height: 100)
-          .cornerRadius(16)
       )
       .overlay(
         RoundedRectangle(cornerRadius: 16)

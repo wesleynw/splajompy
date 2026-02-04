@@ -9,6 +9,7 @@ struct ImagePager: View {
   let imageUrls: [String]
   @State private var currentIndex: Int
   @State private var downloadState: DownloadState = .idle
+  @State private var showPermissionAlert = false
 
   enum DownloadState {
     case idle, downloading, done
@@ -93,6 +94,23 @@ struct ImagePager: View {
         namespace: namespace
       )
     )
+    .onChange(of: currentIndex) {
+      downloadState = .idle
+    }
+    #if os(iOS)
+      .alert("Photo Access Required", isPresented: $showPermissionAlert) {
+        Button("Open Settings") {
+          if let url = URL(string: UIApplication.openSettingsURLString) {
+            UIApplication.shared.open(url)
+          } else {
+            print("issue constructing app settings link")
+          }
+        }
+        Button("Cancel", role: .cancel) {}
+      } message: {
+        Text("Please allow photo library access in Settings to save images.")
+      }
+    #endif
   }
 
   #if os(iOS)
@@ -100,7 +118,10 @@ struct ImagePager: View {
       private func saveImageToPhotoLibrary(urlString: String) async
     {
       let status = await PHPhotoLibrary.requestAuthorization(for: .addOnly)
-      guard status == .authorized else { return }
+      guard status == .authorized || status == .limited else {
+        await MainActor.run { showPermissionAlert = true }
+        return
+      }
 
       guard let url = URL(string: urlString) else { return }
 
