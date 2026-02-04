@@ -1,9 +1,18 @@
 import SwiftUI
 
+#if os(iOS)
+  import Photos
+#endif
+
 /// Full-screen pager for async images.
 struct ImagePager: View {
   let imageUrls: [String]
   @State private var currentIndex: Int
+  @State private var downloadState: DownloadState = .idle
+
+  enum DownloadState {
+    case idle, downloading, done
+  }
   let onDismiss: () -> Void
   let namespace: Namespace.ID
 
@@ -20,7 +29,7 @@ struct ImagePager: View {
   }
 
   var body: some View {
-    ZStack {
+    NavigationStack {
       TabView(selection: $currentIndex) {
         ForEach(Array(imageUrls.enumerated()), id: \.1) { index, url in
           #if os(iOS)
@@ -38,21 +47,44 @@ struct ImagePager: View {
         .tabViewStyle(PageTabViewStyle())
         .indexViewStyle(PageIndexViewStyle(backgroundDisplayMode: .always))
       #endif
-
-      VStack {
-        HStack {
-          Button(action: onDismiss) {
-            Image(systemName: "xmark")
-              .font(.system(size: 20, weight: .bold))
-              .foregroundColor(.white)
-              .padding(12)
-              .background(Color.black.opacity(0.6))
-              .clipShape(Circle())
+      .toolbar {
+        #if os(iOS)
+          ToolbarItemGroup(placement: .topBarTrailing) {
+            Button(action: {
+              let urlString = imageUrls[currentIndex]
+              Task {
+                await saveImageToPhotoLibrary(urlString: urlString)
+              }
+            }) {
+              switch downloadState {
+              case .downloading:
+                ProgressView()
+              case .done:
+                Image(systemName: "checkmark")
+              case .idle:
+                Image(systemName: "arrow.down.to.line")
+              }
+            }
+            .disabled(downloadState == .downloading)
           }
-          Spacer()
-        }
-        .padding()
-        Spacer()
+
+          if #available(iOS 26, *) {
+            ToolbarSpacer(.fixed, placement: .topBarTrailing)
+          }
+        #endif
+        #if os(iOS)
+          ToolbarItemGroup(placement: .topBarTrailing) {
+            Button(action: onDismiss) {
+              Image(systemName: "xmark")
+            }
+          }
+        #else
+          ToolbarItemGroup(placement: .automatic) {
+            Button(action: onDismiss) {
+              Image(systemName: "xmark")
+            }
+          }
+        #endif
       }
     }
     .modifier(
@@ -62,6 +94,41 @@ struct ImagePager: View {
       )
     )
   }
+
+  #if os(iOS)
+    nonisolated
+      private func saveImageToPhotoLibrary(urlString: String) async
+    {
+      let status = await PHPhotoLibrary.requestAuthorization(for: .addOnly)
+      guard status == .authorized else { return }
+
+      guard let url = URL(string: urlString) else { return }
+
+      let startTime = ContinuousClock.now
+      await MainActor.run { downloadState = .downloading }
+
+      guard let (data, _) = try? await URLSession.shared.data(from: url),
+        let image = UIImage(data: data)
+      else {
+        await MainActor.run { downloadState = .idle }
+        return
+      }
+
+      do {
+        try await PHPhotoLibrary.shared().performChanges {
+          PHAssetChangeRequest.creationRequestForAsset(from: image)
+        }
+        let elapsed = ContinuousClock.now - startTime
+        if elapsed < .seconds(1) {
+          try? await Task.sleep(for: .seconds(1) - elapsed)
+        }
+        await MainActor.run { downloadState = .done }
+      } catch {
+        print("Error saving to photo library: \(error)")
+        await MainActor.run { downloadState = .idle }
+      }
+    }
+  #endif
 }
 
 #Preview("Fullscreen Images") {
