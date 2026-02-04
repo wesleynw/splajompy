@@ -72,11 +72,19 @@ struct ImagePager: View {
             ToolbarSpacer(.fixed, placement: .topBarTrailing)
           }
         #endif
-        ToolbarItemGroup(placement: .topBarTrailing) {
-          Button(action: onDismiss) {
-            Image(systemName: "xmark")
+        #if os(iOS)
+          ToolbarItemGroup(placement: .topBarTrailing) {
+            Button(action: onDismiss) {
+              Image(systemName: "xmark")
+            }
           }
-        }
+        #else
+          ToolbarItemGroup(placement: .automatic) {
+            Button(action: onDismiss) {
+              Image(systemName: "xmark")
+            }
+          }
+        #endif
       }
     }
     .modifier(
