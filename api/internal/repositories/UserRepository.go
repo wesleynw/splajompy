@@ -109,9 +109,10 @@ func (r DBUserRepository) SearchUsername(ctx context.Context, prefix string, lim
 			UserID:       currentUserId,
 			TargetUserID: user.UserID,
 		})
-		if err == nil {
-			publicUser.IsFriend = &isFriend
+		if err != nil {
+			return nil, err
 		}
+		publicUser.IsFriend = &isFriend
 
 		publicUsers[i] = publicUser
 	}
