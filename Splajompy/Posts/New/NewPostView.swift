@@ -232,7 +232,9 @@ struct NewPostView: View {
 
       Spacer()
 
-      PostVisibilityToggle(selectedVisibility: $viewModel.visibility)
+      if PostHogSDK.shared.isFeatureEnabled("post-visibility-toggle") || true {
+        PostVisibilityToggle(selectedVisibility: $viewModel.visibility)
+      }
 
       Text("\(viewModel.text.string.count)/2500")
         .monospacedDigit()

@@ -40,6 +40,7 @@ func (s *UserService) GetUserById(ctx context.Context, cUser models.PublicUser, 
 	isFollower, _ := s.userRepository.IsUserFollowingUser(ctx, userID, cUser.UserID)
 	isBlocking, _ := s.userRepository.IsUserBlockingUser(ctx, cUser.UserID, userID)
 	isMuting, _ := s.userRepository.IsUserMutingUser(ctx, cUser.UserID, userID)
+	isFriend, _ := s.userRepository.IsUserFriend(ctx, cUser.UserID, userID)
 
 	mutuals, err := s.userRepository.GetMutualConnectionsForUser(ctx, cUser.UserID, userID)
 	if err != nil {
@@ -60,6 +61,7 @@ func (s *UserService) GetUserById(ctx context.Context, cUser models.PublicUser, 
 		IsFollower:        isFollower,
 		IsBlocking:        isBlocking,
 		IsMuting:          isMuting,
+		IsFriend:          isFriend,
 		Mutuals:           mutuals,
 		MutualCount:       len(mutuals),
 		IsVerified:        dbUser.IsVerified,

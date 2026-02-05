@@ -147,6 +147,7 @@ class UserListViewModel {
       isFollowing: false,
       isBlocking: false,
       isMuting: false,
+      isFriend: false,
       mutuals: [],
       mutualCount: 0,
       isVerified: publicUser.isVerified,

@@ -94,4 +94,7 @@ type UserRepository interface {
 
 	// GetRelationshipUserIds returns a list of user ids for users on the close friends list.
 	GetRelationshipUserIds(ctx context.Context, userId int, limit int, before *time.Time) ([]int, error)
+
+	// IsUserFriend checks if the targetUserId is in the userId's friend list (user_relationship)
+	IsUserFriend(ctx context.Context, userId int, targetUserId int) (bool, error)
 }
