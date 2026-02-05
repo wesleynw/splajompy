@@ -10,10 +10,10 @@ struct AppIconPickerView: View {
   var body: some View {
     ScrollView {
       LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())]) {
-        iconCell(image: "icon-png", iconName: nil)
-        iconCell(image: "rainbow-icon-png", iconName: "rainbow-icon")
-        iconCell(image: "pumpkin-icon-png", iconName: "pumpkin-icon")
-        iconCell(image: "exploding-icon-png", iconName: "exploding-icon")
+        iconCell(image: "icon-png", iconName: nil, artist: nil)
+        iconCell(image: "rainbow-icon-png", iconName: "rainbow-icon", artist: nil)
+        iconCell(image: "pumpkin-icon-png", iconName: "pumpkin-icon", artist: "@milesperhour")
+        iconCell(image: "exploding-icon-png", iconName: "exploding-icon", artist: "@moldy")
       }
       .padding()
     }
@@ -22,15 +22,23 @@ struct AppIconPickerView: View {
     .navigationBarTitleDisplayMode(.inline)
   }
 
-  private func iconCell(image: String, iconName: String?) -> some View {
+  private func iconCell(image: String, iconName: String?, artist: String?) -> some View {
     Color.clear
       .aspectRatio(1, contentMode: .fit)
       .background(.thinMaterial)
       .clipShape(RoundedRectangle(cornerRadius: 16))
       .overlay(
-        Image(image)
-          .resizable()
-          .frame(width: 100, height: 100)
+        VStack(spacing: 4) {
+          Image(image)
+            .resizable()
+            .frame(width: 100, height: 100)
+
+          if let artist {
+            Text(artist)
+              .font(.caption)
+              .foregroundStyle(.secondary)
+          }
+        }
       )
       .overlay(
         RoundedRectangle(cornerRadius: 16)

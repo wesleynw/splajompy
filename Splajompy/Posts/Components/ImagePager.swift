@@ -1,7 +1,9 @@
+import Nuke
 import SwiftUI
 
 #if os(iOS)
   import Photos
+  import PostHog
 #endif
 
 /// Full-screen pager for async images.
@@ -12,7 +14,7 @@ struct ImagePager: View {
   @State private var showPermissionAlert = false
 
   enum DownloadState {
-    case idle, downloading, done
+    case idle, downloading, done, error
   }
   let onDismiss: () -> Void
   let namespace: Namespace.ID
@@ -32,7 +34,7 @@ struct ImagePager: View {
   var body: some View {
     NavigationStack {
       TabView(selection: $currentIndex) {
-        ForEach(Array(imageUrls.enumerated()), id: \.1) { index, url in
+        ForEach(Array(imageUrls.enumerated()), id: \.offset) { index, url in
           #if os(iOS)
             ZoomableAsyncImage(imageUrl: url)
               .edgesIgnoringSafeArea(.all)
@@ -50,30 +52,40 @@ struct ImagePager: View {
       #endif
       .toolbar {
         #if os(iOS)
-          ToolbarItemGroup(placement: .topBarTrailing) {
-            Button(action: {
-              let urlString = imageUrls[currentIndex]
-              Task {
-                await saveImageToPhotoLibrary(urlString: urlString)
+          if PostHogSDK.shared.isFeatureEnabled("image-downloads") {
+            ToolbarItemGroup(placement: .topBarTrailing) {
+              Button(action: {
+                let urlString = imageUrls[currentIndex]
+                Task {
+                  await saveImageToPhotoLibrary(urlString: urlString)
+                }
+              }) {
+                switch downloadState {
+                case .downloading:
+                  ProgressView()
+                case .done:
+                  Image(systemName: "checkmark")
+                case .error:
+                  Image(systemName: "exclamationmark.triangle")
+                case .idle:
+                  Image(systemName: "arrow.down.to.line")
+                }
               }
-            }) {
-              switch downloadState {
-              case .downloading:
-                ProgressView()
-              case .done:
-                Image(systemName: "checkmark")
-              case .idle:
-                Image(systemName: "arrow.down.to.line")
+              .contentTransition(.symbolEffect(.replace))
+              .disabled(downloadState == .downloading)
+              .sensoryFeedback(.success, trigger: downloadState) { _, newValue in
+                newValue == .done
+              }
+              .sensoryFeedback(.error, trigger: downloadState) { _, newValue in
+                newValue == .error
               }
             }
-            .disabled(downloadState == .downloading)
+
+            if #available(iOS 26, *) {
+              ToolbarSpacer(.fixed, placement: .topBarTrailing)
+            }
           }
 
-          if #available(iOS 26, *) {
-            ToolbarSpacer(.fixed, placement: .topBarTrailing)
-          }
-        #endif
-        #if os(iOS)
           ToolbarItemGroup(placement: .topBarTrailing) {
             Button(action: onDismiss) {
               Image(systemName: "xmark")
@@ -96,6 +108,14 @@ struct ImagePager: View {
     )
     .onChange(of: currentIndex) {
       downloadState = .idle
+    }
+    .onChange(of: downloadState) {
+      if downloadState == .error {
+        Task {
+          try? await Task.sleep(for: .seconds(2.5))
+          await MainActor.run { downloadState = .idle }
+        }
+      }
     }
     #if os(iOS)
       .alert("Photo Access Required", isPresented: $showPermissionAlert) {
@@ -123,15 +143,16 @@ struct ImagePager: View {
         return
       }
 
-      guard let url = URL(string: urlString) else { return }
+      guard let url = URL(string: urlString) else {
+        await MainActor.run { downloadState = .error }
+        return
+      }
 
       let startTime = ContinuousClock.now
       await MainActor.run { downloadState = .downloading }
 
-      guard let (data, _) = try? await URLSession.shared.data(from: url),
-        let image = UIImage(data: data)
-      else {
-        await MainActor.run { downloadState = .idle }
+      guard let image = try? await ImagePipeline.shared.image(for: url) else {
+        await MainActor.run { downloadState = .error }
         return
       }
 
@@ -146,7 +167,7 @@ struct ImagePager: View {
         await MainActor.run { downloadState = .done }
       } catch {
         print("Error saving to photo library: \(error)")
-        await MainActor.run { downloadState = .idle }
+        await MainActor.run { downloadState = .error }
       }
     }
   #endif
