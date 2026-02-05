@@ -232,7 +232,7 @@ struct NewPostView: View {
 
       Spacer()
 
-      if PostHogSDK.shared.isFeatureEnabled("post-visibility-toggle") || true {
+      if PostHogSDK.shared.isFeatureEnabled("post-visibility-toggle") {
         PostVisibilityToggle(selectedVisibility: $viewModel.visibility)
       }
 
