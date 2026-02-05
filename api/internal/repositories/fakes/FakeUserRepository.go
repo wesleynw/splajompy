@@ -770,3 +770,13 @@ func (r *FakeUserRepository) GetRelationshipUserIds(ctx context.Context, userId 
 
 	return userIds, nil
 }
+
+func (r *FakeUserRepository) IsUserFriend(ctx context.Context, userId int, targetUserId int) (bool, error) {
+	r.mutex.RLock()
+	defer r.mutex.RUnlock()
+	if r.userRelationships[userId] == nil {
+		return false, nil
+	}
+	_, exists := r.userRelationships[userId][targetUserId]
+	return exists, nil
+}

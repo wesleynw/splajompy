@@ -103,7 +103,18 @@ func (r DBUserRepository) SearchUsername(ctx context.Context, prefix string, lim
 		if err != nil {
 			return nil, err
 		}
-		publicUsers[i] = utilities.MapUserToPublicUser(user)
+		publicUser := utilities.MapUserToPublicUser(user)
+
+		isFriend, err := r.querier.GetIsUserFriend(ctx, queries.GetIsUserFriendParams{
+			UserID:       currentUserId,
+			TargetUserID: user.UserID,
+		})
+		if err != nil {
+			return nil, err
+		}
+		publicUser.IsFriend = &isFriend
+
+		publicUsers[i] = publicUser
 	}
 
 	return publicUsers, nil
@@ -363,6 +374,13 @@ func (r DBUserRepository) GetRelationshipUserIds(ctx context.Context, userId int
 	}
 
 	return userIds, nil
+}
+
+func (r DBUserRepository) IsUserFriend(ctx context.Context, userId int, targetUserId int) (bool, error) {
+	return r.querier.GetIsUserFriend(ctx, queries.GetIsUserFriendParams{
+		UserID:       userId,
+		TargetUserID: targetUserId,
+	})
 }
 
 // NewDBUserRepository creates a new user repository

@@ -42,6 +42,7 @@ type Querier interface {
 	GetIsReferralCodeInUse(ctx context.Context, referralCode string) (bool, error)
 	GetIsUserBlockingUser(ctx context.Context, arg GetIsUserBlockingUserParams) (bool, error)
 	GetIsUserFollowingUser(ctx context.Context, arg GetIsUserFollowingUserParams) (bool, error)
+	GetIsUserFriend(ctx context.Context, arg GetIsUserFriendParams) (bool, error)
 	GetIsUserMutingUser(ctx context.Context, arg GetIsUserMutingUserParams) (bool, error)
 	GetIsUsernameInUse(ctx context.Context, username string) (bool, error)
 	GetMutualConnectionsForUser(ctx context.Context, arg GetMutualConnectionsForUserParams) ([]string, error)

@@ -197,6 +197,26 @@ func (q *Queries) GetIsUserBlockingUser(ctx context.Context, arg GetIsUserBlocki
 	return exists, err
 }
 
+const getIsUserFriend = `-- name: GetIsUserFriend :one
+SELECT EXISTS (
+  SELECT 1
+  FROM user_relationship
+  WHERE user_id = $1 AND target_user_id = $2
+)
+`
+
+type GetIsUserFriendParams struct {
+	UserID       int `json:"userId"`
+	TargetUserID int `json:"targetUserId"`
+}
+
+func (q *Queries) GetIsUserFriend(ctx context.Context, arg GetIsUserFriendParams) (bool, error) {
+	row := q.db.QueryRow(ctx, getIsUserFriend, arg.UserID, arg.TargetUserID)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
+}
+
 const getIsUserMutingUser = `-- name: GetIsUserMutingUser :one
 SELECT EXISTS (
   SELECT 1

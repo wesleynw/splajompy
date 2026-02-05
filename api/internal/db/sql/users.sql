@@ -216,3 +216,10 @@ WHERE users.user_id = user_relationship.target_user_id
     AND (sqlc.narg('before')::timestamptz IS NULL OR user_relationship.created_at < sqlc.narg('before'))
 ORDER BY user_relationship.created_at DESC
 LIMIT sqlc.arg('limit')::int;
+
+-- name: GetIsUserFriend :one
+SELECT EXISTS (
+  SELECT 1
+  FROM user_relationship
+  WHERE user_id = $1 AND target_user_id = $2
+);

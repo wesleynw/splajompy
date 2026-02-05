@@ -21,6 +21,7 @@ struct PublicUser: Decodable, Identifiable {
   let name: String?
   let isVerified: Bool
   let displayProperties: UserDisplayProperties?
+  let isFriend: Bool?
 
   var id: Int { userId }
 
@@ -30,7 +31,8 @@ struct PublicUser: Decodable, Identifiable {
     createdAt: Date,
     name: String?,
     isVerified: Bool,
-    displayProperties: UserDisplayProperties
+    displayProperties: UserDisplayProperties,
+    isFriend: Bool? = nil
   ) {
     self.userId = userId
     self.username = username
@@ -38,6 +40,7 @@ struct PublicUser: Decodable, Identifiable {
     self.name = name
     self.isVerified = isVerified
     self.displayProperties = displayProperties
+    self.isFriend = isFriend
   }
 
   init(from detailedUser: DetailedUser) {
@@ -47,6 +50,7 @@ struct PublicUser: Decodable, Identifiable {
     self.name = detailedUser.name
     self.isVerified = detailedUser.isVerified
     self.displayProperties = detailedUser.displayProperties
+    self.isFriend = detailedUser.isFriend
   }
 }
 
@@ -61,6 +65,7 @@ struct DetailedUser: Decodable, Identifiable {
   var isFollowing: Bool
   var isBlocking: Bool
   var isMuting: Bool
+  var isFriend: Bool
   let mutuals: [String]
   let mutualCount: Int
   let isVerified: Bool

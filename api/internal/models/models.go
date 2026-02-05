@@ -131,6 +131,7 @@ type PublicUser struct {
 	Name              string                      `json:"name"`
 	IsVerified        bool                        `json:"isVerified"`
 	DisplayProperties PublicUserDisplayProperties `json:"displayProperties"`
+	IsFriend          *bool                       `json:"isFriend,omitempty"`
 }
 
 type DetailedUser struct {
@@ -144,6 +145,7 @@ type DetailedUser struct {
 	IsFollowing       bool                        `json:"isFollowing"`
 	IsBlocking        bool                        `json:"isBlocking"`
 	IsMuting          bool                        `json:"isMuting"`
+	IsFriend          bool                        `json:"isFriend"`
 	Mutuals           []string                    `json:"mutuals"`
 	MutualCount       int                         `json:"mutualCount"`
 	IsVerified        bool                        `json:"isVerified"`

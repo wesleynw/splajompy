@@ -135,6 +135,11 @@ struct SearchView: View {
           } label: {
             HStack {
               ProfileDisplayNameView(user: user, alignVertically: false)
+              if user.isFriend == true {
+                Image(systemName: "star.circle.fill")
+                  .foregroundStyle(.green)
+                  .font(.caption)
+              }
               Spacer()
             }
             .padding(.vertical, 8)
