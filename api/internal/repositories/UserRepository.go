@@ -105,7 +105,6 @@ func (r DBUserRepository) SearchUsername(ctx context.Context, prefix string, lim
 		}
 		publicUser := utilities.MapUserToPublicUser(user)
 
-		// Check if this user is a friend of the current user
 		isFriend, err := r.querier.GetIsUserFriend(ctx, queries.GetIsUserFriendParams{
 			UserID:       currentUserId,
 			TargetUserID: user.UserID,
