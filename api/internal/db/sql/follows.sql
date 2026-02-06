@@ -28,15 +28,6 @@ WHERE f.following_id = $1
 ORDER BY f.created_at DESC
 LIMIT $2 OFFSET $3;
 
--- name: GetFollowersUserIds :many
-SELECT users.user_id
-FROM users
-INNER JOIN follows ON users.user_id = follows.follower_id
-WHERE follows.following_id = @user_id
-    AND (sqlc.narg('before')::timestamptz IS NULL OR follows.created_at < sqlc.narg('before'))
-ORDER BY follows.created_at DESC
-LIMIT sqlc.arg('limit');
-
 -- name: GetFollowingByUserId :many
 SELECT u.user_id, u.email, u.username, u.created_at, u.name
 FROM users u

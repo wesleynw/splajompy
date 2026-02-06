@@ -38,19 +38,6 @@ func (q *Queries) GetTotalLikesForUser(ctx context.Context, userID int) (int64, 
 	return count, err
 }
 
-const getTotalNotificationsForUser = `-- name: GetTotalNotificationsForUser :one
-SELECT COUNT(*)
-FROM notifications
-WHERE user_id = $1 AND EXTRACT(YEAR FROM created_at) = 2025
-`
-
-func (q *Queries) GetTotalNotificationsForUser(ctx context.Context, userID int) (int64, error) {
-	row := q.db.QueryRow(ctx, getTotalNotificationsForUser, userID)
-	var count int64
-	err := row.Scan(&count)
-	return count, err
-}
-
 const getTotalPostsForUser = `-- name: GetTotalPostsForUser :one
 SELECT COUNT(*)
 FROM posts
