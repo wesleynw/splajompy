@@ -14,7 +14,7 @@ CREATE TABLE users (
 CREATE TABLE user_relationship (
     user_id INT REFERENCES users(user_id),
     target_user_id INT REFERENCES users(user_id),
-    created_at TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
     PRIMARY KEY (user_id, target_user_id)
 );
 
