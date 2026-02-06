@@ -177,53 +177,6 @@ func (s *PostService) GetPostById(ctx context.Context, userId int, postId int) (
 	}, nil
 }
 
-// Deprecated: use GetPostsWithTimeOffset instead
-func (s *PostService) GetAllPosts(ctx context.Context, currentUser models.PublicUser, limit int, offset int) ([]models.DetailedPost, error) {
-	postIds, err := s.postRepository.GetAllPostIds(ctx, limit, offset, currentUser.UserID)
-	if err != nil {
-		return nil, err
-	}
-	return s.getPostsByPostIDs(ctx, currentUser, postIds)
-}
-
-// Deprecated: use GetPostsWithTimeOffset instead
-func (s *PostService) GetPostsByUserId(ctx context.Context, currentUser models.PublicUser, userID int, limit int, offset int) ([]models.DetailedPost, error) {
-	if blocked, _ := s.userRepository.IsUserBlockingUser(ctx, userID, currentUser.UserID); blocked {
-		return []models.DetailedPost{}, nil
-	}
-
-	postIds, err := s.postRepository.GetPostIdsForUser(ctx, userID, limit, offset)
-	if err != nil {
-		return nil, err
-	}
-	return s.getPostsByPostIDs(ctx, currentUser, postIds)
-}
-
-// Deprecated: use GetPostsWithTimeOffset instead
-func (s *PostService) GetPostsByFollowing(ctx context.Context, currentUser models.PublicUser, limit int, offset int) ([]models.DetailedPost, error) {
-	postIds, err := s.postRepository.GetPostIdsForFollowing(ctx, currentUser.UserID, limit, offset)
-	if err != nil {
-		return nil, err
-	}
-	return s.getPostsByPostIDs(ctx, currentUser, postIds)
-}
-
-// Deprecated: use GetPostsWithTimeOffset instead
-func (s *PostService) GetMutualFeed(ctx context.Context, currentUser models.PublicUser, limit int, offset int) ([]models.DetailedPost, error) {
-	postRows, err := s.postRepository.GetPostIdsForMutualFeed(ctx, currentUser.UserID, limit, offset)
-	if err != nil {
-		return nil, err
-	}
-
-	// Extract just the post IDs from the rows
-	postIDs := make([]int, len(postRows))
-	for i, row := range postRows {
-		postIDs[i] = row.PostID
-	}
-
-	return s.getPostsByPostIDs(ctx, currentUser, postIDs)
-}
-
 func (s *PostService) getPostsByPostIDs(ctx context.Context, currentUser models.PublicUser, postIDs []int) ([]models.DetailedPost, error) {
 	posts := make([]models.DetailedPost, len(postIDs))
 

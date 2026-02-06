@@ -186,19 +186,6 @@ func (r *FakePostRepository) SetCommentCount(postId int, count int) {
 	r.commentCount[postId] = count
 }
 
-func (r *FakePostRepository) GetAllPostIds(ctx context.Context, limit int, offset int, currentUserId int) ([]int, error) {
-	r.mutex.RLock()
-	defer r.mutex.RUnlock()
-
-	return r.getPaginatedIds(r.getAllPostIds(), limit, offset)
-}
-
-func (r *FakePostRepository) GetPostIdsForFollowing(ctx context.Context, userId int, limit int, offset int) ([]int, error) {
-	// In a real implementation, this would filter posts based on followed users
-	// For simplicity, we'll just return all post IDs
-	return r.GetAllPostIds(ctx, limit, offset, userId)
-}
-
 func (r *FakePostRepository) GetPostIdsForUser(ctx context.Context, userId int, limit int, offset int) ([]int, error) {
 	r.mutex.RLock()
 	defer r.mutex.RUnlock()
@@ -230,14 +217,6 @@ func (r *FakePostRepository) SetLike(userId int, postId int, liked bool) error {
 	return nil
 }
 
-func (r *FakePostRepository) getAllPostIds() []int {
-	ids := make([]int, 0, len(r.posts))
-	for id := range r.posts {
-		ids = append(ids, id)
-	}
-	return ids
-}
-
 func (r *FakePostRepository) getPaginatedIds(ids []int, limit int, offset int) ([]int, error) {
 	if offset >= len(ids) {
 		return []int{}, nil
@@ -249,35 +228,6 @@ func (r *FakePostRepository) getPaginatedIds(ids []int, limit int, offset int) (
 	}
 
 	return ids[offset:end], nil
-}
-
-func (r *FakePostRepository) GetPostIdsForMutualFeed(ctx context.Context, userId int, limit int, offset int) ([]queries.GetPostIdsForMutualFeedRow, error) {
-	r.mutex.RLock()
-	defer r.mutex.RUnlock()
-
-	var rows []queries.GetPostIdsForMutualFeedRow
-	for _, post := range r.posts {
-		row := queries.GetPostIdsForMutualFeedRow{
-			PostID:           post.PostID,
-			UserID:           post.UserID,
-			RelationshipType: "friend",
-			MutualUsernames:  nil,
-		}
-		rows = append(rows, row)
-	}
-
-	// Apply pagination
-	start := offset
-	if start >= len(rows) {
-		return []queries.GetPostIdsForMutualFeedRow{}, nil
-	}
-
-	end := start + limit
-	if end > len(rows) {
-		end = len(rows)
-	}
-
-	return rows[start:end], nil
 }
 
 func (r *FakePostRepository) GetPollVotesGrouped(ctx context.Context, postId int) ([]queries.GetPollVotesGroupedRow, error) {

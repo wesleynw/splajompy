@@ -17,12 +17,6 @@ INSERT INTO users (email, username, password, referral_code)
 VALUES ($1, $2, $3, $4)
 RETURNING *;
 
--- name: GetUserWithPasswordById :one
-SELECT *
-FROM users
-WHERE user_id = $1
-LIMIT 1;
-
 -- name: GetUserWithPasswordByIdentifier :one
 SELECT *
 FROM users
@@ -46,17 +40,6 @@ SELECT *
 FROM users
 WHERE email = $1 OR username = $1
 LIMIT 1;
-
--- name: GetUsernameLike :many
-SELECT *
-FROM users
-WHERE username LIKE $1
-AND NOT EXISTS (
-    SELECT 1
-    FROM block
-    WHERE block.user_id = users.user_id AND target_user_id = $3
-)
-LIMIT $2;
 
 -- name: GetBioByUserId :one
 SELECT text

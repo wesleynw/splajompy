@@ -340,31 +340,6 @@ func (q *Queries) GetUserByUsername(ctx context.Context, username string) (User,
 	return i, err
 }
 
-const getUserWithPasswordById = `-- name: GetUserWithPasswordById :one
-SELECT user_id, email, password, username, created_at, name, is_verified, pinned_post_id, user_display_properties, referral_code
-FROM users
-WHERE user_id = $1
-LIMIT 1
-`
-
-func (q *Queries) GetUserWithPasswordById(ctx context.Context, userID int) (User, error) {
-	row := q.db.QueryRow(ctx, getUserWithPasswordById, userID)
-	var i User
-	err := row.Scan(
-		&i.UserID,
-		&i.Email,
-		&i.Password,
-		&i.Username,
-		&i.CreatedAt,
-		&i.Name,
-		&i.IsVerified,
-		&i.PinnedPostID,
-		&i.UserDisplayProperties,
-		&i.ReferralCode,
-	)
-	return i, err
-}
-
 const getUserWithPasswordByIdentifier = `-- name: GetUserWithPasswordByIdentifier :one
 SELECT user_id, email, password, username, created_at, name, is_verified, pinned_post_id, user_display_properties, referral_code
 FROM users
@@ -388,55 +363,6 @@ func (q *Queries) GetUserWithPasswordByIdentifier(ctx context.Context, email str
 		&i.ReferralCode,
 	)
 	return i, err
-}
-
-const getUsernameLike = `-- name: GetUsernameLike :many
-SELECT user_id, email, password, username, created_at, name, is_verified, pinned_post_id, user_display_properties, referral_code
-FROM users
-WHERE username LIKE $1
-AND NOT EXISTS (
-    SELECT 1
-    FROM block
-    WHERE block.user_id = users.user_id AND target_user_id = $3
-)
-LIMIT $2
-`
-
-type GetUsernameLikeParams struct {
-	Username     string `json:"username"`
-	Limit        int    `json:"limit"`
-	TargetUserID int    `json:"targetUserId"`
-}
-
-func (q *Queries) GetUsernameLike(ctx context.Context, arg GetUsernameLikeParams) ([]User, error) {
-	rows, err := q.db.Query(ctx, getUsernameLike, arg.Username, arg.Limit, arg.TargetUserID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []User
-	for rows.Next() {
-		var i User
-		if err := rows.Scan(
-			&i.UserID,
-			&i.Email,
-			&i.Password,
-			&i.Username,
-			&i.CreatedAt,
-			&i.Name,
-			&i.IsVerified,
-			&i.PinnedPostID,
-			&i.UserDisplayProperties,
-			&i.ReferralCode,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
 }
 
 const getVerificationCode = `-- name: GetVerificationCode :one

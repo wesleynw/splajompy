@@ -39,11 +39,6 @@ SELECT COUNT(*)
 FROM likes
 WHERE user_id = $1 AND EXTRACT(YEAR FROM created_at) = 2025;
 
--- name: GetTotalNotificationsForUser :one
-SELECT COUNT(*)
-FROM notifications
-WHERE user_id = $1 AND EXTRACT(YEAR FROM created_at) = 2025;
-
 -- name: WrappedGetAveragePostLength :one
 SELECT avg(length(text))
 FROM posts

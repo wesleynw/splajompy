@@ -116,10 +116,6 @@ func (h *Handler) RegisterRoutes(handleFunc func(pattern string, handlerFunc fun
 	handleFuncWithAuth("DELETE /user/{id}/friend", h.RemoveUserFromCloseFriendsList)
 	handleFuncWithAuth("GET /user/friends", h.ListUserCloseFriends)
 
-	// handleFuncWithAuth("GET /posts/following", h.GetPostsByFollowing)
-	// handleFuncWithAuth("GET /posts/all", h.GetAllPosts)
-	// handleFuncWithAuth("GET /posts/mutual", h.GetMutualFeed)
-
 	// post routes with time-based offset
 	handleFuncWithAuth("GET /v2/posts/following", h.GetPostsByFollowingWithTimeOffset)
 	handleFuncWithAuth("GET /v2/posts/all", h.GetAllPostsWithTimeOffset)
