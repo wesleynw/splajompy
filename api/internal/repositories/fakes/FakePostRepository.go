@@ -217,14 +217,6 @@ func (r *FakePostRepository) SetLike(userId int, postId int, liked bool) error {
 	return nil
 }
 
-func (r *FakePostRepository) getAllPostIds() []int {
-	ids := make([]int, 0, len(r.posts))
-	for id := range r.posts {
-		ids = append(ids, id)
-	}
-	return ids
-}
-
 func (r *FakePostRepository) getPaginatedIds(ids []int, limit int, offset int) ([]int, error) {
 	if offset >= len(ids) {
 		return []int{}, nil
