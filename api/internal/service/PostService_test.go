@@ -124,60 +124,6 @@ func TestGetPostById(t *testing.T) {
 	assert.Contains(t, detailedPost.Images[0].ImageBlobUrl, imageUrl)
 }
 
-func TestGetAllPosts(t *testing.T) {
-	svc, postRepo, _, _, _, _, user := setupTest(t)
-
-	ctx := context.Background()
-
-	for i := 0; i < 5; i++ {
-		_, err := postRepo.InsertPost(ctx, user.UserID, "Post content "+string(rune(i+48)), nil, nil, nil)
-		require.NoError(t, err)
-	}
-
-	posts, err := svc.GetAllPosts(ctx, user, 10, 0)
-	assert.NoError(t, err)
-	assert.Len(t, posts, 5)
-
-	posts, err = svc.GetAllPosts(ctx, user, 2, 0)
-	assert.NoError(t, err)
-	assert.Len(t, posts, 2)
-
-	posts, err = svc.GetAllPosts(ctx, user, 2, 2)
-	assert.NoError(t, err)
-	assert.Len(t, posts, 2)
-
-	posts, err = svc.GetAllPosts(ctx, user, 2, 4)
-	assert.NoError(t, err)
-	assert.Len(t, posts, 1)
-}
-
-func TestGetPostsByUserId(t *testing.T) {
-	svc, postRepo, userRepo, _, _, _, user := setupTest(t)
-
-	ctx := context.Background()
-
-	user2, err := userRepo.CreateUser(ctx, "otheruser", "other@example.com", "password", "123")
-	require.NoError(t, err)
-
-	for i := 0; i < 3; i++ {
-		_, err := postRepo.InsertPost(ctx, user.UserID, "User 1 post "+string(rune(i+48)), nil, nil, nil)
-		require.NoError(t, err)
-	}
-
-	for i := 0; i < 2; i++ {
-		_, err := postRepo.InsertPost(ctx, user2.UserID, "User 2 post "+string(rune(i+48)), nil, nil, nil)
-		require.NoError(t, err)
-	}
-
-	posts, err := svc.GetPostsByUserId(ctx, user, user.UserID, 10, 0)
-	assert.NoError(t, err)
-	assert.Len(t, posts, 3)
-
-	posts, err = svc.GetPostsByUserId(ctx, user, user2.UserID, 10, 0)
-	assert.NoError(t, err)
-	assert.Len(t, posts, 2)
-}
-
 func TestDeletePost(t *testing.T) {
 	svc, postRepo, userRepo, _, _, _, user := setupTest(t)
 

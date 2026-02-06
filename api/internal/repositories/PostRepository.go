@@ -22,11 +22,7 @@ type PostRepository interface {
 	GetAllImagesForUser(ctx context.Context, userId int) ([]queries.Image, error)
 	InsertImage(ctx context.Context, postId int, height int, width int, url string, displayOrder int) (queries.Image, error)
 	GetCommentCountForPost(ctx context.Context, postId int) (int, error)
-	GetAllPostIds(ctx context.Context, limit int, offset int, currentUserId int) ([]int, error)
-	GetPostIdsForFollowing(ctx context.Context, userId int, limit int, offset int) ([]int, error)
-	GetPostIdsForUser(ctx context.Context, userId int, limit int, offset int) ([]int, error)
 	GetPostIdsByUserIdCursor(ctx context.Context, userId int, targetUserId int, limit int, beforeTimestamp *time.Time) ([]int, error)
-	GetPostIdsForMutualFeed(ctx context.Context, userId int, limit int, offset int) ([]queries.GetPostIdsForMutualFeedRow, error)
 	GetAllPostIdsCursor(ctx context.Context, limit int, beforeTimestamp *time.Time, currentUserId int) ([]int, error)
 	GetPostIdsForFollowingCursor(ctx context.Context, userId int, limit int, beforeTimestamp *time.Time) ([]int, error)
 	GetPostIdsForMutualFeedCursor(ctx context.Context, userId int, limit int, beforeTimestamp *time.Time) ([]queries.GetPostIdsForMutualFeedCursorRow, error)
@@ -117,42 +113,6 @@ func (r DBPostRepository) InsertImage(ctx context.Context, postId int, height in
 func (r DBPostRepository) GetCommentCountForPost(ctx context.Context, postId int) (int, error) {
 	count, err := r.querier.GetCommentCountByPostID(ctx, postId)
 	return int(count), err
-}
-
-// GetAllPostIds retrieves IDs of all posts with pagination
-func (r DBPostRepository) GetAllPostIds(ctx context.Context, limit int, offset int, currentUserId int) ([]int, error) {
-	return r.querier.GetAllPostIds(ctx, queries.GetAllPostIdsParams{
-		Limit:  limit,
-		Offset: offset,
-		UserID: currentUserId,
-	})
-}
-
-// GetPostIdsForFollowing retrieves post IDs from users a specified user follows
-func (r DBPostRepository) GetPostIdsForFollowing(ctx context.Context, userId int, limit int, offset int) ([]int, error) {
-	return r.querier.GetPostIdsByFollowing(ctx, queries.GetPostIdsByFollowingParams{
-		UserID: userId,
-		Limit:  limit,
-		Offset: offset,
-	})
-}
-
-// GetPostIdsForUser retrieves all post IDs for a specific user
-func (r DBPostRepository) GetPostIdsForUser(ctx context.Context, userId int, limit int, offset int) ([]int, error) {
-	return r.querier.GetPostsIdsByUserId(ctx, queries.GetPostsIdsByUserIdParams{
-		UserID: userId,
-		Limit:  limit,
-		Offset: offset,
-	})
-}
-
-// GetPostIdsForMutualFeed retrieves post IDs for mutual feed with relationship metadata
-func (r DBPostRepository) GetPostIdsForMutualFeed(ctx context.Context, userId int, limit int, offset int) ([]queries.GetPostIdsForMutualFeedRow, error) {
-	return r.querier.GetPostIdsForMutualFeed(ctx, queries.GetPostIdsForMutualFeedParams{
-		FollowerID: userId,
-		Limit:      limit,
-		Offset:     offset,
-	})
 }
 
 // GetPollVotesGrouped retrieves poll votes grouped by option index
