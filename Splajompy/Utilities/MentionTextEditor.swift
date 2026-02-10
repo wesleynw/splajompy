@@ -76,12 +76,18 @@ struct MentionTextEditor: View {
       #if os(iOS)
         let lineHeight = UIFont.preferredFont(forTextStyle: .body).lineHeight
       #else
-        let lineHeight = NSFont.preferredFont(forTextStyle: .body).boundingRectForFont.height
+        let lineHeight = NSFont.preferredFont(forTextStyle: .body)
+          .boundingRectForFont.height
       #endif
       let textViewInset: CGFloat = 8
       let maxHeight = (lineHeight * 10) + textViewInset
       let minHeight = lineHeight + textViewInset
-      let displayHeight = min(max(contentHeight, minHeight), maxHeight)
+
+      #if os(iOS)
+        let displayHeight = min(max(contentHeight, minHeight), maxHeight)
+      #else
+        let displayHeight = 200.0
+      #endif
 
       ZStack(alignment: .topLeading) {
         AttributedTextEditor(
@@ -132,8 +138,9 @@ struct MentionTextEditor: View {
             selectedRange: $selectedRange,
             cursorY: $cursorY,
             contentHeight: $contentHeight,
-            isScrollEnabled: false
+            isScrollEnabled: true
           )
+          .border(.red)
           .frame(maxWidth: .infinity, minHeight: contentHeight)
           .focused($isFocused)
           .onAppear {
@@ -152,7 +159,6 @@ struct MentionTextEditor: View {
           if text.string.isEmpty {
             Text("What's on your mind?")
               .foregroundColor(Color.secondary)
-              .padding(8)
           }
         }
         .padding()
