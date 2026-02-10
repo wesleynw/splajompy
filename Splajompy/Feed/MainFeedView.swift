@@ -95,15 +95,8 @@ struct MainFeedView: View {
   @ToolbarContentBuilder
   private var feedMenuToolbarItem: some ToolbarContent {
     #if os(iOS)
-      if #available(iOS 26.0, *) {
-        ToolbarItem(placement: .topBarLeading) {
-          feedMenu
-        }
-        .sharedBackgroundVisibility(.hidden)
-      } else {
-        ToolbarItem(placement: .topBarLeading) {
-          feedMenu
-        }
+      ToolbarItem(placement: .topBarLeading) {
+        feedMenu
       }
     #else
       if #available(macOS 26.0, *) {

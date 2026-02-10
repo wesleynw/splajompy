@@ -18,9 +18,11 @@ struct AttributedTextEditor: NSViewRepresentable {
     textView.drawsBackground = false
     textView.isRichText = true
     textView.allowsUndo = true
+    textView.textContainer?.lineFragmentPadding = 0
     if isScrollEnabled {
       textView.textContainerInset = NSSize(width: 8, height: 4)
-      textView.textContainer?.lineFragmentPadding = 0
+    } else {
+      textView.textContainerInset = .zero
     }
     textView.isAutomaticSpellingCorrectionEnabled = true
     textView.typingAttributes = [
