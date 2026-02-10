@@ -3,7 +3,7 @@ import SwiftUI
 
 enum PhotoState {
   case loading(Progress)
-  case success(UIImage)
+  case success(PlatformImage)
   case failure
   case empty
 }
@@ -91,7 +91,7 @@ extension NewPostView {
 
         isLoading = true
 
-        let selectedImages = imageStates.compactMap { item -> UIImage? in
+        let selectedImages = imageStates.compactMap { item -> PlatformImage? in
           if case .success(let image) = item.state {
             return image
           }
@@ -140,7 +140,7 @@ extension NewPostView {
           }
           switch result {
           case .success(let imageData?):
-            if let image = UIImage(data: imageData) {
+            if let image = PlatformImage(data: imageData) {
               self.imageStates[index].state = .success(image)
             } else {
               self.imageStates[index].state = .failure

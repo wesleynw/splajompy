@@ -49,7 +49,7 @@ struct CommentInputView: View {
           }
         )
         .modify {
-          if #available(iOS 26, *) {
+          if #available(iOS 26, macOS 26, *) {
             $0.glassEffect(
               .regular.interactive(),
               in: RoundedRectangle(cornerRadius: 15)
@@ -76,18 +76,22 @@ struct CommentInputView: View {
         }) {
           if isSubmitting {
             ProgressView()
+              #if os(macOS)
+                .controlSize(.small)
+              #endif
           } else {
             Image(systemName: "arrow.up.circle.fill")
               .font(.title)
           }
         }
+        .buttonStyle(.plain)
         .disabled(
           text.string.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
             || isSubmitting
         )
       }
       .modify {
-        if #available(iOS 26, *) {
+        if #available(iOS 26, macOS 26, *) {
           $0.padding()
         } else {
           $0
@@ -100,5 +104,8 @@ struct CommentInputView: View {
       }
 
     }
+    #if os(macOS)
+      .frame(maxWidth: 600)
+    #endif
   }
 }

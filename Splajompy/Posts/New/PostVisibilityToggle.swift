@@ -36,25 +36,31 @@ struct PostVisibilityToggle: View {
         NavigationStack {
           UserListView(userId: userId, userListVariant: .friends)
             .toolbar {
-              ToolbarItem(
-                placement: {
-                  #if os(iOS)
-                    .topBarLeading
-                  #else
-                    .secondaryAction
-                  #endif
-                }()
-              ) {
-                if #available(iOS 26, macOS 26, *) {
-                  Button(role: .close) {
-                    isPresentingUserList = false
-                  }
-                } else {
-                  Button("Close") {
-                    isPresentingUserList = false
+              #if os(iOS)
+                ToolbarItem(placement: .topBarLeading) {
+                  if #available(iOS 26, *) {
+                    Button(role: .close) {
+                      isPresentingUserList = false
+                    }
+                  } else {
+                    Button("Close") {
+                      isPresentingUserList = false
+                    }
                   }
                 }
-              }
+              #else
+                ToolbarItem(placement: .cancellationAction) {
+                  if #available(macOS 26, *) {
+                    Button(role: .close) {
+                      isPresentingUserList = false
+                    }
+                  } else {
+                    Button("Close") {
+                      isPresentingUserList = false
+                    }
+                  }
+                }
+              #endif
             }
         }
       }

@@ -83,22 +83,22 @@ struct StandalonePostView: View {
     .navigationTitle("Post")
     #if os(iOS)
       .navigationBarTitleDisplayMode(.inline)
-      .modify {
-        if #available(iOS 26, *) {
-          $0.safeAreaBar(edge: .bottom) {
-            CommentInputViewConstructor(
-              commentsViewModel: commentsViewModel
-            )
-          }
-        } else {
-          $0.safeAreaInset(edge: .bottom) {
-            CommentInputViewConstructor(
-              commentsViewModel: commentsViewModel
-            )
-          }
+    #endif
+    .modify {
+      if #available(iOS 26, macOS 26, *) {
+        $0.safeAreaBar(edge: .bottom) {
+          CommentInputViewConstructor(
+            commentsViewModel: commentsViewModel
+          )
+        }
+      } else {
+        $0.safeAreaInset(edge: .bottom) {
+          CommentInputViewConstructor(
+            commentsViewModel: commentsViewModel
+          )
         }
       }
-    #endif
+    }
   }
 }
 

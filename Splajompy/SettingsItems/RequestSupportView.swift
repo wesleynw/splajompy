@@ -37,7 +37,7 @@ struct RequestSupportView: View {
           #if os(iOS)
             .topBarTrailing
           #else
-            .primaryAction
+            .automatic
           #endif
         }()
       ) {
@@ -46,6 +46,9 @@ struct RequestSupportView: View {
         } label: {
           if isLoading {
             ProgressView()
+              #if os(macOS)
+                .controlSize(.small)
+              #endif
           }
           Text("Send")
             .fontWeight(.bold)
