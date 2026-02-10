@@ -157,7 +157,7 @@ func (s *PostService) GetPostById(ctx context.Context, userId int, postId int) (
 
 	versionAny := ctx.Value(middleware.AppVersionKey)
 	version, ok := versionAny.(string)
-	if pollDetails != nil && (!ok || version == "unknown" || semver.Compare("v"+version, "v1.3.0") < 0) {
+	if pollDetails != nil && (!ok || version == "unknown" || semver.Compare(version, "v1.3.0") < 0) {
 		if post.Text != "" {
 			post.Text += "\n\n"
 		}
@@ -443,7 +443,7 @@ func (s *PostService) GetPosts(ctx context.Context, currentUser models.PublicUse
 			// get pinned post id for filtering (only for version >= 1.4.0)
 			versionAny := ctx.Value(middleware.AppVersionKey)
 			version, ok := versionAny.(string)
-			if ok && version != "unknown" && semver.Compare("v"+version, "v1.4.0") >= 0 {
+			if ok && version != "unknown" && semver.Compare(version, "v1.4.0") >= 0 {
 				pinnedPostId, _ := s.postRepository.GetPinnedPostId(ctx, *userId)
 
 				if pinnedPostId != nil {
