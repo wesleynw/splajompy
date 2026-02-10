@@ -318,8 +318,8 @@ struct PostView: View {
       }
 
       Button(action: {
+        PostHogSDK.shared.capture(post.isLiked ? "post_unlike" : "post_like")
         onLikeButtonTapped()
-        PostHogSDK.shared.capture("post_like")
       }) {
         Image(systemName: post.isLiked ? "heart.fill" : "heart")
           .font(.system(size: 22))

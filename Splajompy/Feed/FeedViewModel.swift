@@ -1,4 +1,5 @@
 import Foundation
+import PostHog
 import SwiftUI
 
 enum FeedState {
@@ -93,6 +94,7 @@ enum FeedState {
     if let index = postIds.firstIndex(of: post.id) {
       postIds.remove(at: index)
       state = .loaded(postIds)
+      PostHogSDK.shared.capture("post_deleted")
       Task {
         await postManager.deletePost(id: post.id)
       }

@@ -1,4 +1,5 @@
 import PhotosUI
+import PostHog
 import SwiftUI
 
 enum PhotoState {
@@ -109,6 +110,7 @@ extension NewPostView {
         switch result {
         case .success:
           isLoading = false
+          PostHogSDK.shared.capture("post_created")
           onPostCreated()
           dismiss()
         case .error(let error):

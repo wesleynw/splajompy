@@ -16,18 +16,9 @@ struct SplajompyApp: App {
   @State private var postManager = PostStore()
   @AppStorage("appearance_mode") var appearanceMode: String = "Automatic"
 
-  let isLemoade = PostHogSDK.shared.isFeatureEnabled("lemoade")
-
   init() {
     initializeOtel()
-
-    let posthogApiKey = "phc_sSDHxTCqpjwoSDSOQiNAAgmybjEakfePBsaNHWaWy74"
-    let config = PostHogConfig(apiKey: posthogApiKey)
-    config.captureScreenViews = false
-    #if DEBUG
-      config.optOut = true
-    #endif
-    PostHogSDK.shared.setup(config)
+    initializePostHog()
 
     var cacheConfig = ImagePipeline.Configuration.withDataCache(
       name: "media-cache",
@@ -78,11 +69,7 @@ struct SplajompyApp: App {
           }
       }
       .tabItem {
-        if isLemoade {
-          Label("Lemoade", systemImage: "waterbottle")
-        } else {
-          Label("Home", systemImage: "house")
-        }
+        Label("Home", systemImage: "house")
       }
       .tag(0)
 

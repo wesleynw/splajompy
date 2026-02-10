@@ -1,3 +1,4 @@
+import PostHog
 import SwiftUI
 
 enum CommentState {
@@ -137,6 +138,7 @@ extension CommentsView {
       switch result {
       case .success(let newComment):
         addCommentToList(newComment)
+        PostHogSDK.shared.capture("comment_created")
 
         postManager.updatePost(id: postId) { post in
           post.commentCount += 1

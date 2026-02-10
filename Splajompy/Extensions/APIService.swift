@@ -108,7 +108,7 @@ public struct APIService {
             APIErrorMessage(message: "Session expired. Please sign in again.")
           )
         }
-        if httpResponse.statusCode == 503, httpResponse.statusCode == 504 {
+        if httpResponse.statusCode == 503 || httpResponse.statusCode == 504 {
           span.status = .error(description: "Service unavailable")
           return .error(
             APIErrorMessage(message: "Service unavailable.")
@@ -185,6 +185,11 @@ public struct APIService {
         )
         return .error(error)
       }
+    } catch is CancellationError {
+      print("API call cancelled: \(method) /\(endpoint)")
+      span.setAttribute(key: "cancelled", value: true)
+      span.status = .error(description: "Task cancelled")
+      return .error(CancellationError())
     } catch {
       print("API call error: \(error)")
       span.status = .error(

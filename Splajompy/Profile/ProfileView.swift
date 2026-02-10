@@ -1,3 +1,4 @@
+import PostHog
 import SwiftUI
 
 /// The primary view for displaying a user's profile
@@ -65,6 +66,7 @@ struct ProfileView: View {
         )
       }
     }
+    .postHogScreenView()
     .onAppear {
       Task {
         await viewModel.loadProfileAndPosts()
