@@ -47,36 +47,39 @@ struct NotificationsView: View {
     }
     .toolbar {
       if #available(iOS 26, macOS 26, *) {
-        ToolbarItem(
-          placement: {
-            #if os(iOS)
-              .topBarLeading
-            #else
-              .principal
-            #endif
-          }()
-        ) {
-          Text("Notifications")
-            .fontWeight(.black)
-            .font(.title2)
-            .fixedSize()
-        }
-        .sharedBackgroundVisibility(.hidden)
+        #if os(iOS)
+          ToolbarItem(placement: .topBarLeading) {
+            Text("Notifications")
+              .fontWeight(.black)
+              .font(.title2)
+              .fixedSize()
+          }
+          .sharedBackgroundVisibility(.hidden)
+        #else
+          ToolbarItem(placement: .principal) {
+            Text("Notifications")
+              .fontWeight(.black)
+              .font(.title2)
+              .fixedSize()
+          }
+          .sharedBackgroundVisibility(.hidden)
+        #endif
       } else {
-        ToolbarItem(
-          placement: {
-            #if os(iOS)
-              .topBarLeading
-            #else
-              .principal
-            #endif
-          }()
-        ) {
-          Text("Notifications")
-            .fontWeight(.black)
-            .font(.title2)
-            .fixedSize()
-        }
+        #if os(iOS)
+          ToolbarItem(placement: .topBarLeading) {
+            Text("Notifications")
+              .fontWeight(.black)
+              .font(.title2)
+              .fixedSize()
+          }
+        #else
+          ToolbarItem(placement: .principal) {
+            Text("Notifications")
+              .fontWeight(.black)
+              .font(.title2)
+              .fixedSize()
+          }
+        #endif
       }
     }
   }

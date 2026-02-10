@@ -12,10 +12,8 @@ struct CommentsView: View {
   @Environment(\.dismiss) private var dismiss
 
   @State private var cursorY: CGFloat = 0
-  #if os(iOS)
-    @State private var mentionViewModel =
-      MentionTextEditor.MentionViewModel()
-  #endif
+  @State private var mentionViewModel =
+    MentionTextEditor.MentionViewModel()
 
   init(
     postId: Int,
@@ -60,27 +58,35 @@ struct CommentsView: View {
             ).isEmpty
           )
           .toolbar {
-            ToolbarItem(
-              placement: {
-                #if os(iOS)
-                  .topBarTrailing
-                #else
-                  .primaryAction
-                #endif
-              }()
-            ) {
-              if #available(iOS 26, macOS 26, *) {
-                Button(role: .cancel, action: { dismiss() })
-              } else {
-                Button {
-                  dismiss()
-                } label: {
-                  Image(systemName: "xmark.circle.fill")
-                    .opacity(0.75)
+            #if os(iOS)
+              ToolbarItem(placement: .topBarTrailing) {
+                if #available(iOS 26, *) {
+                  Button(role: .cancel, action: { dismiss() })
+                } else {
+                  Button {
+                    dismiss()
+                  } label: {
+                    Image(systemName: "xmark.circle.fill")
+                      .opacity(0.75)
+                  }
+                  .buttonStyle(.plain)
                 }
-                .buttonStyle(.plain)
               }
-            }
+            #else
+              ToolbarItem(placement: .primaryAction) {
+                if #available(macOS 26, *) {
+                  Button(role: .cancel, action: { dismiss() })
+                } else {
+                  Button {
+                    dismiss()
+                  } label: {
+                    Image(systemName: "xmark.circle.fill")
+                      .opacity(0.75)
+                  }
+                  .buttonStyle(.plain)
+                }
+              }
+            #endif
           }
       }
     } else {
@@ -106,6 +112,9 @@ struct CommentsView: View {
         VStack {
           Spacer()
           ProgressView()
+            #if os(macOS)
+              .controlSize(.small)
+            #endif
             .padding()
           Spacer()
         }
@@ -147,25 +156,23 @@ struct CommentsView: View {
         )
       }
     }
-    #if os(iOS)
-      .modify {
-        if showInput {
-          if #available(iOS 26, *) {
-            $0.safeAreaBar(edge: .bottom) {
-              CommentInputViewConstructor(
-                commentsViewModel: viewModel
-              )
-            }
-          } else {
-            $0.safeAreaInset(edge: .bottom) {
-              CommentInputViewConstructor(
-                commentsViewModel: viewModel
-              )
-            }
+    .modify {
+      if showInput {
+        if #available(iOS 26, macOS 26, *) {
+          $0.safeAreaBar(edge: .bottom) {
+            CommentInputViewConstructor(
+              commentsViewModel: viewModel
+            )
+          }
+        } else {
+          $0.safeAreaInset(edge: .bottom) {
+            CommentInputViewConstructor(
+              commentsViewModel: viewModel
+            )
           }
         }
       }
-    #endif
+    }
     .alert(
       "Error submitting comment",
       isPresented: $viewModel.showError,

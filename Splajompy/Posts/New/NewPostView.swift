@@ -60,7 +60,7 @@ struct NewPostView: View {
                 }
               )
               .modify {
-                if #available(iOS 26, *) {
+                if #available(iOS 26, macOS 26, *) {
                   $0.glassEffect(
                     .regular.interactive(),
                     in: RoundedRectangle(cornerRadius: 15)
@@ -93,45 +93,91 @@ struct NewPostView: View {
         Text(viewModel.errorDisplay ?? "There was an error.")
       }
       .navigationTitle("New Post")
-      .navigationBarTitleDisplayMode(.inline)
+      #if os(iOS)
+        .navigationBarTitleDisplayMode(.inline)
+      #endif
       .toolbar {
-        ToolbarItem(placement: .topBarLeading) {
-          if #available(iOS 26.0, *) {
-            Button(role: .close, action: { dismiss() })
-          } else {
-            Button {
-              dismiss()
-            } label: {
-              Image(systemName: "xmark.circle.fill")
-                .opacity(0.8)
+        #if os(iOS)
+          ToolbarItem(placement: .topBarLeading) {
+            if #available(iOS 26.0, *) {
+              Button(role: .close, action: { dismiss() })
+            } else {
+              Button {
+                dismiss()
+              } label: {
+                Image(systemName: "xmark.circle.fill")
+                  .opacity(0.8)
+              }
+              .buttonStyle(.plain)
             }
-            .buttonStyle(.plain)
           }
-        }
+        #else
+          ToolbarItem(placement: .cancellationAction) {
+            if #available(macOS 26.0, *) {
+              Button(role: .close, action: { dismiss() })
+            } else {
+              Button {
+                dismiss()
+              } label: {
+                Image(systemName: "xmark.circle.fill")
+                  .opacity(0.8)
+              }
+              .buttonStyle(.plain)
+            }
+          }
+        #endif
 
-        ToolbarItem(placement: .topBarTrailing) {
-          if #available(iOS 26, *) {
-            Button(action: submitPostAction) {
+        #if os(iOS)
+          ToolbarItem(placement: .topBarTrailing) {
+            if #available(iOS 26, *) {
+              Button(action: submitPostAction) {
+                if viewModel.isLoading {
+                  ProgressView()
+                } else {
+                  Label("Post", systemImage: "arrow.up")
+                }
+              }
+              .buttonStyle(.borderedProminent)
+              .disabled(isPostButtonDisabled)
+            } else {
               if viewModel.isLoading {
                 ProgressView()
               } else {
-                Label("Post", systemImage: "arrow.up")
+                Button(action: submitPostAction) {
+                  Image(systemName: "arrow.up.circle.fill")
+                    .opacity(0.8)
+                }
+                .disabled(isPostButtonDisabled)
               }
-            }
-            .buttonStyle(.borderedProminent)
-            .disabled(isPostButtonDisabled)
-          } else {
-            if viewModel.isLoading {
-              ProgressView()
-            } else {
-              Button(action: submitPostAction) {
-                Image(systemName: "arrow.up.circle.fill")
-                  .opacity(0.8)
-              }
-              .disabled(isPostButtonDisabled)
             }
           }
-        }
+        #else
+          ToolbarItem(placement: .confirmationAction) {
+            if #available(macOS 26, *) {
+              Button(action: submitPostAction) {
+                if viewModel.isLoading {
+                  ProgressView()
+                    .controlSize(.small)
+                } else {
+                  Label("Post", systemImage: "arrow.up")
+                }
+              }
+              .buttonStyle(.borderedProminent)
+              .disabled(isPostButtonDisabled)
+            } else {
+              if viewModel.isLoading {
+                ProgressView()
+                  .controlSize(.small)
+              } else {
+                Button(action: submitPostAction) {
+                  Image(systemName: "arrow.up.circle.fill")
+                    .opacity(0.8)
+                }
+                .disabled(isPostButtonDisabled)
+              }
+            }
+          }
+        #endif
       }
     }
     .sheet(isPresented: $showingPollCreation) {
@@ -153,8 +199,11 @@ struct NewPostView: View {
               switch item.state {
               case .loading:
                 ProgressView()
+                  #if os(macOS)
+                    .controlSize(.small)
+                  #endif
               case .success(let image):
-                Image(uiImage: image)
+                Image(platformImage: image)
                   .resizable()
                   .scaledToFill()
                   .frame(width: 100, height: 100)
@@ -172,6 +221,7 @@ struct NewPostView: View {
                       .foregroundColor(.blue)
                   }
                 }
+                .buttonStyle(.plain)
               case .empty:
                 EmptyView()
               }
@@ -200,6 +250,7 @@ struct NewPostView: View {
                   .foregroundColor(.gray)
               }
             }
+            .buttonStyle(.plain)
             .padding(6)
           }
           .padding(4)
@@ -222,6 +273,7 @@ struct NewPostView: View {
         Image(systemName: "photo.badge.plus")
           .padding(.leading)
       }
+      .buttonStyle(.plain)
 
       Button {
         showingPollCreation.toggle()
@@ -229,6 +281,7 @@ struct NewPostView: View {
         Image(systemName: viewModel.poll != nil ? "chart.bar.fill" : "chart.bar")
           .padding(.leading)
       }
+      .buttonStyle(.plain)
 
       Spacer()
 

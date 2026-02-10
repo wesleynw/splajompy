@@ -1,5 +1,11 @@
 import SwiftUI
 
+#if os(iOS)
+  import UIKit
+#else
+  import AppKit
+#endif
+
 struct MentionTextEditor: View {
   @Binding var text: NSAttributedString
   var viewModel: MentionViewModel
@@ -67,7 +73,11 @@ struct MentionTextEditor: View {
 
   var body: some View {
     if isCompact {
-      let lineHeight = UIFont.preferredFont(forTextStyle: .body).lineHeight
+      #if os(iOS)
+        let lineHeight = UIFont.preferredFont(forTextStyle: .body).lineHeight
+      #else
+        let lineHeight = NSFont.preferredFont(forTextStyle: .body).boundingRectForFont.height
+      #endif
       let textViewInset: CGFloat = 8
       let maxHeight = (lineHeight * 10) + textViewInset
       let minHeight = lineHeight + textViewInset
@@ -99,14 +109,14 @@ struct MentionTextEditor: View {
 
         if text.string.isEmpty {
           Text("Add a comment...")
-            .foregroundColor(Color(.placeholderText))
+            .foregroundColor(Color.secondary)
             .offset(x: 8, y: 4)
         }
       }
       .padding(.horizontal, 9)
       .padding(.vertical, 7)
       .modify {
-        if #available(iOS 26, *) {
+        if #available(iOS 26, macOS 26, *) {
           $0.glassEffect(
             .regular.tint(.clear.opacity(0.15)).interactive(),
             in: RoundedRectangle(cornerRadius: 25)
@@ -141,7 +151,7 @@ struct MentionTextEditor: View {
 
           if text.string.isEmpty {
             Text("What's on your mind?")
-              .foregroundColor(Color(.placeholderText))
+              .foregroundColor(Color.secondary)
               .padding(8)
           }
         }
@@ -161,16 +171,27 @@ struct MentionTextEditor: View {
       if isLoading {
         HStack {
           ProgressView()
+            #if os(macOS)
+              .controlSize(.small)
+            #endif
             .padding(.trailing, 8)
           Text("Searching...")
             .foregroundColor(.gray)
         }
-        .frame(height: 44)
+        #if os(macOS)
+          .frame(height: 32)
+        #else
+          .frame(height: 44)
+        #endif
         .frame(maxWidth: .infinity, alignment: .center)
       } else if suggestions.isEmpty {
         Text("No users found")
           .foregroundColor(.gray)
-          .frame(height: 44)
+          #if os(macOS)
+            .frame(height: 32)
+          #else
+            .frame(height: 44)
+          #endif
           .frame(maxWidth: .infinity, alignment: .center)
       } else {
         ForEach(suggestions.prefix(5), id: \.userId) { user in
@@ -183,19 +204,28 @@ struct MentionTextEditor: View {
                 .foregroundColor(.primary)
             }
             .padding(.horizontal, 12)
-            .frame(height: 44)
+            #if os(macOS)
+              .frame(height: 32)
+            #else
+              .frame(height: 44)
+            #endif
             .frame(maxWidth: .infinity, alignment: .leading)
             .contentShape(Rectangle())
           }
+          .buttonStyle(.plain)
           if user.userId != suggestions.prefix(5).last?.userId {
             Divider().opacity(0.4)
           }
         }
       }
     }
-    .frame(maxWidth: .infinity)
+    #if os(macOS)
+      .frame(maxWidth: 280)
+    #else
+      .frame(maxWidth: .infinity)
+    #endif
     .modify {
-      if #available(iOS 26, *) {
+      if #available(iOS 26, macOS 26, *) {
         $0
       } else {
         $0.background(.ultraThinMaterial)

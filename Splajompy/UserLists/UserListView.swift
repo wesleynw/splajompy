@@ -54,20 +54,21 @@ struct UserListView: View {
     #endif
     .toolbar {
       if userListVariant == .friends {
-        ToolbarItem(
-          placement: {
-            #if os(iOS)
-              .topBarTrailing
-            #else
-              .primaryAction
-            #endif
-          }()
-        ) {
-          Button("Add Friend", systemImage: "plus") {
-            isPresentingUserSearch = true
+        #if os(iOS)
+          ToolbarItem(placement: .topBarTrailing) {
+            Button("Add Friend", systemImage: "plus") {
+              isPresentingUserSearch = true
+            }
+            .buttonStyle(.borderedProminent)
           }
-          .buttonStyle(.borderedProminent)
-        }
+        #else
+          ToolbarItem(placement: .primaryAction) {
+            Button("Add Friend", systemImage: "plus") {
+              isPresentingUserSearch = true
+            }
+            .buttonStyle(.borderedProminent)
+          }
+        #endif
       }
     }
     .sheet(isPresented: $isPresentingUserSearch) {
@@ -81,7 +82,7 @@ struct UserListView: View {
           }
         })
         .toolbar {
-          ToolbarItem(placement: .primaryAction) {
+          ToolbarItem(placement: .cancellationAction) {
             if #available(iOS 26, macOS 26, *) {
               Button(role: .close) {
                 isPresentingUserSearch = false
@@ -232,6 +233,7 @@ struct UserRowView: View {
     .background(Color.red.opacity(0.15).gradient)
     .foregroundColor(.red)
     .clipShape(RoundedRectangle(cornerRadius: 6))
+    .buttonStyle(.plain)
     .disabled(isLoading)
   }
 
@@ -261,6 +263,7 @@ struct UserRowView: View {
     .foregroundColor(user.isFollowing ? .blue : .white)
     .animation(.spring(duration: 0.15, bounce: 0.3), value: user.isFollowing)
     .clipShape(RoundedRectangle(cornerRadius: 6))
+    .buttonStyle(.plain)
     .disabled(isLoading)
   }
 }

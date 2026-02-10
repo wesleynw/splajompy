@@ -1,5 +1,11 @@
 import SwiftUI
 
+#if os(iOS)
+  import UIKit
+#else
+  import AppKit
+#endif
+
 extension MentionTextEditor {
   @MainActor @Observable
   class MentionViewModel {
@@ -96,14 +102,24 @@ extension MentionTextEditor {
       let mutableAttributedText = NSMutableAttributedString(string: newText)
       let fullRange = NSRange(location: 0, length: newText.utf16.count)
 
+      #if os(iOS)
+        let bodyFont = UIFont.preferredFont(forTextStyle: .body)
+        let labelColor = UIColor.label
+        let mentionColor = UIColor.systemBlue
+      #else
+        let bodyFont = NSFont.preferredFont(forTextStyle: .body)
+        let labelColor = NSColor.labelColor
+        let mentionColor = NSColor.systemBlue
+      #endif
+
       mutableAttributedText.addAttribute(
         .font,
-        value: UIFont.preferredFont(forTextStyle: .body),
+        value: bodyFont,
         range: fullRange
       )
       mutableAttributedText.addAttribute(
         .foregroundColor,
-        value: UIColor.label,
+        value: labelColor,
         range: fullRange
       )
 
@@ -111,7 +127,7 @@ extension MentionTextEditor {
       for mention in mentions {
         mutableAttributedText.addAttribute(
           .foregroundColor,
-          value: UIColor.systemBlue,
+          value: mentionColor,
           range: mention.range
         )
       }

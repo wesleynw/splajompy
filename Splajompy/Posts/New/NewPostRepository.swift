@@ -23,7 +23,7 @@ struct PresignedUrlResponse: Codable {
 struct PostCreationService {
   static func createPost(
     text: String,
-    images: [UIImage],
+    images: [PlatformImage],
     items: [PhotosPickerItem],
     visibility: VisibilityType,
     poll: PollCreationRequest? = nil
@@ -100,10 +100,12 @@ struct PostCreationService {
                 )
               }
 
+              let imageSize = image.uploadSize
+
               imageKeymap[index] = ImageData(
                 s3Key: urlResponse.key,
-                width: Int(image.size.width),
-                height: Int(image.size.height)
+                width: Int(imageSize.width),
+                height: Int(imageSize.height)
               )
             }
           case .error:

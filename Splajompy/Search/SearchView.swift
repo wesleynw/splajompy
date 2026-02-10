@@ -34,36 +34,39 @@ struct SearchView: View {
     #endif
     .toolbar {
       if #available(iOS 26, macOS 26, *) {
-        ToolbarItem(
-          placement: {
-            #if os(iOS)
-              .topBarLeading
-            #else
-              .principal
-            #endif
-          }()
-        ) {
-          Text("Search")
-            .font(.title2)
-            .fontWeight(.black)
-            .fixedSize()
-        }
-        .sharedBackgroundVisibility(.hidden)
+        #if os(iOS)
+          ToolbarItem(placement: .topBarLeading) {
+            Text("Search")
+              .font(.title2)
+              .fontWeight(.black)
+              .fixedSize()
+          }
+          .sharedBackgroundVisibility(.hidden)
+        #else
+          ToolbarItem(placement: .principal) {
+            Text("Search")
+              .font(.title2)
+              .fontWeight(.black)
+              .fixedSize()
+          }
+          .sharedBackgroundVisibility(.hidden)
+        #endif
       } else {
-        ToolbarItem(
-          placement: {
-            #if os(iOS)
-              .topBarLeading
-            #else
-              .principal
-            #endif
-          }()
-        ) {
-          Text("Search")
-            .font(.title2)
-            .fontWeight(.black)
-            .fixedSize()
-        }
+        #if os(iOS)
+          ToolbarItem(placement: .topBarLeading) {
+            Text("Search")
+              .font(.title2)
+              .fontWeight(.black)
+              .fixedSize()
+          }
+        #else
+          ToolbarItem(placement: .principal) {
+            Text("Search")
+              .font(.title2)
+              .fontWeight(.black)
+              .fixedSize()
+          }
+        #endif
       }
     }
     .searchable(
