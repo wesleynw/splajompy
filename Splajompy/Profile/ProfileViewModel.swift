@@ -1,4 +1,5 @@
 import Foundation
+import PostHog
 import SwiftUI
 
 enum ProfileState {
@@ -151,6 +152,7 @@ extension ProfileView {
         var updatedIds = currentIds
         updatedIds.remove(at: index)
         postsState = .loaded(updatedIds)
+        PostHogSDK.shared.capture("post_deleted")
         Task {
           await postManager.deletePost(id: post.id)
         }
@@ -218,6 +220,7 @@ extension ProfileView {
         )
         switch result {
         case .success(_):
+          PostHogSDK.shared.capture(profile.isFollowing ? "user_unfollowed" : "user_followed")
           var updatedProfile = profile
           updatedProfile.isFollowing.toggle()
           profileState = .loaded(updatedProfile)

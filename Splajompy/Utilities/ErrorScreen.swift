@@ -1,3 +1,4 @@
+import PostHog
 import SwiftUI
 
 struct ErrorScreen: View {
@@ -43,6 +44,9 @@ struct ErrorScreen: View {
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
     .padding()
+    .onAppear {
+      PostHogSDK.shared.capture("error_screen_shown", properties: ["message": errorString])
+    }
   }
 }
 

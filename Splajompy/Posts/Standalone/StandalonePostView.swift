@@ -1,3 +1,4 @@
+import PostHog
 import SwiftUI
 
 struct StandalonePostView: View {
@@ -71,6 +72,7 @@ struct StandalonePostView: View {
         .frame(maxWidth: .infinity)
       #endif
     }
+    .postHogScreenView()
     .refreshable {
       async let post: () = await viewModel.load(resetLoadingState: false)
       async let comments: () = await commentsViewModel.loadComments()

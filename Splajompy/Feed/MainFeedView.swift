@@ -13,9 +13,6 @@ struct MainFeedView: View {
   @AppStorage("selectedFeedType") private var selectedFeedType: FeedType = .all
   @AppStorage("hasViewedWrapped") private var hasViewedWrapped: Bool = false
 
-  let title =
-    PostHogSDK.shared.isFeatureEnabled("lemoade") ? "Lemoade" : "Splajompy"
-
   init(postManager: PostStore) {
     self.postManager = postManager
     _viewModel = State(
@@ -47,6 +44,7 @@ struct MainFeedView: View {
         }
       }
       .onChange(of: selectedFeedType) { _, newFeedType in
+        PostHogSDK.shared.capture("feed_type_changed")
         Task {
           viewModel.feedType = newFeedType
           await viewModel.loadPosts(reset: true, useLoadingState: true)
@@ -124,7 +122,7 @@ struct MainFeedView: View {
       feedMenuButtons
     } label: {
       HStack {
-        Text(title)
+        Text("Splajompy")
           .font(.title2)
           .fontWeight(.black)
 
@@ -142,7 +140,7 @@ struct MainFeedView: View {
       feedMenuButtons
     } label: {
       HStack {
-        Text(title)
+        Text("Spljaompy")
           .font(.title2)
           .fontWeight(.black)
       }
@@ -209,6 +207,7 @@ struct MainFeedView: View {
       Button {
         Task {
           await viewModel.loadPosts(reset: true)
+          PostHogSDK.shared.capture("feed_refreshed")
         }
       } label: {
         if case .loading = viewModel.state {
@@ -284,6 +283,7 @@ struct MainFeedView: View {
     }
     .refreshable {
       await viewModel.loadPosts(reset: true)
+      PostHogSDK.shared.capture("feed_refreshed")
     }
   }
 

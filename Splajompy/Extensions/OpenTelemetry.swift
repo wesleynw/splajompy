@@ -3,7 +3,8 @@ import OpenTelemetryApi
 import OpenTelemetryProtocolExporterHttp
 import OpenTelemetrySdk
 import ResourceExtension
-import URLSessionInstrumentation
+
+// import URLSessionInstrumentation
 
 /// Initializes Open Telemetry, including the global trace provider and automatic instrumentation for URLSession
 func initializeOtel() {
@@ -42,17 +43,17 @@ func initializeOtel() {
       .build()
   )
 
-  let config = URLSessionInstrumentationConfiguration(
-    shouldInstrument: { request in
-      guard let url = request.url else { return false }
-      return !url.path().contains("/otel/")
-    },
-    nameSpan: { request in
-      guard let url = request.url else { return nil }
-      let method = request.httpMethod ?? "GET"
-      return "\(method) \(url.absoluteString)"
-    }
-  )
-
-  _ = URLSessionInstrumentation(configuration: config)
+  // let config = URLSessionInstrumentationConfiguration(
+  //   shouldInstrument: { request in
+  //     guard let url = request.url else { return false }
+  //     return !url.path().contains("/otel/")
+  //   },
+  //   nameSpan: { request in
+  //     guard let url = request.url else { return nil }
+  //     let method = request.httpMethod ?? "GET"
+  //     return "\(method) \(url.absoluteString)"
+  //   }
+  // )
+  //
+  // _ = URLSessionInstrumentation(configuration: config)
 }
