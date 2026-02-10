@@ -16,6 +16,8 @@ func AppVersion(next http.Handler) http.Handler {
 		version := r.Header.Get("X-App-Version")
 		if version == "" {
 			version = "unknown"
+		} else if version[0] != 'v' {
+			version = "v" + version
 		}
 
 		span := trace.SpanFromContext(r.Context())
