@@ -26,6 +26,9 @@ struct ErrorScreen: View {
           if isRetrying {
             ProgressView()
               .scaleEffect(0.8)
+              #if os(macOS)
+                .controlSize(.small)
+              #endif
           } else {
             Image(systemName: "arrow.clockwise")
           }
@@ -45,7 +48,10 @@ struct ErrorScreen: View {
     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
     .padding()
     .onAppear {
-      PostHogSDK.shared.capture("error_screen_shown", properties: ["message": errorString])
+      PostHogSDK.shared.capture(
+        "error_screen_shown",
+        properties: ["message": errorString]
+      )
     }
   }
 }

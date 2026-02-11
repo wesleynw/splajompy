@@ -133,7 +133,7 @@ struct MainFeedView: View {
       feedMenuButtons
     } label: {
       HStack {
-        Text("Spljaompy")
+        Text("Splajompy")
           .font(.title2)
           .fontWeight(.black)
       }

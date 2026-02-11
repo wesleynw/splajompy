@@ -140,7 +140,6 @@ struct MentionTextEditor: View {
             contentHeight: $contentHeight,
             isScrollEnabled: true
           )
-          .border(.red)
           .frame(maxWidth: .infinity, minHeight: contentHeight)
           .focused($isFocused)
           .onAppear {
