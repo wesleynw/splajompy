@@ -1,9 +1,9 @@
 import Nuke
+import PostHog
 import SwiftUI
 
 #if os(iOS)
   import Photos
-  import PostHog
 #endif
 
 /// Full-screen pager for async images.
@@ -53,51 +53,23 @@ struct ImagePager: View {
       .toolbar {
         #if os(iOS)
           if PostHogSDK.shared.isFeatureEnabled("image-downloads") {
-            ToolbarItemGroup(placement: .topBarTrailing) {
-              Button(action: {
-                let urlString = imageUrls[currentIndex]
-                Task {
-                  await saveImageToPhotoLibrary(urlString: urlString)
-                }
-              }) {
-                switch downloadState {
-                case .downloading:
-                  ProgressView()
-                case .done:
-                  Image(systemName: "checkmark")
-                case .error:
-                  Image(systemName: "exclamationmark.triangle")
-                case .idle:
-                  Image(systemName: "arrow.down.to.line")
-                }
-              }
-              .contentTransition(.symbolEffect(.replace))
-              .disabled(downloadState == .downloading)
-              .sensoryFeedback(.success, trigger: downloadState) { _, newValue in
-                newValue == .done
-              }
-              .sensoryFeedback(.error, trigger: downloadState) { _, newValue in
-                newValue == .error
-              }
-            }
-
-            if #available(iOS 26, *) {
-              ToolbarSpacer(.fixed, placement: .topBarTrailing)
-            }
-          }
-
-          ToolbarItemGroup(placement: .topBarTrailing) {
-            Button(action: onDismiss) {
-              Image(systemName: "xmark")
-            }
-          }
-        #else
-          ToolbarItemGroup(placement: .automatic) {
-            Button(action: onDismiss) {
-              Image(systemName: "xmark")
-            }
+            saveImageToolbarItem
           }
         #endif
+
+        ToolbarItemGroup(
+          placement: {
+            #if os(iOS)
+              .topBarTrailing
+            #else
+              .cancellationAction
+            #endif
+          }()
+        ) {
+          Button("Close") {
+            onDismiss()
+          }
+        }
       }
     }
     .modifier(
@@ -168,6 +140,43 @@ struct ImagePager: View {
       } catch {
         print("Error saving to photo library: \(error)")
         await MainActor.run { downloadState = .error }
+      }
+    }
+
+    @ToolbarContentBuilder
+    private var saveImageToolbarItem: some ToolbarContent {
+      ToolbarItemGroup(placement: .topBarTrailing) {
+        Button(action: {
+          let urlString = imageUrls[currentIndex]
+          Task {
+            await saveImageToPhotoLibrary(urlString: urlString)
+          }
+        }) {
+          switch downloadState {
+          case .downloading:
+            ProgressView()
+          case .done:
+            Image(systemName: "checkmark")
+          case .error:
+            Image(systemName: "exclamationmark.triangle")
+          case .idle:
+            Image(systemName: "arrow.down.to.line")
+          }
+        }
+        .contentTransition(.symbolEffect(.replace))
+        .disabled(downloadState == .downloading)
+        .sensoryFeedback(.success, trigger: downloadState) {
+          _,
+          newValue in
+          newValue == .done
+        }
+        .sensoryFeedback(.error, trigger: downloadState) { _, newValue in
+          newValue == .error
+        }
+      }
+
+      if #available(iOS 26, *) {
+        ToolbarSpacer(.fixed, placement: .topBarTrailing)
       }
     }
   #endif
