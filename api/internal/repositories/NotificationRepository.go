@@ -80,8 +80,7 @@ func (r DBNotificationRepository) GetNotificationById(ctx context.Context, notif
 		return nil, err
 	}
 
-	mapped := utilities.MapNotification(notification)
-	return &mapped, nil
+	return new(utilities.MapNotification(notification)), nil
 }
 
 // MarkNotificationAsRead marks a notification as read
@@ -202,8 +201,7 @@ func (r DBNotificationRepository) FindUnreadLikeNotification(ctx context.Context
 		return nil, err
 	}
 
-	mapped := utilities.MapNotification(notification)
-	return &mapped, nil
+	return new(utilities.MapNotification(notification)), nil
 }
 
 // DeleteNotificationById deletes a notification by its ID

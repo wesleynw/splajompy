@@ -154,6 +154,5 @@ func (h *Handler) GetIntPathParam(r *http.Request, paramName string) (int, error
 }
 
 func (h *Handler) getAuthenticatedUser(r *http.Request) *models.PublicUser {
-	user := r.Context().Value(utilities.UserContextKey).(models.PublicUser)
-	return &user
+	return new(r.Context().Value(utilities.UserContextKey).(models.PublicUser))
 }

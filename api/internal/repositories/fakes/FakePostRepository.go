@@ -266,8 +266,7 @@ func (r *FakePostRepository) GetUserVoteInPoll(ctx context.Context, postId int, 
 
 	votes := r.pollVotes[postId]
 	if optionIndex, exists := votes[userId]; exists {
-		result := optionIndex
-		return &result, nil
+		return new(optionIndex), nil
 	}
 
 	return nil, nil

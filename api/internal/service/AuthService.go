@@ -305,8 +305,7 @@ func (s *AuthService) generateReferralCode(ctx context.Context) (*string, error)
 		}
 	}
 
-	formattedCode := strings.ToUpper(code)
-	return &formattedCode, nil
+	return new(strings.ToUpper(code)), nil
 }
 
 func (s *AuthService) sendSignInEmail(email, username string) {

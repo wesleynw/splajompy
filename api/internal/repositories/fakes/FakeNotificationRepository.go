@@ -100,8 +100,7 @@ func (f *FakeNotificationRepository) GetNotificationById(ctx context.Context, no
 	for _, userNotifications := range f.notifications {
 		for _, notification := range userNotifications {
 			if notification.NotificationID == notificationId {
-				mapped := utilities.MapNotification(notification)
-				return &mapped, nil
+				return new(utilities.MapNotification(notification)), nil
 			}
 		}
 	}
@@ -371,13 +370,11 @@ func (f *FakeNotificationRepository) FindUnreadLikeNotification(ctx context.Cont
 		if notification.NotificationType == "like" && !notification.Viewed {
 			if commentId == nil {
 				if notification.PostID != nil && *notification.PostID == postId && notification.CommentID == nil {
-					mapped := utilities.MapNotification(notification)
-					return &mapped, nil
+					return new(utilities.MapNotification(notification)), nil
 				}
 			} else {
 				if notification.PostID != nil && *notification.PostID == postId && notification.CommentID != nil && *notification.CommentID == *commentId {
-					mapped := utilities.MapNotification(notification)
-					return &mapped, nil
+					return new(utilities.MapNotification(notification)), nil
 				}
 			}
 		}
