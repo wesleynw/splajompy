@@ -10,6 +10,7 @@ struct ProfileView: View {
   @State private var isShowingProfileEditor: Bool = false
   @State private var activeAlert: ProfileAlertEnum?
   @State private var viewModel: ViewModel
+  @State private var scrollOffset = CGFloat.zero
   @Environment(AuthManager.self) private var authManager
   var postManager: PostStore
 
@@ -57,6 +58,7 @@ struct ProfileView: View {
       switch viewModel.profileState {
       case .idle, .loading:
         ProgressView()
+          .frame(maxWidth: .infinity, maxHeight: .infinity)
       case .loaded(let user):
         profile(user: user)
       case .failed(let error):
@@ -64,6 +66,7 @@ struct ProfileView: View {
           errorString: error,
           onRetry: { await viewModel.loadProfileAndPosts() }
         )
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
       }
     }
     .postHogScreenView()
@@ -155,6 +158,13 @@ struct ProfileView: View {
         }
       }
     }
+    .modify {
+      if #available(iOS 26, *),
+        PostHogSDK.shared.isFeatureEnabled("toolbar-scroll-effect")
+      {
+        $0.scrollFadeBackground(scrollOffset: scrollOffset)
+      }
+    }
   }
 
   @ToolbarContentBuilder
@@ -167,7 +177,6 @@ struct ProfileView: View {
           Text("@" + self.username)
             .font(.title2)
             .fontWeight(.black)
-
         }
         .sharedBackgroundVisibility(.hidden)
       } else {
@@ -280,6 +289,13 @@ struct ProfileView: View {
       }
       .refreshable {
         await viewModel.loadProfileAndPosts()
+      }
+      .modify {
+        if #available(iOS 26, *),
+          PostHogSDK.shared.isFeatureEnabled("toolbar-scroll-effect")
+        {
+          $0.scrollFadeEffect(scrollOffset: $scrollOffset)
+        }
       }
     }
   }

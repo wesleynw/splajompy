@@ -138,7 +138,7 @@ struct MentionTextEditor: View {
             selectedRange: $selectedRange,
             cursorY: $cursorY,
             contentHeight: $contentHeight,
-            isScrollEnabled: true
+            isScrollEnabled: false
           )
           .frame(maxWidth: .infinity, minHeight: contentHeight)
           .focused($isFocused)

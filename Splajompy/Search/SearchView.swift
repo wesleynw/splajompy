@@ -1,9 +1,11 @@
+import PostHog
 import SwiftUI
 
 struct SearchView: View {
   @State private var viewModel: ViewModel = ViewModel()
   @FocusState private var isSearchBarFocused: Bool
   @State private var searchText = ""
+  @State private var scrollOffset = CGFloat.zero
 
   var onUserSelected: ((PublicUser) -> Void)?
 
@@ -14,11 +16,13 @@ struct SearchView: View {
         emptyState
       case .loading:
         ProgressView()
+          .frame(maxWidth: .infinity, maxHeight: .infinity)
       case .error(let error):
         ErrorScreen(
           errorString: error.localizedDescription,
           onRetry: { await viewModel.searchUsers(prefix: searchText) }
         )
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
       case .loaded(let results):
         if results.isEmpty {
           noResultsState
@@ -101,6 +105,13 @@ struct SearchView: View {
         viewModel.clearResults()
       }
     }
+    .modify {
+      if #available(iOS 26, *),
+        PostHogSDK.shared.isFeatureEnabled("toolbar-scroll-effect")
+      {
+        $0.scrollFadeBackground(scrollOffset: scrollOffset)
+      }
+    }
     //    .onTapGesture {
     //      isSearchBarFocused = false
     //    }
@@ -163,5 +174,12 @@ struct SearchView: View {
       }
     }
     .listStyle(.plain)
+    .modify {
+      if #available(iOS 26, *),
+        PostHogSDK.shared.isFeatureEnabled("toolbar-scroll-effect")
+      {
+        $0.scrollFadeEffect(scrollOffset: $scrollOffset)
+      }
+    }
   }
 }
