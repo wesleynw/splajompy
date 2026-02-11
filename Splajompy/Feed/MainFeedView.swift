@@ -110,7 +110,6 @@ struct MainFeedView: View {
         ToolbarItem(placement: .topBarLeading) {
           feedMenu
         }
-        .sharedBackgroundVisibility(.hidden)
       } else {
         ToolbarItem(placement: .topBarLeading) {
           feedMenu
