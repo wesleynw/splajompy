@@ -222,10 +222,7 @@ func (r *FakePostRepository) getPaginatedIds(ids []int, limit int, offset int) (
 		return []int{}, nil
 	}
 
-	end := offset + limit
-	if end > len(ids) {
-		end = len(ids)
-	}
+	end := min(offset+limit, len(ids))
 
 	return ids[offset:end], nil
 }
