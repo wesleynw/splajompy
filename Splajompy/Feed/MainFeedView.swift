@@ -10,6 +10,8 @@ struct MainFeedView: View {
   @Environment(AuthManager.self) private var authManager
   var postManager: PostStore
 
+  @State private var scrollOffset = CGFloat.zero
+
   @AppStorage("selectedFeedType") private var selectedFeedType: FeedType = .all
   @AppStorage("hasViewedWrapped") private var hasViewedWrapped: Bool = false
 
@@ -66,6 +68,13 @@ struct MainFeedView: View {
           feedRefreshToolbarItem
         #endif
       }
+      .modify {
+        if #available(iOS 26, *),
+          PostHogSDK.shared.isFeatureEnabled("toolbar-scroll-effect")
+        {
+          $0.scrollFadeBackground(scrollOffset: scrollOffset)
+        }
+      }
   }
 
   @ViewBuilder
@@ -76,6 +85,7 @@ struct MainFeedView: View {
         #if os(macOS)
           .controlSize(.small)
         #endif
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     case .loaded(let postIds):
       if postIds.isEmpty {
         emptyMessage
@@ -87,14 +97,24 @@ struct MainFeedView: View {
         errorString: error.localizedDescription,
         onRetry: { await viewModel.loadPosts(reset: true) }
       )
+      .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
   }
 
   @ToolbarContentBuilder
   private var feedMenuToolbarItem: some ToolbarContent {
     #if os(iOS)
-      ToolbarItem(placement: .topBarLeading) {
-        feedMenu
+      if #available(iOS 26, *),
+        PostHogSDK.shared.isFeatureEnabled("toolbar-scroll-effect")
+      {
+        ToolbarItem(placement: .topBarLeading) {
+          feedMenu
+        }
+        .sharedBackgroundVisibility(.hidden)
+      } else {
+        ToolbarItem(placement: .topBarLeading) {
+          feedMenu
+        }
       }
     #else
       if #available(macOS 26.0, *) {
@@ -277,6 +297,13 @@ struct MainFeedView: View {
     .refreshable {
       await viewModel.loadPosts(reset: true)
       PostHogSDK.shared.capture("feed_refreshed")
+    }
+    .modify {
+      if #available(iOS 26, *),
+        PostHogSDK.shared.isFeatureEnabled("toolbar-scroll-effect")
+      {
+        $0.scrollFadeEffect(scrollOffset: $scrollOffset)
+      }
     }
   }
 

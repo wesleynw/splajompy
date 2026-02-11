@@ -5,6 +5,7 @@ struct NotificationsView: View {
   @State private var viewModel: ViewModel
   @Environment(AuthManager.self) private var authManager
   @State private var refreshId = UUID()
+  @State private var scrollOffset = CGFloat.zero
 
   init(viewModel: ViewModel = ViewModel()) {
     self._viewModel = State(wrappedValue: viewModel)
@@ -15,6 +16,7 @@ struct NotificationsView: View {
       switch viewModel.state {
       case .idle, .loading:
         ProgressView()
+          .frame(maxWidth: .infinity, maxHeight: .infinity)
       case .loaded(let sections, let unreadNotifications):
         if sections.isEmpty && unreadNotifications.isEmpty {
           noNotificationsView
@@ -29,6 +31,7 @@ struct NotificationsView: View {
           errorString: error.localizedDescription,
           onRetry: { await viewModel.refreshNotifications() }
         )
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
       }
     }
     #if os(macOS)
@@ -80,6 +83,13 @@ struct NotificationsView: View {
               .fixedSize()
           }
         #endif
+      }
+    }
+    .modify {
+      if #available(iOS 26, *),
+        PostHogSDK.shared.isFeatureEnabled("toolbar-scroll-effect")
+      {
+        $0.scrollFadeBackground(scrollOffset: scrollOffset)
       }
     }
   }
@@ -216,6 +226,13 @@ struct NotificationsView: View {
     .refreshable {
       await viewModel.refreshNotifications()
       refreshId = UUID()
+    }
+    .modify {
+      if #available(iOS 26, *),
+        PostHogSDK.shared.isFeatureEnabled("toolbar-scroll-effect")
+      {
+        $0.scrollFadeEffect(scrollOffset: $scrollOffset)
+      }
     }
   }
 }
