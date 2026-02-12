@@ -16,6 +16,9 @@ struct SearchView: View {
         emptyState
       case .loading:
         ProgressView()
+          #if os(macOS)
+            .controlSize(.small)
+          #endif
           .frame(maxWidth: .infinity, maxHeight: .infinity)
       case .error(let error):
         ErrorScreen(
@@ -31,6 +34,10 @@ struct SearchView: View {
         }
       }
     }
+    #if os(macOS)
+      .frame(maxWidth: 600)
+      .frame(maxWidth: .infinity)
+    #endif
     #if os(macOS)
       .contentMargins(.horizontal, 40, for: .scrollContent)
       .safeAreaPadding(.horizontal, 20)

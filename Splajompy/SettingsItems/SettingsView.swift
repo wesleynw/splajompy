@@ -30,28 +30,28 @@ struct SettingsView: View {
           .transition(.slide)
         }
 
-        NavigationLink(destination: AccountSettingsView()) {
+        NavigationLink(value: SettingsRoute.account) {
           Label("Account", systemImage: "person.circle")
         }
 
-        NavigationLink(destination: AppearanceSwitcher()) {
+        NavigationLink(value: SettingsRoute.appearance) {
           Label("Appearance", systemImage: "circle.lefthalf.filled")
         }
 
         #if os(iOS)
-          NavigationLink(destination: AppIconPickerView()) {
+          NavigationLink(value: SettingsRoute.appIcon) {
             Label("App Icon", systemImage: "square.grid.2x2")
           }
         #endif
 
         if PostHogSDK.shared.isFeatureEnabled("secret-tab") {
-          NavigationLink(destination: SecretPageView()) {
+          NavigationLink(value: SettingsRoute.secretPage) {
             Label("Secret Page", systemImage: "fossil.shell")
           }
         }
 
         Section {
-          NavigationLink(destination: RequestSupportView()) {
+          NavigationLink(value: SettingsRoute.support) {
             Label("Support", systemImage: "lifepreserver")
           }
         } footer: {
@@ -61,7 +61,7 @@ struct SettingsView: View {
         }
 
         Section {
-          NavigationLink(destination: AboutView()) {
+          NavigationLink(value: SettingsRoute.about) {
             Label("About", systemImage: "info.circle")
           }
         }

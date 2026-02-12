@@ -16,6 +16,9 @@ struct NotificationsView: View {
       switch viewModel.state {
       case .idle, .loading:
         ProgressView()
+          #if os(macOS)
+            .controlSize(.small)
+          #endif
           .frame(maxWidth: .infinity, maxHeight: .infinity)
       case .loaded(let sections, let unreadNotifications):
         if sections.isEmpty && unreadNotifications.isEmpty {

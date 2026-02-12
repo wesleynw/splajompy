@@ -10,6 +10,7 @@ struct SplajompyApp: App {
     NavigationPath(),
     NavigationPath(),
     NavigationPath(),
+    NavigationPath(),
   ]
 
   @State private var authManager = AuthManager.shared
@@ -46,6 +47,14 @@ struct SplajompyApp: App {
     }
     #if os(macOS)
       .defaultSize(width: 1250, height: 800)
+      .commands {
+        CommandGroup(replacing: .appSettings) {
+          Button("Settings...") {
+            selection = 4
+          }
+          .keyboardShortcut(",", modifiers: .command)
+        }
+      }
     #endif
   }
 
@@ -103,6 +112,9 @@ struct SplajompyApp: App {
           .navigationDestination(for: Route.self) { route in
             routeDestination(route)
           }
+          .navigationDestination(for: SettingsRoute.self) { route in
+            settingsRouteDestination(route)
+          }
       }
       .tabItem {
         Label("Profile", systemImage: "person.circle")
@@ -131,6 +143,9 @@ struct SplajompyApp: App {
           NavigationLink(value: 3) {
             Label("Profile", systemImage: "person.circle")
           }
+          NavigationLink(value: 4) {
+            Label("Settings", systemImage: "gearshape")
+          }
         }
         .navigationSplitViewColumnWidth(175)
       } detail: {
@@ -150,6 +165,9 @@ struct SplajompyApp: App {
             case 3:
               CurrentProfileView(postManager: postManager)
                 .postHogScreenView()
+            case 4:
+              SettingsView()
+                .postHogScreenView()
             default:
               MainFeedView(postManager: postManager)
                 .postHogScreenView()
@@ -157,6 +175,9 @@ struct SplajompyApp: App {
           }
           .navigationDestination(for: Route.self) { route in
             routeDestination(route)
+          }
+          .navigationDestination(for: SettingsRoute.self) { route in
+            settingsRouteDestination(route)
           }
           .onOpenURL { url in
             handleDeepLink(url)
@@ -196,6 +217,30 @@ struct SplajompyApp: App {
     }
   }
 
+  @ViewBuilder
+  private func settingsRouteDestination(_ route: SettingsRoute) -> some View {
+    switch route {
+    case .settings:
+      SettingsView()
+    case .account:
+      AccountSettingsView()
+    case .appearance:
+      AppearanceSwitcher()
+    case .appIcon:
+      #if os(iOS)
+        AppIconPickerView()
+      #else
+        EmptyView()
+      #endif
+    case .secretPage:
+      SecretPageView()
+    case .support:
+      RequestSupportView()
+    case .about:
+      AboutView()
+    }
+  }
+
   private func handleDeepLink(_ url: URL) {
     if let route = parseDeepLink(url) {
       navigationPaths[selection].append(route)
@@ -204,6 +249,7 @@ struct SplajompyApp: App {
 
   private func handleUserSignOut() {
     navigationPaths = [
+      NavigationPath(),
       NavigationPath(),
       NavigationPath(),
       NavigationPath(),

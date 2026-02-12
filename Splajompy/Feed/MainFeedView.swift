@@ -30,7 +30,7 @@ struct MainFeedView: View {
       .onAppear {
         if case .idle = viewModel.state {
           Task {
-            await viewModel.loadPosts()
+            await viewModel.loadPosts(reset: true)
           }
         }
 
@@ -205,7 +205,7 @@ struct MainFeedView: View {
         }
       }
     #else
-      ToolbarItem(placement: .primaryAction) {
+      ToolbarItem(placement: .navigation) {
         Button(action: { isShowingNewPostView = true }) {
           Image(systemName: "plus")
         }

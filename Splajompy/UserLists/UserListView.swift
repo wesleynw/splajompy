@@ -48,6 +48,10 @@ struct UserListView: View {
         )
       }
     }
+    #if os(macOS)
+      .frame(maxWidth: 600)
+      .frame(maxWidth: .infinity)
+    #endif
     .navigationTitle(userListVariant.title)
     #if os(iOS)
       .navigationBarTitleDisplayMode(.inline)
