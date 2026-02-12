@@ -51,8 +51,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/PostHog/posthog-ios.git",
       "state" : {
-        "branch" : "feat/replay-renderer-tests",
-        "revision" : "b6c5aed825038530bb9c8a55430e4b21b921c015"
+        "revision" : "5afb749442ecf7798a725ccd30342d94abb5e57f",
+        "version" : "3.41.0"
       }
     },
     {

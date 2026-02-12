@@ -16,6 +16,7 @@
 		1868AF452F0C7598001E15E9 /* OpenTelemetryProtocolExporterHTTP in Frameworks */ = {isa = PBXBuildFile; productRef = 1868AF442F0C7598001E15E9 /* OpenTelemetryProtocolExporterHTTP */; };
 		1868AF472F0C75BD001E15E9 /* URLSessionInstrumentation in Frameworks */ = {isa = PBXBuildFile; productRef = 1868AF462F0C75BD001E15E9 /* URLSessionInstrumentation */; };
 		1868AF492F0C9FF0001E15E9 /* ResourceExtension in Frameworks */ = {isa = PBXBuildFile; productRef = 1868AF482F0C9FF0001E15E9 /* ResourceExtension */; };
+		187974BA2DDC1EE300BA0F37 /* PostHog in Frameworks */ = {isa = PBXBuildFile; productRef = 187974B92DDC1EE300BA0F37 /* PostHog */; };
 		18A617E92D9B2D6000B93F08 /* FeedViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18A617DA2D9B2D6000B93F08 /* FeedViewModel.swift */; };
 		18A617EA2D9B2D6000B93F08 /* AuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18A617D62D9B2D6000B93F08 /* AuthManager.swift */; };
 		18A617EB2D9B2D6000B93F08 /* KeychainHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18A617D72D9B2D6000B93F08 /* KeychainHelper.swift */; };
@@ -23,7 +24,6 @@
 		18A617ED2D9B2D6000B93F08 /* ProfileViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18A617E22D9B2D6000B93F08 /* ProfileViewModel.swift */; };
 		18A617EE2D9B2D6000B93F08 /* models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18A617DC2D9B2D6000B93F08 /* models.swift */; };
 		18A617F12D9B2D6000B93F08 /* PostView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18A617DF2D9B2D6000B93F08 /* PostView.swift */; };
-		18EE20B62F3CDF050084A535 /* PostHog in Frameworks */ = {isa = PBXBuildFile; productRef = 18EE20B52F3CDF050084A535 /* PostHog */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -165,10 +165,10 @@
 				180DEE662E39AE0F00A4D29D /* NukeVideo in Frameworks */,
 				180DEE602E39AE0F00A4D29D /* Nuke in Frameworks */,
 				180DEE622E39AE0F00A4D29D /* NukeExtensions in Frameworks */,
+				187974BA2DDC1EE300BA0F37 /* PostHog in Frameworks */,
 				1868AF472F0C75BD001E15E9 /* URLSessionInstrumentation in Frameworks */,
 				1868AF492F0C9FF0001E15E9 /* ResourceExtension in Frameworks */,
 				1868AF3D2F0C74C7001E15E9 /* OpenTelemetryApi in Frameworks */,
-				18EE20B62F3CDF050084A535 /* PostHog in Frameworks */,
 				1868AF452F0C7598001E15E9 /* OpenTelemetryProtocolExporterHTTP in Frameworks */,
 				1868AF3F2F0C74C7001E15E9 /* OpenTelemetrySdk in Frameworks */,
 			);
@@ -313,6 +313,7 @@
 			);
 			name = Splajompy;
 			packageProductDependencies = (
+				187974B92DDC1EE300BA0F37 /* PostHog */,
 				180DEE5F2E39AE0F00A4D29D /* Nuke */,
 				180DEE612E39AE0F00A4D29D /* NukeExtensions */,
 				180DEE632E39AE0F00A4D29D /* NukeUI */,
@@ -322,7 +323,6 @@
 				1868AF442F0C7598001E15E9 /* OpenTelemetryProtocolExporterHTTP */,
 				1868AF462F0C75BD001E15E9 /* URLSessionInstrumentation */,
 				1868AF482F0C9FF0001E15E9 /* ResourceExtension */,
-				18EE20B52F3CDF050084A535 /* PostHog */,
 			);
 			productName = Splajompy;
 			productReference = 184A63CB2D88CBA100860D6B /* Splajompy.app */;
@@ -397,10 +397,10 @@
 			mainGroup = 184A63C22D88CBA000860D6B;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
+				187974B82DDC1EE300BA0F37 /* XCRemoteSwiftPackageReference "posthog-ios" */,
 				180DEE5E2E39AD6400A4D29D /* XCRemoteSwiftPackageReference "Nuke" */,
 				1868AF362F0C726C001E15E9 /* XCRemoteSwiftPackageReference "opentelemetry-swift-core" */,
 				1868AF372F0C728E001E15E9 /* XCRemoteSwiftPackageReference "opentelemetry-swift" */,
-				18EE20B42F3CDF050084A535 /* XCRemoteSwiftPackageReference "posthog-ios" */,
 			);
 			preferredProjectObjectVersion = 90;
 			productRefGroup = 184A63CC2D88CBA100860D6B /* Products */;
@@ -840,12 +840,12 @@
 				minimumVersion = 2.3.0;
 			};
 		};
-		18EE20B42F3CDF050084A535 /* XCRemoteSwiftPackageReference "posthog-ios" */ = {
+		187974B82DDC1EE300BA0F37 /* XCRemoteSwiftPackageReference "posthog-ios" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/PostHog/posthog-ios.git";
 			requirement = {
-				branch = "feat/replay-renderer-tests";
-				kind = branch;
+				kind = upToNextMajorVersion;
+				minimumVersion = 3.25.1;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
@@ -896,9 +896,9 @@
 			package = 1868AF372F0C728E001E15E9 /* XCRemoteSwiftPackageReference "opentelemetry-swift" */;
 			productName = ResourceExtension;
 		};
-		18EE20B52F3CDF050084A535 /* PostHog */ = {
+		187974B92DDC1EE300BA0F37 /* PostHog */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 18EE20B42F3CDF050084A535 /* XCRemoteSwiftPackageReference "posthog-ios" */;
+			package = 187974B82DDC1EE300BA0F37 /* XCRemoteSwiftPackageReference "posthog-ios" */;
 			productName = PostHog;
 		};
 /* End XCSwiftPackageProductDependency section */
