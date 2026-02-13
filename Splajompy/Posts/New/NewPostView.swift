@@ -172,7 +172,7 @@ struct NewPostView: View {
       }
     }
     #if os(macOS)
-    .frame(width: 500, height: 450)
+      .frame(width: 500, height: 450)
     #endif
     .sheet(isPresented: $showingPollCreation) {
       PollCreationView(poll: $viewModel.poll)

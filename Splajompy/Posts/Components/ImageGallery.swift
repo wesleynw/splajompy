@@ -187,8 +187,7 @@ struct ImageGallery: View {
     topTrailing: CGFloat = 6
   ) -> some View {
     Group {
-      if index < images.count, let url = URL(string: images[index].imageBlobUrl)
-      {
+      if index < images.count, let url = URL(string: images[index].imageBlobUrl) {
         LazyImage(url: url) {
           state in
           if let image = state.image {
