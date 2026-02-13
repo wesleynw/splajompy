@@ -8,6 +8,8 @@ import (
 
 	"github.com/exaring/otelpgx"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+	semconv "go.opentelemetry.io/otel/semconv/v1.39.0"
+	"go.opentelemetry.io/otel/trace"
 	"splajompy.com/api/v2/internal/db/queries"
 	"splajompy.com/api/v2/internal/repositories"
 	"splajompy.com/api/v2/internal/utilities"
@@ -92,15 +94,13 @@ func main() {
 	wrappedHandler := middleware.Logger(mux)
 	wrappedHandler = middleware.AppVersion(wrappedHandler)
 
-	// Add HTTP instrumentation for the whole server.
+	// add HTTP instrumentation for the whole server.
 	httpHandler := otelhttp.NewHandler(wrappedHandler, "/",
 		otelhttp.WithSpanNameFormatter(func(operation string, r *http.Request) string {
-			method := r.Method
-			path := r.URL.Path
-			if path == "" {
-				path = "/"
-			}
-			return method + " " + path
+			span := trace.SpanFromContext(r.Context())
+			span.SetAttributes(semconv.HTTPRoute(r.Pattern))
+
+			return r.Pattern
 		}),
 	)
 
