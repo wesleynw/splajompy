@@ -214,10 +214,19 @@ struct ProfileView: View {
         }
       }
     #else
-      ToolbarItem(placement: .principal) {
-        Text("@" + self.username)
-          .font(isProfileTab ? .title2 : .callout)
-          .fontWeight(isProfileTab ? .black : .bold)
+      if #available(macOS 26, *) {
+        ToolbarItem(placement: .principal) {
+          Text("@" + self.username)
+            .fontWeight(.bold)
+            .font(isProfileTab ? .title2 : .callout)
+        }
+        .sharedBackgroundVisibility(.hidden)
+      } else {
+        ToolbarItem(placement: .principal) {
+          Text("@" + self.username)
+            .fontWeight(.bold)
+            .font(isProfileTab ? .title2 : .callout)
+        }
       }
     #endif
   }
