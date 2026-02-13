@@ -218,7 +218,7 @@ struct MainFeedView: View {
     ToolbarItem(placement: .primaryAction) {
       Button {
         Task {
-          await viewModel.loadPosts(reset: true)
+          await viewModel.loadPosts(reset: true, useLoadingState: true)
           PostHogSDK.shared.capture("feed_refreshed")
         }
       } label: {

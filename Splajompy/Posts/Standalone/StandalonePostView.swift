@@ -70,6 +70,7 @@ struct StandalonePostView: View {
       #if os(macOS)
         .frame(maxWidth: 600)
         .frame(maxWidth: .infinity)
+        .padding(.bottom, 200)
       #endif
     }
     .postHogScreenView()

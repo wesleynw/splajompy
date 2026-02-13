@@ -83,11 +83,7 @@ struct MentionTextEditor: View {
       let maxHeight = (lineHeight * 10) + textViewInset
       let minHeight = lineHeight + textViewInset
 
-      #if os(iOS)
-        let displayHeight = min(max(contentHeight, minHeight), maxHeight)
-      #else
-        let displayHeight = 200.0
-      #endif
+      let displayHeight = min(max(contentHeight, minHeight), maxHeight)
 
       ZStack(alignment: .topLeading) {
         AttributedTextEditor(
@@ -130,7 +126,7 @@ struct MentionTextEditor: View {
         }
       }
     } else {
-      VStack(alignment: .leading, spacing: 0) {
+      VStack(alignment: .leading) {
         ZStack(alignment: .topLeading) {
           AttributedTextEditor(
             text: $text,
@@ -181,7 +177,7 @@ struct MentionTextEditor: View {
             #endif
             .padding(.trailing, 8)
           Text("Searching...")
-            .foregroundColor(.gray)
+            .fontWeight(.medium)
         }
         #if os(macOS)
           .frame(height: 32)
@@ -190,14 +186,23 @@ struct MentionTextEditor: View {
         #endif
         .frame(maxWidth: .infinity, alignment: .center)
       } else if suggestions.isEmpty {
-        Text("No users found")
-          .foregroundColor(.gray)
+        Button {
+        } label: {
+          HStack {
+            Text("No users found")
+              .fontWeight(.medium)
+              .foregroundColor(.primary)
+          }
+          .padding(.horizontal, 12)
           #if os(macOS)
             .frame(height: 32)
           #else
             .frame(height: 44)
           #endif
           .frame(maxWidth: .infinity, alignment: .center)
+          .contentShape(.rect)
+        }
+        .buttonStyle(.plain)
       } else {
         ForEach(suggestions.prefix(5), id: \.userId) { user in
           Button {
@@ -231,7 +236,10 @@ struct MentionTextEditor: View {
     #endif
     .modify {
       if #available(iOS 26, macOS 26, *) {
-        $0
+        $0.glassEffect(
+          .regular.interactive(),
+          in: RoundedRectangle(cornerRadius: 15)
+        )
       } else {
         $0.background(.ultraThinMaterial)
           .clipShape(RoundedRectangle(cornerRadius: 8))

@@ -187,7 +187,8 @@ struct ImageGallery: View {
     topTrailing: CGFloat = 6
   ) -> some View {
     Group {
-      if index < images.count, let url = URL(string: images[index].imageBlobUrl) {
+      if index < images.count, let url = URL(string: images[index].imageBlobUrl)
+      {
         LazyImage(url: url) {
           state in
           if let image = state.image {
@@ -195,6 +196,9 @@ struct ImageGallery: View {
           } else {
             ProgressView()
               .frame(maxWidth: .infinity, maxHeight: .infinity)
+              #if os(macOS)
+                .controlSize(.small)
+              #endif
           }
         }
         .processors([.resize(width: screenWidth)])
