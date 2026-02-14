@@ -8,6 +8,7 @@ import (
 
 	"github.com/exaring/otelpgx"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+	"go.opentelemetry.io/otel/attribute"
 	semconv "go.opentelemetry.io/otel/semconv/v1.39.0"
 	"go.opentelemetry.io/otel/trace"
 	"splajompy.com/api/v2/internal/db/queries"
@@ -97,16 +98,20 @@ func main() {
 			span := trace.SpanFromContext(r.Context())
 			span.SetName(r.Pattern)
 			span.SetAttributes(semconv.HTTPRoute(r.Pattern))
-			if labeler, ok := otelhttp.LabelerFromContext(r.Context()); ok {
-				labeler.Add(semconv.HTTPRoute(r.Pattern))
-			}
 		}
 	})
 
 	wrappedHandler := middleware.Logger(routedMux)
 	wrappedHandler = middleware.AppVersion(wrappedHandler)
 
-	httpHandler := otelhttp.NewHandler(wrappedHandler, "/")
+	httpHandler := otelhttp.NewHandler(wrappedHandler, "/",
+		otelhttp.WithMetricAttributesFn(func(r *http.Request) []attribute.KeyValue {
+			if r.Pattern != "" {
+				return []attribute.KeyValue{semconv.HTTPRoute(r.Pattern)}
+			}
+			return nil
+		}),
+	)
 
 	log.Printf("Server starting on port %d\n", 8080)
 	if err := http.ListenAndServe(":8080", httpHandler); err != nil {
