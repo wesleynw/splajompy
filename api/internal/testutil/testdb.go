@@ -6,7 +6,6 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
-	"strings"
 	"testing"
 	"time"
 
@@ -64,35 +63,12 @@ func StartPostgres(t *testing.T) *TestDB {
 		t.Fatalf("failed to read schema.sql: %v", err)
 	}
 
-	// The schema.sql from pg_dump defines users.user_id as "integer NOT NULL" without
-	// a primary key or sequence (those are added separately in production).
-	// Patch the column definition so FK references and auto-increment work in tests.
-	schema = strings.Replace(schema,
-		"user_id integer NOT NULL,",
-		"user_id SERIAL PRIMARY KEY,",
-		1,
-	)
-
 	if _, err := pool.Exec(ctx, schema); err != nil {
 		t.Fatalf("failed to apply schema: %v", err)
 	}
 
 	q := queries.New(pool)
 	return &TestDB{Pool: pool, Queries: q}
-}
-
-// TruncateAll truncates all tables for test isolation.
-func (db *TestDB) TruncateAll(t *testing.T) {
-	t.Helper()
-	_, err := db.Pool.Exec(context.Background(), `
-		TRUNCATE users, posts, comments, likes, images, notifications,
-		         sessions, follows, user_relationship, bios, block, mute,
-		         poll_vote, "verificationCodes", wrapped
-		CASCADE
-	`)
-	if err != nil {
-		t.Fatalf("failed to truncate tables: %v", err)
-	}
 }
 
 // readSchema finds and reads the schema.sql file relative to this source file.
