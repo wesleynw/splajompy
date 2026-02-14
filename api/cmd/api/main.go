@@ -9,6 +9,7 @@ import (
 	"github.com/exaring/otelpgx"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	semconv "go.opentelemetry.io/otel/semconv/v1.39.0"
+	"go.opentelemetry.io/otel/trace"
 	"splajompy.com/api/v2/internal/db/queries"
 	"splajompy.com/api/v2/internal/repositories"
 	"splajompy.com/api/v2/internal/utilities"
@@ -93,6 +94,9 @@ func main() {
 	routedMux := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		mux.ServeHTTP(w, r)
 		if r.Pattern != "" {
+			span := trace.SpanFromContext(r.Context())
+			span.SetName(r.Pattern)
+			span.SetAttributes(semconv.HTTPRoute(r.Pattern))
 			if labeler, ok := otelhttp.LabelerFromContext(r.Context()); ok {
 				labeler.Add(semconv.HTTPRoute(r.Pattern))
 			}
