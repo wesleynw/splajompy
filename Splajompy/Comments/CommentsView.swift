@@ -133,6 +133,7 @@ struct CommentsView: View {
             ForEach(comments, id: \.commentId) { comment in
               CommentRow(
                 comment: comment,
+                isInSheet: isInSheet,
                 toggleLike: {
                   viewModel.toggleLike(for: comment)
                 },
@@ -201,18 +202,42 @@ struct CommentsView: View {
 
 struct CommentRow: View {
   let comment: DetailedComment
+  let isInSheet: Bool
   let toggleLike: () -> Void
   let deleteComment: () -> Void
 
   let formatter = RelativeDateTimeFormatter()
 
   @Environment(AuthManager.self) private var authManager
+  @Environment(\.openURL) private var openURL
   @State private var showDeleteConfirmation = false
 
   var body: some View {
     VStack(alignment: .leading, spacing: 6) {
       HStack(alignment: .firstTextBaseline, spacing: 2) {
-        ProfileDisplayNameView(user: comment.user, alignVertically: false)
+        if isInSheet {
+          Button {
+            openURL(
+              URL(
+                string:
+                  "splajompy://user?id=\(comment.user.userId)&username=\(comment.user.username)"
+              )!
+            )
+          } label: {
+            ProfileDisplayNameView(user: comment.user, alignVertically: false)
+          }
+          .buttonStyle(.plain)
+        } else {
+          NavigationLink(
+            value: Route.profile(
+              id: String(comment.user.userId),
+              username: comment.user.username
+            )
+          ) {
+            ProfileDisplayNameView(user: comment.user, alignVertically: false)
+          }
+          .buttonStyle(.plain)
+        }
       }
 
       Text(comment.richContent)
