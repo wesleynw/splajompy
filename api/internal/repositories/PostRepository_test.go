@@ -15,7 +15,7 @@ import (
 	"splajompy.com/api/v2/internal/testutil"
 )
 
-func AAAAAAAAA_TestInsertAndGetPost(t *testing.T) {
+func TestInsertAndGetPost(t *testing.T) {
 	tdb := testutil.StartPostgres(t)
 	ctx := context.Background()
 
@@ -80,4 +80,33 @@ func TestInsertImageForPost(t *testing.T) {
 	images, err := postRepo.GetImagesForPost(ctx, post.PostID)
 	require.NoError(t, err)
 	assert.Len(t, images, 1)
+}
+
+func TestGetAllPostIdsCursor_ExcludesBlockedUser(t *testing.T) {
+	tdb := testutil.StartPostgres(t)
+	ctx := context.Background()
+
+	userRepo := repositories.NewDBUserRepository(tdb.Queries)
+	postRepo := repositories.NewDBPostRepository(tdb.Queries)
+
+	poster, err := userRepo.CreateUser(ctx, "poster", "poster@example.com", "password123", "REF001")
+	require.NoError(t, err)
+
+	viewer, err := userRepo.CreateUser(ctx, "viewer", "viewer@example.com", "password123", "REF002")
+	require.NoError(t, err)
+
+	visibility := models.VisibilityTypeEnum(0)
+	_, err = postRepo.InsertPost(ctx, poster.UserID, "visible post", db.Facets{}, nil, &visibility)
+	require.NoError(t, err)
+
+	ids, err := postRepo.GetAllPostIdsCursor(ctx, 10, nil, viewer.UserID)
+	require.NoError(t, err)
+	assert.Len(t, ids, 1)
+
+	err = userRepo.BlockUser(ctx, viewer.UserID, poster.UserID)
+	require.NoError(t, err)
+
+	ids, err = postRepo.GetAllPostIdsCursor(ctx, 10, nil, viewer.UserID)
+	require.NoError(t, err)
+	assert.Empty(t, ids)
 }
