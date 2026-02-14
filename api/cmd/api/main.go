@@ -91,18 +91,19 @@ func main() {
 	h.RegisterRoutes(mux.HandleFunc, authMiddleware)
 	h.RegisterPublicRoutes(mux.HandleFunc)
 
-	wrappedHandler := middleware.Logger(mux)
+	routedMux := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		mux.ServeHTTP(w, r)
+		if r.Pattern != "" {
+			span := trace.SpanFromContext(r.Context())
+			span.SetName(r.Pattern)
+			span.SetAttributes(semconv.HTTPRoute(r.Pattern))
+		}
+	})
+
+	wrappedHandler := middleware.Logger(routedMux)
 	wrappedHandler = middleware.AppVersion(wrappedHandler)
 
-	// add HTTP instrumentation for the whole server.
-	httpHandler := otelhttp.NewHandler(wrappedHandler, "/",
-		otelhttp.WithSpanNameFormatter(func(operation string, r *http.Request) string {
-			span := trace.SpanFromContext(r.Context())
-			span.SetAttributes(semconv.HTTPRoute(r.Pattern))
-
-			return r.Pattern
-		}),
-	)
+	httpHandler := otelhttp.NewHandler(wrappedHandler, "/")
 
 	log.Printf("Server starting on port %d\n", 8080)
 	if err := http.ListenAndServe(":8080", httpHandler); err != nil {
