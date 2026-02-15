@@ -7,6 +7,16 @@ enum Route: Hashable {
   case mutualsList(userId: Int)
 }
 
+enum SettingsRoute: Hashable {
+  case settings
+  case account
+  case appearance
+  case appIcon
+  case secretPage
+  case support
+  case about
+}
+
 func parseDeepLink(_ url: URL) -> Route? {
   guard url.scheme == "splajompy" else { return nil }
   switch url.host {

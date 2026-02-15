@@ -59,14 +59,6 @@ struct NewPostView: View {
                   viewModel.selectedRange = result.newSelectedRange
                 }
               )
-              .modify {
-                if #available(iOS 26, macOS 26, *) {
-                  $0.glassEffect(
-                    .regular.interactive(),
-                    in: RoundedRectangle(cornerRadius: 15)
-                  )
-                }
-              }
               .offset(y: cursorY + 40)
               .padding(.horizontal, 32)
               .animation(.default, value: mentionViewModel.isShowingSuggestions)
@@ -114,13 +106,12 @@ struct NewPostView: View {
         #else
           ToolbarItem(placement: .cancellationAction) {
             if #available(macOS 26.0, *) {
-              Button(role: .close, action: { dismiss() })
+              Button(role: .cancel, action: { dismiss() })
             } else {
               Button {
                 dismiss()
               } label: {
-                Image(systemName: "xmark.circle.fill")
-                  .opacity(0.8)
+                Label("Cancel", systemImage: "xmark.circle.fill")
               }
               .buttonStyle(.plain)
             }
@@ -180,6 +171,9 @@ struct NewPostView: View {
         #endif
       }
     }
+    #if os(macOS)
+      .frame(width: 500, height: 450)
+    #endif
     .sheet(isPresented: $showingPollCreation) {
       PollCreationView(poll: $viewModel.poll)
     }

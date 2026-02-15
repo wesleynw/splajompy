@@ -1,6 +1,7 @@
 import PostHog
 import SwiftUI
 
+/// Allows users to edit their display name, bio, and display name font.
 struct ProfileEditorView: View {
   var viewModel: ProfileView.ViewModel
   @State private var name: String = ""
@@ -20,32 +21,34 @@ struct ProfileEditorView: View {
 
   var body: some View {
     NavigationStack {
-      VStack(alignment: .leading) {
-        HStack {
-          Text("Name")
-            .font(.subheadline)
-            .fontWeight(.bold)
-            .foregroundStyle(.primary.opacity(0.7))
-          Spacer()
-          Text("\(name.count)/25")
-            .font(.subheadline)
-            .foregroundStyle(
-              name.count > 25
-                ? Color.red.opacity(0.7) : Color.primary.opacity(0.7)
-            )
-        }
-        Divider()
-        Group {
-          TextEditor(text: $name)
-        }
-        .frame(maxHeight: 100)
+      ScrollView {
+        TextField("Name", text: $name)
+          .textFieldStyle(.plain)
+          .lineLimit(1)
+          .padding()
+          .background {
+            RoundedRectangle(cornerRadius: 10)
+              .stroke(.primary.quaternary)
+          }
+
+        Text("\(name.count)/25")
+          .font(.subheadline)
+          .foregroundStyle(
+            name.count > 25
+              ? Color.red.opacity(0.7) : Color.primary.opacity(0.7)
+          )
+          .frame(maxWidth: .infinity, alignment: .trailing)
 
         Button {
           isShowingFontPicker = true
         } label: {
-          Label("Display Name Style", systemImage: "textformat")
-            .frame(maxWidth: .infinity)
+          HStack {
+            Image(systemName: "textformat")
+            Text("Font Style")
+          }
         }
+        .controlSize(.large)
+        .padding(.vertical, 5)
         .modify {
           if #available(iOS 26, macOS 26, *) {
             $0.buttonStyle(.glass)
@@ -53,23 +56,25 @@ struct ProfileEditorView: View {
             $0.buttonStyle(.bordered)
           }
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
         .disabled(name.isEmpty)
 
-        HStack {
-          Text("Bio")
-            .font(.subheadline)
-            .fontWeight(.bold)
-            .foregroundStyle(.primary.opacity(0.7))
-          Spacer()
-          Text("\(bio.count)/400")
-            .font(.subheadline)
-            .foregroundStyle(
-              bio.count > 400
-                ? Color.red.opacity(0.7) : Color.primary.opacity(0.7)
-            )
-        }
-        Divider()
-        TextEditor(text: $bio)
+        TextField("Bio", text: $bio, axis: .vertical)
+          .textFieldStyle(.plain)
+          .lineLimit(5...10)
+          .padding()
+          .background {
+            RoundedRectangle(cornerRadius: 10)
+              .stroke(.primary.quaternary)
+          }
+
+        Text("\(bio.count)/400")
+          .font(.subheadline)
+          .foregroundStyle(
+            bio.count > 400
+              ? Color.red.opacity(0.7) : Color.primary.opacity(0.7)
+          )
+          .frame(maxWidth: .infinity, alignment: .trailing)
       }
       .padding()
       .onAppear {
@@ -95,7 +100,7 @@ struct ProfileEditorView: View {
       .toolbar {
         ToolbarItem(placement: .cancellationAction) {
           if #available(iOS 26.0, macOS 26, *) {
-            Button(role: .close, action: { dismiss() })
+            Button(role: .cancel, action: { dismiss() })
           } else {
             Button("Cancel") {
               dismiss()
@@ -104,8 +109,8 @@ struct ProfileEditorView: View {
         }
 
         ToolbarItem(placement: .confirmationAction) {
-          if #available(iOS 26, *) {
-            Button {
+          if #available(iOS 26, macOS 26, *) {
+            Button(role: .confirm) {
               viewModel.updateProfile(
                 name: name,
                 bio: bio,
@@ -114,14 +119,11 @@ struct ProfileEditorView: View {
                 )
               )
               dismiss()
-            } label: {
-              if viewModel.isLoading {
-                ProgressView()
-              } else {
-                Label("Comment", systemImage: "checkmark")
-              }
             }
             .disabled(name.count > 25 || bio.count > 400)
+            #if os(macOS)
+              .keyboardShortcut(.return, modifiers: .command)
+            #endif
           } else {
             Button("Done") {
               viewModel.updateProfile(
@@ -134,6 +136,9 @@ struct ProfileEditorView: View {
               dismiss()
             }
             .disabled(name.count > 25 || bio.count > 400)
+            #if os(macOS)
+              .keyboardShortcut(.return, modifiers: .command)
+            #endif
           }
         }
       }

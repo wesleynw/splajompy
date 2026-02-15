@@ -33,6 +33,9 @@ struct UserListView: View {
           }
       case .loading:
         ProgressView()
+          #if os(macOS)
+            .controlSize(.small)
+          #endif
       case .loaded(let users):
         if users.isEmpty {
           noUsersView
@@ -158,7 +161,10 @@ struct UserListView: View {
           }
         }
       }
-
+      #if os(macOS)
+        .frame(maxWidth: 600)
+        .frame(maxWidth: .infinity)
+      #endif
     }
     .refreshable {
       Task {

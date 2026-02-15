@@ -58,13 +58,16 @@ struct ProfileView: View {
       switch viewModel.profileState {
       case .idle, .loading:
         ProgressView()
+          #if os(macOS)
+            .controlSize(.small)
+          #endif
           .frame(maxWidth: .infinity, maxHeight: .infinity)
       case .loaded(let user):
         profile(user: user)
       case .failed(let error):
         ErrorScreen(
           errorString: error,
-          onRetry: { await viewModel.loadProfileAndPosts() }
+          onRetry: { await viewModel.loadProfileAndPosts(useLoadingState: false) }
         )
         .frame(maxWidth: .infinity, maxHeight: .infinity)
       }
@@ -169,37 +172,63 @@ struct ProfileView: View {
 
   @ToolbarContentBuilder
   private func titleToolbar() -> some ToolbarContent {
-    if isProfileTab {
-      if #available(iOS 26, macOS 26, *) {
-        ToolbarItem(
-          placement: .principal
-        ) {
-          Text("@" + self.username)
-            .font(.title2)
-            .fontWeight(.black)
-        }
-        .sharedBackgroundVisibility(.hidden)
-      } else {
-        ToolbarItem(
-          placement: .principal
-        ) {
-          HStack {
+    #if os(iOS)
+      if isProfileTab {
+        if #available(iOS 26, *) {
+          ToolbarItem(
+            placement: .principal
+          ) {
             Text("@" + self.username)
               .font(.title2)
               .fontWeight(.black)
-
-            Spacer()
           }
-          .frame(maxWidth: .infinity, alignment: .leading)
+          .sharedBackgroundVisibility(.hidden)
+        } else {
+          ToolbarItem(
+            placement: .principal
+          ) {
+            HStack {
+              Text("@" + self.username)
+                .font(.title2)
+                .fontWeight(.black)
+
+              Spacer()
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+          }
+        }
+      } else {
+        if #available(iOS 26, *) {
+          ToolbarItem(placement: .principal) {
+            Text("@" + self.username)
+              .font(.callout)
+              .fontWeight(.bold)
+          }
+          .sharedBackgroundVisibility(.hidden)
+        } else {
+          ToolbarItem(placement: .principal) {
+            Text("@" + self.username)
+              .font(.callout)
+              .fontWeight(.bold)
+          }
         }
       }
-    } else {
-      ToolbarItem(placement: .principal) {
-        Text("@" + self.username)
-          .font(.callout)
-          .fontWeight(.bold)
+    #else
+      if #available(macOS 26, *) {
+        ToolbarItem(placement: .principal) {
+          Text("@" + self.username)
+            .fontWeight(.bold)
+            .font(isProfileTab ? .title2 : .callout)
+        }
+        .sharedBackgroundVisibility(.hidden)
+      } else {
+        ToolbarItem(placement: .principal) {
+          Text("@" + self.username)
+            .fontWeight(.bold)
+            .font(isProfileTab ? .title2 : .callout)
+        }
       }
-    }
+    #endif
   }
 
   @ToolbarContentBuilder
@@ -209,7 +238,7 @@ struct ProfileView: View {
         #if os(iOS)
           .topBarTrailing
         #else
-          .navigation
+          .primaryAction
         #endif
       }()
     ) {

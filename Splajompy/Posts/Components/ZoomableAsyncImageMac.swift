@@ -34,6 +34,7 @@ struct ZoomableAsyncImageMac: View {
           Color.red  // error placeholder
         } else {
           ProgressView()
+            .controlSize(.small)
         }
       }
       .frame(width: proxy.size.width, height: proxy.size.height)

@@ -66,8 +66,14 @@ struct ImagePager: View {
             #endif
           }()
         ) {
-          Button("Close") {
-            onDismiss()
+          if #available(iOS 26, macOS 26, *) {
+            Button(role: .close) {
+              onDismiss()
+            }
+          } else {
+            Button("Close", systemImage: "xmark") {
+              onDismiss()
+            }
           }
         }
       }

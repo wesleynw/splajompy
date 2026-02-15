@@ -12,13 +12,13 @@ struct CurrentProfileView: View {
         postManager: postManager,
         isProfileTab: true
       )
-      .toolbar {
-        NavigationLink(
-          destination: SettingsView()
-        ) {
-          Image(systemName: "gearshape")
+      #if os(iOS)
+        .toolbar {
+          NavigationLink(value: SettingsRoute.settings) {
+            Image(systemName: "gearshape")
+          }
         }
-      }
+      #endif
     }
   }
 }

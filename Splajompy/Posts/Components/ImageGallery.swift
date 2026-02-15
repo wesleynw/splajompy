@@ -195,6 +195,9 @@ struct ImageGallery: View {
           } else {
             ProgressView()
               .frame(maxWidth: .infinity, maxHeight: .infinity)
+              #if os(macOS)
+                .controlSize(.small)
+              #endif
           }
         }
         .processors([.resize(width: screenWidth)])
@@ -255,7 +258,8 @@ struct ImageGallery: View {
           aspectRatio,
           contentMode: (isVeryWide || isVeryTall) ? .fill : .fit
         )
-        .frame(width: displayWidth, height: frameHeight)
+        .frame(height: frameHeight)
+        .frame(maxWidth: .infinity)
         .clipShape(RoundedRectangle(cornerRadius: 8))
         .contentShape(.rect)
         .modifier(TransitionSourceModifier(id: "image-0", namespace: animation))

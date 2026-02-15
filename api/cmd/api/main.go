@@ -8,6 +8,8 @@ import (
 
 	"github.com/exaring/otelpgx"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+	semconv "go.opentelemetry.io/otel/semconv/v1.39.0"
+	"go.opentelemetry.io/otel/trace"
 	"splajompy.com/api/v2/internal/db/queries"
 	"splajompy.com/api/v2/internal/repositories"
 	"splajompy.com/api/v2/internal/utilities"
@@ -89,20 +91,22 @@ func main() {
 	h.RegisterRoutes(mux.HandleFunc, authMiddleware)
 	h.RegisterPublicRoutes(mux.HandleFunc)
 
-	wrappedHandler := middleware.Logger(mux)
+	routedMux := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		mux.ServeHTTP(w, r)
+		if r.Pattern != "" {
+			span := trace.SpanFromContext(r.Context())
+			span.SetName(r.Pattern)
+			span.SetAttributes(semconv.HTTPRoute(r.Pattern))
+			if labeler, ok := otelhttp.LabelerFromContext(r.Context()); ok {
+				labeler.Add(semconv.HTTPRoute(r.Pattern))
+			}
+		}
+	})
+
+	wrappedHandler := middleware.Logger(routedMux)
 	wrappedHandler = middleware.AppVersion(wrappedHandler)
 
-	// Add HTTP instrumentation for the whole server.
-	httpHandler := otelhttp.NewHandler(wrappedHandler, "/",
-		otelhttp.WithSpanNameFormatter(func(operation string, r *http.Request) string {
-			method := r.Method
-			path := r.URL.Path
-			if path == "" {
-				path = "/"
-			}
-			return method + " " + path
-		}),
-	)
+	httpHandler := otelhttp.NewHandler(wrappedHandler, "/")
 
 	log.Printf("Server starting on port %d\n", 8080)
 	if err := http.ListenAndServe(":8080", httpHandler); err != nil {
