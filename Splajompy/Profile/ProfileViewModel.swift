@@ -43,9 +43,11 @@ extension ProfileView {
       self.profileService = profileService
     }
 
-    func loadProfileAndPosts() async {
+    func loadProfileAndPosts(useLoadingState: Bool = false) async {
       // if profile or posts are already loaded, don't reset to loading state when updating
+      // this is so dumb
       if case .loaded(_) = profileState {
+      } else if useLoadingState {
       } else {
         profileState = .loading
       }
@@ -220,7 +222,9 @@ extension ProfileView {
         )
         switch result {
         case .success(_):
-          PostHogSDK.shared.capture(profile.isFollowing ? "user_unfollowed" : "user_followed")
+          PostHogSDK.shared.capture(
+            profile.isFollowing ? "user_unfollowed" : "user_followed"
+          )
           var updatedProfile = profile
           updatedProfile.isFollowing.toggle()
           profileState = .loaded(updatedProfile)
