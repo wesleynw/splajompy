@@ -1,4 +1,3 @@
-import PostHog
 import SwiftUI
 
 struct RelevantLikeView: View {

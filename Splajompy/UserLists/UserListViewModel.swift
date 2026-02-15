@@ -35,7 +35,6 @@ class UserListViewModel {
 
   private let profileService: ProfileServiceProtocol
   private let fetchLimit = 20
-  private var isFetching: Bool = false
   private var beforeCursor: Date? = nil
 
   init(
@@ -48,19 +47,14 @@ class UserListViewModel {
     self.profileService = profileService
   }
 
-  func loadUsers(reset: Bool = false) async {
+  func loadUsers(reset: Bool = false, useLoadingState: Bool = false) async {
     if case .loading = state { return }
-    guard isFetching == false else {
-      return
-    }
-
-    isFetching = true
-    defer {
-      isFetching = false
-    }
 
     if reset {
       beforeCursor = nil
+      if useLoadingState {
+        state = .loading
+      }
     }
 
     let result: AsyncResult<[DetailedUser]>
@@ -151,7 +145,8 @@ class UserListViewModel {
       mutuals: [],
       mutualCount: 0,
       isVerified: publicUser.isVerified,
-      displayProperties: publicUser.displayProperties ?? UserDisplayProperties(fontChoiceId: 0)
+      displayProperties: publicUser.displayProperties
+        ?? UserDisplayProperties(fontChoiceId: 0)
     )
 
     switch state {
