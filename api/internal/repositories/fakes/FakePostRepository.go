@@ -222,10 +222,7 @@ func (r *FakePostRepository) getPaginatedIds(ids []int, limit int, offset int) (
 		return []int{}, nil
 	}
 
-	end := offset + limit
-	if end > len(ids) {
-		end = len(ids)
-	}
+	end := min(offset+limit, len(ids))
 
 	return ids[offset:end], nil
 }
@@ -266,8 +263,7 @@ func (r *FakePostRepository) GetUserVoteInPoll(ctx context.Context, postId int, 
 
 	votes := r.pollVotes[postId]
 	if optionIndex, exists := votes[userId]; exists {
-		result := optionIndex
-		return &result, nil
+		return new(optionIndex), nil
 	}
 
 	return nil, nil

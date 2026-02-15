@@ -51,8 +51,7 @@ func (r DBPostRepository) InsertPost(ctx context.Context, userId int, content st
 		return nil, err
 	}
 
-	mapped := utilities.MapPost(post)
-	return &mapped, nil
+	return new(utilities.MapPost(post)), nil
 }
 
 // DeletePost removes a post by ID
@@ -132,8 +131,7 @@ func (r DBPostRepository) GetUserVoteInPoll(ctx context.Context, postId int, use
 		}
 		return nil, err
 	}
-	result := vote
-	return &result, nil
+	return new(vote), nil
 }
 
 // InsertVote adds a vote for a poll option

@@ -67,10 +67,7 @@ func (r *S3BucketRepository) DeleteObjects(ctx context.Context, keys []string) e
 	const batchSize = 1000
 
 	for i := 0; i < len(keys); i += batchSize {
-		end := i + batchSize
-		if end > len(keys) {
-			end = len(keys)
-		}
+		end := min(i+batchSize, len(keys))
 
 		batch := keys[i:end]
 		var objectsToDelete []types.ObjectIdentifier

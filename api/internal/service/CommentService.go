@@ -98,9 +98,7 @@ func (s *CommentService) AddCommentToPost(ctx context.Context, currentUser model
 		}
 	}
 
-	detailedComment := utilities.MapComment(comment, currentUser, false)
-
-	return &detailedComment, nil
+	return new(utilities.MapComment(comment, currentUser, false)), nil
 }
 
 // GetCommentsByPostId retrieves all comments for a specific post with like status
