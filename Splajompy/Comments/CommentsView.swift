@@ -63,11 +63,8 @@ struct CommentsView: View {
                 if #available(iOS 26, *) {
                   Button(role: .cancel, action: { dismiss() })
                 } else {
-                  Button {
+                  Button("Close") {
                     dismiss()
-                  } label: {
-                    Image(systemName: "xmark.circle.fill")
-                      .opacity(0.75)
                   }
                   .buttonStyle(.plain)
                 }
@@ -106,18 +103,11 @@ struct CommentsView: View {
       }
 
       switch viewModel.state {
-      case .idle:
-        EmptyView()
-      case .loading:
-        VStack {
-          Spacer()
-          ProgressView()
-            #if os(macOS)
-              .controlSize(.small)
-            #endif
-            .padding()
-          Spacer()
-        }
+      case .idle, .loading:
+        ProgressView()
+          #if os(macOS)
+            .controlSize(.small)
+          #endif
       case .loaded(let comments):
         if comments.isEmpty {
           VStack(spacing: 16) {

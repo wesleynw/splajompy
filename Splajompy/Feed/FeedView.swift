@@ -1,7 +1,7 @@
 import PostHog
 import SwiftUI
 
-struct MainFeedView: View {
+struct FeedView: View {
   @State private var isShowingNewPostView = false
   @State private var isShowingWrappedView: Bool = false
   @State private var viewModel: FeedViewModel

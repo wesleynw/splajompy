@@ -272,8 +272,10 @@ struct NewPostView: View {
       Button {
         showingPollCreation.toggle()
       } label: {
-        Image(systemName: viewModel.poll != nil ? "chart.bar.fill" : "chart.bar")
-          .padding(.leading)
+        Image(
+          systemName: viewModel.poll != nil ? "chart.bar.fill" : "chart.bar"
+        )
+        .padding(.leading)
       }
       .buttonStyle(.plain)
 
@@ -298,7 +300,8 @@ struct NewPostView: View {
       in: .whitespacesAndNewlines
     )
     let hasContent =
-      !trimmedText.isEmpty || viewModel.imageStates.count > 0 || viewModel.poll != nil
+      !trimmedText.isEmpty || viewModel.imageStates.count > 0
+      || viewModel.poll != nil
 
     let allImagesLoaded = viewModel.imageStates.allSatisfy { item in
       if case .success = item.state {
