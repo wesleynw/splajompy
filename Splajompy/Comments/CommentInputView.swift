@@ -60,15 +60,14 @@ struct CommentInputView: View {
         .padding(.horizontal)
       }
 
-      HStack(alignment: .center) {
-        MentionTextEditor(
-          text: $text,
-          viewModel: mentionViewModel,
-          cursorY: $cursorY,
-          selectedRange: $selectedRange,
-          isCompact: true
-        )
-
+      MentionTextEditor(
+        text: $text,
+        viewModel: mentionViewModel,
+        cursorY: $cursorY,
+        selectedRange: $selectedRange,
+        isCompact: true
+      )
+      .overlay(alignment: .bottomTrailing) {
         Button(action: {
           Task {
             _ = await onSubmit()
@@ -92,7 +91,14 @@ struct CommentInputView: View {
       }
       .modify {
         if #available(iOS 26, macOS 26, *) {
-          $0.padding()
+          $0
+            .padding(.horizontal, 9)
+            .padding(.vertical, 7)
+            .glassEffect(
+              .regular.tint(.clear.opacity(0.15)).interactive(),
+              in: RoundedRectangle(cornerRadius: 25)
+            )
+            .padding()
         } else {
           $0
             .padding(8)
