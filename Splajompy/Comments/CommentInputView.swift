@@ -60,7 +60,7 @@ struct CommentInputView: View {
         .padding(.horizontal)
       }
 
-      HStack(alignment: .center) {
+      HStack(alignment: .bottom) {
         MentionTextEditor(
           text: $text,
           viewModel: mentionViewModel,
@@ -85,7 +85,6 @@ struct CommentInputView: View {
                 .font(.title)
             }
           }
-          .buttonStyle(.plain)
           .disabled(
             text.string.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
               || isSubmitting
