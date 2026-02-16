@@ -60,34 +60,37 @@ struct CommentInputView: View {
         .padding(.horizontal)
       }
 
-      MentionTextEditor(
-        text: $text,
-        viewModel: mentionViewModel,
-        cursorY: $cursorY,
-        selectedRange: $selectedRange,
-        isCompact: true
-      )
-      .overlay(alignment: .bottomTrailing) {
-        Button(action: {
-          Task {
-            _ = await onSubmit()
-          }
-        }) {
-          if isSubmitting {
-            ProgressView()
-              #if os(macOS)
-                .controlSize(.small)
-              #endif
-          } else {
-            Image(systemName: "arrow.up.circle.fill")
-              .font(.title)
-          }
-        }
-        .buttonStyle(.plain)
-        .disabled(
-          text.string.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-            || isSubmitting
+      HStack(alignment: .center) {
+        MentionTextEditor(
+          text: $text,
+          viewModel: mentionViewModel,
+          cursorY: $cursorY,
+          selectedRange: $selectedRange,
+          isCompact: true
         )
+
+        VStack(alignment: .trailing) {
+          Button(action: {
+            Task {
+              _ = await onSubmit()
+            }
+          }) {
+            if isSubmitting {
+              ProgressView()
+                #if os(macOS)
+                  .controlSize(.small)
+                #endif
+            } else {
+              Image(systemName: "arrow.up.circle.fill")
+                .font(.title)
+            }
+          }
+          .buttonStyle(.plain)
+          .disabled(
+            text.string.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+              || isSubmitting
+          )
+        }
       }
       .modify {
         if #available(iOS 26, macOS 26, *) {
@@ -114,4 +117,13 @@ struct CommentInputView: View {
       .frame(maxWidth: 600)
     #endif
   }
+}
+
+#Preview {
+  CommentInputViewConstructor(
+    commentsViewModel: CommentsView.ViewModel(
+      postId: 1,
+      postManager: PostStore()
+    )
+  )
 }
