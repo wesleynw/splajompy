@@ -115,16 +115,6 @@ struct MentionTextEditor: View {
             .offset(x: 8, y: 4)
         }
       }
-      .padding(.horizontal, 9)
-      .padding(.vertical, 7)
-      .modify {
-        if #available(iOS 26, macOS 26, *) {
-          $0.glassEffect(
-            .regular.tint(.clear.opacity(0.15)).interactive(),
-            in: RoundedRectangle(cornerRadius: 25)
-          )
-        }
-      }
     } else {
       VStack(alignment: .leading) {
         ZStack(alignment: .topLeading) {
