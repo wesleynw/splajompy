@@ -61,7 +61,6 @@ struct ImageGallery: View {
           onDismiss: { selectedImageIndex = nil },
           namespace: animation
         )
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .presentationSizing(.page)
       }
     #endif

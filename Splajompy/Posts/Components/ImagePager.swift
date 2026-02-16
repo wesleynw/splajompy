@@ -33,27 +33,68 @@ struct ImagePager: View {
 
   var body: some View {
     NavigationStack {
-      TabView(selection: $currentIndex) {
-        ForEach(Array(imageUrls.enumerated()), id: \.offset) { index, url in
-          #if os(iOS)
-            ZoomableAsyncImage(imageUrl: url)
+      Group {
+        #if os(iOS)
+          TabView(selection: $currentIndex) {
+            ForEach(Array(imageUrls.enumerated()), id: \.offset) { index, url in
+              ZoomableAsyncImage(imageUrl: url)
+                .edgesIgnoringSafeArea(.all)
+                .tag(index)
+            }
+          }
+          .tabViewStyle(PageTabViewStyle())
+          .indexViewStyle(PageIndexViewStyle(backgroundDisplayMode: .always))
+        #else
+          ZStack {
+            ZoomableAsyncImageMac(imageUrl: imageUrls[currentIndex])
+              .id(currentIndex)
               .edgesIgnoringSafeArea(.all)
-              .tag(index)
-          #else
-            ZoomableAsyncImageMac(imageUrl: url)
-              .edgesIgnoringSafeArea(.all)
-              .tag(index)
-          #endif
-        }
+
+            if imageUrls.count > 1 {
+              HStack {
+                Button {
+                  withAnimation { currentIndex -= 1 }
+                } label: {
+                  Image(systemName: "chevron.left")
+                    .font(.title)
+                    .padding()
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .keyboardShortcut(.leftArrow, modifiers: [])
+                .disabled(currentIndex == 0)
+
+                Spacer()
+
+                Button {
+                  withAnimation { currentIndex += 1 }
+                } label: {
+                  Image(systemName: "chevron.right")
+                    .font(.title)
+                    .padding()
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .keyboardShortcut(.rightArrow, modifiers: [])
+                .disabled(currentIndex == imageUrls.count - 1)
+              }
+              .padding(.horizontal)
+            }
+          }
+        #endif
       }
-      #if os(iOS)
-        .tabViewStyle(PageTabViewStyle())
-        .indexViewStyle(PageIndexViewStyle(backgroundDisplayMode: .always))
-      #endif
       .toolbar {
         #if os(iOS)
           if PostHogSDK.shared.isFeatureEnabled("image-downloads") {
             saveImageToolbarItem
+          }
+        #else
+          ToolbarItem(placement: .principal) {
+            if imageUrls.count > 1 {
+              Text("\(currentIndex + 1) of \(imageUrls.count)")
+                .monospacedDigit()
+                .foregroundStyle(.secondary)
+            }
           }
         #endif
 
