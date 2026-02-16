@@ -1,19 +1,15 @@
 import PostHog
 import SwiftUI
 
+/// Primary view in the app, displays an endless feed of posts.
 struct FeedView: View {
-  @State private var isShowingNewPostView = false
-  @State private var isShowingWrappedView: Bool = false
+  @State private var isShowingNewPostView: Bool = false
   @State private var viewModel: FeedViewModel
-  @State private var wrappedViewModel: WrappedViewModel =
-    WrappedViewModel()
   @Environment(AuthManager.self) private var authManager
+
   var postManager: PostStore
 
-  @State private var scrollOffset = CGFloat.zero
-
   @AppStorage("selectedFeedType") private var selectedFeedType: FeedType = .all
-  @AppStorage("hasViewedWrapped") private var hasViewedWrapped: Bool = false
 
   init(postManager: PostStore) {
     self.postManager = postManager
@@ -33,17 +29,6 @@ struct FeedView: View {
             await viewModel.loadPosts(reset: true)
           }
         }
-
-        if PostHogSDK.shared.isFeatureEnabled("rejomp-2025-prompt")
-          && !hasViewedWrapped
-        {
-          Task {
-            await wrappedViewModel.loadEligibility()
-            if case .loaded(let eligible) = wrappedViewModel.eligibility {
-              isShowingWrappedView = eligible
-            }
-          }
-        }
       }
       .onChange(of: selectedFeedType) { _, newFeedType in
         PostHogSDK.shared.capture("feed_type_changed")
@@ -52,28 +37,17 @@ struct FeedView: View {
           await viewModel.loadPosts(reset: true, useLoadingState: true)
         }
       }
-      #if os(iOS)
-        .fullScreenCover(isPresented: $isShowingWrappedView) {
-          WrappedIntroView()
-        }
-      #endif
       .sheet(isPresented: $isShowingNewPostView) {
         newPostSheet
       }
       .toolbar {
-        feedMenuToolbarItem
+        FeedTypeToggle(selectedFeedType: $selectedFeedType)
+
         addPostToolbarItem
 
         #if os(macOS)
           feedRefreshToolbarItem
         #endif
-      }
-      .modify {
-        if #available(iOS 26, *),
-          PostHogSDK.shared.isFeatureEnabled("toolbar-scroll-effect")
-        {
-          $0.scrollFadeBackground(scrollOffset: scrollOffset)
-        }
       }
   }
 
@@ -98,101 +72,6 @@ struct FeedView: View {
         onRetry: { await viewModel.loadPosts(reset: true) }
       )
       .frame(maxWidth: .infinity, maxHeight: .infinity)
-    }
-  }
-
-  @ToolbarContentBuilder
-  private var feedMenuToolbarItem: some ToolbarContent {
-    #if os(iOS)
-      if #available(iOS 26, *),
-        PostHogSDK.shared.isFeatureEnabled("toolbar-scroll-effect")
-      {
-        ToolbarItem(placement: .topBarLeading) {
-          feedMenu
-        }
-      } else {
-        ToolbarItem(placement: .topBarLeading) {
-          feedMenu
-        }
-      }
-    #else
-      if #available(macOS 26.0, *) {
-        ToolbarItem(placement: .principal) {
-          feedMenuMac
-        }
-        .sharedBackgroundVisibility(.hidden)
-      } else {
-        ToolbarItem(placement: .principal) {
-          feedMenuMac
-        }
-      }
-    #endif
-  }
-
-  private var feedMenu: some View {
-    Menu {
-      feedMenuButtons
-    } label: {
-      HStack {
-        Text("Splajompy")
-          .font(.title2)
-          .fontWeight(.black)
-
-        Image(systemName: "chevron.down")
-          .font(.caption)
-      }
-      .tint(.primary)
-    }
-    .buttonStyle(.plain)
-    .menuIndicator(.visible)
-  }
-
-  private var feedMenuMac: some View {
-    Menu {
-      feedMenuButtons
-    } label: {
-      HStack {
-        Text("Splajompy")
-          .font(.title2)
-          .fontWeight(.black)
-      }
-      .tint(.primary)
-    }
-    .buttonStyle(.plain)
-    .menuIndicator(.visible)
-  }
-
-  @ViewBuilder
-  private var feedMenuButtons: some View {
-    Button {
-      selectedFeedType = .mutual
-    } label: {
-      HStack {
-        Text("Home")
-        if selectedFeedType == .mutual {
-          Image(systemName: "checkmark")
-        }
-      }
-    }
-    Button {
-      selectedFeedType = .following
-    } label: {
-      HStack {
-        Text("Following")
-        if selectedFeedType == .following {
-          Image(systemName: "checkmark")
-        }
-      }
-    }
-    Button {
-      selectedFeedType = .all
-    } label: {
-      HStack {
-        Text("All")
-        if selectedFeedType == .all {
-          Image(systemName: "checkmark")
-        }
-      }
     }
   }
 
@@ -296,13 +175,6 @@ struct FeedView: View {
     .refreshable {
       await viewModel.loadPosts(reset: true)
       PostHogSDK.shared.capture("feed_refreshed")
-    }
-    .modify {
-      if #available(iOS 26, *),
-        PostHogSDK.shared.isFeatureEnabled("toolbar-scroll-effect")
-      {
-        $0.scrollFadeEffect(scrollOffset: $scrollOffset)
-      }
     }
   }
 

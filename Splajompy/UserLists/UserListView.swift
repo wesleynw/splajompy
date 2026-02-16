@@ -93,7 +93,6 @@ struct UserListView: View {
             }
           }
         }
-        .presentationSizing(.form)
       }
     }
     .alert(

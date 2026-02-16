@@ -62,7 +62,6 @@ struct PostVisibilityToggle: View {
                 }
               #endif
             }
-            .presentationSizing(.form)
         }
       }
     }
