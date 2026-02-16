@@ -27,10 +27,11 @@ struct StandalonePostView: View {
     ScrollView {
       Group {
         switch viewModel.state {
-        case .idle:
+        case .idle, .loading:
           ProgressView()
-        case .loading:
-          ProgressView()
+            #if os(macOS)
+              .controlSize(.small)
+            #endif
         case .loaded(let post):
           VStack {
             PostView(
@@ -74,6 +75,7 @@ struct StandalonePostView: View {
       #endif
     }
     .postHogScreenView()
+    .scrollDismissesKeyboard(.interactively)
     .refreshable {
       async let post: () = await viewModel.load(resetLoadingState: false)
       async let comments: () = await commentsViewModel.loadComments()

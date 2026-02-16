@@ -71,7 +71,7 @@ struct SplajompyApp: App {
   private var iOSTabView: some View {
     TabView(selection: $selection) {
       NavigationStack(path: $navigationPaths[0]) {
-        MainFeedView(postManager: postManager)
+        FeedView(postManager: postManager)
           .postHogScreenView()
           .navigationDestination(for: Route.self) { route in
             routeDestination(route)
@@ -153,7 +153,7 @@ struct SplajompyApp: App {
           Group {
             switch selection {
             case 0:
-              MainFeedView(postManager: postManager)
+              FeedView(postManager: postManager)
                 .toolbar(removing: .title)
                 .postHogScreenView()
             case 1:
@@ -169,7 +169,7 @@ struct SplajompyApp: App {
               SettingsView()
                 .postHogScreenView()
             default:
-              MainFeedView(postManager: postManager)
+              FeedView(postManager: postManager)
                 .postHogScreenView()
             }
           }
