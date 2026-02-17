@@ -108,6 +108,7 @@ struct CommentsView: View {
           #if os(macOS)
             .controlSize(.small)
           #endif
+          .frame(maxWidth: .infinity, maxHeight: .infinity)
       case .loaded(let comments):
         if comments.isEmpty {
           VStack(spacing: 16) {
