@@ -246,6 +246,9 @@ struct ImageGallery: View {
             image.resizable()
           } else {
             ProgressView()
+              #if os(macOS)
+                .controlSize(.small)
+              #endif
               .frame(
                 maxWidth: .infinity,
                 maxHeight: frameHeight ?? expectedHeight
