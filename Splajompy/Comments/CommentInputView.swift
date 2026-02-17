@@ -89,6 +89,9 @@ struct CommentInputView: View {
             text.string.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
               || isSubmitting
           )
+          #if os(macOS)
+            .buttonStyle(.plain)
+          #endif
         }
       }
       .modify {

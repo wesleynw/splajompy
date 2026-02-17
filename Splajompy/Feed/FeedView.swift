@@ -101,13 +101,9 @@ struct FeedView: View {
           PostHogSDK.shared.capture("feed_refreshed")
         }
       } label: {
-        if case .loading = viewModel.state {
-          ProgressView()
-            .controlSize(.small)
-        } else {
-          Label("Refresh", systemImage: "arrow.clockwise")
-        }
+        Label("Refresh", systemImage: "arrow.clockwise")
       }
+      .keyboardShortcut("r", modifiers: .command)
     }
   }
 
