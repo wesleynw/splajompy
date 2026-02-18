@@ -42,10 +42,6 @@ struct PostView: View {
   var onPostUnpinned: () -> Void
 
   @State private var isShowingComments = false
-  @State private var isReporting = false
-  @State private var showReportAlert = false
-  @State private var showDeleteConfirmation = false
-  @Environment(AuthManager.self) private var authManager
 
   var body: some View {
     VStack {
@@ -92,21 +88,6 @@ struct PostView: View {
     .padding(.horizontal, 16)
     .sheet(isPresented: $isShowingComments) {
       CommentsView(postId: post.post.postId, postManager: postManager)
-    }
-    .alert("Post Reported", isPresented: $showReportAlert) {
-      Button("OK") {}
-    } message: {
-      Text("Thanks. A notification has been sent to the developer.")
-    }
-    .confirmationDialog(
-      "Are you sure you want to delete this post?",
-      isPresented: $showDeleteConfirmation,
-      titleVisibility: .visible
-    ) {
-      Button("Delete", role: .destructive) {
-        onPostDeleted()
-      }
-      Button("Cancel", role: .cancel) {}
     }
   }
 
@@ -206,73 +187,24 @@ struct PostView: View {
 
   private var postMenu: some View {
     HStack(spacing: 2) {
-      Menu(
-        content: {
-          if let currentUser = authManager.getCurrentUser() {
-            if currentUser.userId == post.user.userId {
-              if !showAuthor {
-                if post.isPinned {
-                  Button(action: {
-                    onPostUnpinned()
-                  }) {
-                    Label("Unpin", systemImage: "pin.slash")
-                  }
-                } else {
-                  Button(action: {
-                    onPostPinned()
-                  }) {
-                    Label("Pin", systemImage: "pin")
-                  }
-                }
-              }
-
-              Button(
-                role: .destructive,
-                action: { showDeleteConfirmation = true }
-              ) {
-                Label("Delete", systemImage: "trash")
-                  .foregroundColor(.red)
-              }
-            } else {
-              Button(
-                role: .destructive,
-                action: {
-                  Task {
-                    isReporting = true
-                    let _ = await PostService().reportPost(
-                      postId: post.post.postId
-                    )
-                    isReporting = false
-                    showReportAlert = true
-                  }
-                }
-              ) {
-                if isReporting {
-                  HStack {
-                    Text("Reporting...")
-                    Spacer()
-                    ProgressView()
-                  }
-                } else {
-                  Label("Report", systemImage: "exclamationmark.triangle")
-                    .foregroundColor(.red)
-                }
-              }
-              .disabled(isReporting)
-            }
-          }
-        },
-        label: {
+      if !isStandalone {
+        PostActionMenu(
+          post: post,
+          showAuthor: showAuthor,
+          onPostDeleted: onPostDeleted,
+          onPostPinned: onPostPinned,
+          onPostUnpinned: onPostUnpinned
+        ) {
           Image(systemName: "ellipsis")
             .font(.system(size: 22))
             .frame(width: 48, height: 44)
             .contentShape(.rect)
         }
-      )
 
-      Divider()
-        .padding(.vertical, 5)
-        .padding(.horizontal, 4)
+        Divider()
+          .padding(.vertical, 5)
+          .padding(.horizontal, 4)
+      }
 
       if !isStandalone {
         #if os(iOS)
