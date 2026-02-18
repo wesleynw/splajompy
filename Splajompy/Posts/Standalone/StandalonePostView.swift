@@ -89,6 +89,25 @@ struct StandalonePostView: View {
     #if os(iOS)
       .navigationBarTitleDisplayMode(.inline)
     #endif
+    .toolbar {
+      ToolbarItem(placement: .primaryAction) {
+        let post: ObservablePost? = if case .loaded(let p) = viewModel.state { p } else { nil }
+        PostActionMenu(
+          post: post,
+          showAuthor: true,
+          onPostDeleted: {
+            Task {
+              await postManager.deletePost(id: postId)
+              dismiss()
+            }
+          },
+          onPostPinned: {},
+          onPostUnpinned: {}
+        ) {
+          Label("More", systemImage: "ellipsis.circle")
+        }
+      }
+    }
     .modify {
       if #available(iOS 26, macOS 26, *) {
         $0.safeAreaBar(edge: .bottom) {
