@@ -46,8 +46,10 @@ extension CommentsView {
       loadComments()
     }
 
-    func loadComments() {
-      state = .loading
+    func loadComments(useLoadingState: Bool = true) {
+      if useLoadingState {
+        state = .loading
+      }
 
       Task {
         let result = await service.getComments(postId: postId)

@@ -144,7 +144,7 @@ struct CommentsView: View {
       case .failed(let error):
         ErrorScreen(
           errorString: error.localizedDescription,
-          onRetry: viewModel.loadComments
+          onRetry: { viewModel.loadComments() }
         )
       }
     }
