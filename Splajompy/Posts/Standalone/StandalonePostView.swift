@@ -78,7 +78,7 @@ struct StandalonePostView: View {
     .scrollDismissesKeyboard(.interactively)
     .refreshable {
       async let post: () = await viewModel.load(resetLoadingState: false)
-      async let comments: () = await commentsViewModel.loadComments()
+      async let comments: () = await commentsViewModel.loadComments(useLoadingState: false)
 
       let _ = await (post, comments)
     }
