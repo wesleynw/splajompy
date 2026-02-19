@@ -113,6 +113,7 @@ struct MentionTextEditor: View {
           Text("Add a comment...")
             .foregroundColor(Color.secondary)
             .offset(x: 8, y: 4)
+            .allowsHitTesting(false)
         }
       }
     } else {
@@ -144,6 +145,7 @@ struct MentionTextEditor: View {
           if text.string.isEmpty {
             Text("What's on your mind?")
               .foregroundColor(Color.secondary)
+              .allowsHitTesting(false)
           }
         }
         .padding()
