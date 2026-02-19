@@ -120,26 +120,34 @@ struct CommentsView: View {
           }
           .frame(maxWidth: .infinity, maxHeight: .infinity)
         } else {
-          ScrollView {
-            ForEach(comments, id: \.commentId) { comment in
-              CommentRow(
-                comment: comment,
-                isInSheet: isInSheet,
-                toggleLike: {
-                  viewModel.toggleLike(for: comment)
-                },
-                deleteComment: {
-                  Task {
-                    await viewModel.deleteComment(comment)
-                    postManager.updatePost(id: postId) { post in
-                      post.commentCount -= 1
-                    }
+          let rows = ForEach(comments, id: \.commentId) { comment in
+            CommentRow(
+              comment: comment,
+              isInSheet: isInSheet,
+              toggleLike: {
+                viewModel.toggleLike(for: comment)
+              },
+              deleteComment: {
+                Task {
+                  await viewModel.deleteComment(comment)
+                  postManager.updatePost(id: postId) { post in
+                    post.commentCount -= 1
                   }
                 }
-              )
-            }
+              }
+            )
           }
-          .animation(.easeInOut(duration: 0.3), value: comments)
+          if isInSheet {
+            ScrollView {
+              rows
+            }
+            .animation(.easeInOut(duration: 0.3), value: comments)
+          } else {
+            VStack(spacing: 0) {
+              rows
+            }
+            .animation(.easeInOut(duration: 0.3), value: comments)
+          }
         }
       case .failed(let error):
         ErrorScreen(
