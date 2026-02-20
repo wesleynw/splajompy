@@ -39,7 +39,7 @@ struct NotificationsView: View {
     }
     #if os(macOS)
       .frame(maxWidth: .infinity)
-      .toolbar(removing: .title)
+      .navigationTitle("Notifications")
     #endif
     .onAppear {
       if case .idle = viewModel.state {
@@ -51,43 +51,26 @@ struct NotificationsView: View {
         NotificationFilterMenu(filter: $viewModel.selectedFilter)
       }
     }
-    .toolbar {
-      if #available(iOS 26, macOS 26, *) {
-        #if os(iOS)
+    #if os(iOS)
+      .toolbar {
+        if #available(iOS 26, *) {
           ToolbarItem(placement: .topBarLeading) {
             Text("Notifications")
-              .fontWeight(.black)
-              .font(.title2)
-              .fixedSize()
+            .fontWeight(.black)
+            .font(.title2)
+            .fixedSize()
           }
           .sharedBackgroundVisibility(.hidden)
-        #else
-          ToolbarItem(placement: .principal) {
-            Text("Notifications")
-              .fontWeight(.black)
-              .font(.title2)
-              .fixedSize()
-          }
-          .sharedBackgroundVisibility(.hidden)
-        #endif
-      } else {
-        #if os(iOS)
+        } else {
           ToolbarItem(placement: .topBarLeading) {
             Text("Notifications")
-              .fontWeight(.black)
-              .font(.title2)
-              .fixedSize()
+            .fontWeight(.black)
+            .font(.title2)
+            .fixedSize()
           }
-        #else
-          ToolbarItem(placement: .principal) {
-            Text("Notifications")
-              .fontWeight(.black)
-              .font(.title2)
-              .fixedSize()
-          }
-        #endif
+        }
       }
-    }
+    #endif
     .modify {
       if #available(iOS 26, *),
         PostHogSDK.shared.isFeatureEnabled("toolbar-scroll-effect")

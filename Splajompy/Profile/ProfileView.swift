@@ -85,17 +85,12 @@ struct ProfileView: View {
     #if os(iOS)
       .navigationBarTitleDisplayMode(.inline)
       .toolbarRole(.browser)
-    #else
-      .modify {
-        if isProfileTab {
-          $0.toolbar(removing: .title)
-        } else {
-          $0
-        }
-      }
     #endif
+    .navigationTitle("@" + username)
     .toolbar {
-      titleToolbar()
+      #if os(iOS)
+        titleToolbar()
+      #endif
 
       menuToolbar()
     }
@@ -170,9 +165,9 @@ struct ProfileView: View {
     }
   }
 
-  @ToolbarContentBuilder
-  private func titleToolbar() -> some ToolbarContent {
-    #if os(iOS)
+  #if os(iOS)
+    @ToolbarContentBuilder
+    private func titleToolbar() -> some ToolbarContent {
       if isProfileTab {
         if #available(iOS 26, *) {
           ToolbarItem(
@@ -213,23 +208,8 @@ struct ProfileView: View {
           }
         }
       }
-    #else
-      if #available(macOS 26, *) {
-        ToolbarItem(placement: .principal) {
-          Text("@" + self.username)
-            .fontWeight(.bold)
-            .font(isProfileTab ? .title2 : .callout)
-        }
-        .sharedBackgroundVisibility(.hidden)
-      } else {
-        ToolbarItem(placement: .principal) {
-          Text("@" + self.username)
-            .fontWeight(.bold)
-            .font(isProfileTab ? .title2 : .callout)
-        }
-      }
-    #endif
-  }
+    }
+  #endif
 
   @ToolbarContentBuilder
   private func menuToolbar() -> some ToolbarContent {

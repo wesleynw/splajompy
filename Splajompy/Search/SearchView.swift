@@ -41,45 +41,28 @@ struct SearchView: View {
     #if os(macOS)
       .contentMargins(.horizontal, 40, for: .scrollContent)
       .safeAreaPadding(.horizontal, 20)
-      .toolbar(removing: .title)
+      .navigationTitle("Search")
     #endif
-    .toolbar {
-      if #available(iOS 26, macOS 26, *) {
-        #if os(iOS)
+    #if os(iOS)
+      .toolbar {
+        if #available(iOS 26, *) {
           ToolbarItem(placement: .topBarLeading) {
             Text("Search")
-              .font(.title2)
-              .fontWeight(.black)
-              .fixedSize()
+            .font(.title2)
+            .fontWeight(.black)
+            .fixedSize()
           }
           .sharedBackgroundVisibility(.hidden)
-        #else
-          ToolbarItem(placement: .principal) {
-            Text("Search")
-              .font(.title2)
-              .fontWeight(.black)
-              .fixedSize()
-          }
-          .sharedBackgroundVisibility(.hidden)
-        #endif
-      } else {
-        #if os(iOS)
+        } else {
           ToolbarItem(placement: .topBarLeading) {
             Text("Search")
-              .font(.title2)
-              .fontWeight(.black)
-              .fixedSize()
+            .font(.title2)
+            .fontWeight(.black)
+            .fixedSize()
           }
-        #else
-          ToolbarItem(placement: .principal) {
-            Text("Search")
-              .font(.title2)
-              .fontWeight(.black)
-              .fixedSize()
-          }
-        #endif
+        }
       }
-    }
+    #endif
     .searchable(
       text: $searchText,
       placement: {

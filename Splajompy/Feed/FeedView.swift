@@ -43,9 +43,18 @@ struct FeedView: View {
       .toolbar {
         FeedTypeToggle(selectedFeedType: $selectedFeedType)
 
+        #if os(macOS)
+          if #available(macOS 26, *) {
+            ToolbarSpacer(.flexible)
+          }
+        #endif
+
         addPostToolbarItem
 
         #if os(macOS)
+          if #available(macOS 26, *) {
+            ToolbarSpacer(.fixed)
+          }
           feedRefreshToolbarItem
         #endif
       }
@@ -84,7 +93,7 @@ struct FeedView: View {
         }
       }
     #else
-      ToolbarItem(placement: .navigation) {
+      ToolbarItem(placement: .automatic) {
         Button(action: { isShowingNewPostView = true }) {
           Image(systemName: "plus")
         }
@@ -94,7 +103,7 @@ struct FeedView: View {
 
   @ToolbarContentBuilder
   private var feedRefreshToolbarItem: some ToolbarContent {
-    ToolbarItem(placement: .primaryAction) {
+    ToolbarItem(placement: .automatic) {
       Button {
         Task {
           await viewModel.loadPosts(reset: true, useLoadingState: true)
