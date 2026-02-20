@@ -39,8 +39,8 @@ struct NotificationsView: View {
     }
     #if os(macOS)
       .frame(maxWidth: .infinity)
+      .navigationTitle("Notifications")
     #endif
-    .navigationTitle("Notifications")
     .onAppear {
       if case .idle = viewModel.state {
         Task { await viewModel.refreshNotifications() }
@@ -51,6 +51,26 @@ struct NotificationsView: View {
         NotificationFilterMenu(filter: $viewModel.selectedFilter)
       }
     }
+    #if os(iOS)
+      .toolbar {
+        if #available(iOS 26, *) {
+          ToolbarItem(placement: .topBarLeading) {
+            Text("Notifications")
+            .fontWeight(.black)
+            .font(.title2)
+            .fixedSize()
+          }
+          .sharedBackgroundVisibility(.hidden)
+        } else {
+          ToolbarItem(placement: .topBarLeading) {
+            Text("Notifications")
+            .fontWeight(.black)
+            .font(.title2)
+            .fixedSize()
+          }
+        }
+      }
+    #endif
     .modify {
       if #available(iOS 26, *),
         PostHogSDK.shared.isFeatureEnabled("toolbar-scroll-effect")
