@@ -22,7 +22,7 @@ struct FeedTypeToggle: ToolbarContent {
         #if os(iOS)
           .topBarLeading
         #else
-          .principal
+          .navigation
         #endif
       }()
     ) {

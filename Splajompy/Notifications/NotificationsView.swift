@@ -39,8 +39,8 @@ struct NotificationsView: View {
     }
     #if os(macOS)
       .frame(maxWidth: .infinity)
-      .toolbar(removing: .title)
     #endif
+    .navigationTitle("Notifications")
     .onAppear {
       if case .idle = viewModel.state {
         Task { await viewModel.refreshNotifications() }
@@ -49,43 +49,6 @@ struct NotificationsView: View {
     .toolbar {
       ToolbarItem(placement: .primaryAction) {
         NotificationFilterMenu(filter: $viewModel.selectedFilter)
-      }
-    }
-    .toolbar {
-      if #available(iOS 26, macOS 26, *) {
-        #if os(iOS)
-          ToolbarItem(placement: .topBarLeading) {
-            Text("Notifications")
-              .fontWeight(.black)
-              .font(.title2)
-              .fixedSize()
-          }
-          .sharedBackgroundVisibility(.hidden)
-        #else
-          ToolbarItem(placement: .principal) {
-            Text("Notifications")
-              .fontWeight(.black)
-              .font(.title2)
-              .fixedSize()
-          }
-          .sharedBackgroundVisibility(.hidden)
-        #endif
-      } else {
-        #if os(iOS)
-          ToolbarItem(placement: .topBarLeading) {
-            Text("Notifications")
-              .fontWeight(.black)
-              .font(.title2)
-              .fixedSize()
-          }
-        #else
-          ToolbarItem(placement: .principal) {
-            Text("Notifications")
-              .fontWeight(.black)
-              .font(.title2)
-              .fixedSize()
-          }
-        #endif
       }
     }
     .modify {
