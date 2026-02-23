@@ -12,6 +12,7 @@ struct MentionTextEditor: View {
   @Binding var cursorY: CGFloat
   @Binding var selectedRange: NSRange
   var isCompact: Bool
+  var trailingInset: CGFloat
   var autoFocusOnAppear: Bool
   @FocusState var isFocused: Bool
 
@@ -60,6 +61,7 @@ struct MentionTextEditor: View {
     cursorY: Binding<CGFloat>,
     selectedRange: Binding<NSRange>,
     isCompact: Bool = false,
+    trailingInset: CGFloat = 0,
     autoFocusOnAppear: Bool = false
   ) {
     self._text = text
@@ -67,6 +69,7 @@ struct MentionTextEditor: View {
     self._cursorY = cursorY
     self._selectedRange = selectedRange
     self.isCompact = isCompact
+    self.trailingInset = trailingInset
     self._contentHeight = State(initialValue: 0)
     self.autoFocusOnAppear = autoFocusOnAppear
   }
@@ -92,7 +95,8 @@ struct MentionTextEditor: View {
           selectedRange: $selectedRange,
           cursorY: $cursorY,
           contentHeight: $contentHeight,
-          isScrollEnabled: true
+          isScrollEnabled: true,
+          trailingInset: trailingInset
         )
         .frame(height: displayHeight)
         .focused($isFocused)
@@ -112,7 +116,7 @@ struct MentionTextEditor: View {
         if text.string.isEmpty {
           Text("Add a comment...")
             .foregroundColor(Color.secondary)
-            .offset(x: 8, y: 4)
+            .offset(x: 10, y: 10)
             .allowsHitTesting(false)
         }
       }

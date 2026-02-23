@@ -29,6 +29,7 @@ struct CommentInputView: View {
   @State private var mentionViewModel =
     MentionTextEditor.MentionViewModel()
   @State private var cursorY: CGFloat = 0
+  @State private var submitButtonWidth: CGFloat = 0
 
   var onSubmit: () async -> Bool
 
@@ -66,10 +67,10 @@ struct CommentInputView: View {
           viewModel: mentionViewModel,
           cursorY: $cursorY,
           selectedRange: $selectedRange,
-          isCompact: true
+          isCompact: true,
+          trailingInset: submitButtonWidth
         )
-
-        VStack(alignment: .trailing) {
+        .overlay(alignment: .bottomTrailing) {
           Button(action: {
             Task {
               _ = await onSubmit()
@@ -92,13 +93,17 @@ struct CommentInputView: View {
           #if os(macOS)
             .buttonStyle(.plain)
           #endif
+          .padding(5)
+          .onGeometryChange(for: CGFloat.self) {
+            $0.size.width
+          } action: {
+            submitButtonWidth = $0
+          }
         }
       }
       .modify {
         if #available(iOS 26, macOS 26, *) {
           $0
-            .padding(.horizontal, 9)
-            .padding(.vertical, 7)
             .glassEffect(
               .regular.tint(.clear.opacity(0.15)).interactive(),
               in: RoundedRectangle(cornerRadius: 25)

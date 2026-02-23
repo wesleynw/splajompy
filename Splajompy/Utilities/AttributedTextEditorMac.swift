@@ -9,6 +9,7 @@ struct AttributedTextEditor: NSViewRepresentable {
   @Binding var contentHeight: CGFloat
 
   var isScrollEnabled: Bool
+  var trailingInset: CGFloat = 0
 
   func makeNSView(context: Context) -> NSScrollView {
     let textView = NSTextView()
@@ -40,6 +41,7 @@ struct AttributedTextEditor: NSViewRepresentable {
     scrollView.hasVerticalScroller = isScrollEnabled
     scrollView.drawsBackground = false
     scrollView.autohidesScrollers = true
+    scrollView.contentInsets = NSEdgeInsets(top: 0, left: 0, bottom: 0, right: trailingInset)
 
     textView.minSize = NSSize(width: 0, height: 0)
     textView.maxSize = NSSize(
@@ -71,6 +73,8 @@ struct AttributedTextEditor: NSViewRepresentable {
     if textView.selectedRange() != selectedRange {
       textView.setSelectedRange(selectedRange)
     }
+
+    nsView.contentInsets = NSEdgeInsets(top: 0, left: 0, bottom: 0, right: trailingInset)
 
     DispatchQueue.main.async {
       self.updateContentHeight(textView: textView)
