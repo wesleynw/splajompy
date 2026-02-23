@@ -8,6 +8,7 @@ struct AttributedTextEditor: UIViewRepresentable {
   @Binding var contentHeight: CGFloat
 
   var isScrollEnabled: Bool
+  var trailingInset: CGFloat = 0
 
   func makeUIView(context: Context) -> UITextView {
     let textView = UITextView()
@@ -33,10 +34,10 @@ struct AttributedTextEditor: UIViewRepresentable {
     textView.textContainer.lineFragmentPadding = 0
     if isScrollEnabled {
       textView.textContainerInset = UIEdgeInsets(
-        top: 4,
-        left: 8,
-        bottom: 4,
-        right: 8
+        top: 10,
+        left: 10,
+        bottom: 10,
+        right: 10 + trailingInset
       )
     } else {
       textView.textContainerInset = .zero
@@ -52,6 +53,13 @@ struct AttributedTextEditor: UIViewRepresentable {
 
     if uiView.selectedRange != selectedRange {
       uiView.selectedRange = selectedRange
+    }
+
+    if isScrollEnabled {
+      let expectedInset = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10 + trailingInset)
+      if uiView.textContainerInset != expectedInset {
+        uiView.textContainerInset = expectedInset
+      }
     }
 
     let fixedWidth = uiView.bounds.width

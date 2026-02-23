@@ -66,10 +66,10 @@ struct CommentInputView: View {
           viewModel: mentionViewModel,
           cursorY: $cursorY,
           selectedRange: $selectedRange,
-          isCompact: true
+          isCompact: true,
+          trailingInset: 44
         )
-
-        VStack(alignment: .trailing) {
+        .overlay(alignment: .bottomTrailing) {
           Button(action: {
             Task {
               _ = await onSubmit()
@@ -92,13 +92,12 @@ struct CommentInputView: View {
           #if os(macOS)
             .buttonStyle(.plain)
           #endif
+          .padding(5)
         }
       }
       .modify {
         if #available(iOS 26, macOS 26, *) {
           $0
-            .padding(.horizontal, 9)
-            .padding(.vertical, 7)
             .glassEffect(
               .regular.tint(.clear.opacity(0.15)).interactive(),
               in: RoundedRectangle(cornerRadius: 25)
