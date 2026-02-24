@@ -10,6 +10,11 @@ struct AttributedTextEditor: UIViewRepresentable {
   var isScrollEnabled: Bool
   var trailingInset: CGFloat = 0
 
+  private var centeredVerticalInset: CGFloat {
+    let lineHeight = UIFont.preferredFont(forTextStyle: .body).lineHeight
+    return max(5.0, (42.0 - lineHeight) / 2.0)
+  }
+
   func makeUIView(context: Context) -> UITextView {
     let textView = UITextView()
     textView.delegate = context.coordinator
@@ -23,25 +28,20 @@ struct AttributedTextEditor: UIViewRepresentable {
     ]
     textView.attributedText = text
     textView.isScrollEnabled = isScrollEnabled
+    if isScrollEnabled {
+      textView.textContainerInset = UIEdgeInsets(
+        top: centeredVerticalInset,
+        left: 10,
+        bottom: centeredVerticalInset,
+        right: 10 + trailingInset
+      )
+    }
     textView.translatesAutoresizingMaskIntoConstraints = true
     textView.setContentCompressionResistancePriority(
       .defaultLow,
       for: .horizontal
     )
-
     textView.backgroundColor = .clear
-
-    textView.textContainer.lineFragmentPadding = 0
-    if isScrollEnabled {
-      textView.textContainerInset = UIEdgeInsets(
-        top: 10,
-        left: 10,
-        bottom: 10,
-        right: 10 + trailingInset
-      )
-    } else {
-      textView.textContainerInset = .zero
-    }
 
     return textView
   }
@@ -56,7 +56,12 @@ struct AttributedTextEditor: UIViewRepresentable {
     }
 
     if isScrollEnabled {
-      let expectedInset = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10 + trailingInset)
+      let expectedInset = UIEdgeInsets(
+        top: centeredVerticalInset,
+        left: 10,
+        bottom: centeredVerticalInset,
+        right: 10 + trailingInset
+      )
       if uiView.textContainerInset != expectedInset {
         uiView.textContainerInset = expectedInset
       }
@@ -72,6 +77,25 @@ struct AttributedTextEditor: UIViewRepresentable {
         self.contentHeight = size.height
       }
     }
+  }
+
+  func sizeThatFits(
+    _ proposal: ProposedViewSize,
+    uiView: UITextView,
+    context: Context
+  ) -> CGSize? {
+    guard isScrollEnabled else { return nil }
+    let width = proposal.width ?? uiView.bounds.width
+    let intrinsic = uiView.sizeThatFits(
+      CGSize(width: width, height: .greatestFiniteMagnitude)
+    )
+    let lineHeight = UIFont.preferredFont(forTextStyle: .body).lineHeight
+    let maxHeight = (lineHeight * 10)
+    let minHeight = 42.0
+    return CGSize(
+      width: width,
+      height: min(max(intrinsic.height, minHeight), maxHeight)
+    )
   }
 
   func makeCoordinator() -> Coordinator {
@@ -122,7 +146,8 @@ struct AttributedTextEditor: UIViewRepresentable {
         let caretRect = textView.caretRect(for: selectedRange.start)
         DispatchQueue.main.async {
           self.selectedRange.wrappedValue = nsRange
-          self.cursorY.wrappedValue = caretRect.origin.y
+          self.cursorY.wrappedValue =
+            caretRect.origin.y - textView.textContainerInset.top
         }
 
         checkForMention(in: textView)

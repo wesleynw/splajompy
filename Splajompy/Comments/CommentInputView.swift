@@ -78,12 +78,14 @@ struct CommentInputView: View {
           }) {
             if isSubmitting {
               ProgressView()
+                .frame(width: 32, height: 32)
                 #if os(macOS)
                   .controlSize(.small)
                 #endif
             } else {
               Image(systemName: "arrow.up.circle.fill")
-                .font(.title)
+                .resizable()
+                .frame(width: 32, height: 32)
             }
           }
           .disabled(
