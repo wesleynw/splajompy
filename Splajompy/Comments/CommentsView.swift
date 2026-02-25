@@ -116,7 +116,8 @@ struct CommentsView: View {
             if PostHogSDK.shared.isFeatureEnabled("snail-test") {
               Image("snail")
                 .resizable()
-                .frame(width: 150, height: 150)
+                .aspectRatio(contentMode: .fit)
+                .frame(width: 180, height: 180)
             }
             Text("No comments")
               .font(.title3)
