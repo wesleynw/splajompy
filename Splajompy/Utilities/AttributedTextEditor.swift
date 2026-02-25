@@ -28,14 +28,12 @@ struct AttributedTextEditor: UIViewRepresentable {
     ]
     textView.attributedText = text
     textView.isScrollEnabled = isScrollEnabled
-    if isScrollEnabled {
-      textView.textContainerInset = UIEdgeInsets(
-        top: centeredVerticalInset,
-        left: 10,
-        bottom: centeredVerticalInset,
-        right: 10 + trailingInset
-      )
-    }
+    textView.textContainerInset = UIEdgeInsets(
+      top: centeredVerticalInset,
+      left: 10,
+      bottom: centeredVerticalInset,
+      right: 10 + trailingInset
+    )
     textView.translatesAutoresizingMaskIntoConstraints = true
     textView.setContentCompressionResistancePriority(
       .defaultLow,
@@ -55,16 +53,14 @@ struct AttributedTextEditor: UIViewRepresentable {
       uiView.selectedRange = selectedRange
     }
 
-    if isScrollEnabled {
-      let expectedInset = UIEdgeInsets(
-        top: centeredVerticalInset,
-        left: 10,
-        bottom: centeredVerticalInset,
-        right: 10 + trailingInset
-      )
-      if uiView.textContainerInset != expectedInset {
-        uiView.textContainerInset = expectedInset
-      }
+    let expectedInset = UIEdgeInsets(
+      top: centeredVerticalInset,
+      left: 10,
+      bottom: centeredVerticalInset,
+      right: 10 + trailingInset
+    )
+    if uiView.textContainerInset != expectedInset {
+      uiView.textContainerInset = expectedInset
     }
 
     let fixedWidth = uiView.bounds.width

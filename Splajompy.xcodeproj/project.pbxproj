@@ -480,7 +480,7 @@
 			baseConfigurationReferenceAnchor = 184A63CD2D88CBA100860D6B /* Splajompy */;
 			baseConfigurationReferenceRelativePath = Configuration/Debug.xcconfig;
 			buildSettings = {
-				"ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES[sdk=*]" = "pumpkin-icon rainbow-icon exploding-icon";
+				"ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES[sdk=*]" = "pumpkin-icon rainbow-icon exploding-icon snail";
 				ASSETCATALOG_COMPILER_APPICON_NAME = "default-icon";
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
