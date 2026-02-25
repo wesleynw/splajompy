@@ -76,19 +76,7 @@ struct MentionTextEditor: View {
 
   var body: some View {
     if isCompact {
-      #if os(iOS)
-        let lineHeight = UIFont.preferredFont(forTextStyle: .body).lineHeight
-      #else
-        let lineHeight = NSFont.preferredFont(forTextStyle: .body)
-          .boundingRectForFont.height
-      #endif
-      let textViewInset: CGFloat = 8
-      let maxHeight = (lineHeight * 10) + textViewInset
-      let minHeight = lineHeight + textViewInset
-
-      let displayHeight = min(max(contentHeight, minHeight), maxHeight)
-
-      ZStack(alignment: .topLeading) {
+      ZStack(alignment: .leading) {
         AttributedTextEditor(
           text: $text,
           currentMention: $currentMention,
@@ -98,7 +86,6 @@ struct MentionTextEditor: View {
           isScrollEnabled: true,
           trailingInset: trailingInset
         )
-        .frame(height: displayHeight)
         .focused($isFocused)
         .onAppear {
           if autoFocusOnAppear {
@@ -115,8 +102,8 @@ struct MentionTextEditor: View {
 
         if text.string.isEmpty {
           Text("Add a comment...")
-            .foregroundColor(Color.secondary)
-            .offset(x: 10, y: 10)
+            .foregroundStyle(.tertiary)
+            .padding(.horizontal)
             .allowsHitTesting(false)
         }
       }

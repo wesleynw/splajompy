@@ -11,6 +11,12 @@ struct AttributedTextEditor: NSViewRepresentable {
   var isScrollEnabled: Bool
   var trailingInset: CGFloat = 0
 
+  private var centeredVerticalInset: CGFloat {
+    let font = NSFont.preferredFont(forTextStyle: .body)
+    let lineHeight = NSLayoutManager().defaultLineHeight(for: font)
+    return (42.0 - lineHeight) / 2.0
+  }
+
   func makeNSView(context: Context) -> NSScrollView {
     let textView = NSTextView()
     textView.font = NSFont.preferredFont(forTextStyle: .body)
@@ -19,12 +25,7 @@ struct AttributedTextEditor: NSViewRepresentable {
     textView.drawsBackground = false
     textView.isRichText = true
     textView.allowsUndo = true
-    textView.textContainer?.lineFragmentPadding = 0
-    if isScrollEnabled {
-      textView.textContainerInset = NSSize(width: 8, height: 4)
-    } else {
-      textView.textContainerInset = .zero
-    }
+
     textView.isAutomaticSpellingCorrectionEnabled = true
     textView.typingAttributes = [
       .font: NSFont.preferredFont(forTextStyle: .body),
@@ -41,17 +42,13 @@ struct AttributedTextEditor: NSViewRepresentable {
     scrollView.hasVerticalScroller = isScrollEnabled
     scrollView.drawsBackground = false
     scrollView.autohidesScrollers = true
-    scrollView.contentInsets = NSEdgeInsets(top: 0, left: 0, bottom: 0, right: trailingInset)
 
-    textView.minSize = NSSize(width: 0, height: 0)
-    textView.maxSize = NSSize(
-      width: CGFloat.greatestFiniteMagnitude,
-      height: CGFloat.greatestFiniteMagnitude
-    )
-    textView.isVerticallyResizable = true
-    textView.isHorizontallyResizable = false
-    textView.autoresizingMask = [.width]
+    textView.autoresizingMask = [.width, .height]
     textView.textContainer?.widthTracksTextView = true
+    textView.textContainerInset = NSSize(
+      width: 0,
+      height: centeredVerticalInset
+    )
 
     context.coordinator.textView = textView
 
@@ -74,11 +71,46 @@ struct AttributedTextEditor: NSViewRepresentable {
       textView.setSelectedRange(selectedRange)
     }
 
-    nsView.contentInsets = NSEdgeInsets(top: 0, left: 0, bottom: 0, right: trailingInset)
+    textView.textContainerInset = NSSize(
+      width: 10,
+      height: centeredVerticalInset
+    )
 
     DispatchQueue.main.async {
       self.updateContentHeight(textView: textView)
     }
+  }
+
+  func sizeThatFits(
+    _ proposal: ProposedViewSize,
+    nsView: NSScrollView,
+    context: Context
+  )
+    -> CGSize?
+  {
+    guard isScrollEnabled else { return nil }
+    let width = proposal.width ?? nsView.frame.width
+    guard let textView = nsView.documentView as? NSTextView,
+      let layoutManager = textView.layoutManager,
+      let textContainer = textView.textContainer
+    else { return nil }
+
+    layoutManager.ensureLayout(for: textContainer)
+    let usedRect = layoutManager.usedRect(for: textContainer)
+    let insetHeight = textView.textContainerInset.height * 2
+    let intrinsicHeight = usedRect.height + insetHeight
+
+    let font = NSFont.preferredFont(forTextStyle: .body)
+    let lineHeight = NSLayoutManager().defaultLineHeight(for: font)
+
+    let textViewInset: CGFloat = 30
+    let maxHeight = (lineHeight * 10) + textViewInset
+    let minHeight = 42.0
+
+    return CGSize(
+      width: width,
+      height: min(max(intrinsicHeight, minHeight), maxHeight)
+    )
   }
 
   private func updateContentHeight(textView: NSTextView) {
@@ -153,7 +185,8 @@ struct AttributedTextEditor: NSViewRepresentable {
         position <= textView.string.utf16.count
       {
         let glyphIndex = layoutManager.glyphIndexForCharacter(
-          at: min(position, max(textView.string.utf16.count - 1, 0)))
+          at: min(position, max(textView.string.utf16.count - 1, 0))
+        )
         let glyphRange = NSRange(location: glyphIndex, length: 1)
         let boundingRect = layoutManager.boundingRect(
           forGlyphRange: glyphRange,
