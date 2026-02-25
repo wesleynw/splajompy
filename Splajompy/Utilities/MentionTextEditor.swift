@@ -75,74 +75,37 @@ struct MentionTextEditor: View {
   }
 
   var body: some View {
-    if isCompact {
-      ZStack(alignment: .leading) {
-        AttributedTextEditor(
-          text: $text,
-          currentMention: $currentMention,
-          selectedRange: $selectedRange,
-          cursorY: $cursorY,
-          contentHeight: $contentHeight,
-          isScrollEnabled: true,
-          trailingInset: trailingInset
-        )
-        .focused($isFocused)
-        .onAppear {
-          if autoFocusOnAppear {
-            self.isFocused = true
-          }
-        }
-        .onChange(of: currentMention) { oldValue, newValue in
-          if let mention = newValue, !mention.isEmpty {
-            viewModel.fetchSuggestions(prefix: mention)
-          } else {
-            viewModel.clearMentionState()
-          }
-        }
-
-        if text.string.isEmpty {
-          Text("Add a comment...")
-            .foregroundStyle(.tertiary)
-            .padding(.horizontal)
-            .allowsHitTesting(false)
+    ZStack(alignment: .topLeading) {
+      AttributedTextEditor(
+        text: $text,
+        currentMention: $currentMention,
+        selectedRange: $selectedRange,
+        cursorY: $cursorY,
+        contentHeight: $contentHeight,
+        isScrollEnabled: isCompact,
+        trailingInset: trailingInset
+      )
+      .focused($isFocused)
+      .onAppear {
+        if autoFocusOnAppear {
+          self.isFocused = true
         }
       }
-    } else {
-      VStack(alignment: .leading) {
-        ZStack(alignment: .topLeading) {
-          AttributedTextEditor(
-            text: $text,
-            currentMention: $currentMention,
-            selectedRange: $selectedRange,
-            cursorY: $cursorY,
-            contentHeight: $contentHeight,
-            isScrollEnabled: false
-          )
-          .frame(maxWidth: .infinity, minHeight: contentHeight)
-          .focused($isFocused)
-          .onAppear {
-            if autoFocusOnAppear {
-              self.isFocused = true
-            }
-          }
-          .onChange(of: currentMention) { oldValue, newValue in
-            if let mention = newValue, !mention.isEmpty {
-              viewModel.fetchSuggestions(prefix: mention)
-            } else {
-              viewModel.clearMentionState()
-            }
-          }
-
-          if text.string.isEmpty {
-            Text("What's on your mind?")
-              .foregroundColor(Color.secondary)
-              .allowsHitTesting(false)
-          }
+      .onChange(of: currentMention) { oldValue, newValue in
+        if let mention = newValue, !mention.isEmpty {
+          viewModel.fetchSuggestions(prefix: mention)
+        } else {
+          viewModel.clearMentionState()
         }
-        .padding()
       }
-      .padding(.horizontal)
-      .frame(maxWidth: .infinity)
+
+      if text.string.isEmpty {
+        Text(isCompact ? "Add a comment..." : "What's on your mind?")
+          .foregroundStyle(.tertiary)
+          .padding(.top, 10)
+          .padding(.horizontal)
+          .allowsHitTesting(false)
+      }
     }
   }
 
@@ -248,7 +211,7 @@ struct MentionTextEditor: View {
     viewModel: MentionTextEditor.MentionViewModel(),
     cursorY: $cursorY,
     selectedRange: $selectedRange,
-    isCompact: true
+    isCompact: false
   )
   .padding()
 }
