@@ -12,7 +12,7 @@ struct AttributedTextEditor: UIViewRepresentable {
 
   private var centeredVerticalInset: CGFloat {
     let font = UIFont.preferredFont(forTextStyle: .body)
-    let lineHeight = ceil(font.lineHeight)  
+    let lineHeight = ceil(font.lineHeight)
     return max(5.0, (42.0 - lineHeight) / 2.0)
   }
 
@@ -81,15 +81,16 @@ struct AttributedTextEditor: UIViewRepresentable {
     uiView: UITextView,
     context: Context
   ) -> CGSize? {
-    guard isScrollEnabled else { return nil }
     let width = proposal.width ?? uiView.bounds.width
     let intrinsic = uiView.sizeThatFits(
       CGSize(width: width, height: .greatestFiniteMagnitude)
     )
-    let lineHeight = UIFont.preferredFont(forTextStyle: .body).lineHeight
-    let maxHeight = (lineHeight * 10)
-    let minHeight: CGFloat = 42.0
-    let height = intrinsic.height < minHeight + 2 ? minHeight : min(intrinsic.height, maxHeight)
+    let lineHeight = ceil(UIFont.preferredFont(forTextStyle: .body).lineHeight)
+    let minHeight = centeredVerticalInset * 2 + lineHeight
+    let height =
+      isScrollEnabled
+      ? min(minHeight, intrinsic.height)
+      : max(intrinsic.height, minHeight)
     return CGSize(width: width, height: height)
   }
 
@@ -141,8 +142,7 @@ struct AttributedTextEditor: UIViewRepresentable {
         let caretRect = textView.caretRect(for: selectedRange.start)
         DispatchQueue.main.async {
           self.selectedRange.wrappedValue = nsRange
-          self.cursorY.wrappedValue =
-            caretRect.origin.y - textView.textContainerInset.top
+          self.cursorY.wrappedValue = caretRect.maxY
         }
 
         checkForMention(in: textView)

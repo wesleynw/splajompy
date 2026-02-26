@@ -31,6 +31,26 @@ struct NewPostView: View {
               isCompact: false,
               autoFocusOnAppear: true
             )
+            .overlay(alignment: .topLeading) {
+              if mentionViewModel.isShowingSuggestions {
+                MentionTextEditor.suggestionView(
+                  suggestions: mentionViewModel.mentionSuggestions,
+                  isLoading: mentionViewModel.isLoading,
+                  onInsert: { user in
+                    let result = mentionViewModel.insertMention(
+                      user,
+                      in: viewModel.text,
+                      at: viewModel.selectedRange
+                    )
+                    viewModel.text = result.text
+                    viewModel.selectedRange = result.newSelectedRange
+                  }
+                )
+                .offset(y: cursorY + 10)
+                .padding(.horizontal)
+                .animation(.default, value: mentionViewModel.isShowingSuggestions)
+              }
+            }
             .padding()
 
             imagePreviewsView
@@ -45,26 +65,6 @@ struct NewPostView: View {
           }
           // to allow mentions overlay to be visible when at bottom of text view
           .padding(.bottom, 250)
-          .overlay(alignment: .topLeading) {
-            if mentionViewModel.isShowingSuggestions {
-              MentionTextEditor.suggestionView(
-                suggestions: mentionViewModel.mentionSuggestions,
-                isLoading: mentionViewModel.isLoading,
-                onInsert: { user in
-                  let result = mentionViewModel.insertMention(
-                    user,
-                    in: viewModel.text,
-                    at: viewModel.selectedRange
-                  )
-                  viewModel.text = result.text
-                  viewModel.selectedRange = result.newSelectedRange
-                }
-              )
-              .offset(y: cursorY + 40)
-              .padding(.horizontal, 32)
-              .animation(.default, value: mentionViewModel.isShowingSuggestions)
-            }
-          }
         }
 
         Divider()
