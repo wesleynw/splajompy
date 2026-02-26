@@ -12,7 +12,7 @@ struct AttributedTextEditor: UIViewRepresentable {
 
   private var centeredVerticalInset: CGFloat {
     let font = UIFont.preferredFont(forTextStyle: .body)
-    let lineHeight = ceil(font.lineHeight)  // UIKit rounds line fragments up internally
+    let lineHeight = ceil(font.lineHeight)  
     return max(5.0, (42.0 - lineHeight) / 2.0)
   }
 
