@@ -48,6 +48,7 @@ struct ProfileDisplayNameFontPicker: View {
               }
             }
           }
+          .buttonStyle(.plain)
           .foregroundStyle(.primary)
         }
       }

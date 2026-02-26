@@ -65,7 +65,7 @@ public struct APIService {
     let span = tracer.spanBuilder(
       spanName: "API Service: \(method) /\(endpoint)"
     )
-    .setActive(true)
+    .setSpanKind(spanKind: .client)
     .startSpan()
 
     defer {

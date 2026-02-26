@@ -90,13 +90,24 @@ struct ProfileEditorView: View {
       #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
       #endif
-      .sheet(isPresented: $isShowingFontPicker) {
-        ProfileDisplayNameFontPicker(
-          displayName: name,
-          displayNameFont: displayNameFont,
-          onChange: { newFont in displayNameFont = newFont }
-        )
-      }
+      #if os(macOS)
+        .popover(isPresented: $isShowingFontPicker) {
+          ProfileDisplayNameFontPicker(
+            displayName: name,
+            displayNameFont: displayNameFont,
+            onChange: { newFont in displayNameFont = newFont }
+          )
+          .frame(width: 320, height: 420)
+        }
+      #else
+        .sheet(isPresented: $isShowingFontPicker) {
+          ProfileDisplayNameFontPicker(
+            displayName: name,
+            displayNameFont: displayNameFont,
+            onChange: { newFont in displayNameFont = newFont }
+          )
+        }
+      #endif
       .toolbar {
         ToolbarItem(placement: .cancellationAction) {
           if #available(iOS 26.0, macOS 26, *) {

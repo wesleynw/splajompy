@@ -31,6 +31,7 @@ struct NewPostView: View {
               isCompact: false,
               autoFocusOnAppear: true
             )
+            .padding()
 
             imagePreviewsView
 
@@ -328,5 +329,6 @@ struct NewPostView: View {
 struct NewPostView_Previews: PreviewProvider {
   static var previews: some View {
     NewPostView()
+      .environment(AuthManager())
   }
 }
