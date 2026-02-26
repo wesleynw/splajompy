@@ -11,7 +11,8 @@ struct AttributedTextEditor: UIViewRepresentable {
   var trailingInset: CGFloat = 0
 
   private var centeredVerticalInset: CGFloat {
-    let lineHeight = UIFont.preferredFont(forTextStyle: .body).lineHeight
+    let font = UIFont.preferredFont(forTextStyle: .body)
+    let lineHeight = ceil(font.lineHeight)  // UIKit rounds line fragments up internally
     return max(5.0, (42.0 - lineHeight) / 2.0)
   }
 
@@ -87,11 +88,9 @@ struct AttributedTextEditor: UIViewRepresentable {
     )
     let lineHeight = UIFont.preferredFont(forTextStyle: .body).lineHeight
     let maxHeight = (lineHeight * 10)
-    let minHeight = 42.0
-    return CGSize(
-      width: width,
-      height: min(max(intrinsic.height, minHeight), maxHeight)
-    )
+    let minHeight: CGFloat = 42.0
+    let height = intrinsic.height < minHeight + 2 ? minHeight : min(intrinsic.height, maxHeight)
+    return CGSize(width: width, height: height)
   }
 
   func makeCoordinator() -> Coordinator {
