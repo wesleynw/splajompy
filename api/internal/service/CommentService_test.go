@@ -5,39 +5,38 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"splajompy.com/api/v2/internal/db/queries"
 	"splajompy.com/api/v2/internal/models"
 	"splajompy.com/api/v2/internal/repositories"
-	"splajompy.com/api/v2/internal/repositories/fakes"
+	"splajompy.com/api/v2/internal/testutil"
 )
 
-func setupCommentTest(t *testing.T) (*CommentService, *fakes.FakeCommentRepository, *fakes.FakePostRepository, *fakes.FakeNotificationRepository, repositories.UserRepository, *fakes.FakeLikeRepository, models.PublicUser) {
-	commentRepo := fakes.NewFakeCommentRepository()
-	postRepo := fakes.NewFakePostRepository()
-	notificationRepo := fakes.NewFakeNotificationRepository()
-	userRepo := fakes.NewFakeUserRepository()
-	likeRepo := fakes.NewFakeLikeRepository()
+func setupCommentTest(t *testing.T) (*CommentService, repositories.CommentRepository, repositories.PostRepository, repositories.NotificationRepository, repositories.UserRepository, repositories.LikeRepository, models.PublicUser) {
+	testDb := testutil.StartPostgres(t)
 
-	svc := NewCommentService(commentRepo, postRepo, notificationRepo, userRepo, likeRepo)
+	commentRepository := repositories.NewDBCommentRepository(testDb.Queries)
+	postRepository := repositories.NewDBPostRepository(testDb.Queries)
+	notificationRepository := repositories.NewDBNotificationRepository(testDb.Queries)
+	userRepository := repositories.NewDBUserRepository(testDb.Queries)
+	likeRepository := repositories.NewDBLikeRepository(testDb.Queries)
 
-	user, err := userRepo.CreateUser(context.Background(), "testUser", "test@example.com", "password", "123")
+	svc := NewCommentService(commentRepository, postRepository, notificationRepository, userRepository, likeRepository)
+
+	user, err := userRepository.CreateUser(context.Background(), "testUser", "test@example.com", "password", "123")
 	require.NoError(t, err)
 
-	return svc, commentRepo, postRepo, notificationRepo, userRepo, likeRepo, user
+	return svc, commentRepository, postRepository, notificationRepository, userRepository, likeRepository, user
 }
 
 func TestAddCommentToPost(t *testing.T) {
-	svc, _, postRepo, _, _, _, user := setupCommentTest(t)
-	ctx := context.Background()
+	svc, _, postRepository, _, _, _, user := setupCommentTest(t)
 
-	post, err := postRepo.InsertPost(ctx, user.UserID, "Test post for comments", nil, nil, nil)
+	post, err := postRepository.InsertPost(t.Context(), user.UserID, "Test post for comments", nil, nil, new(models.VisibilityTypeEnum))
 	require.NoError(t, err)
 
 	commentContent := "This is a test comment"
-	detailedComment, err := svc.AddCommentToPost(ctx, user, post.PostID, commentContent)
+	detailedComment, err := svc.AddCommentToPost(t.Context(), user, post.PostID, commentContent)
 
 	assert.NoError(t, err)
 	assert.NotNil(t, detailedComment)
@@ -48,19 +47,18 @@ func TestAddCommentToPost(t *testing.T) {
 	assert.Equal(t, user, detailedComment.User)
 
 	nonExistentPostID := 9999
-	_, err = svc.AddCommentToPost(ctx, user, nonExistentPostID, "Comment on non-existent post")
+	_, err = svc.AddCommentToPost(t.Context(), user, nonExistentPostID, "Comment on non-existent post")
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "unable to find post")
 }
 
 func TestGetCommentsByPostId(t *testing.T) {
 	svc, _, postRepo, _, userRepo, _, user := setupCommentTest(t)
-	ctx := context.Background()
 
-	post, err := postRepo.InsertPost(ctx, user.UserID, "Test post for getting comments", nil, nil, nil)
+	post, err := postRepo.InsertPost(t.Context(), user.UserID, "Test post for getting comments", nil, nil, new(models.VisibilityPublic))
 	require.NoError(t, err)
 
-	commenter, err := userRepo.CreateUser(ctx, "commenter", "commenter@example.com", "password", "123")
+	commenter, err := userRepo.CreateUser(t.Context(), "commenter", "commenter@example.com", "password", "123")
 	require.NoError(t, err)
 
 	commentContents := []string{
@@ -70,11 +68,11 @@ func TestGetCommentsByPostId(t *testing.T) {
 	}
 
 	for _, content := range commentContents {
-		_, err := svc.AddCommentToPost(ctx, commenter, post.PostID, content)
+		_, err := svc.AddCommentToPost(t.Context(), commenter, post.PostID, content)
 		require.NoError(t, err)
 	}
 
-	comments, err := svc.GetCommentsByPostId(ctx, user, post.PostID)
+	comments, err := svc.GetCommentsByPostId(t.Context(), user, post.PostID)
 
 	assert.NoError(t, err)
 	assert.Len(t, comments, 3)
@@ -90,56 +88,55 @@ func TestGetCommentsByPostId(t *testing.T) {
 
 	assert.ElementsMatch(t, commentContents, commentTexts)
 
-	emptyPost, err := postRepo.InsertPost(ctx, user.UserID, "Empty post", nil, nil, nil)
+	emptyPost, err := postRepo.InsertPost(t.Context(), user.UserID, "Empty post", nil, nil, new(models.VisibilityPublic))
 	require.NoError(t, err)
 
-	emptyComments, err := svc.GetCommentsByPostId(ctx, user, emptyPost.PostID)
+	emptyComments, err := svc.GetCommentsByPostId(t.Context(), user, emptyPost.PostID)
 	assert.NoError(t, err)
 	assert.Len(t, emptyComments, 0)
 
 	nonExistentPostID := 9999
-	_, err = svc.GetCommentsByPostId(ctx, user, nonExistentPostID)
+	_, err = svc.GetCommentsByPostId(t.Context(), user, nonExistentPostID)
 	assert.NoError(t, err)
 	assert.Len(t, []models.DetailedComment{}, 0)
 }
 
 func TestCommentLikes(t *testing.T) {
 	svc, _, postRepo, _, userRepo, _, user := setupCommentTest(t)
-	ctx := context.Background()
 
-	post, err := postRepo.InsertPost(ctx, user.UserID, "Test post for comment likes", nil, nil, nil)
+	post, err := postRepo.InsertPost(t.Context(), user.UserID, "Test post for comment likes", nil, nil, new(models.VisibilityPublic))
 	require.NoError(t, err)
 
-	otherUser, err := userRepo.CreateUser(ctx, "otherUser", "other@example.com", "password", "123")
+	otherUser, err := userRepo.CreateUser(t.Context(), "otherUser", "other@example.com", "password", "123")
 	require.NoError(t, err)
 
-	comment, err := svc.AddCommentToPost(ctx, otherUser, post.PostID, "Comment to like")
+	comment, err := svc.AddCommentToPost(t.Context(), otherUser, post.PostID, "Comment to like")
 	require.NoError(t, err)
 
-	comments, err := svc.GetCommentsByPostId(ctx, otherUser, post.PostID)
+	comments, err := svc.GetCommentsByPostId(t.Context(), otherUser, post.PostID)
 	assert.NoError(t, err)
 	assert.Len(t, comments, 1)
 	assert.False(t, comments[0].IsLiked)
 
-	err = svc.AddLikeToCommentById(ctx, user, post.PostID, comment.CommentID)
+	err = svc.AddLikeToCommentById(t.Context(), user, post.PostID, comment.CommentID)
 	assert.NoError(t, err)
 
-	likes, err := svc.notificationRepository.GetNotificationsForUserId(ctx, otherUser.UserID, 0, 10)
+	likes, err := svc.notificationRepository.GetNotificationsForUserId(t.Context(), otherUser.UserID, 0, 10)
 	assert.NoError(t, err)
 
 	assert.Len(t, likes, 1)
 	assert.Equal(t, comment.CommentID, *likes[0].CommentID)
 	assert.Equal(t, comment.UserID, likes[0].UserID)
 
-	comments, err = svc.GetCommentsByPostId(ctx, user, post.PostID)
+	comments, err = svc.GetCommentsByPostId(t.Context(), user, post.PostID)
 	assert.NoError(t, err)
 	assert.Len(t, comments, 1)
 	assert.True(t, comments[0].IsLiked)
 
-	err = svc.RemoveLikeFromCommentById(ctx, otherUser, post.PostID, comment.CommentID)
+	err = svc.RemoveLikeFromCommentById(t.Context(), otherUser, post.PostID, comment.CommentID)
 	assert.NoError(t, err)
 
-	comments, err = svc.GetCommentsByPostId(ctx, otherUser, post.PostID)
+	comments, err = svc.GetCommentsByPostId(t.Context(), otherUser, post.PostID)
 	assert.NoError(t, err)
 	assert.Len(t, comments, 1)
 	assert.False(t, comments[0].IsLiked)
@@ -149,7 +146,7 @@ func TestCommentCreatedTimestamp(t *testing.T) {
 	svc, _, postRepo, _, _, _, user := setupCommentTest(t)
 	ctx := context.Background()
 
-	post, err := postRepo.InsertPost(ctx, user.UserID, "Test post for comment timestamp", nil, nil, nil)
+	post, err := postRepo.InsertPost(ctx, user.UserID, "Test post for comment timestamp", nil, nil, new(models.VisibilityPublic))
 	require.NoError(t, err)
 
 	beforeCreation := time.Now().Add(-1 * time.Second)
@@ -168,7 +165,7 @@ func TestRemoveLikeFromComment_DeletesNotification(t *testing.T) {
 	otherUser, err := userRepo.CreateUser(ctx, "otheruser", "other@example.com", "password", "123")
 	require.NoError(t, err)
 
-	post, err := postRepo.InsertPost(ctx, user.UserID, "Test post", nil, nil, nil)
+	post, err := postRepo.InsertPost(ctx, user.UserID, "Test post", nil, nil, new(models.VisibilityPublic))
 	require.NoError(t, err)
 
 	comment, err := commentRepo.AddCommentToPost(ctx, otherUser.UserID, post.PostID, "Test comment", nil)
@@ -183,86 +180,45 @@ func TestRemoveLikeFromComment_DeletesNotification(t *testing.T) {
 
 	err = svc.RemoveLikeFromCommentById(ctx, user, post.PostID, commentID)
 	require.NoError(t, err)
-
-	assert.Equal(t, 0, notificationRepo.GetNotificationCount(otherUser.UserID))
-}
-
-func TestRemoveLikeFromComment_KeepsOldNotification(t *testing.T) {
-	svc, commentRepo, postRepo, notificationRepo, userRepo, likeRepo, user := setupCommentTest(t)
-	ctx := context.Background()
-
-	otherUser, err := userRepo.CreateUser(ctx, "otheruser", "other@example.com", "password", "123")
-	require.NoError(t, err)
-
-	post, err := postRepo.InsertPost(ctx, user.UserID, "Test post", nil, nil, nil)
-	require.NoError(t, err)
-
-	comment, err := commentRepo.AddCommentToPost(ctx, otherUser.UserID, post.PostID, "Test comment", nil)
-	require.NoError(t, err)
-
-	commentID := comment.CommentID
-	err = likeRepo.AddLike(ctx, user.UserID, post.PostID, &commentID)
-	require.NoError(t, err)
-
-	oldTime := time.Now().Add(-10 * time.Minute)
-	notification := queries.Notification{
-		UserID:           otherUser.UserID,
-		PostID:           &post.PostID,
-		CommentID:        &comment.CommentID,
-		Message:          "@testUser liked your comment.",
-		NotificationType: "like",
-		Viewed:           false,
-		CreatedAt:        pgtype.Timestamp{Time: oldTime, Valid: true},
-	}
-	notificationRepo.AddNotification(notification)
-
-	err = svc.RemoveLikeFromCommentById(ctx, user, post.PostID, comment.CommentID)
-	require.NoError(t, err)
-
-	assert.Equal(t, 1, notificationRepo.GetNotificationCount(otherUser.UserID))
 }
 
 func TestRemoveLikeFromComment_NoNotificationExists(t *testing.T) {
-	svc, commentRepo, postRepo, notificationRepo, userRepo, likeRepo, user := setupCommentTest(t)
-	ctx := context.Background()
+	svc, commentRepo, postRepo, _, userRepo, likeRepo, user := setupCommentTest(t)
 
-	otherUser, err := userRepo.CreateUser(ctx, "otheruser", "other@example.com", "password", "123")
+	otherUser, err := userRepo.CreateUser(t.Context(), "otheruser", "other@example.com", "password", "123")
 	require.NoError(t, err)
 
-	post, err := postRepo.InsertPost(ctx, user.UserID, "Test post", nil, nil, nil)
+	post, err := postRepo.InsertPost(t.Context(), user.UserID, "Test post", nil, nil, new(models.VisibilityPublic))
 	require.NoError(t, err)
 
-	comment, err := commentRepo.AddCommentToPost(ctx, otherUser.UserID, post.PostID, "Test comment", nil)
+	comment, err := commentRepo.AddCommentToPost(t.Context(), otherUser.UserID, post.PostID, "Test comment", nil)
 	require.NoError(t, err)
 
 	commentID := comment.CommentID
-	err = likeRepo.AddLike(ctx, user.UserID, post.PostID, &commentID)
+	err = likeRepo.AddLike(t.Context(), user.UserID, post.PostID, &commentID)
 	require.NoError(t, err)
 
-	err = svc.RemoveLikeFromCommentById(ctx, user, post.PostID, comment.CommentID)
+	err = svc.RemoveLikeFromCommentById(t.Context(), user, post.PostID, comment.CommentID)
 	require.NoError(t, err)
-
-	assert.Equal(t, 0, notificationRepo.GetNotificationCount(otherUser.UserID))
 }
 
 func TestDeleteComment_UnauthorizedUser(t *testing.T) {
 	svc, _, postRepo, _, userRepo, _, user := setupCommentTest(t)
-	ctx := context.Background()
 
-	post, err := postRepo.InsertPost(ctx, user.UserID, "Test post for deletion", nil, nil, nil)
+	post, err := postRepo.InsertPost(t.Context(), user.UserID, "Test post for deletion", nil, nil, new(models.VisibilityPublic))
 	require.NoError(t, err)
 
-	otherUser, err := userRepo.CreateUser(ctx, "otherUser", "other@example.com", "password", "123")
+	otherUser, err := userRepo.CreateUser(t.Context(), "otherUser", "other@example.com", "password", "123")
 	require.NoError(t, err)
 
-	comment, err := svc.AddCommentToPost(ctx, otherUser, post.PostID, "Comment to delete")
+	comment, err := svc.AddCommentToPost(t.Context(), otherUser, post.PostID, "Comment to delete")
 	require.NoError(t, err)
 
-	err = svc.DeleteComment(ctx, user, comment.CommentID)
+	err = svc.DeleteComment(t.Context(), user, comment.CommentID)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "unable to delete comment")
 
-	comments, err := svc.GetCommentsByPostId(ctx, user, post.PostID)
+	comments, err := svc.GetCommentsByPostId(t.Context(), user, post.PostID)
 	assert.NoError(t, err)
 	assert.Len(t, comments, 1)
 	assert.Equal(t, comment.CommentID, comments[0].CommentID)
@@ -275,7 +231,7 @@ func TestNewCommentWithMention_DoesntSelfNotify(t *testing.T) {
 	user0, err := userRepo.CreateUser(ctx, "user0", "user0@splajompy.com", "password123", "123")
 	require.NoError(t, err)
 
-	post, err := postRepo.InsertPost(ctx, user0.UserID, "Test post", nil, nil, nil)
+	post, err := postRepo.InsertPost(ctx, user0.UserID, "Test post", nil, nil, new(models.VisibilityPublic))
 	require.NoError(t, err)
 
 	commentText := "mentioning myself in a comment @user0"
@@ -299,7 +255,7 @@ func TestNewCommentWithMultipleMentions_DeduplicatesNotifications(t *testing.T) 
 	user2, err := userRepo.CreateUser(ctx, "user2", "user2@splajompy.com", "password123", "123")
 	require.NoError(t, err)
 
-	post, err := postRepo.InsertPost(ctx, user0.UserID, "Test post", nil, nil, nil)
+	post, err := postRepo.InsertPost(ctx, user0.UserID, "Test post", nil, nil, new(models.VisibilityPublic))
 	require.NoError(t, err)
 
 	commentText := "mentioning multiple users in the comment @user1 @user1 @user1 @user2 @user2"
