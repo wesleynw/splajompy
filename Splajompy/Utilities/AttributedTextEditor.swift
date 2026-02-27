@@ -87,9 +87,10 @@ struct AttributedTextEditor: UIViewRepresentable {
     )
     let lineHeight = ceil(UIFont.preferredFont(forTextStyle: .body).lineHeight)
     let minHeight = centeredVerticalInset * 2 + lineHeight
+    let maxHeight = centeredVerticalInset * 2 + lineHeight * 8
     let height =
       isScrollEnabled
-      ? min(minHeight, intrinsic.height)
+      ? min(max(intrinsic.height, minHeight), maxHeight)
       : max(intrinsic.height, minHeight)
     return CGSize(width: width, height: height)
   }
