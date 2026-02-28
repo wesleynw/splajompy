@@ -199,7 +199,7 @@ struct ImageGallery: View {
               #endif
           }
         }
-        .processors([.resize(width: screenWidth)])
+        .processors([.resize(width: width)])
         .aspectRatio(contentMode: .fill)
         .frame(width: width, height: height)
         .clipShape(
@@ -221,54 +221,42 @@ struct ImageGallery: View {
     }
   }
 
-  private var screenWidth: CGFloat {
-    #if os(iOS)
-      return UIScreen.main.bounds.width
-    #else
-      return min(NSScreen.main?.frame.width ?? 400, 600)
-    #endif
-  }
-
+  @ViewBuilder
   private func singleImageCell() -> some View {
-    Group {
-      if let url = URL(string: images[0].imageBlobUrl) {
-        let image = images[0]
-        let aspectRatio = CGFloat(image.width) / CGFloat(image.height)
-        let isVeryWide = aspectRatio > 2.5
-        let isVeryTall = aspectRatio < 0.4
-        let displayWidth = screenWidth - 32
-        let expectedHeight = displayWidth / aspectRatio
-        let frameHeight: CGFloat? = isVeryTall ? 500 : isVeryWide ? 200 : nil
+    let image = images[0]
+    let aspectRatio = CGFloat(image.width) / CGFloat(image.height)
+    let isVeryWide = aspectRatio > 2.5
+    let isVeryTall = aspectRatio < 0.4
 
-        LazyImage(url: url) {
-          state in
-          if let image = state.image {
-            image.resizable()
+    let geo = GeometryReader { geometry in
+      if let url = URL(string: image.imageBlobUrl) {
+        LazyImage(url: url) { state in
+          if let img = state.image {
+            img.resizable()
           } else {
             ProgressView()
               #if os(macOS)
                 .controlSize(.small)
               #endif
-              .frame(
-                maxWidth: .infinity,
-                maxHeight: frameHeight ?? expectedHeight
-              )
+              .frame(maxWidth: .infinity, maxHeight: .infinity)
           }
         }
-        .processors([.resize(width: screenWidth)])
-        .aspectRatio(
-          aspectRatio,
-          contentMode: (isVeryWide || isVeryTall) ? .fill : .fit
-        )
-        .frame(height: frameHeight)
-        .frame(maxWidth: .infinity)
+        .processors([.resize(width: geometry.size.width)])
+        .aspectRatio(contentMode: .fill)
+        .frame(width: geometry.size.width, height: geometry.size.height)
         .clipShape(RoundedRectangle(cornerRadius: 8))
         .contentShape(.rect)
         .modifier(TransitionSourceModifier(id: "image-0", namespace: animation))
-        .onTapGesture {
-          selectedImageIndex = 0
-        }
+        .onTapGesture { selectedImageIndex = 0 }
       }
+    }
+
+    if isVeryWide {
+      geo.frame(height: 200)
+    } else if isVeryTall {
+      geo.frame(height: 500)
+    } else {
+      geo.aspectRatio(aspectRatio, contentMode: .fit)
     }
   }
 }
