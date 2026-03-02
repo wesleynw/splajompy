@@ -3,6 +3,8 @@ package testutil
 
 import (
 	"context"
+	"io"
+	"log"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -32,6 +34,7 @@ func StartPostgres(t *testing.T) *TestDB {
 		postgres.WithDatabase("testdb"),
 		postgres.WithUsername("test"),
 		postgres.WithPassword("test"),
+		testcontainers.WithLogger(log.New(io.Discard, "", 0)),
 		testcontainers.WithWaitStrategy(
 			wait.ForLog("database system is ready to accept connections").
 				WithOccurrence(2).
