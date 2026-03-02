@@ -10,7 +10,6 @@ struct ProfileView: View {
   @State private var isShowingProfileEditor: Bool = false
   @State private var activeAlert: ProfileAlertEnum?
   @State private var viewModel: ViewModel
-  @State private var scrollOffset = CGFloat.zero
   @Environment(AuthManager.self) private var authManager
   var postManager: PostStore
 
@@ -156,13 +155,6 @@ struct ProfileView: View {
         }
       }
     }
-    .modify {
-      if #available(iOS 26, *),
-        PostHogSDK.shared.isFeatureEnabled("toolbar-scroll-effect")
-      {
-        $0.scrollFadeBackground(scrollOffset: scrollOffset)
-      }
-    }
   }
 
   #if os(iOS)
@@ -298,13 +290,6 @@ struct ProfileView: View {
       }
       .refreshable {
         await viewModel.loadProfileAndPosts()
-      }
-      .modify {
-        if #available(iOS 26, *),
-          PostHogSDK.shared.isFeatureEnabled("toolbar-scroll-effect")
-        {
-          $0.scrollFadeEffect(scrollOffset: $scrollOffset)
-        }
       }
     }
   }
