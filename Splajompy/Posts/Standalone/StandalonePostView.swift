@@ -24,6 +24,13 @@ struct StandalonePostView: View {
   }
 
   var body: some View {
+    let handlePostDeleted: () -> Void = {
+      Task {
+        await postManager.deletePost(id: postId)
+        dismiss()
+      }
+    }
+
     ScrollView {
       Group {
         switch viewModel.state {
@@ -40,12 +47,7 @@ struct StandalonePostView: View {
               showAuthor: true,
               isStandalone: true,
               onLikeButtonTapped: { viewModel.toggleLike() },
-              onPostDeleted: {
-                Task {
-                  await postManager.deletePost(id: postId)
-                  dismiss()
-                }
-              }
+              onPostDeleted: handlePostDeleted
             )
 
             CommentsView(
@@ -95,12 +97,7 @@ struct StandalonePostView: View {
         PostActionMenu(
           post: post,
           showAuthor: true,
-          onPostDeleted: {
-            Task {
-              await postManager.deletePost(id: postId)
-              dismiss()
-            }
-          },
+          onPostDeleted: handlePostDeleted,
           onPostPinned: {},
           onPostUnpinned: {}
         ) {

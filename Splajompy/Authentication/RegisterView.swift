@@ -209,12 +209,12 @@ struct RegisterView: View {
     if !errorMessage.isEmpty {
       HStack(alignment: .firstTextBaseline, spacing: 8) {
         Image(systemName: "exclamationmark.triangle.fill")
-          .foregroundColor(.white)
+          .foregroundStyle(.white)
           .font(.callout)
 
         Text(errorMessage.isEmpty ? "An unknown error occurred." : errorMessage)
           .font(.callout)
-          .foregroundColor(.white)
+          .foregroundStyle(.white)
           .multilineTextAlignment(.leading)
       }
       .padding(.horizontal, 10)
@@ -233,7 +233,7 @@ struct RegisterView: View {
       "By continuing, you agree to our [Terms of Service](https://splajompy.com/tos) and [Privacy Policy](https://splajompy.com/privacy)."
     )
     .font(.caption)
-    .foregroundColor(.secondary)
+    .foregroundStyle(.secondary)
     .multilineTextAlignment(.center)
     .fixedSize(horizontal: false, vertical: true)
     .environment(
@@ -253,12 +253,12 @@ struct RegisterView: View {
   private func errorMessageView(_ message: String) -> some View {
     HStack(alignment: .firstTextBaseline, spacing: 6) {
       Image(systemName: "exclamationmark.circle.fill")
-        .foregroundColor(.red)
+        .foregroundStyle(.red)
         .font(.callout)
 
       Text(message)
         .font(.callout)
-        .foregroundColor(.red)
+        .foregroundStyle(.red)
         .multilineTextAlignment(.leading)
     }
     .padding(.horizontal, 6)

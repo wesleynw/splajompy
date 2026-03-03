@@ -162,7 +162,7 @@ private struct PollFormContent<AddButton: View>: View {
           Spacer()
           Text("\(title.count)/100")
             .font(.caption2)
-            .foregroundColor(title.count > 100 ? .orange : .secondary)
+            .foregroundStyle(title.count > 100 ? .orange : .secondary)
         }
       }
     } header: {
@@ -200,7 +200,7 @@ private struct PollFormContent<AddButton: View>: View {
           if focusedField == index || options[index].text.count > 25 {
             Text("\(options[index].text.count)/25")
               .font(.caption2)
-              .foregroundColor(
+              .foregroundStyle(
                 options[index].text.count > 25 ? .orange : .secondary
               )
           }

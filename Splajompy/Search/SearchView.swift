@@ -101,7 +101,7 @@ struct SearchView: View {
     VStack(spacing: 16) {
       Image(systemName: "magnifyingglass")
         .font(.system(size: 48))
-        .foregroundColor(.gray)
+        .foregroundStyle(.gray)
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity)
     .contentShape(Rectangle())
@@ -111,7 +111,7 @@ struct SearchView: View {
     VStack(spacing: 16) {
       Image(systemName: "person.slash")
         .font(.system(size: 48))
-        .foregroundColor(.gray)
+        .foregroundStyle(.gray)
       Text("No Splajompians found")
         .font(.title3)
         .fontWeight(.bold)

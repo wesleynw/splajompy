@@ -46,6 +46,9 @@ struct AttributedTextEditor: UIViewRepresentable {
   }
 
   func updateUIView(_ uiView: UITextView, context: Context) {
+    context.coordinator.isUpdating = true
+    defer { context.coordinator.isUpdating = false }
+
     if uiView.attributedText != text {
       uiView.attributedText = text
     }
@@ -100,6 +103,7 @@ struct AttributedTextEditor: UIViewRepresentable {
   }
 
   class Coordinator: NSObject, UITextViewDelegate {
+    var isUpdating = false
     var text: Binding<NSAttributedString>
     var currentMention: Binding<String?>
     var selectedRange: Binding<NSRange>
@@ -132,6 +136,7 @@ struct AttributedTextEditor: UIViewRepresentable {
     }
 
     func textViewDidChangeSelection(_ textView: UITextView) {
+      guard !isUpdating else { return }
       let nsRange = textView.selectedRange
 
       if let selectedRange = textView.selectedTextRange {
@@ -141,10 +146,8 @@ struct AttributedTextEditor: UIViewRepresentable {
         )
 
         let caretRect = textView.caretRect(for: selectedRange.start)
-        DispatchQueue.main.async {
-          self.selectedRange.wrappedValue = nsRange
-          self.cursorY.wrappedValue = caretRect.maxY
-        }
+        self.selectedRange.wrappedValue = nsRange
+        self.cursorY.wrappedValue = caretRect.maxY
 
         checkForMention(in: textView)
 
@@ -153,20 +156,17 @@ struct AttributedTextEditor: UIViewRepresentable {
           at: position
         )
 
-        DispatchQueue.main.async {
-          textView.typingAttributes = [
-            .font: UIFont.preferredFont(forTextStyle: .body),
-            .foregroundColor: isInMention ? UIColor.systemBlue : UIColor.label,
-          ]
-        }
+        textView.typingAttributes = [
+          .font: UIFont.preferredFont(forTextStyle: .body),
+          .foregroundColor: isInMention ? UIColor.systemBlue : UIColor.label,
+        ]
       }
     }
 
     private func checkForMention(in textView: UITextView) {
+      guard !isUpdating else { return }
       guard let selectedRange = textView.selectedTextRange else {
-        DispatchQueue.main.async {
-          self.currentMention.wrappedValue = nil
-        }
+        self.currentMention.wrappedValue = nil
         return
       }
 
@@ -178,9 +178,7 @@ struct AttributedTextEditor: UIViewRepresentable {
       let text = textView.text ?? ""
 
       guard cursorPosition > 0, cursorPosition <= text.count else {
-        DispatchQueue.main.async {
-          self.currentMention.wrappedValue = nil
-        }
+        self.currentMention.wrappedValue = nil
         return
       }
 
@@ -194,9 +192,7 @@ struct AttributedTextEditor: UIViewRepresentable {
       if cursorIndex > text.startIndex {
         let beforeCursor = text.index(before: cursorIndex)
         if text[beforeCursor] == " " || text[beforeCursor] == "\n" {
-          DispatchQueue.main.async {
-            self.currentMention.wrappedValue = nil
-          }
+          self.currentMention.wrappedValue = nil
           return
         }
       }
@@ -213,13 +209,9 @@ struct AttributedTextEditor: UIViewRepresentable {
 
       if currentWord.hasPrefix("@"), currentWord.count <= 25 {
         let mentionPrefix = String(currentWord.dropFirst())
-        DispatchQueue.main.async {
-          self.currentMention.wrappedValue = mentionPrefix
-        }
+        self.currentMention.wrappedValue = mentionPrefix
       } else {
-        DispatchQueue.main.async {
-          self.currentMention.wrappedValue = nil
-        }
+        self.currentMention.wrappedValue = nil
       }
     }
 

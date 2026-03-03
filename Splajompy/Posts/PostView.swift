@@ -120,11 +120,11 @@ struct PostView: View {
     HStack {
       Image(systemName: "pin.fill")
         .font(.callout)
-        .foregroundColor(.secondary)
+        .foregroundStyle(.secondary)
       Text("Pinned")
         .font(.callout)
         .fontWeight(.semibold)
-        .foregroundColor(.secondary)
+        .foregroundStyle(.secondary)
       Spacer()
     }
     .transition(.opacity)
@@ -176,7 +176,7 @@ struct PostView: View {
             .formatted(.relative(presentation: .named))
         )
         .font(.caption)
-        .foregroundColor(.gray)
+        .foregroundStyle(.gray)
       }
 
       Spacer()

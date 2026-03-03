@@ -15,7 +15,7 @@ struct AccountSettingsView: View {
         if let user = authManager.getCurrentUser() {
           HStack {
             Text("Email")
-              .foregroundColor(.secondary)
+              .foregroundStyle(.secondary)
             Spacer()
             Text(user.email)
               .fontWeight(.medium)
@@ -23,7 +23,7 @@ struct AccountSettingsView: View {
 
           HStack {
             Text("Joined")
-              .foregroundColor(.secondary)
+              .foregroundStyle(.secondary)
             Spacer()
             Text(formatDate(user.createdAt))
               .fontWeight(.medium)
@@ -51,7 +51,7 @@ struct AccountSettingsView: View {
       Section("Danger Zone") {
         Button(action: { isShowingDeleteAccountConfirm = true }) {
           Label("Delete Account", systemImage: "trash")
-            .foregroundColor(.red)
+            .foregroundStyle(.red)
         }
         .confirmationDialog(
           "Are you sure you want to delete your account?",
@@ -80,7 +80,7 @@ struct AccountSettingsView: View {
           VStack(spacing: 16) {
             Image(systemName: "exclamationmark.triangle.fill")
               .font(.system(size: 50))
-              .foregroundColor(.red)
+              .foregroundStyle(.red)
 
             Text("Delete Account")
               .font(.title2)
@@ -91,7 +91,7 @@ struct AccountSettingsView: View {
             )
             .font(.body)
             .multilineTextAlignment(.center)
-            .foregroundColor(.secondary)
+            .foregroundStyle(.secondary)
           }
 
           VStack(alignment: .leading, spacing: 8) {
@@ -110,7 +110,7 @@ struct AccountSettingsView: View {
             if !deleteAccountError.isEmpty {
               Text(deleteAccountError)
                 .font(.caption)
-                .foregroundColor(.red)
+                .foregroundStyle(.red)
             }
           }
 
@@ -140,7 +140,7 @@ struct AccountSettingsView: View {
               .frame(maxWidth: .infinity)
               .padding()
               .background(Color.red)
-              .foregroundColor(.white)
+              .foregroundStyle(.white)
               .containerShape(RoundedRectangle(cornerRadius: 10))
             }
             .disabled(deleteAccountPassword.isEmpty || authManager.isLoading)

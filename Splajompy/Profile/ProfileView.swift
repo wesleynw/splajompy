@@ -81,6 +81,17 @@ struct ProfileView: View {
       ProfileEditorView(viewModel: viewModel)
         .interactiveDismissDisabled()
     }
+    .alert(
+      "Update Failed",
+      isPresented: Binding(
+        get: { viewModel.updateError != nil },
+        set: { if !$0 { viewModel.updateError = nil } }
+      )
+    ) {
+      Button("OK", role: .cancel) { viewModel.updateError = nil }
+    } message: {
+      Text(viewModel.updateError ?? "")
+    }
     #if os(iOS)
       .navigationBarTitleDisplayMode(.inline)
       .toolbarRole(.browser)
@@ -351,10 +362,10 @@ struct ProfileView: View {
         HStack(spacing: 6) {
           Image(systemName: "speaker.slash.fill")
             .font(.system(size: 14))
-            .foregroundColor(.secondary)
+            .foregroundStyle(.secondary)
           Text("You have muted this person")
             .font(.subheadline)
-            .foregroundColor(.secondary)
+            .foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 8)

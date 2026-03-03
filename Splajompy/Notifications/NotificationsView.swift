@@ -136,13 +136,17 @@ struct NotificationsView: View {
               viewModel.markAllNotificationsAsRead()
             }
             .font(.caption)
-            .foregroundColor(.blue)
+            .foregroundStyle(.blue)
             .padding(5)
           }
         }
       }
 
       if !viewModel.hasMoreUnreadToLoad {
+        let lastSectionWithNotifications = NotificationDateSection.allCases
+          .reversed()
+          .first { sections[$0]?.isEmpty == false }
+
         ForEach(NotificationDateSection.allCases, id: \.self) { section in
           if let notifications = sections[section], !notifications.isEmpty {
             Section(header: Text(section.rawValue)) {
@@ -156,19 +160,6 @@ struct NotificationsView: View {
                   .frame(maxWidth: .infinity)
                 #endif
                 .onAppear {
-                  var lastSectionWithNotifications: NotificationDateSection? =
-                    nil
-                  for sectionCase in NotificationDateSection.allCases
-                    .reversed()
-                  {
-                    if let sectionNotifications = sections[sectionCase],
-                      !sectionNotifications.isEmpty
-                    {
-                      lastSectionWithNotifications = sectionCase
-                      break
-                    }
-                  }
-
                   if section == lastSectionWithNotifications
                     && notification.notificationId
                       == notifications.last?.notificationId

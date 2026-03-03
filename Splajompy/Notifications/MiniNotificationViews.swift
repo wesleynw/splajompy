@@ -21,13 +21,13 @@ struct MiniNotificationView: View {
       Text(processedText)
         .font(.callout)
         .lineLimit(3)
-        .foregroundColor(.secondary)
+        .foregroundStyle(.secondary)
         .tint(.secondary)
         .frame(maxWidth: .infinity, alignment: .leading)
     }
     .padding(8)
     .background(Color.gray.opacity(0.1))
-    .cornerRadius(8)
+    .clipShape(.rect(cornerRadius: 8))
     .frame(maxWidth: .infinity)
   }
 }

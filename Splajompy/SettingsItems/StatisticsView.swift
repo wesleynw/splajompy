@@ -7,11 +7,11 @@ struct StatRow: View {
   var body: some View {
     HStack {
       Text(label)
-        .foregroundColor(.primary)
+        .foregroundStyle(.primary)
       Spacer()
       Text("\(value)")
         .fontWeight(.semibold)
-        .foregroundColor(.secondary)
+        .foregroundStyle(.secondary)
     }
   }
 }
