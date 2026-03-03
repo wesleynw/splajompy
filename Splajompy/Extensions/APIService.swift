@@ -127,17 +127,13 @@ public struct APIService {
         let container = try decoder.singleValueContainer()
         let dateString = try container.decode(String.self)
 
-        let formatter = ISO8601DateFormatter()
-
-        formatter.formatOptions = [
-          .withInternetDateTime, .withFractionalSeconds, .withTimeZone,
-        ]
-        if let date = formatter.date(from: dateString) {
+        if let date = try? Date(
+          dateString, strategy: Date.ISO8601FormatStyle(includingFractionalSeconds: true))
+        {
           return date
         }
 
-        formatter.formatOptions = [.withInternetDateTime, .withTimeZone]
-        if let date = formatter.date(from: dateString) {
+        if let date = try? Date(dateString, strategy: .iso8601) {
           return date
         }
 
@@ -155,9 +151,9 @@ public struct APIService {
           from: data
         )
         if decodedResponse.success {
-          if T.self == EmptyResponse.self {
+          if let emptyResponse = EmptyResponse() as? T {
             span.status = .ok
-            return .success(EmptyResponse() as! T)
+            return .success(emptyResponse)
           }
 
           guard let responseData = decodedResponse.data else {

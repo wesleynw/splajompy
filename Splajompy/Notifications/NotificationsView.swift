@@ -1,12 +1,9 @@
-import PostHog
 import SwiftUI
 
 struct NotificationsView: View {
   @State private var viewModel: ViewModel
   @Environment(AuthManager.self) private var authManager
   @State private var refreshId = UUID()
-  @State private var scrollOffset = CGFloat.zero
-
   init(viewModel: ViewModel = ViewModel()) {
     self._viewModel = State(wrappedValue: viewModel)
   }
@@ -71,13 +68,6 @@ struct NotificationsView: View {
         }
       }
     #endif
-    .modify {
-      if #available(iOS 26, *),
-        PostHogSDK.shared.isFeatureEnabled("toolbar-scroll-effect")
-      {
-        $0.scrollFadeBackground(scrollOffset: scrollOffset)
-      }
-    }
   }
 
   private var noNotificationsView: some View {
@@ -146,13 +136,17 @@ struct NotificationsView: View {
               viewModel.markAllNotificationsAsRead()
             }
             .font(.caption)
-            .foregroundColor(.blue)
+            .foregroundStyle(.blue)
             .padding(5)
           }
         }
       }
 
       if !viewModel.hasMoreUnreadToLoad {
+        let lastSectionWithNotifications = NotificationDateSection.allCases
+          .reversed()
+          .first { sections[$0]?.isEmpty == false }
+
         ForEach(NotificationDateSection.allCases, id: \.self) { section in
           if let notifications = sections[section], !notifications.isEmpty {
             Section(header: Text(section.rawValue)) {
@@ -166,19 +160,6 @@ struct NotificationsView: View {
                   .frame(maxWidth: .infinity)
                 #endif
                 .onAppear {
-                  var lastSectionWithNotifications: NotificationDateSection? =
-                    nil
-                  for sectionCase in NotificationDateSection.allCases
-                    .reversed()
-                  {
-                    if let sectionNotifications = sections[sectionCase],
-                      !sectionNotifications.isEmpty
-                    {
-                      lastSectionWithNotifications = sectionCase
-                      break
-                    }
-                  }
-
                   if section == lastSectionWithNotifications
                     && notification.notificationId
                       == notifications.last?.notificationId
@@ -212,13 +193,6 @@ struct NotificationsView: View {
     .refreshable {
       await viewModel.refreshNotifications()
       refreshId = UUID()
-    }
-    .modify {
-      if #available(iOS 26, *),
-        PostHogSDK.shared.isFeatureEnabled("toolbar-scroll-effect")
-      {
-        $0.scrollFadeEffect(scrollOffset: $scrollOffset)
-      }
     }
   }
 }

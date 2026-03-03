@@ -10,7 +10,6 @@ struct ProfileView: View {
   @State private var isShowingProfileEditor: Bool = false
   @State private var activeAlert: ProfileAlertEnum?
   @State private var viewModel: ViewModel
-  @State private var scrollOffset = CGFloat.zero
   @Environment(AuthManager.self) private var authManager
   var postManager: PostStore
 
@@ -74,13 +73,26 @@ struct ProfileView: View {
     }
     .postHogScreenView()
     .onAppear {
-      Task {
-        await viewModel.loadProfileAndPosts()
+      if case .idle = viewModel.profileState {
+        Task {
+          await viewModel.loadProfileAndPosts()
+        }
       }
     }
     .sheet(isPresented: $isShowingProfileEditor) {
       ProfileEditorView(viewModel: viewModel)
         .interactiveDismissDisabled()
+    }
+    .alert(
+      "Update Failed",
+      isPresented: Binding(
+        get: { viewModel.updateError != nil },
+        set: { if !$0 { viewModel.updateError = nil } }
+      )
+    ) {
+      Button("OK", role: .cancel) { viewModel.updateError = nil }
+    } message: {
+      Text(viewModel.updateError ?? "")
     }
     #if os(iOS)
       .navigationBarTitleDisplayMode(.inline)
@@ -154,13 +166,6 @@ struct ProfileView: View {
             )
           }
         }
-      }
-    }
-    .modify {
-      if #available(iOS 26, *),
-        PostHogSDK.shared.isFeatureEnabled("toolbar-scroll-effect")
-      {
-        $0.scrollFadeBackground(scrollOffset: scrollOffset)
       }
     }
   }
@@ -299,13 +304,6 @@ struct ProfileView: View {
       .refreshable {
         await viewModel.loadProfileAndPosts()
       }
-      .modify {
-        if #available(iOS 26, *),
-          PostHogSDK.shared.isFeatureEnabled("toolbar-scroll-effect")
-        {
-          $0.scrollFadeEffect(scrollOffset: $scrollOffset)
-        }
-      }
     }
   }
 
@@ -366,10 +364,10 @@ struct ProfileView: View {
         HStack(spacing: 6) {
           Image(systemName: "speaker.slash.fill")
             .font(.system(size: 14))
-            .foregroundColor(.secondary)
+            .foregroundStyle(.secondary)
           Text("You have muted this person")
             .font(.subheadline)
-            .foregroundColor(.secondary)
+            .foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 8)

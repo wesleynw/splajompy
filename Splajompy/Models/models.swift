@@ -114,12 +114,16 @@ struct Post: Decodable {
       facets: self.facets ?? []
     )
 
-    return try! AttributedString(
-      markdown: markdown,
-      options: AttributedString.MarkdownParsingOptions(
-        interpretedSyntax: .inlineOnlyPreservingWhitespace
+    do {
+      return try AttributedString(
+        markdown: markdown,
+        options: AttributedString.MarkdownParsingOptions(
+          interpretedSyntax: .inlineOnlyPreservingWhitespace
+        )
       )
-    )
+    } catch {
+      return AttributedString(text)
+    }
   }
 }
 

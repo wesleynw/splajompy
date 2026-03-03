@@ -1,12 +1,9 @@
-import PostHog
 import SwiftUI
 
 struct SearchView: View {
   @State private var viewModel: ViewModel = ViewModel()
   @FocusState private var isSearchBarFocused: Bool
   @State private var searchText = ""
-  @State private var scrollOffset = CGFloat.zero
-
   var onUserSelected: ((PublicUser) -> Void)?
 
   var body: some View {
@@ -95,13 +92,6 @@ struct SearchView: View {
         viewModel.clearResults()
       }
     }
-    .modify {
-      if #available(iOS 26, *),
-        PostHogSDK.shared.isFeatureEnabled("toolbar-scroll-effect")
-      {
-        $0.scrollFadeBackground(scrollOffset: scrollOffset)
-      }
-    }
     //    .onTapGesture {
     //      isSearchBarFocused = false
     //    }
@@ -111,7 +101,7 @@ struct SearchView: View {
     VStack(spacing: 16) {
       Image(systemName: "magnifyingglass")
         .font(.system(size: 48))
-        .foregroundColor(.gray)
+        .foregroundStyle(.gray)
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity)
     .contentShape(Rectangle())
@@ -121,7 +111,7 @@ struct SearchView: View {
     VStack(spacing: 16) {
       Image(systemName: "person.slash")
         .font(.system(size: 48))
-        .foregroundColor(.gray)
+        .foregroundStyle(.gray)
       Text("No Splajompians found")
         .font(.title3)
         .fontWeight(.bold)
@@ -164,12 +154,5 @@ struct SearchView: View {
       }
     }
     .listStyle(.plain)
-    .modify {
-      if #available(iOS 26, *),
-        PostHogSDK.shared.isFeatureEnabled("toolbar-scroll-effect")
-      {
-        $0.scrollFadeEffect(scrollOffset: $scrollOffset)
-      }
-    }
   }
 }

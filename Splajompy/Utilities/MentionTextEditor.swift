@@ -137,7 +137,7 @@ struct MentionTextEditor: View {
           HStack {
             Text("No users found")
               .fontWeight(.medium)
-              .foregroundColor(.primary)
+              .foregroundStyle(.primary)
           }
           .padding(.horizontal, 12)
           #if os(macOS)
@@ -157,7 +157,7 @@ struct MentionTextEditor: View {
             HStack {
               Text("@\(user.username)")
                 .fontWeight(.medium)
-                .foregroundColor(.primary)
+                .foregroundStyle(.primary)
             }
             .padding(.horizontal, 12)
             #if os(macOS)

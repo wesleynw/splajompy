@@ -233,7 +233,7 @@ struct UserRowView: View {
     .frame(width: 70)
     .padding(.vertical, 6)
     .background(Color.red.opacity(0.15).gradient)
-    .foregroundColor(.red)
+    .foregroundStyle(.red)
     .clipShape(RoundedRectangle(cornerRadius: 6))
     .buttonStyle(.plain)
     .disabled(isLoading)
@@ -262,7 +262,7 @@ struct UserRowView: View {
     .background(
       user.isFollowing ? Color.gray.opacity(0.2).gradient : Color.blue.gradient
     )
-    .foregroundColor(user.isFollowing ? .blue : .white)
+    .foregroundStyle(user.isFollowing ? .blue : .white)
     .animation(.spring(duration: 0.15, bounce: 0.3), value: user.isFollowing)
     .clipShape(RoundedRectangle(cornerRadius: 6))
     .buttonStyle(.plain)

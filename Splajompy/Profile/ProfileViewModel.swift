@@ -26,6 +26,7 @@ extension ProfileView {
 
     var profileState: ProfileState = .idle
     var postsState: PostsState = .idle
+    var updateError: String?
     var isLoading: Bool = false
     var isLoadingFollowButton: Bool = false
     var isLoadingBlockButton: Bool = false
@@ -207,7 +208,7 @@ extension ProfileView {
             profileState = .loaded(profile)
           }
         case .error(let error):
-          profileState = .failed(error.localizedDescription)
+          updateError = error.localizedDescription
         }
       }
     }

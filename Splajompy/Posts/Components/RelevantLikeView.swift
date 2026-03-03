@@ -18,7 +18,7 @@ struct RelevantLikeView: View {
     HStack(spacing: 4) {
       Text("Liked by")
         .font(.footnote)
-        .foregroundColor(.secondary)
+        .foregroundStyle(.secondary)
 
       ForEach(Array(relevantLikes.enumerated()), id: \.element.userId) {
         index,
@@ -33,7 +33,7 @@ struct RelevantLikeView: View {
             Text("@\(like.username)")
               .font(.footnote)
               .fontWeight(.bold)
-              .foregroundColor(.blue)
+              .foregroundStyle(.blue)
               .lineLimit(1)
           }
           .buttonStyle(.plain)
@@ -41,7 +41,7 @@ struct RelevantLikeView: View {
           if index < relevantLikes.count - 1 || hasOtherLikes {
             Text(",")
               .font(.footnote)
-              .foregroundColor(.secondary)
+              .foregroundStyle(.secondary)
           }
         }
       }
@@ -49,7 +49,7 @@ struct RelevantLikeView: View {
       if hasOtherLikes {
         Text("and others")
           .font(.footnote)
-          .foregroundColor(.secondary)
+          .foregroundStyle(.secondary)
       }
     }
     .transition(.opacity)
@@ -59,7 +59,7 @@ struct RelevantLikeView: View {
     HStack(spacing: 4) {
       Text("Liked by others")
         .font(.footnote)
-        .foregroundColor(.secondary)
+        .foregroundStyle(.secondary)
     }
     .transition(.opacity)
   }

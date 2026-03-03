@@ -9,7 +9,7 @@ struct PollPreviewView: View {
     Group {
       HStack {
         Image(systemName: "chart.bar.fill")
-          .foregroundColor(.blue)
+          .foregroundStyle(.blue)
           .font(.body)
 
         VStack(alignment: .leading, spacing: 2) {
@@ -22,12 +22,12 @@ struct PollPreviewView: View {
             Text("Poll")
               .font(.body)
               .fontWeight(.semibold)
-              .foregroundColor(.secondary)
+              .foregroundStyle(.secondary)
           }
 
           Text("\(poll.options.count) options")
             .font(.caption)
-            .foregroundColor(.secondary)
+            .foregroundStyle(.secondary)
         }
 
         Spacer()
@@ -37,7 +37,7 @@ struct PollPreviewView: View {
         }
         .font(.callout)
         .fontWeight(.medium)
-        .foregroundColor(.blue)
+        .foregroundStyle(.blue)
         .padding(.horizontal, 8)
         .padding(.vertical, 4)
         .background(
@@ -49,7 +49,7 @@ struct PollPreviewView: View {
           onRemove()
         } label: {
           Image(systemName: "xmark.circle.fill")
-            .foregroundColor(.red)
+            .foregroundStyle(.red)
             .font(.title3)
         }
         .padding(.leading, 4)

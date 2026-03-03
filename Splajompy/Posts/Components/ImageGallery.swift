@@ -145,30 +145,32 @@ struct ImageGallery: View {
               bottomTrailing: 0,
               topTrailing: 0
             )
-            ZStack {
-              imageCell(
-                index: 3,
-                width: (geometry.size.width - 4) / 2,
-                height: (geometry.size.height - 4) / 2,
-                topLeading: 0,
-                bottomLeading: 0,
-                topTrailing: 0
-              )
-              if images.count > 4 {
-                Color.black.opacity(0.6)
-                  .clipShape(
-                    .rect(
-                      bottomTrailingRadius: 6
+            Button {
+              selectedImageIndex = 3
+            } label: {
+              ZStack {
+                imageCell(
+                  index: 3,
+                  width: (geometry.size.width - 4) / 2,
+                  height: (geometry.size.height - 4) / 2,
+                  topLeading: 0,
+                  bottomLeading: 0,
+                  topTrailing: 0
+                )
+                if images.count > 4 {
+                  Color.black.opacity(0.6)
+                    .clipShape(
+                      .rect(
+                        bottomTrailingRadius: 6
+                      )
                     )
-                  )
-                Text("+\(images.count - 4)")
-                  .font(.system(size: 22, weight: .bold))
-                  .foregroundColor(.white)
+                  Text("+\(images.count - 4)")
+                    .font(.system(size: 22, weight: .bold))
+                    .foregroundStyle(.white)
+                }
               }
             }
-            .onTapGesture {
-              selectedImageIndex = 3
-            }
+            .buttonStyle(.plain)
           }
         }
       }
@@ -187,88 +189,82 @@ struct ImageGallery: View {
   ) -> some View {
     Group {
       if index < images.count, let url = URL(string: images[index].imageBlobUrl) {
-        LazyImage(url: url) {
-          state in
-          if let image = state.image {
-            image.resizable()
-          } else {
-            ProgressView()
-              .frame(maxWidth: .infinity, maxHeight: .infinity)
-              #if os(macOS)
-                .controlSize(.small)
-              #endif
-          }
-        }
-        .processors([.resize(width: screenWidth)])
-        .aspectRatio(contentMode: .fill)
-        .frame(width: width, height: height)
-        .clipShape(
-          .rect(
-            topLeadingRadius: topLeading,
-            bottomLeadingRadius: bottomLeading,
-            bottomTrailingRadius: bottomTrailing,
-            topTrailingRadius: topTrailing
-          )
-        )
-        .contentShape(.rect)
-        .modifier(
-          TransitionSourceModifier(id: "image-\(index)", namespace: animation)
-        )
-        .onTapGesture {
+        Button {
           selectedImageIndex = index
+        } label: {
+          LazyImage(url: url) {
+            state in
+            if let image = state.image {
+              image.resizable()
+            } else {
+              ProgressView()
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                #if os(macOS)
+                  .controlSize(.small)
+                #endif
+            }
+          }
+          .processors([.resize(width: width)])
+          .aspectRatio(contentMode: .fill)
+          .frame(width: width, height: height)
+          .clipShape(
+            .rect(
+              topLeadingRadius: topLeading,
+              bottomLeadingRadius: bottomLeading,
+              bottomTrailingRadius: bottomTrailing,
+              topTrailingRadius: topTrailing
+            )
+          )
+          .contentShape(.rect)
+          .modifier(
+            TransitionSourceModifier(id: "image-\(index)", namespace: animation)
+          )
         }
+        .buttonStyle(.plain)
       }
     }
   }
 
-  private var screenWidth: CGFloat {
-    #if os(iOS)
-      return UIScreen.main.bounds.width
-    #else
-      return min(NSScreen.main?.frame.width ?? 400, 600)
-    #endif
-  }
-
+  @ViewBuilder
   private func singleImageCell() -> some View {
-    Group {
-      if let url = URL(string: images[0].imageBlobUrl) {
-        let image = images[0]
-        let aspectRatio = CGFloat(image.width) / CGFloat(image.height)
-        let isVeryWide = aspectRatio > 2.5
-        let isVeryTall = aspectRatio < 0.4
-        let displayWidth = screenWidth - 32
-        let expectedHeight = displayWidth / aspectRatio
-        let frameHeight: CGFloat? = isVeryTall ? 500 : isVeryWide ? 200 : nil
+    let image = images[0]
+    let aspectRatio = CGFloat(image.width) / CGFloat(image.height)
+    let isVeryWide = aspectRatio > 2.5
+    let isVeryTall = aspectRatio < 0.4
 
-        LazyImage(url: url) {
-          state in
-          if let image = state.image {
-            image.resizable()
-          } else {
-            ProgressView()
-              #if os(macOS)
-                .controlSize(.small)
-              #endif
-              .frame(
-                maxWidth: .infinity,
-                maxHeight: frameHeight ?? expectedHeight
-              )
-          }
-        }
-        .processors([.resize(width: screenWidth)])
-        .aspectRatio(
-          aspectRatio,
-          contentMode: (isVeryWide || isVeryTall) ? .fill : .fit
-        )
-        .frame(height: frameHeight)
-        .frame(maxWidth: .infinity)
-        .clipShape(RoundedRectangle(cornerRadius: 8))
-        .contentShape(.rect)
-        .modifier(TransitionSourceModifier(id: "image-0", namespace: animation))
-        .onTapGesture {
+    let geo = GeometryReader { geometry in
+      if let url = URL(string: image.imageBlobUrl) {
+        Button {
           selectedImageIndex = 0
+        } label: {
+          LazyImage(url: url) { state in
+            if let img = state.image {
+              img.resizable()
+            } else {
+              ProgressView()
+                #if os(macOS)
+                  .controlSize(.small)
+                #endif
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
+          }
+          .processors([.resize(width: geometry.size.width)])
+          .aspectRatio(contentMode: .fill)
+          .frame(width: geometry.size.width, height: geometry.size.height)
+          .clipShape(RoundedRectangle(cornerRadius: 8))
+          .contentShape(.rect)
+          .modifier(TransitionSourceModifier(id: "image-0", namespace: animation))
         }
+        .buttonStyle(.plain)
       }
+    }
+
+    if isVeryWide {
+      geo.frame(height: 200)
+    } else if isVeryTall {
+      geo.frame(height: 500)
+    } else {
+      geo.aspectRatio(aspectRatio, contentMode: .fit)
     }
   }
 }

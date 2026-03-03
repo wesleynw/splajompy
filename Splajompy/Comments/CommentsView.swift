@@ -121,7 +121,7 @@ struct CommentsView: View {
             }
             Text("No comments")
               .font(.title3)
-              .foregroundColor(.gray)
+              .foregroundStyle(.gray)
             Spacer()
           }
           .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -254,7 +254,7 @@ struct CommentRow: View {
               .formatted(.relative(presentation: .named))
           )
           .font(.caption)
-          .foregroundColor(.gray)
+          .foregroundStyle(.gray)
         }
 
         Spacer()
@@ -269,7 +269,7 @@ struct CommentRow: View {
                     action: { showDeleteConfirmation = true }
                   ) {
                     Label("Delete", systemImage: "trash")
-                      .foregroundColor(.red)
+                      .foregroundStyle(.red)
                   }
                 },
                 label: {

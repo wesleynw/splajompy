@@ -194,7 +194,8 @@ struct AttributedTextEditor: NSViewRepresentable {
         )
 
         self.selectedRange.wrappedValue = nsRange
-        self.cursorY.wrappedValue = boundingRect.origin.y
+        self.cursorY.wrappedValue =
+          boundingRect.maxY + textView.textContainerInset.height
         self.checkForMention(in: textView)
       } else {
         self.selectedRange.wrappedValue = nsRange
