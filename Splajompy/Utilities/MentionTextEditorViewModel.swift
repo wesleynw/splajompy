@@ -42,29 +42,20 @@ extension MentionTextEditor {
 
         guard !Task.isCancelled else { return }
 
-        await MainActor.run {
-          self.fetchTask?.cancel()
-        }
-
-        let fetchTask = Task {
+        self.fetchTask?.cancel()
+        self.fetchTask = Task {
           let response = await service.getUserFromUsernamePrefix(prefix: prefix)
 
           guard !Task.isCancelled else { return }
 
-          await MainActor.run {
-            switch response {
-            case .success(let users):
-              self.mentionSuggestions = users
-              self.isLoading = false
-            case .error:
-              self.mentionSuggestions = []
-              self.isLoading = false
-            }
+          switch response {
+          case .success(let users):
+            self.mentionSuggestions = users
+            self.isLoading = false
+          case .error:
+            self.mentionSuggestions = []
+            self.isLoading = false
           }
-        }
-
-        await MainActor.run {
-          self.fetchTask = fetchTask
         }
       }
     }

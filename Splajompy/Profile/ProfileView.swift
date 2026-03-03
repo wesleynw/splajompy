@@ -81,6 +81,17 @@ struct ProfileView: View {
       ProfileEditorView(viewModel: viewModel)
         .interactiveDismissDisabled()
     }
+    .alert(
+      "Update Failed",
+      isPresented: Binding(
+        get: { viewModel.updateError != nil },
+        set: { if !$0 { viewModel.updateError = nil } }
+      )
+    ) {
+      Button("OK", role: .cancel) { viewModel.updateError = nil }
+    } message: {
+      Text(viewModel.updateError ?? "")
+    }
     #if os(iOS)
       .navigationBarTitleDisplayMode(.inline)
       .toolbarRole(.browser)
