@@ -9,25 +9,25 @@ struct RelationshipIndicator: View {
         HStack {
           Image(systemName: "person.3.fill")
             .font(.system(size: 16))
-            .foregroundColor(.purple)
+            .foregroundStyle(.purple)
 
           VStack(alignment: .leading, spacing: 4) {
             Text(mutualFriendsTitle)
               .font(.subheadline)
               .fontWeight(.medium)
-              .foregroundColor(.primary)
+              .foregroundStyle(.primary)
               .lineLimit(2)
 
             Text(formatMutualFriends(user.mutuals))
               .font(.footnote)
-              .foregroundColor(.secondary)
+              .foregroundStyle(.secondary)
           }
 
           Spacer()
 
           Image(systemName: "chevron.right")
             .font(.system(size: 14, weight: .semibold))
-            .foregroundColor(.secondary.opacity(0.5))
+            .foregroundStyle(.secondary.opacity(0.5))
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding()

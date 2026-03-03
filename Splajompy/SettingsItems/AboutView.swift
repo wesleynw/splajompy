@@ -35,7 +35,7 @@ struct AboutView: View {
             Text("\(appVersion) (Build \(buildNumber))")
               .font(.footnote)
               .fontWeight(.bold)
-              .foregroundColor(.secondary)
+              .foregroundStyle(.secondary)
           }
         }
 
@@ -67,7 +67,7 @@ struct AboutView: View {
           }
         }
 
-        if PostHogSDK.shared.isFeatureEnabled("statistics-page") || true {
+        if PostHogSDK.shared.isFeatureEnabled("statistics-page") {
           Section {
             NavigationLink(destination: StatisticsView()) {
               Label("Statistics", systemImage: "chart.xyaxis.line")

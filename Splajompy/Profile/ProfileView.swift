@@ -351,10 +351,10 @@ struct ProfileView: View {
         HStack(spacing: 6) {
           Image(systemName: "speaker.slash.fill")
             .font(.system(size: 14))
-            .foregroundColor(.secondary)
+            .foregroundStyle(.secondary)
           Text("You have muted this person")
             .font(.subheadline)
-            .foregroundColor(.secondary)
+            .foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 8)

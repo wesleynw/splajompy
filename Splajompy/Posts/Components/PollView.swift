@@ -81,7 +81,7 @@ struct PollView: View {
           if showResults {
             Text("\(percentage)%")
               .font(.callout)
-              .foregroundColor(.secondary)
+              .foregroundStyle(.secondary)
           }
         }
         .padding(12)

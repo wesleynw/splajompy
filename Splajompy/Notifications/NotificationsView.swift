@@ -136,7 +136,7 @@ struct NotificationsView: View {
               viewModel.markAllNotificationsAsRead()
             }
             .font(.caption)
-            .foregroundColor(.blue)
+            .foregroundStyle(.blue)
             .padding(5)
           }
         }

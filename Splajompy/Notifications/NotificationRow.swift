@@ -47,7 +47,7 @@ struct NotificationRow: View {
                 )
               )
               .font(.caption)
-              .foregroundColor(.secondary)
+              .foregroundStyle(.secondary)
             }
           }
 

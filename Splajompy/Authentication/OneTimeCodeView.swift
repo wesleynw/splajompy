@@ -14,7 +14,7 @@ struct OneTimeCodeView: View {
       Text("You should receive a verification email momentarily.")
         .font(.body)
         .fontWeight(.bold)
-        .foregroundColor(.secondary)
+        .foregroundStyle(.secondary)
         .padding(.bottom, 20)
 
       TextField("Code", text: $oneTimeCode)

@@ -210,10 +210,10 @@ struct NewPostView: View {
                   VStack {
                     Image(systemName: "arrow.clockwise.circle.fill")
                       .font(.title)
-                      .foregroundColor(.blue)
+                      .foregroundStyle(.blue)
                     Text("Retry")
                       .font(.caption2)
-                      .foregroundColor(.blue)
+                      .foregroundStyle(.blue)
                   }
                 }
                 .buttonStyle(.plain)
@@ -242,7 +242,7 @@ struct NewPostView: View {
 
                 Image(systemName: "xmark")
                   .font(.system(size: 10, weight: .bold))
-                  .foregroundColor(.gray)
+                  .foregroundStyle(.gray)
               }
             }
             .buttonStyle(.plain)

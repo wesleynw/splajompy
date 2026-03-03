@@ -38,7 +38,7 @@ struct PostActionMenu<MenuLabel: View>: View {
             action: { showDeleteConfirmation = true }
           ) {
             Label("Delete", systemImage: "trash")
-              .foregroundColor(.red)
+              .foregroundStyle(.red)
           }
         } else {
           Button(
@@ -62,7 +62,7 @@ struct PostActionMenu<MenuLabel: View>: View {
               }
             } else {
               Label("Report", systemImage: "exclamationmark.triangle")
-                .foregroundColor(.red)
+                .foregroundStyle(.red)
             }
           }
           .disabled(isReporting)
