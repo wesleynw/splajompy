@@ -1,3 +1,5 @@
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+
 CREATE TABLE users (
     user_id SERIAL PRIMARY KEY,
     email character varying(255) NOT NULL,

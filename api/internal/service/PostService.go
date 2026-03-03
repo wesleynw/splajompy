@@ -41,10 +41,10 @@ func NewPostService(postRepository repositories.PostRepository, userRepository r
 }
 
 // NewPost preprocesses a new post and stores it in the database.
-func (s *PostService) NewPost(ctx context.Context, currentUser models.PublicUser, text string, imageKeymap map[int]models.ImageData, poll *db.Poll, visibilityEnum *int) error {
+func (s *PostService) NewPost(ctx context.Context, currentUser models.PublicUser, text string, imageKeymap map[int]models.ImageData, poll *db.Poll, visibilityEnum *int) (*models.Post, error) {
 	facets, err := repositories.GenerateFacets(ctx, s.userRepository, text)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	var attributes *db.Attributes
@@ -61,7 +61,7 @@ func (s *PostService) NewPost(ctx context.Context, currentUser models.PublicUser
 
 	post, err := s.postRepository.InsertPost(ctx, currentUser.UserID, text, facets, attributes, &visibilityType)
 	if err != nil {
-		return errors.New("unable to create post")
+		return nil, errors.New("unable to create post")
 	}
 	postId := post.PostID
 
@@ -77,17 +77,17 @@ func (s *PostService) NewPost(ctx context.Context, currentUser models.PublicUser
 
 		err := s.bucketRepository.CopyObject(ctx, imageData.S3Key, destinationKey)
 		if err != nil {
-			return errors.New("unable to create post")
+			return nil, errors.New("unable to create post")
 		}
 
 		err = s.bucketRepository.DeleteObject(ctx, imageData.S3Key)
 		if err != nil {
-			return errors.New("unable to create post")
+			return nil, errors.New("unable to create post")
 		}
 
 		_, err = s.postRepository.InsertImage(ctx, post.PostID, imageData.Height, imageData.Width, destinationKey, displayOrder)
 		if err != nil {
-			return errors.New("unable to create post")
+			return nil, errors.New("unable to create post")
 		}
 	}
 
@@ -103,16 +103,16 @@ func (s *PostService) NewPost(ctx context.Context, currentUser models.PublicUser
 		text := fmt.Sprintf("@%s mentioned you in a post.", currentUser.Username)
 		notificationFacets, err := repositories.GenerateFacets(ctx, s.userRepository, text)
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		err = s.notificationRepository.InsertNotification(ctx, userId, &postId, nil, &notificationFacets, text, models.NotificationTypeMention, nil)
 		if err != nil {
-			return errors.New("unable to create post")
+			return nil, errors.New("unable to create post")
 		}
 	}
 
-	return nil
+	return post, nil
 }
 
 func (s *PostService) NewPresignedStagingUrl(ctx context.Context, currentUser models.PublicUser, extension *string, folder *string) (string, string, error) {

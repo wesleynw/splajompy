@@ -20,6 +20,10 @@ WHERE NOT EXISTS (
     WHERE block.user_id = $1::int AND target_user_id = posts.user_id
 ) AND NOT EXISTS (
     SELECT 1
+    FROM block
+    WHERE block.user_id = posts.user_id AND target_user_id = $1::int
+) AND NOT EXISTS (
+    SELECT 1
     FROM mute
     WHERE mute.user_id = $1::int AND target_user_id = posts.user_id
 ) AND (
@@ -67,6 +71,12 @@ const getPostById = `-- name: GetPostById :one
 SELECT post_id, user_id, text, created_at, facets, attributes, visibilitytype
 FROM posts
 WHERE post_id = $1
+AND NOT EXISTS (
+    SELECT 1 FROM block WHERE block.user_id = posts.user_id AND block.target_user_id = $2
+)
+AND NOT EXISTS (
+    SELECT 1 FROM block WHERE block.user_id = $2 AND block.target_user_id = posts.user_id
+)
 AND (
     posts.visibilityType = 0 -- public
     OR posts.user_id = $2
@@ -81,12 +91,12 @@ AND (
 `
 
 type GetPostByIdParams struct {
-	PostID int `json:"postId"`
-	UserID int `json:"userId"`
+	PostID       int `json:"postId"`
+	TargetUserID int `json:"targetUserId"`
 }
 
 func (q *Queries) GetPostById(ctx context.Context, arg GetPostByIdParams) (Post, error) {
-	row := q.db.QueryRow(ctx, getPostById, arg.PostID, arg.UserID)
+	row := q.db.QueryRow(ctx, getPostById, arg.PostID, arg.TargetUserID)
 	var i Post
 	err := row.Scan(
 		&i.PostID,
@@ -111,6 +121,10 @@ WHERE (posts.user_id = $1 OR EXISTS (
     SELECT 1
     FROM block
     WHERE user_id = $1 AND target_user_id = posts.user_id
+) AND NOT EXISTS (
+    SELECT 1
+    FROM block
+    WHERE user_id = posts.user_id AND target_user_id = $1
 ) AND NOT EXISTS (
     SELECT 1
     FROM mute
@@ -160,6 +174,12 @@ const getPostIdsByUserIdCursor = `-- name: GetPostIdsByUserIdCursor :many
 SELECT post_id
 FROM posts
 WHERE user_id = $1::int AND ($2::timestamp IS NULL OR posts.created_at < $2::timestamp)
+AND NOT EXISTS (
+    SELECT 1 FROM block WHERE block.user_id = posts.user_id AND block.target_user_id = $3
+)
+AND NOT EXISTS (
+    SELECT 1 FROM block WHERE block.user_id = $3 AND block.target_user_id = posts.user_id
+)
 AND (
     posts.visibilityType = 0 -- public
     OR posts.user_id = $3
@@ -222,6 +242,7 @@ WITH user_relationships AS (
                  INNER JOIN follows f2 ON f1.following_id = f2.follower_id
                  WHERE f1.follower_id = $1 AND f2.following_id = posts.user_id))
     AND NOT EXISTS (SELECT 1 FROM block WHERE user_id = $1 AND target_user_id = posts.user_id)
+    AND NOT EXISTS (SELECT 1 FROM block WHERE user_id = posts.user_id AND target_user_id = $1)
     AND NOT EXISTS (SELECT 1 FROM mute WHERE user_id = $1 AND target_user_id = posts.user_id)
     AND (
         posts.visibilityType = 0 -- public

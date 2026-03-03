@@ -38,16 +38,9 @@ func setupNotificationService(t *testing.T) notificationTestEnv {
 	}
 }
 
-func insertTestUser(t *testing.T, userRepo repositories.UserRepository, username, email string) models.PublicUser {
-	t.Helper()
-	user, err := userRepo.CreateUser(t.Context(), username, email, "password123", "ref-"+username)
-	require.NoError(t, err)
-	return user
-}
-
 func TestGetNotificationsByUserId(t *testing.T) {
 	env := setupNotificationService(t)
-	user := insertTestUser(t, env.userRepo, "testUser", "test@example.com")
+	user := testutil.CreateTestUser(t, env.userRepo, "testUser")
 
 	notifications, err := env.svc.GetNotificationsByUserId(t.Context(), user, 0, 10)
 	require.NoError(t, err)
@@ -78,7 +71,7 @@ func TestGetNotificationsByUserId(t *testing.T) {
 	assert.NotNil(t, notifications)
 	assert.Len(t, notifications, 0)
 
-	anotherUser := insertTestUser(t, env.userRepo, "anotherUser", "another@example.com")
+	anotherUser := testutil.CreateTestUser(t, env.userRepo, "anotherUser")
 
 	notifications, err = env.svc.GetNotificationsByUserId(t.Context(), anotherUser, 0, 10)
 	require.NoError(t, err)
@@ -88,7 +81,7 @@ func TestGetNotificationsByUserId(t *testing.T) {
 
 func TestMarkNotificationAsReadById(t *testing.T) {
 	env := setupNotificationService(t)
-	user := insertTestUser(t, env.userRepo, "testUser", "test@example.com")
+	user := testutil.CreateTestUser(t, env.userRepo, "testUser")
 
 	require.NoError(t, env.notifRepo.InsertNotification(t.Context(), user.UserID, nil, nil, nil, "Test notification", models.NotificationTypeLike, nil))
 
@@ -113,7 +106,7 @@ func TestMarkNotificationAsReadById(t *testing.T) {
 
 func TestMarkAllNotificationsAsReadForUserId(t *testing.T) {
 	env := setupNotificationService(t)
-	user := insertTestUser(t, env.userRepo, "testUser", "test@example.com")
+	user := testutil.CreateTestUser(t, env.userRepo, "testUser")
 
 	require.NoError(t, env.notifRepo.InsertNotification(t.Context(), user.UserID, nil, nil, nil, "Test notification 1", models.NotificationTypeLike, nil))
 	require.NoError(t, env.notifRepo.InsertNotification(t.Context(), user.UserID, nil, nil, nil, "Test notification 2", models.NotificationTypeLike, nil))
@@ -142,7 +135,7 @@ func TestMarkAllNotificationsAsReadForUserId(t *testing.T) {
 
 func TestUserHasUnreadNotifications(t *testing.T) {
 	env := setupNotificationService(t)
-	user := insertTestUser(t, env.userRepo, "testUser", "test@example.com")
+	user := testutil.CreateTestUser(t, env.userRepo, "testUser")
 
 	hasUnread, err := env.svc.UserHasUnreadNotifications(t.Context(), user)
 	require.NoError(t, err)
@@ -173,8 +166,8 @@ func TestUserHasUnreadNotifications(t *testing.T) {
 func TestMultipleUsersNotifications(t *testing.T) {
 	env := setupNotificationService(t)
 
-	user1 := insertTestUser(t, env.userRepo, "user1", "user1@example.com")
-	user2 := insertTestUser(t, env.userRepo, "user2", "user2@example.com")
+	user1 := testutil.CreateTestUser(t, env.userRepo, "user1")
+	user2 := testutil.CreateTestUser(t, env.userRepo, "user2")
 
 	require.NoError(t, env.notifRepo.InsertNotification(t.Context(), user1.UserID, nil, nil, nil, "User 1 notification 1", models.NotificationTypeLike, nil))
 	require.NoError(t, env.notifRepo.InsertNotification(t.Context(), user1.UserID, nil, nil, nil, "User 1 notification 2", models.NotificationTypeLike, nil))
@@ -200,9 +193,9 @@ func TestMultipleUsersNotifications(t *testing.T) {
 	assert.True(t, hasUnreadUser2)
 }
 
-func TestNoErrorWhenMarkingNonExistentNotification(t *testing.T) {
+func TestErrorWhenMarkingNonExistentNotification(t *testing.T) {
 	env := setupNotificationService(t)
-	user := insertTestUser(t, env.userRepo, "testUser", "test@example.com")
+	user := testutil.CreateTestUser(t, env.userRepo, "testUser")
 
 	err := env.svc.MarkNotificationAsReadById(t.Context(), user, 999)
 	assert.Error(t, err)
@@ -210,7 +203,7 @@ func TestNoErrorWhenMarkingNonExistentNotification(t *testing.T) {
 
 func TestGetUserUnreadNotificationsCount(t *testing.T) {
 	env := setupNotificationService(t)
-	user := insertTestUser(t, env.userRepo, "testUser", "test@example.com")
+	user := testutil.CreateTestUser(t, env.userRepo, "testUser")
 
 	// Insert 2 notifications and mark them read, then insert 1 unread
 	require.NoError(t, env.notifRepo.InsertNotification(t.Context(), user.UserID, nil, nil, nil, "Notification 1", models.NotificationTypeLike, nil))
@@ -225,9 +218,10 @@ func TestGetUserUnreadNotificationsCount(t *testing.T) {
 
 func TestFindUnreadLikeNotification_PostNotification(t *testing.T) {
 	env := setupNotificationService(t)
-	user := insertTestUser(t, env.userRepo, "testUser", "test@example.com")
+	user := testutil.CreateTestUser(t, env.userRepo, "testUser")
 
-	post, err := env.postRepo.InsertPost(t.Context(), user.UserID, "test post", nil, nil, nil)
+	visibility := models.VisibilityPublic
+	post, err := env.postRepo.InsertPost(t.Context(), user.UserID, "test post", nil, nil, &visibility)
 	require.NoError(t, err)
 
 	require.NoError(t, env.notifRepo.InsertNotification(t.Context(), user.UserID, &post.PostID, nil, nil, "@user liked your post.", models.NotificationTypeLike, nil))
@@ -240,9 +234,10 @@ func TestFindUnreadLikeNotification_PostNotification(t *testing.T) {
 
 func TestFindUnreadLikeNotification_CommentNotification(t *testing.T) {
 	env := setupNotificationService(t)
-	user := insertTestUser(t, env.userRepo, "testUser", "test@example.com")
+	user := testutil.CreateTestUser(t, env.userRepo, "testUser")
 
-	post, err := env.postRepo.InsertPost(t.Context(), user.UserID, "test post", nil, nil, nil)
+	visibility := models.VisibilityPublic
+	post, err := env.postRepo.InsertPost(t.Context(), user.UserID, "test post", nil, nil, &visibility)
 	require.NoError(t, err)
 
 	comment, err := env.commentRepo.AddCommentToPost(t.Context(), user.UserID, post.PostID, "test comment", nil)
@@ -258,7 +253,7 @@ func TestFindUnreadLikeNotification_CommentNotification(t *testing.T) {
 
 func TestDeleteNotificationById_Success(t *testing.T) {
 	env := setupNotificationService(t)
-	user := insertTestUser(t, env.userRepo, "testUser", "test@example.com")
+	user := testutil.CreateTestUser(t, env.userRepo, "testUser")
 
 	err := env.notifRepo.InsertNotification(t.Context(), user.UserID, nil, nil, nil, "Test notification", models.NotificationTypeLike, nil)
 	require.NoError(t, err)

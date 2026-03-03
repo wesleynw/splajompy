@@ -34,7 +34,7 @@ func (h *Handler) CreateNewPostV2(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := h.postService.NewPost(r.Context(), *currentUser, requestBody.Text, requestBody.ImageKeymap, requestBody.Poll, requestBody.Visibility)
+	_, err := h.postService.NewPost(r.Context(), *currentUser, requestBody.Text, requestBody.ImageKeymap, requestBody.Poll, requestBody.Visibility)
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
 		return

@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"splajompy.com/api/v2/internal/repositories"
 )
 
 type FakeBucketRepository struct {
@@ -19,7 +20,7 @@ type FakeBucketRepository struct {
 	mutex         sync.RWMutex
 }
 
-func NewFakeBucketRepository() *FakeBucketRepository {
+func NewFakeBucketRepository() repositories.BucketRepository {
 	return &FakeBucketRepository{
 		objects:       make(map[string][]byte),
 		presignedURLs: make(map[string]string),

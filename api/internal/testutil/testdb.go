@@ -1,4 +1,3 @@
-// Package testutil provides helpers for integration tests that need a real PostgreSQL database.
 package testutil
 
 import (
@@ -28,6 +27,7 @@ type TestDB struct {
 // The container is terminated when the test finishes.
 func StartPostgres(t *testing.T) *TestDB {
 	t.Helper()
+	testcontainers.SkipIfProviderIsNotHealthy(t)
 	ctx := context.Background()
 
 	container, err := postgres.Run(ctx, "postgres:17",

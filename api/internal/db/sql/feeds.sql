@@ -7,6 +7,10 @@ WHERE NOT EXISTS (
     WHERE block.user_id = @user_id::int AND target_user_id = posts.user_id
 ) AND NOT EXISTS (
     SELECT 1
+    FROM block
+    WHERE block.user_id = posts.user_id AND target_user_id = @user_id::int
+) AND NOT EXISTS (
+    SELECT 1
     FROM mute
     WHERE mute.user_id = @user_id::int AND target_user_id = posts.user_id
 ) AND (
@@ -34,6 +38,10 @@ WHERE (posts.user_id = $1 OR EXISTS (
     SELECT 1
     FROM block
     WHERE user_id = $1 AND target_user_id = posts.user_id
+) AND NOT EXISTS (
+    SELECT 1
+    FROM block
+    WHERE user_id = posts.user_id AND target_user_id = $1
 ) AND NOT EXISTS (
     SELECT 1
     FROM mute
@@ -67,6 +75,7 @@ WITH user_relationships AS (
                  INNER JOIN follows f2 ON f1.following_id = f2.follower_id
                  WHERE f1.follower_id = $1 AND f2.following_id = posts.user_id))
     AND NOT EXISTS (SELECT 1 FROM block WHERE user_id = $1 AND target_user_id = posts.user_id)
+    AND NOT EXISTS (SELECT 1 FROM block WHERE user_id = posts.user_id AND target_user_id = $1)
     AND NOT EXISTS (SELECT 1 FROM mute WHERE user_id = $1 AND target_user_id = posts.user_id)
     AND (
         posts.visibilityType = 0 -- public
@@ -96,6 +105,12 @@ LIMIT $2;
 SELECT *
 FROM posts
 WHERE post_id = $1
+AND NOT EXISTS (
+    SELECT 1 FROM block WHERE block.user_id = posts.user_id AND block.target_user_id = $2
+)
+AND NOT EXISTS (
+    SELECT 1 FROM block WHERE block.user_id = $2 AND block.target_user_id = posts.user_id
+)
 AND (
     posts.visibilityType = 0 -- public
     OR posts.user_id = $2
@@ -112,6 +127,12 @@ AND (
 SELECT post_id
 FROM posts
 WHERE user_id = @target_user_id::int AND (@before::timestamp IS NULL OR posts.created_at < @before::timestamp)
+AND NOT EXISTS (
+    SELECT 1 FROM block WHERE block.user_id = posts.user_id AND block.target_user_id = @user_id
+)
+AND NOT EXISTS (
+    SELECT 1 FROM block WHERE block.user_id = @user_id AND block.target_user_id = posts.user_id
+)
 AND (
     posts.visibilityType = 0 -- public
     OR posts.user_id = @user_id
