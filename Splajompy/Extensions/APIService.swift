@@ -127,7 +127,9 @@ public struct APIService {
         let container = try decoder.singleValueContainer()
         let dateString = try container.decode(String.self)
 
-        if let date = try? Date(dateString, strategy: Date.ISO8601FormatStyle(includingFractionalSeconds: true)) {
+        if let date = try? Date(
+          dateString, strategy: Date.ISO8601FormatStyle(includingFractionalSeconds: true))
+        {
           return date
         }
 

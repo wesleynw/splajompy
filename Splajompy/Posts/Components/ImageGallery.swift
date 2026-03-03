@@ -145,7 +145,9 @@ struct ImageGallery: View {
               bottomTrailing: 0,
               topTrailing: 0
             )
-            Button { selectedImageIndex = 3 } label: {
+            Button {
+              selectedImageIndex = 3
+            } label: {
               ZStack {
                 imageCell(
                   index: 3,
@@ -187,7 +189,9 @@ struct ImageGallery: View {
   ) -> some View {
     Group {
       if index < images.count, let url = URL(string: images[index].imageBlobUrl) {
-        Button { selectedImageIndex = index } label: {
+        Button {
+          selectedImageIndex = index
+        } label: {
           LazyImage(url: url) {
             state in
             if let image = state.image {
@@ -230,7 +234,9 @@ struct ImageGallery: View {
 
     let geo = GeometryReader { geometry in
       if let url = URL(string: image.imageBlobUrl) {
-        Button { selectedImageIndex = 0 } label: {
+        Button {
+          selectedImageIndex = 0
+        } label: {
           LazyImage(url: url) { state in
             if let img = state.image {
               img.resizable()

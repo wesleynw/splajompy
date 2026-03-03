@@ -10,7 +10,9 @@ struct AppearanceSwitcher: View {
     List {
       Section {
         ForEach(options, id: \.self) { (option: String) in
-          Button { appearanceMode = option } label: {
+          Button {
+            appearanceMode = option
+          } label: {
             HStack {
               Text(option)
               Spacer()
