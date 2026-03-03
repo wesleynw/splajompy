@@ -73,8 +73,10 @@ struct ProfileView: View {
     }
     .postHogScreenView()
     .onAppear {
-      Task {
-        await viewModel.loadProfileAndPosts()
+      if case .idle = viewModel.profileState {
+        Task {
+          await viewModel.loadProfileAndPosts()
+        }
       }
     }
     .sheet(isPresented: $isShowingProfileEditor) {
