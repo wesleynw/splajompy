@@ -193,7 +193,7 @@ struct CommentsView: View {
           ?? "An error occurred while submitting your comment."
       )
     }
-    .animation(.easeInOut, value: true)
+    .animation(.easeInOut, value: viewModel.state)
     .onOpenURL { url in
       if !isInSheet {
         return

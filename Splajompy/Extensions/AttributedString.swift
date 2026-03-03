@@ -33,7 +33,9 @@ func generateAttributedStringUsingFacets(_ input: String, facets: [Facet]) -> St
   }
 
   let pattern = #"\{tag:(\d+):([^\}]+)\}"#
-  let regex = try! NSRegularExpression(pattern: pattern)
+  guard let regex = try? NSRegularExpression(pattern: pattern) else {
+    return output
+  }
   let range = NSRange(output.startIndex..., in: output)
 
   return regex.stringByReplacingMatches(

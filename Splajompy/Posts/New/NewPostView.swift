@@ -182,7 +182,7 @@ struct NewPostView: View {
 
   @ViewBuilder
   private var imagePreviewsView: some View {
-    ScrollView(.horizontal, showsIndicators: false) {
+    ScrollView(.horizontal) {
       HStack(spacing: 12) {
         ForEach(viewModel.imageStates, id: \.itemIdentifier) { item in
           ZStack(alignment: .topTrailing) {
@@ -254,6 +254,7 @@ struct NewPostView: View {
       }
       .padding(.horizontal)
     }
+    .scrollIndicators(.hidden)
   }
 
   @ViewBuilder

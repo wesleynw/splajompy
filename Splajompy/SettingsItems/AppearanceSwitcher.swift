@@ -9,19 +9,18 @@ struct AppearanceSwitcher: View {
   var body: some View {
     List {
       Section {
-        ForEach(options, id: \.self) { option in
-          HStack {
-            Text(option)
-            Spacer()
-            if option == appearanceMode {
-              Image(systemName: "checkmark")
-                .foregroundColor(.accentColor)
+        ForEach(options, id: \.self) { (option: String) in
+          Button { appearanceMode = option } label: {
+            HStack {
+              Text(option)
+              Spacer()
+              if option == appearanceMode {
+                Image(systemName: "checkmark")
+                  .foregroundStyle(Color.accentColor)
+              }
             }
           }
-          .contentShape(.rect)
-          .onTapGesture {
-            appearanceMode = option
-          }
+          .foregroundStyle(.primary)
         }
       } header: {
         Text("Theme")

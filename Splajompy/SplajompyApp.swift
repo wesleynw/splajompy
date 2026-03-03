@@ -203,11 +203,15 @@ struct SplajompyApp: App {
   private func routeDestination(_ route: Route) -> some View {
     switch route {
     case .profile(let id, let username):
-      ProfileView(
-        userId: Int(id)!,
-        username: username,
-        postManager: postManager
-      )
+      if let userId = Int(id) {
+        ProfileView(
+          userId: userId,
+          username: username,
+          postManager: postManager
+        )
+      } else {
+        EmptyView()
+      }
     case .post(let id):
       StandalonePostView(postId: id, postManager: postManager)
     case .followingList(let userId):

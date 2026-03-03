@@ -17,17 +17,15 @@ struct ZoomableAsyncImageMac: View {
             .gesture(
               TapGesture(count: 2)
                 .onEnded {
-                  if scale == 1 {
-                    scale = 2
-                  } else {
-                    scale = 1
+                  withAnimation {
+                    scale = scale == 1 ? 2 : 1
                   }
                 }
             )
             .gesture(
               MagnificationGesture()
                 .onChanged { value in
-                  scale = value
+                  scale = min(max(value, 1.0), 5.0)
                 }
             )
         } else if state.error != nil {

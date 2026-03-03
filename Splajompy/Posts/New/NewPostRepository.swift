@@ -32,8 +32,8 @@ struct PostCreationService {
       let stagingFolder = UUID()
       var imageKeymap = [Int: ImageData]()
 
-      for (index, image) in images.enumerated() {
-        if let preferredFilenameExtension = items[index].supportedContentTypes
+      for (index, (image, item)) in zip(images, items).enumerated() {
+        if let preferredFilenameExtension = item.supportedContentTypes
           .first?.preferredFilenameExtension
         {
           let response: AsyncResult<PresignedUrlResponse> =
