@@ -5,6 +5,8 @@ import (
 	"strconv"
 	"time"
 
+	"go.opentelemetry.io/otel/codes"
+	"go.opentelemetry.io/otel/trace"
 	"splajompy.com/api/v2/internal/utilities"
 )
 
@@ -160,6 +162,7 @@ func (h *Handler) GetReadNotificationsByUserIdWithTimeOffset(w http.ResponseWrit
 // GetUnreadNotificationsByUserIdWithTimeOffset GET /notifications/unread/time
 func (h *Handler) GetUnreadNotificationsByUserIdWithTimeOffset(w http.ResponseWriter, r *http.Request) {
 	currentUser := h.getAuthenticatedUser(r)
+	span := trace.SpanFromContext(r.Context())
 
 	beforeTimeStr := r.URL.Query().Get("before_time")
 	var beforeTime time.Time
@@ -167,6 +170,8 @@ func (h *Handler) GetUnreadNotificationsByUserIdWithTimeOffset(w http.ResponseWr
 	if beforeTimeStr != "" {
 		beforeTime, err = time.Parse(time.RFC3339, beforeTimeStr)
 		if err != nil {
+			span.SetStatus(codes.Error, err.Error())
+			span.RecordError(err)
 			utilities.HandleError(w, http.StatusBadRequest, "Invalid before_time format, expected RFC3339")
 			return
 		}
@@ -188,6 +193,8 @@ func (h *Handler) GetUnreadNotificationsByUserIdWithTimeOffset(w http.ResponseWr
 
 	notifications, err := h.notificationService.GetUnreadNotificationsByUserIdWithTimeOffset(r.Context(), *currentUser, beforeTime, limit, notificationType)
 	if err != nil {
+		span.SetStatus(codes.Error, err.Error())
+		span.RecordError(err)
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
 		return
 	}
