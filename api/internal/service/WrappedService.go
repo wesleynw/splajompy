@@ -16,10 +16,10 @@ import (
 
 type WrappedService struct {
 	querier     queries.Querier
-	postService PostService
+	postService *PostService
 }
 
-func NewWrappedService(querier queries.Querier, postService PostService) *WrappedService {
+func NewWrappedService(querier queries.Querier, postService *PostService) *WrappedService {
 	return &WrappedService{
 		querier:     querier,
 		postService: postService,

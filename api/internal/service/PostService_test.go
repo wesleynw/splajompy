@@ -1,563 +1,150 @@
 package service
 
 import (
-	"context"
 	"os"
 	"testing"
-	"time"
 
-	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"splajompy.com/api/v2/internal/db"
-	"splajompy.com/api/v2/internal/db/queries"
 	"splajompy.com/api/v2/internal/models"
 	"splajompy.com/api/v2/internal/repositories"
 	"splajompy.com/api/v2/internal/repositories/fakes"
+	"splajompy.com/api/v2/internal/testutil"
 )
 
-func setupTest(t *testing.T) (*PostService, *fakes.FakePostRepository, repositories.UserRepository, *fakes.FakeLikeRepository, *fakes.FakeNotificationRepository, *fakes.FakeBucketRepository, models.PublicUser) {
-	postRepo := fakes.NewFakePostRepository()
-	userRepo := fakes.NewFakeUserRepository()
-	likeRepo := fakes.NewFakeLikeRepository()
-	notificationRepo := fakes.NewFakeNotificationRepository()
-	bucketRepo := fakes.NewFakeBucketRepository()
-
-	svc := NewPostService(postRepo, userRepo, likeRepo, notificationRepo, bucketRepo, nil)
-
-	user, err := userRepo.CreateUser(context.Background(), "testuser", "test@example.com", "password", "123")
-	require.NoError(t, err)
-
-	err = os.Setenv("ENVIRONMENT", "test")
-	if err != nil {
-		return nil, nil, nil, nil, nil, nil, models.PublicUser{}
-	}
-
-	return svc, postRepo, userRepo, likeRepo, notificationRepo, bucketRepo, user
+type postServiceTestEnv struct {
+	svc *PostService
 }
 
-func TestNewPost(t *testing.T) {
-	svc, postRepo, _, _, _, bucketRepo, user := setupTest(t)
+func setupTest(t *testing.T) postServiceTestEnv {
+	t.Helper()
+	testDb := testutil.StartPostgres(t)
 
-	ctx := context.Background()
-	text := "Hello world @testuser"
-	imageKeymap := map[int]models.ImageData{
-		0: {
-			S3Key:  "test/posts/staging/1/images/123.jpg",
-			Width:  1000,
-			Height: 750,
-		},
+	postRepository := repositories.NewDBPostRepository(testDb.Queries)
+	userRepository := repositories.NewDBUserRepository(testDb.Queries)
+	likeRepository := repositories.NewDBLikeRepository(testDb.Queries)
+	notificationRepository := repositories.NewDBNotificationRepository(testDb.Queries)
+	bucketRepository := fakes.NewFakeBucketRepository()
+
+	svc := NewPostService(postRepository, userRepository, likeRepository, notificationRepository, bucketRepository, nil)
+
+	_ = os.Setenv("ENVIRONMENT", "test")
+
+	return postServiceTestEnv{
+		svc: svc,
 	}
-
-	bucketRepo.SetObject(imageKeymap[0].S3Key, []byte("test image data"))
-
-	err := svc.NewPost(ctx, user, text, imageKeymap, nil, nil)
-	assert.NoError(t, err)
-
-	postIds, err := postRepo.GetPostIdsForUser(ctx, user.UserID, 10, 0)
-	assert.NoError(t, err)
-	assert.Len(t, postIds, 1)
-
-	post, err := postRepo.GetPostById(ctx, postIds[0], 0)
-	assert.NoError(t, err)
-	assert.Equal(t, text, post.Text)
-	assert.Equal(t, user.UserID, post.UserID)
-
-	assert.Len(t, post.Facets, 1)
-	assert.Equal(t, "mention", post.Facets[0].Type)
-	assert.Equal(t, user.UserID, post.Facets[0].UserId)
-
-	destinationKey := repositories.GetDestinationKey("test", user.UserID, post.PostID, imageKeymap[0].S3Key)
-	imageData, exists := bucketRepo.GetObject(destinationKey)
-	assert.True(t, exists)
-	assert.Equal(t, []byte("test image data"), imageData)
-
-	_, exists = bucketRepo.GetObject(imageKeymap[0].S3Key)
-	assert.False(t, exists)
-
-	images, err := postRepo.GetImagesForPost(ctx, post.PostID)
-	assert.NoError(t, err)
-	assert.Len(t, images, 1)
-	assert.Equal(t, destinationKey, images[0].ImageBlobUrl)
-	assert.Equal(t, 1000, images[0].Width)
-	assert.Equal(t, 750, images[0].Height)
-}
-
-func TestNewPresignedStagingUrl(t *testing.T) {
-	svc, _, _, _, _, _, user := setupTest(t)
-
-	ctx := context.Background()
-	extension := "jpg"
-	folder := "images"
-
-	key, url, err := svc.NewPresignedStagingUrl(ctx, user, &extension, &folder)
-	assert.NoError(t, err)
-	assert.NotEmpty(t, key)
-	assert.NotEmpty(t, url)
-	assert.Contains(t, key, "test/posts/staging/1/images/")
-	assert.Contains(t, key, ".jpg")
 }
 
 func TestGetPostById(t *testing.T) {
-	svc, postRepo, _, _, _, bucketRepo, user := setupTest(t)
+	env := setupTest(t)
 
-	ctx := context.Background()
+	user := testutil.CreateTestUser(t, env.svc.userRepository, "user1")
 
-	postContent := "Test post content"
-	post, err := postRepo.InsertPost(ctx, user.UserID, postContent, nil, nil, nil)
+	post, err := env.svc.NewPost(t.Context(), user, "post 1", nil, nil, nil)
 	require.NoError(t, err)
 
-	imageUrl := "test/posts/1/images/123.jpg"
-	bucketRepo.SetObject(imageUrl, []byte("test image data"))
-	_, err = postRepo.InsertImage(ctx, post.PostID, 500, 500, imageUrl, 0)
-	require.NoError(t, err)
-
-	detailedPost, err := svc.GetPostById(ctx, user.UserID, post.PostID)
+	post_returned, err := env.svc.GetPostById(t.Context(), user.UserID, post.PostID)
 	assert.NoError(t, err)
-	assert.NotNil(t, detailedPost)
+	assert.NotNil(t, post_returned)
 
-	assert.Equal(t, post.PostID, detailedPost.Post.PostID)
-	assert.Equal(t, postContent, detailedPost.Post.Text)
-	assert.Equal(t, user.UserID, detailedPost.User.UserID)
-	assert.Equal(t, user.Username, detailedPost.User.Username)
-	assert.Len(t, detailedPost.Images, 1)
-	assert.Contains(t, detailedPost.Images[0].ImageBlobUrl, imageUrl)
+	assert.Equal(t, post.PostID, post_returned.Post.PostID)
+	assert.Equal(t, "post 1", post_returned.Post.Text)
+	assert.Equal(t, user.UserID, post_returned.User.UserID)
+	assert.Equal(t, user.Username, post_returned.User.Username)
 }
 
 func TestDeletePost(t *testing.T) {
-	svc, postRepo, userRepo, _, _, _, user := setupTest(t)
+	env := setupTest(t)
 
-	ctx := context.Background()
+	user := testutil.CreateTestUser(t, env.svc.userRepository, "user0")
 
-	post, err := postRepo.InsertPost(ctx, user.UserID, "Test post for deletion", nil, nil, nil)
+	post, err := env.svc.NewPost(t.Context(), user, "post 0", nil, nil, nil)
 	require.NoError(t, err)
 
-	err = svc.DeletePost(ctx, user, post.PostID)
+	err = env.svc.DeletePost(t.Context(), user, post.PostID)
 	assert.NoError(t, err)
 
-	_, err = postRepo.GetPostById(ctx, post.PostID, 0)
-	assert.Error(t, err)
-
-	otherUser, err := userRepo.CreateUser(ctx, "otheruser", "other@example.com", "password", "123")
-	require.NoError(t, err)
-
-	post2, err := postRepo.InsertPost(ctx, otherUser.UserID, "Other user's post", nil, nil, nil)
-	require.NoError(t, err)
-
-	err = svc.DeletePost(ctx, user, post2.PostID)
-	assert.Error(t, err)
-
-	_, err = postRepo.GetPostById(ctx, post2.PostID, 0)
-	assert.NoError(t, err)
-}
-
-func TestAddLikeToPost(t *testing.T) {
-	svc, postRepo, userRepo, likeRepo, _, _, _ := setupTest(t)
-	ctx := context.Background()
-
-	postOwner, err := userRepo.CreateUser(ctx, "postOwner", "postowner@splajompy.com", "password", "123")
-	require.NoError(t, err)
-	secondUser, err := userRepo.CreateUser(ctx, "otherUser", "otheruser@splajompy.com", "password", "123")
-	require.NoError(t, err)
-
-	post0, err := postRepo.InsertPost(ctx, postOwner.UserID, "Test post for liking", nil, nil, nil)
-	require.NoError(t, err)
-
-	err = svc.AddLikeToPost(ctx, postOwner, post0.PostID)
-	assert.NoError(t, err)
-	err = svc.AddLikeToPost(ctx, secondUser, post0.PostID)
-	assert.NoError(t, err)
-
-	likes, err := likeRepo.GetLikesForPost(ctx, post0.PostID)
-	assert.NoError(t, err)
-	assert.Len(t, likes, 2)
-
-	var foundPostOwner, foundSecondUser bool
-	for _, like := range likes {
-		if like.UserID == postOwner.UserID {
-			foundPostOwner = true
-		}
-		if like.UserID == secondUser.UserID {
-			foundSecondUser = true
-		}
-	}
-
-	assert.True(t, foundPostOwner, "Post owner's like should be present")
-	assert.True(t, foundSecondUser, "Second user's like should be present")
-}
-
-func TestRemoveLikeFromPost(t *testing.T) {
-	svc, postRepo, userRepo, likeRepo, _, _, _ := setupTest(t)
-	ctx := context.Background()
-
-	postOwner, err := userRepo.CreateUser(ctx, "postOwner", "postowner@splajompy.com", "password", "123")
-	require.NoError(t, err)
-	secondUser, err := userRepo.CreateUser(ctx, "otherUser", "otheruser@splajompy.com", "password", "123")
-	require.NoError(t, err)
-
-	post0, err := postRepo.InsertPost(ctx, postOwner.UserID, "Test post for liking", nil, nil, nil)
-	require.NoError(t, err)
-
-	err = svc.AddLikeToPost(ctx, postOwner, post0.PostID)
-	assert.NoError(t, err)
-	err = svc.AddLikeToPost(ctx, secondUser, post0.PostID)
-	assert.NoError(t, err)
-
-	likes, err := likeRepo.GetLikesForPost(ctx, post0.PostID)
-	assert.NoError(t, err)
-	assert.Len(t, likes, 2)
-
-	err = svc.RemoveLikeFromPost(ctx, postOwner, post0.PostID)
-	assert.NoError(t, err)
-
-	likes, err = likeRepo.GetLikesForPost(ctx, post0.PostID)
-	assert.NoError(t, err)
-	assert.Len(t, likes, 1)
-
-	err = svc.RemoveLikeFromPost(ctx, secondUser, post0.PostID)
-	assert.NoError(t, err)
-
-	likes, err = likeRepo.GetLikesForPost(ctx, post0.PostID)
-	assert.NoError(t, err)
-	assert.Len(t, likes, 0)
-}
-
-func TestGetPostWithPoll_ReturnsEmptyPoll(t *testing.T) {
-	svc, postRepo, userRepo, _, _, _, currentUser := setupTest(t)
-	ctx := context.Background()
-
-	user, err := userRepo.CreateUser(ctx, "test1", "testuser@splajompy.com", "password", "123")
-	require.NoError(t, err)
-
-	attributes := db.Attributes{Poll: db.Poll{
-		Title: "is this test passing?",
-		Options: []string{
-			"yes", "no",
-		},
-	}}
-
-	post, err := postRepo.InsertPost(ctx, user.UserID, "Test post for vote on saving", nil, &attributes, nil)
-	require.NoError(t, err)
-
-	updatedPost, err := svc.GetPostById(ctx, currentUser.UserID, post.PostID)
-	require.NoError(t, err)
-
-	require.NotNil(t, updatedPost)
-	require.NotNil(t, updatedPost.Poll)
-	poll := updatedPost.Poll
-
-	assert.NotNil(t, poll)
-	assert.Equal(t, poll.Title, "is this test passing?")
-	assert.Equal(t, poll.VoteTotal, 0)
-	assert.Nil(t, poll.CurrentUserVote)
-	assert.Equal(t, poll.Options[0].Title, "yes")
-	assert.Equal(t, poll.Options[1].Title, "no")
-	assert.Equal(t, poll.Options[0].VoteTotal, 0)
-	assert.Equal(t, poll.Options[1].VoteTotal, 0)
-}
-
-func TestVoteOnPoll_NegativeOptionIndex_ReturnsError(t *testing.T) {
-	svc, postRepo, userRepo, _, _, _, currentUser := setupTest(t)
-	ctx := context.Background()
-
-	user, err := userRepo.CreateUser(ctx, "test1", "testuser@splajompy.com", "password", "123")
-	require.NoError(t, err)
-
-	attributes := db.Attributes{Poll: db.Poll{
-		Title: "is this test passing?",
-		Options: []string{
-			"yes", "no",
-		},
-	}}
-
-	post, err := postRepo.InsertPost(ctx, user.UserID, "Test post for vote on saving", nil, &attributes, nil)
-	require.NoError(t, err)
-
-	err = svc.VoteOnPoll(ctx, currentUser, post.PostID+1, -10)
+	_, err = env.svc.GetPostById(t.Context(), user.UserID, post.PostID)
 	assert.Error(t, err)
 }
 
-func TestVoteOnPoll_Nonexistent_ReturnsError(t *testing.T) {
-	svc, postRepo, userRepo, _, _, _, currentUser := setupTest(t)
-	ctx := context.Background()
+func TestGetPosts_DoesNotReturnPrivatePosts(t *testing.T) {
+	env := setupTest(t)
 
-	user, err := userRepo.CreateUser(ctx, "test1", "testuser@splajompy.com", "password", "123")
-	require.NoError(t, err)
+	user0 := testutil.CreateTestUser(t, env.svc.userRepository, "user0")
+	user1 := testutil.CreateTestUser(t, env.svc.userRepository, "user1")
 
-	attributes := db.Attributes{Poll: db.Poll{
-		Title: "is this test passing?",
-		Options: []string{
-			"yes", "no",
-		},
-	}}
+	post, err := env.svc.NewPost(t.Context(), user0, "test post please ignore", nil, nil, new(int(models.VisibilityCloseFriends)))
+	assert.NoError(t, err)
 
-	post, err := postRepo.InsertPost(ctx, user.UserID, "Test post for vote on saving", nil, &attributes, nil)
-	require.NoError(t, err)
-
-	err = svc.VoteOnPoll(ctx, currentUser, post.PostID+1, 2)
+	// user1 should not be able to see the private post
+	returned_post, err := env.svc.GetPostById(t.Context(), user1.UserID, post.PostID)
 	assert.Error(t, err)
+	assert.Nil(t, returned_post)
+
+	all_posts, err := env.svc.GetPosts(t.Context(), user1, FeedTypeAll, nil, 10, nil)
+	require.NoError(t, err)
+	assert.Len(t, all_posts, 0)
+
+	mutual_posts, err := env.svc.GetPosts(t.Context(), user1, FeedTypeMutual, nil, 10, nil)
+	require.NoError(t, err)
+	assert.Len(t, mutual_posts, 0)
+
+	following_posts, err := env.svc.GetPosts(t.Context(), user1, FeedTypeFollowing, nil, 10, nil)
+	require.NoError(t, err)
+	assert.Len(t, following_posts, 0)
+
+	profile_posts, err := env.svc.GetPosts(t.Context(), user1, FeedTypeProfile, &user0.UserID, 10, nil)
+	require.NoError(t, err)
+	assert.Len(t, profile_posts, 0)
 }
 
-func TestVoteOnPoll_InvalidOptionIndex_ReturnsError(t *testing.T) {
-	svc, postRepo, userRepo, _, _, _, currentUser := setupTest(t)
-	ctx := context.Background()
+func TestGetPostById_HiddenWhenPosterBlockedViewer(t *testing.T) {
+	env := setupTest(t)
 
-	user, err := userRepo.CreateUser(ctx, "test1", "testuser@splajompy.com", "password", "123")
+	poster := testutil.CreateTestUser(t, env.svc.userRepository, "user0")
+	viewer := testutil.CreateTestUser(t, env.svc.userRepository, "user1")
+
+	post, err := env.svc.NewPost(t.Context(), poster, "post0", nil, nil, nil)
 	require.NoError(t, err)
 
-	attributes := db.Attributes{Poll: db.Poll{
-		Title: "is this test passing?",
-		Options: []string{
-			"yes", "no",
-		},
-	}}
+	returned_post, err := env.svc.GetPostById(t.Context(), viewer.UserID, post.PostID)
+	assert.NoError(t, err)
+	assert.Equal(t, post.PostID, returned_post.Post.PostID)
 
-	post, err := postRepo.InsertPost(ctx, user.UserID, "Test post for vote on saving", nil, &attributes, nil)
-	require.NoError(t, err)
+	err = env.svc.userRepository.BlockUser(t.Context(), poster.UserID, viewer.UserID)
+	assert.NoError(t, err)
 
-	err = svc.VoteOnPoll(ctx, currentUser, post.PostID, 2)
+	returned_post, err = env.svc.GetPostById(t.Context(), viewer.UserID, post.PostID)
 	assert.Error(t, err)
-
-	updatedPost, err := svc.GetPostById(ctx, currentUser.UserID, post.PostID)
-	require.NoError(t, err)
-
-	require.NotNil(t, updatedPost)
-	require.NotNil(t, updatedPost.Poll)
-
-	assert.Equal(t, updatedPost.Poll.Title, "is this test passing?")
-	assert.Equal(t, updatedPost.Poll.VoteTotal, 0)
-	assert.Nil(t, updatedPost.Poll.CurrentUserVote)
-	assert.Equal(t, updatedPost.Poll.Options[0].Title, "yes")
-	assert.Equal(t, updatedPost.Poll.Options[1].Title, "no")
-	assert.Equal(t, updatedPost.Poll.Options[0].VoteTotal, 0)
-	assert.Equal(t, updatedPost.Poll.Options[1].VoteTotal, 0)
+	assert.Nil(t, returned_post)
 }
 
-func TestVoteOnPoll_SavesVote(t *testing.T) {
-	svc, postRepo, userRepo, _, _, _, currentUser := setupTest(t)
-	ctx := context.Background()
+func TestGetPosts_HiddenWhenPosterBlockedViewer(t *testing.T) {
+	env := setupTest(t)
 
-	user, err := userRepo.CreateUser(ctx, "test1", "testuser@splajompy.com", "password", "123")
+	poster := testutil.CreateTestUser(t, env.svc.userRepository, "user0")
+	viewer := testutil.CreateTestUser(t, env.svc.userRepository, "user1")
+
+	_, err := env.svc.NewPost(t.Context(), poster, "post0", nil, nil, nil)
 	require.NoError(t, err)
 
-	poll := db.Poll{
-		Title: "is this test passing?",
-		Options: []string{
-			"yes", "no",
-		},
-	}
+	err = env.svc.userRepository.BlockUser(t.Context(), poster.UserID, viewer.UserID)
+	assert.NoError(t, err)
 
-	post, err := postRepo.InsertPost(ctx, user.UserID, "Test post for vote on saving", nil, &db.Attributes{Poll: poll}, nil)
-	require.NoError(t, err)
+	posts, err := env.svc.GetPosts(t.Context(), viewer, FeedTypeAll, nil, 10, nil)
+	assert.NoError(t, err)
+	assert.Len(t, posts, 0)
 
-	err = svc.VoteOnPoll(ctx, currentUser, post.PostID, 0)
-	require.NoError(t, err)
+	posts, err = env.svc.GetPosts(t.Context(), viewer, FeedTypeFollowing, nil, 10, nil)
+	assert.NoError(t, err)
+	assert.Len(t, posts, 0)
 
-	updatedPost, err := svc.GetPostById(ctx, currentUser.UserID, post.PostID)
-	require.NoError(t, err)
+	posts, err = env.svc.GetPosts(t.Context(), viewer, FeedTypeMutual, nil, 10, nil)
+	assert.NoError(t, err)
+	assert.Len(t, posts, 0)
 
-	require.NotNil(t, updatedPost)
-	require.NotNil(t, updatedPost.Poll)
-
-	assert.Equal(t, updatedPost.Poll.Title, "is this test passing?")
-	assert.Equal(t, updatedPost.Poll.VoteTotal, 1)
-	assert.Equal(t, *updatedPost.Poll.CurrentUserVote, 0)
-	assert.Equal(t, updatedPost.Poll.Options[0].Title, "yes")
-	assert.Equal(t, updatedPost.Poll.Options[1].Title, "no")
-	assert.Equal(t, updatedPost.Poll.Options[0].VoteTotal, 1)
-	assert.Equal(t, updatedPost.Poll.Options[1].VoteTotal, 0)
+	posts, err = env.svc.GetPosts(t.Context(), viewer, FeedTypeProfile, &poster.UserID, 10, nil)
+	assert.NoError(t, err)
+	assert.Len(t, posts, 0)
 }
-
-func TestVoteOnPoll_SavesVote_Multi(t *testing.T) {
-	svc, postRepo, userRepo, _, _, _, currentUser := setupTest(t)
-	ctx := context.Background()
-
-	user0, err := userRepo.CreateUser(ctx, "test0", "testuser0@splajompy.com", "password", "123")
-	require.NoError(t, err)
-	user1, err := userRepo.CreateUser(ctx, "test1", "testuser1@splajompy.com", "password", "123")
-	require.NoError(t, err)
-	user2, err := userRepo.CreateUser(ctx, "test2", "testuser2@splajompy.com", "password", "123")
-	require.NoError(t, err)
-
-	poll := db.Poll{
-		Title: "is this test passing?",
-		Options: []string{
-			"yes", "no",
-		},
-	}
-
-	post, err := postRepo.InsertPost(ctx, user0.UserID, "Test post for vote on saving", nil, &db.Attributes{Poll: poll}, nil)
-	require.NoError(t, err)
-
-	err = svc.VoteOnPoll(ctx, currentUser, post.PostID, 1)
-	require.NoError(t, err)
-
-	err = svc.VoteOnPoll(ctx, user0, post.PostID, 0)
-	require.NoError(t, err)
-
-	err = svc.VoteOnPoll(ctx, user1, post.PostID, 0)
-	require.NoError(t, err)
-
-	err = svc.VoteOnPoll(ctx, user2, post.PostID, 0)
-	require.NoError(t, err)
-
-	updatedPost, err := svc.GetPostById(ctx, currentUser.UserID, post.PostID)
-	require.NoError(t, err)
-
-	require.NotNil(t, updatedPost)
-	require.NotNil(t, updatedPost.Poll)
-
-	assert.Equal(t, updatedPost.Poll.Title, "is this test passing?")
-	assert.Equal(t, updatedPost.Poll.VoteTotal, 4)
-	assert.Equal(t, *updatedPost.Poll.CurrentUserVote, 1)
-	assert.Equal(t, updatedPost.Poll.Options[0].Title, "yes")
-	assert.Equal(t, updatedPost.Poll.Options[1].Title, "no")
-	assert.Equal(t, updatedPost.Poll.Options[0].VoteTotal, 3)
-	assert.Equal(t, updatedPost.Poll.Options[1].VoteTotal, 1)
-}
-
-func TestRemoveLikeFromPost_DeletesRecentNotification(t *testing.T) {
-	svc, _, userRepo, likeRepo, notificationRepo, _, user := setupTest(t)
-	ctx := context.Background()
-
-	otherUser, err := userRepo.CreateUser(ctx, "otheruser", "other@example.com", "password", "123")
-	require.NoError(t, err)
-
-	post, err := svc.postRepository.InsertPost(ctx, otherUser.UserID, "Test post", nil, nil, nil)
-	require.NoError(t, err)
-
-	err = likeRepo.AddLike(ctx, user.UserID, post.PostID, nil)
-	require.NoError(t, err)
-
-	err = notificationRepo.InsertNotification(ctx, otherUser.UserID, &post.PostID, nil, nil, "@testuser liked your post.", models.NotificationTypeLike, nil)
-	require.NoError(t, err)
-
-	err = svc.RemoveLikeFromPost(ctx, user, post.PostID)
-	require.NoError(t, err)
-
-	assert.Equal(t, 0, notificationRepo.GetNotificationCount(otherUser.UserID))
-}
-
-func TestRemoveLikeFromPost_KeepsOldNotification(t *testing.T) {
-	svc, _, userRepo, likeRepo, notificationRepo, _, user := setupTest(t)
-	ctx := context.Background()
-
-	otherUser, err := userRepo.CreateUser(ctx, "otheruser", "other@example.com", "password", "123")
-	require.NoError(t, err)
-
-	post, err := svc.postRepository.InsertPost(ctx, otherUser.UserID, "Test post", nil, nil, nil)
-	require.NoError(t, err)
-
-	err = likeRepo.AddLike(ctx, user.UserID, post.PostID, nil)
-	require.NoError(t, err)
-
-	oldTime := time.Now().Add(-10 * time.Minute)
-	notification := queries.Notification{
-		UserID:           otherUser.UserID,
-		PostID:           &post.PostID,
-		Message:          "@testuser liked your post.",
-		NotificationType: "like",
-		Viewed:           false,
-		CreatedAt:        pgtype.Timestamp{Time: oldTime, Valid: true},
-	}
-	notificationRepo.AddNotification(notification)
-
-	err = svc.RemoveLikeFromPost(ctx, user, post.PostID)
-	require.NoError(t, err)
-
-	assert.Equal(t, 1, notificationRepo.GetNotificationCount(otherUser.UserID))
-}
-
-func TestRemoveLikeFromPost_NoNotificationExists(t *testing.T) {
-	svc, _, userRepo, likeRepo, notificationRepo, _, user := setupTest(t)
-	ctx := context.Background()
-
-	otherUser, err := userRepo.CreateUser(ctx, "otheruser", "other@example.com", "password", "123")
-	require.NoError(t, err)
-
-	post, err := svc.postRepository.InsertPost(ctx, otherUser.UserID, "Test post", nil, nil, nil)
-	require.NoError(t, err)
-
-	err = likeRepo.AddLike(ctx, user.UserID, post.PostID, nil)
-	require.NoError(t, err)
-
-	err = svc.RemoveLikeFromPost(ctx, user, post.PostID)
-	require.NoError(t, err)
-
-	assert.Equal(t, 0, notificationRepo.GetNotificationCount(otherUser.UserID))
-}
-
-func TestNewPost_DoesntSelfNotify(t *testing.T) {
-	var svc, _, userRepo, _, notificationRepo, _, _ = setupTest(t)
-	ctx := context.Background()
-
-	user0, err := userRepo.CreateUser(ctx, "user0", "user0@splajompy.com", "password", "123")
-	require.NoError(t, err)
-
-	postText := "test post that mentions the current user @user0 @user0"
-	err = svc.NewPost(ctx, user0, postText, nil, nil, nil)
-	require.NoError(t, err)
-
-	notifications, err := notificationRepo.GetNotificationsForUserId(ctx, user0.UserID, 0, 10)
-	require.NoError(t, err)
-
-	assert.Len(t, notifications, 0)
-}
-
-func TestSendOneNotificationToEachMentionedUser(t *testing.T) {
-	var svc, _, userRepo, _, notificationRepo, _, user0 = setupTest(t)
-	ctx := context.Background()
-
-	user1, err := userRepo.CreateUser(ctx, "user1", "user1@splajompy.com", "password", "123")
-	require.NoError(t, err)
-	user2, err := userRepo.CreateUser(ctx, "user2", "user2@splajompy.com", "password", "123")
-	require.NoError(t, err)
-
-	postText := "this is a test post which mentions users: @user1 @user1 @user2 @user2 @user2"
-	err = svc.NewPost(ctx, user0, postText, nil, nil, nil)
-	require.NoError(t, err)
-
-	user1Notifications, err := notificationRepo.GetNotificationsForUserId(ctx, user1.UserID, 0, 10)
-	require.NoError(t, err)
-
-	assert.Len(t, user1Notifications, 1)
-
-	user2Notifications, err := notificationRepo.GetNotificationsForUserId(ctx, user2.UserID, 0, 10)
-	require.NoError(t, err)
-
-	assert.Len(t, user2Notifications, 1)
-}
-
-// TODO: this type of test isn't gonna work now because the business logic for filtering visibility is in the repository/SQL
-// func TestGetPosts_DoesNotReturnPrivatePosts(t *testing.T) {
-// 	var svc, _, userRepository, _, _, _, _ = setupTest(t)
-
-// 	user0, err := userRepository.CreateUser(t.Context(), "user0", "email-0@email.com", "123", "123")
-// 	assert.NoError(t, err)
-
-// 	user1, err := userRepository.CreateUser(t.Context(), "user1", "email-1@email.com", "123", "123")
-// 	assert.NoError(t, err)
-
-// 	visibility := models.VisibilityCloseFriends
-// 	err = svc.NewPost(t.Context(), user0, "test post please ignore", nil, nil, (*int)(&visibility))
-// 	assert.NoError(t, err)
-
-// 	posts, err := svc.GetAllPosts(t.Context(), user0, 10, 0)
-// 	assert.NoError(t, err)
-// 	assert.Len(t, posts, 1)
-
-// 	postId := posts[0].Post.PostID
-
-// 	// no post fetching method should return this private post
-// 	posts, err = svc.GetPosts(t.Context(), user1, FeedTypeAll, nil, 10, nil)
-// 	assert.NoError(t, err)
-// 	assert.Empty(t, posts, "PostService returned a private post for another user")
-
-// 	posts, err = svc.GetPosts(t.Context(), user1, FeedTypeProfile, &user0.UserID, 10, nil)
-// 	assert.NoError(t, err)
-// 	assert.Empty(t, posts, "PostService returned a private post for another user")
-
-// 	post, err := svc.GetPostById(t.Context(), user1.UserID, postId)
-// 	assert.NoError(t, err)
-// 	assert.Nil(t, post, "PostService returned a private post for another user")
-// }

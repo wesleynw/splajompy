@@ -146,18 +146,19 @@ func (s *UserService) IsBlockingUser(ctx context.Context, userId int, targetUser
 	return s.userRepository.IsUserBlockingUser(ctx, userId, targetUserId)
 }
 
-func (s *UserService) BlockUser(ctx context.Context, currentUser models.PublicUser, userId int) error {
-	err := s.userRepository.UnfollowUser(ctx, currentUser.UserID, userId)
+// BlockUser blocks the target user
+func (s *UserService) BlockUser(ctx context.Context, currentUser models.PublicUser, targetUserId int) error {
+	err := s.userRepository.UnfollowUser(ctx, currentUser.UserID, targetUserId)
 	if err != nil {
 		return err
 	}
 
-	err = s.userRepository.UnfollowUser(ctx, userId, currentUser.UserID)
+	err = s.userRepository.UnfollowUser(ctx, targetUserId, currentUser.UserID)
 	if err != nil {
 		return err
 	}
 
-	return s.userRepository.BlockUser(ctx, currentUser.UserID, userId)
+	return s.userRepository.BlockUser(ctx, currentUser.UserID, targetUserId)
 }
 
 func (s *UserService) UnblockUser(ctx context.Context, currentUser models.PublicUser, userId int) error {

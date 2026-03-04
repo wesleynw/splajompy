@@ -62,8 +62,8 @@ func (r DBPostRepository) DeletePost(ctx context.Context, postId int) error {
 // GetPostById retrieves a post by ID
 func (r DBPostRepository) GetPostById(ctx context.Context, postId int, currentUserId int) (*models.Post, error) {
 	var dbPost, err = r.querier.GetPostById(ctx, queries.GetPostByIdParams{
-		PostID: postId,
-		UserID: currentUserId,
+		PostID:       postId,
+		TargetUserID: currentUserId,
 	})
 	if err != nil {
 		return nil, err
