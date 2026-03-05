@@ -13,7 +13,7 @@ import (
 )
 
 const deleteNotificationById = `-- name: DeleteNotificationById :exec
-DELETE FROM notifications 
+DELETE FROM notifications
 WHERE notification_id = $1
 `
 
@@ -24,8 +24,8 @@ func (q *Queries) DeleteNotificationById(ctx context.Context, notificationID int
 
 const findUnreadLikeNotificationForComment = `-- name: FindUnreadLikeNotificationForComment :one
 SELECT notification_id, user_id, post_id, comment_id, target_user_id, message, link, viewed, facets, notification_type, created_at
-FROM notifications 
-WHERE user_id = $1 
+FROM notifications
+WHERE user_id = $1
   AND notification_type = 'like'
   AND viewed = FALSE
   AND post_id = $2
@@ -61,8 +61,8 @@ func (q *Queries) FindUnreadLikeNotificationForComment(ctx context.Context, arg 
 
 const findUnreadLikeNotificationForPost = `-- name: FindUnreadLikeNotificationForPost :one
 SELECT notification_id, user_id, post_id, comment_id, target_user_id, message, link, viewed, facets, notification_type, created_at
-FROM notifications 
-WHERE user_id = $1 
+FROM notifications
+WHERE user_id = $1
   AND notification_type = 'like'
   AND viewed = FALSE
   AND post_id = $2
@@ -123,7 +123,7 @@ func (q *Queries) GetNotificationById(ctx context.Context, notificationID int) (
 
 const getNotificationsForUserId = `-- name: GetNotificationsForUserId :many
 SELECT notification_id, user_id, post_id, comment_id, target_user_id, message, link, viewed, facets, notification_type, created_at
-FROM notifications 
+FROM notifications
 WHERE user_id = $1
 ORDER BY created_at DESC
 LIMIT $2
@@ -223,7 +223,7 @@ func (q *Queries) GetReadNotificationsForUserIdWithTimeOffset(ctx context.Contex
 
 const getUnreadNotificationsForUserId = `-- name: GetUnreadNotificationsForUserId :many
 SELECT notification_id, user_id, post_id, comment_id, target_user_id, message, link, viewed, facets, notification_type, created_at
-FROM notifications 
+FROM notifications
 WHERE user_id = $1 AND viewed = FALSE
 ORDER BY created_at DESC
 LIMIT $2
