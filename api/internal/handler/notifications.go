@@ -11,6 +11,8 @@ import (
 )
 
 // GetAllNotificationByUserId GET /notifications
+//
+// Deprecated: prefer other methods with cursor offset
 func (h *Handler) GetAllNotificationByUserId(w http.ResponseWriter, r *http.Request) {
 	currentUser := h.getAuthenticatedUser(r)
 

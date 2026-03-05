@@ -1,6 +1,6 @@
 -- name: GetNotificationsForUserId :many
 SELECT *
-FROM notifications 
+FROM notifications
 WHERE user_id = $1
 ORDER BY created_at DESC
 LIMIT $2
@@ -36,7 +36,7 @@ WHERE user_id = $1 AND viewed = FALSE;
 
 -- name: GetUnreadNotificationsForUserId :many
 SELECT *
-FROM notifications 
+FROM notifications
 WHERE user_id = $1 AND viewed = FALSE
 ORDER BY created_at DESC
 LIMIT $2
@@ -64,8 +64,8 @@ LIMIT $3;
 
 -- name: FindUnreadLikeNotificationForPost :one
 SELECT *
-FROM notifications 
-WHERE user_id = $1 
+FROM notifications
+WHERE user_id = $1
   AND notification_type = 'like'
   AND viewed = FALSE
   AND post_id = $2
@@ -75,8 +75,8 @@ LIMIT 1;
 
 -- name: FindUnreadLikeNotificationForComment :one
 SELECT *
-FROM notifications 
-WHERE user_id = $1 
+FROM notifications
+WHERE user_id = $1
   AND notification_type = 'like'
   AND viewed = FALSE
   AND post_id = $2
@@ -85,5 +85,5 @@ ORDER BY created_at DESC
 LIMIT 1;
 
 -- name: DeleteNotificationById :exec
-DELETE FROM notifications 
+DELETE FROM notifications
 WHERE notification_id = $1;
