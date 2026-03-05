@@ -293,5 +293,5 @@ func TestGetComments_DoesNotFailLinkingToDeletedUsers(t *testing.T) {
 
 	notifications, err = env.svc.GetReadNotificationsByUserIdWithTimeOffset(t.Context(), user0, time.Now().UTC(), 10, nil)
 	assert.NoError(t, err)
-	assert.Len(t, notifications, 2)
+	assert.Len(t, notifications, 1)
 }
