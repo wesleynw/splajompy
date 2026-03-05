@@ -1,0 +1,2 @@
+ALTER TABLE notifications
+DROP CONSTRAINT notifications_target_user_id_fkey

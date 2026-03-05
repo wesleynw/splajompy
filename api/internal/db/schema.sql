@@ -89,7 +89,7 @@ CREATE TABLE notifications (
     user_id INT NOT NULL,
     post_id INT NULL,
     comment_id INT NULL,
-    target_user_id INT NULL,
+    target_user_id INT NULL REFERENCES users(user_id) ON DELETE SET NULL,
     message TEXT NOT NULL,
     link TEXT NULL,
     viewed BOOLEAN NOT NULL DEFAULT FALSE,
