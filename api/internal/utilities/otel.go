@@ -3,12 +3,15 @@ package utilities
 import (
 	"context"
 	"errors"
+	"log/slog"
+	"os"
 
+	"go.opentelemetry.io/contrib/bridges/otelslog"
 	"go.opentelemetry.io/contrib/instrumentation/host"
 	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploghttp"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
-	"go.opentelemetry.io/otel/exporters/stdout/stdoutlog"
 	"go.opentelemetry.io/otel/log/global"
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/sdk/log"
@@ -77,6 +80,11 @@ func SetupOTelSDK(ctx context.Context) (shutdown func(context.Context) error, er
 	}
 	shutdownFuncs = append(shutdownFuncs, loggerProvider.Shutdown)
 	global.SetLoggerProvider(loggerProvider)
+	otelHandler := otelslog.NewHandler("api")
+	stdoutHandler := slog.NewTextHandler(os.Stdout, nil)
+	multiHandler := slog.NewMultiHandler(otelHandler, stdoutHandler)
+	logger := slog.New(multiHandler)
+	slog.SetDefault(logger)
 
 	return
 }
@@ -112,13 +120,13 @@ func newMeterProvider() (*metric.MeterProvider, error) {
 }
 
 func newLoggerProvider() (*log.LoggerProvider, error) {
-	logExporter, err := stdoutlog.New()
+	otlpExporter, err := otlploghttp.New(context.Background())
 	if err != nil {
 		return nil, err
 	}
 
 	loggerProvider := log.NewLoggerProvider(
-		log.WithProcessor(log.NewBatchProcessor(logExporter)),
+		log.WithProcessor(log.NewBatchProcessor(otlpExporter)),
 	)
 	return loggerProvider, nil
 }
