@@ -3,7 +3,7 @@ package middleware
 import (
 	"context"
 	"errors"
-	"fmt"
+	"log/slog"
 	"net/http"
 	"strings"
 	"time"
@@ -32,12 +32,14 @@ func AuthMiddleware(q *queries.Queries) func(http.Handler) http.Handler {
 			header := r.Header.Get("Authorization")
 
 			if header == "" {
+				slog.WarnContext(ctx, "auth: missing authorization header")
 				http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
 				return
 			}
 
 			parts := strings.Split(header, "Bearer ")
 			if len(parts) != 2 {
+				slog.WarnContext(ctx, "auth: malformed authorization header")
 				http.Error(w, "Missing authorization header", http.StatusBadRequest)
 				return
 			}
@@ -53,16 +55,20 @@ func AuthMiddleware(q *queries.Queries) func(http.Handler) http.Handler {
 			// people out automatically
 			var connectError *pgconn.ConnectError
 			if errors.As(err, &connectError) {
+				slog.ErrorContext(ctx, "auth: db connection error looking up session", "error", err)
 				http.Error(w, "something went wrong", http.StatusInternalServerError)
 				return
 			} else if err != nil {
+				slog.WarnContext(ctx, "auth: session not found", "error", err)
 				http.Error(w, "no session found", http.StatusUnauthorized)
 				return
 			}
 
 			if time.Now().Unix() >= session.ExpiresAt.Time.Unix() {
+				slog.InfoContext(ctx, "auth: session expired", "session_id", session.ID, "expired_at", session.ExpiresAt.Time)
 				err = q.DeleteSession(ctx, session.ID)
 				if err != nil {
+					slog.ErrorContext(ctx, "auth: failed to delete expired session", "session_id", session.ID, "error", err)
 					http.Error(w, "failed to delete expired session", http.StatusInternalServerError)
 					return
 				}
@@ -82,12 +88,13 @@ func AuthMiddleware(q *queries.Queries) func(http.Handler) http.Handler {
 					},
 				})
 				if err != nil {
-					fmt.Printf("Failed to extend session: %v\n", err)
+					slog.WarnContext(ctx, "auth: failed to extend session", "session_id", session.ID, "error", err)
 				}
 			}
 
 			dbUser, err := q.GetUserById(ctx, session.UserID)
 			if err != nil {
+				slog.ErrorContext(ctx, "auth: failed to fetch user", "user_id", session.UserID, "error", err)
 				utilities.HandleError(w, http.StatusBadRequest, err.Error())
 				return
 			}
