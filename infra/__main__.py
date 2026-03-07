@@ -115,7 +115,7 @@ api_spec = cast(
                 },
                 "http_port": 8080,
                 "instance_count": 1,
-                "instance_size_slug": "apps-s-1vcpu-0.5gb",
+                "instance_size_slug": "basic-xs",
                 "internal_ports": [4317, 4318],
                 "name": api_service_name,
                 "source_dir": "api",
