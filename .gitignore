@@ -57,6 +57,24 @@ Carthage/Build/
 *.env
 .envrc
 
+# Python caches
+__pycache__/
+*.py[cod]
+.ruff_cache/
+.uv-cache/
+
+# Virtual environments
+.venv/
+venv/
+
+# Pulumi local workspace
+.pulumi/
+infra/Pulumi.*.yaml
+!infra/Pulumi.yaml
+!infra/Pulumi.prod.yaml
+infra/esc.*.local.json
+infra/backups/
+
 # OS specific files
 .DS_Store
 .DS_Store?
@@ -83,3 +101,4 @@ npm-debug.log*
 # Temporary files
 tmp/
 temp/
+*.bak
