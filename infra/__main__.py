@@ -99,8 +99,12 @@ api_spec = cast(
                         env_type="SECRET",
                         scope="RUN_TIME",
                     ),
-                    secret_env("OTEL_EXPORTER_OTLP_ENDPOINT", "apiOtelExporterOtlpEndpoint"),
-                    secret_env("OTEL_EXPORTER_OTLP_PROTOCOL", "apiOtelExporterOtlpProtocol"),
+                    secret_env(
+                        "OTEL_EXPORTER_OTLP_ENDPOINT", "apiOtelExporterOtlpEndpoint"
+                    ),
+                    secret_env(
+                        "OTEL_EXPORTER_OTLP_PROTOCOL", "apiOtelExporterOtlpProtocol"
+                    ),
                     secret_env("OTEL_RESOURCE_ATTRIBUTES", "apiOtelResourceAttributes"),
                     secret_env("RESEND_API_KEY", "apiResendApiKey"),
                 ],
