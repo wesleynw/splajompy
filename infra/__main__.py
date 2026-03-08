@@ -99,12 +99,8 @@ api_spec = cast(
                         env_type="SECRET",
                         scope="RUN_TIME",
                     ),
-                    secret_env(
-                        "OTEL_EXPORTER_OTLP_ENDPOINT", "apiOtelExporterOtlpEndpoint"
-                    ),
-                    secret_env(
-                        "OTEL_EXPORTER_OTLP_PROTOCOL", "apiOtelExporterOtlpProtocol"
-                    ),
+                    secret_env("OTEL_EXPORTER_OTLP_ENDPOINT", "apiOtelExporterOtlpEndpoint"),
+                    secret_env("OTEL_EXPORTER_OTLP_PROTOCOL", "apiOtelExporterOtlpProtocol"),
                     secret_env("OTEL_RESOURCE_ATTRIBUTES", "apiOtelResourceAttributes"),
                     secret_env("RESEND_API_KEY", "apiResendApiKey"),
                 ],
@@ -115,7 +111,7 @@ api_spec = cast(
                 },
                 "http_port": 8080,
                 "instance_count": 1,
-                "instance_size_slug": "basic-xs",
+                "instance_size_slug": "apps-s-1vcpu-0.5gb",
                 "internal_ports": [4317, 4318],
                 "name": api_service_name,
                 "source_dir": "api",
