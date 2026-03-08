@@ -128,6 +128,8 @@ func (r *S3BucketRepository) GetPresignedGetObject(ctx context.Context, key stri
 		return nil, nil
 	}
 
+	// because of some digitalocean trickery, we're just able to replace the url w/ the CDN here:
+	// https://docs.digitalocean.com/products/spaces/how-to/enable-cdn/
 	url := strings.Replace(req.URL, "splajompy-bucket.nyc3.digitaloceanspaces.com", "splajompy-bucket.nyc3.cdn.digitaloceanspaces.com", 1)
 
 	return &url, nil
