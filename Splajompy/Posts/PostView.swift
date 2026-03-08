@@ -83,6 +83,7 @@ struct PostView: View {
       timestampAndMenu
     }
     .frame(maxWidth: .infinity)
+    .contentShape(Rectangle())
     .animation(.easeInOut(duration: 0.3), value: post.isPinned)
     .padding(.vertical, 4)
     .padding(.horizontal, 16)
