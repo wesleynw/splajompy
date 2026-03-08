@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"math"
 	"os"
 	"sort"
@@ -116,7 +117,7 @@ func (s *PostService) NewPost(ctx context.Context, currentUser models.PublicUser
 }
 
 func (s *PostService) NewPresignedStagingUrl(ctx context.Context, currentUser models.PublicUser, extension *string, folder *string) (string, string, error) {
-	return s.bucketRepository.GeneratePresignedURL(ctx, currentUser.UserID, extension, folder)
+	return s.bucketRepository.GetPresignedPutObject(ctx, currentUser.UserID, extension, folder)
 }
 
 // GetPostById fetches a post by its id.
@@ -138,7 +139,11 @@ func (s *PostService) GetPostById(ctx context.Context, userId int, postId int) (
 		images = []queries.Image{}
 	}
 	for i := range images {
-		images[i].ImageBlobUrl = s.bucketRepository.GetObjectURL(images[i].ImageBlobUrl)
+		url, err := s.bucketRepository.GetPresignedGetObject(ctx, images[i].ImageBlobUrl)
+		if err != nil {
+			return nil, errors.New("unable to generate presigned url for post image")
+		}
+		images[i].ImageBlobUrl = *url
 	}
 
 	commentCount, _ := s.postRepository.GetCommentCountForPost(ctx, post.PostID)
@@ -319,7 +324,13 @@ func (s *PostService) ReportPost(ctx context.Context, currentUser *models.Public
 	}
 
 	for i := range images {
-		images[i].ImageBlobUrl = s.bucketRepository.GetObjectURL(images[i].ImageBlobUrl)
+		url, err := s.bucketRepository.GetPresignedGetObject(ctx, images[i].ImageBlobUrl)
+		if err != nil {
+			slog.ErrorContext(ctx, "unable to generate presigned url")
+			return nil
+		}
+
+		images[i].ImageBlobUrl = *url
 	}
 
 	html, err := templates.GeneratePostReportEmail(currentUser.Username, author.Username, author.UserID, *post, images)

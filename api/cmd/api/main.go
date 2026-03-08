@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"log"
+	"log/slog"
 	"net/http"
 	"os"
 
@@ -28,7 +29,7 @@ func main() {
 
 	err := godotenv.Load()
 	if err != nil {
-		log.Printf("no .env file present")
+		slog.InfoContext(ctx, "no .env file present")
 	}
 
 	// Setup OpenTelemetry SDK
