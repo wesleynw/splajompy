@@ -18,8 +18,8 @@ type BucketRepository interface {
 	CopyObject(ctx context.Context, sourceKey, destinationKey string) error
 	DeleteObject(ctx context.Context, key string) error
 	DeleteObjects(ctx context.Context, keys []string) error
-	GeneratePresignedURL(ctx context.Context, userID int, extension, folder *string) (string, string, error)
-	GetObjectURL(key string) string
+	GetPresignedPutObject(ctx context.Context, userID int, extension, folder *string) (string, string, error)
+	GetPresignedGetObject(ctx context.Context, key string) (*string, error)
 }
 
 type S3BucketRepository struct {
@@ -43,7 +43,6 @@ func (r *S3BucketRepository) CopyObject(ctx context.Context, sourceKey, destinat
 		Bucket:     aws.String(r.bucketName),
 		CopySource: aws.String(r.bucketName + "/" + sourceKey),
 		Key:        aws.String(destinationKey),
-		ACL:        types.ObjectCannedACLPublicRead,
 	})
 
 	return err
@@ -94,7 +93,8 @@ func (r *S3BucketRepository) DeleteObjects(ctx context.Context, keys []string) e
 	return nil
 }
 
-func (r *S3BucketRepository) GeneratePresignedURL(ctx context.Context, userID int, extension, folder *string) (string, string, error) {
+// GetPresignedPutObject returns a URL allowing a user to upload a file to a specified location
+func (r *S3BucketRepository) GetPresignedPutObject(ctx context.Context, userID int, extension, folder *string) (string, string, error) {
 	presignClient := s3.NewPresignClient(r.s3Client)
 
 	s3Key := fmt.Sprintf("%s/posts/staging/%d/%s/%s.%s", r.environment, userID, *folder, uuid.New(), *extension)
@@ -103,21 +103,36 @@ func (r *S3BucketRepository) GeneratePresignedURL(ctx context.Context, userID in
 		Bucket:      aws.String(r.bucketName),
 		Key:         aws.String(s3Key),
 		ContentType: extension,
-		ACL:         types.ObjectCannedACLPublicRead,
 	}, func(opts *s3.PresignOptions) {
 		opts.Expires = time.Minute * 5
 	})
 
 	if err != nil {
-		log.Printf("Couldn't get a presigned request to put. Here's why: %v\n", err)
+		log.Printf("unable to generate a presigned url: %v\n", err)
 		return "", "", err
 	}
 
 	return s3Key, req.URL, nil
 }
 
-func (r *S3BucketRepository) GetObjectURL(key string) string {
-	return r.cdnBaseURL + key
+func (r *S3BucketRepository) GetPresignedGetObject(ctx context.Context, key string) (*string, error) {
+	presignClient := s3.NewPresignClient(r.s3Client)
+
+	req, err := presignClient.PresignGetObject(ctx, &s3.GetObjectInput{
+		Bucket: aws.String(r.bucketName),
+		Key:    aws.String(key),
+	}, func(po *s3.PresignOptions) {
+		po.Expires = time.Hour * 24
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	// because of some digitalocean trickery, we're just able to replace the url w/ the CDN here:
+	// https://docs.digitalocean.com/products/spaces/how-to/enable-cdn/
+	url := strings.Replace(req.URL, "splajompy-bucket.nyc3.digitaloceanspaces.com", "splajompy-bucket.nyc3.cdn.digitaloceanspaces.com", 1)
+
+	return &url, nil
 }
 
 func GetDestinationKey(environment string, userID, postID int, sourceKey string) string {

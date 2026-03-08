@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"os"
 	"testing"
 
@@ -8,9 +9,20 @@ import (
 	"github.com/stretchr/testify/require"
 	"splajompy.com/api/v2/internal/models"
 	"splajompy.com/api/v2/internal/repositories"
-	"splajompy.com/api/v2/internal/repositories/fakes"
 	"splajompy.com/api/v2/internal/testutil"
 )
+
+type fakeBucketRepository struct{}
+
+func (f *fakeBucketRepository) CopyObject(_ context.Context, _, _ string) error { return nil }
+func (f *fakeBucketRepository) DeleteObject(_ context.Context, _ string) error   { return nil }
+func (f *fakeBucketRepository) DeleteObjects(_ context.Context, _ []string) error { return nil }
+func (f *fakeBucketRepository) GetPresignedPutObject(_ context.Context, _ int, _, _ *string) (string, string, error) {
+	return "", "", nil
+}
+func (f *fakeBucketRepository) GetPresignedGetObject(_ context.Context, key string) (*string, error) {
+	return &key, nil
+}
 
 type postServiceTestEnv struct {
 	svc *PostService
@@ -24,7 +36,7 @@ func setupTest(t *testing.T) postServiceTestEnv {
 	userRepository := repositories.NewDBUserRepository(testDb.Queries)
 	likeRepository := repositories.NewDBLikeRepository(testDb.Queries)
 	notificationRepository := repositories.NewDBNotificationRepository(testDb.Queries)
-	bucketRepository := fakes.NewFakeBucketRepository()
+	bucketRepository := &fakeBucketRepository{}
 
 	svc := NewPostService(postRepository, userRepository, likeRepository, notificationRepository, bucketRepository, nil)
 

@@ -47,12 +47,21 @@
       }
     },
     {
+      "identity" : "plcrashreporter",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/microsoft/plcrashreporter.git",
+      "state" : {
+        "revision" : "0254f941c646b1ed17b243654723d0f071e990d0",
+        "version" : "1.12.2"
+      }
+    },
+    {
       "identity" : "posthog-ios",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/PostHog/posthog-ios.git",
       "state" : {
-        "revision" : "3f77915239d2c7644f55c8b513c257b8485d1c32",
-        "version" : "3.42.1"
+        "revision" : "759a19e1e824bc80dde9cd4ff9a8204a4f50752e",
+        "version" : "3.45.1"
       }
     },
     {

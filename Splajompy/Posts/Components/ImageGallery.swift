@@ -196,6 +196,14 @@ struct ImageGallery: View {
             state in
             if let image = state.image {
               image.resizable()
+            } else if state.error != nil {
+              Color.clear
+                .background(.thinMaterial)
+                .overlay {
+                  Image(systemName: "arrow.clockwise")
+                    .foregroundStyle(.secondary)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
               ProgressView()
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -240,6 +248,14 @@ struct ImageGallery: View {
           LazyImage(url: url) { state in
             if let img = state.image {
               img.resizable()
+            } else if state.error != nil {
+              Color.clear
+                .background(.thinMaterial)
+                .overlay {
+                  Image(systemName: "photo.badge.exclamationmark")
+                    .foregroundStyle(.secondary)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
               ProgressView()
                 #if os(macOS)
@@ -253,7 +269,9 @@ struct ImageGallery: View {
           .frame(width: geometry.size.width, height: geometry.size.height)
           .clipShape(RoundedRectangle(cornerRadius: 8))
           .contentShape(.rect)
-          .modifier(TransitionSourceModifier(id: "image-0", namespace: animation))
+          .modifier(
+            TransitionSourceModifier(id: "image-0", namespace: animation)
+          )
         }
         .buttonStyle(.plain)
       }
