@@ -1,5 +1,5 @@
-import Nuke
 import Foundation
+import Nuke
 
 /// Initializes an image cache
 func initializeImageCache() {
