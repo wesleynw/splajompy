@@ -197,7 +197,7 @@ struct ImageGallery: View {
             state in
             if let image = state.image {
               image.resizable()
-            } else if (state.error) != nil {
+            } else if state.error != nil {
               Color.clear
                 .background(.thinMaterial)
                 .overlay {
@@ -249,7 +249,7 @@ struct ImageGallery: View {
           LazyImage(url: url) { state in
             if let img = state.image {
               img.resizable()
-            } else if (state.error) != nil {
+            } else if state.error != nil {
               Color.clear
                 .background(.thinMaterial)
                 .overlay {

@@ -16,12 +16,11 @@ func initializeImageCache() {
 
 final class ImagePipelineCustomDelegate: ImagePipelineDelegate {
   /// cacheKey strips s3 presigning params from URL, which change on every reload
-//  func cacheKey(for request: ImageRequest, pipeline: ImagePipeline) -> String? {
-//    guard let url = request.url,
-//      var components = URLComponents(url: url, resolvingAgainstBaseURL: false)
-//    else { return nil }
-//    components.query = nil
-//    let key = components.url?.absoluteString
-//    return components.url?.absoluteString
-//  }
+  func cacheKey(for request: ImageRequest, pipeline: ImagePipeline) -> String? {
+    guard let url = request.url,
+      var components = URLComponents(url: url, resolvingAgainstBaseURL: false)
+    else { return nil }
+    components.query = nil
+    return components.url?.absoluteString
+  }
 }

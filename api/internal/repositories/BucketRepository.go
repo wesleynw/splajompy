@@ -125,7 +125,7 @@ func (r *S3BucketRepository) GetPresignedGetObject(ctx context.Context, key stri
 		po.Expires = time.Hour * 24
 	})
 	if err != nil {
-		return nil, nil
+		return nil, err
 	}
 
 	// because of some digitalocean trickery, we're just able to replace the url w/ the CDN here:
