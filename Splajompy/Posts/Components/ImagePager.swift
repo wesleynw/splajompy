@@ -38,12 +38,13 @@ struct ImagePager: View {
           TabView(selection: $currentIndex) {
             ForEach(Array(imageUrls.enumerated()), id: \.offset) { index, url in
               ZoomableAsyncImage(imageUrl: url)
-                .edgesIgnoringSafeArea(.all)
+                .ignoresSafeArea()
                 .tag(index)
             }
           }
           .tabViewStyle(PageTabViewStyle())
           .indexViewStyle(PageIndexViewStyle(backgroundDisplayMode: .always))
+          .ignoresSafeArea()
         #else
           ZStack {
             ZoomableAsyncImageMac(imageUrl: imageUrls[currentIndex])
@@ -132,7 +133,7 @@ struct ImagePager: View {
       if downloadState == .error {
         Task {
           try? await Task.sleep(for: .seconds(2.5))
-          await MainActor.run { downloadState = .idle }
+          downloadState = .idle
         }
       }
     }
