@@ -36,6 +36,8 @@ import SwiftUI
     }
 
     func updateUIView(_ uiView: UIViewType, context: Context) {
+      guard let scrollView = uiView as? UIScrollView else { return }
+      guard context.coordinator.imageLoaderView?.url != URL(string: imageUrl) else { return }
       context.coordinator.imageLoaderView?.url = URL(string: imageUrl)
     }
 
