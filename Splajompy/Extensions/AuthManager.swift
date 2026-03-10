@@ -38,7 +38,7 @@ class AuthManager: Sendable {
     isAuthenticated = hasToken && hasValidUserData
 
     if hasToken && !hasValidUserData {
-      signOut()
+      signOut(reason: "missing_user_data_on_init")
     }
   }
 
@@ -59,7 +59,8 @@ class AuthManager: Sendable {
     return tokenString.trimmingCharacters(in: CharacterSet(charactersIn: "\""))
   }
 
-  func signOut() {
+  func signOut(reason: String = "manual") {
+    PostHogSDK.shared.capture("user_signout", properties: ["reason": reason])
     KeychainHelper.standard.delete(service: "session-token", account: "self")
 
     UserDefaults.standard.removeObject(forKey: "CurrentUserID")
@@ -398,7 +399,7 @@ class AuthManager: Sendable {
 
     switch result {
     case .success:
-      signOut()
+      signOut(reason: "account_deleted")
       return (true, "")
     case .error(let error):
       return (false, error.localizedDescription)
