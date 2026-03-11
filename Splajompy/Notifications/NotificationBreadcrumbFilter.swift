@@ -17,24 +17,29 @@ struct NotificationBreadcrumbFilter: View {
             Image(systemName: "xmark")
               .font(.callout)
               .fontWeight(.semibold)
+              .contentShape(.rect)
           }
+          .padding()
           .buttonStyle(.plain)
-          .padding(.horizontal)
+          .background(.quaternary, in: .circle)
           .transition(.move(edge: .leading).combined(with: .opacity))
-          .contentShape(.rect)
         }
 
         ForEach(filterOptions) { filterOption in
           if filter == .all || filter == filterOption {
             Button(action: {
-              withAnimation(.spring) { filter = filterOption }
+              withAnimation(.spring) {
+                if filter == filterOption {
+                  filter = .all
+                } else {
+                  filter = filterOption
+                }
+              }
             }) {
               Text(filterOption.displayName)
-                .font(.callout)
                 .fontWeight(.semibold)
                 .foregroundStyle(.primary)
-                .padding(.horizontal)
-                .padding(.vertical, 10)
+                .padding()
                 .background(
                   filter == filterOption ? .blue.opacity(0.66) : .clear
                 )
@@ -58,8 +63,7 @@ struct NotificationBreadcrumbFilter: View {
 }
 
 #Preview {
-  @Previewable @State var filter: NotificationFilter = .all
+  @Previewable @State var filter: NotificationFilter = .mention
 
   NotificationBreadcrumbFilter(filter: $filter)
-    .padding()
 }
