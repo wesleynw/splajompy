@@ -19,10 +19,9 @@ struct NotificationBreadcrumbFilter: View {
               .fontWeight(.semibold)
               .contentShape(.rect)
           }
+          .padding()
           .buttonStyle(.plain)
-          .padding(.horizontal)
-          .frame(maxHeight: .infinity)
-          .background(.quaternary, in: .capsule)
+          .background(.quaternary, in: .circle)
           .transition(.move(edge: .leading).combined(with: .opacity))
         }
 
@@ -38,11 +37,9 @@ struct NotificationBreadcrumbFilter: View {
               }
             }) {
               Text(filterOption.displayName)
-                .font(.callout)
                 .fontWeight(.semibold)
                 .foregroundStyle(.primary)
-                .padding(.horizontal)
-                .padding(.vertical, 10)
+                .padding()
                 .background(
                   filter == filterOption ? .blue.opacity(0.66) : .clear
                 )
@@ -60,7 +57,6 @@ struct NotificationBreadcrumbFilter: View {
       }
       .padding(4)
     }
-    .fixedSize(horizontal: false, vertical: true)
     .scrollIndicators(.hidden)
     .sensoryFeedback(.impact, trigger: filter)
   }
