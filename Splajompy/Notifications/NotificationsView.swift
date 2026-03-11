@@ -9,30 +9,47 @@ struct NotificationsView: View {
   }
 
   var body: some View {
-    Group {
+    List {
+      Section {
+        if case .loaded(let sections, let unreadNotifications) = viewModel.state,
+          !sections.isEmpty || !unreadNotifications.isEmpty
+        {
+          notificationsSectionedList(
+            sections: sections,
+            unreadNotifications: unreadNotifications
+          )
+        }
+      } header: {
+        NotificationBreadcrumbFilter(filter: $viewModel.selectedFilter)
+          .padding(.leading, 8)
+          .frame(maxWidth: .infinity, alignment: .leading)
+          .listRowInsets(EdgeInsets())
+      }
+    }
+    .listStyle(.plain)
+    .contentMargins(.top, 0, for: .scrollContent)
+    .overlay {
       switch viewModel.state {
       case .idle, .loading:
         ProgressView()
           #if os(macOS)
             .controlSize(.small)
           #endif
-          .frame(maxWidth: .infinity, maxHeight: .infinity)
-      case .loaded(let sections, let unreadNotifications):
-        if sections.isEmpty && unreadNotifications.isEmpty {
-          noNotificationsView
-        } else {
-          notificationsSectionedList(
-            sections: sections,
-            unreadNotifications: unreadNotifications
-          )
-        }
+      case .loaded(let sections, let unreadNotifications)
+      where sections.isEmpty && unreadNotifications.isEmpty:
+        noNotificationsView
       case .failed(let error):
         ErrorScreen(
           errorString: error.localizedDescription,
           onRetry: { await viewModel.refreshNotifications() }
         )
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+      default:
+        EmptyView()
       }
+    }
+    .refreshable {
+      await viewModel.refreshNotifications()
+      refreshId = UUID()
     }
     #if os(macOS)
       .frame(maxWidth: .infinity)
@@ -41,11 +58,6 @@ struct NotificationsView: View {
     .onAppear {
       if case .idle = viewModel.state {
         Task { await viewModel.refreshNotifications() }
-      }
-    }
-    .toolbar {
-      ToolbarItem(placement: .primaryAction) {
-        NotificationFilterMenu(filter: $viewModel.selectedFilter)
       }
     }
     #if os(iOS)
@@ -95,7 +107,7 @@ struct NotificationsView: View {
     sections: [NotificationDateSection: [Notification]],
     unreadNotifications: [Notification]
   ) -> some View {
-    List {
+    Group {
       if !unreadNotifications.isEmpty {
         Section {
           ForEach(unreadNotifications, id: \.notificationId) { notification in
@@ -129,15 +141,18 @@ struct NotificationsView: View {
         } header: {
           HStack {
             Text("New")
+              .fontWeight(.semibold)
 
             Spacer()
 
-            Button("Mark All Read") {
+            Button(action: {
               viewModel.markAllNotificationsAsRead()
+            }) {
+              Text("Mark All Read")
+                .fontWeight(.semibold)
             }
-            .font(.caption)
-            .foregroundStyle(.blue)
-            .padding(5)
+            .controlSize(.small)
+            .buttonStyle(.bordered)
           }
         }
       }
@@ -149,7 +164,7 @@ struct NotificationsView: View {
 
         ForEach(NotificationDateSection.allCases, id: \.self) { section in
           if let notifications = sections[section], !notifications.isEmpty {
-            Section(header: Text(section.rawValue)) {
+            Section(header: Text(section.rawValue).fontWeight(.semibold)) {
               ForEach(notifications, id: \.notificationId) { notification in
                 NotificationRow(
                   notification: notification,
@@ -187,13 +202,6 @@ struct NotificationsView: View {
         .listRowSeparator(.hidden)
       }
     }
-    .frame(maxWidth: .infinity)
-    .listStyle(.plain)
-    .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
-    .refreshable {
-      await viewModel.refreshNotifications()
-      refreshId = UUID()
-    }
   }
 }
 
@@ -204,5 +212,6 @@ struct NotificationsView: View {
         notificationService: MockNotificationService()
       )
     )
+    .environment(AuthManager())
   }
 }
