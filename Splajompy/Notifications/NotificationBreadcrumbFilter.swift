@@ -1,6 +1,8 @@
 import SwiftUI
 
-private let filterOptions: [NotificationFilter] = [.mention, .like, .comment, .followers, .poll]
+private let filterOptions: [NotificationFilter] = [
+  .mention, .comment, .like, .followers, .poll, .announcement,
+]
 
 struct NotificationBreadcrumbFilter: View {
   @Binding var filter: NotificationFilter
@@ -17,8 +19,9 @@ struct NotificationBreadcrumbFilter: View {
               .fontWeight(.semibold)
           }
           .buttonStyle(.plain)
-          .padding(.trailing, 5)
+          .padding(.horizontal)
           .transition(.move(edge: .leading).combined(with: .opacity))
+          .contentShape(.rect)
         }
 
         ForEach(filterOptions) { filterOption in
@@ -30,8 +33,8 @@ struct NotificationBreadcrumbFilter: View {
                 .font(.callout)
                 .fontWeight(.semibold)
                 .foregroundStyle(.primary)
-                .padding(.horizontal, 8)
-                .padding(.vertical, 5)
+                .padding(.horizontal)
+                .padding(.vertical, 10)
                 .background(
                   filter == filterOption ? .blue.opacity(0.66) : .clear
                 )
@@ -50,6 +53,7 @@ struct NotificationBreadcrumbFilter: View {
       .padding(4)
     }
     .scrollIndicators(.hidden)
+    .sensoryFeedback(.impact, trigger: filter)
   }
 }
 
