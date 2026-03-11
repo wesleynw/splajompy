@@ -20,6 +20,8 @@ struct NotificationBreadcrumbFilter: View {
           }
           .buttonStyle(.plain)
           .padding(.horizontal)
+          .frame(maxHeight: .infinity)
+          .background(.quaternary, in: .capsule)
           .transition(.move(edge: .leading).combined(with: .opacity))
           .contentShape(.rect)
         }
@@ -52,14 +54,14 @@ struct NotificationBreadcrumbFilter: View {
       }
       .padding(4)
     }
+    .fixedSize(horizontal: false, vertical: true)
     .scrollIndicators(.hidden)
     .sensoryFeedback(.impact, trigger: filter)
   }
 }
 
 #Preview {
-  @Previewable @State var filter: NotificationFilter = .all
+  @Previewable @State var filter: NotificationFilter = .mention
 
   NotificationBreadcrumbFilter(filter: $filter)
-    .padding()
 }
