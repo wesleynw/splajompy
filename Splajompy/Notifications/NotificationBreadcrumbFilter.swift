@@ -1,8 +1,6 @@
 import SwiftUI
 
-let filterOptions: [NotificationFilter] = [
-  .mention, .like, .comment, .followers, .poll,
-]
+private let filterOptions: [NotificationFilter] = [.mention, .like, .comment, .followers, .poll]
 
 struct NotificationBreadcrumbFilter: View {
   @Binding var filter: NotificationFilter
@@ -12,7 +10,7 @@ struct NotificationBreadcrumbFilter: View {
       HStack(alignment: .center, spacing: 5) {
         if filter != .all {
           Button(action: {
-            filter = .all
+            withAnimation(.spring) { filter = .all }
           }) {
             Image(systemName: "xmark")
               .font(.callout)
@@ -26,7 +24,7 @@ struct NotificationBreadcrumbFilter: View {
         ForEach(filterOptions) { filterOption in
           if filter == .all || filter == filterOption {
             Button(action: {
-              filter = filterOption
+              withAnimation(.spring) { filter = filterOption }
             }) {
               Text(filterOption.displayName)
                 .font(.callout)
@@ -38,7 +36,6 @@ struct NotificationBreadcrumbFilter: View {
                   filter == filterOption ? .blue.opacity(0.66) : .clear
                 )
                 .background(.regularMaterial, in: .capsule)
-
             }
             .buttonStyle(.plain)
             .transition(
@@ -51,7 +48,6 @@ struct NotificationBreadcrumbFilter: View {
         }
       }
       .padding(4)
-      .animation(.spring, value: filter)
     }
     .scrollIndicators(.hidden)
   }
