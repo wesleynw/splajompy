@@ -17,19 +17,25 @@ struct NotificationBreadcrumbFilter: View {
             Image(systemName: "xmark")
               .font(.callout)
               .fontWeight(.semibold)
+              .contentShape(.rect)
           }
           .buttonStyle(.plain)
           .padding(.horizontal)
           .frame(maxHeight: .infinity)
           .background(.quaternary, in: .capsule)
           .transition(.move(edge: .leading).combined(with: .opacity))
-          .contentShape(.rect)
         }
 
         ForEach(filterOptions) { filterOption in
           if filter == .all || filter == filterOption {
             Button(action: {
-              withAnimation(.spring) { filter = filterOption }
+              withAnimation(.spring) {
+                if filter == filterOption {
+                  filter = .all
+                } else {
+                  filter = filterOption
+                }
+              }
             }) {
               Text(filterOption.displayName)
                 .font(.callout)
