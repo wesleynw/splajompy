@@ -448,31 +448,19 @@ func (s *PostService) GetPosts(ctx context.Context, currentUser models.PublicUse
 		if userId == nil {
 			return nil, errors.New("userId required for profile feed")
 		}
+
+		var pinnedPostId *int
+		versionAny := ctx.Value(middleware.AppVersionKey)
+		version, ok := versionAny.(string)
+		if ok && version != "unknown" && semver.Compare(version, "v1.4.0") >= 0 {
+			pinnedPostId, _ = s.postRepository.GetPinnedPostId(ctx, *userId)
+		}
+
 		postIDs, err = s.postRepository.GetPostIdsByUserIdCursor(ctx, currentUser.UserID, *userId, limit, beforeTimestamp)
 
-		if err == nil {
-			// get pinned post id for filtering (only for version >= 1.4.0)
-			versionAny := ctx.Value(middleware.AppVersionKey)
-			version, ok := versionAny.(string)
-			if ok && version != "unknown" && semver.Compare(version, "v1.4.0") >= 0 {
-				pinnedPostId, _ := s.postRepository.GetPinnedPostId(ctx, *userId)
-
-				if pinnedPostId != nil {
-					// filter out pinned post from regular results
-					filteredIds := make([]int, 0, len(postIDs))
-					for _, id := range postIDs {
-						if id != *pinnedPostId {
-							filteredIds = append(filteredIds, id)
-						}
-					}
-					postIDs = filteredIds
-
-					// for first page, prepend pinned post
-					if beforeTimestamp == nil {
-						postIDs = append([]int{*pinnedPostId}, postIDs...)
-					}
-				}
-			}
+		// for first page, prepend pinned post
+		if err == nil && pinnedPostId != nil && beforeTimestamp == nil {
+			postIDs = append([]int{*pinnedPostId}, postIDs...)
 		}
 	default:
 		return nil, errors.New("invalid feed type")

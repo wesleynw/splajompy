@@ -124,9 +124,12 @@ AND (
 );
 
 -- name: GetPostIdsByUserIdCursor :many
-SELECT post_id
+SELECT posts.post_id
 FROM posts
-WHERE user_id = @target_user_id::int AND (@before::timestamp IS NULL OR posts.created_at < @before::timestamp)
+JOIN users ON users.user_id = @target_user_id::int
+WHERE posts.user_id = @target_user_id::int
+AND (@before::timestamp IS NULL OR posts.created_at < @before::timestamp)
+AND (users.pinned_post_id IS NULL OR posts.post_id != users.pinned_post_id)
 AND NOT EXISTS (
     SELECT 1 FROM block WHERE block.user_id = posts.user_id AND block.target_user_id = @user_id
 )
@@ -144,5 +147,5 @@ AND (
             AND user_relationship.created_at < posts.created_at
     )
 )
-ORDER BY created_at DESC
+ORDER BY posts.created_at DESC
 LIMIT sqlc.arg('limit')::int;
