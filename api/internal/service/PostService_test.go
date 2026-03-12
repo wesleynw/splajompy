@@ -179,7 +179,7 @@ func TestGetPosts_ProfilePinnedPostDoesNotReduceSubsequentPageSize(t *testing.T)
 
 	const limit = 3
 
-	created := make([]*models.Post, 2*limit)
+	created := make([]*models.Post, 3*limit)
 	for i := range created {
 		p, err := env.svc.NewPost(ctx, user, fmt.Sprintf("post %d", i), nil, nil, nil)
 		require.NoError(t, err)
