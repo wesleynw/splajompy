@@ -2,11 +2,13 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"splajompy.com/api/v2/internal/middleware"
 	"splajompy.com/api/v2/internal/models"
 	"splajompy.com/api/v2/internal/repositories"
 	"splajompy.com/api/v2/internal/testutil"
@@ -14,8 +16,8 @@ import (
 
 type fakeBucketRepository struct{}
 
-func (f *fakeBucketRepository) CopyObject(_ context.Context, _, _ string) error { return nil }
-func (f *fakeBucketRepository) DeleteObject(_ context.Context, _ string) error   { return nil }
+func (f *fakeBucketRepository) CopyObject(_ context.Context, _, _ string) error   { return nil }
+func (f *fakeBucketRepository) DeleteObject(_ context.Context, _ string) error    { return nil }
 func (f *fakeBucketRepository) DeleteObjects(_ context.Context, _ []string) error { return nil }
 func (f *fakeBucketRepository) GetPresignedPutObject(_ context.Context, _ int, _, _ *string) (string, string, error) {
 	return "", "", nil
@@ -159,4 +161,43 @@ func TestGetPosts_HiddenWhenPosterBlockedViewer(t *testing.T) {
 	posts, err = env.svc.GetPosts(t.Context(), viewer, FeedTypeProfile, &poster.UserID, 10, nil)
 	assert.NoError(t, err)
 	assert.Len(t, posts, 0)
+}
+
+// TestGetPosts_ProfilePinnedPostDoesNotReduceSubsequentPageSize documents a bug where
+// fetching a profile page returns limit-1 posts instead of limit when the pinned post
+// happens to fall within that page's DB results. The frontend interprets a result shorter
+// than the requested limit as the end of the feed, causing posts beyond that page to
+// never be fetched.
+func TestGetPosts_ProfilePinnedPostDoesNotReduceSubsequentPageSize(t *testing.T) {
+	env := setupTest(t)
+
+	// enables pinned-post logic.
+	ctx := context.WithValue(t.Context(), middleware.AppVersionKey, "v1.4.0")
+
+	user := testutil.CreateTestUser(t, env.svc.userRepository, "user1")
+
+	const limit = 3
+
+	created := make([]*models.Post, 3*limit)
+	for i := range created {
+		p, err := env.svc.NewPost(ctx, user, fmt.Sprintf("post %d", i), nil, nil, nil)
+		require.NoError(t, err)
+		created[i] = p
+	}
+
+	err := env.svc.PinPost(ctx, user, created[0].PostID)
+	require.NoError(t, err)
+
+	page1, err := env.svc.GetPosts(ctx, user, FeedTypeProfile, &user.UserID, limit, nil)
+	require.NoError(t, err)
+	require.Len(t, page1, limit+1) // pinned post returned in first page
+
+	cursor := page1[len(page1)-1].Post.CreatedAt
+
+	page2, err := env.svc.GetPosts(ctx, user, FeedTypeProfile, &user.UserID, limit, &cursor)
+	require.NoError(t, err)
+	assert.Len(t, page2, limit)
+	for _, p := range page2 {
+		assert.NotEqual(t, created[0].PostID, p.Post.PostID, "pinned post should not appear again in subsequent pages")
+	}
 }

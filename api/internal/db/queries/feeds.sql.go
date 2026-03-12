@@ -171,9 +171,12 @@ func (q *Queries) GetPostIdsByFollowingCursor(ctx context.Context, arg GetPostId
 }
 
 const getPostIdsByUserIdCursor = `-- name: GetPostIdsByUserIdCursor :many
-SELECT post_id
+SELECT posts.post_id
 FROM posts
-WHERE user_id = $1::int AND ($2::timestamp IS NULL OR posts.created_at < $2::timestamp)
+JOIN users ON users.user_id = $1::int
+WHERE posts.user_id = $1::int
+AND ($2::timestamp IS NULL OR posts.created_at < $2::timestamp)
+AND (users.pinned_post_id IS NULL OR posts.post_id != users.pinned_post_id)
 AND NOT EXISTS (
     SELECT 1 FROM block WHERE block.user_id = posts.user_id AND block.target_user_id = $3
 )
@@ -191,7 +194,7 @@ AND (
             AND user_relationship.created_at < posts.created_at
     )
 )
-ORDER BY created_at DESC
+ORDER BY posts.created_at DESC
 LIMIT $4::int
 `
 
