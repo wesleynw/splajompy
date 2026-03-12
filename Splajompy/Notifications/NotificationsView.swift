@@ -22,7 +22,7 @@ struct NotificationsView: View {
       } header: {
         NotificationBreadcrumbFilter(filter: $viewModel.selectedFilter)
           .frame(maxWidth: .infinity, alignment: .leading)
-          .contentMargins(.leading, 8, for: .scrollContent)
+          .contentMargins(.leading, 10, for: .scrollContent)
           .listRowInsets(EdgeInsets())
       }
     }
