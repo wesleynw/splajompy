@@ -16,7 +16,7 @@ struct NotificationBreadcrumbFilter: View {
             title: filterOption.displayName,
             isActive: filter == filterOption,
             onTap: {
-              withAnimation(.bouncy) {
+              withAnimation(.spring) {
                 if filter == .all {
                   filter = filterOption
                 } else {
@@ -42,22 +42,23 @@ struct NotificationBreadcrumbFilter: View {
       if filter != .all {
         HStack(spacing: 5) {
           Button(action: {
-            withAnimation(.bouncy) { filter = .all }
+            withAnimation(.spring) { filter = .all }
           }) {
             Image(systemName: "xmark")
               .font(.callout)
               .fontWeight(.semibold)
-              .padding(14)
-              .contentShape(.circle)
           }
           .buttonStyle(.plain)
+          .frame(maxWidth: .infinity, maxHeight: .infinity)
+          .aspectRatio(1, contentMode: .fit)
+          .contentShape(.circle)
           .background(.regularMaterial, in: .circle)
 
           FilterCapsule(
             title: filter.displayName,
             isActive: filter == .all,
             onTap: {
-              withAnimation(.bouncy) { filter = .all }
+              withAnimation(.spring) { filter = .all }
             }
           )
           .opacity(0)
