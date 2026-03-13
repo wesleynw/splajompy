@@ -31,11 +31,11 @@ struct NotificationBreadcrumbFilter: View {
             isSource: false
           )
           .opacity(filter == .all || filter == filterOption ? 1 : 0)
+          .allowsHitTesting(filter == filterOption || filter == .all)
         }
       }
       .padding(4)
     }
-    .allowsHitTesting(filter == .all)
     .scrollIndicators(.hidden)
     .scrollDisabled(filter != .all)
     .overlay(alignment: .leading) {
@@ -47,12 +47,11 @@ struct NotificationBreadcrumbFilter: View {
             Image(systemName: "xmark")
               .font(.callout)
               .fontWeight(.semibold)
+              .frame(maxWidth: .infinity, maxHeight: .infinity)
+              .aspectRatio(1, contentMode: .fit)
+              .background(.regularMaterial, in: .circle)
           }
           .buttonStyle(.plain)
-          .frame(maxWidth: .infinity, maxHeight: .infinity)
-          .aspectRatio(1, contentMode: .fit)
-          .contentShape(.circle)
-          .background(.regularMaterial, in: .circle)
 
           FilterCapsule(
             title: filter.displayName,
@@ -75,7 +74,7 @@ struct NotificationBreadcrumbFilter: View {
 }
 
 #Preview {
-  @Previewable @State var filter: NotificationFilter = .all
+  @Previewable @State var filter: NotificationFilter = .mention
 
   NotificationBreadcrumbFilter(filter: $filter)
 }
