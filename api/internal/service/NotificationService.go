@@ -16,14 +16,16 @@ type NotificationService struct {
 	postRepository         repositories.PostRepository
 	commentRepository      repositories.CommentRepository
 	userRepository         repositories.UserRepository
+	bucketRepository       repositories.BucketRepository
 }
 
-func NewNotificationService(notificationRepository repositories.NotificationRepository, postRepository repositories.PostRepository, commentRepository repositories.CommentRepository, userRepository repositories.UserRepository) *NotificationService {
+func NewNotificationService(notificationRepository repositories.NotificationRepository, postRepository repositories.PostRepository, commentRepository repositories.CommentRepository, userRepository repositories.UserRepository, bucketRepository repositories.BucketRepository) *NotificationService {
 	return &NotificationService{
 		notificationRepository: notificationRepository,
 		postRepository:         postRepository,
 		commentRepository:      commentRepository,
 		userRepository:         userRepository,
+		bucketRepository:       bucketRepository,
 	}
 }
 
@@ -197,16 +199,19 @@ func (s *NotificationService) buildDetailedNotifications(ctx context.Context, cu
 			}
 			detailedNotification.Post = post
 
-			imageBlob, err := s.postRepository.GetImagesForPost(ctx, *notification.PostID)
+			images, err := s.postRepository.GetImagesForPost(ctx, *notification.PostID)
 			if err != nil && !errors.Is(err, sql.ErrNoRows) {
 				return nil, errors.New("unable to retrieve image blob")
 			}
 
-			if len(imageBlob) > 0 {
-				url := "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/" + imageBlob[0].ImageBlobUrl
-				detailedNotification.ImageBlob = &url
-				detailedNotification.ImageWidth = &imageBlob[0].Width
-				detailedNotification.ImageHeight = &imageBlob[0].Height
+			if len(images) > 0 {
+				url, err := s.bucketRepository.GetPresignedGetObject(ctx, images[0].ImageBlobUrl)
+				if err != nil {
+					return nil, errors.New("unable to retrieve image blob")
+				}
+				detailedNotification.ImageBlob = url
+				detailedNotification.ImageWidth = &images[0].Width
+				detailedNotification.ImageHeight = &images[0].Height
 			}
 		}
 
