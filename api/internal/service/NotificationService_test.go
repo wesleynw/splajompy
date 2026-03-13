@@ -29,7 +29,7 @@ func setupNotificationService(t *testing.T) notificationTestEnv {
 	notificationRepository := repositories.NewDBNotificationRepository(testDb.Queries)
 	userRepository := repositories.NewDBUserRepository(testDb.Queries)
 
-	notificationService := service.NewNotificationService(notificationRepository, postRepository, commentRepository, userRepository)
+	notificationService := service.NewNotificationService(notificationRepository, postRepository, commentRepository, userRepository, repositories.NewS3BucketRepository(nil))
 
 	return notificationTestEnv{
 		svc:                    *notificationService,
