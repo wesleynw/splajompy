@@ -5,7 +5,6 @@ struct AttributedTextEditor: UIViewRepresentable {
   @Binding var currentMention: String?
   @Binding var selectedRange: NSRange
   @Binding var cursorY: CGFloat
-  @Binding var contentHeight: CGFloat
 
   var isScrollEnabled: Bool
   var trailingInset: CGFloat = 0
@@ -65,17 +64,6 @@ struct AttributedTextEditor: UIViewRepresentable {
     )
     if uiView.textContainerInset != expectedInset {
       uiView.textContainerInset = expectedInset
-    }
-
-    let fixedWidth = uiView.bounds.width
-    let size = uiView.sizeThatFits(
-      CGSize(width: fixedWidth, height: .greatestFiniteMagnitude)
-    )
-
-    DispatchQueue.main.async {
-      if abs(self.contentHeight - size.height) > 1 {
-        self.contentHeight = size.height
-      }
     }
   }
 

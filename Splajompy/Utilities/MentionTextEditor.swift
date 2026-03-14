@@ -16,7 +16,6 @@ struct MentionTextEditor: View {
   var autoFocusOnAppear: Bool
   @FocusState var isFocused: Bool
 
-  @State private var contentHeight: CGFloat
   @State private var currentMention: String?
 
   static let mentionPattern = "@([a-zA-Z0-9_.]+)"
@@ -70,7 +69,6 @@ struct MentionTextEditor: View {
     self._selectedRange = selectedRange
     self.isCompact = isCompact
     self.trailingInset = trailingInset
-    self._contentHeight = State(initialValue: 0)
     self.autoFocusOnAppear = autoFocusOnAppear
   }
 
@@ -81,7 +79,6 @@ struct MentionTextEditor: View {
         currentMention: $currentMention,
         selectedRange: $selectedRange,
         cursorY: $cursorY,
-        contentHeight: $contentHeight,
         isScrollEnabled: isCompact,
         trailingInset: trailingInset
       )
