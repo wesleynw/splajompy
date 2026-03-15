@@ -114,7 +114,7 @@ extension MentionTextEditor {
         range: fullRange
       )
 
-      let mentions = MentionTextEditor.extractMentions(from: newText)
+      let mentions = MentionUtilities.extractMentions(from: newText)
       for mention in mentions {
         mutableAttributedText.addAttribute(
           .foregroundColor,

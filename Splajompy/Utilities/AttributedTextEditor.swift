@@ -8,6 +8,7 @@ struct AttributedTextEditor: UIViewRepresentable {
 
   var isScrollEnabled: Bool
   var trailingInset: CGFloat = 0
+  var placeholder: String = ""
 
   private var centeredVerticalInset: CGFloat {
     let font = UIFont.preferredFont(forTextStyle: .body)
@@ -41,6 +42,31 @@ struct AttributedTextEditor: UIViewRepresentable {
     )
     textView.backgroundColor = .clear
 
+    let label = UILabel()
+    label.text = placeholder
+    label.font = UIFont.preferredFont(forTextStyle: .body)
+    label.textColor = .tertiaryLabel
+    label.numberOfLines = 0
+    label.isUserInteractionEnabled = false
+    label.translatesAutoresizingMaskIntoConstraints = false
+    textView.addSubview(label)
+    let padding = textView.textContainer.lineFragmentPadding
+    NSLayoutConstraint.activate([
+      label.topAnchor.constraint(
+        equalTo: textView.topAnchor,
+        constant: centeredVerticalInset
+      ),
+      label.leadingAnchor.constraint(
+        equalTo: textView.leadingAnchor,
+        constant: 10 + padding
+      ),
+      label.trailingAnchor.constraint(
+        equalTo: textView.trailingAnchor,
+        constant: -(10 + trailingInset + padding)
+      ),
+    ])
+    context.coordinator.placeholderLabel = label
+
     return textView
   }
 
@@ -65,6 +91,8 @@ struct AttributedTextEditor: UIViewRepresentable {
     if uiView.textContainerInset != expectedInset {
       uiView.textContainerInset = expectedInset
     }
+
+    context.coordinator.placeholderLabel?.isHidden = !text.string.isEmpty
   }
 
   func sizeThatFits(
@@ -96,6 +124,7 @@ struct AttributedTextEditor: UIViewRepresentable {
     var currentMention: Binding<String?>
     var selectedRange: Binding<NSRange>
     var cursorY: Binding<CGFloat>
+    var placeholderLabel: UILabel?
 
     init(
       _ text: Binding<NSAttributedString>,
@@ -114,7 +143,7 @@ struct AttributedTextEditor: UIViewRepresentable {
         textView.attributedText ?? NSAttributedString(string: "")
 
       let ranges = textView.selectedRange
-      let styledText = applyMentionStyling(to: text)
+      let styledText = MentionUtilities.applyMentionStyling(to: text)
       textView.attributedText = styledText
       textView.selectedRange = ranges
 
@@ -139,10 +168,12 @@ struct AttributedTextEditor: UIViewRepresentable {
 
         checkForMention(in: textView)
 
-        let isInMention = MentionTextEditor.isPositionInMention(
+        let isInMention = MentionUtilities.isPositionInMention(
           in: textView.text,
           at: position
         )
+
+        print("is is mnention? ", isInMention)
 
         textView.typingAttributes = [
           .font: UIFont.preferredFont(forTextStyle: .body),
@@ -163,75 +194,10 @@ struct AttributedTextEditor: UIViewRepresentable {
         to: selectedRange.start
       )
 
-      let text = textView.text ?? ""
-
-      guard cursorPosition > 0, cursorPosition <= text.count else {
-        self.currentMention.wrappedValue = nil
-        return
-      }
-
-      let cursorIndex =
-        text.index(
-          text.startIndex,
-          offsetBy: cursorPosition,
-          limitedBy: text.endIndex
-        ) ?? text.endIndex
-
-      if cursorIndex > text.startIndex {
-        let beforeCursor = text.index(before: cursorIndex)
-        if text[beforeCursor] == " " || text[beforeCursor] == "\n" {
-          self.currentMention.wrappedValue = nil
-          return
-        }
-      }
-
-      let wordStartIndex =
-        text[..<cursorIndex].lastIndex(where: { $0.isWhitespace })
-        .map { text.index(after: $0) } ?? text.startIndex
-
-      let wordEndIndex =
-        text[cursorIndex...].firstIndex(where: { $0.isWhitespace })
-        ?? text.endIndex
-
-      let currentWord = String(text[wordStartIndex..<wordEndIndex])
-
-      if currentWord.hasPrefix("@"), currentWord.count <= 25 {
-        let mentionPrefix = String(currentWord.dropFirst())
-        self.currentMention.wrappedValue = mentionPrefix
-      } else {
-        self.currentMention.wrappedValue = nil
-      }
-    }
-
-    private func applyMentionStyling(to text: NSAttributedString)
-      -> NSAttributedString
-    {
-      let mutableAttributedText = NSMutableAttributedString(
-        attributedString: text
+      self.currentMention.wrappedValue = MentionUtilities.currentMention(
+        in: textView.text ?? "",
+        at: cursorPosition
       )
-      let fullRange = NSRange(location: 0, length: text.length)
-
-      mutableAttributedText.addAttribute(
-        .font,
-        value: UIFont.preferredFont(forTextStyle: .body),
-        range: fullRange
-      )
-      mutableAttributedText.addAttribute(
-        .foregroundColor,
-        value: UIColor.label,
-        range: fullRange
-      )
-
-      let mentions = MentionTextEditor.extractMentions(from: text.string)
-      for mention in mentions {
-        mutableAttributedText.addAttribute(
-          .foregroundColor,
-          value: UIColor.systemBlue,
-          range: mention.range
-        )
-      }
-
-      return mutableAttributedText
     }
   }
 }

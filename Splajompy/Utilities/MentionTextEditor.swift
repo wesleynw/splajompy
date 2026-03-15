@@ -6,23 +6,58 @@ import SwiftUI
   import AppKit
 #endif
 
-struct MentionTextEditor: View {
-  @Binding var text: NSAttributedString
-  var viewModel: MentionViewModel
-  @Binding var cursorY: CGFloat
-  @Binding var selectedRange: NSRange
-  var isCompact: Bool
-  var trailingInset: CGFloat
-  var autoFocusOnAppear: Bool
-  @FocusState var isFocused: Bool
-
-  @State private var currentMention: String?
-
+struct MentionUtilities {
   static let mentionPattern = "@([a-zA-Z0-9_.]+)"
 
   struct Mention {
     let username: String
     let range: NSRange
+  }
+
+  static func applyMentionStyling(to text: NSAttributedString)
+    -> NSAttributedString
+  {
+    let mutableAttributedText = NSMutableAttributedString(
+      attributedString: text
+    )
+    let fullRange = NSRange(location: 0, length: text.length)
+
+    #if os(iOS)
+      let bodyFont = UIFont.preferredFont(forTextStyle: .body)
+    #else
+      let bodyFont = NSFont.preferredFont(forTextStyle: .body)
+    #endif
+
+    mutableAttributedText.addAttribute(.font, value: bodyFont, range: fullRange)
+
+    #if os(iOS)
+      let defaultColor = UIColor.label
+    #else
+      let defaultColor = NSColor.textColor
+    #endif
+
+    #if os(iOS)
+      let mentionFont = UIColor.blue
+    #else
+      let mentionFont = NSColor.systemBlue
+    #endif
+
+    mutableAttributedText.addAttribute(
+      .foregroundColor,
+      value: defaultColor,
+      range: fullRange
+    )
+
+    let mentions = extractMentions(from: text.string)
+    for mention in mentions {
+      mutableAttributedText.addAttribute(
+        .foregroundColor,
+        value: mentionFont,
+        range: mention.range
+      )
+    }
+
+    return mutableAttributedText
   }
 
   static func extractMentions(from text: String) -> [Mention] {
@@ -54,6 +89,52 @@ struct MentionTextEditor: View {
     }
   }
 
+  /// Returns the in-progress mention query (without `@`) if the cursor is inside
+  /// an active `@word` being typed, or `nil` if the cursor is not in a mention.
+  static func currentMention(in text: String, at cursorPosition: Int) -> String? {
+    guard cursorPosition > 0, cursorPosition <= text.count else { return nil }
+
+    let cursorIndex =
+      text.index(
+        text.startIndex,
+        offsetBy: cursorPosition,
+        limitedBy: text.endIndex
+      ) ?? text.endIndex
+
+    if cursorIndex > text.startIndex {
+      let beforeCursor = text.index(before: cursorIndex)
+      if text[beforeCursor] == " " || text[beforeCursor] == "\n" { return nil }
+    }
+
+    let wordStartIndex =
+      text[..<cursorIndex].lastIndex(where: { $0.isWhitespace })
+      .map { text.index(after: $0) } ?? text.startIndex
+
+    let wordEndIndex =
+      text[cursorIndex...].firstIndex(where: { $0.isWhitespace })
+      ?? text.endIndex
+
+    let currentWord = String(text[wordStartIndex..<wordEndIndex])
+
+    guard currentWord.hasPrefix("@"), currentWord.count <= 25 else {
+      return nil
+    }
+    return String(currentWord.dropFirst())
+  }
+}
+
+struct MentionTextEditor: View {
+  @Binding var text: NSAttributedString
+  var viewModel: MentionViewModel
+  @Binding var cursorY: CGFloat
+  @Binding var selectedRange: NSRange
+  var isCompact: Bool
+  var trailingInset: CGFloat
+  var autoFocusOnAppear: Bool
+  @FocusState var isFocused: Bool
+
+  @State private var currentMention: String?
+
   init(
     text: Binding<NSAttributedString>,
     viewModel: MentionViewModel,
@@ -73,35 +154,26 @@ struct MentionTextEditor: View {
   }
 
   var body: some View {
-    ZStack(alignment: .topLeading) {
-      AttributedTextEditor(
-        text: $text,
-        currentMention: $currentMention,
-        selectedRange: $selectedRange,
-        cursorY: $cursorY,
-        isScrollEnabled: isCompact,
-        trailingInset: trailingInset
-      )
-      .focused($isFocused)
-      .onAppear {
-        if autoFocusOnAppear {
-          self.isFocused = true
-        }
+    AttributedTextEditor(
+      text: $text,
+      currentMention: $currentMention,
+      selectedRange: $selectedRange,
+      cursorY: $cursorY,
+      isScrollEnabled: isCompact,
+      trailingInset: trailingInset,
+      placeholder: isCompact ? "Add a comment..." : "What's on your mind?"
+    )
+    .focused($isFocused)
+    .onAppear {
+      if autoFocusOnAppear {
+        self.isFocused = true
       }
-      .onChange(of: currentMention) { oldValue, newValue in
-        if let mention = newValue, !mention.isEmpty {
-          viewModel.fetchSuggestions(prefix: mention)
-        } else {
-          viewModel.clearMentionState()
-        }
-      }
-
-      if text.string.isEmpty {
-        Text(isCompact ? "Add a comment..." : "What's on your mind?")
-          .foregroundStyle(.tertiary)
-          .padding(.top, 10)
-          .padding(.horizontal)
-          .allowsHitTesting(false)
+    }
+    .onChange(of: currentMention) { oldValue, newValue in
+      if let mention = newValue, !mention.isEmpty {
+        viewModel.fetchSuggestions(prefix: mention)
+      } else {
+        viewModel.clearMentionState()
       }
     }
   }
