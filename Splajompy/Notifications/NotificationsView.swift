@@ -3,7 +3,6 @@ import SwiftUI
 struct NotificationsView: View {
   @State private var viewModel: ViewModel
   @Environment(AuthManager.self) private var authManager
-  @State private var refreshId = UUID()
   init(viewModel: ViewModel = ViewModel()) {
     self._viewModel = State(wrappedValue: viewModel)
   }
@@ -49,7 +48,6 @@ struct NotificationsView: View {
     }
     .refreshable {
       await viewModel.refreshNotifications()
-      refreshId = UUID()
     }
     #if os(macOS)
       .frame(maxWidth: .infinity)
@@ -111,7 +109,7 @@ struct NotificationsView: View {
       if !unreadNotifications.isEmpty {
         Section {
           ForEach(unreadNotifications, id: \.notificationId) { notification in
-            NotificationRow(notification: notification, refreshId: refreshId)
+            NotificationRow(notification: notification)
               #if os(macOS)
                 .frame(maxWidth: 600)
                 .frame(maxWidth: .infinity)
@@ -167,8 +165,7 @@ struct NotificationsView: View {
             Section(header: Text(section.rawValue).fontWeight(.semibold)) {
               ForEach(notifications, id: \.notificationId) { notification in
                 NotificationRow(
-                  notification: notification,
-                  refreshId: refreshId
+                  notification: notification
                 )
                 #if os(macOS)
                   .frame(maxWidth: 600)
