@@ -2,7 +2,6 @@ import SwiftUI
 
 struct NotificationRow: View {
   let notification: Notification
-  let refreshId: UUID
 
   private func relativeDate(from createdAt: String) -> String {
     let date = sharedISO8601Formatter.date(from: createdAt) ?? Date()
