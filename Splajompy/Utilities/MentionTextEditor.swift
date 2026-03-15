@@ -37,9 +37,9 @@ struct MentionUtilities {
     #endif
 
     #if os(iOS)
-      let mentionFont = UIColor.blue
+      let mentionColor = UIColor.systemBlue
     #else
-      let mentionFont = NSColor.systemBlue
+      let mentionColor = NSColor.systemBlue
     #endif
 
     mutableAttributedText.addAttribute(
@@ -52,7 +52,7 @@ struct MentionUtilities {
     for mention in mentions {
       mutableAttributedText.addAttribute(
         .foregroundColor,
-        value: mentionFont,
+        value: mentionColor,
         range: mention.range
       )
     }

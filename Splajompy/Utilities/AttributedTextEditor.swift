@@ -173,8 +173,6 @@ struct AttributedTextEditor: UIViewRepresentable {
           at: position
         )
 
-        print("is is mnention? ", isInMention)
-
         textView.typingAttributes = [
           .font: UIFont.preferredFont(forTextStyle: .body),
           .foregroundColor: isInMention ? UIColor.systemBlue : UIColor.label,

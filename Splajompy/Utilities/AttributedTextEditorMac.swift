@@ -67,7 +67,7 @@ struct AttributedTextEditor: NSViewRepresentable {
         constant: 10 + padding
       ),
       label.trailingAnchor.constraint(
-        lessThanOrEqualTo: textView.trailingAnchor,
+        equalTo: textView.trailingAnchor,
         constant: -(10 + trailingInset + padding)
       ),
     ])
@@ -115,6 +115,8 @@ struct AttributedTextEditor: NSViewRepresentable {
 
     layoutManager.ensureLayout(for: textContainer)
     let usedRect = layoutManager.usedRect(for: textContainer)
+    let insetHeight = textView.textContainerInset.height * 2
+    let intrinsicHeight = usedRect.height + insetHeight
 
     let font = NSFont.preferredFont(forTextStyle: .body)
     let lineHeight = NSLayoutManager().defaultLineHeight(for: font)
@@ -124,10 +126,10 @@ struct AttributedTextEditor: NSViewRepresentable {
       let maxHeight = (lineHeight * 10) + 30
       return CGSize(
         width: width,
-        height: min(max(usedRect.height, minHeight), maxHeight)
+        height: min(max(intrinsicHeight, minHeight), maxHeight)
       )
     } else {
-      return CGSize(width: width, height: max(usedRect.height, minHeight))
+      return CGSize(width: width, height: max(intrinsicHeight, minHeight))
     }
   }
 
@@ -210,8 +212,6 @@ struct AttributedTextEditor: NSViewRepresentable {
         in: textView.string,
         at: position
       )
-
-      print("is is mnention? ", isInMention)
 
       let typingColor: NSColor = isInMention ? .systemBlue : .labelColor
       textView.typingAttributes = [
