@@ -6,10 +6,10 @@ struct AttributedTextEditor: NSViewRepresentable {
   @Binding var currentMention: String?
   @Binding var selectedRange: NSRange
   @Binding var cursorY: CGFloat
-  @Binding var contentHeight: CGFloat
 
   var isScrollEnabled: Bool
   var trailingInset: CGFloat = 0
+  var placeholder: String = ""
 
   private var centeredVerticalInset: CGFloat {
     let font = NSFont.preferredFont(forTextStyle: .body)
@@ -29,7 +29,7 @@ struct AttributedTextEditor: NSViewRepresentable {
     textView.isAutomaticSpellingCorrectionEnabled = true
     textView.typingAttributes = [
       .font: NSFont.preferredFont(forTextStyle: .body),
-      .foregroundColor: NSColor.labelColor,
+      .foregroundColor: NSColor.textColor,
     ]
 
     let storage = textView.textStorage!
@@ -43,7 +43,6 @@ struct AttributedTextEditor: NSViewRepresentable {
     scrollView.drawsBackground = false
     scrollView.autohidesScrollers = true
 
-    textView.autoresizingMask = [.width, .height]
     textView.textContainer?.widthTracksTextView = true
     textView.textContainerInset = NSSize(
       width: 0,
@@ -51,6 +50,28 @@ struct AttributedTextEditor: NSViewRepresentable {
     )
 
     context.coordinator.textView = textView
+
+    let label = NSTextField(labelWithString: placeholder)
+    label.font = NSFont.preferredFont(forTextStyle: .body)
+    label.textColor = .tertiaryLabelColor
+    label.translatesAutoresizingMaskIntoConstraints = false
+    textView.addSubview(label)
+    let padding = textView.textContainer?.lineFragmentPadding ?? 5
+    NSLayoutConstraint.activate([
+      label.topAnchor.constraint(
+        equalTo: textView.topAnchor,
+        constant: centeredVerticalInset
+      ),
+      label.leadingAnchor.constraint(
+        equalTo: textView.leadingAnchor,
+        constant: 10 + padding
+      ),
+      label.trailingAnchor.constraint(
+        equalTo: textView.trailingAnchor,
+        constant: -(10 + trailingInset + padding)
+      ),
+    ])
+    context.coordinator.placeholderLabel = label
 
     return scrollView
   }
@@ -76,9 +97,7 @@ struct AttributedTextEditor: NSViewRepresentable {
       height: centeredVerticalInset
     )
 
-    DispatchQueue.main.async {
-      self.updateContentHeight(textView: textView)
-    }
+    context.coordinator.placeholderLabel?.isHidden = !text.string.isEmpty
   }
 
   func sizeThatFits(
@@ -88,7 +107,6 @@ struct AttributedTextEditor: NSViewRepresentable {
   )
     -> CGSize?
   {
-    guard isScrollEnabled else { return nil }
     let width = proposal.width ?? nsView.frame.width
     guard let textView = nsView.documentView as? NSTextView,
       let layoutManager = textView.layoutManager,
@@ -102,29 +120,16 @@ struct AttributedTextEditor: NSViewRepresentable {
 
     let font = NSFont.preferredFont(forTextStyle: .body)
     let lineHeight = NSLayoutManager().defaultLineHeight(for: font)
-
-    let textViewInset: CGFloat = 30
-    let maxHeight = (lineHeight * 10) + textViewInset
     let minHeight = 42.0
 
-    return CGSize(
-      width: width,
-      height: min(max(intrinsicHeight, minHeight), maxHeight)
-    )
-  }
-
-  private func updateContentHeight(textView: NSTextView) {
-    guard let layoutManager = textView.layoutManager,
-      let textContainer = textView.textContainer
-    else { return }
-    layoutManager.ensureLayout(for: textContainer)
-    let usedRect = layoutManager.usedRect(for: textContainer)
-    let insetHeight =
-      textView.textContainerInset.height * 2
-    let newHeight = usedRect.height + insetHeight
-
-    if abs(self.contentHeight - newHeight) > 1 {
-      self.contentHeight = newHeight
+    if isScrollEnabled {
+      let maxHeight = (lineHeight * 10) + 30
+      return CGSize(
+        width: width,
+        height: min(max(intrinsicHeight, minHeight), maxHeight)
+      )
+    } else {
+      return CGSize(width: width, height: max(intrinsicHeight, minHeight))
     }
   }
 
@@ -139,6 +144,7 @@ struct AttributedTextEditor: NSViewRepresentable {
     var cursorY: Binding<CGFloat>
     var isUpdating = false
     weak var textView: NSTextView?
+    var placeholderLabel: NSTextField?
 
     init(
       _ text: Binding<NSAttributedString>,
@@ -159,7 +165,7 @@ struct AttributedTextEditor: NSViewRepresentable {
 
       let currentText = textView.attributedString()
       let ranges = textView.selectedRange()
-      let styledText = applyMentionStyling(to: currentText)
+      let styledText = MentionUtilities.applyMentionStyling(to: currentText)
 
       isUpdating = true
       defer { isUpdating = false }
@@ -202,7 +208,7 @@ struct AttributedTextEditor: NSViewRepresentable {
         self.checkForMention(in: textView)
       }
 
-      let isInMention = MentionTextEditor.isPositionInMention(
+      let isInMention = MentionUtilities.isPositionInMention(
         in: textView.string,
         at: position
       )
@@ -215,77 +221,10 @@ struct AttributedTextEditor: NSViewRepresentable {
     }
 
     private func checkForMention(in textView: NSTextView) {
-      let nsRange = textView.selectedRange()
-      let cursorPosition = nsRange.location
-      let text = textView.string
-
-      guard cursorPosition > 0, cursorPosition <= text.count else {
-        self.currentMention.wrappedValue = nil
-        return
-      }
-
-      let cursorIndex =
-        text.index(
-          text.startIndex,
-          offsetBy: cursorPosition,
-          limitedBy: text.endIndex
-        ) ?? text.endIndex
-
-      if cursorIndex > text.startIndex {
-        let beforeCursor = text.index(before: cursorIndex)
-        if text[beforeCursor] == " " || text[beforeCursor] == "\n" {
-          self.currentMention.wrappedValue = nil
-          return
-        }
-      }
-
-      let wordStartIndex =
-        text[..<cursorIndex].lastIndex(where: { $0.isWhitespace })
-        .map { text.index(after: $0) } ?? text.startIndex
-
-      let wordEndIndex =
-        text[cursorIndex...].firstIndex(where: { $0.isWhitespace })
-        ?? text.endIndex
-
-      let currentWord = String(text[wordStartIndex..<wordEndIndex])
-
-      if currentWord.hasPrefix("@"), currentWord.count <= 25 {
-        let mentionPrefix = String(currentWord.dropFirst())
-        self.currentMention.wrappedValue = mentionPrefix
-      } else {
-        self.currentMention.wrappedValue = nil
-      }
-    }
-
-    private func applyMentionStyling(to text: NSAttributedString)
-      -> NSAttributedString
-    {
-      let mutableAttributedText = NSMutableAttributedString(
-        attributedString: text
+      self.currentMention.wrappedValue = MentionUtilities.currentMention(
+        in: textView.string,
+        at: textView.selectedRange().location
       )
-      let fullRange = NSRange(location: 0, length: text.length)
-
-      mutableAttributedText.addAttribute(
-        .font,
-        value: NSFont.preferredFont(forTextStyle: .body),
-        range: fullRange
-      )
-      mutableAttributedText.addAttribute(
-        .foregroundColor,
-        value: NSColor.labelColor,
-        range: fullRange
-      )
-
-      let mentions = MentionTextEditor.extractMentions(from: text.string)
-      for mention in mentions {
-        mutableAttributedText.addAttribute(
-          .foregroundColor,
-          value: NSColor.systemBlue,
-          range: mention.range
-        )
-      }
-
-      return mutableAttributedText
     }
   }
 }
