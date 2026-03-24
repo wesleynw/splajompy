@@ -115,7 +115,6 @@ extension NewPostView {
         let result = await PostCreationService.createPost(
           text: text,
           images: selectedImages,
-          items: imageSelection,
           visibility: visibility,
           poll: poll
         )
