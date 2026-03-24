@@ -48,7 +48,10 @@ struct NewPostView: View {
                 )
                 .offset(y: cursorY + 10)
                 .padding(.horizontal)
-                .animation(.default, value: mentionViewModel.isShowingSuggestions)
+                .animation(
+                  .default,
+                  value: mentionViewModel.isShowingSuggestions
+                )
               }
             }
             .padding()
@@ -180,76 +183,19 @@ struct NewPostView: View {
     }
   }
 
-  @ViewBuilder
-  private var imagePreviewsView: some View {
+  var imagePreviewsView: some View {
     ScrollView(.horizontal) {
       HStack(spacing: 12) {
         ForEach(viewModel.imageStates, id: \.itemIdentifier) { item in
-          ZStack(alignment: .topTrailing) {
-            ZStack {
-              RoundedRectangle(cornerRadius: 12)
-                .fill(Color.gray.opacity(0.1))
-                .frame(width: 100, height: 100)
-
-              switch item.state {
-              case .loading:
-                ProgressView()
-                  #if os(macOS)
-                    .controlSize(.small)
-                  #endif
-              case .success(let image):
-                Image(platformImage: image)
-                  .resizable()
-                  .scaledToFill()
-                  .frame(width: 100, height: 100)
-                  .clipShape(RoundedRectangle(cornerRadius: 12))
-              case .failure:
-                Button {
-                  viewModel.retryImage(itemIdentifier: item.itemIdentifier)
-                } label: {
-                  VStack {
-                    Image(systemName: "arrow.clockwise.circle.fill")
-                      .font(.title)
-                      .foregroundStyle(.blue)
-                    Text("Retry")
-                      .font(.caption2)
-                      .foregroundStyle(.blue)
-                  }
-                }
-                .buttonStyle(.plain)
-              case .empty:
-                EmptyView()
-              }
-            }
-            .overlay(
-              RoundedRectangle(cornerRadius: 12)
-                .stroke(Color.gray.opacity(0.3), lineWidth: 1)
-            )
-
-            Button {
+          ImagePreviewView(
+            state: item.state,
+            onRetry: {
+              viewModel.retryImage(itemIdentifier: item.itemIdentifier)
+            },
+            onRemove: {
               viewModel.removeImage(itemIdentifier: item.itemIdentifier)
-            } label: {
-              ZStack {
-                Circle()
-                  .fill(Color.white)
-                  .frame(width: 22, height: 22)
-                  .shadow(
-                    color: Color.black.opacity(0.2),
-                    radius: 2,
-                    x: 0,
-                    y: 1
-                  )
-
-                Image(systemName: "xmark")
-                  .font(.system(size: 10, weight: .bold))
-                  .foregroundStyle(.gray)
-              }
             }
-            .buttonStyle(.plain)
-            .padding(6)
-          }
-          .padding(4)
-          .transition(.scale)
+          )
         }
       }
       .padding(.horizontal)
@@ -327,9 +273,7 @@ struct NewPostView: View {
   }
 }
 
-struct NewPostView_Previews: PreviewProvider {
-  static var previews: some View {
-    NewPostView()
-      .environment(AuthManager())
-  }
+#Preview {
+  NewPostView()
+    .environment(AuthManager())
 }

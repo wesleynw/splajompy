@@ -58,7 +58,7 @@ struct AttributedTextEditor: UIViewRepresentable {
       ),
       label.leadingAnchor.constraint(
         equalTo: textView.leadingAnchor,
-        constant: 10 + padding
+        constant: padding + (isScrollEnabled ? -0 : 10)
       ),
       label.trailingAnchor.constraint(
         equalTo: textView.trailingAnchor,

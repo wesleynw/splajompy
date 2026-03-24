@@ -1,3 +1,4 @@
+import PhotosUI
 import PostHog
 import SwiftUI
 
@@ -33,6 +34,19 @@ extension CommentsView {
     var postManager: PostStore
 
     var text: NSAttributedString = NSAttributedString(string: "")
+
+    var imageSelection: PhotosPickerItem? = nil
+    var imageState: PhotoState = .empty {
+      didSet {
+        if let imageSelection {
+          let progress = loadTransferable(from: imageSelection)
+          imageState = .loading(progress)
+        } else {
+          imageState = .empty
+        }
+      }
+    }
+
     var selectedRange: NSRange = NSRange(location: 0, length: 0)
 
     init(
@@ -179,6 +193,31 @@ extension CommentsView {
         guard case .loaded(var revertComments) = state else { return }
         revertComments.insert(comment, at: index)
         state = .loaded(revertComments)
+      }
+    }
+
+    private func loadTransferable(from imageSelection: PhotosPickerItem)
+      -> Progress
+    {
+      return imageSelection.loadTransferable(type: Data.self) { result in
+        DispatchQueue.main.async {
+          guard imageSelection == self.imageSelection else {
+            print("Failed to get the selected item.")
+            return
+          }
+          switch result {
+          case .success(let imageData?):
+            if let image = PlatformImage(data: imageData) {
+              self.imageState = .success(image)
+            } else {
+              self.imageState = .failure
+            }
+          case .success(nil):
+            self.imageState = .empty
+          case .failure(let error):
+            self.imageState = .failure
+          }
+        }
       }
     }
   }
