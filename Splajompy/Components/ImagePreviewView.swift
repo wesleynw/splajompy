@@ -68,7 +68,7 @@ struct ImagePreviewView: View {
       }
       .offset(x: 8, y: -8)
     }
-    
+
     .buttonStyle(.plain)
     .padding(6)
     .padding(4)

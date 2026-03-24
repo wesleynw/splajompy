@@ -35,8 +35,7 @@ extension CommentsView {
 
     var text: NSAttributedString = NSAttributedString(string: "")
 
-    var imageSelection: PhotosPickerItem? = nil
-    var imageState: PhotoState = .empty {
+    var imageSelection: PhotosPickerItem? = nil {
       didSet {
         if let imageSelection {
           let progress = loadTransferable(from: imageSelection)
@@ -46,6 +45,7 @@ extension CommentsView {
         }
       }
     }
+    var imageState: PhotoState = .empty
 
     var selectedRange: NSRange = NSRange(location: 0, length: 0)
 
@@ -196,6 +196,13 @@ extension CommentsView {
       }
     }
 
+    func retryImage() {
+      if let imageSelection {
+        let progress = loadTransferable(from: imageSelection)
+        self.imageState = .loading(progress)
+      }
+    }
+
     private func loadTransferable(from imageSelection: PhotosPickerItem)
       -> Progress
     {
@@ -214,7 +221,7 @@ extension CommentsView {
             }
           case .success(nil):
             self.imageState = .empty
-          case .failure(let error):
+          case .failure(_):
             self.imageState = .failure
           }
         }
