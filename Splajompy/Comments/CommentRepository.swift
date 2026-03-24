@@ -10,6 +10,11 @@ struct Comment: Identifiable, Decodable {
   var id: Int { commentId }
 }
 
+struct CreateCommentRequest: Encodable {
+  let text: String
+  let imageKeymap: [Int: ImageData]
+}
+
 struct DetailedComment: Identifiable, Decodable, Equatable {
   let commentId: Int
   let postId: Int
@@ -28,7 +33,10 @@ struct DetailedComment: Identifiable, Decodable, Equatable {
 
   // TODO: the null coalescing here is dumb
   var richContent: AttributedString {
-    let markdown = generateAttributedStringUsingFacets(text, facets: facets ?? [])
+    let markdown = generateAttributedStringUsingFacets(
+      text,
+      facets: facets ?? []
+    )
 
     return try! AttributedString(
       markdown: markdown,
@@ -45,9 +53,10 @@ protocol CommentServiceProtocol: Sendable {
   func toggleLike(postId: Int, commentId: Int, isLiked: Bool) async
     -> AsyncResult<EmptyResponse>
 
-  func addComment(postId: Int, text: String) async -> AsyncResult<
-    DetailedComment
-  >
+  func addComment(postId: Int, text: String, image: PlatformImage?) async
+    -> AsyncResult<
+      DetailedComment
+    >
 
   func deleteComment(commentId: Int) async -> AsyncResult<EmptyResponse>
 }
@@ -71,13 +80,21 @@ struct CommentService: CommentServiceProtocol {
     )
   }
 
-  func addComment(postId: Int, text: String) async -> AsyncResult<
-    DetailedComment
-  > {
-    let bodyData: [String: String] = ["Text": text]
+  func addComment(postId: Int, text: String, image: PlatformImage?) async
+    -> AsyncResult<
+      DetailedComment
+    >
+  {
+    var imageKeymap: [Int: ImageData] = [:]
+    if let image {
+      imageKeymap = await uploadImages(images: [image]) ?? [:]
+    }
+
+    let body = CreateCommentRequest(text: text, imageKeymap: imageKeymap)
+
     let jsonData: Data
     do {
-      jsonData = try JSONEncoder().encode(bodyData)
+      jsonData = try JSONEncoder().encode(body)
     } catch {
       return .error(error)
     }

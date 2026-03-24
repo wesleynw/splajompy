@@ -7,19 +7,6 @@ enum PhotoState: Equatable {
   case success(PlatformImage)
   case failure
   case empty
-
-  var description: String {
-    switch self {
-    case .loading(let progress):
-      return "Loading: \(Int(progress.fractionCompleted * 100))%"
-    case .success:
-      return "Success"
-    case .failure:
-      return "Failed"
-    case .empty:
-      return "Empty"
-    }
-  }
 }
 
 extension NewPostView {

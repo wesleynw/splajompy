@@ -149,7 +149,14 @@ extension CommentsView {
       isSubmitting = true
       defer { isSubmitting = false }
 
-      let result = await service.addComment(postId: postId, text: text)
+      let image: PlatformImage? =
+        if case .success(let platformImage) = imageState {
+          platformImage
+        } else {
+          nil
+        }
+
+      let result = await service.addComment(postId: postId, text: text, image: image)
 
       switch result {
       case .success(let newComment):

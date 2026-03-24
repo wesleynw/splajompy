@@ -37,9 +37,6 @@ struct CommentInputView: View {
         .padding(.horizontal)
       }
 
-      Text(viewModel.imageState.description)
-      Text(viewModel.imageSelection.debugDescription)
-
       ScrollView(.horizontal) {
         HStack {
           if viewModel.imageState != .empty {
