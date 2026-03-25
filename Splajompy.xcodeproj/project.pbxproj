@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 90;
+	objectVersion = 100;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -292,7 +292,7 @@
 				1868AF362F0C726C001E15E9 /* XCRemoteSwiftPackageReference "opentelemetry-swift-core" */,
 				1868AF372F0C728E001E15E9 /* XCRemoteSwiftPackageReference "opentelemetry-swift" */,
 			);
-			preferredProjectObjectVersion = 90;
+			preferredProjectObjectVersion = 100;
 			productRefGroup = 184A63CC2D88CBA100860D6B /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
