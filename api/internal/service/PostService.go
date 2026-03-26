@@ -138,12 +138,20 @@ func (s *PostService) GetPostById(ctx context.Context, userId int, postId int) (
 	if images == nil {
 		images = []queries.Image{}
 	}
-	for i := range images {
+	detailedImages := []models.DetailedImage{}
+	for i, image := range images {
 		url, err := s.bucketRepository.GetPresignedGetObject(ctx, images[i].ImageBlobUrl)
 		if err != nil {
 			return nil, errors.New("unable to generate presigned url for post image")
 		}
-		images[i].ImageBlobUrl = *url
+		detailedImages = append(detailedImages, models.DetailedImage{
+			ImageID:      image.ImageID,
+			PostId:       postId,
+			Height:       image.Height,
+			Width:        image.Width,
+			ImageBlobUrl: *url,
+			DisplayOrder: i,
+		})
 	}
 
 	commentCount, _ := s.postRepository.GetCommentCountForPost(ctx, post.PostID)
@@ -173,7 +181,7 @@ func (s *PostService) GetPostById(ctx context.Context, userId int, postId int) (
 		Post:          *post,
 		User:          user,
 		IsLiked:       isLiked,
-		Images:        images,
+		Images:        detailedImages,
 		CommentCount:  commentCount,
 		RelevantLikes: relevantLikes,
 		HasOtherLikes: hasOtherLikes,
