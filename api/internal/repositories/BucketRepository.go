@@ -12,6 +12,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"github.com/google/uuid"
+	"splajompy.com/api/v2/internal/models"
 )
 
 type BucketRepository interface {
@@ -20,6 +21,7 @@ type BucketRepository interface {
 	DeleteObjects(ctx context.Context, keys []string) error
 	GetPresignedPutObject(ctx context.Context, userID int, extension, folder *string) (string, string, error)
 	GetPresignedGetObject(ctx context.Context, key string) (*string, error)
+	PublishStagedImages(ctx context.Context, userId int, imageKeymap map[int]models.ImageData, identifier string) ([]string, error)
 }
 
 type S3BucketRepository struct {
@@ -135,7 +137,37 @@ func (r *S3BucketRepository) GetPresignedGetObject(ctx context.Context, key stri
 	return &url, nil
 }
 
-func GetDestinationKey(environment string, userID, postID int, sourceKey string) string {
-	filename := sourceKey[strings.LastIndex(sourceKey, "/"):]
-	return fmt.Sprintf("%s/posts/%d/%d%s", environment, userID, postID, filename)
+// GetDestinationKey returns a permenant blob URI given the current URI of a staged blob.
+// An example blob URI might be production/{identifier}/{userId}/identifier}/{fileName}.jpg
+func GetDestinationKey(userId int, identifier string, stagedBlobUrl string) string {
+	environment := os.Getenv("ENVIRONMENT")
+	filename := stagedBlobUrl[strings.LastIndex(stagedBlobUrl, "/")+1:]
+
+	return fmt.Sprintf("%s/%s/%d/%s", environment, identifier, userId, filename)
+}
+
+func (s *S3BucketRepository) PublishStagedImages(ctx context.Context, userId int, imageKeymap map[int]models.ImageData, identifier string) ([]string, error) {
+	destinationKeys := []string{}
+
+	for _, imageData := range imageKeymap {
+		destinationKey := GetDestinationKey(
+			userId,
+			identifier,
+			imageData.S3Key,
+		)
+
+		err := s.CopyObject(ctx, imageData.S3Key, destinationKey)
+		if err != nil {
+			return nil, err
+		}
+
+		err = s.DeleteObject(ctx, imageData.S3Key)
+		if err != nil {
+			return nil, err
+		}
+
+		destinationKeys = append(destinationKeys, destinationKey)
+	}
+
+	return destinationKeys, nil
 }

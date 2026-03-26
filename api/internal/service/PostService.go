@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"log/slog"
 	"math"
-	"os"
 	"sort"
 	"time"
 
@@ -66,31 +65,40 @@ func (s *PostService) NewPost(ctx context.Context, currentUser models.PublicUser
 	}
 	postId := post.PostID
 
-	environment := os.Getenv("ENVIRONMENT")
+	// environment := os.Getenv("ENVIRONMENT")
+	//
+	// imageBlobKeys, err := s.bucketRepository.PublishStagedImages(ctx, currentUser.UserID, imageKeymap, "comment")
+	// if err != nil {
+	// 	return nil, err
+	// }
 
-	for displayOrder, imageData := range imageKeymap {
-		destinationKey := repositories.GetDestinationKey(
-			environment,
-			currentUser.UserID,
-			post.PostID,
-			imageData.S3Key,
-		)
+	// for _, imageBlobKey := range imageBlobKeys {
 
-		err := s.bucketRepository.CopyObject(ctx, imageData.S3Key, destinationKey)
-		if err != nil {
-			return nil, errors.New("unable to create post")
-		}
+	// }
 
-		err = s.bucketRepository.DeleteObject(ctx, imageData.S3Key)
-		if err != nil {
-			return nil, errors.New("unable to create post")
-		}
+	// for displayOrder, imageData := range imageKeymap {
+	// 	destinationKey := repositories.GetDestinationKey(
+	// 		environment,
+	// 		currentUser.UserID,
+	// 		post.PostID,
+	// 		imageData.S3Key,
+	// 	)
 
-		_, err = s.postRepository.InsertImage(ctx, post.PostID, imageData.Height, imageData.Width, destinationKey, displayOrder)
-		if err != nil {
-			return nil, errors.New("unable to create post")
-		}
-	}
+	// 	err := s.bucketRepository.CopyObject(ctx, imageData.S3Key, destinationKey)
+	// 	if err != nil {
+	// 		return nil, errors.New("unable to create post")
+	// 	}
+
+	// 	err = s.bucketRepository.DeleteObject(ctx, imageData.S3Key)
+	// 	if err != nil {
+	// 		return nil, errors.New("unable to create post")
+	// 	}
+
+	// 	_, err = s.postRepository.InsertImage(ctx, post.PostID, imageData.Height, imageData.Width, destinationKey, displayOrder)
+	// 	if err != nil {
+	// 		return nil, errors.New("unable to create post")
+	// 	}
+	// }
 
 	// send notifications to users who are mentioned in post
 	usersToNotify := map[int]bool{}

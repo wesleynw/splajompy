@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"splajompy.com/api/v2/internal/models"
 	"splajompy.com/api/v2/internal/utilities"
 )
 
@@ -35,7 +36,8 @@ func (h *Handler) AddCommentToPostById(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var requestBody struct {
-		Text string
+		Text        string
+		ImageKeyMap map[int]models.ImageData `json:"imageKeyMap"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&requestBody); err != nil {
@@ -43,7 +45,7 @@ func (h *Handler) AddCommentToPostById(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	comment, err := h.commentService.AddCommentToPost(r.Context(), *currentUser, postId, requestBody.Text)
+	comment, err := h.commentService.AddCommentToPost(r.Context(), *currentUser, postId, requestBody.Text, requestBody.ImageKeyMap)
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
 		return

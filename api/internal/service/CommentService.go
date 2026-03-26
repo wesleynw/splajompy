@@ -38,7 +38,7 @@ func NewCommentService(
 }
 
 // AddCommentToPost adds a comment to a post and creates a notification
-func (s *CommentService) AddCommentToPost(ctx context.Context, currentUser models.PublicUser, postId int, content string) (*models.DetailedComment, error) {
+func (s *CommentService) AddCommentToPost(ctx context.Context, currentUser models.PublicUser, postId int, content string, imageKeyMap map[int]models.ImageData) (*models.DetailedComment, error) {
 	post, err := s.postRepository.GetPostById(ctx, postId, currentUser.UserID)
 	if err != nil {
 		return nil, errors.New("unable to find post")

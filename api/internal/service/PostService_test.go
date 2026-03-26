@@ -25,6 +25,9 @@ func (f *fakeBucketRepository) GetPresignedPutObject(_ context.Context, _ int, _
 func (f *fakeBucketRepository) GetPresignedGetObject(_ context.Context, key string) (*string, error) {
 	return &key, nil
 }
+func (f *fakeBucketRepository) PublishStagedImages(ctx context.Context, userId int, imageKeymap map[int]models.ImageData, identifier string) ([]string, error) {
+	return nil, nil
+}
 
 type postServiceTestEnv struct {
 	svc *PostService
