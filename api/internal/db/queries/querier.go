@@ -80,6 +80,7 @@ type Querier interface {
 	InsertImage(ctx context.Context, arg InsertImageParams) (Image, error)
 	InsertNotification(ctx context.Context, arg InsertNotificationParams) error
 	InsertPost(ctx context.Context, arg InsertPostParams) (Post, error)
+	InsertPostImage(ctx context.Context, arg InsertPostImageParams) error
 	InsertVote(ctx context.Context, arg InsertVoteParams) error
 	ListUserRelationships(ctx context.Context, arg ListUserRelationshipsParams) ([]User, error)
 	MarkAllNotificationsAsReadForUser(ctx context.Context, userID int) error

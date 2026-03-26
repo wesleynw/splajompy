@@ -1,4 +1,4 @@
-package service
+package service_test
 
 import (
 	"context"
@@ -11,6 +11,7 @@ import (
 	"splajompy.com/api/v2/internal/middleware"
 	"splajompy.com/api/v2/internal/models"
 	"splajompy.com/api/v2/internal/repositories"
+	"splajompy.com/api/v2/internal/service"
 	"splajompy.com/api/v2/internal/testutil"
 )
 
@@ -27,10 +28,11 @@ func (f *fakeBucketRepository) GetPresignedGetObject(_ context.Context, key stri
 }
 
 type postServiceTestEnv struct {
-	svc *PostService
+	svc            *service.PostService
+	userRepository repositories.UserRepository
 }
 
-func setupTest(t *testing.T) postServiceTestEnv {
+func setupPostTest(t *testing.T) postServiceTestEnv {
 	t.Helper()
 	testDb := testutil.StartPostgres(t)
 
@@ -40,19 +42,20 @@ func setupTest(t *testing.T) postServiceTestEnv {
 	notificationRepository := repositories.NewDBNotificationRepository(testDb.Queries)
 	bucketRepository := &fakeBucketRepository{}
 
-	svc := NewPostService(postRepository, userRepository, likeRepository, notificationRepository, bucketRepository, nil)
+	svc := service.NewPostService(postRepository, userRepository, likeRepository, notificationRepository, bucketRepository, nil)
 
 	_ = os.Setenv("ENVIRONMENT", "test")
 
 	return postServiceTestEnv{
-		svc: svc,
+		svc:            svc,
+		userRepository: userRepository,
 	}
 }
 
 func TestGetPostById(t *testing.T) {
-	env := setupTest(t)
+	env := setupPostTest(t)
 
-	user := testutil.CreateTestUser(t, env.svc.userRepository, "user1")
+	user := testutil.CreateTestUser(t, env.userRepository, "user1")
 
 	post, err := env.svc.NewPost(t.Context(), user, "post 1", nil, nil, nil)
 	require.NoError(t, err)
@@ -68,9 +71,9 @@ func TestGetPostById(t *testing.T) {
 }
 
 func TestDeletePost(t *testing.T) {
-	env := setupTest(t)
+	env := setupPostTest(t)
 
-	user := testutil.CreateTestUser(t, env.svc.userRepository, "user0")
+	user := testutil.CreateTestUser(t, env.userRepository, "user0")
 
 	post, err := env.svc.NewPost(t.Context(), user, "post 0", nil, nil, nil)
 	require.NoError(t, err)
@@ -82,11 +85,32 @@ func TestDeletePost(t *testing.T) {
 	assert.Error(t, err)
 }
 
-func TestGetPosts_DoesNotReturnPrivatePosts(t *testing.T) {
-	env := setupTest(t)
+func TestCreatePostWithImages_ReturnsImages(t *testing.T) {
+	env := setupPostTest(t)
 
-	user0 := testutil.CreateTestUser(t, env.svc.userRepository, "user0")
-	user1 := testutil.CreateTestUser(t, env.svc.userRepository, "user1")
+	user0 := testutil.CreateTestUser(t, env.userRepository, "user0")
+
+	images := map[int]models.ImageData{
+		1: {S3Key: "images/photo1.jpg", Width: 1920, Height: 1080},
+		2: {S3Key: "images/photo2.jpg", Width: 800, Height: 600},
+		3: {S3Key: "images/photo3.jpg", Width: 400, Height: 400},
+	}
+
+	post_initial, err := env.svc.NewPost(t.Context(), user0, "test post with images", images, nil, nil)
+	require.NoError(t, err)
+
+	post, err := env.svc.GetPostById(t.Context(), user0.UserID, post_initial.PostID)
+	require.NoError(t, err)
+	assert.NotNil(t, post)
+	assert.NotEmpty(t, post.Images)
+	assert.Len(t, post.Images, len(images))
+}
+
+func TestGetPosts_DoesNotReturnPrivatePosts(t *testing.T) {
+	env := setupPostTest(t)
+
+	user0 := testutil.CreateTestUser(t, env.userRepository, "user0")
+	user1 := testutil.CreateTestUser(t, env.userRepository, "user1")
 
 	post, err := env.svc.NewPost(t.Context(), user0, "test post please ignore", nil, nil, new(int(models.VisibilityCloseFriends)))
 	assert.NoError(t, err)
@@ -96,28 +120,28 @@ func TestGetPosts_DoesNotReturnPrivatePosts(t *testing.T) {
 	assert.Error(t, err)
 	assert.Nil(t, returned_post)
 
-	all_posts, err := env.svc.GetPosts(t.Context(), user1, FeedTypeAll, nil, 10, nil)
+	all_posts, err := env.svc.GetPosts(t.Context(), user1, service.FeedTypeAll, nil, 10, nil)
 	require.NoError(t, err)
 	assert.Len(t, all_posts, 0)
 
-	mutual_posts, err := env.svc.GetPosts(t.Context(), user1, FeedTypeMutual, nil, 10, nil)
+	mutual_posts, err := env.svc.GetPosts(t.Context(), user1, service.FeedTypeMutual, nil, 10, nil)
 	require.NoError(t, err)
 	assert.Len(t, mutual_posts, 0)
 
-	following_posts, err := env.svc.GetPosts(t.Context(), user1, FeedTypeFollowing, nil, 10, nil)
+	following_posts, err := env.svc.GetPosts(t.Context(), user1, service.FeedTypeFollowing, nil, 10, nil)
 	require.NoError(t, err)
 	assert.Len(t, following_posts, 0)
 
-	profile_posts, err := env.svc.GetPosts(t.Context(), user1, FeedTypeProfile, &user0.UserID, 10, nil)
+	profile_posts, err := env.svc.GetPosts(t.Context(), user1, service.FeedTypeProfile, &user0.UserID, 10, nil)
 	require.NoError(t, err)
 	assert.Len(t, profile_posts, 0)
 }
 
 func TestGetPostById_HiddenWhenPosterBlockedViewer(t *testing.T) {
-	env := setupTest(t)
+	env := setupPostTest(t)
 
-	poster := testutil.CreateTestUser(t, env.svc.userRepository, "user0")
-	viewer := testutil.CreateTestUser(t, env.svc.userRepository, "user1")
+	poster := testutil.CreateTestUser(t, env.userRepository, "user0")
+	viewer := testutil.CreateTestUser(t, env.userRepository, "user1")
 
 	post, err := env.svc.NewPost(t.Context(), poster, "post0", nil, nil, nil)
 	require.NoError(t, err)
@@ -126,7 +150,7 @@ func TestGetPostById_HiddenWhenPosterBlockedViewer(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, post.PostID, returned_post.Post.PostID)
 
-	err = env.svc.userRepository.BlockUser(t.Context(), poster.UserID, viewer.UserID)
+	err = env.userRepository.BlockUser(t.Context(), poster.UserID, viewer.UserID)
 	assert.NoError(t, err)
 
 	returned_post, err = env.svc.GetPostById(t.Context(), viewer.UserID, post.PostID)
@@ -135,30 +159,30 @@ func TestGetPostById_HiddenWhenPosterBlockedViewer(t *testing.T) {
 }
 
 func TestGetPosts_HiddenWhenPosterBlockedViewer(t *testing.T) {
-	env := setupTest(t)
+	env := setupPostTest(t)
 
-	poster := testutil.CreateTestUser(t, env.svc.userRepository, "user0")
-	viewer := testutil.CreateTestUser(t, env.svc.userRepository, "user1")
+	poster := testutil.CreateTestUser(t, env.userRepository, "user0")
+	viewer := testutil.CreateTestUser(t, env.userRepository, "user1")
 
 	_, err := env.svc.NewPost(t.Context(), poster, "post0", nil, nil, nil)
 	require.NoError(t, err)
 
-	err = env.svc.userRepository.BlockUser(t.Context(), poster.UserID, viewer.UserID)
+	err = env.userRepository.BlockUser(t.Context(), poster.UserID, viewer.UserID)
 	assert.NoError(t, err)
 
-	posts, err := env.svc.GetPosts(t.Context(), viewer, FeedTypeAll, nil, 10, nil)
-	assert.NoError(t, err)
-	assert.Len(t, posts, 0)
-
-	posts, err = env.svc.GetPosts(t.Context(), viewer, FeedTypeFollowing, nil, 10, nil)
+	posts, err := env.svc.GetPosts(t.Context(), viewer, service.FeedTypeAll, nil, 10, nil)
 	assert.NoError(t, err)
 	assert.Len(t, posts, 0)
 
-	posts, err = env.svc.GetPosts(t.Context(), viewer, FeedTypeMutual, nil, 10, nil)
+	posts, err = env.svc.GetPosts(t.Context(), viewer, service.FeedTypeFollowing, nil, 10, nil)
 	assert.NoError(t, err)
 	assert.Len(t, posts, 0)
 
-	posts, err = env.svc.GetPosts(t.Context(), viewer, FeedTypeProfile, &poster.UserID, 10, nil)
+	posts, err = env.svc.GetPosts(t.Context(), viewer, service.FeedTypeMutual, nil, 10, nil)
+	assert.NoError(t, err)
+	assert.Len(t, posts, 0)
+
+	posts, err = env.svc.GetPosts(t.Context(), viewer, service.FeedTypeProfile, &poster.UserID, 10, nil)
 	assert.NoError(t, err)
 	assert.Len(t, posts, 0)
 }
@@ -169,12 +193,12 @@ func TestGetPosts_HiddenWhenPosterBlockedViewer(t *testing.T) {
 // than the requested limit as the end of the feed, causing posts beyond that page to
 // never be fetched.
 func TestGetPosts_ProfilePinnedPostDoesNotReduceSubsequentPageSize(t *testing.T) {
-	env := setupTest(t)
+	env := setupPostTest(t)
 
 	// enables pinned-post logic.
 	ctx := context.WithValue(t.Context(), middleware.AppVersionKey, "v1.4.0")
 
-	user := testutil.CreateTestUser(t, env.svc.userRepository, "user1")
+	user := testutil.CreateTestUser(t, env.userRepository, "user1")
 
 	const limit = 3
 
@@ -188,13 +212,13 @@ func TestGetPosts_ProfilePinnedPostDoesNotReduceSubsequentPageSize(t *testing.T)
 	err := env.svc.PinPost(ctx, user, created[0].PostID)
 	require.NoError(t, err)
 
-	page1, err := env.svc.GetPosts(ctx, user, FeedTypeProfile, &user.UserID, limit, nil)
+	page1, err := env.svc.GetPosts(ctx, user, service.FeedTypeProfile, &user.UserID, limit, nil)
 	require.NoError(t, err)
 	require.Len(t, page1, limit+1) // pinned post returned in first page
 
 	cursor := page1[len(page1)-1].Post.CreatedAt
 
-	page2, err := env.svc.GetPosts(ctx, user, FeedTypeProfile, &user.UserID, limit, &cursor)
+	page2, err := env.svc.GetPosts(ctx, user, service.FeedTypeProfile, &user.UserID, limit, &cursor)
 	require.NoError(t, err)
 	assert.Len(t, page2, limit)
 	for _, p := range page2 {

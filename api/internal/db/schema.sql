@@ -77,11 +77,22 @@ CREATE TABLE likes (
 
 CREATE TABLE images (
     image_id SERIAL PRIMARY KEY NOT NULL,
-    post_id INT NOT NULL,
     height INT NOT NULL,
     width INT NOT NULL,
-    image_blob_url TEXT NOT NULL,
-    display_order INT NOT NULL DEFAULT 0
+    image_blob_url TEXT NOT NULL
+);
+
+CREATE TABLE post_images (
+    post_id       INTEGER NOT NULL REFERENCES posts(post_id) ON DELETE CASCADE,
+    image_id      INTEGER NOT NULL REFERENCES images(image_id) ON DELETE CASCADE,
+    display_order INTEGER NOT NULL DEFAULT 0,
+    PRIMARY KEY (post_id, image_id)
+);
+
+CREATE TABLE comment_images (
+    comment_id INTEGER NOT NULL REFERENCES comments(comment_id) ON DELETE CASCADE,
+    image_id   INTEGER NOT NULL REFERENCES images(image_id) ON DELETE CASCADE,
+    PRIMARY KEY (comment_id, image_id)
 );
 
 CREATE TABLE notifications (

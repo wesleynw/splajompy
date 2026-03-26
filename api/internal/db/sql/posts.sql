@@ -13,20 +13,26 @@ DELETE FROM posts
 WHERE post_id = $1;
 
 -- name: InsertImage :one
-INSERT INTO images (post_id, height, width, image_blob_url, display_order)
-VALUES ($1, $2, $3, $4, $5)
+INSERT INTO images (height, width, image_blob_url)
+VALUES ($1, $2, $3)
 RETURNING *;
 
+-- name: InsertPostImage :exec
+INSERT INTO post_images (post_id, image_id, display_order)
+VALUES ($1, $2, $3);
+
 -- name: GetImagesByPostId :many
-SELECT *
+SELECT images.*
 FROM images
-WHERE images.post_id = $1
-ORDER BY display_order ASC;
+JOIN post_images ON images.image_id = post_images.image_id
+WHERE post_images.post_id = $1
+ORDER BY post_images.display_order ASC;
 
 -- name: GetAllImagesByUserId :many
 SELECT images.*
 FROM images
-JOIN posts ON images.post_id = posts.post_id
+JOIN post_images ON images.image_id = post_images.image_id
+JOIN posts ON posts.post_id = post_images.post_id
 WHERE posts.user_id = $1;
 
 -- name: GetPollVotesGrouped :many

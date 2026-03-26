@@ -20,7 +20,7 @@ type PostRepository interface {
 	IsPostLikedByUserId(ctx context.Context, userId int, postId int) (bool, error)
 	GetImagesForPost(ctx context.Context, postId int) ([]queries.Image, error)
 	GetAllImagesForUser(ctx context.Context, userId int) ([]queries.Image, error)
-	InsertImage(ctx context.Context, postId int, height int, width int, url string, displayOrder int) (queries.Image, error)
+	InsertImage(ctx context.Context, postId int, height int, width int, url string, displayOrder int) (*queries.Image, error)
 	GetCommentCountForPost(ctx context.Context, postId int) (int, error)
 	GetPostIdsByUserIdCursor(ctx context.Context, userId int, targetUserId int, limit int, beforeTimestamp *time.Time) ([]int, error)
 	GetAllPostIdsCursor(ctx context.Context, limit int, beforeTimestamp *time.Time, currentUserId int) ([]int, error)
@@ -98,14 +98,26 @@ func (r DBPostRepository) GetAllImagesForUser(ctx context.Context, userId int) (
 }
 
 // InsertImage adds a new image to a post
-func (r DBPostRepository) InsertImage(ctx context.Context, postId int, height int, width int, url string, displayOrder int) (queries.Image, error) {
-	return r.querier.InsertImage(ctx, queries.InsertImageParams{
-		PostID:       postId,
+func (r DBPostRepository) InsertImage(ctx context.Context, postId int, height int, width int, url string, displayOrder int) (*queries.Image, error) {
+	image, err := r.querier.InsertImage(ctx, queries.InsertImageParams{
 		Height:       height,
 		Width:        width,
 		ImageBlobUrl: url,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	err = r.querier.InsertPostImage(ctx, queries.InsertPostImageParams{
+		PostID:       postId,
+		ImageID:      image.ImageID,
 		DisplayOrder: displayOrder,
 	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &image, nil
 }
 
 // GetCommentCountForPost returns the number of comments for a post

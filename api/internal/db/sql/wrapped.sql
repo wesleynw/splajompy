@@ -54,9 +54,10 @@ SELECT AVG(image_count)
 FROM (
     SELECT COUNT(*) as image_count
     FROM images
+    JOIN post_images ON images.image_id = post_images.post_id
     JOIN posts ON images.post_id = posts.post_id
     WHERE EXTRACT(YEAR FROM created_at) = 2025
-    GROUP BY images.post_id
+    GROUP BY post_images.post_id
 ) subquery;
 
 -- name: WrappedGetAverageImageCountPerPostForUser :one
@@ -64,9 +65,10 @@ SELECT COALESCE(AVG(image_count), 0)::int
 FROM (
     SELECT COUNT(*) as image_count
     FROM images
-    JOIN posts ON images.post_id = posts.post_id
+    JOIN post_images ON images.image_id = post_images.post_id
+    JOIN posts ON post_images.post_id = posts.post_id
     WHERE posts.user_id = $1 AND EXTRACT(YEAR FROM posts.created_at) = 2025
-    GROUP BY images.post_id
+    GROUP BY post_images.post_id
 ) subquery;
 
 -- name: WrappedGetMostLikedPostId :one
