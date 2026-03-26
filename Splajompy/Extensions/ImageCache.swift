@@ -14,7 +14,7 @@ func initializeImageCache() {
   )
 }
 
-final class ImagePipelineCustomDelegate: ImagePipelineDelegate {
+final class ImagePipelineCustomDelegate: ImagePipeline.Delegate {
   /// cacheKey strips s3 presigning params from URL, which change on every reload
   func cacheKey(for request: ImageRequest, pipeline: ImagePipeline) -> String? {
     guard let url = request.url,
