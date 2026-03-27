@@ -101,3 +101,26 @@ func TestGetComments_DoesNotReturnBlockedUserComments(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Empty(t, comments)
 }
+
+func TestGetComments_WithImage(t *testing.T) {
+	env := setupCommentTest(t)
+
+	user0 := testutil.CreateTestUser(t, env.userRepository, "user0")
+
+	post, err := env.postRepository.InsertPost(t.Context(), user0.UserID, "test post", nil, nil, new(models.VisibilityPublic))
+	require.NoError(t, err)
+
+	images := map[int]models.ImageData{
+		1: {S3Key: "images/photo1.jpg", Width: 1920, Height: 1080},
+	}
+
+	_, err = env.svc.AddCommentToPost(t.Context(), user0, post.PostID, "test comment", images)
+	require.NoError(t, err)
+
+	comments, err := env.svc.GetCommentsByPostId(t.Context(), user0, post.PostID)
+	assert.NoError(t, err)
+	assert.Len(t, comments, 1)
+
+	assert.NotNil(t, comments[0].Images)
+	assert.Len(t, comments[0].Images, 1)
+}
