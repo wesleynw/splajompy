@@ -82,12 +82,21 @@ type DetailedPost struct {
 	Post          Post            `json:"post"`
 	User          PublicUser      `json:"user"`
 	IsLiked       bool            `json:"isLiked"`
-	Images        []queries.Image `json:"images"`
+	Images        []DetailedImage `json:"images"`
 	CommentCount  int             `json:"commentCount"`
 	RelevantLikes []RelevantLike  `json:"relevantLikes"`
 	HasOtherLikes bool            `json:"hasOtherLikes"`
 	Poll          *DetailedPoll   `json:"poll"`
 	IsPinned      bool            `json:"isPinned"`
+}
+
+type DetailedImage struct {
+	ImageID      int    `json:"imageId"`
+	PostId       int    `json:"postId"`
+	Height       int    `json:"height"`
+	Width        int    `json:"width"`
+	ImageBlobUrl string `json:"imageBlobUrl"`
+	DisplayOrder int    `json:"displayOrder"`
 }
 
 type DetailedPollOption struct {

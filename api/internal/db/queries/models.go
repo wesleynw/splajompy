@@ -31,6 +31,11 @@ type Comment struct {
 	CreatedAt pgtype.Timestamp `json:"createdAt"`
 }
 
+type CommentImage struct {
+	CommentID int `json:"commentId"`
+	ImageID   int `json:"imageId"`
+}
+
 type Follow struct {
 	FollowerID  int              `json:"followerId"`
 	FollowingID int              `json:"followingId"`
@@ -39,11 +44,9 @@ type Follow struct {
 
 type Image struct {
 	ImageID      int    `json:"imageId"`
-	PostID       int    `json:"postId"`
 	Height       int    `json:"height"`
 	Width        int    `json:"width"`
 	ImageBlobUrl string `json:"imageBlobUrl"`
-	DisplayOrder int    `json:"displayOrder"`
 }
 
 type Like struct {
@@ -90,6 +93,12 @@ type Post struct {
 	Facets         db.Facets        `json:"facets"`
 	Attributes     *db.Attributes   `json:"attributes"`
 	Visibilitytype int              `json:"visibilitytype"`
+}
+
+type PostImage struct {
+	PostID       int `json:"postId"`
+	ImageID      int `json:"imageId"`
+	DisplayOrder int `json:"displayOrder"`
 }
 
 type Session struct {

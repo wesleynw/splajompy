@@ -23,9 +23,10 @@ func (q *Queries) DeletePost(ctx context.Context, postID int) error {
 }
 
 const getAllImagesByUserId = `-- name: GetAllImagesByUserId :many
-SELECT images.image_id, images.post_id, images.height, images.width, images.image_blob_url, images.display_order
+SELECT images.image_id, images.height, images.width, images.image_blob_url
 FROM images
-JOIN posts ON images.post_id = posts.post_id
+JOIN post_images ON images.image_id = post_images.image_id
+JOIN posts ON posts.post_id = post_images.post_id
 WHERE posts.user_id = $1
 `
 
@@ -40,11 +41,9 @@ func (q *Queries) GetAllImagesByUserId(ctx context.Context, userID int) ([]Image
 		var i Image
 		if err := rows.Scan(
 			&i.ImageID,
-			&i.PostID,
 			&i.Height,
 			&i.Width,
 			&i.ImageBlobUrl,
-			&i.DisplayOrder,
 		); err != nil {
 			return nil, err
 		}
@@ -70,10 +69,11 @@ func (q *Queries) GetCommentCountByPostID(ctx context.Context, postID int) (int6
 }
 
 const getImagesByPostId = `-- name: GetImagesByPostId :many
-SELECT image_id, post_id, height, width, image_blob_url, display_order
+SELECT images.image_id, images.height, images.width, images.image_blob_url
 FROM images
-WHERE images.post_id = $1
-ORDER BY display_order ASC
+JOIN post_images ON images.image_id = post_images.image_id
+WHERE post_images.post_id = $1
+ORDER BY post_images.display_order ASC
 `
 
 func (q *Queries) GetImagesByPostId(ctx context.Context, postID int) ([]Image, error) {
@@ -87,11 +87,9 @@ func (q *Queries) GetImagesByPostId(ctx context.Context, postID int) ([]Image, e
 		var i Image
 		if err := rows.Scan(
 			&i.ImageID,
-			&i.PostID,
 			&i.Height,
 			&i.Width,
 			&i.ImageBlobUrl,
-			&i.DisplayOrder,
 		); err != nil {
 			return nil, err
 		}
@@ -167,35 +165,25 @@ func (q *Queries) GetUserVoteInPoll(ctx context.Context, arg GetUserVoteInPollPa
 }
 
 const insertImage = `-- name: InsertImage :one
-INSERT INTO images (post_id, height, width, image_blob_url, display_order)
-VALUES ($1, $2, $3, $4, $5)
-RETURNING image_id, post_id, height, width, image_blob_url, display_order
+INSERT INTO images (height, width, image_blob_url)
+VALUES ($1, $2, $3)
+RETURNING image_id, height, width, image_blob_url
 `
 
 type InsertImageParams struct {
-	PostID       int    `json:"postId"`
 	Height       int    `json:"height"`
 	Width        int    `json:"width"`
 	ImageBlobUrl string `json:"imageBlobUrl"`
-	DisplayOrder int    `json:"displayOrder"`
 }
 
 func (q *Queries) InsertImage(ctx context.Context, arg InsertImageParams) (Image, error) {
-	row := q.db.QueryRow(ctx, insertImage,
-		arg.PostID,
-		arg.Height,
-		arg.Width,
-		arg.ImageBlobUrl,
-		arg.DisplayOrder,
-	)
+	row := q.db.QueryRow(ctx, insertImage, arg.Height, arg.Width, arg.ImageBlobUrl)
 	var i Image
 	err := row.Scan(
 		&i.ImageID,
-		&i.PostID,
 		&i.Height,
 		&i.Width,
 		&i.ImageBlobUrl,
-		&i.DisplayOrder,
 	)
 	return i, err
 }
@@ -233,6 +221,22 @@ func (q *Queries) InsertPost(ctx context.Context, arg InsertPostParams) (Post, e
 		&i.Visibilitytype,
 	)
 	return i, err
+}
+
+const insertPostImage = `-- name: InsertPostImage :exec
+INSERT INTO post_images (post_id, image_id, display_order)
+VALUES ($1, $2, $3)
+`
+
+type InsertPostImageParams struct {
+	PostID       int `json:"postId"`
+	ImageID      int `json:"imageId"`
+	DisplayOrder int `json:"displayOrder"`
+}
+
+func (q *Queries) InsertPostImage(ctx context.Context, arg InsertPostImageParams) error {
+	_, err := q.db.Exec(ctx, insertPostImage, arg.PostID, arg.ImageID, arg.DisplayOrder)
+	return err
 }
 
 const insertVote = `-- name: InsertVote :exec
