@@ -12,6 +12,7 @@ type Querier interface {
 	AddCommentToPost(ctx context.Context, arg AddCommentToPostParams) (Comment, error)
 	AddLike(ctx context.Context, arg AddLikeParams) error
 	AddUserRelationship(ctx context.Context, arg AddUserRelationshipParams) error
+	AttachImageToComment(ctx context.Context, arg AttachImageToCommentParams) error
 	BlockUser(ctx context.Context, arg BlockUserParams) error
 	CreateSession(ctx context.Context, arg CreateSessionParams) error
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
@@ -33,6 +34,7 @@ type Querier interface {
 	GetFollowersByUserId(ctx context.Context, arg GetFollowersByUserIdParams) ([]GetFollowersByUserIdRow, error)
 	GetFollowingByUserId(ctx context.Context, arg GetFollowingByUserIdParams) ([]GetFollowingByUserIdRow, error)
 	GetFollowingUserIds(ctx context.Context, arg GetFollowingUserIdsParams) ([]int, error)
+	GetImagesByCommentId(ctx context.Context, commentID int) ([]Image, error)
 	GetImagesByPostId(ctx context.Context, postID int) ([]Image, error)
 	GetIsEmailInUse(ctx context.Context, email string) (bool, error)
 	GetIsLikedByUser(ctx context.Context, arg GetIsLikedByUserParams) (bool, error)

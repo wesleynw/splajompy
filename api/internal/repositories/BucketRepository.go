@@ -21,7 +21,7 @@ type BucketRepository interface {
 	DeleteObjects(ctx context.Context, keys []string) error
 	GetPresignedPutObject(ctx context.Context, userID int, extension, folder *string) (string, string, error)
 	GetPresignedGetObject(ctx context.Context, key string) (*string, error)
-	PublishStagedImages(ctx context.Context, userId int, imageKeymap map[int]models.ImageData, identifier string) ([]string, error)
+	PublishStagedImages(ctx context.Context, userId int, blobType string, identifier int, imageKeymap map[int]models.ImageData) ([]string, error)
 }
 
 type S3BucketRepository struct {
@@ -138,20 +138,21 @@ func (r *S3BucketRepository) GetPresignedGetObject(ctx context.Context, key stri
 }
 
 // GetDestinationKey returns a permenant blob URI given the current URI of a staged blob.
-// An example blob URI might be production/{identifier}/{userId}/identifier}/{fileName}.jpg
-func GetDestinationKey(userId int, identifier string, stagedBlobUrl string) string {
+// An example blob URI might be production/{userId}/comment/{comment_id}/{fileName}.jpg
+func GetDestinationKey(userId int, blobType string, identifier int, stagedBlobUrl string) string {
 	environment := os.Getenv("ENVIRONMENT")
 	filename := stagedBlobUrl[strings.LastIndex(stagedBlobUrl, "/")+1:]
 
-	return fmt.Sprintf("%s/%s/%d/%s", environment, identifier, userId, filename)
+	return fmt.Sprintf("%s/%d/%s/%d/%s", environment, userId, blobType, identifier, filename)
 }
 
-func (s *S3BucketRepository) PublishStagedImages(ctx context.Context, userId int, imageKeymap map[int]models.ImageData, identifier string) ([]string, error) {
+func (s *S3BucketRepository) PublishStagedImages(ctx context.Context, userId int, blobType string, identifier int, imageKeymap map[int]models.ImageData) ([]string, error) {
 	destinationKeys := []string{}
 
 	for _, imageData := range imageKeymap {
 		destinationKey := GetDestinationKey(
 			userId,
+			blobType,
 			identifier,
 			imageData.S3Key,
 		)

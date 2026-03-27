@@ -44,6 +44,21 @@ func (q *Queries) AddCommentToPost(ctx context.Context, arg AddCommentToPostPara
 	return i, err
 }
 
+const attachImageToComment = `-- name: AttachImageToComment :exec
+INSERT INTO comment_images (comment_id, image_id)
+VALUES ($1, $2)
+`
+
+type AttachImageToCommentParams struct {
+	CommentID int `json:"commentId"`
+	ImageID   int `json:"imageId"`
+}
+
+func (q *Queries) AttachImageToComment(ctx context.Context, arg AttachImageToCommentParams) error {
+	_, err := q.db.Exec(ctx, attachImageToComment, arg.CommentID, arg.ImageID)
+	return err
+}
+
 const deleteComment = `-- name: DeleteComment :exec
 DELETE FROM comments
 WHERE comment_id = $1
@@ -125,6 +140,38 @@ func (q *Queries) GetCommentsByPostId(ctx context.Context, postID int) ([]GetCom
 			&i.CreatedAt,
 			&i.Username,
 			&i.Name,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getImagesByCommentId = `-- name: GetImagesByCommentId :many
+SELECT images.image_id, images.height, images.width, images.image_blob_url
+FROM images
+JOIN comment_images ON images.image_id = comment_images.image_id
+WHERE comment_images.comment_id = $1
+`
+
+func (q *Queries) GetImagesByCommentId(ctx context.Context, commentID int) ([]Image, error) {
+	rows, err := q.db.Query(ctx, getImagesByCommentId, commentID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Image
+	for rows.Next() {
+		var i Image
+		if err := rows.Scan(
+			&i.ImageID,
+			&i.Height,
+			&i.Width,
+			&i.ImageBlobUrl,
 		); err != nil {
 			return nil, err
 		}

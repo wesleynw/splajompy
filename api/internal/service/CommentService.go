@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"time"
 
-	"splajompy.com/api/v2/internal/db/queries"
 	"splajompy.com/api/v2/internal/models"
 	"splajompy.com/api/v2/internal/repositories"
 	"splajompy.com/api/v2/internal/utilities"
@@ -18,6 +17,7 @@ type CommentService struct {
 	notificationRepository repositories.NotificationRepository
 	userRepository         repositories.UserRepository
 	likeRepository         repositories.LikeRepository
+	bucketRepository       repositories.BucketRepository
 }
 
 // NewCommentService creates a new comment service instance
@@ -27,6 +27,7 @@ func NewCommentService(
 	notificationRepository repositories.NotificationRepository,
 	userRepository repositories.UserRepository,
 	likeRepository repositories.LikeRepository,
+	bucketRepository repositories.BucketRepository,
 ) *CommentService {
 	return &CommentService{
 		commentRepository:      commentRepo,
@@ -34,6 +35,7 @@ func NewCommentService(
 		notificationRepository: notificationRepository,
 		userRepository:         userRepository,
 		likeRepository:         likeRepository,
+		bucketRepository:       bucketRepository,
 	}
 }
 
@@ -51,6 +53,19 @@ func (s *CommentService) AddCommentToPost(ctx context.Context, currentUser model
 	comment, err := s.commentRepository.AddCommentToPost(ctx, currentUser.UserID, postId, content, commentFacets)
 	if err != nil {
 		return nil, errors.New("unable to create new comment")
+	}
+
+	// TODO: unpublish images and rest of comment on failure w/ images
+	imageBlobUrls, err := s.bucketRepository.PublishStagedImages(ctx, currentUser.UserID, "comment", comment.CommentID, imageKeyMap)
+	if err != nil {
+		return nil, err
+	}
+
+	for i := range len(imageKeyMap) {
+		_, err := s.commentRepository.InsertImage(ctx, postId, imageKeyMap[i].Height, imageKeyMap[i].Width, imageBlobUrls[i], 0)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	commentId := comment.CommentID
@@ -127,15 +142,40 @@ func (s *CommentService) GetCommentsByPostId(ctx context.Context, currentUser mo
 			return nil, errors.New("unable to retrieve comment liked information")
 		}
 
-		var comment = queries.Comment{
+		dbImages, err := s.commentRepository.GetImagesByCommentId(ctx, dbComment.CommentID)
+		if err != nil {
+			return nil, err
+		}
+		images := []models.DetailedImage{}
+		for _, image := range dbImages {
+			blobUrl, err := s.bucketRepository.GetPresignedGetObject(ctx, image.ImageBlobUrl)
+			if err != nil {
+				return nil, err
+			}
+
+			currentImage := models.DetailedImage{
+				ImageID:      image.ImageID,
+				PostId:       postID,
+				Height:       image.Height,
+				Width:        image.Width,
+				ImageBlobUrl: *blobUrl,
+				DisplayOrder: 0,
+			}
+
+			images = append(images, currentImage)
+		}
+
+		detailedComment := models.DetailedComment{
 			CommentID: dbComment.CommentID,
 			PostID:    dbComment.PostID,
 			UserID:    dbComment.UserID,
 			Text:      dbComment.Text,
 			Facets:    dbComment.Facets,
-			CreatedAt: dbComment.CreatedAt,
+			Images:    images,
+			CreatedAt: dbComment.CreatedAt.Time,
+			User:      user,
+			IsLiked:   isLiked,
 		}
-		detailedComment := utilities.MapComment(comment, user, isLiked)
 
 		comments = append(comments, detailedComment)
 	}

@@ -65,7 +65,7 @@ func (s *PostService) NewPost(ctx context.Context, currentUser models.PublicUser
 	}
 	postId := post.PostID
 
-	imageBlobKeys, err := s.bucketRepository.PublishStagedImages(ctx, currentUser.UserID, imageKeymap, "post")
+	imageBlobKeys, err := s.bucketRepository.PublishStagedImages(ctx, currentUser.UserID, "post", postId, imageKeymap)
 	if err != nil {
 		return nil, err
 	}

@@ -13,7 +13,10 @@ type CommentRepository interface {
 	GetCommentsByPostId(ctx context.Context, postId int) ([]queries.GetCommentsByPostIdRow, error)
 	IsCommentLikedByUser(ctx context.Context, userId int, postId int, commentId int) (bool, error)
 	DeleteComment(ctx context.Context, commentId int) error
-	GetUserById(ctx context.Context, userId int) (queries.User, error)
+	// InsertImage adds a new image to a comment.
+	InsertImage(ctx context.Context, commentId int, height int, width int, url string, displayOrder int) (*queries.Image, error)
+	// GetImagesByCommentId returns all images associated with a given comment.
+	GetImagesByCommentId(ctx context.Context, commentId int) ([]queries.Image, error)
 }
 
 type DBCommentRepository struct {
@@ -57,6 +60,31 @@ func (r DBCommentRepository) DeleteComment(ctx context.Context, commentId int) e
 // GetUserById retrieves a user by their ID
 func (r DBCommentRepository) GetUserById(ctx context.Context, userId int) (queries.User, error) {
 	return r.querier.GetUserById(ctx, userId)
+}
+
+func (r DBCommentRepository) InsertImage(ctx context.Context, commentId int, height int, width int, url string, displayOrder int) (*queries.Image, error) {
+	image, err := r.querier.InsertImage(ctx, queries.InsertImageParams{
+		Height:       height,
+		Width:        width,
+		ImageBlobUrl: url,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	err = r.querier.AttachImageToComment(ctx, queries.AttachImageToCommentParams{
+		CommentID: commentId,
+		ImageID:   image.ImageID,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &image, nil
+}
+
+func (r *DBCommentRepository) GetImagesByCommentId(ctx context.Context, commentId int) ([]queries.Image, error) {
+	return r.querier.GetImagesByCommentId(ctx, commentId)
 }
 
 // NewDBCommentRepository creates a new comment repository

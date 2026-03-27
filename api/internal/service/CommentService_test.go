@@ -26,8 +26,9 @@ func setupCommentTest(t *testing.T) commentServiceTestEnv {
 	notificationRepository := repositories.NewDBNotificationRepository(testDb.Queries)
 	userRepository := repositories.NewDBUserRepository(testDb.Queries)
 	likeRepository := repositories.NewDBLikeRepository(testDb.Queries)
+	bucketRepository := &fakeBucketRepository{}
 
-	svc := service.NewCommentService(commentRepository, postRepository, notificationRepository, userRepository, likeRepository)
+	svc := service.NewCommentService(commentRepository, postRepository, notificationRepository, userRepository, likeRepository, bucketRepository)
 
 	return commentServiceTestEnv{
 		svc:            svc,
