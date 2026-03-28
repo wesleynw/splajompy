@@ -15,38 +15,6 @@ struct CreateCommentRequest: Encodable {
   let imageKeymap: [Int: ImageData]
 }
 
-struct DetailedComment: Identifiable, Decodable, Equatable {
-  let commentId: Int
-  let postId: Int
-  let userId: Int
-  let text: String
-  let createdAt: Date
-  let user: PublicUser
-  let facets: [Facet]?
-  var isLiked: Bool
-
-  var id: Int { commentId }
-
-  static func == (lhs: DetailedComment, rhs: DetailedComment) -> Bool {
-    return lhs.commentId == rhs.commentId
-  }
-
-  // TODO: the null coalescing here is dumb
-  var richContent: AttributedString {
-    let markdown = generateAttributedStringUsingFacets(
-      text,
-      facets: facets ?? []
-    )
-
-    return try! AttributedString(
-      markdown: markdown,
-      options: AttributedString.MarkdownParsingOptions(
-        interpretedSyntax: .inlineOnlyPreservingWhitespace
-      )
-    )
-  }
-}
-
 protocol CommentServiceProtocol: Sendable {
   func getComments(postId: Int) async -> AsyncResult<[DetailedComment]>
 

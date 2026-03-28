@@ -6,9 +6,10 @@ import (
 	"fmt"
 	"time"
 
+	"golang.org/x/mod/semver"
+	"splajompy.com/api/v2/internal/middleware"
 	"splajompy.com/api/v2/internal/models"
 	"splajompy.com/api/v2/internal/repositories"
-	"splajompy.com/api/v2/internal/utilities"
 )
 
 type CommentService struct {
@@ -61,11 +62,20 @@ func (s *CommentService) AddCommentToPost(ctx context.Context, currentUser model
 		return nil, err
 	}
 
+	commentImages := []models.DetailedImage{}
 	for i := range len(imageKeyMap) {
-		_, err := s.commentRepository.InsertImage(ctx, postId, imageKeyMap[i].Height, imageKeyMap[i].Width, imageBlobUrls[i], 0)
+		image, err := s.commentRepository.InsertImage(ctx, comment.CommentID, imageKeyMap[i].Height, imageKeyMap[i].Width, imageBlobUrls[i], 0)
 		if err != nil {
 			return nil, err
 		}
+		commentImages = append(commentImages, models.DetailedImage{
+			ImageID:      image.ImageID,
+			PostId:       postId,
+			Height:       image.Height,
+			Width:        image.Width,
+			ImageBlobUrl: imageBlobUrls[i],
+			DisplayOrder: 0,
+		})
 	}
 
 	commentId := comment.CommentID
@@ -113,7 +123,19 @@ func (s *CommentService) AddCommentToPost(ctx context.Context, currentUser model
 		}
 	}
 
-	return new(utilities.MapComment(comment, currentUser, false)), nil
+	detailedComment := models.DetailedComment{
+		CommentID: comment.CommentID,
+		PostID:    comment.PostID,
+		UserID:    comment.UserID,
+		Text:      comment.Text,
+		Facets:    comment.Facets,
+		CreatedAt: comment.CreatedAt.Time,
+		User:      currentUser,
+		IsLiked:   false,
+		Images:    commentImages,
+	}
+
+	return &detailedComment, nil
 }
 
 // GetCommentsByPostId retrieves all comments for a specific post with like status
@@ -163,6 +185,12 @@ func (s *CommentService) GetCommentsByPostId(ctx context.Context, currentUser mo
 			}
 
 			images = append(images, currentImage)
+		}
+
+		versionAny := ctx.Value(middleware.AppVersionKey)
+		version, ok := versionAny.(string)
+		if ok && version != "unknown" && semver.Compare(version, "v1.8.0") < 0 {
+			dbComment.Text = dbComment.Text + "\nThis comment contains an image. [Update your app to see it](https://apps.apple.com/us/app/splajompy/id6744034321)."
 		}
 
 		detailedComment := models.DetailedComment{

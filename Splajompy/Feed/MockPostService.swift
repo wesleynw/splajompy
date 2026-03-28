@@ -123,7 +123,6 @@ final class MockPostStore: @unchecked Sendable {
         images: [
           ImageDTO(
             imageId: 3525,
-            postId: 4705,
             height: 772,
             width: 1179,
             imageBlobUrl:
@@ -215,7 +214,6 @@ final class MockPostStore: @unchecked Sendable {
         images: [
           ImageDTO(
             imageId: 1002,
-            postId: 2004,
             height: 600,
             width: 800,
             imageBlobUrl:

@@ -144,7 +144,7 @@ extension CommentsView {
       let text = text.trimmingCharacters(
         in: .whitespacesAndNewlines
       )
-      guard !text.isEmpty else { return false }
+      guard !text.isEmpty || imageSelection != nil else { return false }
 
       isSubmitting = true
       defer { isSubmitting = false }
@@ -161,6 +161,7 @@ extension CommentsView {
       switch result {
       case .success(let newComment):
         addCommentToList(newComment)
+        resetInputState()
         PostHogSDK.shared.capture("comment_created")
 
         postManager.updatePost(id: postId) { post in
@@ -178,6 +179,7 @@ extension CommentsView {
 
     func resetInputState() {
       text = NSAttributedString(string: "")
+      imageSelection = nil
       selectedRange = NSRange(location: 0, length: 0)
     }
 

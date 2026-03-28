@@ -76,7 +76,6 @@ struct DetailedUser: Decodable, Identifiable {
 
 struct ImageDTO: Decodable {
   let imageId: Int
-  let postId: Int
   let height: Int
   let width: Int
   let imageBlobUrl: String
@@ -181,4 +180,36 @@ enum VisibilityType: Int, Decodable, Identifiable, CaseIterable {
   case friends = 1
 
   var id: Int { rawValue }
+}
+
+struct DetailedComment: Identifiable, Decodable, Equatable {
+  let commentId: Int
+  let postId: Int
+  let userId: Int
+  let text: String
+  let createdAt: Date
+  let user: PublicUser
+  let facets: [Facet]?
+  let images: [ImageDTO]?
+  var isLiked: Bool
+
+  var id: Int { commentId }
+
+  static func == (lhs: DetailedComment, rhs: DetailedComment) -> Bool {
+    return lhs.commentId == rhs.commentId
+  }
+
+  var richContent: AttributedString {
+    let markdown = generateAttributedStringUsingFacets(
+      text,
+      facets: facets ?? []
+    )
+
+    return try! AttributedString(
+      markdown: markdown,
+      options: AttributedString.MarkdownParsingOptions(
+        interpretedSyntax: .inlineOnlyPreservingWhitespace
+      )
+    )
+  }
 }

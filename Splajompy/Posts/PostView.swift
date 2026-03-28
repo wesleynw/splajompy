@@ -298,7 +298,6 @@ struct PostView: View {
   let images = [
     ImageDTO(
       imageId: 789,
-      postId: 123,
       height: 800,
       width: 1200,
       imageBlobUrl:
@@ -307,7 +306,6 @@ struct PostView: View {
     ),
     ImageDTO(
       imageId: 790,
-      postId: 123,
       height: 800,
       width: 1200,
       imageBlobUrl:
@@ -365,7 +363,6 @@ struct PostView: View {
   let images = [
     ImageDTO(
       imageId: 789,
-      postId: 123,
       height: 800,
       width: 1200,
       imageBlobUrl:
@@ -374,7 +371,6 @@ struct PostView: View {
     ),
     ImageDTO(
       imageId: 790,
-      postId: 123,
       height: 800,
       width: 1200,
       imageBlobUrl:

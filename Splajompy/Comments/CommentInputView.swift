@@ -37,9 +37,10 @@ struct CommentInputView: View {
         .padding(.horizontal)
       }
 
-      ScrollView(.horizontal) {
-        HStack {
-          if viewModel.imageState != .empty {
+      if viewModel.imageState != .empty {
+
+        ScrollView(.horizontal) {
+          HStack {
             ImagePreviewView(
               state: viewModel.imageState,
               onRetry: {
@@ -51,8 +52,8 @@ struct CommentInputView: View {
             )
           }
         }
+        .scrollIndicators(.hidden)
       }
-      .scrollIndicators(.hidden)
 
       HStack(alignment: .bottom) {
         PhotosPicker(selection: $viewModel.imageSelection, matching: .images) {
@@ -76,9 +77,6 @@ struct CommentInputView: View {
               let result = await viewModel.submitComment(
                 text: viewModel.text.string
               )
-              if result {
-                viewModel.resetInputState()
-              }
               return result
             }
           }) {
@@ -95,9 +93,10 @@ struct CommentInputView: View {
             }
           }
           .disabled(
-            viewModel.text.string.trimmingCharacters(
+            (viewModel.text.string.trimmingCharacters(
               in: .whitespacesAndNewlines
             ).isEmpty
+              && viewModel.imageSelection == nil)
               || viewModel.isSubmitting
           )
           #if os(macOS)

@@ -241,6 +241,11 @@ struct CommentRow: View {
         }
       }
 
+      if let images = comment.images {
+        ImageGallery(images: images)
+          .frame(maxHeight: 300)
+      }
+
       Text(comment.richContent)
 
       HStack {
@@ -275,6 +280,7 @@ struct CommentRow: View {
                 }
               )
               .buttonStyle(.plain)
+              .contentShape(.rect)
             }
           }
 

@@ -61,6 +61,7 @@ class MockCommentService: CommentServiceProtocol, @unchecked Sendable {
       createdAt: currentDate,
       user: currentUser,
       facets: [],
+      images: nil,
       isLiked: false
     )
 
@@ -130,6 +131,7 @@ class MockCommentService: CommentServiceProtocol, @unchecked Sendable {
           createdAt: currentDate,
           user: mockUsers[0],
           facets: [],
+          images: nil,
           isLiked: false
         ),
         DetailedComment(
@@ -140,6 +142,7 @@ class MockCommentService: CommentServiceProtocol, @unchecked Sendable {
           createdAt: currentDate,
           user: mockUsers[1],
           facets: [],
+          images: nil,
           isLiked: true
         ),
       ],
@@ -152,6 +155,7 @@ class MockCommentService: CommentServiceProtocol, @unchecked Sendable {
           createdAt: currentDate,
           user: mockUsers[2],
           facets: [],
+          images: nil,
           isLiked: false
         ),
         DetailedComment(
@@ -162,6 +166,7 @@ class MockCommentService: CommentServiceProtocol, @unchecked Sendable {
           createdAt: currentDate,
           user: mockUsers[0],
           facets: [],
+          images: nil,
           isLiked: false
         ),
       ],
@@ -199,6 +204,7 @@ class MockCommentService_Empty: CommentServiceProtocol, @unchecked Sendable {
       createdAt: Date(),
       user: user,
       facets: [],
+      images: nil,
       isLiked: false
     )
 
