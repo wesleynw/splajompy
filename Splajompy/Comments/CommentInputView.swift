@@ -37,95 +37,97 @@ struct CommentInputView: View {
         .padding(.horizontal)
       }
 
-      if viewModel.imageState != .empty {
+      VStack {
+        if viewModel.imageState != .empty {
 
-        ScrollView(.horizontal) {
-          HStack {
-            ImagePreviewView(
-              state: viewModel.imageState,
-              onRetry: {
-                viewModel.retryImage()
-              },
-              onRemove: {
-                viewModel.imageSelection = nil
-              }
-            )
-          }
-        }
-        .scrollIndicators(.hidden)
-      }
-
-      HStack(alignment: .bottom) {
-        PhotosPicker(selection: $viewModel.imageSelection, matching: .images) {
-          Image(systemName: "plus.circle.fill")
-            .resizable()
-            .frame(width: 32, height: 32)
-            .padding(5)
-        }
-
-        MentionTextEditor(
-          text: $viewModel.text,
-          viewModel: mentionViewModel,
-          cursorY: $cursorY,
-          selectedRange: $viewModel.selectedRange,
-          isCompact: true,
-          trailingInset: submitButtonWidth
-        )
-        .overlay(alignment: .bottomTrailing) {
-          Button(action: {
-            Task {
-              let result = await viewModel.submitComment(
-                text: viewModel.text.string
+          ScrollView(.horizontal) {
+            HStack {
+              ImagePreviewView(
+                state: viewModel.imageState,
+                onRetry: {
+                  viewModel.retryImage()
+                },
+                onRemove: {
+                  viewModel.imageSelection = nil
+                }
               )
-              return result
-            }
-          }) {
-            if viewModel.isSubmitting {
-              ProgressView()
-                .frame(width: 32, height: 32)
-                #if os(macOS)
-                  .controlSize(.small)
-                #endif
-            } else {
-              Image(systemName: "arrow.up.circle.fill")
-                .resizable()
-                .frame(width: 32, height: 32)
             }
           }
-          .disabled(
-            (viewModel.text.string.trimmingCharacters(
-              in: .whitespacesAndNewlines
-            ).isEmpty
-              && viewModel.imageSelection == nil)
-              || viewModel.isSubmitting
+          .scrollIndicators(.hidden)
+        }
+
+        HStack(alignment: .bottom) {
+          PhotosPicker(selection: $viewModel.imageSelection, matching: .images) {
+            Image(systemName: "plus.circle.fill")
+              .resizable()
+              .frame(width: 32, height: 32)
+              .padding(5)
+          }
+
+          MentionTextEditor(
+            text: $viewModel.text,
+            viewModel: mentionViewModel,
+            cursorY: $cursorY,
+            selectedRange: $viewModel.selectedRange,
+            isCompact: true,
+            trailingInset: submitButtonWidth
           )
-          #if os(macOS)
-            .buttonStyle(.plain)
-          #endif
-          .padding(5)
-          .onGeometryChange(for: CGFloat.self) {
-            $0.size.width
-          } action: {
-            submitButtonWidth = $0
+          .overlay(alignment: .bottomTrailing) {
+            Button(action: {
+              Task {
+                let result = await viewModel.submitComment(
+                  text: viewModel.text.string
+                )
+                return result
+              }
+            }) {
+              if viewModel.isSubmitting {
+                ProgressView()
+                  .frame(width: 32, height: 32)
+                  #if os(macOS)
+                    .controlSize(.small)
+                  #endif
+              } else {
+                Image(systemName: "arrow.up.circle.fill")
+                  .resizable()
+                  .frame(width: 32, height: 32)
+              }
+            }
+            .disabled(
+              (viewModel.text.string.trimmingCharacters(
+                in: .whitespacesAndNewlines
+              ).isEmpty
+                && viewModel.imageSelection == nil)
+                || viewModel.isSubmitting
+            )
+            #if os(macOS)
+              .buttonStyle(.plain)
+            #endif
+            .padding(5)
+            .onGeometryChange(for: CGFloat.self) {
+              $0.size.width
+            } action: {
+              submitButtonWidth = $0
+            }
           }
         }
       }
-    }
-    .modify {
-      if #available(iOS 26, macOS 26, *) {
-        $0
-          .glassEffect(
-            .regular.tint(.clear.opacity(0.15)).interactive(),
-            in: RoundedRectangle(cornerRadius: 25)
-          )
-          .padding()
-      } else {
-        $0
-          .padding(8)
-          .background(.bar)
-          .overlay(alignment: .top) {
-            Divider()
-          }
+      .modify {
+        if #available(iOS 26, macOS 26, *) {
+          $0
+            .glassEffect(
+              .regular.tint(.clear.opacity(0.15)).interactive(),
+              in: RoundedRectangle(cornerRadius: 25)
+            )
+            .padding()
+        } else {
+          $0
+            .padding(8)
+            .background(.bar)
+            .overlay(alignment: .top) {
+              Divider()
+            }
+        }
       }
     }
     #if os(macOS)

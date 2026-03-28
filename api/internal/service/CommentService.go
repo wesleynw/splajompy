@@ -68,12 +68,18 @@ func (s *CommentService) AddCommentToPost(ctx context.Context, currentUser model
 		if err != nil {
 			return nil, err
 		}
+
+		presignedUrl, err := s.bucketRepository.GetPresignedGetObject(ctx, imageBlobUrls[i])
+		if err != nil {
+			return nil, err
+		}
+
 		commentImages = append(commentImages, models.DetailedImage{
 			ImageID:      image.ImageID,
 			PostId:       postId,
 			Height:       image.Height,
 			Width:        image.Width,
-			ImageBlobUrl: imageBlobUrls[i],
+			ImageBlobUrl: *presignedUrl,
 			DisplayOrder: 0,
 		})
 	}
@@ -190,7 +196,7 @@ func (s *CommentService) GetCommentsByPostId(ctx context.Context, currentUser mo
 		versionAny := ctx.Value(middleware.AppVersionKey)
 		version, ok := versionAny.(string)
 		if ok && version != "unknown" && semver.Compare(version, "v1.8.0") < 0 {
-			dbComment.Text = dbComment.Text + "\nThis comment contains an image. [Update your app to see it](https://apps.apple.com/us/app/splajompy/id6744034321)."
+			dbComment.Text = dbComment.Text + "\n→ [Update Splajompy](https://apps.apple.com/us/app/splajompy/id6744034321) to view the image in this comment."
 		}
 
 		detailedComment := models.DetailedComment{
