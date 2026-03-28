@@ -70,8 +70,8 @@ func (s *PostService) NewPost(ctx context.Context, currentUser models.PublicUser
 		return nil, err
 	}
 
-	for i := range len(imageKeymap) {
-		_, err = s.postRepository.InsertImage(ctx, post.PostID, imageKeymap[i].Height, imageKeymap[i].Width, imageBlobKeys[i], i)
+	for i, blobKey := range imageBlobKeys {
+		_, err = s.postRepository.InsertImage(ctx, post.PostID, imageKeymap[i].Height, imageKeymap[i].Width, blobKey, i)
 		if err != nil {
 			return nil, errors.New("unable to create post")
 		}

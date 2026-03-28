@@ -94,11 +94,18 @@ struct CommentInputView: View {
               }
             }
             .disabled(
-              (viewModel.text.string.trimmingCharacters(
-                in: .whitespacesAndNewlines
-              ).isEmpty
-                && viewModel.imageSelection == nil)
-                || viewModel.isSubmitting
+              {
+                let hasImage: Bool
+                if case .success = viewModel.imageState {
+                  hasImage = true
+                } else {
+                  hasImage = false
+                }
+                return
+                  (viewModel.text.string.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                  && !hasImage)
+                  || viewModel.isSubmitting
+              }()
             )
             #if os(macOS)
               .buttonStyle(.plain)

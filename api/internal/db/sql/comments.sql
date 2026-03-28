@@ -20,7 +20,7 @@ WHERE comments.post_id = $1
 AND NOT EXISTS (
     SELECT 1
     FROM block
-    WHERE block.user_id = $1 AND target_user_id = comments.user_id
+    WHERE block.user_id = $2 AND target_user_id = comments.user_id
 )
 ORDER BY comments.created_at DESC;
 

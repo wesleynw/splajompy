@@ -112,7 +112,7 @@ func TestGetComments_WithImage(t *testing.T) {
 	require.NoError(t, err)
 
 	images := map[int]models.ImageData{
-		1: {S3Key: "images/photo1.jpg", Width: 1920, Height: 1080},
+		0: {S3Key: "images/photo1.jpg", Width: 1920, Height: 1080},
 	}
 
 	_, err = env.svc.AddCommentToPost(t.Context(), user0, post.PostID, "test comment", images)

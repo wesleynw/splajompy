@@ -55,7 +55,7 @@ struct CommentsView: View {
           .interactiveDismissDisabled(
             !viewModel.text.string.trimmingCharacters(
               in: .whitespacesAndNewlines
-            ).isEmpty
+            ).isEmpty || viewModel.imageSelection != nil
           )
           .toolbar {
             #if os(iOS)

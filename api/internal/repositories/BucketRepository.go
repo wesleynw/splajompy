@@ -21,7 +21,7 @@ type BucketRepository interface {
 	DeleteObjects(ctx context.Context, keys []string) error
 	GetPresignedPutObject(ctx context.Context, userID int, extension, folder *string) (string, string, error)
 	GetPresignedGetObject(ctx context.Context, key string) (*string, error)
-	PublishStagedImages(ctx context.Context, userId int, blobType string, identifier int, imageKeymap map[int]models.ImageData) ([]string, error)
+	PublishStagedImages(ctx context.Context, userId int, blobType string, identifier int, imageKeymap map[int]models.ImageData) (map[int]string, error)
 }
 
 type S3BucketRepository struct {
@@ -146,10 +146,10 @@ func GetDestinationKey(userId int, blobType string, identifier int, stagedBlobUr
 	return fmt.Sprintf("%s/%d/%s/%d/%s", environment, userId, blobType, identifier, filename)
 }
 
-func (s *S3BucketRepository) PublishStagedImages(ctx context.Context, userId int, blobType string, identifier int, imageKeymap map[int]models.ImageData) ([]string, error) {
-	destinationKeys := []string{}
+func (s *S3BucketRepository) PublishStagedImages(ctx context.Context, userId int, blobType string, identifier int, imageKeymap map[int]models.ImageData) (map[int]string, error) {
+	destinationKeys := make(map[int]string, len(imageKeymap))
 
-	for _, imageData := range imageKeymap {
+	for key, imageData := range imageKeymap {
 		destinationKey := GetDestinationKey(
 			userId,
 			blobType,
@@ -167,7 +167,7 @@ func (s *S3BucketRepository) PublishStagedImages(ctx context.Context, userId int
 			return nil, err
 		}
 
-		destinationKeys = append(destinationKeys, destinationKey)
+		destinationKeys[key] = destinationKey
 	}
 
 	return destinationKeys, nil

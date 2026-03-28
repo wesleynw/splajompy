@@ -10,7 +10,7 @@ import (
 type CommentRepository interface {
 	AddCommentToPost(ctx context.Context, userId int, postId int, content string, facets db.Facets) (queries.Comment, error)
 	GetCommentById(ctx context.Context, commentId int) (queries.Comment, error)
-	GetCommentsByPostId(ctx context.Context, postId int) ([]queries.GetCommentsByPostIdRow, error)
+	GetCommentsByPostId(ctx context.Context, postId int, userId int) ([]queries.GetCommentsByPostIdRow, error)
 	IsCommentLikedByUser(ctx context.Context, userId int, postId int, commentId int) (bool, error)
 	DeleteComment(ctx context.Context, commentId int) error
 	// InsertImage adds a new image to a comment.
@@ -37,9 +37,12 @@ func (r DBCommentRepository) GetCommentById(ctx context.Context, commentId int) 
 	return r.querier.GetCommentById(ctx, commentId)
 }
 
-// GetCommentsByPostId retrieves all comments for a specific post
-func (r DBCommentRepository) GetCommentsByPostId(ctx context.Context, postId int) ([]queries.GetCommentsByPostIdRow, error) {
-	return r.querier.GetCommentsByPostId(ctx, postId)
+// GetCommentsByPostId retrieves all comments for a specific post, excluding comments from users blocked by userId
+func (r DBCommentRepository) GetCommentsByPostId(ctx context.Context, postId int, userId int) ([]queries.GetCommentsByPostIdRow, error) {
+	return r.querier.GetCommentsByPostId(ctx, queries.GetCommentsByPostIdParams{
+		PostID: postId,
+		UserID: userId,
+	})
 }
 
 // IsCommentLikedByUser checks if a comment is liked by a specific user

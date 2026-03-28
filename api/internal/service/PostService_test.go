@@ -26,10 +26,10 @@ func (f *fakeBucketRepository) GetPresignedPutObject(_ context.Context, _ int, _
 func (f *fakeBucketRepository) GetPresignedGetObject(_ context.Context, key string) (*string, error) {
 	return &key, nil
 }
-func (f *fakeBucketRepository) PublishStagedImages(_ context.Context, _ int, _ string, _ int, imageKeymap map[int]models.ImageData) ([]string, error) {
-	keys := make([]string, len(imageKeymap))
-	for i := range len(imageKeymap) {
-		keys[i] = imageKeymap[i].S3Key
+func (f *fakeBucketRepository) PublishStagedImages(_ context.Context, _ int, _ string, _ int, imageKeymap map[int]models.ImageData) (map[int]string, error) {
+	keys := make(map[int]string, len(imageKeymap))
+	for i, data := range imageKeymap {
+		keys[i] = data.S3Key
 	}
 	return keys, nil
 }

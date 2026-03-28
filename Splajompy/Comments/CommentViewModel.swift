@@ -144,7 +144,9 @@ extension CommentsView {
       let text = text.trimmingCharacters(
         in: .whitespacesAndNewlines
       )
-      guard !text.isEmpty || imageSelection != nil else { return false }
+      let hasImage: Bool
+      if case .success = imageState { hasImage = true } else { hasImage = false }
+      guard !text.isEmpty || hasImage else { return false }
 
       isSubmitting = true
       defer { isSubmitting = false }

@@ -63,13 +63,13 @@ func (s *CommentService) AddCommentToPost(ctx context.Context, currentUser model
 	}
 
 	commentImages := []models.DetailedImage{}
-	for i := range len(imageKeyMap) {
-		image, err := s.commentRepository.InsertImage(ctx, comment.CommentID, imageKeyMap[i].Height, imageKeyMap[i].Width, imageBlobUrls[i], 0)
+	for i, blobUrl := range imageBlobUrls {
+		image, err := s.commentRepository.InsertImage(ctx, comment.CommentID, imageKeyMap[i].Height, imageKeyMap[i].Width, blobUrl, 0)
 		if err != nil {
 			return nil, err
 		}
 
-		presignedUrl, err := s.bucketRepository.GetPresignedGetObject(ctx, imageBlobUrls[i])
+		presignedUrl, err := s.bucketRepository.GetPresignedGetObject(ctx, blobUrl)
 		if err != nil {
 			return nil, err
 		}
@@ -147,7 +147,7 @@ func (s *CommentService) AddCommentToPost(ctx context.Context, currentUser model
 // GetCommentsByPostId retrieves all comments for a specific post with like status
 func (s *CommentService) GetCommentsByPostId(ctx context.Context, currentUser models.PublicUser, postID int) ([]models.DetailedComment, error) {
 
-	dbComments, err := s.commentRepository.GetCommentsByPostId(ctx, postID)
+	dbComments, err := s.commentRepository.GetCommentsByPostId(ctx, postID, currentUser.UserID)
 	if err != nil {
 		return nil, errors.New("unable to find comments")
 	}
@@ -193,10 +193,12 @@ func (s *CommentService) GetCommentsByPostId(ctx context.Context, currentUser mo
 			images = append(images, currentImage)
 		}
 
-		versionAny := ctx.Value(middleware.AppVersionKey)
-		version, ok := versionAny.(string)
-		if ok && version != "unknown" && semver.Compare(version, "v1.8.0") < 0 {
-			dbComment.Text = dbComment.Text + "\n→ [Update Splajompy](https://apps.apple.com/us/app/splajompy/id6744034321) to view the image in this comment."
+		if len(dbImages) > 0 {
+			versionAny := ctx.Value(middleware.AppVersionKey)
+			version, ok := versionAny.(string)
+			if ok && version != "unknown" && semver.Compare(version, "v1.8.0") < 0 {
+				dbComment.Text = dbComment.Text + "\n→ [Update Splajompy](https://apps.apple.com/us/app/splajompy/id6744034321) to view the image in this comment."
+			}
 		}
 
 		detailedComment := models.DetailedComment{

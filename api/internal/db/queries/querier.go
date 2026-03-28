@@ -30,7 +30,7 @@ type Querier interface {
 	GetBioByUserId(ctx context.Context, userID int) (string, error)
 	GetCommentById(ctx context.Context, commentID int) (Comment, error)
 	GetCommentCountByPostID(ctx context.Context, postID int) (int64, error)
-	GetCommentsByPostId(ctx context.Context, postID int) ([]GetCommentsByPostIdRow, error)
+	GetCommentsByPostId(ctx context.Context, arg GetCommentsByPostIdParams) ([]GetCommentsByPostIdRow, error)
 	GetFollowersByUserId(ctx context.Context, arg GetFollowersByUserIdParams) ([]GetFollowersByUserIdRow, error)
 	GetFollowingByUserId(ctx context.Context, arg GetFollowingByUserIdParams) ([]GetFollowingByUserIdRow, error)
 	GetFollowingUserIds(ctx context.Context, arg GetFollowingUserIdsParams) ([]int, error)

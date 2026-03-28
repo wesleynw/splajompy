@@ -106,10 +106,15 @@ WHERE comments.post_id = $1
 AND NOT EXISTS (
     SELECT 1
     FROM block
-    WHERE block.user_id = $1 AND target_user_id = comments.user_id
+    WHERE block.user_id = $2 AND target_user_id = comments.user_id
 )
 ORDER BY comments.created_at DESC
 `
+
+type GetCommentsByPostIdParams struct {
+	PostID int `json:"postId"`
+	UserID int `json:"userId"`
+}
 
 type GetCommentsByPostIdRow struct {
 	CommentID int              `json:"commentId"`
@@ -122,8 +127,8 @@ type GetCommentsByPostIdRow struct {
 	Name      pgtype.Text      `json:"name"`
 }
 
-func (q *Queries) GetCommentsByPostId(ctx context.Context, postID int) ([]GetCommentsByPostIdRow, error) {
-	rows, err := q.db.Query(ctx, getCommentsByPostId, postID)
+func (q *Queries) GetCommentsByPostId(ctx context.Context, arg GetCommentsByPostIdParams) ([]GetCommentsByPostIdRow, error) {
+	rows, err := q.db.Query(ctx, getCommentsByPostId, arg.PostID, arg.UserID)
 	if err != nil {
 		return nil, err
 	}
