@@ -24,44 +24,41 @@ func uploadImages(images: [PlatformImage]) async -> [Int: ImageData]? {
 
     switch response {
     case .success(let urlResponse):
-      if let url = URL(string: urlResponse.url) {
-        guard
-          let compressedImage = image.jpegData(
-            compressionQuality: 1
-          )
+      guard let url = URL(string: urlResponse.url) else {
+        return nil
+      }
+      guard let compressedImage = image.jpegData(compressionQuality: 1) else {
+        return nil
+      }
+
+      var request = URLRequest(url: url)
+      request.httpMethod = "PUT"
+      request.setValue(
+        "application/octet-stream",
+        forHTTPHeaderField: "Content-Type"
+      )
+
+      do {
+        let (_, s3Response) = try await URLSession.shared.upload(
+          for: request,
+          from: compressedImage
+        )
+
+        guard let httpResponse = s3Response as? HTTPURLResponse,
+          (200...299).contains(httpResponse.statusCode)
         else {
           return nil
         }
 
-        var request = URLRequest(url: url)
-        request.httpMethod = "PUT"
-        request.setValue(
-          "application/octet-stream",
-          forHTTPHeaderField: "Content-Type"
+        let imageSize = image.uploadSize
+
+        imageKeymap[index] = ImageData(
+          s3Key: urlResponse.key,
+          width: Int(imageSize.width),
+          height: Int(imageSize.height)
         )
-
-        do {
-          let (_, s3Response) = try await URLSession.shared.upload(
-            for: request,
-            from: compressedImage
-          )
-
-          guard let httpResponse = s3Response as? HTTPURLResponse,
-            (200...299).contains(httpResponse.statusCode)
-          else {
-            return nil
-          }
-
-          let imageSize = image.uploadSize
-
-          imageKeymap[index] = ImageData(
-            s3Key: urlResponse.key,
-            width: Int(imageSize.width),
-            height: Int(imageSize.height)
-          )
-        } catch {
-          return nil
-        }
+      } catch {
+        return nil
       }
     case .error:
       return nil

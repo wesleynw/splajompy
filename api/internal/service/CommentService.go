@@ -283,5 +283,24 @@ func (s *CommentService) DeleteComment(ctx context.Context, currentUser models.P
 		return errors.New("unable to delete comment")
 	}
 
-	return s.commentRepository.DeleteComment(ctx, commentId)
+	images, err := s.commentRepository.GetImagesByCommentId(ctx, commentId)
+	if err != nil {
+		return errors.New("unable to retrieve comment images")
+	}
+
+	if err := s.commentRepository.DeleteComment(ctx, commentId); err != nil {
+		return err
+	}
+
+	if len(images) > 0 {
+		keys := make([]string, len(images))
+		for i, img := range images {
+			keys[i] = img.ImageBlobUrl
+		}
+		if err := s.bucketRepository.DeleteObjects(ctx, keys); err != nil {
+			return errors.New("unable to delete comment images from storage")
+		}
+	}
+
+	return nil
 }
