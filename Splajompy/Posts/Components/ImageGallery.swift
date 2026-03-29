@@ -296,7 +296,6 @@ struct ImageItem: Identifiable {
   let images = [
     ImageDTO(
       imageId: 1,
-      postId: 1,
       height: 800,
       width: 600,
       imageBlobUrl:
@@ -314,7 +313,6 @@ struct ImageItem: Identifiable {
   let images = [
     ImageDTO(
       imageId: 1,
-      postId: 1,
       height: 800,
       width: 600,
       imageBlobUrl:
@@ -323,7 +321,6 @@ struct ImageItem: Identifiable {
     ),
     ImageDTO(
       imageId: 2,
-      postId: 1,
       height: 600,
       width: 800,
       imageBlobUrl:
@@ -341,7 +338,6 @@ struct ImageItem: Identifiable {
   let images = [
     ImageDTO(
       imageId: 1,
-      postId: 1,
       height: 800,
       width: 600,
       imageBlobUrl:
@@ -350,7 +346,6 @@ struct ImageItem: Identifiable {
     ),
     ImageDTO(
       imageId: 2,
-      postId: 1,
       height: 600,
       width: 800,
       imageBlobUrl:
@@ -359,7 +354,6 @@ struct ImageItem: Identifiable {
     ),
     ImageDTO(
       imageId: 3,
-      postId: 1,
       height: 800,
       width: 600,
       imageBlobUrl:
@@ -377,7 +371,6 @@ struct ImageItem: Identifiable {
   let images = [
     ImageDTO(
       imageId: 1,
-      postId: 1,
       height: 800,
       width: 600,
       imageBlobUrl:
@@ -386,7 +379,6 @@ struct ImageItem: Identifiable {
     ),
     ImageDTO(
       imageId: 2,
-      postId: 1,
       height: 600,
       width: 800,
       imageBlobUrl:
@@ -395,7 +387,6 @@ struct ImageItem: Identifiable {
     ),
     ImageDTO(
       imageId: 3,
-      postId: 1,
       height: 800,
       width: 600,
       imageBlobUrl:
@@ -404,7 +395,6 @@ struct ImageItem: Identifiable {
     ),
     ImageDTO(
       imageId: 4,
-      postId: 1,
       height: 600,
       width: 800,
       imageBlobUrl:
@@ -422,7 +412,6 @@ struct ImageItem: Identifiable {
   let images = [
     ImageDTO(
       imageId: 1,
-      postId: 1,
       height: 800,
       width: 600,
       imageBlobUrl:
@@ -431,7 +420,6 @@ struct ImageItem: Identifiable {
     ),
     ImageDTO(
       imageId: 2,
-      postId: 1,
       height: 600,
       width: 800,
       imageBlobUrl:
@@ -440,7 +428,6 @@ struct ImageItem: Identifiable {
     ),
     ImageDTO(
       imageId: 3,
-      postId: 1,
       height: 800,
       width: 600,
       imageBlobUrl:
@@ -449,7 +436,6 @@ struct ImageItem: Identifiable {
     ),
     ImageDTO(
       imageId: 4,
-      postId: 1,
       height: 600,
       width: 800,
       imageBlobUrl:
@@ -458,7 +444,6 @@ struct ImageItem: Identifiable {
     ),
     ImageDTO(
       imageId: 5,
-      postId: 1,
       height: 800,
       width: 600,
       imageBlobUrl:
@@ -476,7 +461,6 @@ struct ImageItem: Identifiable {
   let images = [
     ImageDTO(
       imageId: 1,
-      postId: 1,
       height: 400,
       width: 1200,
       imageBlobUrl:

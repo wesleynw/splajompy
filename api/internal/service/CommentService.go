@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"time"
 
-	"splajompy.com/api/v2/internal/db/queries"
+	"golang.org/x/mod/semver"
+	"splajompy.com/api/v2/internal/middleware"
 	"splajompy.com/api/v2/internal/models"
 	"splajompy.com/api/v2/internal/repositories"
-	"splajompy.com/api/v2/internal/utilities"
 )
 
 type CommentService struct {
@@ -18,6 +18,7 @@ type CommentService struct {
 	notificationRepository repositories.NotificationRepository
 	userRepository         repositories.UserRepository
 	likeRepository         repositories.LikeRepository
+	bucketRepository       repositories.BucketRepository
 }
 
 // NewCommentService creates a new comment service instance
@@ -27,6 +28,7 @@ func NewCommentService(
 	notificationRepository repositories.NotificationRepository,
 	userRepository repositories.UserRepository,
 	likeRepository repositories.LikeRepository,
+	bucketRepository repositories.BucketRepository,
 ) *CommentService {
 	return &CommentService{
 		commentRepository:      commentRepo,
@@ -34,11 +36,12 @@ func NewCommentService(
 		notificationRepository: notificationRepository,
 		userRepository:         userRepository,
 		likeRepository:         likeRepository,
+		bucketRepository:       bucketRepository,
 	}
 }
 
 // AddCommentToPost adds a comment to a post and creates a notification
-func (s *CommentService) AddCommentToPost(ctx context.Context, currentUser models.PublicUser, postId int, content string) (*models.DetailedComment, error) {
+func (s *CommentService) AddCommentToPost(ctx context.Context, currentUser models.PublicUser, postId int, content string, imageKeyMap map[int]models.ImageData) (*models.DetailedComment, error) {
 	post, err := s.postRepository.GetPostById(ctx, postId, currentUser.UserID)
 	if err != nil {
 		return nil, errors.New("unable to find post")
@@ -51,6 +54,34 @@ func (s *CommentService) AddCommentToPost(ctx context.Context, currentUser model
 	comment, err := s.commentRepository.AddCommentToPost(ctx, currentUser.UserID, postId, content, commentFacets)
 	if err != nil {
 		return nil, errors.New("unable to create new comment")
+	}
+
+	// TODO: unpublish images and rest of comment on failure w/ images
+	imageBlobUrls, err := s.bucketRepository.PublishStagedImages(ctx, currentUser.UserID, "comment", comment.CommentID, imageKeyMap)
+	if err != nil {
+		return nil, err
+	}
+
+	commentImages := []models.DetailedImage{}
+	for i, blobUrl := range imageBlobUrls {
+		image, err := s.commentRepository.InsertImage(ctx, comment.CommentID, imageKeyMap[i].Height, imageKeyMap[i].Width, blobUrl, 0)
+		if err != nil {
+			return nil, err
+		}
+
+		presignedUrl, err := s.bucketRepository.GetPresignedGetObject(ctx, blobUrl)
+		if err != nil {
+			return nil, err
+		}
+
+		commentImages = append(commentImages, models.DetailedImage{
+			ImageID:      image.ImageID,
+			PostId:       postId,
+			Height:       image.Height,
+			Width:        image.Width,
+			ImageBlobUrl: *presignedUrl,
+			DisplayOrder: 0,
+		})
 	}
 
 	commentId := comment.CommentID
@@ -98,13 +129,25 @@ func (s *CommentService) AddCommentToPost(ctx context.Context, currentUser model
 		}
 	}
 
-	return new(utilities.MapComment(comment, currentUser, false)), nil
+	detailedComment := models.DetailedComment{
+		CommentID: comment.CommentID,
+		PostID:    comment.PostID,
+		UserID:    comment.UserID,
+		Text:      comment.Text,
+		Facets:    comment.Facets,
+		CreatedAt: comment.CreatedAt.Time,
+		User:      currentUser,
+		IsLiked:   false,
+		Images:    commentImages,
+	}
+
+	return &detailedComment, nil
 }
 
 // GetCommentsByPostId retrieves all comments for a specific post with like status
 func (s *CommentService) GetCommentsByPostId(ctx context.Context, currentUser models.PublicUser, postID int) ([]models.DetailedComment, error) {
 
-	dbComments, err := s.commentRepository.GetCommentsByPostId(ctx, postID)
+	dbComments, err := s.commentRepository.GetCommentsByPostId(ctx, postID, currentUser.UserID)
 	if err != nil {
 		return nil, errors.New("unable to find comments")
 	}
@@ -127,15 +170,48 @@ func (s *CommentService) GetCommentsByPostId(ctx context.Context, currentUser mo
 			return nil, errors.New("unable to retrieve comment liked information")
 		}
 
-		var comment = queries.Comment{
+		dbImages, err := s.commentRepository.GetImagesByCommentId(ctx, dbComment.CommentID)
+		if err != nil {
+			return nil, err
+		}
+		images := []models.DetailedImage{}
+		for _, image := range dbImages {
+			blobUrl, err := s.bucketRepository.GetPresignedGetObject(ctx, image.ImageBlobUrl)
+			if err != nil {
+				return nil, err
+			}
+
+			currentImage := models.DetailedImage{
+				ImageID:      image.ImageID,
+				PostId:       postID,
+				Height:       image.Height,
+				Width:        image.Width,
+				ImageBlobUrl: *blobUrl,
+				DisplayOrder: 0,
+			}
+
+			images = append(images, currentImage)
+		}
+
+		if len(dbImages) > 0 {
+			versionAny := ctx.Value(middleware.AppVersionKey)
+			version, ok := versionAny.(string)
+			if ok && version != "unknown" && semver.Compare(version, "v1.8.0") < 0 {
+				dbComment.Text = dbComment.Text + "\n→ [Update Splajompy](https://apps.apple.com/us/app/splajompy/id6744034321) to view the image in this comment."
+			}
+		}
+
+		detailedComment := models.DetailedComment{
 			CommentID: dbComment.CommentID,
 			PostID:    dbComment.PostID,
 			UserID:    dbComment.UserID,
 			Text:      dbComment.Text,
 			Facets:    dbComment.Facets,
-			CreatedAt: dbComment.CreatedAt,
+			Images:    images,
+			CreatedAt: dbComment.CreatedAt.Time,
+			User:      user,
+			IsLiked:   isLiked,
 		}
-		detailedComment := utilities.MapComment(comment, user, isLiked)
 
 		comments = append(comments, detailedComment)
 	}
@@ -207,5 +283,24 @@ func (s *CommentService) DeleteComment(ctx context.Context, currentUser models.P
 		return errors.New("unable to delete comment")
 	}
 
-	return s.commentRepository.DeleteComment(ctx, commentId)
+	images, err := s.commentRepository.GetImagesByCommentId(ctx, commentId)
+	if err != nil {
+		return errors.New("unable to retrieve comment images")
+	}
+
+	if err := s.commentRepository.DeleteComment(ctx, commentId); err != nil {
+		return err
+	}
+
+	if len(images) > 0 {
+		keys := make([]string, len(images))
+		for i, img := range images {
+			keys[i] = img.ImageBlobUrl
+		}
+		if err := s.bucketRepository.DeleteObjects(ctx, keys); err != nil {
+			return errors.New("unable to delete comment images from storage")
+		}
+	}
+
+	return nil
 }

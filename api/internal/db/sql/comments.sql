@@ -20,7 +20,7 @@ WHERE comments.post_id = $1
 AND NOT EXISTS (
     SELECT 1
     FROM block
-    WHERE block.user_id = $1 AND target_user_id = comments.user_id
+    WHERE block.user_id = $2 AND target_user_id = comments.user_id
 )
 ORDER BY comments.created_at DESC;
 
@@ -32,3 +32,13 @@ RETURNING *;
 -- name: DeleteComment :exec
 DELETE FROM comments
 WHERE comment_id = $1;
+
+-- name: AttachImageToComment :exec
+INSERT INTO comment_images (comment_id, image_id)
+VALUES ($1, $2);
+
+-- name: GetImagesByCommentId :many
+SELECT images.*
+FROM images
+JOIN comment_images ON images.image_id = comment_images.image_id
+WHERE comment_images.comment_id = $1;

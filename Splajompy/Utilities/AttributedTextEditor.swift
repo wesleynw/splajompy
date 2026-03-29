@@ -29,9 +29,10 @@ struct AttributedTextEditor: UIViewRepresentable {
     ]
     textView.attributedText = text
     textView.isScrollEnabled = isScrollEnabled
+    let leftInset: CGFloat = isScrollEnabled ? 0 : 10
     textView.textContainerInset = UIEdgeInsets(
       top: centeredVerticalInset,
-      left: 10,
+      left: leftInset,
       bottom: centeredVerticalInset,
       right: 10 + trailingInset
     )
@@ -58,7 +59,7 @@ struct AttributedTextEditor: UIViewRepresentable {
       ),
       label.leadingAnchor.constraint(
         equalTo: textView.leadingAnchor,
-        constant: 10 + padding
+        constant: padding + (isScrollEnabled ? 0 : 10)
       ),
       label.trailingAnchor.constraint(
         equalTo: textView.trailingAnchor,
@@ -84,7 +85,7 @@ struct AttributedTextEditor: UIViewRepresentable {
 
     let expectedInset = UIEdgeInsets(
       top: centeredVerticalInset,
-      left: 10,
+      left: isScrollEnabled ? 0 : 10,
       bottom: centeredVerticalInset,
       right: 10 + trailingInset
     )

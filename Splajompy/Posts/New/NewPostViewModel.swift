@@ -2,7 +2,7 @@ import PhotosUI
 import PostHog
 import SwiftUI
 
-enum PhotoState {
+enum PhotoState: Equatable {
   case loading(Progress)
   case success(PlatformImage)
   case failure
@@ -102,7 +102,6 @@ extension NewPostView {
         let result = await PostCreationService.createPost(
           text: text,
           images: selectedImages,
-          items: imageSelection,
           visibility: visibility,
           poll: poll
         )

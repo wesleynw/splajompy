@@ -26,8 +26,9 @@ func setupCommentTest(t *testing.T) commentServiceTestEnv {
 	notificationRepository := repositories.NewDBNotificationRepository(testDb.Queries)
 	userRepository := repositories.NewDBUserRepository(testDb.Queries)
 	likeRepository := repositories.NewDBLikeRepository(testDb.Queries)
+	bucketRepository := &fakeBucketRepository{}
 
-	svc := service.NewCommentService(commentRepository, postRepository, notificationRepository, userRepository, likeRepository)
+	svc := service.NewCommentService(commentRepository, postRepository, notificationRepository, userRepository, likeRepository, bucketRepository)
 
 	return commentServiceTestEnv{
 		svc:            svc,
@@ -45,7 +46,7 @@ func TestAddCommentToPost(t *testing.T) {
 	require.NoError(t, err)
 
 	commentContent := "test comment"
-	detailedComment, err := env.svc.AddCommentToPost(t.Context(), user0, post.PostID, commentContent)
+	detailedComment, err := env.svc.AddCommentToPost(t.Context(), user0, post.PostID, commentContent, nil)
 
 	assert.NoError(t, err)
 	assert.NotNil(t, detailedComment)
@@ -65,7 +66,7 @@ func TestDeleteComment_UnauthorizedUser(t *testing.T) {
 	post, err := env.postRepository.InsertPost(t.Context(), user0.UserID, "test post", nil, nil, new(models.VisibilityPublic))
 	require.NoError(t, err)
 
-	comment, err := env.svc.AddCommentToPost(t.Context(), user0, post.PostID, "test comment")
+	comment, err := env.svc.AddCommentToPost(t.Context(), user0, post.PostID, "test comment", nil)
 	require.NoError(t, err)
 
 	err = env.svc.DeleteComment(t.Context(), user1, comment.CommentID)
@@ -86,7 +87,7 @@ func TestGetComments_DoesNotReturnBlockedUserComments(t *testing.T) {
 	post, err := env.postRepository.InsertPost(t.Context(), user0.UserID, "test post", nil, nil, new(models.VisibilityPublic))
 	require.NoError(t, err)
 
-	comment, err := env.svc.AddCommentToPost(t.Context(), user1, post.PostID, "test comment")
+	comment, err := env.svc.AddCommentToPost(t.Context(), user1, post.PostID, "test comment", nil)
 	require.NoError(t, err)
 
 	comments, err := env.svc.GetCommentsByPostId(t.Context(), user0, post.PostID)
@@ -100,4 +101,27 @@ func TestGetComments_DoesNotReturnBlockedUserComments(t *testing.T) {
 	comments, err = env.svc.GetCommentsByPostId(t.Context(), user0, post.PostID)
 	assert.NoError(t, err)
 	assert.Empty(t, comments)
+}
+
+func TestGetComments_WithImage(t *testing.T) {
+	env := setupCommentTest(t)
+
+	user0 := testutil.CreateTestUser(t, env.userRepository, "user0")
+
+	post, err := env.postRepository.InsertPost(t.Context(), user0.UserID, "test post", nil, nil, new(models.VisibilityPublic))
+	require.NoError(t, err)
+
+	images := map[int]models.ImageData{
+		0: {S3Key: "images/photo1.jpg", Width: 1920, Height: 1080},
+	}
+
+	_, err = env.svc.AddCommentToPost(t.Context(), user0, post.PostID, "test comment", images)
+	require.NoError(t, err)
+
+	comments, err := env.svc.GetCommentsByPostId(t.Context(), user0, post.PostID)
+	assert.NoError(t, err)
+	assert.Len(t, comments, 1)
+
+	assert.NotNil(t, comments[0].Images)
+	assert.Len(t, comments[0].Images, 1)
 }

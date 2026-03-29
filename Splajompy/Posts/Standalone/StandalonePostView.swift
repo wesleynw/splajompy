@@ -80,7 +80,9 @@ struct StandalonePostView: View {
     .scrollDismissesKeyboard(.interactively)
     .refreshable {
       async let post: () = await viewModel.load(resetLoadingState: false)
-      async let comments: () = await commentsViewModel.loadComments(useLoadingState: false)
+      async let comments: () = await commentsViewModel.loadComments(
+        useLoadingState: false
+      )
 
       let _ = await (post, comments)
     }
@@ -93,7 +95,8 @@ struct StandalonePostView: View {
     #endif
     .toolbar {
       ToolbarItem(placement: .primaryAction) {
-        let post: ObservablePost? = if case .loaded(let p) = viewModel.state { p } else { nil }
+        let post: ObservablePost? =
+          if case .loaded(let p) = viewModel.state { p } else { nil }
         PostActionMenu(
           post: post,
           showAuthor: true,
@@ -108,15 +111,11 @@ struct StandalonePostView: View {
     .modify {
       if #available(iOS 26, macOS 26, *) {
         $0.safeAreaBar(edge: .bottom) {
-          CommentInputViewConstructor(
-            commentsViewModel: commentsViewModel
-          )
+          CommentInputView(viewModel: commentsViewModel)
         }
       } else {
         $0.safeAreaInset(edge: .bottom) {
-          CommentInputViewConstructor(
-            commentsViewModel: commentsViewModel
-          )
+          CommentInputView(viewModel: commentsViewModel)
         }
       }
     }

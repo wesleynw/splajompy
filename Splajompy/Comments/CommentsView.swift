@@ -55,7 +55,7 @@ struct CommentsView: View {
           .interactiveDismissDisabled(
             !viewModel.text.string.trimmingCharacters(
               in: .whitespacesAndNewlines
-            ).isEmpty
+            ).isEmpty || viewModel.imageSelection != nil
           )
           .toolbar {
             #if os(iOS)
@@ -166,15 +166,11 @@ struct CommentsView: View {
       if showInput {
         if #available(iOS 26, macOS 26, *) {
           $0.safeAreaBar(edge: .bottom) {
-            CommentInputViewConstructor(
-              commentsViewModel: viewModel
-            )
+            CommentInputView(viewModel: viewModel)
           }
         } else {
           $0.safeAreaInset(edge: .bottom) {
-            CommentInputViewConstructor(
-              commentsViewModel: viewModel
-            )
+            CommentInputView(viewModel: viewModel)
           }
         }
       }
@@ -245,6 +241,11 @@ struct CommentRow: View {
         }
       }
 
+      if let images = comment.images {
+        ImageGallery(images: images)
+          .frame(maxHeight: 300)
+      }
+
       Text(comment.richContent)
 
       HStack {
@@ -279,6 +280,7 @@ struct CommentRow: View {
                 }
               )
               .buttonStyle(.plain)
+              .contentShape(.rect)
             }
           }
 
