@@ -56,7 +56,7 @@ struct CommentInputView: View {
           .scrollIndicators(.hidden)
         }
 
-        HStack(alignment: .bottom) {
+        HStack(alignment: .bottom, spacing: 0) {
           PhotosPicker(selection: $viewModel.imageSelection, matching: .images) {
             Image(systemName: "plus.circle.fill")
               .resizable()
