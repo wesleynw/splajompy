@@ -71,6 +71,20 @@ func (s *NotificationService) GetNotificationsByUserId(ctx context.Context, user
 				return nil, errors.New("unable to retrieve comment")
 			}
 			detailedNotification.Comment = &comment
+
+			commentImages, err := s.commentRepository.GetImagesByCommentId(ctx, *notification.CommentID)
+			if err != nil && !errors.Is(err, sql.ErrNoRows) {
+				return nil, errors.New("unable to retrieve comment images")
+			}
+			if len(commentImages) > 0 {
+				presignedUrl, err := s.bucketRepository.GetPresignedGetObject(ctx, commentImages[0].ImageBlobUrl)
+				if err != nil {
+					return nil, errors.New("unable to presign comment image")
+				}
+				detailedNotification.ImageBlob = presignedUrl
+				detailedNotification.ImageWidth = &commentImages[0].Width
+				detailedNotification.ImageHeight = &commentImages[0].Height
+			}
 		}
 
 		detailedNotifications = append(detailedNotifications, detailedNotification)
@@ -151,6 +165,20 @@ func (s *NotificationService) GetUnreadNotificationsByUserId(ctx context.Context
 				return nil, errors.New("unable to retrieve comment")
 			}
 			detailedNotification.Comment = &comment
+
+			commentImages, err := s.commentRepository.GetImagesByCommentId(ctx, *notification.CommentID)
+			if err != nil && !errors.Is(err, sql.ErrNoRows) {
+				return nil, errors.New("unable to retrieve comment images")
+			}
+			if len(commentImages) > 0 {
+				presignedUrl, err := s.bucketRepository.GetPresignedGetObject(ctx, commentImages[0].ImageBlobUrl)
+				if err != nil {
+					return nil, errors.New("unable to presign comment image")
+				}
+				detailedNotification.ImageBlob = presignedUrl
+				detailedNotification.ImageWidth = &commentImages[0].Width
+				detailedNotification.ImageHeight = &commentImages[0].Height
+			}
 		}
 
 		detailedNotifications = append(detailedNotifications, detailedNotification)
@@ -221,6 +249,20 @@ func (s *NotificationService) buildDetailedNotifications(ctx context.Context, cu
 				return nil, errors.New("unable to retrieve comment")
 			}
 			detailedNotification.Comment = &comment
+
+			commentImages, err := s.commentRepository.GetImagesByCommentId(ctx, *notification.CommentID)
+			if err != nil && !errors.Is(err, sql.ErrNoRows) {
+				return nil, errors.New("unable to retrieve comment images")
+			}
+			if len(commentImages) > 0 {
+				presignedUrl, err := s.bucketRepository.GetPresignedGetObject(ctx, commentImages[0].ImageBlobUrl)
+				if err != nil {
+					return nil, errors.New("unable to presign comment image")
+				}
+				detailedNotification.ImageBlob = presignedUrl
+				detailedNotification.ImageWidth = &commentImages[0].Width
+				detailedNotification.ImageHeight = &commentImages[0].Height
+			}
 		}
 
 		if notification.TargetUserId != nil {
