@@ -51,6 +51,7 @@ struct CommentInputView: View {
                   viewModel.imageSelection = nil
                 }
               )
+              .disabled(viewModel.isSubmitting)
             }
           }
           .scrollIndicators(.hidden)

@@ -243,7 +243,7 @@ struct CommentRow: View {
 
       if let images = comment.images {
         ImageGallery(images: images)
-          .frame(maxHeight: 300)
+          .frame(maxWidth: .infinity, maxHeight: 300, alignment: .leading)
       }
 
       Text(comment.richContent)
