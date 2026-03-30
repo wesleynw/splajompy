@@ -63,6 +63,11 @@ struct CommentInputView: View {
               .frame(width: 32, height: 32)
               .padding(5)
           }
+          .disabled(
+            {
+              if case .empty = viewModel.imageState { return false }
+              return true
+            }())
 
           MentionTextEditor(
             text: $viewModel.text,
