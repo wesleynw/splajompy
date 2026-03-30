@@ -197,7 +197,11 @@ func (s *CommentService) GetCommentsByPostId(ctx context.Context, currentUser mo
 			versionAny := ctx.Value(middleware.AppVersionKey)
 			version, ok := versionAny.(string)
 			if ok && version != "unknown" && semver.Compare(version, "v1.8.0") < 0 {
-				dbComment.Text = dbComment.Text + "\n→ [Update Splajompy](https://apps.apple.com/us/app/splajompy/id6744034321) to view the image in this comment."
+				prefix := ""
+				if dbComment.Text != "" {
+					prefix = "\n\n"
+				}
+				dbComment.Text = dbComment.Text + prefix + "→ [Update Splajompy](https://apps.apple.com/us/app/splajompy/id6744034321) to view the image in this comment."
 			}
 		}
 

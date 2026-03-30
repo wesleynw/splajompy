@@ -52,7 +52,7 @@ struct ImagePreviewView: View {
       } label: {
         ZStack {
           Circle()
-            .fill(Color.white)
+            .fill(.regularMaterial)
             .frame(width: 22, height: 22)
             .shadow(
               color: Color.black.opacity(0.2),
