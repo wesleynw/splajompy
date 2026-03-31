@@ -73,7 +73,7 @@ func (s *NotificationService) GetNotificationsByUserId(ctx context.Context, user
 			detailedNotification.Comment = &comment
 
 			commentImages, err := s.commentRepository.GetImagesByCommentId(ctx, *notification.CommentID)
-			if err != nil && !errors.Is(err, sql.ErrNoRows) {
+			if err != nil {
 				return nil, errors.New("unable to retrieve comment images")
 			}
 			if len(commentImages) > 0 {
@@ -167,7 +167,7 @@ func (s *NotificationService) GetUnreadNotificationsByUserId(ctx context.Context
 			detailedNotification.Comment = &comment
 
 			commentImages, err := s.commentRepository.GetImagesByCommentId(ctx, *notification.CommentID)
-			if err != nil && !errors.Is(err, sql.ErrNoRows) {
+			if err != nil {
 				return nil, errors.New("unable to retrieve comment images")
 			}
 			if len(commentImages) > 0 {
@@ -251,7 +251,7 @@ func (s *NotificationService) buildDetailedNotifications(ctx context.Context, cu
 			detailedNotification.Comment = &comment
 
 			commentImages, err := s.commentRepository.GetImagesByCommentId(ctx, *notification.CommentID)
-			if err != nil && !errors.Is(err, sql.ErrNoRows) {
+			if err != nil {
 				return nil, errors.New("unable to retrieve comment images")
 			}
 			if len(commentImages) > 0 {
