@@ -14,6 +14,7 @@ import (
 
 type notificationTestEnv struct {
 	svc                    service.NotificationService
+	commentSvc             *service.CommentService
 	notificationRepository repositories.NotificationRepository
 	userRepository         repositories.UserRepository
 	postRepository         repositories.PostRepository
@@ -28,11 +29,15 @@ func setupNotificationService(t *testing.T) notificationTestEnv {
 	postRepository := repositories.NewDBPostRepository(testDb.Queries)
 	notificationRepository := repositories.NewDBNotificationRepository(testDb.Queries)
 	userRepository := repositories.NewDBUserRepository(testDb.Queries)
+	likeRepository := repositories.NewDBLikeRepository(testDb.Queries)
+	bucketRepository := &fakeBucketRepository{}
 
-	notificationService := service.NewNotificationService(notificationRepository, postRepository, commentRepository, userRepository, &fakeBucketRepository{})
+	notificationService := service.NewNotificationService(notificationRepository, postRepository, commentRepository, userRepository, bucketRepository)
+	commentService := service.NewCommentService(commentRepository, postRepository, notificationRepository, userRepository, likeRepository, bucketRepository)
 
 	return notificationTestEnv{
 		svc:                    *notificationService,
+		commentSvc:             commentService,
 		notificationRepository: notificationRepository,
 		userRepository:         userRepository,
 		postRepository:         postRepository,
@@ -299,44 +304,39 @@ func TestGetComments_DoesNotFailLinkingToDeletedUsers(t *testing.T) {
 func TestCommentNotification_ImagePopulatedFromComment(t *testing.T) {
 	env := setupNotificationService(t)
 
-	user := testutil.CreateTestUser(t, env.userRepository, "testUser")
+	postOwner := testutil.CreateTestUser(t, env.userRepository, "postOwner")
+	commenter := testutil.CreateTestUser(t, env.userRepository, "commenter")
 
 	visibility := models.VisibilityPublic
-	post, err := env.postRepository.InsertPost(t.Context(), user.UserID, "test post", nil, nil, &visibility)
+	post, err := env.postRepository.InsertPost(t.Context(), postOwner.UserID, "test post", nil, nil, &visibility)
 	require.NoError(t, err)
 
-	comment, err := env.commentRepository.AddCommentToPost(t.Context(), user.UserID, post.PostID, "test comment with image", nil)
+	imageKey := "images/test-image.jpg"
+	imageKeyMap := map[int]models.ImageData{
+		0: {S3Key: imageKey, Width: 640, Height: 480},
+	}
+	_, err = env.commentSvc.AddCommentToPost(t.Context(), commenter, post.PostID, "test comment with image", imageKeyMap)
 	require.NoError(t, err)
 
-	imageURL := "images/test-image.jpg"
-	_, err = env.commentRepository.InsertImage(t.Context(), comment.CommentID, 480, 640, imageURL, 0)
-	require.NoError(t, err)
-
-	require.NoError(t, env.notificationRepository.InsertNotification(t.Context(), user.UserID, &post.PostID, &comment.CommentID, nil, "@other commented on your post.", models.NotificationTypeComment, nil))
-
-	// GetNotificationsByUserId
-	notifications, err := env.svc.GetNotificationsByUserId(t.Context(), user, 0, 10)
+	notifications, err := env.svc.GetNotificationsByUserId(t.Context(), postOwner, 0, 10)
 	require.NoError(t, err)
 	require.Len(t, notifications, 1)
 	require.NotNil(t, notifications[0].ImageBlob, "imageBlob should be set from the comment image")
-	assert.Equal(t, imageURL, *notifications[0].ImageBlob)
+	assert.Equal(t, imageKey, *notifications[0].ImageBlob)
 	assert.Equal(t, 640, *notifications[0].ImageWidth)
 	assert.Equal(t, 480, *notifications[0].ImageHeight)
 
-	// GetUnreadNotificationsByUserIdWithTimeOffset
-	unread, err := env.svc.GetUnreadNotificationsByUserIdWithTimeOffset(t.Context(), user, time.Now().UTC(), 10, nil)
+	unread, err := env.svc.GetUnreadNotificationsByUserIdWithTimeOffset(t.Context(), postOwner, time.Now().UTC(), 10, nil)
 	require.NoError(t, err)
 	require.Len(t, unread, 1)
 	require.NotNil(t, unread[0].ImageBlob)
-	assert.Equal(t, imageURL, *unread[0].ImageBlob)
+	assert.Equal(t, imageKey, *unread[0].ImageBlob)
 
-	require.NoError(t, env.svc.MarkAllNotificationsAsReadForUserId(t.Context(), user))
+	require.NoError(t, env.svc.MarkAllNotificationsAsReadForUserId(t.Context(), postOwner))
 
-	// GetReadNotificationsByUserIdWithTimeOffset
-	read, err := env.svc.GetReadNotificationsByUserIdWithTimeOffset(t.Context(), user, time.Now().UTC(), 10, nil)
+	read, err := env.svc.GetReadNotificationsByUserIdWithTimeOffset(t.Context(), postOwner, time.Now().UTC(), 10, nil)
 	require.NoError(t, err)
 	require.Len(t, read, 1)
 	require.NotNil(t, read[0].ImageBlob)
-	assert.Equal(t, imageURL, *read[0].ImageBlob)
+	assert.Equal(t, imageKey, *read[0].ImageBlob)
 }
-
