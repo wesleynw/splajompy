@@ -29,56 +29,6 @@ func NewNotificationService(notificationRepository repositories.NotificationRepo
 	}
 }
 
-func (s *NotificationService) GetNotificationsByUserId(ctx context.Context, user models.PublicUser, offset int, limit int) ([]models.DetailedNotification, error) {
-	notifications, err := s.notificationRepository.GetNotificationsForUserId(ctx, user.UserID, offset, limit)
-	if err != nil {
-		return nil, errors.New("unable to retrieve notifications")
-	}
-
-	if notifications == nil {
-		return []models.DetailedNotification{}, nil
-	}
-
-	detailedNotifications := make([]models.DetailedNotification, 0, len(notifications))
-
-	for _, notification := range notifications {
-		var detailedNotification models.DetailedNotification
-		detailedNotification.Notification = *notification
-
-		if notification.PostID != nil {
-			post, err := s.postRepository.GetPostById(ctx, *notification.PostID, user.UserID)
-			if err != nil {
-				return nil, errors.New("unable to retrieve post")
-			}
-			detailedNotification.Post = post
-
-			imageBlob, err := s.postRepository.GetImagesForPost(ctx, *notification.PostID)
-			if err != nil && !errors.Is(err, sql.ErrNoRows) {
-				return nil, errors.New("unable to retrieve image blob")
-			}
-
-			if len(imageBlob) > 0 {
-				url := "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/" + imageBlob[0].ImageBlobUrl
-				detailedNotification.ImageBlob = &url
-				detailedNotification.ImageWidth = &imageBlob[0].Width
-				detailedNotification.ImageHeight = &imageBlob[0].Height
-			}
-		}
-
-		if notification.CommentID != nil {
-			comment, err := s.commentRepository.GetCommentById(ctx, *notification.CommentID)
-			if err != nil {
-				return nil, errors.New("unable to retrieve comment")
-			}
-			detailedNotification.Comment = &comment
-		}
-
-		detailedNotifications = append(detailedNotifications, detailedNotification)
-	}
-
-	return detailedNotifications, nil
-}
-
 func (s *NotificationService) MarkNotificationAsReadById(ctx context.Context, user models.PublicUser, notificationId int) error {
 	notification, err := s.notificationRepository.GetNotificationById(ctx, notificationId)
 	if err != nil {
@@ -106,57 +56,6 @@ func (s *NotificationService) UserHasUnreadNotifications(ctx context.Context, us
 
 func (s *NotificationService) GetUserUnreadNotificationCount(ctx context.Context, user models.PublicUser) (int, error) {
 	return s.notificationRepository.GetUserUnreadNotificationCount(ctx, user.UserID)
-}
-
-func (s *NotificationService) GetUnreadNotificationsByUserId(ctx context.Context, user models.PublicUser, offset int, limit int) ([]models.DetailedNotification, error) {
-	notifications, err := s.notificationRepository.GetUnreadNotificationsForUserId(ctx, user.UserID, offset, limit)
-	if err != nil {
-		return nil, errors.New("unable to retrieve unread notifications")
-	}
-
-	if notifications == nil {
-		return []models.DetailedNotification{}, nil
-	}
-
-	detailedNotifications := make([]models.DetailedNotification, 0, len(notifications))
-
-	// todo refactor this into a method, this is duplicated from above
-	for _, notification := range notifications {
-		var detailedNotification models.DetailedNotification
-		detailedNotification.Notification = *notification
-
-		if notification.PostID != nil {
-			post, err := s.postRepository.GetPostById(ctx, *notification.PostID, user.UserID)
-			if err != nil {
-				return nil, errors.New("unable to retrieve post")
-			}
-			detailedNotification.Post = post
-
-			imageBlob, err := s.postRepository.GetImagesForPost(ctx, *notification.PostID)
-			if err != nil && !errors.Is(err, sql.ErrNoRows) {
-				return nil, errors.New("unable to retrieve image blob")
-			}
-
-			if len(imageBlob) > 0 {
-				url := "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/" + imageBlob[0].ImageBlobUrl
-				detailedNotification.ImageBlob = &url
-				detailedNotification.ImageWidth = &imageBlob[0].Width
-				detailedNotification.ImageHeight = &imageBlob[0].Height
-			}
-		}
-
-		if notification.CommentID != nil {
-			comment, err := s.commentRepository.GetCommentById(ctx, *notification.CommentID)
-			if err != nil {
-				return nil, errors.New("unable to retrieve comment")
-			}
-			detailedNotification.Comment = &comment
-		}
-
-		detailedNotifications = append(detailedNotifications, detailedNotification)
-	}
-
-	return detailedNotifications, nil
 }
 
 func (s *NotificationService) GetReadNotificationsByUserIdWithTimeOffset(ctx context.Context, user models.PublicUser, beforeTime time.Time, limit int, notificationType *string) ([]models.DetailedNotification, error) {
@@ -221,6 +120,20 @@ func (s *NotificationService) buildDetailedNotifications(ctx context.Context, cu
 				return nil, errors.New("unable to retrieve comment")
 			}
 			detailedNotification.Comment = &comment
+
+			commentImages, err := s.commentRepository.GetImagesByCommentId(ctx, *notification.CommentID)
+			if err != nil {
+				return nil, errors.New("unable to retrieve comment images")
+			}
+			if len(commentImages) > 0 {
+				presignedUrl, err := s.bucketRepository.GetPresignedGetObject(ctx, commentImages[0].ImageBlobUrl)
+				if err != nil {
+					return nil, errors.New("unable to presign comment image")
+				}
+				detailedNotification.ImageBlob = presignedUrl
+				detailedNotification.ImageWidth = &commentImages[0].Width
+				detailedNotification.ImageHeight = &commentImages[0].Height
+			}
 		}
 
 		if notification.TargetUserId != nil {

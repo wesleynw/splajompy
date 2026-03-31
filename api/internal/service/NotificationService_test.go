@@ -14,6 +14,7 @@ import (
 
 type notificationTestEnv struct {
 	svc                    service.NotificationService
+	commentSvc             *service.CommentService
 	notificationRepository repositories.NotificationRepository
 	userRepository         repositories.UserRepository
 	postRepository         repositories.PostRepository
@@ -28,57 +29,20 @@ func setupNotificationService(t *testing.T) notificationTestEnv {
 	postRepository := repositories.NewDBPostRepository(testDb.Queries)
 	notificationRepository := repositories.NewDBNotificationRepository(testDb.Queries)
 	userRepository := repositories.NewDBUserRepository(testDb.Queries)
+	likeRepository := repositories.NewDBLikeRepository(testDb.Queries)
+	bucketRepository := &fakeBucketRepository{}
 
-	notificationService := service.NewNotificationService(notificationRepository, postRepository, commentRepository, userRepository, repositories.NewS3BucketRepository(nil))
+	notificationService := service.NewNotificationService(notificationRepository, postRepository, commentRepository, userRepository, bucketRepository)
+	commentService := service.NewCommentService(commentRepository, postRepository, notificationRepository, userRepository, likeRepository, bucketRepository)
 
 	return notificationTestEnv{
 		svc:                    *notificationService,
+		commentSvc:             commentService,
 		notificationRepository: notificationRepository,
 		userRepository:         userRepository,
 		postRepository:         postRepository,
 		commentRepository:      commentRepository,
 	}
-}
-
-func TestGetNotificationsByUserId(t *testing.T) {
-	env := setupNotificationService(t)
-	user := testutil.CreateTestUser(t, env.userRepository, "testUser")
-
-	notifications, err := env.svc.GetNotificationsByUserId(t.Context(), user, 0, 10)
-	require.NoError(t, err)
-	assert.NotNil(t, notifications)
-	assert.Len(t, notifications, 0)
-
-	require.NoError(t, env.notificationRepository.InsertNotification(t.Context(), user.UserID, nil, nil, nil, "Test notification 1", models.NotificationTypeLike, nil))
-	require.NoError(t, env.notificationRepository.InsertNotification(t.Context(), user.UserID, nil, nil, nil, "Test notification 2", models.NotificationTypeLike, nil))
-	require.NoError(t, env.notificationRepository.InsertNotification(t.Context(), user.UserID, nil, nil, nil, "Test notification 3", models.NotificationTypeLike, nil))
-
-	notifications, err = env.svc.GetNotificationsByUserId(t.Context(), user, 0, 10)
-	require.NoError(t, err)
-	assert.NotNil(t, notifications)
-	assert.Len(t, notifications, 3)
-
-	notifications, err = env.svc.GetNotificationsByUserId(t.Context(), user, 0, 2)
-	require.NoError(t, err)
-	assert.NotNil(t, notifications)
-	assert.Len(t, notifications, 2)
-
-	notifications, err = env.svc.GetNotificationsByUserId(t.Context(), user, 2, 2)
-	require.NoError(t, err)
-	assert.NotNil(t, notifications)
-	assert.Len(t, notifications, 1)
-
-	notifications, err = env.svc.GetNotificationsByUserId(t.Context(), user, 5, 2)
-	require.NoError(t, err)
-	assert.NotNil(t, notifications)
-	assert.Len(t, notifications, 0)
-
-	anotherUser := testutil.CreateTestUser(t, env.userRepository, "anotherUser")
-
-	notifications, err = env.svc.GetNotificationsByUserId(t.Context(), anotherUser, 0, 10)
-	require.NoError(t, err)
-	assert.NotNil(t, notifications)
-	assert.Len(t, notifications, 0)
 }
 
 func TestMarkNotificationAsReadById(t *testing.T) {
@@ -99,10 +63,10 @@ func TestMarkNotificationAsReadById(t *testing.T) {
 	err = env.svc.MarkNotificationAsReadById(t.Context(), user, notificationId)
 	require.NoError(t, err)
 
-	notifications, err := env.svc.GetNotificationsByUserId(t.Context(), user, 0, 10)
+	notifications, err := env.svc.GetReadNotificationsByUserIdWithTimeOffset(t.Context(), user, time.Now().UTC(), 10, nil)
 	require.NoError(t, err)
 	assert.NotNil(t, notifications)
-	assert.Len(t, notifications, 1)
+	require.Len(t, notifications, 1)
 	assert.True(t, notifications[0].Viewed)
 }
 
@@ -121,7 +85,7 @@ func TestMarkAllNotificationsAsReadForUserId(t *testing.T) {
 	err = env.svc.MarkAllNotificationsAsReadForUserId(t.Context(), user)
 	require.NoError(t, err)
 
-	notifications, err := env.svc.GetNotificationsByUserId(t.Context(), user, 0, 10)
+	notifications, err := env.svc.GetReadNotificationsByUserIdWithTimeOffset(t.Context(), user, time.Now().UTC(), 10, nil)
 	require.NoError(t, err)
 	assert.NotNil(t, notifications)
 	assert.Len(t, notifications, 3)
@@ -163,36 +127,6 @@ func TestUserHasUnreadNotifications(t *testing.T) {
 	hasUnread, err = env.svc.UserHasUnreadNotifications(t.Context(), user)
 	require.NoError(t, err)
 	assert.False(t, hasUnread)
-}
-
-func TestMultipleUsersNotifications(t *testing.T) {
-	env := setupNotificationService(t)
-
-	user1 := testutil.CreateTestUser(t, env.userRepository, "user1")
-	user2 := testutil.CreateTestUser(t, env.userRepository, "user2")
-
-	require.NoError(t, env.notificationRepository.InsertNotification(t.Context(), user1.UserID, nil, nil, nil, "User 1 notification 1", models.NotificationTypeLike, nil))
-	require.NoError(t, env.notificationRepository.InsertNotification(t.Context(), user1.UserID, nil, nil, nil, "User 1 notification 2", models.NotificationTypeLike, nil))
-	require.NoError(t, env.notificationRepository.InsertNotification(t.Context(), user2.UserID, nil, nil, nil, "User 2 notification 1", models.NotificationTypeLike, nil))
-
-	notificationsUser1, err := env.svc.GetNotificationsByUserId(t.Context(), user1, 0, 10)
-	require.NoError(t, err)
-	assert.Len(t, notificationsUser1, 2)
-
-	notificationsUser2, err := env.svc.GetNotificationsByUserId(t.Context(), user2, 0, 10)
-	require.NoError(t, err)
-	assert.Len(t, notificationsUser2, 1)
-
-	err = env.svc.MarkAllNotificationsAsReadForUserId(t.Context(), user1)
-	require.NoError(t, err)
-
-	hasUnreadUser1, err := env.svc.UserHasUnreadNotifications(t.Context(), user1)
-	require.NoError(t, err)
-	assert.False(t, hasUnreadUser1)
-
-	hasUnreadUser2, err := env.svc.UserHasUnreadNotifications(t.Context(), user2)
-	require.NoError(t, err)
-	assert.True(t, hasUnreadUser2)
 }
 
 func TestErrorWhenMarkingNonExistentNotification(t *testing.T) {
@@ -294,4 +228,44 @@ func TestGetComments_DoesNotFailLinkingToDeletedUsers(t *testing.T) {
 	notifications, err = env.svc.GetReadNotificationsByUserIdWithTimeOffset(t.Context(), user0, time.Now().UTC(), 10, nil)
 	assert.NoError(t, err)
 	assert.Len(t, notifications, 1)
+}
+
+func TestCommentNotification_ImagePopulatedFromComment(t *testing.T) {
+	env := setupNotificationService(t)
+
+	postOwner := testutil.CreateTestUser(t, env.userRepository, "postOwner")
+	commenter := testutil.CreateTestUser(t, env.userRepository, "commenter")
+
+	visibility := models.VisibilityPublic
+	post, err := env.postRepository.InsertPost(t.Context(), postOwner.UserID, "test post", nil, nil, &visibility)
+	require.NoError(t, err)
+
+	imageKey := "images/test-image.jpg"
+	imageKeyMap := map[int]models.ImageData{
+		0: {S3Key: imageKey, Width: 640, Height: 480},
+	}
+	_, err = env.commentSvc.AddCommentToPost(t.Context(), commenter, post.PostID, "test comment with image", imageKeyMap)
+	require.NoError(t, err)
+
+	notifications, err := env.svc.GetUnreadNotificationsByUserIdWithTimeOffset(t.Context(), postOwner, time.Now().UTC(), 10, nil)
+	require.NoError(t, err)
+	require.Len(t, notifications, 1)
+	require.NotNil(t, notifications[0].ImageBlob, "imageBlob should be set from the comment image")
+	assert.Equal(t, imageKey, *notifications[0].ImageBlob)
+	assert.Equal(t, 640, *notifications[0].ImageWidth)
+	assert.Equal(t, 480, *notifications[0].ImageHeight)
+
+	unread, err := env.svc.GetUnreadNotificationsByUserIdWithTimeOffset(t.Context(), postOwner, time.Now().UTC(), 10, nil)
+	require.NoError(t, err)
+	require.Len(t, unread, 1)
+	require.NotNil(t, unread[0].ImageBlob)
+	assert.Equal(t, imageKey, *unread[0].ImageBlob)
+
+	require.NoError(t, env.svc.MarkAllNotificationsAsReadForUserId(t.Context(), postOwner))
+
+	read, err := env.svc.GetReadNotificationsByUserIdWithTimeOffset(t.Context(), postOwner, time.Now().UTC(), 10, nil)
+	require.NoError(t, err)
+	require.Len(t, read, 1)
+	require.NotNil(t, read[0].ImageBlob)
+	assert.Equal(t, imageKey, *read[0].ImageBlob)
 }

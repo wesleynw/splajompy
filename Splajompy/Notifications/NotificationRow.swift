@@ -60,7 +60,7 @@ struct NotificationRow: View {
           }
         }
 
-        if let comment = notification.comment {
+        if let comment = notification.comment, !comment.text.isEmpty {
           MiniNotificationView(text: comment.text)
         } else if let post = notification.post, let text = post.text,
           !text.isEmpty
