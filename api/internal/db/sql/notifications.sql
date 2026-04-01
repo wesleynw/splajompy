@@ -46,20 +46,29 @@ OFFSET $3;
 INSERT INTO notifications (user_id, post_id, comment_id, message, facets, link, notification_type, target_user_id)
 VALUES ($1, $2, $3, $4, $5, $6, $7, $8);
 
--- name: GetReadNotificationsForUserIdWithTimeOffset :many
+-- name: GetNotificationsForUserIdWithTimeOffset :many
 SELECT *
 FROM notifications
-WHERE user_id = $1 AND viewed = TRUE AND created_at < $2
-  AND (sqlc.narg('notification_type')::text IS NULL OR notification_type = sqlc.narg('notification_type'))
-ORDER BY created_at DESC
-LIMIT $3;
-
--- name: GetUnreadNotificationsForUserIdWithTimeOffset :many
-SELECT *
-FROM notifications
-WHERE user_id = $1 AND viewed = FALSE AND created_at < $2
-  AND (sqlc.narg('notification_type')::text IS NULL OR notification_type = sqlc.narg('notification_type'))
-ORDER BY created_at DESC
+WHERE notifications.user_id = $1 AND notifications.viewed = $4 AND notifications.created_at < $2
+    AND (
+        sqlc.narg('notification_type')::text IS NULL
+            OR notifications.notification_type = sqlc.narg('notification_type')
+    ) AND NOT EXISTS ( -- no notifications targeting blocked users
+        SELECT 1 FROM block
+        WHERE block.user_id = $1
+            AND block.target_user_id = notifications.target_user_id
+    ) AND NOT EXISTS ( -- no notifications referencing posts from blocked users
+        SELECT 1 FROM block
+        JOIN posts ON posts.post_id = notifications.post_id
+        WHERE block.user_id = $1
+            AND posts.user_id = block.target_user_id
+    ) AND NOT EXISTS ( -- no notifications refering posts from users that have blocked this user
+        SELECT 1 FROM block
+        JOIN posts ON posts.post_id = notifications.post_id
+        WHERE block.user_id = posts.user_id
+            AND block.target_user_id = $1
+    )
+ORDER BY notifications.created_at DESC
 LIMIT $3;
 
 -- name: FindUnreadLikeNotificationForPost :one

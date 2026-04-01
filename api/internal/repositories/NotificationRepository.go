@@ -125,10 +125,11 @@ func (r DBNotificationRepository) GetUnreadNotificationsForUserId(ctx context.Co
 
 // GetReadNotificationsForUserIdWithTimeOffset retrieves read notifications for a user with time-based pagination
 func (r DBNotificationRepository) GetReadNotificationsForUserIdWithTimeOffset(ctx context.Context, userId int, beforeTime time.Time, limit int, notificationType *string) ([]*models.Notification, error) {
-	params := queries.GetReadNotificationsForUserIdWithTimeOffsetParams{
+	params := queries.GetNotificationsForUserIdWithTimeOffsetParams{
 		UserID:    userId,
 		CreatedAt: pgtype.Timestamp{Time: beforeTime, Valid: true},
 		Limit:     limit,
+		Viewed:    true,
 	}
 
 	if notificationType != nil {
@@ -137,7 +138,7 @@ func (r DBNotificationRepository) GetReadNotificationsForUserIdWithTimeOffset(ct
 		params.NotificationType = pgtype.Text{Valid: false}
 	}
 
-	notifications, err := r.querier.GetReadNotificationsForUserIdWithTimeOffset(ctx, params)
+	notifications, err := r.querier.GetNotificationsForUserIdWithTimeOffset(ctx, params)
 	if err != nil {
 		return nil, err
 	}
@@ -153,10 +154,11 @@ func (r DBNotificationRepository) GetReadNotificationsForUserIdWithTimeOffset(ct
 
 // GetUnreadNotificationsForUserIdWithTimeOffset retrieves unread notifications for a user with time-based pagination
 func (r DBNotificationRepository) GetUnreadNotificationsForUserIdWithTimeOffset(ctx context.Context, userId int, beforeTime time.Time, limit int, notificationType *string) ([]*models.Notification, error) {
-	params := queries.GetUnreadNotificationsForUserIdWithTimeOffsetParams{
+	params := queries.GetNotificationsForUserIdWithTimeOffsetParams{
 		UserID:    userId,
 		CreatedAt: pgtype.Timestamp{Time: beforeTime, Valid: true},
 		Limit:     limit,
+		Viewed:    false,
 	}
 
 	if notificationType != nil {
@@ -165,7 +167,7 @@ func (r DBNotificationRepository) GetUnreadNotificationsForUserIdWithTimeOffset(
 		params.NotificationType = pgtype.Text{Valid: false}
 	}
 
-	notifications, err := r.querier.GetUnreadNotificationsForUserIdWithTimeOffset(ctx, params)
+	notifications, err := r.querier.GetNotificationsForUserIdWithTimeOffset(ctx, params)
 	if err != nil {
 		return nil, err
 	}
