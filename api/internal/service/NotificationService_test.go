@@ -15,6 +15,7 @@ import (
 type notificationTestEnv struct {
 	svc                    service.NotificationService
 	commentSvc             *service.CommentService
+	postSvc                *service.PostService
 	notificationRepository repositories.NotificationRepository
 	userRepository         repositories.UserRepository
 	postRepository         repositories.PostRepository
@@ -34,10 +35,12 @@ func setupNotificationService(t *testing.T) notificationTestEnv {
 
 	notificationService := service.NewNotificationService(notificationRepository, postRepository, commentRepository, userRepository, bucketRepository)
 	commentService := service.NewCommentService(commentRepository, postRepository, notificationRepository, userRepository, likeRepository, bucketRepository)
+	postService := service.NewPostService(postRepository, userRepository, likeRepository, notificationRepository, bucketRepository, nil)
 
 	return notificationTestEnv{
 		svc:                    *notificationService,
 		commentSvc:             commentService,
+		postSvc:                postService,
 		notificationRepository: notificationRepository,
 		userRepository:         userRepository,
 		postRepository:         postRepository,
