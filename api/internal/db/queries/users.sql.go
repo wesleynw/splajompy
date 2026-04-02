@@ -62,7 +62,7 @@ func (q *Queries) CreateSession(ctx context.Context, arg CreateSessionParams) er
 const createUser = `-- name: CreateUser :one
 INSERT INTO users (email, username, password, referral_code)
 VALUES ($1, $2, $3, $4)
-RETURNING user_id, email, password, username, created_at, name, is_verified, pinned_post_id, user_display_properties, referral_code
+RETURNING user_id, email, password, username, created_at, name, pinned_post_id, user_display_properties, referral_code
 `
 
 type CreateUserParams struct {
@@ -87,7 +87,6 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.Username,
 		&i.CreatedAt,
 		&i.Name,
-		&i.IsVerified,
 		&i.PinnedPostID,
 		&i.UserDisplayProperties,
 		&i.ReferralCode,
@@ -266,7 +265,7 @@ func (q *Queries) GetSessionById(ctx context.Context, id string) (Session, error
 }
 
 const getUserById = `-- name: GetUserById :one
-SELECT user_id, email, password, username, created_at, name, is_verified, pinned_post_id, user_display_properties, referral_code
+SELECT user_id, email, password, username, created_at, name, pinned_post_id, user_display_properties, referral_code
 FROM users
 WHERE user_id = $1
 LIMIT 1
@@ -282,7 +281,6 @@ func (q *Queries) GetUserById(ctx context.Context, userID int) (User, error) {
 		&i.Username,
 		&i.CreatedAt,
 		&i.Name,
-		&i.IsVerified,
 		&i.PinnedPostID,
 		&i.UserDisplayProperties,
 		&i.ReferralCode,
@@ -291,7 +289,7 @@ func (q *Queries) GetUserById(ctx context.Context, userID int) (User, error) {
 }
 
 const getUserByIdentifier = `-- name: GetUserByIdentifier :one
-SELECT user_id, email, password, username, created_at, name, is_verified, pinned_post_id, user_display_properties, referral_code
+SELECT user_id, email, password, username, created_at, name, pinned_post_id, user_display_properties, referral_code
 FROM users
 WHERE email = $1 OR username = $1
 LIMIT 1
@@ -307,7 +305,6 @@ func (q *Queries) GetUserByIdentifier(ctx context.Context, email string) (User, 
 		&i.Username,
 		&i.CreatedAt,
 		&i.Name,
-		&i.IsVerified,
 		&i.PinnedPostID,
 		&i.UserDisplayProperties,
 		&i.ReferralCode,
@@ -316,7 +313,7 @@ func (q *Queries) GetUserByIdentifier(ctx context.Context, email string) (User, 
 }
 
 const getUserByUsername = `-- name: GetUserByUsername :one
-SELECT user_id, email, password, username, created_at, name, is_verified, pinned_post_id, user_display_properties, referral_code
+SELECT user_id, email, password, username, created_at, name, pinned_post_id, user_display_properties, referral_code
 FROM users
 WHERE username = $1
 LIMIT 1
@@ -332,7 +329,6 @@ func (q *Queries) GetUserByUsername(ctx context.Context, username string) (User,
 		&i.Username,
 		&i.CreatedAt,
 		&i.Name,
-		&i.IsVerified,
 		&i.PinnedPostID,
 		&i.UserDisplayProperties,
 		&i.ReferralCode,
@@ -341,7 +337,7 @@ func (q *Queries) GetUserByUsername(ctx context.Context, username string) (User,
 }
 
 const getUserWithPasswordByIdentifier = `-- name: GetUserWithPasswordByIdentifier :one
-SELECT user_id, email, password, username, created_at, name, is_verified, pinned_post_id, user_display_properties, referral_code
+SELECT user_id, email, password, username, created_at, name, pinned_post_id, user_display_properties, referral_code
 FROM users
 WHERE email = $1 OR username = $1
 LIMIT 1
@@ -357,7 +353,6 @@ func (q *Queries) GetUserWithPasswordByIdentifier(ctx context.Context, email str
 		&i.Username,
 		&i.CreatedAt,
 		&i.Name,
-		&i.IsVerified,
 		&i.PinnedPostID,
 		&i.UserDisplayProperties,
 		&i.ReferralCode,
@@ -390,7 +385,7 @@ func (q *Queries) GetVerificationCode(ctx context.Context, arg GetVerificationCo
 }
 
 const listUserRelationships = `-- name: ListUserRelationships :many
-SELECT users.user_id, users.email, users.password, users.username, users.created_at, users.name, users.is_verified, users.pinned_post_id, users.user_display_properties, users.referral_code
+SELECT users.user_id, users.email, users.password, users.username, users.created_at, users.name, users.pinned_post_id, users.user_display_properties, users.referral_code
 FROM users
 JOIN user_relationship ON user_relationship.user_id = $1::int
 WHERE users.user_id = user_relationship.target_user_id
@@ -421,7 +416,6 @@ func (q *Queries) ListUserRelationships(ctx context.Context, arg ListUserRelatio
 			&i.Username,
 			&i.CreatedAt,
 			&i.Name,
-			&i.IsVerified,
 			&i.PinnedPostID,
 			&i.UserDisplayProperties,
 			&i.ReferralCode,
@@ -565,15 +559,15 @@ func (q *Queries) UpdateUserName(ctx context.Context, arg UpdateUserNameParams) 
 const userSearchWithHeuristics = `-- name: UserSearchWithHeuristics :many
 WITH results AS (
     SELECT DISTINCT ON (user_id)
-    user_id, username, name, is_verified, tier, score
+    user_id, username, name, tier, score
 FROM (
-    SELECT users.user_id, users.username, users.name, users.is_verified, 1 as tier, 1.0 as score
+    SELECT users.user_id, users.username, users.name, 1 as tier, 1.0 as score
     FROM users
     WHERE users.username = $1 OR users.name = $1
 
     UNION ALL
 
-    SELECT users.user_id, users.username, users.name, users.is_verified, 2 as tier, 0.9 as score
+    SELECT users.user_id, users.username, users.name, 2 as tier, 0.9 as score
     FROM users
     WHERE (users.username ILIKE $1 || '%' OR users.name ILIKE $1 || '%')
     AND users.username != $1
@@ -581,7 +575,7 @@ FROM (
 
     UNION ALL
 
-    SELECT users.user_id, users.username, users.name, users.is_verified, 3 as tier, 0.7 as score
+    SELECT users.user_id, users.username, users.name, 3 as tier, 0.7 as score
     FROM users
     WHERE (users.username ILIKE '%' || $1 || '%' OR users.name ILIKE '%' || $1 || '%')
     AND users.username NOT ILIKE $1 || '%'
@@ -589,7 +583,7 @@ FROM (
 
     UNION ALL
 
-    SELECT users.user_id, users.username, users.name, users.is_verified, 4 as tier,
+    SELECT users.user_id, users.username, users.name, 4 as tier,
     GREATEST(similarity(users.username, $1), similarity(COALESCE(users.name, ''), $1)) as score
     FROM users
     WHERE (users.username % $1 OR users.name % $1)
@@ -599,7 +593,7 @@ FROM (
     ) sub
 ORDER BY user_id, tier, score DESC
     )
-SELECT r.user_id, r.username, r.name, r.is_verified, r.tier, r.score
+SELECT r.user_id, r.username, r.name, r.tier, r.score
 FROM results r
 WHERE NOT EXISTS (
     SELECT 1
@@ -617,12 +611,11 @@ type UserSearchWithHeuristicsParams struct {
 }
 
 type UserSearchWithHeuristicsRow struct {
-	UserID     int         `json:"userId"`
-	Username   string      `json:"username"`
-	Name       pgtype.Text `json:"name"`
-	IsVerified bool        `json:"isVerified"`
-	Tier       int32       `json:"tier"`
-	Score      float64     `json:"score"`
+	UserID   int         `json:"userId"`
+	Username string      `json:"username"`
+	Name     pgtype.Text `json:"name"`
+	Tier     int32       `json:"tier"`
+	Score    float64     `json:"score"`
 }
 
 func (q *Queries) UserSearchWithHeuristics(ctx context.Context, arg UserSearchWithHeuristicsParams) ([]UserSearchWithHeuristicsRow, error) {
@@ -638,7 +631,6 @@ func (q *Queries) UserSearchWithHeuristics(ctx context.Context, arg UserSearchWi
 			&i.UserID,
 			&i.Username,
 			&i.Name,
-			&i.IsVerified,
 			&i.Tier,
 			&i.Score,
 		); err != nil {
