@@ -242,7 +242,8 @@ func TestGetPost_DoesNotReturnRelevantLikesForBlockingUser(t *testing.T) {
 	post, err := env.svc.NewPost(t.Context(), user0, "test post", nil, nil, nil)
 	require.NoError(t, err)
 
-	env.svc.AddLikeToPost(t.Context(), user1, post.PostID)
+	err = env.svc.AddLikeToPost(t.Context(), user1, post.PostID)
+	require.NoError(t, err)
 
 	full_post, err := env.svc.GetPostById(t.Context(), user0.UserID, post.PostID)
 	require.NoError(t, err)
@@ -269,7 +270,8 @@ func TestGetPost_DoesNotReturnRelevantLikesForBlockedUser(t *testing.T) {
 	post, err := env.svc.NewPost(t.Context(), user0, "test post", nil, nil, nil)
 	require.NoError(t, err)
 
-	env.svc.AddLikeToPost(t.Context(), user1, post.PostID)
+	err = env.svc.AddLikeToPost(t.Context(), user1, post.PostID)
+	require.NoError(t, err)
 
 	full_post, err := env.svc.GetPostById(t.Context(), user0.UserID, post.PostID)
 	require.NoError(t, err)
@@ -295,7 +297,8 @@ func TestGetPost_DoesNotReturnRelevantLikesCurrentUser(t *testing.T) {
 	post, err := env.svc.NewPost(t.Context(), user0, "test post", nil, nil, nil)
 	require.NoError(t, err)
 
-	env.svc.AddLikeToPost(t.Context(), user0, post.PostID)
+	err = env.svc.AddLikeToPost(t.Context(), user0, post.PostID)
+	require.NoError(t, err)
 
 	full_post, err := env.svc.GetPostById(t.Context(), user0.UserID, post.PostID)
 	require.NoError(t, err)
