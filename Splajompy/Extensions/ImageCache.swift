@@ -21,6 +21,9 @@ final class ImagePipelineCustomDelegate: ImagePipeline.Delegate {
       var components = URLComponents(url: url, resolvingAgainstBaseURL: false)
     else { return nil }
     components.query = nil
-    return components.url?.absoluteString
+    let baseKey = components.url?.absoluteString ?? ""
+    let processorIds = request.processors.map(\.identifier).joined(separator: ",")
+    guard !processorIds.isEmpty else { return baseKey }
+    return "\(baseKey)|\(processorIds)"
   }
 }
