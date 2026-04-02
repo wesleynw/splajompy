@@ -113,12 +113,6 @@ struct CommentsView: View {
         if comments.isEmpty {
           VStack(spacing: 16) {
             Spacer()
-            if PostHogSDK.shared.isFeatureEnabled("snail-test") {
-              Image("snail")
-                .resizable()
-                .aspectRatio(contentMode: .fit)
-                .frame(width: 180, height: 180)
-            }
             Text("No comments")
               .font(.title3)
               .foregroundStyle(.gray)

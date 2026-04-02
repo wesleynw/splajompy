@@ -162,11 +162,9 @@ struct PostView: View {
 
   private var relevantLikes: some View {
     RelevantLikeView(
-      relevantLikes: post.relevantLikes,
-      hasOtherLikes: post.hasOtherLikes
+      relevantLikes: post.relevantLikes
     )
     .animation(.easeInOut(duration: 0.3), value: post.relevantLikes.count)
-    .animation(.easeInOut(duration: 0.3), value: post.hasOtherLikes)
   }
 
   private var timestampAndMenu: some View {
@@ -321,7 +319,6 @@ struct PostView: View {
     commentCount: 0,
     images: images,
     relevantLikes: [],
-    hasOtherLikes: false,
     isPinned: false
   )
 
@@ -386,7 +383,6 @@ struct PostView: View {
     commentCount: 0,
     images: images,
     relevantLikes: [],
-    hasOtherLikes: false,
     isPinned: false
   )
 

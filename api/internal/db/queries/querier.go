@@ -57,7 +57,7 @@ type Querier interface {
 	GetPostIdsByFollowingCursor(ctx context.Context, arg GetPostIdsByFollowingCursorParams) ([]int, error)
 	GetPostIdsByUserIdCursor(ctx context.Context, arg GetPostIdsByUserIdCursorParams) ([]int, error)
 	GetPostIdsForMutualFeedCursor(ctx context.Context, arg GetPostIdsForMutualFeedCursorParams) ([]GetPostIdsForMutualFeedCursorRow, error)
-	GetPostLikesFromFollowers(ctx context.Context, arg GetPostLikesFromFollowersParams) ([]GetPostLikesFromFollowersRow, error)
+	GetPostLikes(ctx context.Context, arg GetPostLikesParams) ([]GetPostLikesRow, error)
 	GetSessionById(ctx context.Context, id string) (Session, error)
 	GetTotalComments(ctx context.Context) (int64, error)
 	GetTotalCommentsForUser(ctx context.Context, userID int) (int64, error)
@@ -76,7 +76,6 @@ type Querier interface {
 	GetUserVoteInPoll(ctx context.Context, arg GetUserVoteInPollParams) (int, error)
 	GetUserWithPasswordByIdentifier(ctx context.Context, email string) (User, error)
 	GetVerificationCode(ctx context.Context, arg GetVerificationCodeParams) (VerificationCode, error)
-	HasLikesFromOthers(ctx context.Context, arg HasLikesFromOthersParams) (bool, error)
 	InsertFollow(ctx context.Context, arg InsertFollowParams) error
 	InsertImage(ctx context.Context, arg InsertImageParams) (Image, error)
 	InsertNotification(ctx context.Context, arg InsertNotificationParams) error

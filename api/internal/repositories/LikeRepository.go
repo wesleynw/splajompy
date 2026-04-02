@@ -10,8 +10,8 @@ type LikeRepository interface {
 	AddLike(ctx context.Context, userId int, postId int, commentId *int) error
 	RemoveLike(ctx context.Context, userId int, postId int, commentId *int) error
 	IsLiked(ctx context.Context, userId int, postId int, commentId *int) (bool, error)
-	GetPostLikesFromFollowers(ctx context.Context, postId int, followerId int) ([]queries.GetPostLikesFromFollowersRow, error)
-	HasLikesFromOthers(ctx context.Context, postId int, userIds []int) (bool, error)
+	// GetOtherPostLikes returns other likes on a given post
+	GetOtherPostLikes(ctx context.Context, postId int, currentUserId int) ([]queries.GetPostLikesRow, error)
 }
 
 type DBLikeRepository struct {
@@ -47,19 +47,10 @@ func (r DBLikeRepository) IsLiked(ctx context.Context, userId int, postId int, c
 	})
 }
 
-// GetPostLikesFromFollowers retrieves likes on a post from users followed by a specific user
-func (r DBLikeRepository) GetPostLikesFromFollowers(ctx context.Context, postId int, followerId int) ([]queries.GetPostLikesFromFollowersRow, error) {
-	return r.querier.GetPostLikesFromFollowers(ctx, queries.GetPostLikesFromFollowersParams{
-		PostID:     postId,
-		FollowerID: followerId,
-	})
-}
-
-// HasLikesFromOthers checks if a post has likes from users not in the provided list
-func (r DBLikeRepository) HasLikesFromOthers(ctx context.Context, postId int, userIds []int) (bool, error) {
-	return r.querier.HasLikesFromOthers(ctx, queries.HasLikesFromOthersParams{
-		PostID:  postId,
-		Column2: userIds,
+func (r DBLikeRepository) GetOtherPostLikes(ctx context.Context, postId int, currentUserId int) ([]queries.GetPostLikesRow, error) {
+	return r.querier.GetPostLikes(ctx, queries.GetPostLikesParams{
+		PostID: postId,
+		UserID: currentUserId,
 	})
 }
 

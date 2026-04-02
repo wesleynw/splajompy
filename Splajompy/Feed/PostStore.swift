@@ -11,7 +11,6 @@ import SwiftUI
   var commentCount: Int
   var images: [ImageDTO]?
   var relevantLikes: [RelevantLike]
-  var hasOtherLikes: Bool
   var poll: Poll?
   var isPinned: Bool
 
@@ -24,7 +23,6 @@ import SwiftUI
     self.commentCount = post.commentCount
     self.images = post.images
     self.relevantLikes = post.relevantLikes
-    self.hasOtherLikes = post.hasOtherLikes
     self.poll = post.poll
     self.isPinned = post.isPinned
   }
@@ -36,7 +34,6 @@ import SwiftUI
     self.commentCount = post.commentCount
     self.images = post.images
     self.relevantLikes = post.relevantLikes
-    self.hasOtherLikes = post.hasOtherLikes
     self.poll = post.poll
     self.isPinned = post.isPinned
   }

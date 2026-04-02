@@ -15,9 +15,6 @@ struct AppIconPickerView: View {
         iconCell(image: "rainbow-icon-png", iconName: "rainbow-icon", artist: nil)
         iconCell(image: "pumpkin-icon-png", iconName: "pumpkin-icon", artist: "@milesperhour")
         iconCell(image: "exploding-icon-png", iconName: "exploding-icon", artist: "@moldy")
-        if PostHogSDK.shared.isFeatureEnabled("snail-test") {
-          iconCell(image: "snail-icon", iconName: "snail", artist: "@elena")
-        }
       }
       .padding()
     }

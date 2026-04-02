@@ -11,7 +11,6 @@ struct ErrorScreen: View {
       VStack {
         Text(errorString)
           .fontWeight(.bold)
-          .foregroundStyle(.red)
       }
       .multilineTextAlignment(.center)
 
@@ -58,7 +57,8 @@ struct ErrorScreen: View {
 
 #Preview {
   ErrorScreen(
-    errorString: "Could not connect to the server",
+    errorString:
+      "Could not connect to the server. Something went super wrong. Oh no! It's 100% completely broken. This error string is way too long too!",
     onRetry: { print("retrying") }
   )
 }

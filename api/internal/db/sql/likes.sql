@@ -31,21 +31,19 @@ SELECT EXISTS (
   )
 );
 
--- name: GetPostLikesFromFollowers :many
+-- name: GetPostLikes :many
 SELECT users.username, users.user_id, users.is_verified
 FROM likes
-INNER JOIN users ON likes.user_id = users.user_id
-WHERE post_id = $1 AND comment_id IS NULL AND
-    EXISTS (
-        SELECT 1
-        FROM follows
-        WHERE follower_id = $2 AND following_id = likes.user_id
-    );
-
--- name: HasLikesFromOthers :one
-SELECT EXISTS (
-    SELECT 1
-    FROM likes
-    WHERE post_id = $1 AND comment_id IS NULL AND
-        user_id NOT IN (SELECT * FROM unnest($2::int[]))
-);
+JOIN users ON likes.user_id = users.user_id
+WHERE likes.post_id = $1
+AND likes.user_id != $2
+AND NOT EXISTS (
+    SELECT 1 FROM block
+    WHERE block.user_id = $2
+        AND likes.user_id = block.target_user_id
+) AND NOT EXISTS (
+    SELECT 1 FROM block
+    WHERE block.user_id = likes.user_id
+        AND block.target_user_id = $2
+)
+LIMIT 3;

@@ -103,7 +103,6 @@ struct Mocks {
     commentCount: 0,
     images: nil,
     relevantLikes: [],
-    hasOtherLikes: false,
     isPinned: false
   )
 
