@@ -19,7 +19,7 @@ func MapUserToPublicUser(user queries.User) models.PublicUser {
 		Email:      user.Email,
 		Name:       user.Name.String,
 		CreatedAt:  user.CreatedAt.Time,
-		IsVerified: user.IsVerified,
+		IsVerified: false,
 	}
 
 	if user.UserDisplayProperties != nil {

@@ -282,7 +282,7 @@ func (s *PostService) getRelevantLikes(ctx context.Context, userId int, postId i
 		mappedLikes[i] = models.RelevantLike{
 			Username:   like.Username,
 			UserID:     like.UserID,
-			IsVerified: like.IsVerified,
+			IsVerified: false,
 		}
 		userIDs[i] = like.UserID
 	}

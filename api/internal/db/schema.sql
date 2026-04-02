@@ -7,7 +7,6 @@ CREATE TABLE users (
     username character varying(100) NOT NULL,
     created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     name text,
-    is_verified boolean DEFAULT FALSE NOT NULL,
     pinned_post_id integer,
     user_display_properties jsonb NULL,
     referral_code TEXT NOT NULL

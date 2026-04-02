@@ -32,7 +32,7 @@ SELECT EXISTS (
 );
 
 -- name: GetPostLikes :many
-SELECT users.username, users.user_id, users.is_verified
+SELECT users.username, users.user_id
 FROM likes
 JOIN users ON likes.user_id = users.user_id
 WHERE likes.post_id = $1
