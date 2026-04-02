@@ -169,7 +169,7 @@ func (s *PostService) GetPostById(ctx context.Context, userId int, postId int) (
 		Images:        detailedImages,
 		CommentCount:  commentCount,
 		RelevantLikes: relevantLikes,
-		HasOtherLikes: false,
+		HasOtherLikes: len(relevantLikes) > 2,
 		Poll:          pollDetails,
 		IsPinned:      isPinned,
 	}, nil

@@ -35,7 +35,7 @@ SELECT EXISTS (
 SELECT users.username, users.user_id
 FROM likes
 JOIN users ON likes.user_id = users.user_id
-WHERE likes.post_id = $1
+WHERE likes.post_id = $1 AND likes.comment_id IS NULL
 AND likes.user_id != $2
 AND NOT EXISTS (
     SELECT 1 FROM block
