@@ -64,6 +64,7 @@ struct CommentInputView: View {
               .frame(width: 32, height: 32)
               .padding(5)
           }
+          .buttonStyle(.plain)
           .disabled(
             {
               if case .empty = viewModel.imageState { return false }

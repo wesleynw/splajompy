@@ -85,9 +85,10 @@ type DetailedPost struct {
 	Images        []DetailedImage `json:"images"`
 	CommentCount  int             `json:"commentCount"`
 	RelevantLikes []RelevantLike  `json:"relevantLikes"`
-	HasOtherLikes bool            `json:"hasOtherLikes"`
-	Poll          *DetailedPoll   `json:"poll"`
-	IsPinned      bool            `json:"isPinned"`
+	// Deprecated: not using this anymore since v1.8.1
+	HasOtherLikes bool          `json:"hasOtherLikes"`
+	Poll          *DetailedPoll `json:"poll"`
+	IsPinned      bool          `json:"isPinned"`
 }
 
 type DetailedImage struct {

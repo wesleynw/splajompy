@@ -232,3 +232,72 @@ func TestGetPosts_ProfilePinnedPostDoesNotReduceSubsequentPageSize(t *testing.T)
 		assert.NotEqual(t, created[0].PostID, p.Post.PostID, "pinned post should not appear again in subsequent pages")
 	}
 }
+
+func TestGetPost_DoesNotReturnRelevantLikesForBlockingUser(t *testing.T) {
+	env := setupPostTest(t)
+
+	user0 := testutil.CreateTestUser(t, env.userRepository, "user0")
+	user1 := testutil.CreateTestUser(t, env.userRepository, "user1")
+
+	post, err := env.svc.NewPost(t.Context(), user0, "test post", nil, nil, nil)
+	require.NoError(t, err)
+
+	env.svc.AddLikeToPost(t.Context(), user1, post.PostID)
+
+	full_post, err := env.svc.GetPostById(t.Context(), user0.UserID, post.PostID)
+	require.NoError(t, err)
+
+	assert.NotEmpty(t, full_post.RelevantLikes)
+	assert.Len(t, full_post.RelevantLikes, 1)
+	assert.Equal(t, "user1", full_post.RelevantLikes[0].Username)
+
+	err = env.userRepository.BlockUser(t.Context(), user0.UserID, user1.UserID)
+	require.NoError(t, err)
+
+	full_post, err = env.svc.GetPostById(t.Context(), user0.UserID, post.PostID)
+	require.NoError(t, err)
+
+	assert.Empty(t, full_post.RelevantLikes)
+}
+
+func TestGetPost_DoesNotReturnRelevantLikesForBlockedUser(t *testing.T) {
+	env := setupPostTest(t)
+
+	user0 := testutil.CreateTestUser(t, env.userRepository, "user0")
+	user1 := testutil.CreateTestUser(t, env.userRepository, "user1")
+
+	post, err := env.svc.NewPost(t.Context(), user0, "test post", nil, nil, nil)
+	require.NoError(t, err)
+
+	env.svc.AddLikeToPost(t.Context(), user1, post.PostID)
+
+	full_post, err := env.svc.GetPostById(t.Context(), user0.UserID, post.PostID)
+	require.NoError(t, err)
+
+	assert.NotEmpty(t, full_post.RelevantLikes)
+	assert.Len(t, full_post.RelevantLikes, 1)
+	assert.Equal(t, "user1", full_post.RelevantLikes[0].Username)
+
+	err = env.userRepository.BlockUser(t.Context(), user1.UserID, user0.UserID)
+	require.NoError(t, err)
+
+	full_post, err = env.svc.GetPostById(t.Context(), user0.UserID, post.PostID)
+	require.NoError(t, err)
+
+	assert.Empty(t, full_post.RelevantLikes)
+}
+
+func TestGetPost_DoesNotReturnRelevantLikesCurrentUser(t *testing.T) {
+	env := setupPostTest(t)
+
+	user0 := testutil.CreateTestUser(t, env.userRepository, "user0")
+
+	post, err := env.svc.NewPost(t.Context(), user0, "test post", nil, nil, nil)
+	require.NoError(t, err)
+
+	env.svc.AddLikeToPost(t.Context(), user0, post.PostID)
+
+	full_post, err := env.svc.GetPostById(t.Context(), user0.UserID, post.PostID)
+	require.NoError(t, err)
+	assert.Empty(t, full_post.RelevantLikes)
+}

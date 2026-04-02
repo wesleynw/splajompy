@@ -158,11 +158,7 @@ struct ProfileEditorView: View {
 }
 
 #Preview {
-  @Previewable @State var isPresenting: Bool = true
   let viewModel = ProfileView.ViewModel(userId: 0, postManager: PostStore())
 
-  Color.clear
-    .sheet(isPresented: $isPresenting) {
-      ProfileEditorView(viewModel: viewModel)
-    }
+  ProfileEditorView(viewModel: viewModel)
 }
