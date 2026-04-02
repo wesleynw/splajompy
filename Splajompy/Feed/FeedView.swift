@@ -13,8 +13,21 @@ struct FeedView: View {
 
   init(postManager: PostStore) {
     self.postManager = postManager
+
+    let savedFeedType: FeedType
+    if let raw = UserDefaults.standard.string(forKey: "selectedFeedType"),
+      let feedType = FeedType(rawValue: raw)
+    {
+      savedFeedType = feedType
+    } else {
+      savedFeedType = .all
+    }
+
     _viewModel = State(
-      wrappedValue: FeedViewModel(feedType: .all, postManager: postManager)
+      wrappedValue: FeedViewModel(
+        feedType: savedFeedType,
+        postManager: postManager
+      )
     )
   }
 
