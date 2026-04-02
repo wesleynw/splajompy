@@ -107,7 +107,7 @@ api_spec = cast(
                     ),
                     secret_env("OTEL_RESOURCE_ATTRIBUTES", "apiOtelResourceAttributes"),
                     secret_env("RESEND_API_KEY", "apiResendApiKey"),
-                    {"environment": config.get("environment")},
+                    {"key": "ENVIRONMENT", "value": config.get("environment")},
                 ],
                 "github": {
                     "branch": "main",
