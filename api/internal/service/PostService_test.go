@@ -36,6 +36,7 @@ func (f *fakeBucketRepository) PublishStagedImages(_ context.Context, _ int, _ s
 
 type postServiceTestEnv struct {
 	svc            *service.PostService
+	commentSvc     *service.CommentService
 	userRepository repositories.UserRepository
 }
 
@@ -47,14 +48,17 @@ func setupPostTest(t *testing.T) postServiceTestEnv {
 	userRepository := repositories.NewDBUserRepository(testDb.Queries)
 	likeRepository := repositories.NewDBLikeRepository(testDb.Queries)
 	notificationRepository := repositories.NewDBNotificationRepository(testDb.Queries)
+	commentRepository := repositories.NewDBCommentRepository(testDb.Queries)
 	bucketRepository := &fakeBucketRepository{}
 
 	svc := service.NewPostService(postRepository, userRepository, likeRepository, notificationRepository, bucketRepository, nil)
+	commentSvc := service.NewCommentService(commentRepository, postRepository, notificationRepository, userRepository, likeRepository, bucketRepository)
 
 	_ = os.Setenv("ENVIRONMENT", "test")
 
 	return postServiceTestEnv{
 		svc:            svc,
+		commentSvc:     commentSvc,
 		userRepository: userRepository,
 	}
 }
@@ -298,6 +302,26 @@ func TestGetPost_DoesNotReturnRelevantLikesCurrentUser(t *testing.T) {
 	require.NoError(t, err)
 
 	err = env.svc.AddLikeToPost(t.Context(), user0, post.PostID)
+	require.NoError(t, err)
+
+	full_post, err := env.svc.GetPostById(t.Context(), user0.UserID, post.PostID)
+	require.NoError(t, err)
+	assert.Empty(t, full_post.RelevantLikes)
+}
+
+func TestGetPost_RelevantLikesDoesNotCountCommentLikes(t *testing.T) {
+	env := setupPostTest(t)
+
+	user0 := testutil.CreateTestUser(t, env.userRepository, "user0")
+	user1 := testutil.CreateTestUser(t, env.userRepository, "user1")
+
+	post, err := env.svc.NewPost(t.Context(), user0, "test post", nil, nil, nil)
+	require.NoError(t, err)
+
+	comment, err := env.commentSvc.AddCommentToPost(t.Context(), user0, post.PostID, "test comment", nil)
+	require.NoError(t, err)
+
+	err = env.commentSvc.AddLikeToCommentById(t.Context(), user1, post.PostID, comment.CommentID)
 	require.NoError(t, err)
 
 	full_post, err := env.svc.GetPostById(t.Context(), user0.UserID, post.PostID)
