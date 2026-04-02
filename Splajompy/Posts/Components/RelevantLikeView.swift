@@ -17,7 +17,7 @@ struct RelevantLikeView: View {
         .font(.footnote)
         .foregroundStyle(.secondary)
 
-      ForEach(Array(relevantLikes.enumerated()), id: \.element.userId) {
+      ForEach(Array(relevantLikes.prefix(2).enumerated()), id: \.element.userId) {
         index,
         like in
         HStack(spacing: 0) {
@@ -37,6 +37,12 @@ struct RelevantLikeView: View {
 
           if index < relevantLikes.count - 1 {
             Text(",")
+              .font(.footnote)
+              .foregroundStyle(.secondary)
+          }
+
+          if relevantLikes.count > 2 {
+            Text("and others")
               .font(.footnote)
               .foregroundStyle(.secondary)
           }
