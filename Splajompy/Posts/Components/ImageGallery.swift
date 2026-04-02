@@ -6,6 +6,7 @@ struct ImageGallery: View {
 
   @State private var selectedImageIndex: Int? = nil
   @Environment(\.colorScheme) var colorScheme
+  @Environment(\.displayScale) private var displayScale
   @Namespace var animation
 
   var body: some View {
@@ -212,7 +213,7 @@ struct ImageGallery: View {
                 #endif
             }
           }
-          .processors([.resize(width: width)])
+          .processors([.resize(width: width * displayScale)])
           .aspectRatio(contentMode: .fill)
           .frame(width: width, height: height)
           .clipShape(
@@ -264,7 +265,7 @@ struct ImageGallery: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
           }
-          .processors([.resize(width: geometry.size.width)])
+          .processors([.resize(width: geometry.size.width * displayScale)])
           .aspectRatio(contentMode: .fill)
           .frame(width: geometry.size.width, height: geometry.size.height)
           .clipShape(RoundedRectangle(cornerRadius: 8))
