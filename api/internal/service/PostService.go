@@ -140,7 +140,7 @@ func (s *PostService) GetPostById(ctx context.Context, userId int, postId int) (
 	}
 
 	commentCount, _ := s.postRepository.GetCommentCountForPost(ctx, post.PostID)
-	relevantLikes, _ := s.getRelevantLikes(ctx, userId, postId)
+	relevantLikes, hasOtherLikes, _ := s.getRelevantLikes(ctx, userId, postId)
 
 	var pollDetails *models.DetailedPoll
 	if post.Attributes != nil {
@@ -169,7 +169,7 @@ func (s *PostService) GetPostById(ctx context.Context, userId int, postId int) (
 		Images:        detailedImages,
 		CommentCount:  commentCount,
 		RelevantLikes: relevantLikes,
-		HasOtherLikes: len(relevantLikes) > 2,
+		HasOtherLikes: hasOtherLikes,
 		Poll:          pollDetails,
 		IsPinned:      isPinned,
 	}, nil
@@ -263,18 +263,20 @@ func (s *PostService) DeletePost(ctx context.Context, currentUser models.PublicU
 	return s.postRepository.DeletePost(ctx, postId)
 }
 
-// getRelevantLikes deterministically returns a short list of other users who have liked a given post
-func (s *PostService) getRelevantLikes(ctx context.Context, userId int, postId int) ([]models.RelevantLike, error) {
+// getRelevantLikes deterministically returns a short list of other users who have liked a given post,
+// along with a bool indicating whether there are more likers beyond the returned slice.
+func (s *PostService) getRelevantLikes(ctx context.Context, userId int, postId int) ([]models.RelevantLike, bool, error) {
 	likes, err := s.likeRepository.GetOtherPostLikes(ctx, postId, userId)
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
 
 	sort.SliceStable(likes, func(i, j int) bool {
 		return seededRandom(postId+likes[i].UserID) < seededRandom(postId+likes[j].UserID)
 	})
 
-	count := min(len(likes), 3)
+	hasOtherLikes := len(likes) > 2
+	count := min(len(likes), 2)
 
 	mappedLikes := make([]models.RelevantLike, count)
 	for i, like := range likes[:count] {
@@ -285,7 +287,7 @@ func (s *PostService) getRelevantLikes(ctx context.Context, userId int, postId i
 		}
 	}
 
-	return mappedLikes, nil
+	return mappedLikes, hasOtherLikes, nil
 }
 
 func (s *PostService) ReportPost(ctx context.Context, currentUser *models.PublicUser, postId int) error {
