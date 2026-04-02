@@ -16,17 +16,11 @@ struct SplajompyApp: App {
   @State private var authManager = AuthManager.shared
   @State private var postManager = PostStore()
   @AppStorage("appearance_mode") var appearanceMode: String = "Automatic"
-  #if os(iOS)
-    @State private var isSeized: Bool = false
-  #endif
 
   init() {
     initializeOtel()
     initializePostHog()
     initializeImageCache()
-    #if os(iOS)
-      _isSeized = State(initialValue: PostHogSDK.shared.isFeatureEnabled("app-seized"))
-    #endif
   }
 
   var body: some Scene {
@@ -44,11 +38,6 @@ struct SplajompyApp: App {
       }
       .environment(authManager)
       .preferredColorScheme(colorScheme)
-      #if os(iOS)
-        .fullScreenCover(isPresented: $isSeized) {
-          SeizedScreenView()
-        }
-      #endif
     }
     #if os(macOS)
       .defaultSize(width: 1250, height: 800)
