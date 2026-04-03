@@ -143,6 +143,7 @@ struct DetailedPost: Decodable, Equatable, Identifiable {
   var commentCount: Int
   var images: [ImageDTO]?
   var relevantLikes: [RelevantLike]
+  var hasOtherLikes: Bool
   var poll: Poll?
   var isPinned: Bool
 

@@ -2,10 +2,13 @@ import SwiftUI
 
 struct RelevantLikeView: View {
   let relevantLikes: [RelevantLike]
+  let hasOtherLikes: Bool
 
   var body: some View {
-    if relevantLikes.isEmpty {
+    if relevantLikes.isEmpty && !hasOtherLikes {
       EmptyView()
+    } else if relevantLikes.isEmpty && hasOtherLikes {
+      othersOnlyView
     } else {
       minimalLikesContainer
     }
@@ -35,19 +38,28 @@ struct RelevantLikeView: View {
           }
           .buttonStyle(.plain)
 
-          if index < relevantLikes.count - 1 {
+          if index < relevantLikes.count - 1 || hasOtherLikes {
             Text(",")
-              .font(.footnote)
-              .foregroundStyle(.secondary)
-          }
-
-          if relevantLikes.count > 2 {
-            Text("and others")
               .font(.footnote)
               .foregroundStyle(.secondary)
           }
         }
       }
+
+      if hasOtherLikes {
+        Text("and others")
+          .font(.footnote)
+          .foregroundStyle(.secondary)
+      }
+    }
+    .transition(.opacity)
+  }
+
+  private var othersOnlyView: some View {
+    HStack(spacing: 4) {
+      Text("Liked by others")
+        .font(.footnote)
+        .foregroundStyle(.secondary)
     }
     .transition(.opacity)
   }
@@ -59,5 +71,6 @@ struct RelevantLikeView: View {
       RelevantLike(username: "user1", userId: 1),
       RelevantLike(username: "user2", userId: 2),
     ],
+    hasOtherLikes: true
   )
 }

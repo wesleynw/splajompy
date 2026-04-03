@@ -1,3 +1,4 @@
+import RegexBuilder
 import SwiftUI
 
 #if os(iOS)
@@ -7,7 +8,31 @@ import SwiftUI
 #endif
 
 struct MentionUtilities {
-  static let mentionPattern = "@([a-zA-Z0-9_.]+)"
+  nonisolated(unsafe) static let usernamePattern: Regex<Substring> = Regex {
+    One(.word)
+    ZeroOrMore {
+      ChoiceOf {
+        One(.word)
+        "."
+        "_"
+      }
+    }
+    One(.word)
+  }
+
+  nonisolated(unsafe) static let mentionPattern: Regex<(Substring, Substring)> =
+    Regex {
+      "@"
+      Capture {
+        usernamePattern
+      }
+    }
+
+  nonisolated(unsafe) static let usernameRegex: Regex<Substring> = Regex {
+    Anchor.startOfLine
+    usernamePattern
+    Anchor.endOfLine
+  }
 
   struct Mention {
     let username: String
@@ -61,21 +86,15 @@ struct MentionUtilities {
   }
 
   static func extractMentions(from text: String) -> [Mention] {
-    guard let regex = try? NSRegularExpression(pattern: mentionPattern) else {
-      return []
-    }
+    text.matches(of: mentionPattern).compactMap { match in
+      let username = String(match.output.1)
 
-    let nsString = text as NSString
-    let matches = regex.matches(
-      in: text,
-      range: NSRange(location: 0, length: nsString.length)
-    )
+      let fullRange = NSRange(match.range, in: text)
 
-    return matches.compactMap { match in
-      guard match.numberOfRanges > 1 else { return nil }
-      let usernameRange = match.range(at: 1)
-      let username = nsString.substring(with: usernameRange)
-      return Mention(username: username, range: match.range)
+      return Mention(
+        username: username,
+        range: fullRange
+      )
     }
   }
 
@@ -89,37 +108,22 @@ struct MentionUtilities {
     }
   }
 
-  /// Returns the in-progress mention query (without `@`) if the cursor is inside
-  /// an active `@word` being typed, or `nil` if the cursor is not in a mention.
   static func currentMention(in text: String, at cursorPosition: Int) -> String? {
     guard cursorPosition > 0, cursorPosition <= text.count else { return nil }
 
-    let cursorIndex =
-      text.index(
-        text.startIndex,
-        offsetBy: cursorPosition,
-        limitedBy: text.endIndex
-      ) ?? text.endIndex
+    for match in text.matches(of: mentionPattern) {
+      let range = NSRange(match.range, in: text)
+      if cursorPosition > range.location
+        && cursorPosition <= range.location + range.length
+      {
+        let username = String(match.output.1)
 
-    if cursorIndex > text.startIndex {
-      let beforeCursor = text.index(before: cursorIndex)
-      if text[beforeCursor] == " " || text[beforeCursor] == "\n" { return nil }
+        guard !username.isEmpty, username.count <= 25 else { return nil }
+        return username
+      }
     }
 
-    let wordStartIndex =
-      text[..<cursorIndex].lastIndex(where: { $0.isWhitespace })
-      .map { text.index(after: $0) } ?? text.startIndex
-
-    let wordEndIndex =
-      text[cursorIndex...].firstIndex(where: { $0.isWhitespace })
-      ?? text.endIndex
-
-    let currentWord = String(text[wordStartIndex..<wordEndIndex])
-
-    guard currentWord.hasPrefix("@"), currentWord.count <= 25 else {
-      return nil
-    }
-    return String(currentWord.dropFirst())
+    return nil
   }
 }
 

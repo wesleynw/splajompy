@@ -37,13 +37,20 @@ func NewAuthService(userRepository repositories.UserRepository, postRepository r
 }
 
 var (
+	usernamePattern = `[a-zA-Z0-9](?:[a-zA-Z0-9._]*[a-zA-Z0-9])?`
+	MentionRegex    = regexp.MustCompile(`@(` + usernamePattern + `)`)
+	usernameRegex   = regexp.MustCompile(`^` + usernamePattern + `$`)
+	emailRegex      = regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
+)
+
+var (
 	ErrUserNotFound          = errors.New("user not found")
 	ErrInvalidPassword       = errors.New("incorrect password")
 	ErrGeneral               = errors.New("general failure")
 	ErrUsernameTaken         = errors.New("this username is in use")
 	ErrEmailTaken            = errors.New("this email is in use")
-	ErrUsernameInvalidFormat = errors.New("username can only contain letters, numbers, and periods")
-	ErrUsernameTooShort      = errors.New("username must be at least 1 character")
+	ErrUsernameInvalidFormat = errors.New("username must start and end with a letter or number, and can only contain letters, numbers, periods, and underscores")
+	ErrUsernameTooShort      = errors.New("username must be at least 2 character")
 	ErrUsernameTooLong       = errors.New("username must be 25 characters or less")
 	ErrPasswordTooShort      = errors.New("password must be at least 8 characters")
 	ErrInvalidEmail          = errors.New("please enter a valid email address")
@@ -110,7 +117,7 @@ func (s *AuthService) ValidateRegistrationData(email, username, password string)
 		return errors.New("email cannot be empty")
 	}
 
-	if len(username) < 1 {
+	if len(username) < 2 {
 		return ErrUsernameTooShort
 	}
 
@@ -118,8 +125,7 @@ func (s *AuthService) ValidateRegistrationData(email, username, password string)
 		return ErrUsernameTooLong
 	}
 
-	alphanumericRegex := regexp.MustCompile(`^[a-zA-Z0-9.]+$`)
-	if !alphanumericRegex.MatchString(username) {
+	if !usernameRegex.MatchString(username) {
 		return ErrUsernameInvalidFormat
 	}
 
@@ -131,7 +137,6 @@ func (s *AuthService) ValidateRegistrationData(email, username, password string)
 		return ErrPasswordTooShort
 	}
 
-	emailRegex := regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
 	if !emailRegex.MatchString(email) {
 		return ErrInvalidEmail
 	}
