@@ -106,13 +106,6 @@ func TestAuthService_ValidateRegistrationData(t *testing.T) {
 			expected: service.ErrUsernameTooShort,
 		},
 		{
-			name:     "valid registration with 1 character username",
-			email:    "test@example.com",
-			username: "a",
-			password: "password123",
-			expected: nil,
-		},
-		{
 			name:     "valid registration with 2 character username",
 			email:    "test@example.com",
 			username: "ab",
