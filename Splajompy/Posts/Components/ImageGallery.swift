@@ -182,10 +182,10 @@ struct ImageGallery: View {
     index: Int,
     width: CGFloat,
     height: CGFloat,
-    topLeading: CGFloat = 6,
-    bottomLeading: CGFloat = 6,
-    bottomTrailing: CGFloat = 6,
-    topTrailing: CGFloat = 6
+    topLeading: CGFloat = 14,
+    bottomLeading: CGFloat = 14,
+    bottomTrailing: CGFloat = 14,
+    topTrailing: CGFloat = 14
   ) -> some View {
     Group {
       if index < images.count, let url = URL(string: images[index].imageBlobUrl) {

@@ -30,12 +30,13 @@ struct StorageManager: View {
   }
 
   private func updateCacheSize() {
-    let cache = try? DataCache(name: "media-cache")
-    if let cache = cache {
-      self.cacheSize = ByteCountFormatter.string(
-        fromByteCount: Int64(cache.totalSize),
-        countStyle: .file
-      )
+    guard let dataCache = ImagePipeline.shared.configuration.dataCache as? DataCache else { return }
+    Task.detached {
+      dataCache.flush()
+      let size = dataCache.totalSize
+      await MainActor.run {
+        self.cacheSize = ByteCountFormatter.string(fromByteCount: Int64(size), countStyle: .file)
+      }
     }
   }
 }

@@ -237,6 +237,47 @@ func TestGetPosts_ProfilePinnedPostDoesNotReduceSubsequentPageSize(t *testing.T)
 	}
 }
 
+func TestGetPost_RelevantLikes(t *testing.T) {
+	env := setupPostTest(t)
+
+	user0 := testutil.CreateTestUser(t, env.userRepository, "user0")
+
+	post, err := env.svc.NewPost(t.Context(), user0, "test post", nil, nil, nil)
+	require.NoError(t, err)
+
+	full_post, err := env.svc.GetPostById(t.Context(), user0.UserID, post.PostID)
+	require.NoError(t, err)
+	assert.Empty(t, full_post.RelevantLikes)
+	assert.False(t, full_post.HasOtherLikes)
+
+	user1 := testutil.CreateTestUser(t, env.userRepository, "user1")
+	err = env.svc.AddLikeToPost(t.Context(), user1, post.PostID)
+	require.NoError(t, err)
+
+	full_post, err = env.svc.GetPostById(t.Context(), user0.UserID, post.PostID)
+	require.NoError(t, err)
+	assert.Len(t, full_post.RelevantLikes, 1)
+	assert.False(t, full_post.HasOtherLikes)
+
+	user2 := testutil.CreateTestUser(t, env.userRepository, "user2")
+	err = env.svc.AddLikeToPost(t.Context(), user2, post.PostID)
+	require.NoError(t, err)
+
+	full_post, err = env.svc.GetPostById(t.Context(), user0.UserID, post.PostID)
+	require.NoError(t, err)
+	assert.Len(t, full_post.RelevantLikes, 2)
+	assert.False(t, full_post.HasOtherLikes)
+
+	user3 := testutil.CreateTestUser(t, env.userRepository, "user3")
+	err = env.svc.AddLikeToPost(t.Context(), user3, post.PostID)
+	require.NoError(t, err)
+
+	full_post, err = env.svc.GetPostById(t.Context(), user0.UserID, post.PostID)
+	require.NoError(t, err)
+	assert.Len(t, full_post.RelevantLikes, 2)
+	assert.True(t, full_post.HasOtherLikes)
+}
+
 func TestGetPost_DoesNotReturnRelevantLikesForBlockingUser(t *testing.T) {
 	env := setupPostTest(t)
 

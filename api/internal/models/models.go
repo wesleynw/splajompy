@@ -49,9 +49,8 @@ type APIResponse struct {
 }
 
 type RelevantLike struct {
-	Username   string `json:"username"`
-	UserID     int    `json:"userId"`
-	IsVerified bool   `json:"isVerified"`
+	Username string `json:"username"`
+	UserID   int    `json:"userId"`
 }
 
 type Notification struct {
@@ -85,10 +84,9 @@ type DetailedPost struct {
 	Images        []DetailedImage `json:"images"`
 	CommentCount  int             `json:"commentCount"`
 	RelevantLikes []RelevantLike  `json:"relevantLikes"`
-	// Deprecated: not using this anymore since v1.8.1
-	HasOtherLikes bool          `json:"hasOtherLikes"`
-	Poll          *DetailedPoll `json:"poll"`
-	IsPinned      bool          `json:"isPinned"`
+	HasOtherLikes bool            `json:"hasOtherLikes"`
+	Poll          *DetailedPoll   `json:"poll"`
+	IsPinned      bool            `json:"isPinned"`
 }
 
 type DetailedImage struct {
