@@ -74,6 +74,11 @@ struct DetailedUser: Decodable, Identifiable {
   var id: Int { userId }
 }
 
+struct PaginatedUserList: Decodable, Sendable {
+  let users: [DetailedUser]
+  let nextCursor: Date?
+}
+
 struct ImageDTO: Decodable {
   let imageId: Int
   let height: Int

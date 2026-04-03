@@ -385,7 +385,7 @@ func (q *Queries) GetVerificationCode(ctx context.Context, arg GetVerificationCo
 }
 
 const listUserRelationships = `-- name: ListUserRelationships :many
-SELECT users.user_id, users.email, users.password, users.username, users.created_at, users.name, users.pinned_post_id, users.user_display_properties, users.referral_code
+SELECT users.user_id, users.email, users.password, users.username, users.created_at, users.name, users.pinned_post_id, users.user_display_properties, users.referral_code, user_relationship.created_at AS relationship_created_at
 FROM users
 JOIN user_relationship ON user_relationship.user_id = $1::int
 WHERE users.user_id = user_relationship.target_user_id
@@ -400,15 +400,28 @@ type ListUserRelationshipsParams struct {
 	Limit  int                `json:"limit"`
 }
 
-func (q *Queries) ListUserRelationships(ctx context.Context, arg ListUserRelationshipsParams) ([]User, error) {
+type ListUserRelationshipsRow struct {
+	UserID                int                       `json:"userId"`
+	Email                 string                    `json:"email"`
+	Password              string                    `json:"password"`
+	Username              string                    `json:"username"`
+	CreatedAt             pgtype.Timestamp          `json:"createdAt"`
+	Name                  pgtype.Text               `json:"name"`
+	PinnedPostID          *int                      `json:"pinnedPostId"`
+	UserDisplayProperties *db.UserDisplayProperties `json:"userDisplayProperties"`
+	ReferralCode          string                    `json:"referralCode"`
+	RelationshipCreatedAt pgtype.Timestamp          `json:"relationshipCreatedAt"`
+}
+
+func (q *Queries) ListUserRelationships(ctx context.Context, arg ListUserRelationshipsParams) ([]ListUserRelationshipsRow, error) {
 	rows, err := q.db.Query(ctx, listUserRelationships, arg.UserID, arg.Before, arg.Limit)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []User
+	var items []ListUserRelationshipsRow
 	for rows.Next() {
-		var i User
+		var i ListUserRelationshipsRow
 		if err := rows.Scan(
 			&i.UserID,
 			&i.Email,
@@ -419,6 +432,7 @@ func (q *Queries) ListUserRelationships(ctx context.Context, arg ListUserRelatio
 			&i.PinnedPostID,
 			&i.UserDisplayProperties,
 			&i.ReferralCode,
+			&i.RelationshipCreatedAt,
 		); err != nil {
 			return nil, err
 		}

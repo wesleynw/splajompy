@@ -281,9 +281,8 @@ func (s *PostService) getRelevantLikes(ctx context.Context, userId int, postId i
 	mappedLikes := make([]models.RelevantLike, count)
 	for i, like := range likes[:count] {
 		mappedLikes[i] = models.RelevantLike{
-			Username:   like.Username,
-			UserID:     like.UserID,
-			IsVerified: false,
+			Username: like.Username,
+			UserID:   like.UserID,
 		}
 	}
 

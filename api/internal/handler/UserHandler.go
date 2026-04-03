@@ -210,7 +210,7 @@ func (h *Handler) GetFollowersByUserId_old(w http.ResponseWriter, r *http.Reques
 	utilities.HandleSuccess(w, followers)
 }
 
-// GetFollowingByUserId returns a paginated list of followers of the current user
+// GetFollowingByUserId returns a paginated list of users the given user follows.
 func (h *Handler) GetFollowingByUserId(w http.ResponseWriter, r *http.Request) {
 	currentUser := h.getAuthenticatedUser(r)
 
@@ -226,13 +226,38 @@ func (h *Handler) GetFollowingByUserId(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	users, err := h.userService.GetFollowingByUserId(r.Context(), *currentUser, userId, limit, before)
+	result, err := h.userService.GetFollowingByUserId(r.Context(), *currentUser, userId, limit, before)
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
 		return
 	}
 
-	utilities.HandleSuccess(w, users)
+	utilities.HandleSuccess(w, result.Users)
+}
+
+// GetFollowingByUserIdV3 returns a paginated list of users the given user follows, with a cursor for the next page.
+func (h *Handler) GetFollowingByUserIdV3(w http.ResponseWriter, r *http.Request) {
+	currentUser := h.getAuthenticatedUser(r)
+
+	userId, err := h.GetIntPathParam(r, "id")
+	if err != nil {
+		utilities.HandleError(w, http.StatusBadRequest, "Missing user ID parameter")
+		return
+	}
+
+	limit, before, err := h.parseTimeBasedPagination(r)
+	if err != nil {
+		utilities.HandleError(w, http.StatusBadRequest, "Unable to parse pagination parameters ('limit' and 'before'")
+		return
+	}
+
+	result, err := h.userService.GetFollowingByUserId(r.Context(), *currentUser, userId, limit, before)
+	if err != nil {
+		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
+		return
+	}
+
+	utilities.HandleSuccess(w, result)
 }
 
 func (h *Handler) GetFollowingByUserId_old(w http.ResponseWriter, r *http.Request) {
@@ -291,13 +316,37 @@ func (h Handler) GetMutualsByUserId(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	users, err := h.userService.GetMutualsByUserId(r.Context(), *user, targetUserId, limit, before)
+	result, err := h.userService.GetMutualsByUserId(r.Context(), *user, targetUserId, limit, before)
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
 		return
 	}
 
-	utilities.HandleSuccess(w, users)
+	utilities.HandleSuccess(w, result.Users)
+}
+
+func (h Handler) GetMutualsByUserIdV3(w http.ResponseWriter, r *http.Request) {
+	user := h.getAuthenticatedUser(r)
+
+	targetUserId, err := h.GetIntPathParam(r, "id")
+	if err != nil {
+		utilities.HandleError(w, http.StatusBadRequest, "Missing user ID parameter")
+		return
+	}
+
+	limit, before, err := h.parseTimeBasedPagination(r)
+	if err != nil {
+		utilities.HandleError(w, http.StatusBadRequest, "Unable to parse pagination parameters ('limit' and 'before'")
+		return
+	}
+
+	result, err := h.userService.GetMutualsByUserId(r.Context(), *user, targetUserId, limit, before)
+	if err != nil {
+		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
+		return
+	}
+
+	utilities.HandleSuccess(w, result)
 }
 
 type RequestFeaturePayload struct {
@@ -372,11 +421,29 @@ func (h Handler) ListUserCloseFriends(w http.ResponseWriter, r *http.Request) {
 
 	user := h.getAuthenticatedUser(r)
 
-	users, err := h.userService.GetCloseFriendsByUserId(r.Context(), *user, limit, before)
+	result, err := h.userService.GetCloseFriendsByUserId(r.Context(), *user, limit, before)
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
 		return
 	}
 
-	utilities.HandleSuccess(w, users)
+	utilities.HandleSuccess(w, result.Users)
+}
+
+func (h Handler) ListUserCloseFriendsV2(w http.ResponseWriter, r *http.Request) {
+	limit, before, err := h.parseTimeBasedPagination(r)
+	if err != nil {
+		utilities.HandleError(w, http.StatusBadRequest, "Unable to parse pagination parameters ('limit' and 'before'")
+		return
+	}
+
+	user := h.getAuthenticatedUser(r)
+
+	result, err := h.userService.GetCloseFriendsByUserId(r.Context(), *user, limit, before)
+	if err != nil {
+		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
+		return
+	}
+
+	utilities.HandleSuccess(w, result)
 }

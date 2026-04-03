@@ -57,37 +57,30 @@ class UserListViewModel {
       }
     }
 
-    let result: AsyncResult<[DetailedUser]>
+    let result: AsyncResult<PaginatedUserList>
     switch userListVariant {
     case .following:
       result = await profileService.getFollowing(
-        userId: userId,
-        limit: fetchLimit,
-        before: beforeCursor
-      )
+        userId: userId, limit: fetchLimit, before: beforeCursor)
     case .mutuals:
       result = await profileService.getMutuals(
-        userId: userId,
-        limit: fetchLimit,
-        before: beforeCursor
-      )
+        userId: userId, limit: fetchLimit, before: beforeCursor)
     case .friends:
       result = await profileService.getFriends(
-        userId: userId,
-        limit: fetchLimit,
-        before: beforeCursor
-      )
+        userId: userId, limit: fetchLimit, before: beforeCursor)
     }
 
     switch result {
-    case .success(let users):
+    case .success(let page):
+      beforeCursor = page.nextCursor
+      hasMoreToFetch = page.users.count == fetchLimit
+
       if !reset, case .loaded(let existingUsers) = state {
-        state = .loaded(existingUsers + users)
+        state = .loaded(existingUsers + page.users)
       } else {
-        state = .loaded(users)
+        state = .loaded(page.users)
       }
-      beforeCursor = users.last?.createdAt
-      hasMoreToFetch = users.count == fetchLimit
+
     case .error(let error):
       if case .idle = state {
         state = .failed(error)

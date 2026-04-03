@@ -33,7 +33,7 @@ type Querier interface {
 	GetCommentsByPostId(ctx context.Context, arg GetCommentsByPostIdParams) ([]GetCommentsByPostIdRow, error)
 	GetFollowersByUserId(ctx context.Context, arg GetFollowersByUserIdParams) ([]GetFollowersByUserIdRow, error)
 	GetFollowingByUserId(ctx context.Context, arg GetFollowingByUserIdParams) ([]GetFollowingByUserIdRow, error)
-	GetFollowingUserIds(ctx context.Context, arg GetFollowingUserIdsParams) ([]int, error)
+	GetFollowingUserIds(ctx context.Context, arg GetFollowingUserIdsParams) ([]GetFollowingUserIdsRow, error)
 	GetImagesByCommentId(ctx context.Context, commentID int) ([]Image, error)
 	GetImagesByPostId(ctx context.Context, postID int) ([]Image, error)
 	GetIsEmailInUse(ctx context.Context, email string) (bool, error)
@@ -47,7 +47,7 @@ type Querier interface {
 	GetIsUsernameInUse(ctx context.Context, username string) (bool, error)
 	GetMutualConnectionsForUser(ctx context.Context, arg GetMutualConnectionsForUserParams) ([]string, error)
 	GetMutualsByUserId(ctx context.Context, arg GetMutualsByUserIdParams) ([]GetMutualsByUserIdRow, error)
-	GetMutualsByUserIdV2(ctx context.Context, arg GetMutualsByUserIdV2Params) ([]int, error)
+	GetMutualsByUserIdV2(ctx context.Context, arg GetMutualsByUserIdV2Params) ([]GetMutualsByUserIdV2Row, error)
 	GetNotificationById(ctx context.Context, notificationID int) (Notification, error)
 	GetNotificationsForUserId(ctx context.Context, arg GetNotificationsForUserIdParams) ([]Notification, error)
 	GetNotificationsForUserIdWithTimeOffset(ctx context.Context, arg GetNotificationsForUserIdWithTimeOffsetParams) ([]Notification, error)
@@ -82,7 +82,7 @@ type Querier interface {
 	InsertPost(ctx context.Context, arg InsertPostParams) (Post, error)
 	InsertPostImage(ctx context.Context, arg InsertPostImageParams) error
 	InsertVote(ctx context.Context, arg InsertVoteParams) error
-	ListUserRelationships(ctx context.Context, arg ListUserRelationshipsParams) ([]User, error)
+	ListUserRelationships(ctx context.Context, arg ListUserRelationshipsParams) ([]ListUserRelationshipsRow, error)
 	MarkAllNotificationsAsReadForUser(ctx context.Context, userID int) error
 	MarkNotificationAsReadById(ctx context.Context, notificationID int) error
 	MuteUser(ctx context.Context, arg MuteUserParams) error

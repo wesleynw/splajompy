@@ -125,7 +125,7 @@ func (q *Queries) GetFollowingByUserId(ctx context.Context, arg GetFollowingByUs
 }
 
 const getFollowingUserIds = `-- name: GetFollowingUserIds :many
-SELECT users.user_id
+SELECT users.user_id, follows.created_at
 FROM users
 INNER JOIN follows ON users.user_id = follows.following_id
 WHERE follows.follower_id = $1::int
@@ -140,19 +140,24 @@ type GetFollowingUserIdsParams struct {
 	Limit  int                `json:"limit"`
 }
 
-func (q *Queries) GetFollowingUserIds(ctx context.Context, arg GetFollowingUserIdsParams) ([]int, error) {
+type GetFollowingUserIdsRow struct {
+	UserID    int              `json:"userId"`
+	CreatedAt pgtype.Timestamp `json:"createdAt"`
+}
+
+func (q *Queries) GetFollowingUserIds(ctx context.Context, arg GetFollowingUserIdsParams) ([]GetFollowingUserIdsRow, error) {
 	rows, err := q.db.Query(ctx, getFollowingUserIds, arg.UserID, arg.Before, arg.Limit)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []int
+	var items []GetFollowingUserIdsRow
 	for rows.Next() {
-		var user_id int
-		if err := rows.Scan(&user_id); err != nil {
+		var i GetFollowingUserIdsRow
+		if err := rows.Scan(&i.UserID, &i.CreatedAt); err != nil {
 			return nil, err
 		}
-		items = append(items, user_id)
+		items = append(items, i)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
@@ -269,12 +274,12 @@ func (q *Queries) GetMutualsByUserId(ctx context.Context, arg GetMutualsByUserId
 }
 
 const getMutualsByUserIdV2 = `-- name: GetMutualsByUserIdV2 :many
-SELECT u.user_id
+SELECT u.user_id, f1.created_at
 FROM users u
 INNER JOIN follows f1 ON f1.following_id = u.user_id AND f1.follower_id = $1::int
 INNER JOIN follows f2 ON f2.following_id = u.user_id AND f2.follower_id = $2::int
-WHERE $3::timestamptz IS NULL OR u.created_at < $3
-ORDER BY u.created_at DESC
+WHERE $3::timestamptz IS NULL OR f1.created_at < $3
+ORDER BY f1.created_at DESC
 LIMIT $4::int
 `
 
@@ -285,7 +290,12 @@ type GetMutualsByUserIdV2Params struct {
 	Limit        int                `json:"limit"`
 }
 
-func (q *Queries) GetMutualsByUserIdV2(ctx context.Context, arg GetMutualsByUserIdV2Params) ([]int, error) {
+type GetMutualsByUserIdV2Row struct {
+	UserID    int              `json:"userId"`
+	CreatedAt pgtype.Timestamp `json:"createdAt"`
+}
+
+func (q *Queries) GetMutualsByUserIdV2(ctx context.Context, arg GetMutualsByUserIdV2Params) ([]GetMutualsByUserIdV2Row, error) {
 	rows, err := q.db.Query(ctx, getMutualsByUserIdV2,
 		arg.UserID,
 		arg.TargetUserID,
@@ -296,13 +306,13 @@ func (q *Queries) GetMutualsByUserIdV2(ctx context.Context, arg GetMutualsByUser
 		return nil, err
 	}
 	defer rows.Close()
-	var items []int
+	var items []GetMutualsByUserIdV2Row
 	for rows.Next() {
-		var user_id int
-		if err := rows.Scan(&user_id); err != nil {
+		var i GetMutualsByUserIdV2Row
+		if err := rows.Scan(&i.UserID, &i.CreatedAt); err != nil {
 			return nil, err
 		}
-		items = append(items, user_id)
+		items = append(items, i)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err

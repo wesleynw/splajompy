@@ -160,11 +160,8 @@ final class MockUserRepository: @unchecked Sendable {
 }
 
 struct MockProfileService: ProfileServiceProtocol {
-  // TODO
-  func getFriends(userId: Int, limit: Int, before: Date?) async -> AsyncResult<
-    [DetailedUser]
-  > {
-    return .success([])
+  func getFriends(userId: Int, limit: Int, before: Date?) async -> AsyncResult<PaginatedUserList> {
+    return .success(PaginatedUserList(users: [], nextCursor: nil))
   }
 
   private let store = MockUserRepository.shared
@@ -298,65 +295,17 @@ struct MockProfileService: ProfileServiceProtocol {
     return .success(paginatedUsers)
   }
 
-  func getFollowing(userId: Int, limit: Int, before: Date?) async
-    -> AsyncResult<
-      [DetailedUser]
-    >
+  func getFollowing(userId: Int, limit: Int, before: Date?) async -> AsyncResult<PaginatedUserList>
   {
     try? await Task.sleep(nanoseconds: 300_000_000)
-    let allUsers = Array(store.users.values)
-
-    let paginatedUsers = Array(allUsers).map { profile in
-      DetailedUser(
-        userId: profile.userId,
-        email: profile.email,
-        username: profile.username,
-        createdAt: profile.createdAt,
-        name: profile.name,
-        bio: profile.bio,
-        isFollower: profile.isFollower,
-        isFollowing: profile.isFollowing,
-        isBlocking: profile.isBlocking,
-        isMuting: profile.isMuting,
-        isFriend: profile.isFriend,
-        mutuals: profile.mutuals,
-        mutualCount: profile.mutuals.count,
-        isVerified: profile.isVerified,
-        displayProperties: profile.displayProperties
-      )
-    }
-    return .success(paginatedUsers)
+    let users = Array(store.users.values)
+    return .success(PaginatedUserList(users: users, nextCursor: nil))
   }
 
-  func getMutuals(userId: Int, limit: Int, before: Date?) async -> AsyncResult<
-    [DetailedUser]
-  > {
+  func getMutuals(userId: Int, limit: Int, before: Date?) async -> AsyncResult<PaginatedUserList> {
     try? await Task.sleep(nanoseconds: 300_000_000)
-    let mutualUsers = Array(store.users.values).filter {
-      $0.isFollower && $0.isFollowing
-    }
-
-    let paginatedUsers = Array(mutualUsers).map {
-      profile in
-      DetailedUser(
-        userId: profile.userId,
-        email: profile.email,
-        username: profile.username,
-        createdAt: profile.createdAt,
-        name: profile.name,
-        bio: profile.bio,
-        isFollower: profile.isFollower,
-        isFollowing: profile.isFollowing,
-        isBlocking: profile.isBlocking,
-        isMuting: profile.isMuting,
-        isFriend: profile.isFriend,
-        mutuals: profile.mutuals,
-        mutualCount: profile.mutuals.count,
-        isVerified: profile.isVerified,
-        displayProperties: profile.displayProperties
-      )
-    }
-    return .success(paginatedUsers)
+    let mutualUsers = Array(store.users.values).filter { $0.isFollower && $0.isFollowing }
+    return .success(PaginatedUserList(users: mutualUsers, nextCursor: nil))
   }
 
   func addFriend(userId: Int) async -> AsyncResult<EmptyResponse> {

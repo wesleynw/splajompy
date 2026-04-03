@@ -75,11 +75,11 @@ type UserRepository interface {
 	// Deprecated: use GetMutualUserIds instead
 	GetMutualsByUserId_old(ctx context.Context, currentUserId int, targetUserId int, limit int, offset int) ([]queries.GetMutualsByUserIdRow, error)
 
-	// GetFollowingByUserId returns a list of user ids for users who the given user follows
-	GetFollowingUserIds(ctx context.Context, userId int, limit int, before *time.Time) ([]int, error)
+	// GetFollowingByUserId returns a list of user ids for users who the given user follows, and the follow date of the last entry as a cursor.
+	GetFollowingUserIds(ctx context.Context, userId int, limit int, before *time.Time) ([]int, *time.Time, error)
 
-	// GetMutualUserIds returns a list of user ids who are 'mutuals' with the current user
-	GetMutualUserIds(ctx context.Context, userId int, targetUserId int, limit int, before *time.Time) ([]int, error)
+	// GetMutualUserIds returns a list of user ids who are 'mutuals' with the current user, and the follow date of the last entry as a cursor.
+	GetMutualUserIds(ctx context.Context, userId int, targetUserId int, limit int, before *time.Time) ([]int, *time.Time, error)
 
 	GetIsReferralCodeInUse(ctx context.Context, code string) (bool, error)
 
@@ -92,8 +92,8 @@ type UserRepository interface {
 	// GetCloseFriendsByUserId returns a list of user relationships, paginated by the timestamp they were created.
 	GetRelationshipByUserId(ctx context.Context, userId int, limit int, before *time.Time) ([]models.PublicUser, error)
 
-	// GetRelationshipUserIds returns a list of user ids for users on the close friends list.
-	GetRelationshipUserIds(ctx context.Context, userId int, limit int, before *time.Time) ([]int, error)
+	// GetRelationshipUserIds returns a list of user ids for users on the close friends list, and the relationship date of the last entry as a cursor.
+	GetRelationshipUserIds(ctx context.Context, userId int, limit int, before *time.Time) ([]int, *time.Time, error)
 
 	// IsUserFriend checks if the targetUserId is in the userId's friend list (user_relationship)
 	IsUserFriend(ctx context.Context, userId int, targetUserId int) (bool, error)
