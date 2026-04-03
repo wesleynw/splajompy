@@ -35,6 +35,7 @@ final class MockPostStore: @unchecked Sendable {
           RelevantLike(username: "sydknee", userId: 231),
           RelevantLike(username: "freakoftheweek", userId: 43),
         ],
+        hasOtherLikes: false,
         isPinned: false
       ),
 
@@ -62,6 +63,7 @@ final class MockPostStore: @unchecked Sendable {
           RelevantLike(username: "bessbb", userId: 139),
           RelevantLike(username: "freakoftheweek", userId: 43),
         ],
+        hasOtherLikes: false,
         isPinned: false
       ),
 
@@ -87,6 +89,7 @@ final class MockPostStore: @unchecked Sendable {
         relevantLikes: [
           RelevantLike(username: "freakoftheweek", userId: 43)
         ],
+        hasOtherLikes: false,
         poll: Poll(
           title: "Chickpeas",
           voteTotal: 24,
@@ -131,6 +134,7 @@ final class MockPostStore: @unchecked Sendable {
           RelevantLike(username: "milesperhour", userId: 151),
           RelevantLike(username: "dramajompxx", userId: 169),
         ],
+        hasOtherLikes: false,
         isPinned: false
       ),
 
@@ -158,6 +162,7 @@ final class MockPostStore: @unchecked Sendable {
           RelevantLike(username: "palomitas", userId: 48),
           RelevantLike(username: "irigoob", userId: 97),
         ],
+        hasOtherLikes: false,
         isPinned: false
       ),
 
@@ -183,6 +188,7 @@ final class MockPostStore: @unchecked Sendable {
         commentCount: 0,
         images: nil,
         relevantLikes: [],
+        hasOtherLikes: false,
         isPinned: false
       ),
 
@@ -218,6 +224,7 @@ final class MockPostStore: @unchecked Sendable {
         relevantLikes: [
           RelevantLike(username: "splazackly", userId: 103)
         ],
+        hasOtherLikes: false,
         isPinned: false
       ),
 
@@ -244,6 +251,7 @@ final class MockPostStore: @unchecked Sendable {
         relevantLikes: [
           RelevantLike(username: "elena", userId: 97)
         ],
+        hasOtherLikes: false,
         isPinned: false
       ),
 
@@ -268,6 +276,7 @@ final class MockPostStore: @unchecked Sendable {
         commentCount: 0,
         images: nil,
         relevantLikes: [],
+        hasOtherLikes: false,
         isPinned: false
       ),
 
@@ -292,6 +301,7 @@ final class MockPostStore: @unchecked Sendable {
         commentCount: 1,
         images: nil,
         relevantLikes: [],
+        hasOtherLikes: false,
         isPinned: false
       ),
     ]
