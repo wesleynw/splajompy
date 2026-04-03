@@ -192,7 +192,7 @@ DELETE FROM user_relationship
 WHERE user_id = $1 AND target_user_id = $2;
 
 -- name: ListUserRelationships :many
-SELECT users.*
+SELECT users.*, user_relationship.created_at AS relationship_created_at
 FROM users
 JOIN user_relationship ON user_relationship.user_id = @user_id::int
 WHERE users.user_id = user_relationship.target_user_id

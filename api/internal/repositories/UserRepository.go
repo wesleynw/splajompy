@@ -285,31 +285,63 @@ func (r DBUserRepository) GetMutualsByUserId_old(ctx context.Context, currentUse
 	})
 }
 
-func (r DBUserRepository) GetFollowingUserIds(ctx context.Context, userId int, limit int, before *time.Time) ([]int, error) {
+func (r DBUserRepository) GetFollowingUserIds(ctx context.Context, userId int, limit int, before *time.Time) ([]int, *time.Time, error) {
 	var beforeParam pgtype.Timestamptz
 	if before != nil {
 		beforeParam = pgtype.Timestamptz{Time: *before, Valid: true}
 	}
 
-	return r.querier.GetFollowingUserIds(ctx, queries.GetFollowingUserIdsParams{
+	rows, err := r.querier.GetFollowingUserIds(ctx, queries.GetFollowingUserIdsParams{
 		UserID: userId,
 		Before: beforeParam,
 		Limit:  limit,
 	})
+	if err != nil {
+		return nil, nil, err
+	}
+
+	userIds := make([]int, len(rows))
+	for i, row := range rows {
+		userIds[i] = row.UserID
+	}
+
+	var cursor *time.Time
+	if len(rows) > 0 {
+		t := rows[len(rows)-1].CreatedAt.Time
+		cursor = &t
+	}
+
+	return userIds, cursor, nil
 }
 
-func (r DBUserRepository) GetMutualUserIds(ctx context.Context, userId int, targetUserId int, limit int, before *time.Time) ([]int, error) {
+func (r DBUserRepository) GetMutualUserIds(ctx context.Context, userId int, targetUserId int, limit int, before *time.Time) ([]int, *time.Time, error) {
 	var beforeParam pgtype.Timestamptz
 	if before != nil {
 		beforeParam = pgtype.Timestamptz{Time: *before, Valid: true}
 	}
 
-	return r.querier.GetMutualsByUserIdV2(ctx, queries.GetMutualsByUserIdV2Params{
+	rows, err := r.querier.GetMutualsByUserIdV2(ctx, queries.GetMutualsByUserIdV2Params{
 		UserID:       userId,
 		TargetUserID: targetUserId,
 		Before:       beforeParam,
 		Limit:        limit,
 	})
+	if err != nil {
+		return nil, nil, err
+	}
+
+	userIds := make([]int, len(rows))
+	for i, row := range rows {
+		userIds[i] = row.UserID
+	}
+
+	var cursor *time.Time
+	if len(rows) > 0 {
+		t := rows[len(rows)-1].CreatedAt.Time
+		cursor = &t
+	}
+
+	return userIds, cursor, nil
 }
 
 func (r DBUserRepository) GetIsReferralCodeInUse(ctx context.Context, code string) (bool, error) {
@@ -346,34 +378,50 @@ func (r DBUserRepository) GetRelationshipByUserId(ctx context.Context, userId in
 	}
 
 	publicUsers := make([]models.PublicUser, len(users))
-	for i, user := range users {
-		publicUsers[i] = utilities.MapUserToPublicUser(user)
+	for i, row := range users {
+		publicUsers[i] = utilities.MapUserToPublicUser(queries.User{
+			UserID:                row.UserID,
+			Email:                 row.Email,
+			Password:              row.Password,
+			Username:              row.Username,
+			CreatedAt:             row.CreatedAt,
+			Name:                  row.Name,
+			PinnedPostID:          row.PinnedPostID,
+			UserDisplayProperties: row.UserDisplayProperties,
+			ReferralCode:          row.ReferralCode,
+		})
 	}
 
 	return publicUsers, nil
 }
 
-func (r DBUserRepository) GetRelationshipUserIds(ctx context.Context, userId int, limit int, before *time.Time) ([]int, error) {
+func (r DBUserRepository) GetRelationshipUserIds(ctx context.Context, userId int, limit int, before *time.Time) ([]int, *time.Time, error) {
 	var beforeParam pgtype.Timestamptz
 	if before != nil {
 		beforeParam = pgtype.Timestamptz{Time: *before, Valid: true}
 	}
 
-	users, err := r.querier.ListUserRelationships(ctx, queries.ListUserRelationshipsParams{
+	rows, err := r.querier.ListUserRelationships(ctx, queries.ListUserRelationshipsParams{
 		UserID: userId,
 		Limit:  limit,
 		Before: beforeParam,
 	})
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	userIds := make([]int, len(users))
-	for i, user := range users {
-		userIds[i] = user.UserID
+	userIds := make([]int, len(rows))
+	for i, row := range rows {
+		userIds[i] = row.UserID
 	}
 
-	return userIds, nil
+	var cursor *time.Time
+	if len(rows) > 0 {
+		t := rows[len(rows)-1].RelationshipCreatedAt.Time
+		cursor = &t
+	}
+
+	return userIds, cursor, nil
 }
 
 func (r DBUserRepository) IsUserFriend(ctx context.Context, userId int, targetUserId int) (bool, error) {

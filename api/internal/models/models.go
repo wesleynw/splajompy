@@ -161,6 +161,11 @@ type DetailedUser struct {
 	DisplayProperties PublicUserDisplayProperties `json:"displayProperties"`
 }
 
+type PaginatedUserList struct {
+	Users      []DetailedUser `json:"users"`
+	NextCursor *time.Time     `json:"nextCursor,omitempty"`
+}
+
 type ImageData struct {
 	S3Key  string `json:"s3Key"`
 	Width  int    `json:"width"`
