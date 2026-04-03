@@ -77,8 +77,8 @@ extension MentionTextEditor {
         ) ?? text.endIndex
 
       let wordStartIndex =
-        text[..<cursorIndex].lastIndex(where: { $0.isWhitespace })
-        .map { text.index(after: $0) } ?? text.startIndex
+        text[..<cursorIndex].lastIndex(where: { $0 == "@" })
+        ?? text.startIndex
 
       let wordEndIndex =
         text[cursorIndex...].firstIndex(where: { $0.isWhitespace })

@@ -307,21 +307,17 @@ class AuthManager: Sendable {
       return "Username cannot be empty"
     }
 
-    if username.count < 1 {
-      return "Username must be at least 1 character"
+    if username.count < 2 {
+      return "Username must be at least 2 character"
     }
 
     if username.count > 25 {
       return "Username must be 25 characters or less"
     }
 
-    let alphanumericRegex = "^[a-zA-Z0-9.]+$"
-    let alphanumericPred = NSPredicate(
-      format: "SELF MATCHES %@",
-      alphanumericRegex
-    )
-    if !alphanumericPred.evaluate(with: username) {
-      return "Username can only contain letters, numbers, and periods"
+    if username.wholeMatch(of: MentionUtilities.usernameRegex) == nil {
+      return
+        "Username must start and end with a letter or number, and can only contain letters, numbers, periods, and underscores"
     }
 
     return nil

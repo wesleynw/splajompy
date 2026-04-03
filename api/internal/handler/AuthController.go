@@ -72,7 +72,7 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 		case service.ErrUsernameInvalidFormat:
 			utilities.HandleError(w, http.StatusBadRequest, "Username must start and end with a letter or number, and can only contain letters, numbers, periods, and underscores")
 		case service.ErrUsernameTooShort:
-			utilities.HandleError(w, http.StatusBadRequest, "Username must be at least 1 character")
+			utilities.HandleError(w, http.StatusBadRequest, "Username must be at least 2 character")
 		case service.ErrPasswordTooShort:
 			utilities.HandleError(w, http.StatusBadRequest, "Password must be at least 8 characters")
 		case service.ErrInvalidEmail:

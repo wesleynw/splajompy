@@ -50,7 +50,7 @@ var (
 	ErrUsernameTaken         = errors.New("this username is in use")
 	ErrEmailTaken            = errors.New("this email is in use")
 	ErrUsernameInvalidFormat = errors.New("username must start and end with a letter or number, and can only contain letters, numbers, periods, and underscores")
-	ErrUsernameTooShort      = errors.New("username must be at least 1 character")
+	ErrUsernameTooShort      = errors.New("username must be at least 2 character")
 	ErrUsernameTooLong       = errors.New("username must be 25 characters or less")
 	ErrPasswordTooShort      = errors.New("password must be at least 8 characters")
 	ErrInvalidEmail          = errors.New("please enter a valid email address")
@@ -117,7 +117,7 @@ func (s *AuthService) ValidateRegistrationData(email, username, password string)
 		return errors.New("email cannot be empty")
 	}
 
-	if len(username) < 1 {
+	if len(username) < 2 {
 		return ErrUsernameTooShort
 	}
 
