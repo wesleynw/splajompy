@@ -3,7 +3,6 @@ package repositories
 import (
 	"context"
 	"errors"
-	"regexp"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -437,8 +436,7 @@ func NewDBUserRepository(querier queries.Querier) UserRepository {
 }
 
 func GenerateFacets(ctx context.Context, userRepository UserRepository, text string) (db.Facets, error) {
-	re := regexp.MustCompile(`@([a-zA-Z0-9_.]+)`)
-	matches := re.FindAllStringSubmatchIndex(text, -1)
+	matches := utilities.MentionRegex.FindAllStringSubmatchIndex(text, -1)
 
 	var facets db.Facets
 

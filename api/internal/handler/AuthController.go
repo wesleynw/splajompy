@@ -70,7 +70,7 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 		case service.ErrUsernameTaken:
 			utilities.HandleError(w, http.StatusBadRequest, "An account already exists with this username")
 		case service.ErrUsernameInvalidFormat:
-			utilities.HandleError(w, http.StatusBadRequest, "Username can only contain letters and numbers")
+			utilities.HandleError(w, http.StatusBadRequest, "Username must start and end with a letter or number, and can only contain letters, numbers, periods, and underscores")
 		case service.ErrUsernameTooShort:
 			utilities.HandleError(w, http.StatusBadRequest, "Username must be at least 1 character")
 		case service.ErrPasswordTooShort:
