@@ -441,8 +441,8 @@ func GenerateFacets(ctx context.Context, userRepository UserRepository, text str
 	var facets db.Facets
 
 	for _, match := range matches {
-		start, end := match[0], match[1]
-		username := text[start+1 : end]
+		usernameStart, usernameEnd := match[2], match[3]
+		username := text[usernameStart:usernameEnd]
 		user, err := userRepository.GetUserByUsername(ctx, username)
 		if err != nil {
 			if errors.Is(err, pgx.ErrNoRows) {
@@ -453,8 +453,8 @@ func GenerateFacets(ctx context.Context, userRepository UserRepository, text str
 		facets = append(facets, db.Facet{
 			Type:       "mention",
 			UserId:     user.UserID,
-			IndexStart: start,
-			IndexEnd:   end,
+			IndexStart: usernameStart - 1,
+			IndexEnd:   usernameEnd,
 		})
 	}
 

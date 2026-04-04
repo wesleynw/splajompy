@@ -22,8 +22,12 @@ struct MentionUtilities {
 
   nonisolated(unsafe) static let mentionPattern: Regex<(Substring, Substring)> =
     Regex {
-      "@"
+      ChoiceOf {
+        Anchor.startOfSubject
+        " "
+      }
       Capture {
+        "@"
         usernamePattern
       }
     }
@@ -87,14 +91,10 @@ struct MentionUtilities {
 
   static func extractMentions(from text: String) -> [Mention] {
     text.matches(of: mentionPattern).compactMap { match in
-      let username = String(match.output.1)
-
-      let fullRange = NSRange(match.range, in: text)
-
-      return Mention(
-        username: username,
-        range: fullRange
-      )
+      let atUsername = match.output.1
+      let username = String(atUsername.dropFirst())
+      let fullRange = NSRange(atUsername.startIndex..<atUsername.endIndex, in: text)
+      return Mention(username: username, range: fullRange)
     }
   }
 
@@ -112,12 +112,12 @@ struct MentionUtilities {
     guard cursorPosition > 0, cursorPosition <= text.count else { return nil }
 
     for match in text.matches(of: mentionPattern) {
-      let range = NSRange(match.range, in: text)
+      let atUsername = match.output.1
+      let range = NSRange(atUsername.startIndex..<atUsername.endIndex, in: text)
       if cursorPosition > range.location
         && cursorPosition <= range.location + range.length
       {
-        let username = String(match.output.1)
-
+        let username = String(atUsername.dropFirst())
         guard !username.isEmpty, username.count <= 25 else { return nil }
         return username
       }
