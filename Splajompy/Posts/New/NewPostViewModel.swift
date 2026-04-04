@@ -115,6 +115,10 @@ extension NewPostView {
         case .error(let error):
           errorDisplay = error.localizedDescription
           isLoading = false
+          PostHogSDK.shared.capture(
+            "post_creation_failed",
+            properties: ["reason": String(describing: error)]
+          )
         }
       }
     }
