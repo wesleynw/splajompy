@@ -1,6 +1,6 @@
 import Foundation
 
-func uploadImages(images: [PlatformImage]) async -> [Int: ImageData]? {
+func uploadImages(images: [PlatformImage]) async throws -> [Int: ImageData] {
   let stagingFolder = UUID()
   var imageKeymap = [Int: ImageData]()
 
@@ -25,10 +25,12 @@ func uploadImages(images: [PlatformImage]) async -> [Int: ImageData]? {
     switch response {
     case .success(let urlResponse):
       guard let url = URL(string: urlResponse.url) else {
-        return nil
+        print("[uploadImages] Invalid presigned URL string: \(urlResponse.url)")
+        throw PostCreationService.PostCreationError.invalidPresignedUrl(urlResponse.url)
       }
       guard let compressedImage = image.jpegData(compressionQuality: 1) else {
-        return nil
+        print("[uploadImages] Failed to compress image at index \(index) to JPEG")
+        throw PostCreationService.PostCreationError.imageCompressionFailed
       }
 
       var request = URLRequest(url: url)
@@ -47,7 +49,9 @@ func uploadImages(images: [PlatformImage]) async -> [Int: ImageData]? {
         guard let httpResponse = s3Response as? HTTPURLResponse,
           (200...299).contains(httpResponse.statusCode)
         else {
-          return nil
+          let statusCode = (s3Response as? HTTPURLResponse)?.statusCode ?? -1
+          print("[uploadImages] S3 upload rejected for image \(index): HTTP \(statusCode)")
+          throw PostCreationService.PostCreationError.s3UploadFailed(statusCode: statusCode)
         }
 
         let imageSize = image.uploadSize
@@ -57,11 +61,15 @@ func uploadImages(images: [PlatformImage]) async -> [Int: ImageData]? {
           width: Int(imageSize.width),
           height: Int(imageSize.height)
         )
+      } catch let error as PostCreationService.PostCreationError {
+        throw error
       } catch {
-        return nil
+        print("[uploadImages] S3 upload network error for image \(index): \(error)")
+        throw PostCreationService.PostCreationError.s3UploadError(error)
       }
-    case .error:
-      return nil
+    case .error(let error):
+      print("[uploadImages] Presigned URL request failed for image \(index): \(error)")
+      throw PostCreationService.PostCreationError.presignedUrlRequestFailed
     }
   }
 

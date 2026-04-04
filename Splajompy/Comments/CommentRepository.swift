@@ -55,7 +55,11 @@ struct CommentService: CommentServiceProtocol {
   {
     var imageKeymap: [Int: ImageData] = [:]
     if let image {
-      imageKeymap = await uploadImages(images: [image]) ?? [:]
+      do {
+        imageKeymap = try await uploadImages(images: [image])
+      } catch {
+        return .error(error)
+      }
     }
 
     let body = CreateCommentRequest(text: text, imageKeymap: imageKeymap)

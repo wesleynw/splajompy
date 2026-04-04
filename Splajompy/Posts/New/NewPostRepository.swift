@@ -21,8 +21,27 @@ struct PresignedUrlResponse: Codable {
 }
 
 struct PostCreationService {
-  enum PostCreationError: Error {
-    case imageUploadFailure
+  enum PostCreationError: Error, LocalizedError {
+    case presignedUrlRequestFailed
+    case invalidPresignedUrl(String)
+    case imageCompressionFailed
+    case s3UploadFailed(statusCode: Int)
+    case s3UploadError(any Error)
+
+    var errorDescription: String? {
+      switch self {
+      case .presignedUrlRequestFailed:
+        return "Failed to get upload URL from server."
+      case .invalidPresignedUrl(let url):
+        return "Server returned an invalid upload URL: \(url)"
+      case .imageCompressionFailed:
+        return "Failed to compress image for upload."
+      case .s3UploadFailed(let statusCode):
+        return "Image upload was rejected by storage (HTTP \(statusCode))."
+      case .s3UploadError(let error):
+        return "Image upload failed: \(error.localizedDescription)"
+      }
+    }
   }
 
   static func createPost(
@@ -32,9 +51,7 @@ struct PostCreationService {
     poll: PollCreationRequest? = nil
   ) async -> AsyncResult<EmptyResponse> {
     do {
-      guard let imageKeymap = await uploadImages(images: images) else {
-        return .error(PostCreationError.imageUploadFailure)
-      }
+      let imageKeymap = try await uploadImages(images: images)
 
       let createPostRequest = CreatePostRequest(
         text: text,
