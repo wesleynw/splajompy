@@ -7,11 +7,11 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
-	"regexp"
 	"strings"
 	"time"
 
 	"splajompy.com/api/v2/internal/repositories"
+	"splajompy.com/api/v2/internal/utilities"
 
 	"github.com/google/uuid"
 	"github.com/resend/resend-go/v3"
@@ -35,13 +35,6 @@ func NewAuthService(userRepository repositories.UserRepository, postRepository r
 		resendClient:     resendClient,
 	}
 }
-
-var (
-	usernamePattern = `[a-zA-Z0-9](?:[a-zA-Z0-9._]*[a-zA-Z0-9])?`
-	MentionRegex    = regexp.MustCompile(`@(` + usernamePattern + `)`)
-	usernameRegex   = regexp.MustCompile(`^` + usernamePattern + `$`)
-	emailRegex      = regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
-)
 
 var (
 	ErrUserNotFound          = errors.New("user not found")
@@ -125,7 +118,7 @@ func (s *AuthService) ValidateRegistrationData(email, username, password string)
 		return ErrUsernameTooLong
 	}
 
-	if !usernameRegex.MatchString(username) {
+	if !utilities.UsernameRegex.MatchString(username) {
 		return ErrUsernameInvalidFormat
 	}
 
@@ -137,7 +130,7 @@ func (s *AuthService) ValidateRegistrationData(email, username, password string)
 		return ErrPasswordTooShort
 	}
 
-	if !emailRegex.MatchString(email) {
+	if !utilities.EmailRegex.MatchString(email) {
 		return ErrInvalidEmail
 	}
 

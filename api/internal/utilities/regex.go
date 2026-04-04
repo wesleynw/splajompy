@@ -3,8 +3,8 @@ package utilities
 import "regexp"
 
 var (
-	usernamePattern = `[a-zA-Z0-9](?:[a-zA-Z0-9._]*[a-zA-Z0-9])?`
-	MentionRegex    = regexp.MustCompile(`@(` + usernamePattern + `)`)
-	UsernameRegex   = regexp.MustCompile(`^` + usernamePattern + `$`)
+	UsernamePattern = `[a-zA-Z0-9](?:[a-zA-Z0-9._]*[a-zA-Z0-9])?`
+	MentionRegex    = regexp.MustCompile(`(?:^| )@(` + UsernamePattern + `)`)
+	UsernameRegex   = regexp.MustCompile(`^` + UsernamePattern + `$`)
 	EmailRegex      = regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
 )
