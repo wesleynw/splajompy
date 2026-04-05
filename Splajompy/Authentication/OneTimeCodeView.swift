@@ -1,3 +1,4 @@
+import PostHog
 import SwiftUI
 
 struct OneTimeCodeView: View {
@@ -66,6 +67,7 @@ struct OneTimeCodeView: View {
         dismissButton: .default(Text("OK"))
       )
     }
+    .postHogScreenView()
   }
 }
 

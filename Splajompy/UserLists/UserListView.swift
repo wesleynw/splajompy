@@ -1,3 +1,4 @@
+import PostHog
 import SwiftUI
 
 /// A flexible view to display a list of users.
@@ -108,6 +109,7 @@ struct UserListView: View {
     } message: {
       Text(viewModel.errorMessage ?? "")
     }
+    .postHogScreenView()
   }
 
   private var noUsersView: some View {

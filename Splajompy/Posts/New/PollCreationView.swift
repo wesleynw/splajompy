@@ -1,3 +1,4 @@
+import PostHog
 import SwiftUI
 
 struct PollCreationView: View {
@@ -78,6 +79,7 @@ struct PollCreationView: View {
           : existingPoll.options.map { (id: UUID(), text: $0) }
       }
     }
+    .postHogScreenView()
   }
 
   private var formContent: some View {

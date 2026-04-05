@@ -21,6 +21,7 @@ struct AppIconPickerView: View {
     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
     .navigationTitle("App Icon")
     .navigationBarTitleDisplayMode(.inline)
+    .postHogScreenView()
   }
 
   private func iconCell(image: String, iconName: String?, artist: String?) -> some View {

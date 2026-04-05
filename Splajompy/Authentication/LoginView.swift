@@ -1,3 +1,4 @@
+import PostHog
 import SwiftUI
 
 struct LoginView: View {
@@ -161,6 +162,7 @@ struct LoginView: View {
         )
       }
     }
+    .postHogScreenView()
   }
 
   private func handleSubmit() async {
