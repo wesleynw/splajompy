@@ -1,3 +1,4 @@
+import PostHog
 import SwiftUI
 
 struct StatRow: View {
@@ -54,6 +55,7 @@ struct StatisticsView: View {
     .task {
       await viewModel.load()
     }
+    .postHogScreenView()
   }
 }
 

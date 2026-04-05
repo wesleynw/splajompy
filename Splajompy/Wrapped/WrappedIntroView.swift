@@ -1,3 +1,4 @@
+import PostHog
 import SwiftUI
 
 enum WrappedPage {
@@ -123,6 +124,7 @@ struct WrappedIntroView: View {
         hasViewedWrapped = true
       }
     }
+    .postHogScreenView()
   }
 
   @ViewBuilder
@@ -133,21 +135,25 @@ struct WrappedIntroView: View {
       case .weeklyActivity:
         WeeklyActivityView(data: data, onContinue: { path.append(.activity) })
           .closeToolbar(onDismiss: dismiss.callAsFunction)
+          .postHogScreenView()
       case .activity:
         YearlyActivityView(
           data: data,
           onContinue: { path.append(.mostLikedPost) }
         )
         .closeToolbar(onDismiss: dismiss.callAsFunction)
+        .postHogScreenView()
       case .slice:
         UserProportionRing(data: data, onContinue: { path.append(.end) })
           .closeToolbar(onDismiss: dismiss.callAsFunction)
+          .postHogScreenView()
       case .lengthComparison:
         LengthComparisonView(
           data: data,
           onContinue: { path.append(.totalWordCount) }
         )
         .closeToolbar(onDismiss: dismiss.callAsFunction)
+        .postHogScreenView()
       case .totalWordCount:
         TotalWordCountView(
           data: data,
@@ -162,6 +168,7 @@ struct WrappedIntroView: View {
           }
         )
         .closeToolbar(onDismiss: dismiss.callAsFunction)
+        .postHogScreenView()
       case .mostLikedPost:
         MostLikedPostView(
           data: data,
@@ -174,12 +181,14 @@ struct WrappedIntroView: View {
           }
         )
         .closeToolbar(onDismiss: dismiss.callAsFunction)
+        .postHogScreenView()
       case .controversialPoll:
         ControversialPollView(
           data: data,
           onContinue: { path.append(.lengthComparison) }
         )
         .closeToolbar(onDismiss: dismiss.callAsFunction)
+        .postHogScreenView()
       case .favoriteUsers:
         FavoriteUsersView(
           data: data,
@@ -192,11 +201,13 @@ struct WrappedIntroView: View {
           }
         )
         .closeToolbar(onDismiss: dismiss.callAsFunction)
+        .postHogScreenView()
       case .intro:
         WrappedIntroView()
       case .end:
         EndView()
           .closeToolbar(onDismiss: dismiss.callAsFunction)
+          .postHogScreenView()
       }
     default:
       ProgressView()

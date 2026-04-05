@@ -1,3 +1,4 @@
+import PostHog
 import SwiftUI
 
 struct RequestSupportView: View {
@@ -75,6 +76,7 @@ struct RequestSupportView: View {
     .onAppear {
       isFocused = true
     }
+    .postHogScreenView()
   }
 
   private func sendRequestedFeature() {

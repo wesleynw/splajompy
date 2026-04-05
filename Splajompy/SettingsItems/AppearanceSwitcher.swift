@@ -1,3 +1,4 @@
+import PostHog
 import SwiftUI
 
 struct AppearanceSwitcher: View {
@@ -45,6 +46,7 @@ struct AppearanceSwitcher: View {
     #if os(iOS)
       .navigationBarTitleDisplayMode(.inline)
     #endif
+    .postHogScreenView()
   }
 }
 
