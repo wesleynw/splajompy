@@ -49,9 +49,11 @@ class UserListViewModel {
 
   func loadUsers(reset: Bool = false, useLoadingState: Bool = false) async {
     if case .loading = state { return }
+    guard reset || hasMoreToFetch else { return }
 
     if reset {
       beforeCursor = nil
+      hasMoreToFetch = false
       if useLoadingState {
         state = .loading
       }
