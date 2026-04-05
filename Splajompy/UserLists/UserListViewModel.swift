@@ -53,7 +53,6 @@ class UserListViewModel {
 
     if reset {
       beforeCursor = nil
-      hasMoreToFetch = false
       if useLoadingState {
         state = .loading
       }
