@@ -46,6 +46,7 @@ struct UserListView: View {
       }
     }
     .task {
+      guard case .idle = viewModel.state else { return }
       await viewModel.loadUsers(reset: true)
     }
     .navigationTitle(userListVariant.title)

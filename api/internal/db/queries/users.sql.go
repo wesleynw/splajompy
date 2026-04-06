@@ -146,6 +146,44 @@ func (q *Queries) GetBioByUserId(ctx context.Context, userID int) (string, error
 	return text, err
 }
 
+const getDirectoryUserIds = `-- name: GetDirectoryUserIds :many
+SELECT user_id, username
+FROM users
+WHERE ($1::text = '' OR username > $1)
+ORDER BY username ASC
+LIMIT $2::int
+`
+
+type GetDirectoryUserIdsParams struct {
+	After string `json:"after"`
+	Limit int    `json:"limit"`
+}
+
+type GetDirectoryUserIdsRow struct {
+	UserID   int    `json:"userId"`
+	Username string `json:"username"`
+}
+
+func (q *Queries) GetDirectoryUserIds(ctx context.Context, arg GetDirectoryUserIdsParams) ([]GetDirectoryUserIdsRow, error) {
+	rows, err := q.db.Query(ctx, getDirectoryUserIds, arg.After, arg.Limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetDirectoryUserIdsRow
+	for rows.Next() {
+		var i GetDirectoryUserIdsRow
+		if err := rows.Scan(&i.UserID, &i.Username); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getIsEmailInUse = `-- name: GetIsEmailInUse :one
 SELECT EXISTS (
   SELECT 1

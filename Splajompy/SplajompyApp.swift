@@ -212,6 +212,8 @@ struct SplajompyApp: App {
       UserListView(userId: userId, userListVariant: .following)
     case .mutualsList(let userId):
       UserListView(userId: userId, userListVariant: .mutuals)
+    case .directory:
+      UserListView(userId: 0, userListVariant: .directory)
     }
   }
 

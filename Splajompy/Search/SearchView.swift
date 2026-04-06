@@ -1,3 +1,4 @@
+import PostHog
 import SwiftUI
 
 struct SearchView: View {
@@ -95,7 +96,37 @@ struct SearchView: View {
     //    .onTapGesture {
     //      isSearchBarFocused = false
     //    }
+    #if os(iOS)
+      .modify {
+        if onUserSelected == nil && PostHogSDK.shared.isFeatureEnabled("user-directory") {
+          if #available(iOS 26, macOS 26, *) {
+            $0.safeAreaBar(edge: .bottom) {
+              directoryBar
+            }
+          } else {
+            $0.safeAreaInset(edge: .bottom) {
+              directoryBar
+            }
+          }
+        }
+      }
+    #endif
   }
+
+  #if os(iOS)
+    private var directoryBar: some View {
+      NavigationLink(value: Route.directory) {
+        Label("Directory", systemImage: "text.book.closed")
+          .font(.subheadline.weight(.medium))
+          .frame(maxWidth: .infinity, alignment: .leading)
+          .padding(.horizontal, 20)
+          .padding(.vertical, 16)
+          .background(.fill.tertiary)
+          .contentShape(Rectangle())
+      }
+      .buttonStyle(.plain)
+    }
+  #endif
 
   private var emptyState: some View {
     VStack(spacing: 16) {

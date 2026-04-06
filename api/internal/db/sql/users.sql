@@ -206,3 +206,10 @@ SELECT EXISTS (
   FROM user_relationship
   WHERE user_id = $1 AND target_user_id = $2
 );
+
+-- name: GetDirectoryUserIds :many
+SELECT user_id, username
+FROM users
+WHERE (sqlc.arg('after')::text = '' OR username > sqlc.arg('after'))
+ORDER BY username ASC
+LIMIT sqlc.arg('limit')::int;

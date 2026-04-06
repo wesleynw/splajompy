@@ -162,8 +162,9 @@ type DetailedUser struct {
 }
 
 type PaginatedUserList struct {
-	Users      []DetailedUser `json:"users"`
-	NextCursor *time.Time     `json:"nextCursor,omitempty"`
+	Users              []DetailedUser `json:"users"`
+	NextCursor         *time.Time     `json:"nextCursor,omitempty"`
+	NextUsernameCursor *string        `json:"nextUsernameCursor,omitempty"`
 }
 
 type ImageData struct {

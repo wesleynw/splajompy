@@ -302,6 +302,26 @@ func (s UserService) GetCloseFriendsByUserId(ctx context.Context, currentUser mo
 	return &models.PaginatedUserList{Users: users, NextCursor: cursor}, nil
 }
 
+// GetDirectory returns a paginated list of all users sorted alphabetically A to Z.
+func (s *UserService) GetDirectory(ctx context.Context, currentUser models.PublicUser, limit int, after string) (*models.PaginatedUserList, error) {
+	userIDs, cursor, err := s.userRepository.GetDirectoryPage(ctx, limit, after)
+	if err != nil {
+		return nil, err
+	}
+
+	users, err := s.fetchDetailedUsersFromIDs(ctx, currentUser, userIDs)
+	if err != nil {
+		return nil, err
+	}
+
+	var nextUsernameCursor *string
+	if len(userIDs) == limit {
+		nextUsernameCursor = &cursor
+	}
+
+	return &models.PaginatedUserList{Users: users, NextUsernameCursor: nextUsernameCursor}, nil
+}
+
 // fetchDetailedUsersFromIDs concurrently fetches detailed user information for the given user IDs.
 // It uses an errgroup to parallelize the individual GetUserById calls and returns all results
 // once complete, or the first error encountered.

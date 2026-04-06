@@ -430,6 +430,27 @@ func (r DBUserRepository) IsUserFriend(ctx context.Context, userId int, targetUs
 	})
 }
 
+func (r DBUserRepository) GetDirectoryPage(ctx context.Context, limit int, after string) ([]int, string, error) {
+	rows, err := r.querier.GetDirectoryUserIds(ctx, queries.GetDirectoryUserIdsParams{
+		After: after,
+		Limit: limit,
+	})
+	if err != nil {
+		return nil, "", err
+	}
+
+	userIDs := make([]int, len(rows))
+	for i, row := range rows {
+		userIDs[i] = row.UserID
+	}
+
+	var cursor string
+	if len(rows) > 0 {
+		cursor = rows[len(rows)-1].Username
+	}
+	return userIDs, cursor, nil
+}
+
 // NewDBUserRepository creates a new user repository
 func NewDBUserRepository(querier queries.Querier) UserRepository {
 	return &DBUserRepository{querier: querier}

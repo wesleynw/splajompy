@@ -50,6 +50,9 @@ protocol ProfileServiceProtocol: Sendable {
 
   /// Fetch statistics about app.
   func getAppStatistics() async -> AsyncResult<AppStatistics>
+
+  /// Fetch a paginated directory of all users, sorted A to Z.
+  func getDirectory(limit: Int, after: String) async -> AsyncResult<PaginatedUserList>
 }
 
 struct ProfileService: ProfileServiceProtocol {
@@ -207,6 +210,17 @@ struct ProfileService: ProfileServiceProtocol {
     return await APIService.performRequest(
       endpoint: "stats",
       method: "GET"
+    )
+  }
+
+  func getDirectory(limit: Int, after: String) async -> AsyncResult<PaginatedUserList> {
+    var queryItems = [URLQueryItem(name: "limit", value: "\(limit)")]
+    if !after.isEmpty {
+      queryItems.append(URLQueryItem(name: "after", value: after))
+    }
+    return await APIService.performRequest(
+      endpoint: "users/directory",
+      queryItems: queryItems
     )
   }
 }

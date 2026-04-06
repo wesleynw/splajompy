@@ -11,6 +11,7 @@ enum UserListVariantEnum {
   case following
   case mutuals
   case friends
+  case directory
 
   var title: String {
     switch self {
@@ -20,6 +21,8 @@ enum UserListVariantEnum {
       "Mutuals"
     case .friends:
       "Friends"
+    case .directory:
+      "Directory"
     }
   }
 }
@@ -36,6 +39,7 @@ class UserListViewModel {
   private let profileService: ProfileServiceProtocol
   private let fetchLimit = 20
   private var beforeCursor: Date? = nil
+  private var directoryUsernameCursor: String = ""
 
   init(
     userId: Int,
@@ -53,6 +57,7 @@ class UserListViewModel {
 
     if reset {
       beforeCursor = nil
+      directoryUsernameCursor = ""
       if useLoadingState {
         state = .loading
       }
@@ -69,12 +74,19 @@ class UserListViewModel {
     case .friends:
       result = await profileService.getFriends(
         userId: userId, limit: fetchLimit, before: beforeCursor)
+    case .directory:
+      result = await profileService.getDirectory(
+        limit: fetchLimit, after: directoryUsernameCursor)
     }
 
     switch result {
     case .success(let page):
       beforeCursor = page.nextCursor
       hasMoreToFetch = page.users.count == fetchLimit
+
+      if let nameCursor = page.nextUsernameCursor {
+        directoryUsernameCursor = nameCursor
+      }
 
       if !reset, case .loaded(let existingUsers) = state {
         state = .loaded(existingUsers + page.users)

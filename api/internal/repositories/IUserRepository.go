@@ -97,4 +97,8 @@ type UserRepository interface {
 
 	// IsUserFriend checks if the targetUserId is in the userId's friend list (user_relationship)
 	IsUserFriend(ctx context.Context, userId int, targetUserId int) (bool, error)
+
+	// GetDirectoryPage returns user IDs for all users sorted A to Z using keyset pagination.
+	// after="" fetches from the beginning; pass the last username for subsequent pages.
+	GetDirectoryPage(ctx context.Context, limit int, after string) (userIDs []int, cursor string, err error)
 }

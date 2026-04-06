@@ -161,7 +161,7 @@ final class MockUserRepository: @unchecked Sendable {
 
 struct MockProfileService: ProfileServiceProtocol {
   func getFriends(userId: Int, limit: Int, before: Date?) async -> AsyncResult<PaginatedUserList> {
-    return .success(PaginatedUserList(users: [], nextCursor: nil))
+    return .success(PaginatedUserList(users: [], nextCursor: nil, nextUsernameCursor: nil))
   }
 
   private let store = MockUserRepository.shared
@@ -299,13 +299,13 @@ struct MockProfileService: ProfileServiceProtocol {
   {
     try? await Task.sleep(nanoseconds: 300_000_000)
     let users = Array(store.users.values)
-    return .success(PaginatedUserList(users: users, nextCursor: nil))
+    return .success(PaginatedUserList(users: users, nextCursor: nil, nextUsernameCursor: nil))
   }
 
   func getMutuals(userId: Int, limit: Int, before: Date?) async -> AsyncResult<PaginatedUserList> {
     try? await Task.sleep(nanoseconds: 300_000_000)
     let mutualUsers = Array(store.users.values).filter { $0.isFollower && $0.isFollowing }
-    return .success(PaginatedUserList(users: mutualUsers, nextCursor: nil))
+    return .success(PaginatedUserList(users: mutualUsers, nextCursor: nil, nextUsernameCursor: nil))
   }
 
   func addFriend(userId: Int) async -> AsyncResult<EmptyResponse> {
@@ -330,5 +330,15 @@ struct MockProfileService: ProfileServiceProtocol {
         totalNotifications: 456
       )
     )
+  }
+
+  func getDirectory(limit: Int, after: String) async -> AsyncResult<PaginatedUserList> {
+    try? await Task.sleep(nanoseconds: 300_000_000)
+    let allUsers = Array(store.users.values).sorted { $0.username < $1.username }
+    let startIndex =
+      after.isEmpty ? 0 : (allUsers.firstIndex { $0.username > after } ?? allUsers.count)
+    let page = Array(allUsers[startIndex..<min(startIndex + limit, allUsers.count)])
+    let nextCursor = page.count == limit ? page.last?.username : nil
+    return .success(PaginatedUserList(users: page, nextCursor: nil, nextUsernameCursor: nextCursor))
   }
 }

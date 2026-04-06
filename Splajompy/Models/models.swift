@@ -77,6 +77,7 @@ struct DetailedUser: Decodable, Identifiable {
 struct PaginatedUserList: Decodable, Sendable {
   let users: [DetailedUser]
   let nextCursor: Date?
+  let nextUsernameCursor: String?
 }
 
 struct ImageDTO: Decodable {

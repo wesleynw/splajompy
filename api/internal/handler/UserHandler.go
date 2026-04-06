@@ -3,6 +3,7 @@ package handler
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 
 	"splajompy.com/api/v2/internal/models"
 	"splajompy.com/api/v2/internal/utilities"
@@ -440,6 +441,25 @@ func (h Handler) ListUserCloseFriendsV2(w http.ResponseWriter, r *http.Request) 
 	user := h.getAuthenticatedUser(r)
 
 	result, err := h.userService.GetCloseFriendsByUserId(r.Context(), *user, limit, before)
+	if err != nil {
+		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
+		return
+	}
+
+	utilities.HandleSuccess(w, result)
+}
+
+// GetDirectory returns a paginated list of all users sorted A to Z.
+func (h *Handler) GetDirectory(w http.ResponseWriter, r *http.Request) {
+	currentUser := h.getAuthenticatedUser(r)
+
+	limit := 20
+	if l, err := strconv.Atoi(r.URL.Query().Get("limit")); err == nil && l > 0 {
+		limit = l
+	}
+	after := r.URL.Query().Get("after")
+
+	result, err := h.userService.GetDirectory(r.Context(), *currentUser, limit, after)
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
 		return
