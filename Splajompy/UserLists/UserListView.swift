@@ -27,6 +27,11 @@ struct UserListView: View {
       switch viewModel.state {
       case .idle, .loading:
         ProgressView()
+          .task {
+            if case .idle = viewModel.state {
+              await viewModel.loadUsers(reset: true)
+            }
+          }
           #if os(macOS)
             .controlSize(.small)
           #endif
@@ -44,9 +49,6 @@ struct UserListView: View {
           onRetry: { await viewModel.loadUsers(reset: true) }
         )
       }
-    }
-    .task {
-      await viewModel.loadUsers(reset: true)
     }
     .navigationTitle(userListVariant.title)
     #if os(iOS)
