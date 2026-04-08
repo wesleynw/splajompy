@@ -2,6 +2,10 @@ import AppKit
 import SwiftUI
 
 struct AttributedTextEditor: NSViewRepresentable {
+  private class PassthroughTextField: NSTextField {
+    override func hitTest(_ point: NSPoint) -> NSView? { nil }
+  }
+
   @Binding var text: NSAttributedString
   @Binding var currentMention: String?
   @Binding var selectedRange: NSRange
@@ -50,12 +54,6 @@ struct AttributedTextEditor: NSViewRepresentable {
     )
 
     context.coordinator.textView = textView
-
-    class PassthroughTextField: NSTextField {
-      override func hitTest(_ point: NSPoint) -> NSView? {
-        return nil
-      }
-    }
 
     let label = PassthroughTextField(labelWithString: placeholder)
     label.font = NSFont.preferredFont(forTextStyle: .body)
