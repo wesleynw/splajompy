@@ -45,7 +45,7 @@ struct StatisticsView: View {
         )
       }
     }
-    .navigationTitle("Statistics")
+    .serifNavigationTitle("Statistics")
     #if os(iOS)
       .navigationBarTitleDisplayMode(.inline)
     #endif

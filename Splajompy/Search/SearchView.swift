@@ -173,7 +173,10 @@ struct SearchView: View {
           .buttonStyle(.plain)
         } else {
           NavigationLink(
-            value: Route.profile(id: String(user.userId), username: user.username)
+            value: Route.profile(
+              id: String(user.userId),
+              username: user.username
+            )
           ) {
             HStack {
               ProfileDisplayNameView(user: user, alignVertically: false)

@@ -27,6 +27,11 @@ struct UserListView: View {
       switch viewModel.state {
       case .idle, .loading:
         ProgressView()
+          .task {
+            if case .idle = viewModel.state {
+              await viewModel.loadUsers(reset: true)
+            }
+          }
           #if os(macOS)
             .controlSize(.small)
           #endif
@@ -45,11 +50,7 @@ struct UserListView: View {
         )
       }
     }
-    .task {
-      guard case .idle = viewModel.state else { return }
-      await viewModel.loadUsers(reset: true)
-    }
-    .navigationTitle(userListVariant.title)
+    .serifNavigationTitle(userListVariant.title)
     #if os(iOS)
       .navigationBarTitleDisplayMode(.inline)
     #endif

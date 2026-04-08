@@ -15,7 +15,7 @@ struct PollCreationView: View {
   var body: some View {
     NavigationStack {
       formContent
-        .navigationTitle("New Poll")
+        .serifNavigationTitle("New Poll")
         #if os(iOS)
           .navigationBarTitleDisplayMode(.inline)
         #endif

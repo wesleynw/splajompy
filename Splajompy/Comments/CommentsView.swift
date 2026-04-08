@@ -48,7 +48,7 @@ struct CommentsView: View {
     if isInSheet {
       NavigationStack {
         content
-          .navigationTitle("Comments")
+          .serifNavigationTitle("Comments")
           #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
           #endif

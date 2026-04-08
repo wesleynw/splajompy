@@ -81,6 +81,7 @@ struct CommentInputView: View {
           )
           .overlay(alignment: .bottomTrailing) {
             Button(action: {
+              mentionViewModel.clearMentionState()
               Task {
                 let result = await viewModel.submitComment(
                   text: viewModel.text.string
