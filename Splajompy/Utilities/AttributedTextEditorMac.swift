@@ -51,7 +51,13 @@ struct AttributedTextEditor: NSViewRepresentable {
 
     context.coordinator.textView = textView
 
-    let label = NSTextField(labelWithString: placeholder)
+    class PassthroughTextField: NSTextField {
+      override func hitTest(_ point: NSPoint) -> NSView? {
+        return nil
+      }
+    }
+
+    let label = PassthroughTextField(labelWithString: placeholder)
     label.font = NSFont.preferredFont(forTextStyle: .body)
     label.textColor = .tertiaryLabelColor
     label.translatesAutoresizingMaskIntoConstraints = false
