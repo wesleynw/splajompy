@@ -103,7 +103,7 @@ struct LoginView: View {
         }
       }
       .padding()
-      .navigationTitle("Sign In")
+      .serifNavigationTitle("Sign In")
       .toolbar {
         ToolbarItem(
           placement: {

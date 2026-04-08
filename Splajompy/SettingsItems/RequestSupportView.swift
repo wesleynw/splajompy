@@ -28,7 +28,7 @@ struct RequestSupportView: View {
 
     }
     .padding()
-    .navigationTitle("Support")
+    .serifNavigationTitle("Support")
     #if os(iOS)
       .navigationBarTitleDisplayMode(.inline)
     #endif

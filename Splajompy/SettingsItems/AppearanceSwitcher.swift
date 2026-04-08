@@ -42,7 +42,7 @@ struct AppearanceSwitcher: View {
         }
       }
     }
-    .navigationTitle("Appearance")
+    .serifNavigationTitle("Appearance")
     #if os(iOS)
       .navigationBarTitleDisplayMode(.inline)
     #endif

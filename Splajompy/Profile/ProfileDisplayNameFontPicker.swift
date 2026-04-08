@@ -52,7 +52,7 @@ struct ProfileDisplayNameFontPicker: View {
           .foregroundStyle(.primary)
         }
       }
-      .navigationTitle("Choose Font")
+      .serifNavigationTitle("Choose Font")
       #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
       #endif
