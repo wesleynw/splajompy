@@ -60,8 +60,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/PostHog/posthog-ios.git",
       "state" : {
-        "revision" : "af5b8e4c1a8e68c1e99ccbb62521f35e3928eb8d",
-        "version" : "3.49.0"
+        "revision" : "19d0df316c68ff2e806eaa73563e7fb79788f978",
+        "version" : "3.50.0"
       }
     },
     {
