@@ -57,7 +57,7 @@ struct RegisterView: View {
         .padding(.horizontal, 24)
         .padding(.vertical, 32)
       }
-      .navigationTitle("Register")
+      .serifNavigationTitle("Register")
       .navigationBarBackButtonHidden()
       .toolbar {
         ToolbarItem(

@@ -50,7 +50,7 @@ struct UserListView: View {
         )
       }
     }
-    .navigationTitle(userListVariant.title)
+    .serifNavigationTitle(userListVariant.title)
     #if os(iOS)
       .navigationBarTitleDisplayMode(.inline)
     #endif

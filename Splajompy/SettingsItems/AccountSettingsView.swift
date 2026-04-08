@@ -70,7 +70,7 @@ struct AccountSettingsView: View {
         }
       }
     }
-    .navigationTitle("Account")
+    .serifNavigationTitle("Account")
     #if os(iOS)
       .navigationBarTitleDisplayMode(.inline)
     #endif
