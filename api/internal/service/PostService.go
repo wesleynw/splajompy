@@ -12,6 +12,7 @@ import (
 	"github.com/resend/resend-go/v3"
 	"golang.org/x/mod/semver"
 	"golang.org/x/sync/errgroup"
+	"splajompy.com/api/v2/internal/bucket"
 	"splajompy.com/api/v2/internal/db"
 	"splajompy.com/api/v2/internal/db/queries"
 	"splajompy.com/api/v2/internal/middleware"
@@ -25,11 +26,11 @@ type PostService struct {
 	userRepository         repositories.UserRepository
 	likeRepository         repositories.LikeRepository
 	notificationRepository repositories.NotificationRepository
-	bucketRepository       repositories.BucketRepository
+	bucketRepository       bucket.Repository
 	emailService           *resend.Client
 }
 
-func NewPostService(postRepository repositories.PostRepository, userRepository repositories.UserRepository, likeRepository repositories.LikeRepository, notificationRepository repositories.NotificationRepository, bucketRepo repositories.BucketRepository, emailService *resend.Client) *PostService {
+func NewPostService(postRepository repositories.PostRepository, userRepository repositories.UserRepository, likeRepository repositories.LikeRepository, notificationRepository repositories.NotificationRepository, bucketRepo bucket.Repository, emailService *resend.Client) *PostService {
 	return &PostService{
 		postRepository:         postRepository,
 		userRepository:         userRepository,

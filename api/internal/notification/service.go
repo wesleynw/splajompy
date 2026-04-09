@@ -6,6 +6,7 @@ import (
 	"errors"
 	"time"
 
+	"splajompy.com/api/v2/internal/bucket"
 	"splajompy.com/api/v2/internal/repositories"
 
 	"splajompy.com/api/v2/internal/models"
@@ -16,10 +17,10 @@ type Service struct {
 	postRepository         repositories.PostRepository
 	commentRepository      repositories.CommentRepository
 	userRepository         repositories.UserRepository
-	bucketRepository       repositories.BucketRepository
+	bucketRepository       bucket.Repository
 }
 
-func NewNotificationService(notificationRepository repositories.NotificationRepository, postRepository repositories.PostRepository, commentRepository repositories.CommentRepository, userRepository repositories.UserRepository, bucketRepository repositories.BucketRepository) *Service {
+func NewNotificationService(notificationRepository repositories.NotificationRepository, postRepository repositories.PostRepository, commentRepository repositories.CommentRepository, userRepository repositories.UserRepository, bucketRepository bucket.Repository) *Service {
 	return &Service{
 		notificationRepository: notificationRepository,
 		postRepository:         postRepository,

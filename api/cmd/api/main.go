@@ -11,6 +11,7 @@ import (
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	semconv "go.opentelemetry.io/otel/semconv/v1.39.0"
 	"go.opentelemetry.io/otel/trace"
+	"splajompy.com/api/v2/internal/bucket"
 	"splajompy.com/api/v2/internal/db/queries"
 	"splajompy.com/api/v2/internal/notification"
 	"splajompy.com/api/v2/internal/repositories"
@@ -68,7 +69,7 @@ func main() {
 		log.Fatalf("failed to initialize s3 client: %v", err)
 	}
 
-	bucketRepository := repositories.NewS3BucketRepository(s3Client)
+	bucketRepository := bucket.NewS3BucketRepository(s3Client)
 
 	postRepository := repositories.NewDBPostRepository(q)
 	userRepository := repositories.NewDBUserRepository(q)

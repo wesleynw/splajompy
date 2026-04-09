@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"splajompy.com/api/v2/internal/bucket"
 	"splajompy.com/api/v2/internal/repositories"
 	"splajompy.com/api/v2/internal/utilities"
 
@@ -23,11 +24,11 @@ import (
 type AuthService struct {
 	userRepository   repositories.UserRepository
 	postRepository   repositories.PostRepository
-	bucketRepository repositories.BucketRepository
+	bucketRepository bucket.Repository
 	resendClient     *resend.Client
 }
 
-func NewAuthService(userRepository repositories.UserRepository, postRepository repositories.PostRepository, bucketRepository repositories.BucketRepository, resendClient *resend.Client) *AuthService {
+func NewAuthService(userRepository repositories.UserRepository, postRepository repositories.PostRepository, bucketRepository bucket.Repository, resendClient *resend.Client) *AuthService {
 	return &AuthService{
 		userRepository:   userRepository,
 		postRepository:   postRepository,
