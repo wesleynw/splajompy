@@ -13,6 +13,7 @@ import (
 
 type commentServiceTestEnv struct {
 	svc            *service.CommentService
+	userSvc        *service.UserService
 	postRepository repositories.PostRepository
 	userRepository repositories.UserRepository
 }
@@ -29,9 +30,11 @@ func setupCommentTest(t *testing.T) commentServiceTestEnv {
 	bucketRepository := &fakeBucketRepository{}
 
 	svc := service.NewCommentService(commentRepository, postRepository, notificationRepository, userRepository, likeRepository, bucketRepository)
+	userSvc := service.NewUserService(userRepository, notificationRepository, nil)
 
 	return commentServiceTestEnv{
 		svc:            svc,
+		userSvc:        userSvc,
 		postRepository: postRepository,
 		userRepository: userRepository,
 	}
@@ -95,7 +98,32 @@ func TestGetComments_DoesNotReturnBlockedUserComments(t *testing.T) {
 	assert.Len(t, comments, 1)
 	assert.Equal(t, comment.CommentID, comments[0].CommentID)
 
-	err = env.userRepository.BlockUser(t.Context(), user0.UserID, user1.UserID)
+	err = env.userSvc.BlockUser(t.Context(), user0, user1.UserID)
+	assert.NoError(t, err)
+
+	comments, err = env.svc.GetCommentsByPostId(t.Context(), user0, post.PostID)
+	assert.NoError(t, err)
+	assert.Empty(t, comments)
+}
+
+func TestGetComments_DoesNotReturnMutedUserComments(t *testing.T) {
+	env := setupCommentTest(t)
+
+	user0 := testutil.CreateTestUser(t, env.userRepository, "user0")
+	user1 := testutil.CreateTestUser(t, env.userRepository, "user1")
+
+	post, err := env.postRepository.InsertPost(t.Context(), user0.UserID, "test post", nil, nil, new(models.VisibilityPublic))
+	require.NoError(t, err)
+
+	comment, err := env.svc.AddCommentToPost(t.Context(), user1, post.PostID, "test comment", nil)
+	require.NoError(t, err)
+
+	comments, err := env.svc.GetCommentsByPostId(t.Context(), user0, post.PostID)
+	assert.NoError(t, err)
+	assert.Len(t, comments, 1)
+	assert.Equal(t, comment.CommentID, comments[0].CommentID)
+
+	err = env.userSvc.MuteUser(t.Context(), user0, user1.UserID)
 	assert.NoError(t, err)
 
 	comments, err = env.svc.GetCommentsByPostId(t.Context(), user0, post.PostID)
