@@ -9,13 +9,13 @@ import (
 )
 
 func (h *Handler) GetCommentsByPost(w http.ResponseWriter, r *http.Request) {
-	id, err := h.GetIntPathParam(r, "id")
+	id, err := utilities.GetIntPathParam(r, "id")
 	if err != nil {
 		utilities.HandleError(w, http.StatusUnauthorized, "Missing parameter")
 		return
 	}
 
-	currentUser := h.getAuthenticatedUser(r)
+	currentUser := utilities.GetAuthenticatedUser(r)
 	comments, err := h.commentService.GetCommentsByPostId(r.Context(), *currentUser, id)
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
@@ -27,9 +27,9 @@ func (h *Handler) GetCommentsByPost(w http.ResponseWriter, r *http.Request) {
 
 // AddCommentToPostById POST /post/{id}/comment
 func (h *Handler) AddCommentToPostById(w http.ResponseWriter, r *http.Request) {
-	currentUser := h.getAuthenticatedUser(r)
+	currentUser := utilities.GetAuthenticatedUser(r)
 
-	postId, err := h.GetIntPathParam(r, "post_id")
+	postId, err := utilities.GetIntPathParam(r, "post_id")
 	if err != nil {
 		utilities.HandleError(w, http.StatusBadRequest, "Missing parameter")
 		return
@@ -55,15 +55,15 @@ func (h *Handler) AddCommentToPostById(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) AddCommentLike(w http.ResponseWriter, r *http.Request) {
-	currentUser := h.getAuthenticatedUser(r)
+	currentUser := utilities.GetAuthenticatedUser(r)
 
-	postId, err := h.GetIntPathParam(r, "post_id")
+	postId, err := utilities.GetIntPathParam(r, "post_id")
 	if err != nil {
 		utilities.HandleError(w, http.StatusBadRequest, "Missing parameter")
 		return
 	}
 
-	commentId, err := h.GetIntPathParam(r, "comment_id")
+	commentId, err := utilities.GetIntPathParam(r, "comment_id")
 	if err != nil {
 		utilities.HandleError(w, http.StatusBadRequest, "Missing parameter")
 		return
@@ -80,15 +80,15 @@ func (h *Handler) AddCommentLike(w http.ResponseWriter, r *http.Request) {
 
 // RemoveCommentLike DELETE /post/{post_id}/comment/{comment_id}/liked
 func (h *Handler) RemoveCommentLike(w http.ResponseWriter, r *http.Request) {
-	currentUser := h.getAuthenticatedUser(r)
+	currentUser := utilities.GetAuthenticatedUser(r)
 
-	postId, err := h.GetIntPathParam(r, "post_id")
+	postId, err := utilities.GetIntPathParam(r, "post_id")
 	if err != nil {
 		utilities.HandleError(w, http.StatusBadRequest, "Missing parameter")
 		return
 	}
 
-	commentId, err := h.GetIntPathParam(r, "comment_id")
+	commentId, err := utilities.GetIntPathParam(r, "comment_id")
 	if err != nil {
 		utilities.HandleError(w, http.StatusBadRequest, "Missing parameter")
 		return
@@ -105,9 +105,9 @@ func (h *Handler) RemoveCommentLike(w http.ResponseWriter, r *http.Request) {
 
 // DeleteComment DELETE /comment/{comment_id}
 func (h *Handler) DeleteComment(w http.ResponseWriter, r *http.Request) {
-	currentUser := h.getAuthenticatedUser(r)
+	currentUser := utilities.GetAuthenticatedUser(r)
 
-	commentId, err := h.GetIntPathParam(r, "comment_id")
+	commentId, err := utilities.GetIntPathParam(r, "comment_id")
 	if err != nil {
 		utilities.HandleError(w, http.StatusBadRequest, "Missing parameter")
 		return

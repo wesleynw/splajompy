@@ -1,14 +1,10 @@
 package handler
 
 import (
-	"errors"
 	"net/http"
-	"strconv"
 
 	"splajompy.com/api/v2/internal/db/queries"
-	"splajompy.com/api/v2/internal/models"
 	"splajompy.com/api/v2/internal/notification"
-	"splajompy.com/api/v2/internal/utilities"
 
 	"splajompy.com/api/v2/internal/service"
 )
@@ -134,23 +130,4 @@ func (h *Handler) RegisterPublicRoutes(handleFunc func(pattern string, handlerFu
 	handleFunc("POST /otc/generate", h.GenerateOTC)
 	handleFunc("POST /otc/verify", h.VerifyOTC)
 	handleFunc("GET /health", h.GetAppHealth)
-}
-
-// go fix inline here?
-func (h *Handler) GetIntPathParam(r *http.Request, paramName string) (int, error) {
-	paramString := r.PathValue(paramName)
-	if paramString == "" {
-		return 0, errors.New("missing url parameter")
-	}
-	param, err := strconv.Atoi(paramString)
-	if err != nil {
-		return 0, errors.New("cannot parse url parameter")
-	}
-
-	return param, nil
-}
-
-// go fix inline here maybe?
-func (h *Handler) getAuthenticatedUser(r *http.Request) *models.PublicUser {
-	return utilities.GetAuthenticatedUser(r)
 }

@@ -15,7 +15,7 @@ import (
 )
 
 func (h *Handler) CreateNewPostV2(w http.ResponseWriter, r *http.Request) {
-	currentUser := h.getAuthenticatedUser(r)
+	currentUser := utilities.GetAuthenticatedUser(r)
 
 	var requestBody struct {
 		Text        string                   `json:"text"`
@@ -44,7 +44,7 @@ func (h *Handler) CreateNewPostV2(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) GetPresignedUrl(w http.ResponseWriter, r *http.Request) {
-	currentUser := h.getAuthenticatedUser(r)
+	currentUser := utilities.GetAuthenticatedUser(r)
 
 	extension := r.URL.Query().Get("extension")
 	if extension == "" {
@@ -64,9 +64,9 @@ func (h *Handler) GetPresignedUrl(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) GetPostById(w http.ResponseWriter, r *http.Request) {
-	currentUser := h.getAuthenticatedUser(r)
+	currentUser := utilities.GetAuthenticatedUser(r)
 
-	id, err := h.GetIntPathParam(r, "id")
+	id, err := utilities.GetIntPathParam(r, "id")
 	if err != nil {
 		utilities.HandleError(w, http.StatusBadRequest, "Missing ID parameter")
 		return
@@ -82,9 +82,9 @@ func (h *Handler) GetPostById(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) DeletePostById(w http.ResponseWriter, r *http.Request) {
-	currentUser := h.getAuthenticatedUser(r)
+	currentUser := utilities.GetAuthenticatedUser(r)
 
-	id, err := h.GetIntPathParam(r, "id")
+	id, err := utilities.GetIntPathParam(r, "id")
 	if err != nil {
 		utilities.HandleError(w, http.StatusBadRequest, "Missing ID parameter")
 		return
@@ -131,9 +131,9 @@ func (h *Handler) parseTimeBasedPagination(r *http.Request) (int, *time.Time, er
 }
 
 func (h *Handler) GetPostsByUserIdWithTimeOffset(w http.ResponseWriter, r *http.Request) {
-	currentUser := h.getAuthenticatedUser(r)
+	currentUser := utilities.GetAuthenticatedUser(r)
 
-	userId, err := h.GetIntPathParam(r, "id")
+	userId, err := utilities.GetIntPathParam(r, "id")
 	if err != nil {
 		utilities.HandleError(w, http.StatusBadRequest, "Missing ID parameter")
 		return
@@ -155,9 +155,9 @@ func (h *Handler) GetPostsByUserIdWithTimeOffset(w http.ResponseWriter, r *http.
 }
 
 func (h *Handler) AddPostLike(w http.ResponseWriter, r *http.Request) {
-	currentUser := h.getAuthenticatedUser(r)
+	currentUser := utilities.GetAuthenticatedUser(r)
 
-	id, err := h.GetIntPathParam(r, "id")
+	id, err := utilities.GetIntPathParam(r, "id")
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
 		return
@@ -174,9 +174,9 @@ func (h *Handler) AddPostLike(w http.ResponseWriter, r *http.Request) {
 
 // RemovePostLike DELETE /post/{id}/liked endpoint
 func (h *Handler) RemovePostLike(w http.ResponseWriter, r *http.Request) {
-	currentUser := h.getAuthenticatedUser(r)
+	currentUser := utilities.GetAuthenticatedUser(r)
 
-	id, err := h.GetIntPathParam(r, "id")
+	id, err := utilities.GetIntPathParam(r, "id")
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
 		return
@@ -193,9 +193,9 @@ func (h *Handler) RemovePostLike(w http.ResponseWriter, r *http.Request) {
 
 // ReportPost POST /post/{id}/report
 func (h *Handler) ReportPost(w http.ResponseWriter, r *http.Request) {
-	currentUser := h.getAuthenticatedUser(r)
+	currentUser := utilities.GetAuthenticatedUser(r)
 
-	id, err := h.GetIntPathParam(r, "id")
+	id, err := utilities.GetIntPathParam(r, "id")
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
 		return
@@ -211,15 +211,15 @@ func (h *Handler) ReportPost(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) VoteOnPost(w http.ResponseWriter, r *http.Request) {
-	currentUser := h.getAuthenticatedUser(r)
+	currentUser := utilities.GetAuthenticatedUser(r)
 
-	postId, err := h.GetIntPathParam(r, "post_id")
+	postId, err := utilities.GetIntPathParam(r, "post_id")
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
 		return
 	}
 
-	optionIndex, err := h.GetIntPathParam(r, "option_index")
+	optionIndex, err := utilities.GetIntPathParam(r, "option_index")
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
 		return
@@ -235,7 +235,7 @@ func (h *Handler) VoteOnPost(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) GetAllPostsWithTimeOffset(w http.ResponseWriter, r *http.Request) {
-	currentUser := h.getAuthenticatedUser(r)
+	currentUser := utilities.GetAuthenticatedUser(r)
 
 	limit, beforeTimestamp, err := h.parseTimeBasedPagination(r)
 	if err != nil {
@@ -253,7 +253,7 @@ func (h *Handler) GetAllPostsWithTimeOffset(w http.ResponseWriter, r *http.Reque
 }
 
 func (h *Handler) GetPostsByFollowingWithTimeOffset(w http.ResponseWriter, r *http.Request) {
-	currentUser := h.getAuthenticatedUser(r)
+	currentUser := utilities.GetAuthenticatedUser(r)
 
 	limit, beforeTimestamp, err := h.parseTimeBasedPagination(r)
 	if err != nil {
@@ -274,7 +274,7 @@ func (h *Handler) GetPostsByFollowingWithTimeOffset(w http.ResponseWriter, r *ht
 }
 
 func (h *Handler) GetMutualFeedWithTimeOffset(w http.ResponseWriter, r *http.Request) {
-	currentUser := h.getAuthenticatedUser(r)
+	currentUser := utilities.GetAuthenticatedUser(r)
 
 	limit, beforeTimestamp, err := h.parseTimeBasedPagination(r)
 	if err != nil {
@@ -296,9 +296,9 @@ func (h *Handler) GetMutualFeedWithTimeOffset(w http.ResponseWriter, r *http.Req
 
 // PinPost POST /posts/{id}/pin
 func (h *Handler) PinPost(w http.ResponseWriter, r *http.Request) {
-	currentUser := h.getAuthenticatedUser(r)
+	currentUser := utilities.GetAuthenticatedUser(r)
 
-	postId, err := h.GetIntPathParam(r, "id")
+	postId, err := utilities.GetIntPathParam(r, "id")
 	if err != nil {
 		utilities.HandleError(w, http.StatusBadRequest, "Invalid post ID")
 		return
@@ -323,7 +323,7 @@ func (h *Handler) PinPost(w http.ResponseWriter, r *http.Request) {
 
 // UnpinPost DELETE /posts/pin
 func (h *Handler) UnpinPost(w http.ResponseWriter, r *http.Request) {
-	currentUser := h.getAuthenticatedUser(r)
+	currentUser := utilities.GetAuthenticatedUser(r)
 
 	err := h.postService.UnpinPost(r.Context(), *currentUser)
 	if err != nil {
