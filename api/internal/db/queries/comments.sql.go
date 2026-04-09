@@ -108,6 +108,11 @@ AND NOT EXISTS (
     FROM block
     WHERE block.user_id = $2 AND target_user_id = comments.user_id
 )
+AND NOT EXISTS (
+    SELECT 1
+    FROM mute
+    WHERE mute.user_id = $2 AND target_user_id = comments.user_id
+)
 ORDER BY comments.created_at DESC
 `
 
