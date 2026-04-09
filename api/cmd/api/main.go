@@ -64,7 +64,7 @@ func main() {
 	resendApiKey := os.Getenv("RESEND_API_KEY")
 	resendClient := resend.NewClient(resendApiKey)
 
-	s3Client, err := service.NewS3Client()
+	s3Client, err := bucket.NewS3Client()
 	if err != nil {
 		log.Fatalf("failed to initialize s3 client: %v", err)
 	}
@@ -73,7 +73,7 @@ func main() {
 
 	postRepository := repositories.NewDBPostRepository(q)
 	userRepository := repositories.NewDBUserRepository(q)
-	notificationsRepository := repositories.NewDBNotificationRepository(q)
+	notificationsRepository := notification.NewNotificationStore(q)
 	commentRepository := repositories.NewDBCommentRepository(q)
 	likeRepository := repositories.NewDBLikeRepository(q)
 	statsRepository := repositories.NewDBStatsRepository(q)

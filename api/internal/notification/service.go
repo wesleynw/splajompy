@@ -13,14 +13,14 @@ import (
 )
 
 type Service struct {
-	notificationRepository repositories.NotificationRepository
+	notificationRepository NotificationStore
 	postRepository         repositories.PostRepository
 	commentRepository      repositories.CommentRepository
 	userRepository         repositories.UserRepository
 	bucketRepository       bucket.Repository
 }
 
-func NewNotificationService(notificationRepository repositories.NotificationRepository, postRepository repositories.PostRepository, commentRepository repositories.CommentRepository, userRepository repositories.UserRepository, bucketRepository bucket.Repository) *Service {
+func NewNotificationService(notificationRepository NotificationStore, postRepository repositories.PostRepository, commentRepository repositories.CommentRepository, userRepository repositories.UserRepository, bucketRepository bucket.Repository) *Service {
 	return &Service{
 		notificationRepository: notificationRepository,
 		postRepository:         postRepository,

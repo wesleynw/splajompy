@@ -1,4 +1,4 @@
-package repositories
+package notification
 
 import (
 	"context"
@@ -11,27 +11,12 @@ import (
 	"splajompy.com/api/v2/internal/utilities"
 )
 
-type NotificationRepository interface {
-	InsertNotification(ctx context.Context, userId int, postId *int, commentId *int, facets *db.Facets, message string, notificationType models.NotificationType, targetUserId *int) error
-	GetNotificationsForUserId(ctx context.Context, userId int, offset int, limit int) ([]*models.Notification, error)
-	GetUnreadNotificationsForUserId(ctx context.Context, userId int, offset int, limit int) ([]*models.Notification, error)
-	GetNotificationById(ctx context.Context, notificationId int) (*models.Notification, error)
-	MarkNotificationAsRead(ctx context.Context, notificationId int) error
-	MarkAllNotificationsAsReadForUser(ctx context.Context, userId int) error
-	GetUserHasUnreadNotifications(ctx context.Context, userId int) (bool, error)
-	GetUserUnreadNotificationCount(ctx context.Context, userId int) (int, error)
-	GetReadNotificationsForUserIdWithTimeOffset(ctx context.Context, userId int, beforeTime time.Time, limit int, notificationType *string) ([]*models.Notification, error)
-	GetUnreadNotificationsForUserIdWithTimeOffset(ctx context.Context, userId int, beforeTime time.Time, limit int, notificationType *string) ([]*models.Notification, error)
-	FindUnreadLikeNotification(ctx context.Context, userId int, postId int, commentId *int) (*models.Notification, error)
-	DeleteNotificationById(ctx context.Context, notificationId int) error
-}
-
-type DBNotificationRepository struct {
+type NotificationStore struct {
 	querier queries.Querier
 }
 
 // InsertNotification adds a new notification for a user
-func (r DBNotificationRepository) InsertNotification(ctx context.Context, userId int, postId *int, commentId *int, facets *db.Facets, message string, notificationType models.NotificationType, targetUserId *int) error {
+func (r NotificationStore) InsertNotification(ctx context.Context, userId int, postId *int, commentId *int, facets *db.Facets, message string, notificationType models.NotificationType, targetUserId *int) error {
 	params := queries.InsertNotificationParams{
 		UserID:           userId,
 		Message:          message,
@@ -54,7 +39,7 @@ func (r DBNotificationRepository) InsertNotification(ctx context.Context, userId
 }
 
 // GetNotificationsForUserId retrieves notifications for a user.
-func (r DBNotificationRepository) GetNotificationsForUserId(ctx context.Context, userId int, offset int, limit int) ([]*models.Notification, error) {
+func (r NotificationStore) GetNotificationsForUserId(ctx context.Context, userId int, offset int, limit int) ([]*models.Notification, error) {
 	notifications, err := r.querier.GetNotificationsForUserId(ctx, queries.GetNotificationsForUserIdParams{
 		UserID: userId,
 		Offset: offset,
@@ -74,7 +59,7 @@ func (r DBNotificationRepository) GetNotificationsForUserId(ctx context.Context,
 }
 
 // GetNotificationById retrieves a notification by ID
-func (r DBNotificationRepository) GetNotificationById(ctx context.Context, notificationId int) (*models.Notification, error) {
+func (r NotificationStore) GetNotificationById(ctx context.Context, notificationId int) (*models.Notification, error) {
 	notification, err := r.querier.GetNotificationById(ctx, notificationId)
 	if err != nil {
 		return nil, err
@@ -84,27 +69,27 @@ func (r DBNotificationRepository) GetNotificationById(ctx context.Context, notif
 }
 
 // MarkNotificationAsRead marks a notification as read
-func (r DBNotificationRepository) MarkNotificationAsRead(ctx context.Context, notificationId int) error {
+func (r NotificationStore) MarkNotificationAsRead(ctx context.Context, notificationId int) error {
 	return r.querier.MarkNotificationAsReadById(ctx, notificationId)
 }
 
 // MarkAllNotificationsAsReadForUser marks all notifications as read for a user
-func (r DBNotificationRepository) MarkAllNotificationsAsReadForUser(ctx context.Context, userId int) error {
+func (r NotificationStore) MarkAllNotificationsAsReadForUser(ctx context.Context, userId int) error {
 	return r.querier.MarkAllNotificationsAsReadForUser(ctx, userId)
 }
 
 // GetUserHasUnreadNotifications checks if a user has unread notifications
-func (r DBNotificationRepository) GetUserHasUnreadNotifications(ctx context.Context, userId int) (bool, error) {
+func (r NotificationStore) GetUserHasUnreadNotifications(ctx context.Context, userId int) (bool, error) {
 	return r.querier.UserHasUnreadNotifications(ctx, userId)
 }
 
-func (r DBNotificationRepository) GetUserUnreadNotificationCount(ctx context.Context, userId int) (int, error) {
+func (r NotificationStore) GetUserUnreadNotificationCount(ctx context.Context, userId int) (int, error) {
 	count, err := r.querier.GetUserUnreadNotificationCount(ctx, userId)
 	return int(count), err
 }
 
 // GetUnreadNotificationsForUserId retrieves unread notifications for a user with pagination
-func (r DBNotificationRepository) GetUnreadNotificationsForUserId(ctx context.Context, userId int, offset int, limit int) ([]*models.Notification, error) {
+func (r NotificationStore) GetUnreadNotificationsForUserId(ctx context.Context, userId int, offset int, limit int) ([]*models.Notification, error) {
 	notifications, err := r.querier.GetUnreadNotificationsForUserId(ctx, queries.GetUnreadNotificationsForUserIdParams{
 		UserID: userId,
 		Offset: offset,
@@ -124,7 +109,7 @@ func (r DBNotificationRepository) GetUnreadNotificationsForUserId(ctx context.Co
 }
 
 // GetReadNotificationsForUserIdWithTimeOffset retrieves read notifications for a user with time-based pagination
-func (r DBNotificationRepository) GetReadNotificationsForUserIdWithTimeOffset(ctx context.Context, userId int, beforeTime time.Time, limit int, notificationType *string) ([]*models.Notification, error) {
+func (r NotificationStore) GetReadNotificationsForUserIdWithTimeOffset(ctx context.Context, userId int, beforeTime time.Time, limit int, notificationType *string) ([]*models.Notification, error) {
 	params := queries.GetNotificationsForUserIdWithTimeOffsetParams{
 		UserID:    userId,
 		CreatedAt: pgtype.Timestamp{Time: beforeTime, Valid: true},
@@ -153,7 +138,7 @@ func (r DBNotificationRepository) GetReadNotificationsForUserIdWithTimeOffset(ct
 }
 
 // GetUnreadNotificationsForUserIdWithTimeOffset retrieves unread notifications for a user with time-based pagination
-func (r DBNotificationRepository) GetUnreadNotificationsForUserIdWithTimeOffset(ctx context.Context, userId int, beforeTime time.Time, limit int, notificationType *string) ([]*models.Notification, error) {
+func (r NotificationStore) GetUnreadNotificationsForUserIdWithTimeOffset(ctx context.Context, userId int, beforeTime time.Time, limit int, notificationType *string) ([]*models.Notification, error) {
 	params := queries.GetNotificationsForUserIdWithTimeOffsetParams{
 		UserID:    userId,
 		CreatedAt: pgtype.Timestamp{Time: beforeTime, Valid: true},
@@ -182,7 +167,7 @@ func (r DBNotificationRepository) GetUnreadNotificationsForUserIdWithTimeOffset(
 }
 
 // FindUnreadLikeNotification finds an unread like notification for a user
-func (r DBNotificationRepository) FindUnreadLikeNotification(ctx context.Context, userId int, postId int, commentId *int) (*models.Notification, error) {
+func (r NotificationStore) FindUnreadLikeNotification(ctx context.Context, userId int, postId int, commentId *int) (*models.Notification, error) {
 	var notification queries.Notification
 	var err error
 
@@ -207,11 +192,11 @@ func (r DBNotificationRepository) FindUnreadLikeNotification(ctx context.Context
 }
 
 // DeleteNotificationById deletes a notification by its ID
-func (r DBNotificationRepository) DeleteNotificationById(ctx context.Context, notificationId int) error {
+func (r NotificationStore) DeleteNotificationById(ctx context.Context, notificationId int) error {
 	return r.querier.DeleteNotificationById(ctx, notificationId)
 }
 
-// NewDBNotificationRepository creates a new notification repository
-func NewDBNotificationRepository(querier queries.Querier) NotificationRepository {
-	return &DBNotificationRepository{querier: querier}
+// NewNotificationStore creates a new notification repository
+func NewNotificationStore(querier queries.Querier) NotificationStore {
+	return NotificationStore{querier: querier}
 }

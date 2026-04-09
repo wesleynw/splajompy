@@ -11,6 +11,7 @@ import (
 	"splajompy.com/api/v2/internal/bucket"
 	"splajompy.com/api/v2/internal/middleware"
 	"splajompy.com/api/v2/internal/models"
+	"splajompy.com/api/v2/internal/notification"
 	"splajompy.com/api/v2/internal/repositories"
 	"splajompy.com/api/v2/internal/service"
 	"splajompy.com/api/v2/internal/testutil"
@@ -29,7 +30,7 @@ func setupPostTest(t *testing.T) postServiceTestEnv {
 	postRepository := repositories.NewDBPostRepository(testDb.Queries)
 	userRepository := repositories.NewDBUserRepository(testDb.Queries)
 	likeRepository := repositories.NewDBLikeRepository(testDb.Queries)
-	notificationRepository := repositories.NewDBNotificationRepository(testDb.Queries)
+	notificationRepository := notification.NewNotificationStore(testDb.Queries)
 	commentRepository := repositories.NewDBCommentRepository(testDb.Queries)
 	bucketRepository := &bucket.FakeBucketRepository{}
 

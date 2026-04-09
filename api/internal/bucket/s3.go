@@ -1,4 +1,4 @@
-package service
+package bucket
 
 import (
 	"context"

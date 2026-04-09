@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"splajompy.com/api/v2/internal/bucket"
 	"splajompy.com/api/v2/internal/models"
+	"splajompy.com/api/v2/internal/notification"
 	"splajompy.com/api/v2/internal/repositories"
 	"splajompy.com/api/v2/internal/service"
 	"splajompy.com/api/v2/internal/testutil"
@@ -25,7 +26,7 @@ func setupCommentTest(t *testing.T) commentServiceTestEnv {
 
 	commentRepository := repositories.NewDBCommentRepository(testDb.Queries)
 	postRepository := repositories.NewDBPostRepository(testDb.Queries)
-	notificationRepository := repositories.NewDBNotificationRepository(testDb.Queries)
+	notificationRepository := notification.NewNotificationStore(testDb.Queries)
 	userRepository := repositories.NewDBUserRepository(testDb.Queries)
 	likeRepository := repositories.NewDBLikeRepository(testDb.Queries)
 	bucketRepository := &bucket.FakeBucketRepository{}

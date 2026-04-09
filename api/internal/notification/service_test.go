@@ -18,7 +18,7 @@ type notificationTestEnv struct {
 	svc                    *notification.Service
 	commentSvc             *service.CommentService
 	postSvc                *service.PostService
-	notificationRepository repositories.NotificationRepository
+	notificationRepository notification.NotificationStore
 	userRepository         repositories.UserRepository
 	postRepository         repositories.PostRepository
 	commentRepository      repositories.CommentRepository
@@ -30,7 +30,7 @@ func setupNotificationService(t *testing.T) notificationTestEnv {
 
 	commentRepository := repositories.NewDBCommentRepository(testDb.Queries)
 	postRepository := repositories.NewDBPostRepository(testDb.Queries)
-	notificationRepository := repositories.NewDBNotificationRepository(testDb.Queries)
+	notificationRepository := notification.NewNotificationStore(testDb.Queries)
 	userRepository := repositories.NewDBUserRepository(testDb.Queries)
 	likeRepository := repositories.NewDBLikeRepository(testDb.Queries)
 	bucketRepository := &bucket.FakeBucketRepository{}
