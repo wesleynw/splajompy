@@ -9,6 +9,7 @@ import (
 	"github.com/resend/resend-go/v3"
 	"golang.org/x/sync/errgroup"
 	"splajompy.com/api/v2/internal/db"
+	"splajompy.com/api/v2/internal/notification"
 	"splajompy.com/api/v2/internal/templates"
 
 	"splajompy.com/api/v2/internal/models"
@@ -17,11 +18,11 @@ import (
 
 type UserService struct {
 	userRepository         repositories.UserRepository
-	notificationRepository repositories.NotificationRepository
+	notificationRepository notification.NotificationStore
 	emailService           *resend.Client
 }
 
-func NewUserService(userRepository repositories.UserRepository, notificationRepository repositories.NotificationRepository, emailClient *resend.Client) *UserService {
+func NewUserService(userRepository repositories.UserRepository, notificationRepository notification.NotificationStore, emailClient *resend.Client) *UserService {
 	return &UserService{
 		userRepository:         userRepository,
 		notificationRepository: notificationRepository,

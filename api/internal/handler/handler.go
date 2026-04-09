@@ -1,13 +1,10 @@
 package handler
 
 import (
-	"errors"
 	"net/http"
-	"strconv"
 
 	"splajompy.com/api/v2/internal/db/queries"
-	"splajompy.com/api/v2/internal/models"
-	"splajompy.com/api/v2/internal/utilities"
+	"splajompy.com/api/v2/internal/notification"
 
 	"splajompy.com/api/v2/internal/service"
 )
@@ -17,7 +14,7 @@ type Handler struct {
 	postService         *service.PostService
 	commentService      *service.CommentService
 	userService         *service.UserService
-	notificationService *service.NotificationService
+	notificationHandler *notification.Handler
 	authService         *service.AuthService
 	statsService        *service.StatsService
 	wrappedService      *service.WrappedService
@@ -27,7 +24,7 @@ func NewHandler(queries queries.Querier,
 	postService *service.PostService,
 	commentService *service.CommentService,
 	userService *service.UserService,
-	notificationService *service.NotificationService,
+	notificationHandler *notification.Handler,
 	authService *service.AuthService,
 	statsService *service.StatsService,
 	wrappedService *service.WrappedService) *Handler {
@@ -36,7 +33,7 @@ func NewHandler(queries queries.Querier,
 		postService:         postService,
 		commentService:      commentService,
 		userService:         userService,
-		notificationService: notificationService,
+		notificationHandler: notificationHandler,
 		authService:         authService,
 		statsService:        statsService,
 		wrappedService:      wrappedService,
@@ -78,13 +75,7 @@ func (h *Handler) RegisterRoutes(handleFunc func(pattern string, handlerFunc fun
 	handleFuncWithAuth("POST /posts/{id}/pin", h.PinPost)
 	handleFuncWithAuth("DELETE /posts/pin", h.UnpinPost)
 
-	// notifications
-	handleFuncWithAuth("POST /notifications/markRead", h.MarkAllNotificationsAsRead)
-	handleFuncWithAuth("POST /notifications/{id}/markRead", h.MarkNotificationAsReadById)
-	handleFuncWithAuth("GET /notifications/hasUnread", h.HasUnreadNotifications)
-	handleFuncWithAuth("GET /notifications/unreadCount", h.GetUnreadNotificationCount)
-	handleFuncWithAuth("GET /notifications/read/time", h.GetReadNotificationsByUserIdWithTimeOffset)
-	handleFuncWithAuth("GET /notifications/unread/time", h.GetUnreadNotificationsByUserIdWithTimeOffset)
+	h.notificationHandler.RegisterRoutes(handleFuncWithAuth)
 
 	// comments
 	handleFuncWithAuth("POST /post/{post_id}/comment", h.AddCommentToPostById)
@@ -139,21 +130,4 @@ func (h *Handler) RegisterPublicRoutes(handleFunc func(pattern string, handlerFu
 	handleFunc("POST /otc/generate", h.GenerateOTC)
 	handleFunc("POST /otc/verify", h.VerifyOTC)
 	handleFunc("GET /health", h.GetAppHealth)
-}
-
-func (h *Handler) GetIntPathParam(r *http.Request, paramName string) (int, error) {
-	paramString := r.PathValue(paramName)
-	if paramString == "" {
-		return 0, errors.New("missing url parameter")
-	}
-	param, err := strconv.Atoi(paramString)
-	if err != nil {
-		return 0, errors.New("cannot parse url parameter")
-	}
-
-	return param, nil
-}
-
-func (h *Handler) getAuthenticatedUser(r *http.Request) *models.PublicUser {
-	return new(r.Context().Value(utilities.UserContextKey).(models.PublicUser))
 }

@@ -10,9 +10,9 @@ import (
 
 // GetUserById returns a user by id, unless the target user is blocking the current user.
 func (h *Handler) GetUserById(w http.ResponseWriter, r *http.Request) {
-	currentUser := h.getAuthenticatedUser(r)
+	currentUser := utilities.GetAuthenticatedUser(r)
 
-	id, err := h.GetIntPathParam(r, "id")
+	id, err := utilities.GetIntPathParam(r, "id")
 	if err != nil {
 		utilities.HandleError(w, http.StatusBadRequest, "Missing ID parameter")
 		return
@@ -40,7 +40,7 @@ func (h *Handler) GetUserById(w http.ResponseWriter, r *http.Request) {
 
 // SearchUsers takes in a prefix and returns a list of users
 func (h *Handler) SearchUsers(w http.ResponseWriter, r *http.Request) {
-	currentUser := h.getAuthenticatedUser(r)
+	currentUser := utilities.GetAuthenticatedUser(r)
 
 	prefix := r.URL.Query().Get("prefix")
 	if prefix == "" {
@@ -58,9 +58,9 @@ func (h *Handler) SearchUsers(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) FollowUser(w http.ResponseWriter, r *http.Request) {
-	currentUser := h.getAuthenticatedUser(r)
+	currentUser := utilities.GetAuthenticatedUser(r)
 
-	userId, err := h.GetIntPathParam(r, "user_id")
+	userId, err := utilities.GetIntPathParam(r, "user_id")
 	if err != nil {
 		utilities.HandleError(w, http.StatusBadRequest, "Missing ID parameter")
 		return
@@ -76,9 +76,9 @@ func (h *Handler) FollowUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) UnfollowUser(w http.ResponseWriter, r *http.Request) {
-	currentUser := h.getAuthenticatedUser(r)
+	currentUser := utilities.GetAuthenticatedUser(r)
 
-	userId, err := h.GetIntPathParam(r, "user_id")
+	userId, err := utilities.GetIntPathParam(r, "user_id")
 	if err != nil {
 		utilities.HandleError(w, http.StatusBadRequest, "Missing ID parameter")
 		return
@@ -100,7 +100,7 @@ type UpdateProfileRequest struct {
 }
 
 func (h *Handler) UpdateProfile(w http.ResponseWriter, r *http.Request) {
-	currentUser := h.getAuthenticatedUser(r)
+	currentUser := utilities.GetAuthenticatedUser(r)
 
 	var request = new(UpdateProfileRequest)
 	if err := json.NewDecoder(r.Body).Decode(request); err != nil {
@@ -118,9 +118,9 @@ func (h *Handler) UpdateProfile(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) BlockUser(w http.ResponseWriter, r *http.Request) {
-	currentUser := h.getAuthenticatedUser(r)
+	currentUser := utilities.GetAuthenticatedUser(r)
 
-	userId, err := h.GetIntPathParam(r, "user_id")
+	userId, err := utilities.GetIntPathParam(r, "user_id")
 	if err != nil {
 		utilities.HandleError(w, http.StatusBadRequest, "Missing user ID parameter")
 		return
@@ -136,9 +136,9 @@ func (h *Handler) BlockUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) UnblockUser(w http.ResponseWriter, r *http.Request) {
-	currentUser := h.getAuthenticatedUser(r)
+	currentUser := utilities.GetAuthenticatedUser(r)
 
-	userId, err := h.GetIntPathParam(r, "user_id")
+	userId, err := utilities.GetIntPathParam(r, "user_id")
 	if err != nil {
 		utilities.HandleError(w, http.StatusBadRequest, "Missing user ID parameter")
 		return
@@ -154,9 +154,9 @@ func (h *Handler) UnblockUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) MuteUser(w http.ResponseWriter, r *http.Request) {
-	currentUser := h.getAuthenticatedUser(r)
+	currentUser := utilities.GetAuthenticatedUser(r)
 
-	userId, err := h.GetIntPathParam(r, "user_id")
+	userId, err := utilities.GetIntPathParam(r, "user_id")
 	if err != nil {
 		utilities.HandleError(w, http.StatusBadRequest, "Missing user ID parameter")
 		return
@@ -172,9 +172,9 @@ func (h *Handler) MuteUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) UnmuteUser(w http.ResponseWriter, r *http.Request) {
-	currentUser := h.getAuthenticatedUser(r)
+	currentUser := utilities.GetAuthenticatedUser(r)
 
-	userId, err := h.GetIntPathParam(r, "user_id")
+	userId, err := utilities.GetIntPathParam(r, "user_id")
 	if err != nil {
 		utilities.HandleError(w, http.StatusBadRequest, "Missing user ID parameter")
 		return
@@ -191,9 +191,9 @@ func (h *Handler) UnmuteUser(w http.ResponseWriter, r *http.Request) {
 
 // Deprecated in favor of new pagination pattern in
 func (h *Handler) GetFollowersByUserId_old(w http.ResponseWriter, r *http.Request) {
-	currentUser := h.getAuthenticatedUser(r)
+	currentUser := utilities.GetAuthenticatedUser(r)
 
-	userId, err := h.GetIntPathParam(r, "id")
+	userId, err := utilities.GetIntPathParam(r, "id")
 	if err != nil {
 		utilities.HandleError(w, http.StatusBadRequest, "Missing user ID parameter")
 		return
@@ -212,9 +212,9 @@ func (h *Handler) GetFollowersByUserId_old(w http.ResponseWriter, r *http.Reques
 
 // GetFollowingByUserId returns a paginated list of users the given user follows.
 func (h *Handler) GetFollowingByUserId(w http.ResponseWriter, r *http.Request) {
-	currentUser := h.getAuthenticatedUser(r)
+	currentUser := utilities.GetAuthenticatedUser(r)
 
-	userId, err := h.GetIntPathParam(r, "id")
+	userId, err := utilities.GetIntPathParam(r, "id")
 	if err != nil {
 		utilities.HandleError(w, http.StatusBadRequest, "Missing user ID parameter")
 		return
@@ -237,9 +237,9 @@ func (h *Handler) GetFollowingByUserId(w http.ResponseWriter, r *http.Request) {
 
 // GetFollowingByUserIdV3 returns a paginated list of users the given user follows, with a cursor for the next page.
 func (h *Handler) GetFollowingByUserIdV3(w http.ResponseWriter, r *http.Request) {
-	currentUser := h.getAuthenticatedUser(r)
+	currentUser := utilities.GetAuthenticatedUser(r)
 
-	userId, err := h.GetIntPathParam(r, "id")
+	userId, err := utilities.GetIntPathParam(r, "id")
 	if err != nil {
 		utilities.HandleError(w, http.StatusBadRequest, "Missing user ID parameter")
 		return
@@ -261,9 +261,9 @@ func (h *Handler) GetFollowingByUserIdV3(w http.ResponseWriter, r *http.Request)
 }
 
 func (h *Handler) GetFollowingByUserId_old(w http.ResponseWriter, r *http.Request) {
-	currentUser := h.getAuthenticatedUser(r)
+	currentUser := utilities.GetAuthenticatedUser(r)
 
-	userId, err := h.GetIntPathParam(r, "id")
+	userId, err := utilities.GetIntPathParam(r, "id")
 	if err != nil {
 		utilities.HandleError(w, http.StatusBadRequest, "Missing user ID parameter")
 		return
@@ -282,9 +282,9 @@ func (h *Handler) GetFollowingByUserId_old(w http.ResponseWriter, r *http.Reques
 
 // Deprecated: prefer GetMutualsByUserId
 func (h *Handler) GetMutualsByUserId_old(w http.ResponseWriter, r *http.Request) {
-	currentUser := h.getAuthenticatedUser(r)
+	currentUser := utilities.GetAuthenticatedUser(r)
 
-	userId, err := h.GetIntPathParam(r, "id")
+	userId, err := utilities.GetIntPathParam(r, "id")
 	if err != nil {
 		utilities.HandleError(w, http.StatusBadRequest, "Missing user ID parameter")
 		return
@@ -302,9 +302,9 @@ func (h *Handler) GetMutualsByUserId_old(w http.ResponseWriter, r *http.Request)
 }
 
 func (h Handler) GetMutualsByUserId(w http.ResponseWriter, r *http.Request) {
-	user := h.getAuthenticatedUser(r)
+	user := utilities.GetAuthenticatedUser(r)
 
-	targetUserId, err := h.GetIntPathParam(r, "id")
+	targetUserId, err := utilities.GetIntPathParam(r, "id")
 	if err != nil {
 		utilities.HandleError(w, http.StatusBadRequest, "Missing user ID parameter")
 		return
@@ -326,9 +326,9 @@ func (h Handler) GetMutualsByUserId(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h Handler) GetMutualsByUserIdV3(w http.ResponseWriter, r *http.Request) {
-	user := h.getAuthenticatedUser(r)
+	user := utilities.GetAuthenticatedUser(r)
 
-	targetUserId, err := h.GetIntPathParam(r, "id")
+	targetUserId, err := utilities.GetIntPathParam(r, "id")
 	if err != nil {
 		utilities.HandleError(w, http.StatusBadRequest, "Missing user ID parameter")
 		return
@@ -354,7 +354,7 @@ type RequestFeaturePayload struct {
 }
 
 func (h *Handler) RequestFeature(w http.ResponseWriter, r *http.Request) {
-	currentUser := h.getAuthenticatedUser(r)
+	currentUser := utilities.GetAuthenticatedUser(r)
 
 	var payload = new(RequestFeaturePayload)
 	if err := json.NewDecoder(r.Body).Decode(payload); err != nil {
@@ -377,13 +377,13 @@ func (h *Handler) RequestFeature(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h Handler) AddUserToCloseFriendsList(w http.ResponseWriter, r *http.Request) {
-	targetUserId, err := h.GetIntPathParam(r, "id")
+	targetUserId, err := utilities.GetIntPathParam(r, "id")
 	if err != nil {
 		utilities.HandleError(w, http.StatusBadRequest, "Missing ID parameter")
 		return
 	}
 
-	user := h.getAuthenticatedUser(r)
+	user := utilities.GetAuthenticatedUser(r)
 
 	err = h.userService.AddUserToCloseFriendsList(r.Context(), *user, targetUserId)
 	if err != nil {
@@ -395,13 +395,13 @@ func (h Handler) AddUserToCloseFriendsList(w http.ResponseWriter, r *http.Reques
 }
 
 func (h Handler) RemoveUserFromCloseFriendsList(w http.ResponseWriter, r *http.Request) {
-	targetUserId, err := h.GetIntPathParam(r, "id")
+	targetUserId, err := utilities.GetIntPathParam(r, "id")
 	if err != nil {
 		utilities.HandleError(w, http.StatusBadRequest, "Missing ID parameter")
 		return
 	}
 
-	user := h.getAuthenticatedUser(r)
+	user := utilities.GetAuthenticatedUser(r)
 
 	err = h.userService.RemoveUserFromCloseFriendsList(r.Context(), *user, targetUserId)
 	if err != nil {
@@ -419,7 +419,7 @@ func (h Handler) ListUserCloseFriends(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user := h.getAuthenticatedUser(r)
+	user := utilities.GetAuthenticatedUser(r)
 
 	result, err := h.userService.GetCloseFriendsByUserId(r.Context(), *user, limit, before)
 	if err != nil {
@@ -437,7 +437,7 @@ func (h Handler) ListUserCloseFriendsV2(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	user := h.getAuthenticatedUser(r)
+	user := utilities.GetAuthenticatedUser(r)
 
 	result, err := h.userService.GetCloseFriendsByUserId(r.Context(), *user, limit, before)
 	if err != nil {

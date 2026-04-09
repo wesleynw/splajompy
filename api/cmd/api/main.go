@@ -11,7 +11,9 @@ import (
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	semconv "go.opentelemetry.io/otel/semconv/v1.39.0"
 	"go.opentelemetry.io/otel/trace"
+	"splajompy.com/api/v2/internal/bucket"
 	"splajompy.com/api/v2/internal/db/queries"
+	"splajompy.com/api/v2/internal/notification"
 	"splajompy.com/api/v2/internal/repositories"
 	"splajompy.com/api/v2/internal/utilities"
 
@@ -62,16 +64,16 @@ func main() {
 	resendApiKey := os.Getenv("RESEND_API_KEY")
 	resendClient := resend.NewClient(resendApiKey)
 
-	s3Client, err := service.NewS3Client()
+	s3Client, err := bucket.NewS3Client()
 	if err != nil {
 		log.Fatalf("failed to initialize s3 client: %v", err)
 	}
 
-	bucketRepository := repositories.NewS3BucketRepository(s3Client)
+	bucketRepository := bucket.NewS3BucketRepository(s3Client)
 
 	postRepository := repositories.NewDBPostRepository(q)
 	userRepository := repositories.NewDBUserRepository(q)
-	notificationsRepository := repositories.NewDBNotificationRepository(q)
+	notificationsRepository := notification.NewNotificationStore(q)
 	commentRepository := repositories.NewDBCommentRepository(q)
 	likeRepository := repositories.NewDBLikeRepository(q)
 	statsRepository := repositories.NewDBStatsRepository(q)
@@ -79,12 +81,13 @@ func main() {
 	postService := service.NewPostService(postRepository, userRepository, likeRepository, notificationsRepository, bucketRepository, resendClient)
 	commentService := service.NewCommentService(commentRepository, postRepository, notificationsRepository, userRepository, likeRepository, bucketRepository)
 	userService := service.NewUserService(userRepository, notificationsRepository, resendClient)
-	notificationService := service.NewNotificationService(notificationsRepository, postRepository, commentRepository, userRepository, bucketRepository)
+	notificationService := notification.NewNotificationService(notificationsRepository, postRepository, commentRepository, userRepository, bucketRepository)
+	notificationHandler := notification.NewHandler(notificationService)
 	authManager := service.NewAuthService(userRepository, postRepository, bucketRepository, resendClient)
 	statsService := service.NewStatsService(statsRepository)
 	wrappedService := service.NewWrappedService(q, postService)
 
-	h := handler.NewHandler(q, postService, commentService, userService, notificationService, authManager, statsService, wrappedService)
+	h := handler.NewHandler(q, postService, commentService, userService, notificationHandler, authManager, statsService, wrappedService)
 
 	mux := http.NewServeMux()
 

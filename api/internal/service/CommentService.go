@@ -7,28 +7,30 @@ import (
 	"time"
 
 	"golang.org/x/mod/semver"
+	"splajompy.com/api/v2/internal/bucket"
 	"splajompy.com/api/v2/internal/middleware"
 	"splajompy.com/api/v2/internal/models"
+	"splajompy.com/api/v2/internal/notification"
 	"splajompy.com/api/v2/internal/repositories"
 )
 
 type CommentService struct {
 	commentRepository      repositories.CommentRepository
 	postRepository         repositories.PostRepository
-	notificationRepository repositories.NotificationRepository
+	notificationRepository notification.NotificationStore
 	userRepository         repositories.UserRepository
 	likeRepository         repositories.LikeRepository
-	bucketRepository       repositories.BucketRepository
+	bucketRepository       bucket.Repository
 }
 
 // NewCommentService creates a new comment service instance
 func NewCommentService(
 	commentRepo repositories.CommentRepository,
 	postRepository repositories.PostRepository,
-	notificationRepository repositories.NotificationRepository,
+	notificationRepository notification.NotificationStore,
 	userRepository repositories.UserRepository,
 	likeRepository repositories.LikeRepository,
-	bucketRepository repositories.BucketRepository,
+	bucketRepository bucket.Repository,
 ) *CommentService {
 	return &CommentService{
 		commentRepository:      commentRepo,

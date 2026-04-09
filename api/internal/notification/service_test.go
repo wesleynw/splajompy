@@ -1,4 +1,4 @@
-package service_test
+package notification_test
 
 import (
 	"testing"
@@ -6,17 +6,19 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"splajompy.com/api/v2/internal/bucket"
 	"splajompy.com/api/v2/internal/models"
+	"splajompy.com/api/v2/internal/notification"
 	"splajompy.com/api/v2/internal/repositories"
 	"splajompy.com/api/v2/internal/service"
 	"splajompy.com/api/v2/internal/testutil"
 )
 
 type notificationTestEnv struct {
-	svc                    service.NotificationService
+	svc                    *notification.Service
 	commentSvc             *service.CommentService
 	postSvc                *service.PostService
-	notificationRepository repositories.NotificationRepository
+	notificationRepository notification.NotificationStore
 	userRepository         repositories.UserRepository
 	postRepository         repositories.PostRepository
 	commentRepository      repositories.CommentRepository
@@ -28,17 +30,17 @@ func setupNotificationService(t *testing.T) notificationTestEnv {
 
 	commentRepository := repositories.NewDBCommentRepository(testDb.Queries)
 	postRepository := repositories.NewDBPostRepository(testDb.Queries)
-	notificationRepository := repositories.NewDBNotificationRepository(testDb.Queries)
+	notificationRepository := notification.NewNotificationStore(testDb.Queries)
 	userRepository := repositories.NewDBUserRepository(testDb.Queries)
 	likeRepository := repositories.NewDBLikeRepository(testDb.Queries)
-	bucketRepository := &fakeBucketRepository{}
+	bucketRepository := &bucket.FakeBucketRepository{}
 
-	notificationService := service.NewNotificationService(notificationRepository, postRepository, commentRepository, userRepository, bucketRepository)
+	notificationService := notification.NewNotificationService(notificationRepository, postRepository, commentRepository, userRepository, bucketRepository)
 	commentService := service.NewCommentService(commentRepository, postRepository, notificationRepository, userRepository, likeRepository, bucketRepository)
 	postService := service.NewPostService(postRepository, userRepository, likeRepository, notificationRepository, bucketRepository, nil)
 
 	return notificationTestEnv{
-		svc:                    *notificationService,
+		svc:                    notificationService,
 		commentSvc:             commentService,
 		postSvc:                postService,
 		notificationRepository: notificationRepository,

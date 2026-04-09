@@ -144,7 +144,7 @@ func (h *Handler) DeleteAccount(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user := h.getAuthenticatedUser(r)
+	user := utilities.GetAuthenticatedUser(r)
 
 	success, err := h.authService.VerifyPassword(r.Context(), user.Username, request.Password)
 	if err != nil || !success {

@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"splajompy.com/api/v2/internal/bucket"
 	"splajompy.com/api/v2/internal/repositories"
 	"splajompy.com/api/v2/internal/service"
 	"splajompy.com/api/v2/internal/testutil"
@@ -21,7 +22,7 @@ func setupAuthServiceTest(t *testing.T) authServiceTestEnv {
 
 	postRepository := repositories.NewDBPostRepository(testDb.Queries)
 	userRepository := repositories.NewDBUserRepository(testDb.Queries)
-	bucketRepository := &fakeBucketRepository{}
+	bucketRepository := &bucket.FakeBucketRepository{}
 
 	svc := service.NewAuthService(userRepository, postRepository, bucketRepository, nil)
 

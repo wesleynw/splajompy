@@ -7,7 +7,7 @@ import (
 )
 
 func (h *Handler) WrappedPrecomputation(w http.ResponseWriter, r *http.Request) {
-	currentUser := h.getAuthenticatedUser(r)
+	currentUser := utilities.GetAuthenticatedUser(r)
 	if currentUser.UserID != 6 { // me
 		utilities.HandleError(w, http.StatusUnauthorized, "you're not allowed to do this")
 		return
@@ -23,7 +23,7 @@ func (h *Handler) WrappedPrecomputation(w http.ResponseWriter, r *http.Request) 
 }
 
 func (h *Handler) GetIsUserEligibleForWrapped(w http.ResponseWriter, r *http.Request) {
-	currentUser := h.getAuthenticatedUser(r)
+	currentUser := utilities.GetAuthenticatedUser(r)
 
 	isEligible, err := h.wrappedService.IsUserEligibleForWrapped(r.Context(), currentUser.UserID)
 	if err != nil {
@@ -35,7 +35,7 @@ func (h *Handler) GetIsUserEligibleForWrapped(w http.ResponseWriter, r *http.Req
 }
 
 func (h *Handler) GetWrappedActivityData(w http.ResponseWriter, r *http.Request) {
-	currentUser := h.getAuthenticatedUser(r)
+	currentUser := utilities.GetAuthenticatedUser(r)
 
 	data, err := h.wrappedService.GetPrecomputedWrappedDataByUserId(r.Context(), currentUser.UserID)
 	if err != nil {

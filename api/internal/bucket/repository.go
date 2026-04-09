@@ -1,4 +1,4 @@
-package repositories
+package bucket
 
 import (
 	"context"
@@ -15,7 +15,7 @@ import (
 	"splajompy.com/api/v2/internal/models"
 )
 
-type BucketRepository interface {
+type Repository interface {
 	CopyObject(ctx context.Context, sourceKey, destinationKey string) error
 	DeleteObject(ctx context.Context, key string) error
 	DeleteObjects(ctx context.Context, keys []string) error

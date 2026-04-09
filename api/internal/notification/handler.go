@@ -1,4 +1,4 @@
-package handler
+package notification
 
 import (
 	"net/http"
@@ -10,11 +10,27 @@ import (
 	"splajompy.com/api/v2/internal/utilities"
 )
 
-// MarkAllNotificationsAsRead POST /notifications/markRead
-func (h *Handler) MarkAllNotificationsAsRead(w http.ResponseWriter, r *http.Request) {
-	currentUser := h.getAuthenticatedUser(r)
+type Handler struct {
+	svc *Service
+}
 
-	err := h.notificationService.MarkAllNotificationsAsReadForUserId(r.Context(), *currentUser)
+func NewHandler(svc *Service) *Handler {
+	return &Handler{svc: svc}
+}
+
+func (h *Handler) RegisterRoutes(withAuth func(string, func(http.ResponseWriter, *http.Request))) {
+	withAuth("POST /notifications/markRead", h.MarkAllNotificationsAsRead)
+	withAuth("POST /notifications/{id}/markRead", h.MarkNotificationAsReadById)
+	withAuth("GET /notifications/hasUnread", h.HasUnreadNotifications)
+	withAuth("GET /notifications/unreadCount", h.GetUnreadNotificationCount)
+	withAuth("GET /notifications/read/time", h.GetReadNotificationsByUserIdWithTimeOffset)
+	withAuth("GET /notifications/unread/time", h.GetUnreadNotificationsByUserIdWithTimeOffset)
+}
+
+func (h *Handler) MarkAllNotificationsAsRead(w http.ResponseWriter, r *http.Request) {
+	currentUser := utilities.GetAuthenticatedUser(r)
+
+	err := h.svc.MarkAllNotificationsAsReadForUserId(r.Context(), *currentUser)
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
 		return
@@ -23,17 +39,16 @@ func (h *Handler) MarkAllNotificationsAsRead(w http.ResponseWriter, r *http.Requ
 	utilities.HandleEmptySuccess(w)
 }
 
-// MarkNotificationAsReadById POST /notification/{id}/markRead
 func (h *Handler) MarkNotificationAsReadById(w http.ResponseWriter, r *http.Request) {
-	currentUser := h.getAuthenticatedUser(r)
+	currentUser := utilities.GetAuthenticatedUser(r)
 
-	id, err := h.GetIntPathParam(r, "id")
+	id, err := utilities.GetIntPathParam(r, "id")
 	if err != nil {
 		utilities.HandleError(w, http.StatusBadRequest, "Missing parameter")
 		return
 	}
 
-	err = h.notificationService.MarkNotificationAsReadById(r.Context(), *currentUser, id)
+	err = h.svc.MarkNotificationAsReadById(r.Context(), *currentUser, id)
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
 		return
@@ -42,11 +57,10 @@ func (h *Handler) MarkNotificationAsReadById(w http.ResponseWriter, r *http.Requ
 	utilities.HandleEmptySuccess(w)
 }
 
-// HasUnreadNotifications GET /notifications/hasUnread
 func (h *Handler) HasUnreadNotifications(w http.ResponseWriter, r *http.Request) {
-	currentUser := h.getAuthenticatedUser(r)
+	currentUser := utilities.GetAuthenticatedUser(r)
 
-	hasNotifications, err := h.notificationService.UserHasUnreadNotifications(r.Context(), *currentUser)
+	hasNotifications, err := h.svc.UserHasUnreadNotifications(r.Context(), *currentUser)
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
 		return
@@ -56,9 +70,9 @@ func (h *Handler) HasUnreadNotifications(w http.ResponseWriter, r *http.Request)
 }
 
 func (h *Handler) GetUnreadNotificationCount(w http.ResponseWriter, r *http.Request) {
-	currentUser := h.getAuthenticatedUser(r)
+	currentUser := utilities.GetAuthenticatedUser(r)
 
-	count, err := h.notificationService.GetUserUnreadNotificationCount(r.Context(), *currentUser)
+	count, err := h.svc.GetUserUnreadNotificationCount(r.Context(), *currentUser)
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
 		return
@@ -67,9 +81,8 @@ func (h *Handler) GetUnreadNotificationCount(w http.ResponseWriter, r *http.Requ
 	utilities.HandleSuccess(w, count)
 }
 
-// GetReadNotificationsByUserIdWithTimeOffset GET /notifications/read/time
 func (h *Handler) GetReadNotificationsByUserIdWithTimeOffset(w http.ResponseWriter, r *http.Request) {
-	currentUser := h.getAuthenticatedUser(r)
+	currentUser := utilities.GetAuthenticatedUser(r)
 
 	beforeTimeStr := r.URL.Query().Get("before_time")
 	var beforeTime time.Time
@@ -96,7 +109,7 @@ func (h *Handler) GetReadNotificationsByUserIdWithTimeOffset(w http.ResponseWrit
 		notificationType = &notifTypeStr
 	}
 
-	notifications, err := h.notificationService.GetReadNotificationsByUserIdWithTimeOffset(r.Context(), *currentUser, beforeTime, limit, notificationType)
+	notifications, err := h.svc.GetReadNotificationsByUserIdWithTimeOffset(r.Context(), *currentUser, beforeTime, limit, notificationType)
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
 		return
@@ -105,9 +118,9 @@ func (h *Handler) GetReadNotificationsByUserIdWithTimeOffset(w http.ResponseWrit
 	utilities.HandleSuccess(w, notifications)
 }
 
-// GetUnreadNotificationsByUserIdWithTimeOffset GET /notifications/unread/time
 func (h *Handler) GetUnreadNotificationsByUserIdWithTimeOffset(w http.ResponseWriter, r *http.Request) {
-	currentUser := h.getAuthenticatedUser(r)
+	currentUser := utilities.GetAuthenticatedUser(r)
+
 	span := trace.SpanFromContext(r.Context())
 
 	beforeTimeStr := r.URL.Query().Get("before_time")
@@ -137,7 +150,7 @@ func (h *Handler) GetUnreadNotificationsByUserIdWithTimeOffset(w http.ResponseWr
 		notificationType = &notifTypeStr
 	}
 
-	notifications, err := h.notificationService.GetUnreadNotificationsByUserIdWithTimeOffset(r.Context(), *currentUser, beforeTime, limit, notificationType)
+	notifications, err := h.svc.GetUnreadNotificationsByUserIdWithTimeOffset(r.Context(), *currentUser, beforeTime, limit, notificationType)
 	if err != nil {
 		span.SetStatus(codes.Error, err.Error())
 		span.RecordError(err)
