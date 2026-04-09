@@ -1,4 +1,4 @@
-package service
+package notification
 
 import (
 	"context"
@@ -11,7 +11,7 @@ import (
 	"splajompy.com/api/v2/internal/models"
 )
 
-type NotificationService struct {
+type Service struct {
 	notificationRepository repositories.NotificationRepository
 	postRepository         repositories.PostRepository
 	commentRepository      repositories.CommentRepository
@@ -19,8 +19,8 @@ type NotificationService struct {
 	bucketRepository       repositories.BucketRepository
 }
 
-func NewNotificationService(notificationRepository repositories.NotificationRepository, postRepository repositories.PostRepository, commentRepository repositories.CommentRepository, userRepository repositories.UserRepository, bucketRepository repositories.BucketRepository) *NotificationService {
-	return &NotificationService{
+func NewNotificationService(notificationRepository repositories.NotificationRepository, postRepository repositories.PostRepository, commentRepository repositories.CommentRepository, userRepository repositories.UserRepository, bucketRepository repositories.BucketRepository) *Service {
+	return &Service{
 		notificationRepository: notificationRepository,
 		postRepository:         postRepository,
 		commentRepository:      commentRepository,
@@ -29,7 +29,7 @@ func NewNotificationService(notificationRepository repositories.NotificationRepo
 	}
 }
 
-func (s *NotificationService) MarkNotificationAsReadById(ctx context.Context, user models.PublicUser, notificationId int) error {
+func (s *Service) MarkNotificationAsReadById(ctx context.Context, user models.PublicUser, notificationId int) error {
 	notification, err := s.notificationRepository.GetNotificationById(ctx, notificationId)
 	if err != nil {
 		return errors.New("unable to fetch notification")
@@ -46,19 +46,19 @@ func (s *NotificationService) MarkNotificationAsReadById(ctx context.Context, us
 	return s.notificationRepository.MarkNotificationAsRead(ctx, notificationId)
 }
 
-func (s *NotificationService) MarkAllNotificationsAsReadForUserId(ctx context.Context, user models.PublicUser) error {
+func (s *Service) MarkAllNotificationsAsReadForUserId(ctx context.Context, user models.PublicUser) error {
 	return s.notificationRepository.MarkAllNotificationsAsReadForUser(ctx, user.UserID)
 }
 
-func (s *NotificationService) UserHasUnreadNotifications(ctx context.Context, user models.PublicUser) (bool, error) {
+func (s *Service) UserHasUnreadNotifications(ctx context.Context, user models.PublicUser) (bool, error) {
 	return s.notificationRepository.GetUserHasUnreadNotifications(ctx, user.UserID)
 }
 
-func (s *NotificationService) GetUserUnreadNotificationCount(ctx context.Context, user models.PublicUser) (int, error) {
+func (s *Service) GetUserUnreadNotificationCount(ctx context.Context, user models.PublicUser) (int, error) {
 	return s.notificationRepository.GetUserUnreadNotificationCount(ctx, user.UserID)
 }
 
-func (s *NotificationService) GetReadNotificationsByUserIdWithTimeOffset(ctx context.Context, user models.PublicUser, beforeTime time.Time, limit int, notificationType *string) ([]models.DetailedNotification, error) {
+func (s *Service) GetReadNotificationsByUserIdWithTimeOffset(ctx context.Context, user models.PublicUser, beforeTime time.Time, limit int, notificationType *string) ([]models.DetailedNotification, error) {
 	notifications, err := s.notificationRepository.GetReadNotificationsForUserIdWithTimeOffset(ctx, user.UserID, beforeTime, limit, notificationType)
 	if err != nil {
 		return nil, errors.New("unable to retrieve read notifications")
@@ -71,7 +71,7 @@ func (s *NotificationService) GetReadNotificationsByUserIdWithTimeOffset(ctx con
 	return s.buildDetailedNotifications(ctx, user.UserID, notifications)
 }
 
-func (s *NotificationService) GetUnreadNotificationsByUserIdWithTimeOffset(ctx context.Context, user models.PublicUser, beforeTime time.Time, limit int, notificationType *string) ([]models.DetailedNotification, error) {
+func (s *Service) GetUnreadNotificationsByUserIdWithTimeOffset(ctx context.Context, user models.PublicUser, beforeTime time.Time, limit int, notificationType *string) ([]models.DetailedNotification, error) {
 	notifications, err := s.notificationRepository.GetUnreadNotificationsForUserIdWithTimeOffset(ctx, user.UserID, beforeTime, limit, notificationType)
 	if err != nil {
 		return nil, errors.New("unable to retrieve unread notifications")
@@ -84,7 +84,7 @@ func (s *NotificationService) GetUnreadNotificationsByUserIdWithTimeOffset(ctx c
 	return s.buildDetailedNotifications(ctx, user.UserID, notifications)
 }
 
-func (s *NotificationService) buildDetailedNotifications(ctx context.Context, currentUserId int, notifications []*models.Notification) ([]models.DetailedNotification, error) {
+func (s *Service) buildDetailedNotifications(ctx context.Context, currentUserId int, notifications []*models.Notification) ([]models.DetailedNotification, error) {
 	detailedNotifications := make([]models.DetailedNotification, 0, len(notifications))
 
 	for _, notification := range notifications {

@@ -12,6 +12,7 @@ import (
 	semconv "go.opentelemetry.io/otel/semconv/v1.39.0"
 	"go.opentelemetry.io/otel/trace"
 	"splajompy.com/api/v2/internal/db/queries"
+	"splajompy.com/api/v2/internal/notification"
 	"splajompy.com/api/v2/internal/repositories"
 	"splajompy.com/api/v2/internal/utilities"
 
@@ -79,12 +80,13 @@ func main() {
 	postService := service.NewPostService(postRepository, userRepository, likeRepository, notificationsRepository, bucketRepository, resendClient)
 	commentService := service.NewCommentService(commentRepository, postRepository, notificationsRepository, userRepository, likeRepository, bucketRepository)
 	userService := service.NewUserService(userRepository, notificationsRepository, resendClient)
-	notificationService := service.NewNotificationService(notificationsRepository, postRepository, commentRepository, userRepository, bucketRepository)
+	notificationService := notification.NewNotificationService(notificationsRepository, postRepository, commentRepository, userRepository, bucketRepository)
+	notificationHandler := notification.NewHandler(notificationService)
 	authManager := service.NewAuthService(userRepository, postRepository, bucketRepository, resendClient)
 	statsService := service.NewStatsService(statsRepository)
 	wrappedService := service.NewWrappedService(q, postService)
 
-	h := handler.NewHandler(q, postService, commentService, userService, notificationService, authManager, statsService, wrappedService)
+	h := handler.NewHandler(q, postService, commentService, userService, notificationHandler, authManager, statsService, wrappedService)
 
 	mux := http.NewServeMux()
 

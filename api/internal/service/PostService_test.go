@@ -8,31 +8,13 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"splajompy.com/api/v2/internal/bucket"
 	"splajompy.com/api/v2/internal/middleware"
 	"splajompy.com/api/v2/internal/models"
 	"splajompy.com/api/v2/internal/repositories"
 	"splajompy.com/api/v2/internal/service"
 	"splajompy.com/api/v2/internal/testutil"
 )
-
-type fakeBucketRepository struct{}
-
-func (f *fakeBucketRepository) CopyObject(_ context.Context, _, _ string) error   { return nil }
-func (f *fakeBucketRepository) DeleteObject(_ context.Context, _ string) error    { return nil }
-func (f *fakeBucketRepository) DeleteObjects(_ context.Context, _ []string) error { return nil }
-func (f *fakeBucketRepository) GetPresignedPutObject(_ context.Context, _ int, _, _ *string) (string, string, error) {
-	return "", "", nil
-}
-func (f *fakeBucketRepository) GetPresignedGetObject(_ context.Context, key string) (*string, error) {
-	return &key, nil
-}
-func (f *fakeBucketRepository) PublishStagedImages(_ context.Context, _ int, _ string, _ int, imageKeymap map[int]models.ImageData) (map[int]string, error) {
-	keys := make(map[int]string, len(imageKeymap))
-	for i, data := range imageKeymap {
-		keys[i] = data.S3Key
-	}
-	return keys, nil
-}
 
 type postServiceTestEnv struct {
 	svc            *service.PostService
@@ -49,7 +31,7 @@ func setupPostTest(t *testing.T) postServiceTestEnv {
 	likeRepository := repositories.NewDBLikeRepository(testDb.Queries)
 	notificationRepository := repositories.NewDBNotificationRepository(testDb.Queries)
 	commentRepository := repositories.NewDBCommentRepository(testDb.Queries)
-	bucketRepository := &fakeBucketRepository{}
+	bucketRepository := &bucket.FakeBucketRepository{}
 
 	svc := service.NewPostService(postRepository, userRepository, likeRepository, notificationRepository, bucketRepository, nil)
 	commentSvc := service.NewCommentService(commentRepository, postRepository, notificationRepository, userRepository, likeRepository, bucketRepository)
