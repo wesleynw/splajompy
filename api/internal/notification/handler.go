@@ -27,7 +27,6 @@ func (h *Handler) RegisterRoutes(withAuth func(string, func(http.ResponseWriter,
 	withAuth("GET /notifications/unread/time", h.GetUnreadNotificationsByUserIdWithTimeOffset)
 }
 
-// MarkAllNotificationsAsRead POST /notifications/markRead
 func (h *Handler) MarkAllNotificationsAsRead(w http.ResponseWriter, r *http.Request) {
 	currentUser := utilities.GetAuthenticatedUser(r)
 
@@ -40,7 +39,6 @@ func (h *Handler) MarkAllNotificationsAsRead(w http.ResponseWriter, r *http.Requ
 	utilities.HandleEmptySuccess(w)
 }
 
-// MarkNotificationAsReadById POST /notification/{id}/markRead
 func (h *Handler) MarkNotificationAsReadById(w http.ResponseWriter, r *http.Request) {
 	currentUser := utilities.GetAuthenticatedUser(r)
 
@@ -59,7 +57,6 @@ func (h *Handler) MarkNotificationAsReadById(w http.ResponseWriter, r *http.Requ
 	utilities.HandleEmptySuccess(w)
 }
 
-// HasUnreadNotifications GET /notifications/hasUnread
 func (h *Handler) HasUnreadNotifications(w http.ResponseWriter, r *http.Request) {
 	currentUser := utilities.GetAuthenticatedUser(r)
 
@@ -84,7 +81,6 @@ func (h *Handler) GetUnreadNotificationCount(w http.ResponseWriter, r *http.Requ
 	utilities.HandleSuccess(w, count)
 }
 
-// GetReadNotificationsByUserIdWithTimeOffset GET /notifications/read/time
 func (h *Handler) GetReadNotificationsByUserIdWithTimeOffset(w http.ResponseWriter, r *http.Request) {
 	currentUser := utilities.GetAuthenticatedUser(r)
 
@@ -122,7 +118,6 @@ func (h *Handler) GetReadNotificationsByUserIdWithTimeOffset(w http.ResponseWrit
 	utilities.HandleSuccess(w, notifications)
 }
 
-// GetUnreadNotificationsByUserIdWithTimeOffset GET /notifications/unread/time
 func (h *Handler) GetUnreadNotificationsByUserIdWithTimeOffset(w http.ResponseWriter, r *http.Request) {
 	currentUser := utilities.GetAuthenticatedUser(r)
 
