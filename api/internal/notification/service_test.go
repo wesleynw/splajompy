@@ -306,6 +306,7 @@ func TestGetNotifications_MentionUserInNewlyUnreachablePost(t *testing.T) {
 	assert.Len(t, notifications, 1)
 
 	err = env.userRepository.RemoveUserRelationship(t.Context(), user0.UserID, user1.UserID)
+	require.NoError(t, err)
 
 	notifications, err = env.svc.GetUnreadNotificationsByUserIdWithTimeOffset(t.Context(), user1, time.Now().UTC(), 10, nil)
 	require.NoError(t, err)
