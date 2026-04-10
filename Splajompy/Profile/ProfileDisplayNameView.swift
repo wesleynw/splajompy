@@ -159,6 +159,7 @@ struct ProfileDisplayNameView: View {
         let fontChoice = ProfileFontChoiceEnum(rawValue: fontChoiceId)
       {
         Text(fontChoice.fontNormalized(for: name, isLargeTitle: isLargeTitle))
+          .fontDesign(nil)  // .serif is propagated from parent views
           .lineLimit(1)
       } else {
         Text(name)

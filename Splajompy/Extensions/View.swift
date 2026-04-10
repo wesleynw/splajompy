@@ -17,12 +17,10 @@ extension View {
     self
       .navigationTitle(title)
       #if os(iOS)
-        .navigationBarTitleDisplayMode(.inline)
         .toolbar {
           ToolbarItem(placement: .principal) {
             Text(title)
             .font(.headline)
-            .fontDesign(.serif)
           }
         }
       #endif
