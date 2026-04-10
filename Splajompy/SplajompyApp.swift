@@ -38,7 +38,6 @@ struct SplajompyApp: App {
       }
       .environment(authManager)
       .preferredColorScheme(colorScheme)
-      .fontDesign(.serif)
     }
     #if os(macOS)
       .defaultSize(width: 1250, height: 800)
