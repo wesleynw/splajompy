@@ -89,7 +89,7 @@ struct StandalonePostView: View {
     .task {
       await viewModel.load()
     }
-    .serifNavigationTitle("Post")
+    .navigationTitle("Post")
     #if os(iOS)
       .navigationBarTitleDisplayMode(.inline)
     #endif
