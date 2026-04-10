@@ -95,7 +95,7 @@ func (s *Service) buildDetailedNotifications(ctx context.Context, currentUserId 
 		if notification.PostID != nil {
 			post, err := s.postRepository.GetPostById(ctx, *notification.PostID, currentUserId)
 			if err != nil {
-				return nil, errors.New("unable to retrieve post")
+				return nil, errors.New("unable to retrieve post referenced in notification")
 			}
 			detailedNotification.Post = post
 
