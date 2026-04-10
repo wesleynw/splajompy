@@ -34,7 +34,9 @@ func setupPostTest(t *testing.T) postServiceTestEnv {
 	commentRepository := repositories.NewDBCommentRepository(testDb.Queries)
 	bucketRepository := &bucket.FakeBucketRepository{}
 
-	svc := service.NewPostService(postRepository, userRepository, likeRepository, notificationRepository, bucketRepository, nil)
+	notificationService := notification.NewService(notificationRepository, postRepository, commentRepository, userRepository, bucketRepository)
+
+	svc := service.NewPostService(postRepository, userRepository, likeRepository, *notificationService, notificationRepository, bucketRepository, nil)
 	commentSvc := service.NewCommentService(commentRepository, postRepository, notificationRepository, userRepository, likeRepository, bucketRepository)
 
 	_ = os.Setenv("ENVIRONMENT", "test")

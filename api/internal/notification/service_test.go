@@ -35,9 +35,9 @@ func setupNotificationService(t *testing.T) notificationTestEnv {
 	likeRepository := repositories.NewDBLikeRepository(testDb.Queries)
 	bucketRepository := &bucket.FakeBucketRepository{}
 
-	notificationService := notification.NewNotificationService(notificationRepository, postRepository, commentRepository, userRepository, bucketRepository)
+	notificationService := notification.NewService(notificationRepository, postRepository, commentRepository, userRepository, bucketRepository)
 	commentService := service.NewCommentService(commentRepository, postRepository, notificationRepository, userRepository, likeRepository, bucketRepository)
-	postService := service.NewPostService(postRepository, userRepository, likeRepository, notificationRepository, bucketRepository, nil)
+	postService := service.NewPostService(postRepository, userRepository, likeRepository, *notificationService, notificationRepository, bucketRepository, nil)
 
 	return notificationTestEnv{
 		svc:                    notificationService,
@@ -273,4 +273,30 @@ func TestCommentNotification_ImagePopulatedFromComment(t *testing.T) {
 	require.Len(t, read, 1)
 	require.NotNil(t, read[0].ImageBlob)
 	assert.Equal(t, imageKey, *read[0].ImageBlob)
+}
+
+func TestAddOrUpsertLikeNotification_UpsertsExistingNotification(t *testing.T) {
+	env := setupNotificationService(t)
+
+	postOwner := testutil.CreateTestUser(t, env.userRepository, "user0")
+	post, err := env.postRepository.InsertPost(t.Context(), postOwner.UserID, "test post", nil, nil, new(models.VisibilityPublic))
+	require.NoError(t, err)
+
+	liker0 := testutil.CreateTestUser(t, env.userRepository, "liker0")
+	err = env.svc.AddOrUpsertLikeNotification(t.Context(), liker0.UserID, post.PostID, nil)
+	require.NoError(t, err)
+
+	notifications, err := env.svc.GetUnreadNotificationsByUserIdWithTimeOffset(t.Context(), postOwner, time.Now().UTC(), 10, nil)
+	require.NoError(t, err)
+	require.Len(t, notifications, 1, "poster should have 1 unread notification")
+
+	liker1 := testutil.CreateTestUser(t, env.userRepository, "liker1")
+	err = env.svc.AddOrUpsertLikeNotification(t.Context(), liker1.UserID, post.PostID, nil)
+	require.NoError(t, err)
+
+	notifications, err = env.svc.GetUnreadNotificationsByUserIdWithTimeOffset(t.Context(), postOwner, time.Now().UTC(), 10, nil)
+	require.NoError(t, err)
+	require.Len(t, notifications, 1, "poster should still have 1 unread notification")
+
+	assert.Equal(t, "@liker1 and @liker0 liked your post.", notifications[0].Message)
 }

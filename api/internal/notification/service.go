@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"time"
 
 	"splajompy.com/api/v2/internal/bucket"
@@ -20,7 +21,7 @@ type Service struct {
 	bucketRepository       bucket.Repository
 }
 
-func NewNotificationService(notificationRepository NotificationStore, postRepository repositories.PostRepository, commentRepository repositories.CommentRepository, userRepository repositories.UserRepository, bucketRepository bucket.Repository) *Service {
+func NewService(notificationRepository NotificationStore, postRepository repositories.PostRepository, commentRepository repositories.CommentRepository, userRepository repositories.UserRepository, bucketRepository bucket.Repository) *Service {
 	return &Service{
 		notificationRepository: notificationRepository,
 		postRepository:         postRepository,
@@ -149,4 +150,45 @@ func (s *Service) buildDetailedNotifications(ctx context.Context, currentUserId 
 	}
 
 	return detailedNotifications, nil
+}
+
+// AddOrUpsertLikeNotification creates a like notification for the owner of the target post or comment
+// or upserts an existing like notification, adding the current user.
+// Pass nil for commentId when liking a post directly.
+func (s *Service) AddOrUpsertLikeNotification(ctx context.Context, currentUserId int, postId int, commentId *int) error {
+	post, err := s.postRepository.GetPostById(ctx, postId, currentUserId)
+	if err != nil {
+		return err
+	}
+
+	existingLikeNotification, err := s.notificationRepository.FindUnreadLikeNotification(ctx, post.UserID, postId, nil)
+	if err != nil {
+		return err
+	}
+
+	currentUser, err := s.userRepository.GetUserById(ctx, currentUserId)
+	if err != nil {
+		return err
+	}
+
+	if existingLikeNotification == nil {
+		message := fmt.Sprintf("@%s liked your post.", currentUser.Username)
+		return s.AddNotification(ctx, post.UserID, postId, nil, message, models.NotificationTypeLike)
+	}
+
+	return nil
+}
+
+// AddNotification will enrich the notification message with facets, then store.
+func (s *Service) AddNotification(ctx context.Context, targetUserId int, postId int, commentId *int, message string, notificationType models.NotificationType) error {
+	facets, err := repositories.GenerateFacets(ctx, s.userRepository, message)
+	if err != nil {
+		return err
+	}
+
+	return s.notificationRepository.InsertNotification(ctx, targetUserId, &postId, commentId, &facets, message, notificationType, nil)
+}
+
+func (s *Service) DeleteNotificationById(ctx context.Context, notificationId int) error {
+	return nil
 }

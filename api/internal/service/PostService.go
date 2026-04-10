@@ -23,19 +23,22 @@ import (
 )
 
 type PostService struct {
-	postRepository         repositories.PostRepository
-	userRepository         repositories.UserRepository
-	likeRepository         repositories.LikeRepository
+	postRepository      repositories.PostRepository
+	userRepository      repositories.UserRepository
+	likeRepository      repositories.LikeRepository
+	notificationService notification.Service
+	// Deprecated: start relying on notificationStore
 	notificationRepository notification.NotificationStore
 	bucketRepository       bucket.Repository
 	emailService           *resend.Client
 }
 
-func NewPostService(postRepository repositories.PostRepository, userRepository repositories.UserRepository, likeRepository repositories.LikeRepository, notificationRepository notification.NotificationStore, bucketRepo bucket.Repository, emailService *resend.Client) *PostService {
+func NewPostService(postRepository repositories.PostRepository, userRepository repositories.UserRepository, likeRepository repositories.LikeRepository, notificationService notification.Service, notificationRepository notification.NotificationStore, bucketRepo bucket.Repository, emailService *resend.Client) *PostService {
 	return &PostService{
 		postRepository:         postRepository,
 		userRepository:         userRepository,
 		likeRepository:         likeRepository,
+		notificationService:    notificationService,
 		notificationRepository: notificationRepository,
 		bucketRepository:       bucketRepo,
 		emailService:           emailService,
