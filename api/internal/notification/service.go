@@ -185,6 +185,9 @@ func (s *Service) AddLikeNotification(ctx context.Context, currentUserId int, po
 			return err
 		}
 		notification, err := s.AddNotification(ctx, post.UserID, postId, nil, *message, models.NotificationTypeLike)
+		if err != nil {
+			return err
+		}
 		return s.notificationRepository.InsertNotificationActor(ctx, notification.NotificationID, currentUserId)
 	}
 
