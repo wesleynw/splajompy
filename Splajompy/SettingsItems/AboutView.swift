@@ -101,7 +101,7 @@ struct AboutView: View {
         .safeAreaPadding(.horizontal, 20)
       #endif
     }
-    .serifNavigationTitle("About")
+    .navigationTitle("About")
     #if os(iOS)
       .navigationBarTitleDisplayMode(.inline)
     #endif

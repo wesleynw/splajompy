@@ -88,7 +88,7 @@ struct NewPostView: View {
       ) {
         Text(viewModel.errorDisplay ?? "There was an error.")
       }
-      .serifNavigationTitle("New Jomp")
+      .navigationTitle("New Jomp")
       #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
       #endif

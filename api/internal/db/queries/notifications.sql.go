@@ -196,8 +196,9 @@ func (q *Queries) GetNotificationsForUserId(ctx context.Context, arg GetNotifica
 }
 
 const getNotificationsForUserIdWithTimeOffset = `-- name: GetNotificationsForUserIdWithTimeOffset :many
-SELECT notification_id, user_id, post_id, comment_id, target_user_id, message, link, viewed, facets, notification_type, created_at
+SELECT notifications.notification_id, notifications.user_id, notifications.post_id, notifications.comment_id, notifications.target_user_id, notifications.message, notifications.link, notifications.viewed, notifications.facets, notifications.notification_type, notifications.created_at
 FROM notifications
+LEFT JOIN posts ON notifications.post_id = posts.post_id
 WHERE notifications.user_id = $1 AND notifications.viewed = $4 AND notifications.created_at < $2
     AND (
         $5::text IS NULL
@@ -216,6 +217,17 @@ WHERE notifications.user_id = $1 AND notifications.viewed = $4 AND notifications
         JOIN posts ON posts.post_id = notifications.post_id
         WHERE block.user_id = posts.user_id
             AND block.target_user_id = $1
+    ) AND (
+        notifications.post_id IS NULL
+        OR posts.visibilityType = 0 -- public
+        OR posts.user_id = $1
+        OR EXISTS (
+            SELECT 1
+            FROM user_relationship
+            WHERE user_id = posts.user_id
+                AND target_user_id = $1
+                AND user_relationship.created_at < posts.created_at
+        )
     )
 ORDER BY notifications.created_at DESC
 LIMIT $3

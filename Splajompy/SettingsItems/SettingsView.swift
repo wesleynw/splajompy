@@ -68,7 +68,7 @@ struct SettingsView: View {
       }
       .animation(.default, value: wrappedViewModel.eligibility)
     }
-    .serifNavigationTitle("Settings")
+    .navigationTitle("Settings")
     .postHogScreenView()
     #if os(iOS)
       .fullScreenCover(isPresented: $isShowingWrappedView) {

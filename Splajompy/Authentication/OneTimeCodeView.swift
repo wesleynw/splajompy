@@ -58,7 +58,7 @@ struct OneTimeCodeView: View {
         }
       }
     }
-    .serifNavigationTitle("Check your email")
+    .navigationTitle("Check your email")
     .padding()
     .alert(isPresented: $showError) {
       Alert(

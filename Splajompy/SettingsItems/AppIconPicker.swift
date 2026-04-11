@@ -19,7 +19,7 @@ struct AppIconPickerView: View {
       .padding()
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-    .serifNavigationTitle("App Icon")
+    .navigationTitle("App Icon")
     .navigationBarTitleDisplayMode(.inline)
     .postHogScreenView()
   }

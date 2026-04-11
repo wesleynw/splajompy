@@ -86,7 +86,7 @@ struct ProfileEditorView: View {
           displayNameFont = fontChoice
         }
       }
-      .serifNavigationTitle("Edit Profile")
+      .navigationTitle("Edit Profile")
       #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
       #endif

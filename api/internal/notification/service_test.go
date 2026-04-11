@@ -311,3 +311,41 @@ func TestAddOrUpsertLikeNotification_UpsertsExistingNotification(t *testing.T) {
 
 	assert.Equal(t, "@liker1 and @liker0 liked your post.", notifications[0].Message)
 }
+
+func TestGetNotifications_MentionUserInUnreachablePost(t *testing.T) {
+	env := setupNotificationService(t)
+
+	user0 := testutil.CreateTestUser(t, env.userRepository, "user0")
+	user1 := testutil.CreateTestUser(t, env.userRepository, "user1")
+
+	_, err := env.postSvc.NewPost(t.Context(), user0, "hello @user1", nil, nil, new(int(models.VisibilityCloseFriends)))
+	require.NoError(t, err)
+
+	notifications, err := env.svc.GetUnreadNotificationsByUserIdWithTimeOffset(t.Context(), user1, time.Now().UTC(), 10, nil)
+	require.NoError(t, err)
+	assert.Empty(t, notifications)
+}
+
+func TestGetNotifications_MentionUserInNewlyUnreachablePost(t *testing.T) {
+	env := setupNotificationService(t)
+
+	user0 := testutil.CreateTestUser(t, env.userRepository, "user0")
+	user1 := testutil.CreateTestUser(t, env.userRepository, "user1")
+
+	err := env.userRepository.AddUserRelationship(t.Context(), user0.UserID, user1.UserID)
+	require.NoError(t, err)
+
+	_, err = env.postSvc.NewPost(t.Context(), user0, "hello @user1", nil, nil, new(int(models.VisibilityCloseFriends)))
+	require.NoError(t, err)
+
+	notifications, err := env.svc.GetUnreadNotificationsByUserIdWithTimeOffset(t.Context(), user1, time.Now().UTC(), 10, nil)
+	require.NoError(t, err)
+	assert.Len(t, notifications, 1)
+
+	err = env.userRepository.RemoveUserRelationship(t.Context(), user0.UserID, user1.UserID)
+	require.NoError(t, err)
+
+	notifications, err = env.svc.GetUnreadNotificationsByUserIdWithTimeOffset(t.Context(), user1, time.Now().UTC(), 10, nil)
+	require.NoError(t, err)
+	assert.Empty(t, notifications)
+}
