@@ -176,6 +176,8 @@ func (s *Service) AddOrUpsertLikeNotification(ctx context.Context, currentUserId
 		return err
 	}
 
+	// TODO: add a unique constraint on the notifications table (e.g. (user_id, post_id, notification_type) with a
+	// partial index WHERE NOT viewed)
 	if existingLikeNotification == nil {
 		message, err := s.buildLikedMessage(ctx, []int{currentUser.UserID})
 		if err != nil {
