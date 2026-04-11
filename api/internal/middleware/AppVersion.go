@@ -9,8 +9,6 @@ import (
 	"splajompy.com/api/v2/internal/utilities"
 )
 
-const AppVersionKey utilities.ContextKey = "app_version"
-
 func AppVersion(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		version := r.Header.Get("X-App-Version")
@@ -23,7 +21,7 @@ func AppVersion(next http.Handler) http.Handler {
 		span := trace.SpanFromContext(r.Context())
 		span.SetAttributes(attribute.String("app.version", version))
 
-		ctx := context.WithValue(r.Context(), AppVersionKey, version)
+		ctx := context.WithValue(r.Context(), utilities.AppVersionKey, version)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

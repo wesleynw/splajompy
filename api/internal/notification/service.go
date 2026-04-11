@@ -9,6 +9,7 @@ import (
 
 	"splajompy.com/api/v2/internal/bucket"
 	"splajompy.com/api/v2/internal/repositories"
+	"splajompy.com/api/v2/internal/utilities"
 
 	"splajompy.com/api/v2/internal/models"
 )
@@ -237,6 +238,15 @@ func (s *Service) buildLikedMessage(ctx context.Context, userIds []int) (*string
 		return new(fmt.Sprintf("@%s and @%s liked your post.", users[0].Username, users[1].Username)), nil
 	}
 
-	// TODO
-	return new(""), nil
+	if len(users) == 3 {
+		return new(fmt.Sprintf("@%s, @%s, and @%s liked your post.", users[0].Username, users[1].Username, users[2].Username)), nil
+	}
+
+	message := fmt.Sprintf("@%s, @%s, @%s, and others liked your post.", users[0].Username, users[1].Username, users[2].Username)
+
+	if !utilities.IsAppUpdatedToVersion(ctx, "v1.8.3") {
+		return new(message + "\n\n[Update Splajompy](https://apps.apple.com/us/app/splajompy/id6744034321) to view others."), nil
+	}
+
+	return &message, nil
 }

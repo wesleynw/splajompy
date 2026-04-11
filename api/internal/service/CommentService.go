@@ -6,12 +6,11 @@ import (
 	"fmt"
 	"time"
 
-	"golang.org/x/mod/semver"
 	"splajompy.com/api/v2/internal/bucket"
-	"splajompy.com/api/v2/internal/middleware"
 	"splajompy.com/api/v2/internal/models"
 	"splajompy.com/api/v2/internal/notification"
 	"splajompy.com/api/v2/internal/repositories"
+	"splajompy.com/api/v2/internal/utilities"
 )
 
 type CommentService struct {
@@ -196,9 +195,7 @@ func (s *CommentService) GetCommentsByPostId(ctx context.Context, currentUser mo
 		}
 
 		if len(dbImages) > 0 {
-			versionAny := ctx.Value(middleware.AppVersionKey)
-			version, ok := versionAny.(string)
-			if ok && version != "unknown" && semver.Compare(version, "v1.8.0") < 0 {
+			if !utilities.IsAppUpdatedToVersion(ctx, "v1.8.0") {
 				prefix := ""
 				if dbComment.Text != "" {
 					prefix = "\n\n"

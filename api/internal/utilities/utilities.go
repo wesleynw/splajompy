@@ -1,9 +1,12 @@
 package utilities
 
 import (
+	"context"
 	"encoding/json"
+	"math"
 	"net/http"
 
+	"golang.org/x/mod/semver"
 	"splajompy.com/api/v2/internal/db/queries"
 	"splajompy.com/api/v2/internal/models"
 )
@@ -119,4 +122,24 @@ func HandleEmptySuccess(w http.ResponseWriter) {
 	if err != nil {
 		http.Error(w, "Error encoding response", http.StatusInternalServerError)
 	}
+}
+
+const AppVersionKey ContextKey = "app_version"
+
+// IsAppUpdatedToVersion returns true if the app version indicated by the current request is greater
+// than or equal to the targetVersion. The target version should in in the semver format, e.g. "v1.8.0".
+func IsAppUpdatedToVersion(ctx context.Context, targetVersion string) bool {
+	versionAny := ctx.Value(AppVersionKey)
+	version, ok := versionAny.(string)
+	if !ok {
+		// if no context key, assume it's a manual API request, we're okay with allowing this
+		return true
+	}
+
+	return semver.Compare(version, targetVersion) >= 0
+}
+
+func SeededRandom(seed int) float64 {
+	var x = math.Sin(float64(seed)) * 1000
+	return x - math.Floor(x)
 }

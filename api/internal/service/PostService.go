@@ -5,21 +5,19 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"math"
 	"sort"
 	"time"
 
 	"github.com/resend/resend-go/v3"
-	"golang.org/x/mod/semver"
 	"golang.org/x/sync/errgroup"
 	"splajompy.com/api/v2/internal/bucket"
 	"splajompy.com/api/v2/internal/db"
 	"splajompy.com/api/v2/internal/db/queries"
-	"splajompy.com/api/v2/internal/middleware"
 	"splajompy.com/api/v2/internal/models"
 	"splajompy.com/api/v2/internal/notification"
 	"splajompy.com/api/v2/internal/repositories"
 	"splajompy.com/api/v2/internal/templates"
+	"splajompy.com/api/v2/internal/utilities"
 )
 
 type PostService struct {
@@ -158,9 +156,7 @@ func (s *PostService) GetPostById(ctx context.Context, userId int, postId int) (
 	pinnedPostId, _ := s.postRepository.GetPinnedPostId(ctx, post.UserID)
 	isPinned := pinnedPostId != nil && *pinnedPostId == postId
 
-	versionAny := ctx.Value(middleware.AppVersionKey)
-	version, ok := versionAny.(string)
-	if pollDetails != nil && (!ok || version == "unknown" || semver.Compare(version, "v1.3.0") < 0) {
+	if pollDetails != nil && utilities.IsAppUpdatedToVersion(ctx, "v1.3.0") {
 		if post.Text != "" {
 			post.Text += "\n\n"
 		}
@@ -277,7 +273,7 @@ func (s *PostService) getRelevantLikes(ctx context.Context, userId int, postId i
 	}
 
 	sort.SliceStable(likes, func(i, j int) bool {
-		return seededRandom(postId+likes[i].UserID) < seededRandom(postId+likes[j].UserID)
+		return utilities.SeededRandom(postId+likes[i].UserID) < utilities.SeededRandom(postId+likes[j].UserID)
 	})
 
 	hasOtherLikes := len(likes) > 2
@@ -440,9 +436,7 @@ func (s *PostService) GetPosts(ctx context.Context, currentUser models.PublicUse
 		}
 
 		var pinnedPostId *int
-		versionAny := ctx.Value(middleware.AppVersionKey)
-		version, ok := versionAny.(string)
-		if ok && version != "unknown" && semver.Compare(version, "v1.4.0") >= 0 {
+		if utilities.IsAppUpdatedToVersion(ctx, "v1.4.0") {
 			pinnedPostId, _ = s.postRepository.GetPinnedPostId(ctx, *userId)
 		}
 
@@ -461,11 +455,6 @@ func (s *PostService) GetPosts(ctx context.Context, currentUser models.PublicUse
 	}
 
 	return s.getPostsByPostIDs(ctx, currentUser, postIDs)
-}
-
-func seededRandom(seed int) float64 {
-	var x = math.Sin(float64(seed)) * 1000
-	return x - math.Floor(x)
 }
 
 // PinPost pins a post for the current user
