@@ -153,10 +153,10 @@ func (s *Service) buildDetailedNotifications(ctx context.Context, currentUserId 
 	return detailedNotifications, nil
 }
 
-// AddOrUpsertLikeNotification creates a like notification for the owner of the target post or comment
+// AddLikeNotification creates a like notification for the owner of the target post or comment
 // or upserts an existing like notification, adding the current user.
 // Pass nil for commentId when liking a post directly.
-func (s *Service) AddOrUpsertLikeNotification(ctx context.Context, currentUserId int, postId int, commentId *int) error {
+func (s *Service) AddLikeNotification(ctx context.Context, currentUserId int, postId int, commentId *int) error {
 	post, err := s.postRepository.GetPostById(ctx, postId, currentUserId)
 	if err != nil {
 		return err
@@ -196,6 +196,41 @@ func (s *Service) AddOrUpsertLikeNotification(ctx context.Context, currentUserId
 	actors, err := s.notificationRepository.GetNotificationActors(ctx, existingLikeNotification.NotificationID)
 	if err != nil {
 		return err
+	}
+
+	message, err := s.buildLikedMessage(ctx, actors)
+	if err != nil {
+		return err
+	}
+
+	return s.notificationRepository.UpdateNotificationMessage(ctx, existingLikeNotification.NotificationID, *message)
+}
+
+// RemoveLikeNotification updates relevant notifications that reference the current user liking a post, and removes
+// the notification entirely if the current user is the only liker.
+func (s *Service) RemoveLikeNotification(ctx context.Context, currentUserId int, postId int, commentId *int) error {
+	post, err := s.postRepository.GetPostById(ctx, postId, currentUserId)
+	if err != nil {
+		return err
+	}
+
+	existingLikeNotification, err := s.notificationRepository.FindUnreadLikeNotification(ctx, post.UserID, postId, nil)
+	if err != nil || existingLikeNotification == nil {
+		return err
+	}
+
+	err = s.notificationRepository.DeleteNotificationActor(ctx, existingLikeNotification.NotificationID, currentUserId)
+	if err != nil {
+		return err
+	}
+
+	actors, err := s.notificationRepository.GetNotificationActors(ctx, existingLikeNotification.NotificationID)
+	if err != nil {
+		return nil
+	}
+
+	if len(actors) == 0 {
+		return s.notificationRepository.DeleteNotificationById(ctx, existingLikeNotification.NotificationID)
 	}
 
 	message, err := s.buildLikedMessage(ctx, actors)

@@ -1,4 +1,4 @@
-CREATE TABLE notification_actors (
+CREATE TABLE notification_actor (
     id SERIAL PRIMARY KEY,
     notification_id INT NOT NULL REFERENCES notifications(notification_id) ON DELETE CASCADE ,
     user_id INT NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,

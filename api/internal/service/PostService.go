@@ -205,24 +205,7 @@ func (s *PostService) AddLikeToPost(ctx context.Context, currentUser models.Publ
 		return err
 	}
 
-	post, err := s.postRepository.GetPostById(ctx, postId, currentUser.UserID)
-	if err != nil {
-		return err
-	}
-
-	if currentUser.UserID != post.UserID {
-		text := fmt.Sprintf("@%s liked your post.", currentUser.Username)
-		facets, err := repositories.GenerateFacets(ctx, s.userRepository, text)
-		if err != nil {
-			return err
-		}
-		_, err = s.notificationRepository.InsertNotification(ctx, post.UserID, &postId, nil, &facets, text, models.NotificationTypeLike, nil)
-		if err != nil {
-			return err
-		}
-	}
-
-	return err
+	return s.notificationService.AddLikeNotification(ctx, currentUser.UserID, postId, nil)
 }
 
 // RemoveLikeFromPost removes the current user's like from a post and deletes
@@ -233,22 +216,7 @@ func (s *PostService) RemoveLikeFromPost(ctx context.Context, currentUser models
 		return err
 	}
 
-	post, err := s.postRepository.GetPostById(ctx, postId, currentUser.UserID)
-	if err != nil {
-		return err
-	}
-
-	notification, err := s.notificationRepository.FindUnreadLikeNotification(ctx, post.UserID, postId, nil)
-	if err == nil && notification != nil {
-		if time.Since(notification.CreatedAt) <= 5*time.Minute {
-			err = s.notificationRepository.DeleteNotificationById(ctx, notification.NotificationID)
-			if err != nil {
-				return err
-			}
-		}
-	}
-
-	return nil
+	return s.notificationService.RemoveLikeNotification(ctx, currentUser.UserID, postId, nil)
 }
 
 func (s *PostService) DeletePost(ctx context.Context, currentUser models.PublicUser, postId int) error {

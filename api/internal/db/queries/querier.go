@@ -19,6 +19,7 @@ type Querier interface {
 	CreateVerificationCode(ctx context.Context, arg CreateVerificationCodeParams) error
 	DeleteComment(ctx context.Context, commentID int) error
 	DeleteFollow(ctx context.Context, arg DeleteFollowParams) error
+	DeleteNotificationActor(ctx context.Context, arg DeleteNotificationActorParams) error
 	DeleteNotificationById(ctx context.Context, notificationID int) error
 	DeletePost(ctx context.Context, postID int) error
 	DeleteSession(ctx context.Context, id string) error

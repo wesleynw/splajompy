@@ -213,6 +213,13 @@ func (r *NotificationStore) InsertNotificationActor(ctx context.Context, notific
 	})
 }
 
+func (r *NotificationStore) DeleteNotificationActor(ctx context.Context, notificationId int, userId int) error {
+	return r.querier.DeleteNotificationActor(ctx, queries.DeleteNotificationActorParams{
+		NotificationID: notificationId,
+		UserID:         userId,
+	})
+}
+
 func (r *NotificationStore) GetNotificationActors(ctx context.Context, notificationId int) ([]int, error) {
 	return r.querier.GetNotificationActors(ctx, notificationId)
 }

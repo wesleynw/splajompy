@@ -12,6 +12,21 @@ import (
 	db "splajompy.com/api/v2/internal/db"
 )
 
+const deleteNotificationActor = `-- name: DeleteNotificationActor :exec
+DELETE FROM notification_actor
+WHERE notification_id = $1 AND user_id = $2
+`
+
+type DeleteNotificationActorParams struct {
+	NotificationID int `json:"notificationId"`
+	UserID         int `json:"userId"`
+}
+
+func (q *Queries) DeleteNotificationActor(ctx context.Context, arg DeleteNotificationActorParams) error {
+	_, err := q.db.Exec(ctx, deleteNotificationActor, arg.NotificationID, arg.UserID)
+	return err
+}
+
 const deleteNotificationById = `-- name: DeleteNotificationById :exec
 DELETE FROM notifications
 WHERE notification_id = $1

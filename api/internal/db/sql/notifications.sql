@@ -115,6 +115,10 @@ INSERT INTO notification_actor (notification_id, user_id)
 VALUES ($1, $2)
 ON CONFLICT DO NOTHING;
 
+-- name: DeleteNotificationActor :exec
+DELETE FROM notification_actor
+WHERE notification_id = $1 AND user_id = $2;
+
 -- name: GetNotificationActors :many
 SELECT user_id
 FROM notification_actor
