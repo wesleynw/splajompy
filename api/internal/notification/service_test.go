@@ -324,7 +324,7 @@ func TestGetNotifications_MentionUserInNewlyUnreachablePost(t *testing.T) {
 	assert.Empty(t, notifications)
 }
 
-func TestAddOrUpsertLikeNotification_UpsertsExistingNotification(t *testing.T) {
+func TestAddLikeNotification_IsWorking(t *testing.T) {
 	env := setupNotificationService(t)
 
 	postOwner := testutil.CreateTestUser(t, env.userRepository, "user0")
@@ -348,6 +348,10 @@ func TestAddOrUpsertLikeNotification_UpsertsExistingNotification(t *testing.T) {
 	require.Len(t, notifications, 1, "poster should still have 1 unread notification")
 
 	assert.Equal(t, "@liker1 and @liker0 liked your post.", notifications[0].Message)
+
+	expectedFacets, err := repositories.GenerateFacets(t.Context(), env.userRepository, notifications[0].Message)
+	require.NoError(t, err)
+	assert.Equal(t, expectedFacets, notifications[0].Facets)
 
 	liker2 := testutil.CreateTestUser(t, env.userRepository, "liker2")
 	err = env.svc.AddLikeNotification(t.Context(), liker2.UserID, post.PostID, nil)

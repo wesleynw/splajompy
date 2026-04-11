@@ -1,1 +1,1 @@
-DROP TABLE notification_actors;
+DROP TABLE notification_actor;

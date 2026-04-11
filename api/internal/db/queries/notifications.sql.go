@@ -439,17 +439,18 @@ func (q *Queries) MarkNotificationAsReadById(ctx context.Context, notificationID
 
 const updateNotificationMessage = `-- name: UpdateNotificationMessage :exec
 UPDATE notifications
-SET message = $2
+SET message = $2, facets = $3
 WHERE notification_id = $1
 `
 
 type UpdateNotificationMessageParams struct {
-	NotificationID int    `json:"notificationId"`
-	Message        string `json:"message"`
+	NotificationID int       `json:"notificationId"`
+	Message        string    `json:"message"`
+	Facets         db.Facets `json:"facets"`
 }
 
 func (q *Queries) UpdateNotificationMessage(ctx context.Context, arg UpdateNotificationMessageParams) error {
-	_, err := q.db.Exec(ctx, updateNotificationMessage, arg.NotificationID, arg.Message)
+	_, err := q.db.Exec(ctx, updateNotificationMessage, arg.NotificationID, arg.Message, arg.Facets)
 	return err
 }
 

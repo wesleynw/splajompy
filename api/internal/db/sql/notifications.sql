@@ -127,5 +127,5 @@ ORDER BY created_at DESC;
 
 -- name: UpdateNotificationMessage :exec
 UPDATE notifications
-SET message = $2
+SET message = $2, facets = $3
 WHERE notification_id = $1;

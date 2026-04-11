@@ -223,10 +223,11 @@ func (r *NotificationStore) DeleteNotificationActor(ctx context.Context, notific
 func (r *NotificationStore) GetNotificationActors(ctx context.Context, notificationId int) ([]int, error) {
 	return r.querier.GetNotificationActors(ctx, notificationId)
 }
-func (r *NotificationStore) UpdateNotificationMessage(ctx context.Context, notificationId int, message string) error {
+func (r *NotificationStore) UpdateNotificationMessage(ctx context.Context, notificationId int, message string, facets db.Facets) error {
 	return r.querier.UpdateNotificationMessage(ctx, queries.UpdateNotificationMessageParams{
 		NotificationID: notificationId,
 		Message:        message,
+		Facets:         facets,
 	})
 }
 

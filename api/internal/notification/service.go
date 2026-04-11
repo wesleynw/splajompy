@@ -203,7 +203,12 @@ func (s *Service) AddLikeNotification(ctx context.Context, currentUserId int, po
 		return err
 	}
 
-	return s.notificationRepository.UpdateNotificationMessage(ctx, existingLikeNotification.NotificationID, *message)
+	facets, err := repositories.GenerateFacets(ctx, s.userRepository, *message)
+	if err != nil {
+		return err
+	}
+
+	return s.notificationRepository.UpdateNotificationMessage(ctx, existingLikeNotification.NotificationID, *message, facets)
 }
 
 // RemoveLikeNotification updates relevant notifications that reference the current user liking a post, and removes
@@ -226,7 +231,7 @@ func (s *Service) RemoveLikeNotification(ctx context.Context, currentUserId int,
 
 	actors, err := s.notificationRepository.GetNotificationActors(ctx, existingLikeNotification.NotificationID)
 	if err != nil {
-		return nil
+		return err
 	}
 
 	if len(actors) == 0 {
@@ -238,7 +243,12 @@ func (s *Service) RemoveLikeNotification(ctx context.Context, currentUserId int,
 		return err
 	}
 
-	return s.notificationRepository.UpdateNotificationMessage(ctx, existingLikeNotification.NotificationID, *message)
+	facets, err := repositories.GenerateFacets(ctx, s.userRepository, *message)
+	if err != nil {
+		return err
+	}
+
+	return s.notificationRepository.UpdateNotificationMessage(ctx, existingLikeNotification.NotificationID, *message, facets)
 }
 
 // AddNotification will enrich the notification message with facets, then store.
@@ -249,10 +259,6 @@ func (s *Service) AddNotification(ctx context.Context, targetUserId int, postId 
 	}
 
 	return s.notificationRepository.InsertNotification(ctx, targetUserId, &postId, commentId, &facets, message, notificationType, nil)
-}
-
-func (s *Service) DeleteNotificationById(ctx context.Context, notificationId int) error {
-	return nil
 }
 
 func (s *Service) buildLikedMessage(ctx context.Context, userIds []int) (*string, error) {
