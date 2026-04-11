@@ -161,6 +161,11 @@ func (s *Service) AddOrUpsertLikeNotification(ctx context.Context, currentUserId
 		return err
 	}
 
+	// do not self-notify
+	if currentUserId == post.UserID {
+		return nil
+	}
+
 	existingLikeNotification, err := s.notificationRepository.FindUnreadLikeNotification(ctx, post.UserID, postId, nil)
 	if err != nil {
 		return err
@@ -172,18 +177,37 @@ func (s *Service) AddOrUpsertLikeNotification(ctx context.Context, currentUserId
 	}
 
 	if existingLikeNotification == nil {
-		message := fmt.Sprintf("@%s liked your post.", currentUser.Username)
-		return s.AddNotification(ctx, post.UserID, postId, nil, message, models.NotificationTypeLike)
+		message, err := s.buildLikedMessage(ctx, []int{currentUser.UserID})
+		if err != nil {
+			return err
+		}
+		notification, err := s.AddNotification(ctx, post.UserID, postId, nil, *message, models.NotificationTypeLike)
+		return s.notificationRepository.InsertNotificationActor(ctx, notification.NotificationID, currentUserId)
 	}
 
-	return nil
+	err = s.notificationRepository.InsertNotificationActor(ctx, existingLikeNotification.NotificationID, currentUserId)
+	if err != nil {
+		return err
+	}
+
+	actors, err := s.notificationRepository.GetNotificationActors(ctx, existingLikeNotification.NotificationID)
+	if err != nil {
+		return err
+	}
+
+	message, err := s.buildLikedMessage(ctx, actors)
+	if err != nil {
+		return err
+	}
+
+	return s.notificationRepository.UpdateNotificationMessage(ctx, existingLikeNotification.NotificationID, *message)
 }
 
 // AddNotification will enrich the notification message with facets, then store.
-func (s *Service) AddNotification(ctx context.Context, targetUserId int, postId int, commentId *int, message string, notificationType models.NotificationType) error {
+func (s *Service) AddNotification(ctx context.Context, targetUserId int, postId int, commentId *int, message string, notificationType models.NotificationType) (*models.Notification, error) {
 	facets, err := repositories.GenerateFacets(ctx, s.userRepository, message)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	return s.notificationRepository.InsertNotification(ctx, targetUserId, &postId, commentId, &facets, message, notificationType, nil)
@@ -191,4 +215,26 @@ func (s *Service) AddNotification(ctx context.Context, targetUserId int, postId 
 
 func (s *Service) DeleteNotificationById(ctx context.Context, notificationId int) error {
 	return nil
+}
+
+func (s *Service) buildLikedMessage(ctx context.Context, userIds []int) (*string, error) {
+	users := []models.PublicUser{}
+	for _, userId := range userIds[:min(3, len(userIds))] {
+		user, err := s.userRepository.GetUserById(ctx, userId)
+		if err != nil {
+			return nil, err
+		}
+		users = append(users, user)
+	}
+
+	if len(users) == 1 {
+		return new(fmt.Sprintf("@%s liked your post.", users[0].Username)), nil
+	}
+
+	if len(users) == 2 {
+		return new(fmt.Sprintf("@%s and @%s liked your post.", users[0].Username, users[1].Username)), nil
+	}
+
+	// TODO
+	return new(""), nil
 }

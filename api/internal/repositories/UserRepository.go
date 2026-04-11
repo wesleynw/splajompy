@@ -285,14 +285,9 @@ func (r DBUserRepository) GetMutualsByUserId_old(ctx context.Context, currentUse
 }
 
 func (r DBUserRepository) GetFollowingUserIds(ctx context.Context, userId int, limit int, before *time.Time) ([]int, *time.Time, error) {
-	var beforeParam pgtype.Timestamptz
-	if before != nil {
-		beforeParam = pgtype.Timestamptz{Time: *before, Valid: true}
-	}
-
 	rows, err := r.querier.GetFollowingUserIds(ctx, queries.GetFollowingUserIdsParams{
 		UserID: userId,
-		Before: beforeParam,
+		Before: before,
 		Limit:  limit,
 	})
 	if err != nil {
@@ -314,15 +309,10 @@ func (r DBUserRepository) GetFollowingUserIds(ctx context.Context, userId int, l
 }
 
 func (r DBUserRepository) GetMutualUserIds(ctx context.Context, userId int, targetUserId int, limit int, before *time.Time) ([]int, *time.Time, error) {
-	var beforeParam pgtype.Timestamptz
-	if before != nil {
-		beforeParam = pgtype.Timestamptz{Time: *before, Valid: true}
-	}
-
 	rows, err := r.querier.GetMutualsByUserIdV2(ctx, queries.GetMutualsByUserIdV2Params{
 		UserID:       userId,
 		TargetUserID: targetUserId,
-		Before:       beforeParam,
+		Before:       before,
 		Limit:        limit,
 	})
 	if err != nil {
@@ -362,15 +352,10 @@ func (r DBUserRepository) RemoveUserRelationship(ctx context.Context, userId int
 }
 
 func (r DBUserRepository) GetRelationshipByUserId(ctx context.Context, userId int, limit int, before *time.Time) ([]models.PublicUser, error) {
-	var beforeParam pgtype.Timestamptz
-	if before != nil {
-		beforeParam = pgtype.Timestamptz{Time: *before, Valid: true}
-	}
-
 	users, err := r.querier.ListUserRelationships(ctx, queries.ListUserRelationshipsParams{
 		UserID: userId,
 		Limit:  limit,
-		Before: beforeParam,
+		Before: before,
 	})
 	if err != nil {
 		return nil, err
@@ -395,15 +380,10 @@ func (r DBUserRepository) GetRelationshipByUserId(ctx context.Context, userId in
 }
 
 func (r DBUserRepository) GetRelationshipUserIds(ctx context.Context, userId int, limit int, before *time.Time) ([]int, *time.Time, error) {
-	var beforeParam pgtype.Timestamptz
-	if before != nil {
-		beforeParam = pgtype.Timestamptz{Time: *before, Valid: true}
-	}
-
 	rows, err := r.querier.ListUserRelationships(ctx, queries.ListUserRelationshipsParams{
 		UserID: userId,
 		Limit:  limit,
-		Before: beforeParam,
+		Before: before,
 	})
 	if err != nil {
 		return nil, nil, err

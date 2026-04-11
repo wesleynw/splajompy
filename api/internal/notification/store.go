@@ -18,7 +18,7 @@ type NotificationStore struct {
 }
 
 // InsertNotification adds a new notification for a user
-func (r NotificationStore) InsertNotification(ctx context.Context, userId int, postId *int, commentId *int, facets *db.Facets, message string, notificationType models.NotificationType, targetUserId *int) error {
+func (r NotificationStore) InsertNotification(ctx context.Context, userId int, postId *int, commentId *int, facets *db.Facets, message string, notificationType models.NotificationType, targetUserId *int) (*models.Notification, error) {
 	params := queries.InsertNotificationParams{
 		UserID:           userId,
 		Message:          message,
@@ -37,7 +37,12 @@ func (r NotificationStore) InsertNotification(ctx context.Context, userId int, p
 	if targetUserId != nil {
 		params.TargetUserID = targetUserId
 	}
-	return r.querier.InsertNotification(ctx, params)
+	notification, err := r.querier.InsertNotification(ctx, params)
+	if err != nil {
+		return nil, err
+	}
+
+	return new(utilities.MapNotification(notification)), nil
 }
 
 // GetNotificationsForUserId retrieves notifications for a user.
@@ -199,6 +204,23 @@ func (r NotificationStore) FindUnreadLikeNotification(ctx context.Context, userI
 // DeleteNotificationById deletes a notification by its ID
 func (r NotificationStore) DeleteNotificationById(ctx context.Context, notificationId int) error {
 	return r.querier.DeleteNotificationById(ctx, notificationId)
+}
+
+func (r *NotificationStore) InsertNotificationActor(ctx context.Context, notificationId int, userId int) error {
+	return r.querier.InsertNotificationActor(ctx, queries.InsertNotificationActorParams{
+		NotificationID: notificationId,
+		UserID:         userId,
+	})
+}
+
+func (r *NotificationStore) GetNotificationActors(ctx context.Context, notificationId int) ([]int, error) {
+	return r.querier.GetNotificationActors(ctx, notificationId)
+}
+func (r *NotificationStore) UpdateNotificationMessage(ctx context.Context, notificationId int, message string) error {
+	return r.querier.UpdateNotificationMessage(ctx, queries.UpdateNotificationMessageParams{
+		NotificationID: notificationId,
+		Message:        message,
+	})
 }
 
 // NewNotificationStore creates a new notification repository

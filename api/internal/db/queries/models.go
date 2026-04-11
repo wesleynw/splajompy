@@ -5,6 +5,8 @@
 package queries
 
 import (
+	"time"
+
 	"github.com/jackc/pgx/v5/pgtype"
 	db "splajompy.com/api/v2/internal/db"
 )
@@ -75,6 +77,13 @@ type Notification struct {
 	Facets           db.Facets        `json:"facets"`
 	NotificationType string           `json:"notificationType"`
 	CreatedAt        pgtype.Timestamp `json:"createdAt"`
+}
+
+type NotificationActor struct {
+	ID             int        `json:"id"`
+	NotificationID int        `json:"notificationId"`
+	UserID         int        `json:"userId"`
+	CreatedAt      *time.Time `json:"createdAt"`
 }
 
 type PollVote struct {

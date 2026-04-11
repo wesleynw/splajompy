@@ -97,7 +97,7 @@ func (s *PostService) NewPost(ctx context.Context, currentUser models.PublicUser
 			return nil, err
 		}
 
-		err = s.notificationRepository.InsertNotification(ctx, userId, &postId, nil, &notificationFacets, text, models.NotificationTypeMention, nil)
+		_, err = s.notificationRepository.InsertNotification(ctx, userId, &postId, nil, &notificationFacets, text, models.NotificationTypeMention, nil)
 		if err != nil {
 			return nil, errors.New("unable to create post")
 		}
@@ -220,7 +220,7 @@ func (s *PostService) AddLikeToPost(ctx context.Context, currentUser models.Publ
 		if err != nil {
 			return err
 		}
-		err = s.notificationRepository.InsertNotification(ctx, post.UserID, &postId, nil, &facets, text, models.NotificationTypeLike, nil)
+		_, err = s.notificationRepository.InsertNotification(ctx, post.UserID, &postId, nil, &facets, text, models.NotificationTypeLike, nil)
 		if err != nil {
 			return err
 		}
@@ -397,7 +397,7 @@ func (s *PostService) VoteOnPoll(ctx context.Context, currentUser models.PublicU
 		if err != nil {
 			return err
 		}
-		err = s.notificationRepository.InsertNotification(ctx, post.UserID, &postId, nil, &facets, text, models.NotificationTypePoll, nil)
+		_, err = s.notificationRepository.InsertNotification(ctx, post.UserID, &postId, nil, &facets, text, models.NotificationTypePoll, nil)
 		if err != nil {
 			return err
 		}

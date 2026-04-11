@@ -48,6 +48,7 @@ type Querier interface {
 	GetMutualConnectionsForUser(ctx context.Context, arg GetMutualConnectionsForUserParams) ([]string, error)
 	GetMutualsByUserId(ctx context.Context, arg GetMutualsByUserIdParams) ([]GetMutualsByUserIdRow, error)
 	GetMutualsByUserIdV2(ctx context.Context, arg GetMutualsByUserIdV2Params) ([]GetMutualsByUserIdV2Row, error)
+	GetNotificationActors(ctx context.Context, notificationID int) ([]int, error)
 	GetNotificationById(ctx context.Context, notificationID int) (Notification, error)
 	GetNotificationsForUserId(ctx context.Context, arg GetNotificationsForUserIdParams) ([]Notification, error)
 	GetNotificationsForUserIdWithTimeOffset(ctx context.Context, arg GetNotificationsForUserIdWithTimeOffsetParams) ([]Notification, error)
@@ -78,7 +79,8 @@ type Querier interface {
 	GetVerificationCode(ctx context.Context, arg GetVerificationCodeParams) (VerificationCode, error)
 	InsertFollow(ctx context.Context, arg InsertFollowParams) error
 	InsertImage(ctx context.Context, arg InsertImageParams) (Image, error)
-	InsertNotification(ctx context.Context, arg InsertNotificationParams) error
+	InsertNotification(ctx context.Context, arg InsertNotificationParams) (Notification, error)
+	InsertNotificationActor(ctx context.Context, arg InsertNotificationActorParams) error
 	InsertPost(ctx context.Context, arg InsertPostParams) (Post, error)
 	InsertPostImage(ctx context.Context, arg InsertPostImageParams) error
 	InsertVote(ctx context.Context, arg InsertVoteParams) error
@@ -92,6 +94,7 @@ type Querier interface {
 	UnblockUser(ctx context.Context, arg UnblockUserParams) error
 	UnmuteUser(ctx context.Context, arg UnmuteUserParams) error
 	UnpinPost(ctx context.Context, userID int) error
+	UpdateNotificationMessage(ctx context.Context, arg UpdateNotificationMessageParams) error
 	UpdateSessionExpiry(ctx context.Context, arg UpdateSessionExpiryParams) error
 	UpdateUserBio(ctx context.Context, arg UpdateUserBioParams) error
 	UpdateUserDisplayProperties(ctx context.Context, arg UpdateUserDisplayPropertiesParams) error

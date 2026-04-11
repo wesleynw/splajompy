@@ -42,9 +42,10 @@ ORDER BY created_at DESC
 LIMIT $2
 OFFSET $3;
 
--- name: InsertNotification :exec
+-- name: InsertNotification :one
 INSERT INTO notifications (user_id, post_id, comment_id, message, facets, link, notification_type, target_user_id)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8);
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+RETURNING *;
 
 -- name: GetNotificationsForUserIdWithTimeOffset :many
 SELECT *
@@ -95,4 +96,20 @@ LIMIT 1;
 
 -- name: DeleteNotificationById :exec
 DELETE FROM notifications
+WHERE notification_id = $1;
+
+-- name: InsertNotificationActor :exec
+INSERT INTO notification_actor (notification_id, user_id)
+VALUES ($1, $2)
+ON CONFLICT DO NOTHING;
+
+-- name: GetNotificationActors :many
+SELECT user_id
+FROM notification_actor
+WHERE notification_id = $1
+ORDER BY created_at DESC;
+
+-- name: UpdateNotificationMessage :exec
+UPDATE notifications
+SET message = $2
 WHERE notification_id = $1;

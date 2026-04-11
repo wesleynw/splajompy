@@ -7,6 +7,7 @@ package queries
 
 import (
 	"context"
+	"time"
 
 	"github.com/jackc/pgx/v5/pgtype"
 	db "splajompy.com/api/v2/internal/db"
@@ -395,9 +396,9 @@ LIMIT $3::int
 `
 
 type ListUserRelationshipsParams struct {
-	UserID int                `json:"userId"`
-	Before pgtype.Timestamptz `json:"before"`
-	Limit  int                `json:"limit"`
+	UserID int        `json:"userId"`
+	Before *time.Time `json:"before"`
+	Limit  int        `json:"limit"`
 }
 
 type ListUserRelationshipsRow struct {
