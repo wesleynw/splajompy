@@ -6,7 +6,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"splajompy.com/api/v2/internal/bucket"
 	"splajompy.com/api/v2/internal/models"
 	"splajompy.com/api/v2/internal/notification"
 	"splajompy.com/api/v2/internal/repositories"
@@ -26,27 +25,20 @@ type notificationTestEnv struct {
 
 func setupNotificationService(t *testing.T) notificationTestEnv {
 	t.Helper()
-	testDb := testutil.StartPostgres(t)
+	db := testutil.StartPostgres(t)
 
-	commentRepository := repositories.NewDBCommentRepository(testDb.Queries)
-	postRepository := repositories.NewDBPostRepository(testDb.Queries)
-	notificationRepository := notification.NewNotificationStore(testDb.Queries)
-	userRepository := repositories.NewDBUserRepository(testDb.Queries)
-	likeRepository := repositories.NewDBLikeRepository(testDb.Queries)
-	bucketRepository := &bucket.FakeBucketRepository{}
-
-	notificationService := notification.NewService(notificationRepository, postRepository, commentRepository, userRepository, bucketRepository)
-	commentService := service.NewCommentService(commentRepository, postRepository, notificationRepository, userRepository, likeRepository, bucketRepository)
-	postService := service.NewPostService(postRepository, userRepository, likeRepository, *notificationService, notificationRepository, bucketRepository, nil)
+	notificationService := notification.NewService(db.NotificationStore, db.PostRepository, db.CommentRepository, db.UserRepository, db.BucketRepository)
+	commentService := service.NewCommentService(db.CommentRepository, db.PostRepository, db.NotificationStore, db.UserRepository, db.LikeRepository, db.BucketRepository)
+	postService := service.NewPostService(db.PostRepository, db.UserRepository, db.LikeRepository, *notificationService, db.NotificationStore, db.BucketRepository, nil)
 
 	return notificationTestEnv{
 		svc:                    notificationService,
 		commentSvc:             commentService,
 		postSvc:                postService,
-		notificationRepository: notificationRepository,
-		userRepository:         userRepository,
-		postRepository:         postRepository,
-		commentRepository:      commentRepository,
+		notificationRepository: db.NotificationStore,
+		userRepository:         db.UserRepository,
+		postRepository:         db.PostRepository,
+		commentRepository:      db.CommentRepository,
 	}
 }
 

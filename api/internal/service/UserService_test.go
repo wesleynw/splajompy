@@ -5,7 +5,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"splajompy.com/api/v2/internal/notification"
 	"splajompy.com/api/v2/internal/repositories"
 	"splajompy.com/api/v2/internal/service"
 	"splajompy.com/api/v2/internal/testutil"
@@ -18,16 +17,13 @@ type userServiceTestEnv struct {
 
 func setupTest(t *testing.T) userServiceTestEnv {
 	t.Helper()
-	testDb := testutil.StartPostgres(t)
+	db := testutil.StartPostgres(t)
 
-	userRepository := repositories.NewDBUserRepository(testDb.Queries)
-	notificationRepository := notification.NewNotificationStore(testDb.Queries)
-
-	svc := service.NewUserService(userRepository, notificationRepository, nil)
+	svc := service.NewUserService(db.UserRepository, db.NotificationStore, nil)
 
 	return userServiceTestEnv{
 		svc:            svc,
-		userRepository: userRepository,
+		userRepository: db.UserRepository,
 	}
 }
 

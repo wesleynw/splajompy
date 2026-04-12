@@ -14,13 +14,22 @@ import (
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
 	"github.com/testcontainers/testcontainers-go/wait"
+	"splajompy.com/api/v2/internal/bucket"
 	"splajompy.com/api/v2/internal/db/queries"
+	"splajompy.com/api/v2/internal/notification"
+	"splajompy.com/api/v2/internal/repositories"
 )
 
 // TestDB holds the database connection and container for an integration test.
 type TestDB struct {
-	Pool    *pgxpool.Pool
-	Queries *queries.Queries
+	Pool              *pgxpool.Pool
+	Queries           *queries.Queries
+	UserRepository    repositories.UserRepository
+	PostRepository    repositories.PostRepository
+	CommentRepository repositories.CommentRepository
+	LikeRepository    repositories.LikeRepository
+	NotificationStore notification.NotificationStore
+	BucketRepository  bucket.Repository
 }
 
 // StartPostgres starts a PostgreSQL container, applies schema.sql, and returns a connected TestDB.
@@ -71,7 +80,16 @@ func StartPostgres(t *testing.T) *TestDB {
 	}
 
 	q := queries.New(pool)
-	return &TestDB{Pool: pool, Queries: q}
+	return &TestDB{
+		Pool:              pool,
+		Queries:           q,
+		UserRepository:    repositories.NewDBUserRepository(q),
+		PostRepository:    repositories.NewDBPostRepository(q),
+		CommentRepository: repositories.NewDBCommentRepository(q),
+		LikeRepository:    repositories.NewDBLikeRepository(q),
+		NotificationStore: notification.NewNotificationStore(q),
+		BucketRepository:  &bucket.FakeBucketRepository{},
+	}
 }
 
 // readSchema finds and reads the schema.sql file relative to this source file.

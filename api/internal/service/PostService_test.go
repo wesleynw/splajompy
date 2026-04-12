@@ -8,7 +8,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"splajompy.com/api/v2/internal/bucket"
 	"splajompy.com/api/v2/internal/models"
 	"splajompy.com/api/v2/internal/notification"
 	"splajompy.com/api/v2/internal/repositories"
@@ -25,26 +24,18 @@ type postServiceTestEnv struct {
 
 func setupPostTest(t *testing.T) postServiceTestEnv {
 	t.Helper()
-	testDb := testutil.StartPostgres(t)
-
-	postRepository := repositories.NewDBPostRepository(testDb.Queries)
-	userRepository := repositories.NewDBUserRepository(testDb.Queries)
-	likeRepository := repositories.NewDBLikeRepository(testDb.Queries)
-	notificationRepository := notification.NewNotificationStore(testDb.Queries)
-	commentRepository := repositories.NewDBCommentRepository(testDb.Queries)
-	bucketRepository := &bucket.FakeBucketRepository{}
-
-	notificationService := notification.NewService(notificationRepository, postRepository, commentRepository, userRepository, bucketRepository)
-
-	svc := service.NewPostService(postRepository, userRepository, likeRepository, *notificationService, notificationRepository, bucketRepository, nil)
-	commentSvc := service.NewCommentService(commentRepository, postRepository, notificationRepository, userRepository, likeRepository, bucketRepository)
+	db := testutil.StartPostgres(t)
 
 	_ = os.Setenv("ENVIRONMENT", "test")
+
+	notificationService := notification.NewService(db.NotificationStore, db.PostRepository, db.CommentRepository, db.UserRepository, db.BucketRepository)
+	svc := service.NewPostService(db.PostRepository, db.UserRepository, db.LikeRepository, *notificationService, db.NotificationStore, db.BucketRepository, nil)
+	commentSvc := service.NewCommentService(db.CommentRepository, db.PostRepository, db.NotificationStore, db.UserRepository, db.LikeRepository, db.BucketRepository)
 
 	return postServiceTestEnv{
 		svc:            svc,
 		commentSvc:     commentSvc,
-		userRepository: userRepository,
+		userRepository: db.UserRepository,
 	}
 }
 

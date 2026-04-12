@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"splajompy.com/api/v2/internal/bucket"
 	"splajompy.com/api/v2/internal/repositories"
 	"splajompy.com/api/v2/internal/service"
 	"splajompy.com/api/v2/internal/testutil"
@@ -18,19 +17,15 @@ type authServiceTestEnv struct {
 
 func setupAuthServiceTest(t *testing.T) authServiceTestEnv {
 	t.Helper()
-	testDb := testutil.StartPostgres(t)
-
-	postRepository := repositories.NewDBPostRepository(testDb.Queries)
-	userRepository := repositories.NewDBUserRepository(testDb.Queries)
-	bucketRepository := &bucket.FakeBucketRepository{}
-
-	svc := service.NewAuthService(userRepository, postRepository, bucketRepository, nil)
+	db := testutil.StartPostgres(t)
 
 	_ = os.Setenv("ENVIRONMENT", "test")
 
+	svc := service.NewAuthService(db.UserRepository, db.PostRepository, db.BucketRepository, nil)
+
 	return authServiceTestEnv{
 		svc:            svc,
-		userRepository: userRepository,
+		userRepository: db.UserRepository,
 	}
 }
 
