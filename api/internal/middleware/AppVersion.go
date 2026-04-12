@@ -9,7 +9,7 @@ import (
 	"splajompy.com/api/v2/internal/utilities"
 )
 
-const minimumAppVersion = "v1.9.0"
+const MinimumAppVersion = "v1.9.0"
 
 func AppVersion(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -25,7 +25,7 @@ func AppVersion(next http.Handler) http.Handler {
 
 		ctx := context.WithValue(r.Context(), utilities.AppVersionKey, version)
 
-		if !utilities.IsAppUpdatedToVersion(ctx, minimumAppVersion) {
+		if !utilities.IsAppUpdatedToVersion(ctx, MinimumAppVersion) {
 			utilities.HandleError(w, http.StatusUpgradeRequired, "You are using an unsupposed version of Splajompy. Please visit the App Store to update.")
 			return
 		}

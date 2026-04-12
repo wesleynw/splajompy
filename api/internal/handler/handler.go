@@ -130,4 +130,5 @@ func (h *Handler) RegisterPublicRoutes(handleFunc func(pattern string, handlerFu
 	handleFunc("POST /otc/generate", h.GenerateOTC)
 	handleFunc("POST /otc/verify", h.VerifyOTC)
 	handleFunc("GET /health", h.GetAppHealth)
+	handleFunc("GET /version-availability", h.GetVersionAvailability)
 }

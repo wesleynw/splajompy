@@ -3,6 +3,7 @@ package handler
 import (
 	"net/http"
 
+	"splajompy.com/api/v2/internal/middleware"
 	"splajompy.com/api/v2/internal/utilities"
 )
 
@@ -18,4 +19,8 @@ func (h *Handler) GetAppStats(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) GetAppHealth(w http.ResponseWriter, r *http.Request) {
 	utilities.HandleEmptySuccess(w)
+}
+
+func (h *Handler) GetVersionAvailability(w http.ResponseWriter, r *http.Request) {
+	utilities.HandleSuccess(w, middleware.MinimumAppVersion)
 }
