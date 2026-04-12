@@ -131,7 +131,7 @@ const AppVersionKey ContextKey = "app_version"
 func IsAppUpdatedToVersion(ctx context.Context, targetVersion string) bool {
 	versionAny := ctx.Value(AppVersionKey)
 	version, ok := versionAny.(string)
-	if !ok {
+	if !ok || version == "unknown" {
 		// if no context key, assume it's a manual API request, we're okay with allowing this
 		return true
 	}
