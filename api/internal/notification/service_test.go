@@ -1,6 +1,7 @@
 package notification_test
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -11,6 +12,7 @@ import (
 	"splajompy.com/api/v2/internal/repositories"
 	"splajompy.com/api/v2/internal/service"
 	"splajompy.com/api/v2/internal/testutil"
+	"splajompy.com/api/v2/internal/utilities"
 )
 
 type notificationTestEnv struct {
@@ -316,7 +318,7 @@ func TestGetNotifications_MentionUserInNewlyUnreachablePost(t *testing.T) {
 	assert.Empty(t, notifications)
 }
 
-func TestAddLikeNotification_IsWorking(t *testing.T) {
+func TestAddLikeNotification_MultipleNotificationsCombine(t *testing.T) {
 	env := setupNotificationService(t)
 
 	postOwner := testutil.CreateTestUser(t, env.userRepository, "user0")
@@ -354,6 +356,26 @@ func TestAddLikeNotification_IsWorking(t *testing.T) {
 	require.Len(t, notifications, 1, "poster should still have 1 unread notification")
 
 	assert.Equal(t, "@liker2, @liker1, and @liker0 liked your post.", notifications[0].Message)
+
+	liker3 := testutil.CreateTestUser(t, env.userRepository, "liker3")
+
+	err = env.svc.AddLikeNotification(t.Context(), liker3.UserID, post.PostID, nil)
+	require.NoError(t, err)
+
+	notifications, err = env.svc.GetUnreadNotificationsByUserIdWithTimeOffset(t.Context(), postOwner, time.Now().UTC(), 10, nil)
+	require.NoError(t, err)
+	require.Len(t, notifications, 1, "poster should still have 1 unread notification")
+
+	assert.Equal(t, "@liker3, @liker2, @liker1, and others liked your post.", notifications[0].Message)
+
+	// set to incompatible version
+	ctx := context.WithValue(t.Context(), utilities.AppVersionKey, "v1.0.0")
+
+	notifications, err = env.svc.GetUnreadNotificationsByUserIdWithTimeOffset(ctx, postOwner, time.Now().UTC(), 10, nil)
+	require.NoError(t, err)
+	require.Len(t, notifications, 1, "poster should still have 1 unread notification")
+
+	assert.Equal(t, "@liker3, @liker2, @liker1, and others liked your post.\n\n[Update Splajompy](https://apps.apple.com/us/app/splajompy/id6744034321) to view all likes.", notifications[0].Message)
 }
 
 func TestAddLikeNotification_HandlesRemovedLikes(t *testing.T) {

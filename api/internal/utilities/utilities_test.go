@@ -88,3 +88,10 @@ func TestIsUpdatedToVersion_EqualVersion(t *testing.T) {
 	valid := utilities.IsAppUpdatedToVersion(ctx, "v1.1.0")
 	assert.True(t, valid)
 }
+
+func TestSeededRandom(t *testing.T) {
+	rand0 := utilities.SeededRandom(456)
+	rand1 := utilities.SeededRandom(456)
+
+	assert.Equal(t, rand0, rand1)
+}

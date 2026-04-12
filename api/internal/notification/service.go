@@ -94,6 +94,16 @@ func (s *Service) buildDetailedNotifications(ctx context.Context, currentUserId 
 		var detailedNotification models.DetailedNotification
 		detailedNotification.Notification = *notification
 
+		if notification.NotificationType == models.NotificationTypeLike && !utilities.IsAppUpdatedToVersion(ctx, "v1.8.3") {
+			actors, err := s.notificationRepository.GetNotificationActors(ctx, notification.NotificationID)
+			if err != nil {
+				return nil, errors.New("unable to retrieve notification actors")
+			}
+			if len(actors) > 3 {
+				detailedNotification.Message = notification.Message + "\n\n[Update Splajompy](https://apps.apple.com/us/app/splajompy/id6744034321) to view all likes."
+			}
+		}
+
 		if notification.PostID != nil {
 			post, err := s.postRepository.GetPostById(ctx, *notification.PostID, currentUserId)
 			if err != nil {
@@ -287,10 +297,5 @@ func (s *Service) buildLikedMessage(ctx context.Context, userIds []int) (*string
 	}
 
 	message := fmt.Sprintf("@%s, @%s, @%s, and others liked your post.", users[0].Username, users[1].Username, users[2].Username)
-
-	if !utilities.IsAppUpdatedToVersion(ctx, "v1.8.3") {
-		return new(message + "\n\n[Update Splajompy](https://apps.apple.com/us/app/splajompy/id6744034321) to view all likes."), nil
-	}
-
 	return &message, nil
 }

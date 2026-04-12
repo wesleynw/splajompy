@@ -95,26 +95,6 @@ func (r NotificationStore) GetUserUnreadNotificationCount(ctx context.Context, u
 	return int(count), err
 }
 
-// GetUnreadNotificationsForUserId retrieves unread notifications for a user with pagination
-func (r NotificationStore) GetUnreadNotificationsForUserId(ctx context.Context, userId int, offset int, limit int) ([]*models.Notification, error) {
-	notifications, err := r.querier.GetUnreadNotificationsForUserId(ctx, queries.GetUnreadNotificationsForUserIdParams{
-		UserID: userId,
-		Offset: offset,
-		Limit:  limit,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	result := make([]*models.Notification, len(notifications))
-	for i, notification := range notifications {
-		mapped := utilities.MapNotification(notification)
-		result[i] = &mapped
-	}
-
-	return result, nil
-}
-
 // GetReadNotificationsForUserIdWithTimeOffset retrieves read notifications for a user with time-based pagination
 func (r NotificationStore) GetReadNotificationsForUserIdWithTimeOffset(ctx context.Context, userId int, beforeTime time.Time, limit int, notificationType *string) ([]*models.Notification, error) {
 	params := queries.GetNotificationsForUserIdWithTimeOffsetParams{
