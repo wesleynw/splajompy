@@ -149,7 +149,7 @@ func (s *PostService) GetPostById(ctx context.Context, userId int, postId int) (
 	pinnedPostId, _ := s.postRepository.GetPinnedPostId(ctx, post.UserID)
 	isPinned := pinnedPostId != nil && *pinnedPostId == postId
 
-	if pollDetails != nil && utilities.IsAppUpdatedToVersion(ctx, "v1.3.0") {
+	if pollDetails != nil && !utilities.IsAppUpdatedToVersion(ctx, "v1.3.0") {
 		if post.Text != "" {
 			post.Text += "\n\n"
 		}
