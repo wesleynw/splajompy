@@ -12,6 +12,7 @@ import (
 
 	"splajompy.com/api/v2/internal/bucket"
 	"splajompy.com/api/v2/internal/repositories"
+	"splajompy.com/api/v2/internal/user"
 	"splajompy.com/api/v2/internal/utilities"
 
 	"github.com/google/uuid"
@@ -22,13 +23,13 @@ import (
 )
 
 type AuthService struct {
-	userRepository   repositories.UserRepository
+	userRepository   user.Store
 	postRepository   repositories.PostRepository
 	bucketRepository bucket.Repository
 	resendClient     *resend.Client
 }
 
-func NewAuthService(userRepository repositories.UserRepository, postRepository repositories.PostRepository, bucketRepository bucket.Repository, resendClient *resend.Client) *AuthService {
+func NewAuthService(userRepository user.Store, postRepository repositories.PostRepository, bucketRepository bucket.Repository, resendClient *resend.Client) *AuthService {
 	return &AuthService{
 		userRepository:   userRepository,
 		postRepository:   postRepository,

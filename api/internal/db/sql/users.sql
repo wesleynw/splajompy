@@ -206,3 +206,10 @@ SELECT EXISTS (
   FROM user_relationship
   WHERE user_id = $1 AND target_user_id = $2
 );
+
+-- name: GetNotificationActorUserIds :many
+SELECT user_id, created_at
+FROM notification_actor
+WHERE notification_id = $1 AND (sqlc.narg('before')::timestamptz IS NULL OR created_at < sqlc.narg('before'))
+ORDER BY created_at DESC
+LIMIT $2;

@@ -9,13 +9,14 @@ import (
 	"splajompy.com/api/v2/internal/repositories"
 	"splajompy.com/api/v2/internal/service"
 	"splajompy.com/api/v2/internal/testutil"
+	"splajompy.com/api/v2/internal/user"
 )
 
 type commentServiceTestEnv struct {
 	svc            *service.CommentService
-	userSvc        *service.UserService
+	userSvc        *user.Service
 	postRepository repositories.PostRepository
-	userRepository repositories.UserRepository
+	userRepository user.Store
 }
 
 func setupCommentTest(t *testing.T) commentServiceTestEnv {
@@ -23,7 +24,7 @@ func setupCommentTest(t *testing.T) commentServiceTestEnv {
 	db := testutil.StartPostgres(t)
 
 	svc := service.NewCommentService(db.CommentRepository, db.PostRepository, db.NotificationStore, db.UserRepository, db.LikeRepository, db.BucketRepository)
-	userSvc := service.NewUserService(db.UserRepository, db.NotificationStore, nil)
+	userSvc := user.NewUserService(db.UserRepository, db.NotificationStore, nil)
 
 	return commentServiceTestEnv{
 		svc:            svc,

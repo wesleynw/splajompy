@@ -5,6 +5,7 @@ import (
 
 	"splajompy.com/api/v2/internal/db/queries"
 	"splajompy.com/api/v2/internal/notification"
+	"splajompy.com/api/v2/internal/user"
 
 	"splajompy.com/api/v2/internal/service"
 )
@@ -13,7 +14,7 @@ type Handler struct {
 	queries             queries.Querier
 	postService         *service.PostService
 	commentService      *service.CommentService
-	userService         *service.UserService
+	userHandler         *user.Handler
 	notificationHandler *notification.Handler
 	authService         *service.AuthService
 	statsService        *service.StatsService
@@ -23,7 +24,7 @@ type Handler struct {
 func NewHandler(queries queries.Querier,
 	postService *service.PostService,
 	commentService *service.CommentService,
-	userService *service.UserService,
+	userHandler *user.Handler,
 	notificationHandler *notification.Handler,
 	authService *service.AuthService,
 	statsService *service.StatsService,
@@ -32,7 +33,7 @@ func NewHandler(queries queries.Querier,
 		queries:             queries,
 		postService:         postService,
 		commentService:      commentService,
-		userService:         userService,
+		userHandler:         userHandler,
 		notificationHandler: notificationHandler,
 		authService:         authService,
 		statsService:        statsService,
@@ -61,12 +62,6 @@ func (h *Handler) RegisterRoutes(handleFunc func(pattern string, handlerFunc fun
 	// polls
 	handleFuncWithAuth("POST /post/{post_id}/vote/{option_index}", h.VoteOnPost)
 
-	// follow
-	handleFuncWithAuth("POST /follow/{user_id}", h.FollowUser)
-	handleFuncWithAuth("DELETE /follow/{user_id}", h.UnfollowUser)
-
-	handleFuncWithAuth("POST /user/profile", h.UpdateProfile)
-
 	// likes
 	handleFuncWithAuth("POST /post/{id}/liked", h.AddPostLike)
 	handleFuncWithAuth("DELETE /post/{id}/liked", h.RemovePostLike)
@@ -75,6 +70,7 @@ func (h *Handler) RegisterRoutes(handleFunc func(pattern string, handlerFunc fun
 	handleFuncWithAuth("POST /posts/{id}/pin", h.PinPost)
 	handleFuncWithAuth("DELETE /posts/pin", h.UnpinPost)
 
+	h.userHandler.RegisterRoutes(handleFuncWithAuth)
 	h.notificationHandler.RegisterRoutes(handleFuncWithAuth)
 
 	// comments
@@ -84,38 +80,12 @@ func (h *Handler) RegisterRoutes(handleFunc func(pattern string, handlerFunc fun
 	handleFuncWithAuth("DELETE /comment/{comment_id}", h.DeleteComment)
 	handleFuncWithAuth("GET /post/{id}/comments", h.GetCommentsByPost)
 
-	// blocking
-	handleFuncWithAuth("POST /user/{user_id}/block", h.BlockUser)
-	handleFuncWithAuth("DELETE /user/{user_id}/block", h.UnblockUser)
-
-	// muting
-	handleFuncWithAuth("POST /user/{user_id}/mute", h.MuteUser)
-	handleFuncWithAuth("DELETE /user/{user_id}/mute", h.UnmuteUser)
-
-	// users
-	handleFuncWithAuth("GET /user/{id}", h.GetUserById)
-	handleFuncWithAuth("GET /user/{id}/followers", h.GetFollowersByUserId_old)
-	handleFuncWithAuth("GET /user/{id}/following", h.GetFollowingByUserId_old)
-	handleFuncWithAuth("GET /v2/user/{id}/following", h.GetFollowingByUserId)
-	handleFuncWithAuth("GET /v3/user/{id}/following", h.GetFollowingByUserIdV3)
-	handleFuncWithAuth("GET /user/{id}/mutuals", h.GetMutualsByUserId_old)
-	handleFuncWithAuth("GET /v2/user/{id}/mutuals", h.GetMutualsByUserId)
-	handleFuncWithAuth("GET /v3/user/{id}/mutuals", h.GetMutualsByUserIdV3)
-	handleFuncWithAuth("GET /users/search", h.SearchUsers)
-
-	handleFuncWithAuth("POST /user/{id}/friend", h.AddUserToCloseFriendsList)
-	handleFuncWithAuth("DELETE /user/{id}/friend", h.RemoveUserFromCloseFriendsList)
-	handleFuncWithAuth("GET /user/friends", h.ListUserCloseFriends)
-	handleFuncWithAuth("GET /v2/user/friends", h.ListUserCloseFriendsV2)
-
 	// post routes with time-based offset
 	handleFuncWithAuth("GET /v2/posts/following", h.GetPostsByFollowingWithTimeOffset)
 	handleFuncWithAuth("GET /v2/posts/all", h.GetAllPostsWithTimeOffset)
 	handleFuncWithAuth("GET /v2/posts/mutual", h.GetMutualFeedWithTimeOffset)
 	handleFuncWithAuth("GET /v2/user/{id}/posts", h.GetPostsByUserIdWithTimeOffset)
-
 	// misc
-	handleFuncWithAuth("POST /request-feature", h.RequestFeature)
 	handleFuncWithAuth("GET /stats", h.GetAppStats)
 
 	// wrapped

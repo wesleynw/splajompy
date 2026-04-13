@@ -11,6 +11,7 @@ enum UserListVariantEnum {
   case following
   case mutuals
   case friends
+  case notification
 
   var title: String {
     switch self {
@@ -20,13 +21,15 @@ enum UserListVariantEnum {
       "Mutuals"
     case .friends:
       "Friends"
+    case .notification:
+      "Likes"
     }
   }
 }
 
 @MainActor @Observable
 class UserListViewModel {
-  let userId: Int
+  let identifier: Int
   let userListVariant: UserListVariantEnum
 
   var state: UserListState = .idle
@@ -38,11 +41,11 @@ class UserListViewModel {
   private var beforeCursor: Date? = nil
 
   init(
-    userId: Int,
+    identifier: Int,
     userListVariant: UserListVariantEnum,
     profileService: ProfileServiceProtocol = ProfileService()
   ) {
-    self.userId = userId
+    self.identifier = identifier
     self.userListVariant = userListVariant
     self.profileService = profileService
   }
@@ -62,13 +65,16 @@ class UserListViewModel {
     switch userListVariant {
     case .following:
       result = await profileService.getFollowing(
-        userId: userId, limit: fetchLimit, before: beforeCursor)
+        userId: identifier, limit: fetchLimit, before: beforeCursor)
     case .mutuals:
       result = await profileService.getMutuals(
-        userId: userId, limit: fetchLimit, before: beforeCursor)
+        userId: identifier, limit: fetchLimit, before: beforeCursor)
     case .friends:
       result = await profileService.getFriends(
-        userId: userId, limit: fetchLimit, before: beforeCursor)
+        userId: identifier, limit: fetchLimit, before: beforeCursor)
+    case .notification:
+      result = await profileService.getNotificationActors(
+        notificationId: identifier, limit: fetchLimit, before: beforeCursor)
     }
 
     switch result {
@@ -123,7 +129,7 @@ class UserListViewModel {
       }
     }
 
-    // Create a temporary DetailedUser for optimistic update
+    // create a temporary DetailedUser for optimistic update
     let tempUser = DetailedUser(
       userId: publicUser.userId,
       email: "",

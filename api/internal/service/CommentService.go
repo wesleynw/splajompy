@@ -10,6 +10,7 @@ import (
 	"splajompy.com/api/v2/internal/models"
 	"splajompy.com/api/v2/internal/notification"
 	"splajompy.com/api/v2/internal/repositories"
+	"splajompy.com/api/v2/internal/user"
 	"splajompy.com/api/v2/internal/utilities"
 )
 
@@ -17,7 +18,7 @@ type CommentService struct {
 	commentRepository      repositories.CommentRepository
 	postRepository         repositories.PostRepository
 	notificationRepository notification.NotificationStore
-	userRepository         repositories.UserRepository
+	userRepository         user.Store
 	likeRepository         repositories.LikeRepository
 	bucketRepository       bucket.Repository
 }
@@ -27,7 +28,7 @@ func NewCommentService(
 	commentRepo repositories.CommentRepository,
 	postRepository repositories.PostRepository,
 	notificationRepository notification.NotificationStore,
-	userRepository repositories.UserRepository,
+	userRepository user.Store,
 	likeRepository repositories.LikeRepository,
 	bucketRepository bucket.Repository,
 ) *CommentService {
@@ -48,7 +49,7 @@ func (s *CommentService) AddCommentToPost(ctx context.Context, currentUser model
 		return nil, errors.New("unable to find post")
 	}
 
-	commentFacets, err := repositories.GenerateFacets(ctx, s.userRepository, content)
+	commentFacets, err := utilities.GenerateFacets(ctx, s.userRepository, content)
 	if err != nil {
 		return nil, errors.New("unable to generate facets")
 	}
@@ -89,7 +90,7 @@ func (s *CommentService) AddCommentToPost(ctx context.Context, currentUser model
 
 	if currentUser.UserID != post.UserID {
 		text := fmt.Sprintf("@%s commented on your post.", currentUser.Username)
-		notificationFacets, err := repositories.GenerateFacets(ctx, s.userRepository, text)
+		notificationFacets, err := utilities.GenerateFacets(ctx, s.userRepository, text)
 		if err != nil {
 			return nil, errors.New("unable to generate facets")
 		}
@@ -119,7 +120,7 @@ func (s *CommentService) AddCommentToPost(ctx context.Context, currentUser model
 
 	for userId := range usersToNotify {
 		text := fmt.Sprintf("@%s mentioned you in a comment.", currentUser.Username)
-		notificationFacets, err := repositories.GenerateFacets(ctx, s.userRepository, text)
+		notificationFacets, err := utilities.GenerateFacets(ctx, s.userRepository, text)
 		if err != nil {
 			return nil, errors.New("unable to generate facets")
 		}
@@ -236,7 +237,7 @@ func (s *CommentService) AddLikeToCommentById(ctx context.Context, currentUser m
 
 	if currentUser.UserID != comment.UserID {
 		text := fmt.Sprintf("@%s liked your comment.", currentUser.Username)
-		facets, err := repositories.GenerateFacets(ctx, s.userRepository, text)
+		facets, err := utilities.GenerateFacets(ctx, s.userRepository, text)
 		if err != nil {
 			return err
 		}

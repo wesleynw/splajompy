@@ -17,12 +17,13 @@ import (
 	"splajompy.com/api/v2/internal/notification"
 	"splajompy.com/api/v2/internal/repositories"
 	"splajompy.com/api/v2/internal/templates"
+	"splajompy.com/api/v2/internal/user"
 	"splajompy.com/api/v2/internal/utilities"
 )
 
 type PostService struct {
 	postRepository      repositories.PostRepository
-	userRepository      repositories.UserRepository
+	userRepository      user.Store
 	likeRepository      repositories.LikeRepository
 	notificationService notification.Service
 	// Deprecated: start relying on notificationStore
@@ -31,7 +32,7 @@ type PostService struct {
 	emailService           *resend.Client
 }
 
-func NewPostService(postRepository repositories.PostRepository, userRepository repositories.UserRepository, likeRepository repositories.LikeRepository, notificationService notification.Service, notificationRepository notification.NotificationStore, bucketRepo bucket.Repository, emailService *resend.Client) *PostService {
+func NewPostService(postRepository repositories.PostRepository, userRepository user.Store, likeRepository repositories.LikeRepository, notificationService notification.Service, notificationRepository notification.NotificationStore, bucketRepo bucket.Repository, emailService *resend.Client) *PostService {
 	return &PostService{
 		postRepository:         postRepository,
 		userRepository:         userRepository,
@@ -45,7 +46,7 @@ func NewPostService(postRepository repositories.PostRepository, userRepository r
 
 // NewPost preprocesses a new post and stores it in the database.
 func (s *PostService) NewPost(ctx context.Context, currentUser models.PublicUser, text string, imageKeymap map[int]models.ImageData, poll *db.Poll, visibilityEnum *int) (*models.Post, error) {
-	facets, err := repositories.GenerateFacets(ctx, s.userRepository, text)
+	facets, err := utilities.GenerateFacets(ctx, s.userRepository, text)
 	if err != nil {
 		return nil, err
 	}
@@ -90,7 +91,7 @@ func (s *PostService) NewPost(ctx context.Context, currentUser models.PublicUser
 
 	for userId := range usersToNotify {
 		text := fmt.Sprintf("@%s mentioned you in a post.", currentUser.Username)
-		notificationFacets, err := repositories.GenerateFacets(ctx, s.userRepository, text)
+		notificationFacets, err := utilities.GenerateFacets(ctx, s.userRepository, text)
 		if err != nil {
 			return nil, err
 		}
@@ -357,7 +358,7 @@ func (s *PostService) VoteOnPoll(ctx context.Context, currentUser models.PublicU
 	if currentUser.UserID != post.UserID {
 		optionTitle := post.Attributes.Poll.Options[optionIndex]
 		text := fmt.Sprintf("@%s voted \"%s\" in your poll.", currentUser.Username, optionTitle)
-		facets, err := repositories.GenerateFacets(ctx, s.userRepository, text)
+		facets, err := utilities.GenerateFacets(ctx, s.userRepository, text)
 		if err != nil {
 			return err
 		}

@@ -12,6 +12,7 @@ import (
 	"splajompy.com/api/v2/internal/repositories"
 	"splajompy.com/api/v2/internal/service"
 	"splajompy.com/api/v2/internal/testutil"
+	"splajompy.com/api/v2/internal/user"
 	"splajompy.com/api/v2/internal/utilities"
 )
 
@@ -20,7 +21,7 @@ type notificationTestEnv struct {
 	commentSvc             *service.CommentService
 	postSvc                *service.PostService
 	notificationRepository notification.NotificationStore
-	userRepository         repositories.UserRepository
+	userRepository         user.Store
 	postRepository         repositories.PostRepository
 	commentRepository      repositories.CommentRepository
 }
@@ -343,7 +344,7 @@ func TestAddLikeNotification_MultipleNotificationsCombine(t *testing.T) {
 
 	assert.Equal(t, "@liker1 and @liker0 liked your post.", notifications[0].Message)
 
-	expectedFacets, err := repositories.GenerateFacets(t.Context(), env.userRepository, notifications[0].Message)
+	expectedFacets, err := utilities.GenerateFacets(t.Context(), env.userRepository, notifications[0].Message)
 	require.NoError(t, err)
 	assert.Equal(t, expectedFacets, notifications[0].Facets)
 

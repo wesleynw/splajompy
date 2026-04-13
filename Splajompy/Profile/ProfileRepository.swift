@@ -35,12 +35,21 @@ protocol ProfileServiceProtocol: Sendable {
   //  >
 
   /// Fetch users that the given user is following.
-  func getFollowing(userId: Int, limit: Int, before: Date?) async -> AsyncResult<PaginatedUserList>
+  func getFollowing(userId: Int, limit: Int, before: Date?) async
+    -> AsyncResult<PaginatedUserList>
 
-  func getMutuals(userId: Int, limit: Int, before: Date?) async -> AsyncResult<PaginatedUserList>
+  func getMutuals(userId: Int, limit: Int, before: Date?) async -> AsyncResult<
+    PaginatedUserList
+  >
 
   /// Fetch friends of a target user.
-  func getFriends(userId: Int, limit: Int, before: Date?) async -> AsyncResult<PaginatedUserList>
+  func getFriends(userId: Int, limit: Int, before: Date?) async -> AsyncResult<
+    PaginatedUserList
+  >
+
+  /// Fetches a list of users who have contributed to a notification.
+  func getNotificationActors(notificationId: Int, limit: Int, before: Date?)
+    async -> AsyncResult<PaginatedUserList>
 
   /// Add a user to the current user's friends list.
   func addFriend(userId: Int) async -> AsyncResult<EmptyResponse>
@@ -156,37 +165,76 @@ struct ProfileService: ProfileServiceProtocol {
     )
   }
 
-  func getFollowing(userId: Int, limit: Int, before: Date?) async -> AsyncResult<PaginatedUserList>
+  func getFollowing(userId: Int, limit: Int, before: Date?) async
+    -> AsyncResult<PaginatedUserList>
   {
     var queryItems = [URLQueryItem(name: "limit", value: "\(limit)")]
     if let before = before {
       let formatter = ISO8601DateFormatter()
       formatter.formatOptions = [.withInternetDateTime, .withTimeZone]
-      queryItems.append(URLQueryItem(name: "before", value: formatter.string(from: before)))
+      queryItems.append(
+        URLQueryItem(name: "before", value: formatter.string(from: before))
+      )
     }
     return await APIService.performRequest(
-      endpoint: "v3/user/\(userId)/following", queryItems: queryItems)
+      endpoint: "v3/user/\(userId)/following",
+      queryItems: queryItems
+    )
   }
 
-  func getMutuals(userId: Int, limit: Int, before: Date?) async -> AsyncResult<PaginatedUserList> {
+  func getMutuals(userId: Int, limit: Int, before: Date?) async -> AsyncResult<
+    PaginatedUserList
+  > {
     var queryItems = [URLQueryItem(name: "limit", value: "\(limit)")]
     if let before = before {
       let formatter = ISO8601DateFormatter()
       formatter.formatOptions = [.withInternetDateTime, .withTimeZone]
-      queryItems.append(URLQueryItem(name: "before", value: formatter.string(from: before)))
+      queryItems.append(
+        URLQueryItem(name: "before", value: formatter.string(from: before))
+      )
     }
     return await APIService.performRequest(
-      endpoint: "v3/user/\(userId)/mutuals", queryItems: queryItems)
+      endpoint: "v3/user/\(userId)/mutuals",
+      queryItems: queryItems
+    )
   }
 
-  func getFriends(userId: Int, limit: Int, before: Date?) async -> AsyncResult<PaginatedUserList> {
+  func getFriends(userId: Int, limit: Int, before: Date?) async -> AsyncResult<
+    PaginatedUserList
+  > {
     var queryItems = [URLQueryItem(name: "limit", value: "\(limit)")]
     if let before = before {
       let formatter = ISO8601DateFormatter()
       formatter.formatOptions = [.withInternetDateTime, .withTimeZone]
-      queryItems.append(URLQueryItem(name: "before", value: formatter.string(from: before)))
+      queryItems.append(
+        URLQueryItem(name: "before", value: formatter.string(from: before))
+      )
     }
-    return await APIService.performRequest(endpoint: "v2/user/friends", queryItems: queryItems)
+    return await APIService.performRequest(
+      endpoint: "v2/user/friends",
+      queryItems: queryItems
+    )
+  }
+
+  func getNotificationActors(notificationId: Int, limit: Int, before: Date?)
+    async -> AsyncResult<PaginatedUserList>
+  {
+    var queryItems = [
+      URLQueryItem(name: "limit", value: "\(limit)")
+    ]
+
+    if let before = before {
+      let formatter = ISO8601DateFormatter()
+      formatter.formatOptions = [.withInternetDateTime, .withTimeZone]
+      queryItems.append(
+        URLQueryItem(name: "before", value: formatter.string(from: before))
+      )
+    }
+
+    return await APIService.performRequest(
+      endpoint: "/users/notification/\(notificationId)",
+      queryItems: queryItems
+    )
   }
 
   func addFriend(userId: Int) async -> AsyncResult<EmptyResponse> {

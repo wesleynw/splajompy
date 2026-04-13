@@ -18,13 +18,14 @@ import (
 	"splajompy.com/api/v2/internal/db/queries"
 	"splajompy.com/api/v2/internal/notification"
 	"splajompy.com/api/v2/internal/repositories"
+	"splajompy.com/api/v2/internal/user"
 )
 
 // TestDB holds the database connection and container for an integration test.
 type TestDB struct {
 	Pool              *pgxpool.Pool
 	Queries           *queries.Queries
-	UserRepository    repositories.UserRepository
+	UserRepository    user.Store
 	PostRepository    repositories.PostRepository
 	CommentRepository repositories.CommentRepository
 	LikeRepository    repositories.LikeRepository
@@ -83,7 +84,7 @@ func StartPostgres(t *testing.T) *TestDB {
 	return &TestDB{
 		Pool:              pool,
 		Queries:           q,
-		UserRepository:    repositories.NewDBUserRepository(q),
+		UserRepository:    user.NewUserRepository(q),
 		PostRepository:    repositories.NewDBPostRepository(q),
 		CommentRepository: repositories.NewDBCommentRepository(q),
 		LikeRepository:    repositories.NewDBLikeRepository(q),

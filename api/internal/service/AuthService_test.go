@@ -5,14 +5,14 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"splajompy.com/api/v2/internal/repositories"
 	"splajompy.com/api/v2/internal/service"
 	"splajompy.com/api/v2/internal/testutil"
+	"splajompy.com/api/v2/internal/user"
 )
 
 type authServiceTestEnv struct {
 	svc            *service.AuthService
-	userRepository repositories.UserRepository
+	userRepository user.Store
 }
 
 func setupAuthServiceTest(t *testing.T) authServiceTestEnv {

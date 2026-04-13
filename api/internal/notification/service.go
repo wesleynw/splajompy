@@ -18,11 +18,16 @@ type Service struct {
 	notificationRepository NotificationStore
 	postRepository         repositories.PostRepository
 	commentRepository      repositories.CommentRepository
-	userRepository         repositories.UserRepository
+	userRepository         userReader
 	bucketRepository       bucket.Repository
 }
 
-func NewService(notificationRepository NotificationStore, postRepository repositories.PostRepository, commentRepository repositories.CommentRepository, userRepository repositories.UserRepository, bucketRepository bucket.Repository) *Service {
+type userReader interface {
+	GetUserById(ctx context.Context, userId int) (models.PublicUser, error)
+	GetUserByUsername(ctx context.Context, username string) (models.PublicUser, error)
+}
+
+func NewService(notificationRepository NotificationStore, postRepository repositories.PostRepository, commentRepository repositories.CommentRepository, userRepository userReader, bucketRepository bucket.Repository) *Service {
 	return &Service{
 		notificationRepository: notificationRepository,
 		postRepository:         postRepository,
@@ -216,7 +221,7 @@ func (s *Service) AddLikeNotification(ctx context.Context, currentUserId int, po
 		return err
 	}
 
-	facets, err := repositories.GenerateFacets(ctx, s.userRepository, *message)
+	facets, err := utilities.GenerateFacets(ctx, s.userRepository, *message)
 	if err != nil {
 		return err
 	}
@@ -256,7 +261,7 @@ func (s *Service) RemoveLikeNotification(ctx context.Context, currentUserId int,
 		return err
 	}
 
-	facets, err := repositories.GenerateFacets(ctx, s.userRepository, *message)
+	facets, err := utilities.GenerateFacets(ctx, s.userRepository, *message)
 	if err != nil {
 		return err
 	}
@@ -266,7 +271,7 @@ func (s *Service) RemoveLikeNotification(ctx context.Context, currentUserId int,
 
 // AddNotification will enrich the notification message with facets, then store.
 func (s *Service) AddNotification(ctx context.Context, targetUserId int, postId int, commentId *int, message string, notificationType models.NotificationType) (*models.Notification, error) {
-	facets, err := repositories.GenerateFacets(ctx, s.userRepository, message)
+	facets, err := utilities.GenerateFacets(ctx, s.userRepository, message)
 	if err != nil {
 		return nil, err
 	}

@@ -1,11 +1,9 @@
-package repositories
+package user
 
 import (
 	"context"
-	"errors"
 	"time"
 
-	"github.com/jackc/pgx/v5"
 	"splajompy.com/api/v2/internal/db"
 	"splajompy.com/api/v2/internal/utilities"
 
@@ -14,12 +12,12 @@ import (
 	"splajompy.com/api/v2/internal/models"
 )
 
-type DBUserRepository struct {
+type Store struct {
 	querier queries.Querier
 }
 
 // GetUserById retrieves a user by their ID
-func (r DBUserRepository) GetUserById(ctx context.Context, userId int) (models.PublicUser, error) {
+func (r Store) GetUserById(ctx context.Context, userId int) (models.PublicUser, error) {
 	user, err := r.querier.GetUserById(ctx, userId)
 	if err != nil {
 		return models.PublicUser{}, err
@@ -29,7 +27,7 @@ func (r DBUserRepository) GetUserById(ctx context.Context, userId int) (models.P
 }
 
 // GetUserByUsername retrieves a user by their username
-func (r DBUserRepository) GetUserByUsername(ctx context.Context, username string) (models.PublicUser, error) {
+func (r Store) GetUserByUsername(ctx context.Context, username string) (models.PublicUser, error) {
 	user, err := r.querier.GetUserByUsername(ctx, username)
 	if err != nil {
 		return models.PublicUser{}, err
@@ -39,7 +37,7 @@ func (r DBUserRepository) GetUserByUsername(ctx context.Context, username string
 }
 
 // GetUserByIdentifier retrieves a user by email or username
-func (r DBUserRepository) GetUserByIdentifier(ctx context.Context, identifier string) (models.PublicUser, error) {
+func (r Store) GetUserByIdentifier(ctx context.Context, identifier string) (models.PublicUser, error) {
 	user, err := r.querier.GetUserByIdentifier(ctx, identifier)
 	if err != nil {
 		return models.PublicUser{}, err
@@ -49,12 +47,12 @@ func (r DBUserRepository) GetUserByIdentifier(ctx context.Context, identifier st
 }
 
 // GetBioForUser retrieves a user's bio
-func (r DBUserRepository) GetBioForUser(ctx context.Context, userId int) (string, error) {
+func (r Store) GetBioForUser(ctx context.Context, userId int) (string, error) {
 	return r.querier.GetBioByUserId(ctx, userId)
 }
 
 // UpdateBio updates a user's bio
-func (r DBUserRepository) UpdateBio(ctx context.Context, userId int, bio string) error {
+func (r Store) UpdateBio(ctx context.Context, userId int, bio string) error {
 	return r.querier.UpdateUserBio(ctx, queries.UpdateUserBioParams{
 		UserID: userId,
 		Text:   bio,
@@ -62,7 +60,7 @@ func (r DBUserRepository) UpdateBio(ctx context.Context, userId int, bio string)
 }
 
 // IsUserFollowingUser checks if a user is following another user
-func (r DBUserRepository) IsUserFollowingUser(ctx context.Context, followerId int, followingId int) (bool, error) {
+func (r Store) IsUserFollowingUser(ctx context.Context, followerId int, followingId int) (bool, error) {
 	return r.querier.GetIsUserFollowingUser(ctx, queries.GetIsUserFollowingUserParams{
 		FollowerID:  followerId,
 		FollowingID: followingId,
@@ -70,7 +68,7 @@ func (r DBUserRepository) IsUserFollowingUser(ctx context.Context, followerId in
 }
 
 // FollowUser makes a user follow another user
-func (r DBUserRepository) FollowUser(ctx context.Context, followerId int, followingId int) error {
+func (r Store) FollowUser(ctx context.Context, followerId int, followingId int) error {
 	return r.querier.InsertFollow(ctx, queries.InsertFollowParams{
 		FollowerID:  followerId,
 		FollowingID: followingId,
@@ -78,7 +76,7 @@ func (r DBUserRepository) FollowUser(ctx context.Context, followerId int, follow
 }
 
 // UnfollowUser makes a user unfollow another user
-func (r DBUserRepository) UnfollowUser(ctx context.Context, followerId int, followingId int) error {
+func (r Store) UnfollowUser(ctx context.Context, followerId int, followingId int) error {
 	return r.querier.DeleteFollow(ctx, queries.DeleteFollowParams{
 		FollowerID:  followerId,
 		FollowingID: followingId,
@@ -86,7 +84,7 @@ func (r DBUserRepository) UnfollowUser(ctx context.Context, followerId int, foll
 }
 
 // SearchUsername retrieves users with usernames matching a pattern
-func (r DBUserRepository) SearchUsername(ctx context.Context, prefix string, limit int, currentUserId int) ([]models.PublicUser, error) {
+func (r Store) SearchUsername(ctx context.Context, prefix string, limit int, currentUserId int) ([]models.PublicUser, error) {
 	users, err := r.querier.UserSearchWithHeuristics(ctx, queries.UserSearchWithHeuristicsParams{
 		Username:     prefix,
 		Limit:        limit,
@@ -120,7 +118,7 @@ func (r DBUserRepository) SearchUsername(ctx context.Context, prefix string, lim
 }
 
 // UpdateUserName updates a user's name
-func (r DBUserRepository) UpdateUserName(ctx context.Context, userId int, newName string) error {
+func (r Store) UpdateUserName(ctx context.Context, userId int, newName string) error {
 	return r.querier.UpdateUserName(ctx, queries.UpdateUserNameParams{
 		UserID: userId,
 		Name:   pgtype.Text{String: newName, Valid: true},
@@ -128,7 +126,7 @@ func (r DBUserRepository) UpdateUserName(ctx context.Context, userId int, newNam
 }
 
 // GetUserDisplayProperties retrieves a user's display properties
-func (r DBUserRepository) GetUserDisplayProperties(ctx context.Context, userId int) (*db.UserDisplayProperties, error) {
+func (r Store) GetUserDisplayProperties(ctx context.Context, userId int) (*db.UserDisplayProperties, error) {
 	user, err := r.querier.GetUserById(ctx, userId)
 	if err != nil {
 		return nil, err
@@ -137,7 +135,7 @@ func (r DBUserRepository) GetUserDisplayProperties(ctx context.Context, userId i
 }
 
 // UpdateUserDisplayProperties updates a user's display properties
-func (r DBUserRepository) UpdateUserDisplayProperties(ctx context.Context, userId int, displayProperties *db.UserDisplayProperties) error {
+func (r Store) UpdateUserDisplayProperties(ctx context.Context, userId int, displayProperties *db.UserDisplayProperties) error {
 	return r.querier.UpdateUserDisplayProperties(ctx, queries.UpdateUserDisplayPropertiesParams{
 		UserID:                userId,
 		UserDisplayProperties: displayProperties,
@@ -145,17 +143,17 @@ func (r DBUserRepository) UpdateUserDisplayProperties(ctx context.Context, userI
 }
 
 // GetIsUsernameInUse checks if a username is already in use
-func (r DBUserRepository) GetIsUsernameInUse(ctx context.Context, username string) (bool, error) {
+func (r Store) GetIsUsernameInUse(ctx context.Context, username string) (bool, error) {
 	return r.querier.GetIsUsernameInUse(ctx, username)
 }
 
 // GetIsEmailInUse checks if an email is already in use
-func (r DBUserRepository) GetIsEmailInUse(ctx context.Context, email string) (bool, error) {
+func (r Store) GetIsEmailInUse(ctx context.Context, email string) (bool, error) {
 	return r.querier.GetIsEmailInUse(ctx, email)
 }
 
 // CreateUser creates a new user
-func (r DBUserRepository) CreateUser(ctx context.Context, username string, email string, password string, referralCode string) (models.PublicUser, error) {
+func (r Store) CreateUser(ctx context.Context, username string, email string, password string, referralCode string) (models.PublicUser, error) {
 	user, err := r.querier.CreateUser(ctx, queries.CreateUserParams{
 		Username:     username,
 		Email:        email,
@@ -170,7 +168,7 @@ func (r DBUserRepository) CreateUser(ctx context.Context, username string, email
 }
 
 // GetVerificationCode retrieves a verification code for a user
-func (r DBUserRepository) GetVerificationCode(ctx context.Context, userId int, code string) (queries.VerificationCode, error) {
+func (r Store) GetVerificationCode(ctx context.Context, userId int, code string) (queries.VerificationCode, error) {
 	return r.querier.GetVerificationCode(ctx, queries.GetVerificationCodeParams{
 		UserID: userId,
 		Code:   code,
@@ -178,7 +176,7 @@ func (r DBUserRepository) GetVerificationCode(ctx context.Context, userId int, c
 }
 
 // CreateVerificationCode creates a verification code for a user
-func (r DBUserRepository) CreateVerificationCode(ctx context.Context, userId int, code string, expiresAt time.Time) error {
+func (r Store) CreateVerificationCode(ctx context.Context, userId int, code string, expiresAt time.Time) error {
 	return r.querier.CreateVerificationCode(ctx, queries.CreateVerificationCodeParams{
 		UserID:    userId,
 		Code:      code,
@@ -187,7 +185,7 @@ func (r DBUserRepository) CreateVerificationCode(ctx context.Context, userId int
 }
 
 // GetUserPasswordByIdentifier retrieves a user's password by email or username
-func (r DBUserRepository) GetUserPasswordByIdentifier(ctx context.Context, identifier string) (string, error) {
+func (r Store) GetUserPasswordByIdentifier(ctx context.Context, identifier string) (string, error) {
 	user, err := r.querier.GetUserWithPasswordByIdentifier(ctx, identifier)
 	if err != nil {
 		return "", err
@@ -197,7 +195,7 @@ func (r DBUserRepository) GetUserPasswordByIdentifier(ctx context.Context, ident
 }
 
 // CreateSession creates a new session for a user
-func (r DBUserRepository) CreateSession(ctx context.Context, sessionId string, userId int, expiresAt time.Time) error {
+func (r Store) CreateSession(ctx context.Context, sessionId string, userId int, expiresAt time.Time) error {
 	return r.querier.CreateSession(ctx, queries.CreateSessionParams{
 		ID:        sessionId,
 		UserID:    userId,
@@ -205,61 +203,61 @@ func (r DBUserRepository) CreateSession(ctx context.Context, sessionId string, u
 	})
 }
 
-func (r DBUserRepository) BlockUser(ctx context.Context, currentUserId int, targetUserId int) error {
+func (r Store) BlockUser(ctx context.Context, currentUserId int, targetUserId int) error {
 	return r.querier.BlockUser(ctx, queries.BlockUserParams{
 		UserID:       currentUserId,
 		TargetUserID: targetUserId,
 	})
 }
 
-func (r DBUserRepository) UnblockUser(ctx context.Context, currentUserId int, targetUserId int) error {
+func (r Store) UnblockUser(ctx context.Context, currentUserId int, targetUserId int) error {
 	return r.querier.UnblockUser(ctx, queries.UnblockUserParams{
 		UserID:       currentUserId,
 		TargetUserID: targetUserId,
 	})
 }
 
-func (r DBUserRepository) IsUserBlockingUser(ctx context.Context, blockerId int, blockedId int) (bool, error) {
+func (r Store) IsUserBlockingUser(ctx context.Context, blockerId int, blockedId int) (bool, error) {
 	return r.querier.GetIsUserBlockingUser(ctx, queries.GetIsUserBlockingUserParams{
 		UserID:       blockerId,
 		TargetUserID: blockedId,
 	})
 }
 
-func (r DBUserRepository) MuteUser(ctx context.Context, currentUserId int, targetUserId int) error {
+func (r Store) MuteUser(ctx context.Context, currentUserId int, targetUserId int) error {
 	return r.querier.MuteUser(ctx, queries.MuteUserParams{
 		UserID:       currentUserId,
 		TargetUserID: targetUserId,
 	})
 }
 
-func (r DBUserRepository) UnmuteUser(ctx context.Context, currentUserId int, targetUserId int) error {
+func (r Store) UnmuteUser(ctx context.Context, currentUserId int, targetUserId int) error {
 	return r.querier.UnmuteUser(ctx, queries.UnmuteUserParams{
 		UserID:       currentUserId,
 		TargetUserID: targetUserId,
 	})
 }
 
-func (r DBUserRepository) IsUserMutingUser(ctx context.Context, muterId int, mutedId int) (bool, error) {
+func (r Store) IsUserMutingUser(ctx context.Context, muterId int, mutedId int) (bool, error) {
 	return r.querier.GetIsUserMutingUser(ctx, queries.GetIsUserMutingUserParams{
 		UserID:       muterId,
 		TargetUserID: mutedId,
 	})
 }
 
-func (r DBUserRepository) DeleteAccount(ctx context.Context, userId int) error {
+func (r Store) DeleteAccount(ctx context.Context, userId int) error {
 	return r.querier.DeleteUserById(ctx, userId)
 }
 
 // GetMutualConnectionsForUser retrieves mutual connections between current user and target user
-func (r DBUserRepository) GetMutualConnectionsForUser(ctx context.Context, currentUserId int, targetUserId int) ([]string, error) {
+func (r Store) GetMutualConnectionsForUser(ctx context.Context, currentUserId int, targetUserId int) ([]string, error) {
 	return r.querier.GetMutualConnectionsForUser(ctx, queries.GetMutualConnectionsForUserParams{
 		FollowerID:   currentUserId,
 		FollowerID_2: targetUserId,
 	})
 }
 
-func (r DBUserRepository) GetFollowersByUserId_old(ctx context.Context, userId int, limit int, offset int) ([]queries.GetFollowersByUserIdRow, error) {
+func (r Store) GetFollowersByUserId_old(ctx context.Context, userId int, limit int, offset int) ([]queries.GetFollowersByUserIdRow, error) {
 	return r.querier.GetFollowersByUserId(ctx, queries.GetFollowersByUserIdParams{
 		FollowingID: userId,
 		Limit:       limit,
@@ -267,7 +265,7 @@ func (r DBUserRepository) GetFollowersByUserId_old(ctx context.Context, userId i
 	})
 }
 
-func (r DBUserRepository) GetFollowingByUserId_old(ctx context.Context, userId int, limit int, offset int) ([]queries.GetFollowingByUserIdRow, error) {
+func (r Store) GetFollowingByUserId_old(ctx context.Context, userId int, limit int, offset int) ([]queries.GetFollowingByUserIdRow, error) {
 	return r.querier.GetFollowingByUserId(ctx, queries.GetFollowingByUserIdParams{
 		FollowerID: userId,
 		Limit:      limit,
@@ -275,7 +273,7 @@ func (r DBUserRepository) GetFollowingByUserId_old(ctx context.Context, userId i
 	})
 }
 
-func (r DBUserRepository) GetMutualsByUserId_old(ctx context.Context, currentUserId int, targetUserId int, limit int, offset int) ([]queries.GetMutualsByUserIdRow, error) {
+func (r Store) GetMutualsByUserId_old(ctx context.Context, currentUserId int, targetUserId int, limit int, offset int) ([]queries.GetMutualsByUserIdRow, error) {
 	return r.querier.GetMutualsByUserId(ctx, queries.GetMutualsByUserIdParams{
 		FollowerID:   currentUserId,
 		FollowerID_2: targetUserId,
@@ -284,7 +282,7 @@ func (r DBUserRepository) GetMutualsByUserId_old(ctx context.Context, currentUse
 	})
 }
 
-func (r DBUserRepository) GetFollowingUserIds(ctx context.Context, userId int, limit int, before *time.Time) ([]int, *time.Time, error) {
+func (r Store) GetFollowingUserIds(ctx context.Context, userId int, limit int, before *time.Time) ([]int, *time.Time, error) {
 	rows, err := r.querier.GetFollowingUserIds(ctx, queries.GetFollowingUserIdsParams{
 		UserID: userId,
 		Before: before,
@@ -308,7 +306,7 @@ func (r DBUserRepository) GetFollowingUserIds(ctx context.Context, userId int, l
 	return userIds, cursor, nil
 }
 
-func (r DBUserRepository) GetMutualUserIds(ctx context.Context, userId int, targetUserId int, limit int, before *time.Time) ([]int, *time.Time, error) {
+func (r Store) GetMutualUserIds(ctx context.Context, userId int, targetUserId int, limit int, before *time.Time) ([]int, *time.Time, error) {
 	rows, err := r.querier.GetMutualsByUserIdV2(ctx, queries.GetMutualsByUserIdV2Params{
 		UserID:       userId,
 		TargetUserID: targetUserId,
@@ -333,25 +331,25 @@ func (r DBUserRepository) GetMutualUserIds(ctx context.Context, userId int, targ
 	return userIds, cursor, nil
 }
 
-func (r DBUserRepository) GetIsReferralCodeInUse(ctx context.Context, code string) (bool, error) {
+func (r Store) GetIsReferralCodeInUse(ctx context.Context, code string) (bool, error) {
 	return r.querier.GetIsReferralCodeInUse(ctx, code)
 }
 
-func (r DBUserRepository) AddUserRelationship(ctx context.Context, userId int, targetUserId int) error {
+func (r Store) AddUserRelationship(ctx context.Context, userId int, targetUserId int) error {
 	return r.querier.AddUserRelationship(ctx, queries.AddUserRelationshipParams{
 		UserID:       userId,
 		TargetUserID: targetUserId,
 	})
 }
 
-func (r DBUserRepository) RemoveUserRelationship(ctx context.Context, userId int, targetUserId int) error {
+func (r Store) RemoveUserRelationship(ctx context.Context, userId int, targetUserId int) error {
 	return r.querier.RemoveUserRelationship(ctx, queries.RemoveUserRelationshipParams{
 		UserID:       userId,
 		TargetUserID: targetUserId,
 	})
 }
 
-func (r DBUserRepository) GetRelationshipByUserId(ctx context.Context, userId int, limit int, before *time.Time) ([]models.PublicUser, error) {
+func (r Store) GetRelationshipByUserId(ctx context.Context, userId int, limit int, before *time.Time) ([]models.PublicUser, error) {
 	users, err := r.querier.ListUserRelationships(ctx, queries.ListUserRelationshipsParams{
 		UserID: userId,
 		Limit:  limit,
@@ -379,7 +377,7 @@ func (r DBUserRepository) GetRelationshipByUserId(ctx context.Context, userId in
 	return publicUsers, nil
 }
 
-func (r DBUserRepository) GetRelationshipUserIds(ctx context.Context, userId int, limit int, before *time.Time) ([]int, *time.Time, error) {
+func (r Store) GetRelationshipUserIds(ctx context.Context, userId int, limit int, before *time.Time) ([]int, *time.Time, error) {
 	rows, err := r.querier.ListUserRelationships(ctx, queries.ListUserRelationshipsParams{
 		UserID: userId,
 		Limit:  limit,
@@ -403,40 +401,37 @@ func (r DBUserRepository) GetRelationshipUserIds(ctx context.Context, userId int
 	return userIds, cursor, nil
 }
 
-func (r DBUserRepository) IsUserFriend(ctx context.Context, userId int, targetUserId int) (bool, error) {
+func (r Store) IsUserFriend(ctx context.Context, userId int, targetUserId int) (bool, error) {
 	return r.querier.GetIsUserFriend(ctx, queries.GetIsUserFriendParams{
 		UserID:       userId,
 		TargetUserID: targetUserId,
 	})
 }
-
-// NewDBUserRepository creates a new user repository
-func NewDBUserRepository(querier queries.Querier) UserRepository {
-	return &DBUserRepository{querier: querier}
-}
-
-func GenerateFacets(ctx context.Context, userRepository UserRepository, text string) (db.Facets, error) {
-	matches := utilities.MentionRegex.FindAllStringSubmatchIndex(text, -1)
-
-	var facets db.Facets
-
-	for _, match := range matches {
-		usernameStart, usernameEnd := match[2], match[3]
-		username := text[usernameStart:usernameEnd]
-		user, err := userRepository.GetUserByUsername(ctx, username)
-		if err != nil {
-			if errors.Is(err, pgx.ErrNoRows) {
-				continue
-			}
-			return nil, err
-		}
-		facets = append(facets, db.Facet{
-			Type:       "mention",
-			UserId:     user.UserID,
-			IndexStart: usernameStart - 1,
-			IndexEnd:   usernameEnd,
-		})
+func (r *Store) GetNotificationActorUserIds(ctx context.Context, notificationId int, limit int, before *time.Time) ([]int, *time.Time, error) {
+	rows, err := r.querier.GetNotificationActorUserIds(ctx, queries.GetNotificationActorUserIdsParams{
+		NotificationID: notificationId,
+		Limit:          limit,
+		Before:         before,
+	})
+	if err != nil {
+		return nil, nil, err
 	}
 
-	return facets, nil
+	userIds := make([]int, len(rows))
+	for i, row := range rows {
+		userIds[i] = row.UserID
+	}
+
+	var cursor *time.Time
+	if len(rows) > 0 {
+		t := rows[len(rows)-1].CreatedAt
+		cursor = t
+	}
+
+	return userIds, cursor, nil
+}
+
+// NewUserRepository creates a new user repository
+func NewUserRepository(querier queries.Querier) Store {
+	return Store{querier: querier}
 }

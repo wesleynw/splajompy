@@ -34,7 +34,7 @@ struct PostVisibilityToggle: View {
     .sheet(isPresented: $isPresentingUserList) {
       if let userId = authManager.getCurrentUser()?.userId {
         NavigationStack {
-          UserListView(userId: userId, userListVariant: .friends)
+          UserListView(identifier: userId, userListVariant: .friends)
             .toolbar {
               #if os(iOS)
                 ToolbarItem(placement: .topBarLeading) {

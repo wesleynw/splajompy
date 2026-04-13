@@ -10,16 +10,16 @@ import (
 	"github.com/stretchr/testify/require"
 	"splajompy.com/api/v2/internal/models"
 	"splajompy.com/api/v2/internal/notification"
-	"splajompy.com/api/v2/internal/repositories"
 	"splajompy.com/api/v2/internal/service"
 	"splajompy.com/api/v2/internal/testutil"
+	"splajompy.com/api/v2/internal/user"
 	"splajompy.com/api/v2/internal/utilities"
 )
 
 type postServiceTestEnv struct {
 	svc            *service.PostService
 	commentSvc     *service.CommentService
-	userRepository repositories.UserRepository
+	userRepository user.Store
 }
 
 func setupPostTest(t *testing.T) postServiceTestEnv {

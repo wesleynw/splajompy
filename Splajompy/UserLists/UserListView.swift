@@ -7,10 +7,10 @@ struct UserListView: View {
   @State private var viewModel: UserListViewModel
   @State private var isPresentingUserSearch: Bool = false
 
-  init(userId: Int, userListVariant: UserListVariantEnum) {
+  init(identifier: Int, userListVariant: UserListVariantEnum) {
     _viewModel = State(
       wrappedValue: UserListViewModel(
-        userId: userId,
+        identifier: identifier,
         userListVariant: userListVariant
       )
     )
@@ -77,7 +77,7 @@ struct UserListView: View {
       NavigationStack {
         SearchView(onUserSelected: { selectedUser in
           // don't allow adding self
-          guard selectedUser.userId != viewModel.userId else { return }
+          guard selectedUser.userId != viewModel.identifier else { return }
           isPresentingUserSearch = false
           Task {
             await viewModel.addFriend(publicUser: selectedUser)
@@ -276,7 +276,7 @@ struct UserRowView: View {
 
 #Preview {
   let viewModel = UserListViewModel(
-    userId: 1,
+    identifier: 1,
     userListVariant: .following,
     profileService: MockProfileService()
   )

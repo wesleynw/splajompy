@@ -49,6 +49,7 @@ type Querier interface {
 	GetMutualConnectionsForUser(ctx context.Context, arg GetMutualConnectionsForUserParams) ([]string, error)
 	GetMutualsByUserId(ctx context.Context, arg GetMutualsByUserIdParams) ([]GetMutualsByUserIdRow, error)
 	GetMutualsByUserIdV2(ctx context.Context, arg GetMutualsByUserIdV2Params) ([]GetMutualsByUserIdV2Row, error)
+	GetNotificationActorUserIds(ctx context.Context, arg GetNotificationActorUserIdsParams) ([]GetNotificationActorUserIdsRow, error)
 	GetNotificationActors(ctx context.Context, notificationID int) ([]int, error)
 	GetNotificationById(ctx context.Context, notificationID int) (Notification, error)
 	GetNotificationsForUserId(ctx context.Context, arg GetNotificationsForUserIdParams) ([]Notification, error)
