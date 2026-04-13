@@ -3,7 +3,6 @@ package handler
 import (
 	"encoding/json"
 	"net/http"
-	"strconv"
 
 	"splajompy.com/api/v2/internal/db"
 	"splajompy.com/api/v2/internal/service"
@@ -95,18 +94,6 @@ func (h *Handler) DeletePostById(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utilities.HandleEmptySuccess(w)
-}
-
-// Deprecated: in factor of parseTimeBasedPagination
-func (h *Handler) parsePagination(r *http.Request) (int, int) {
-	limit, offset := 10, 0
-	if l, err := strconv.Atoi(r.URL.Query().Get("limit")); err == nil && l > 0 {
-		limit = l
-	}
-	if o, err := strconv.Atoi(r.URL.Query().Get("offset")); err == nil && o >= 0 {
-		offset = o
-	}
-	return limit, offset
 }
 
 func (h *Handler) GetPostsByUserIdWithTimeOffset(w http.ResponseWriter, r *http.Request) {
