@@ -143,3 +143,12 @@ func SeededRandom(seed int) float64 {
 	var x = math.Sin(float64(seed)) * 1000
 	return x - math.Floor(x)
 }
+
+// IsStoredVersionAtLeast checks whether a stored app version string (e.g. from a user record)
+// is at least the given target version. Returns false if version is nil.
+func IsStoredVersionAtLeast(version *string, target string) bool {
+	if version == nil {
+		return false
+	}
+	return semver.Compare(*version, target) >= 0
+}

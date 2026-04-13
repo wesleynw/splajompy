@@ -26,6 +26,18 @@ func (r Store) GetUserById(ctx context.Context, userId int) (models.PublicUser, 
 	return utilities.MapUserToPublicUser(user), nil
 }
 
+// GetUserLatestAppVersion retrieves the stored latest app version for a user.
+func (r Store) GetUserLatestAppVersion(ctx context.Context, userId int) (*string, error) {
+	user, err := r.querier.GetUserById(ctx, userId)
+	if err != nil {
+		return nil, err
+	}
+	if user.UserDisplayProperties == nil {
+		return nil, nil
+	}
+	return user.UserDisplayProperties.LatestAppVersion, nil
+}
+
 // GetUserByUsername retrieves a user by their username
 func (r Store) GetUserByUsername(ctx context.Context, username string) (models.PublicUser, error) {
 	user, err := r.querier.GetUserByUsername(ctx, username)

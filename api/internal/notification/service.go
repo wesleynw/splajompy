@@ -25,6 +25,7 @@ type Service struct {
 type userReader interface {
 	GetUserById(ctx context.Context, userId int) (models.PublicUser, error)
 	GetUserByUsername(ctx context.Context, username string) (models.PublicUser, error)
+	GetUserLatestAppVersion(ctx context.Context, userId int) (*string, error)
 }
 
 func NewService(notificationRepository NotificationStore, postRepository repositories.PostRepository, commentRepository repositories.CommentRepository, userRepository userReader, bucketRepository bucket.Repository) *Service {
@@ -99,16 +100,6 @@ func (s *Service) buildDetailedNotifications(ctx context.Context, currentUserId 
 		var detailedNotification models.DetailedNotification
 		detailedNotification.Notification = *notification
 
-		if notification.NotificationType == models.NotificationTypeLike && !utilities.IsAppUpdatedToVersion(ctx, "v1.8.3") {
-			actors, err := s.notificationRepository.GetNotificationActors(ctx, notification.NotificationID)
-			if err != nil {
-				return nil, errors.New("unable to retrieve notification actors")
-			}
-			if len(actors) > 3 {
-				detailedNotification.Message = notification.Message + "\n\n[Update Splajompy](https://apps.apple.com/us/app/splajompy/id6744034321) to view all likes."
-			}
-		}
-
 		if notification.PostID != nil {
 			post, err := s.postRepository.GetPostById(ctx, *notification.PostID, currentUserId)
 			if err != nil {
@@ -182,12 +173,25 @@ func (s *Service) AddLikeNotification(ctx context.Context, currentUserId int, po
 		return nil
 	}
 
-	existingLikeNotification, err := s.notificationRepository.FindUnreadLikeNotification(ctx, post.UserID, postId, nil)
+	currentUser, err := s.userRepository.GetUserById(ctx, currentUserId)
 	if err != nil {
 		return err
 	}
 
-	currentUser, err := s.userRepository.GetUserById(ctx, currentUserId)
+	recipientVersion, err := s.userRepository.GetUserLatestAppVersion(ctx, post.UserID)
+	if err != nil {
+		return err
+	}
+
+	if !utilities.IsStoredVersionAtLeast(recipientVersion, "v1.8.3") {
+		// Recipient is on an old client that can't navigate to the actors list —
+		// send a plain per-liker notification instead of combining.
+		message := fmt.Sprintf("@%s liked your post.", currentUser.Username)
+		_, err = s.AddNotification(ctx, post.UserID, postId, nil, message, models.NotificationTypeLike)
+		return err
+	}
+
+	existingLikeNotification, err := s.notificationRepository.FindUnreadLikeNotification(ctx, post.UserID, postId, nil)
 	if err != nil {
 		return err
 	}
@@ -240,6 +244,16 @@ func (s *Service) RemoveLikeNotification(ctx context.Context, currentUserId int,
 	existingLikeNotification, err := s.notificationRepository.FindUnreadLikeNotification(ctx, post.UserID, postId, nil)
 	if err != nil || existingLikeNotification == nil {
 		return err
+	}
+
+	recipientVersion, err := s.userRepository.GetUserLatestAppVersion(ctx, post.UserID)
+	if err != nil {
+		return err
+	}
+
+	if !utilities.IsStoredVersionAtLeast(recipientVersion, "v1.8.3") {
+		// Old client: plain notifications were created without actor tracking, just delete directly.
+		return s.notificationRepository.DeleteNotificationById(ctx, existingLikeNotification.NotificationID)
 	}
 
 	err = s.notificationRepository.DeleteNotificationActor(ctx, existingLikeNotification.NotificationID, currentUserId)
