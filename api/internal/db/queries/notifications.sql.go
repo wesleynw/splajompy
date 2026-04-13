@@ -402,7 +402,7 @@ func (q *Queries) InsertNotification(ctx context.Context, arg InsertNotification
 const insertNotificationActor = `-- name: InsertNotificationActor :exec
 INSERT INTO notification_actor (notification_id, user_id)
 VALUES ($1, $2)
-ON CONFLICT DO NOTHING
+ON CONFLICT (notification_id, user_id) DO NOTHING
 `
 
 type InsertNotificationActorParams struct {

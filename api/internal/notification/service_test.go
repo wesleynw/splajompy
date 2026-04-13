@@ -7,6 +7,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	db "splajompy.com/api/v2/internal/db"
 	"splajompy.com/api/v2/internal/models"
 	"splajompy.com/api/v2/internal/notification"
 	"splajompy.com/api/v2/internal/repositories"
@@ -323,6 +324,10 @@ func TestAddLikeNotification_MultipleNotificationsCombine(t *testing.T) {
 	env := setupNotificationService(t)
 
 	postOwner := testutil.CreateTestUser(t, env.userRepository, "user0")
+	appVersion := "v1.8.3"
+	err := env.userRepository.UpdateUserDisplayProperties(t.Context(), postOwner.UserID, &db.UserDisplayProperties{LatestAppVersion: &appVersion})
+	require.NoError(t, err)
+
 	post, err := env.postRepository.InsertPost(t.Context(), postOwner.UserID, "test post", nil, nil, new(models.VisibilityPublic))
 	require.NoError(t, err)
 
@@ -376,13 +381,17 @@ func TestAddLikeNotification_MultipleNotificationsCombine(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, notifications, 1, "poster should still have 1 unread notification")
 
-	assert.Equal(t, "@liker3, @liker2, @liker1, and others liked your post.\n\n[Update Splajompy](https://apps.apple.com/us/app/splajompy/id6744034321) to view all likes.", notifications[0].Message)
+	assert.Equal(t, "@liker3, @liker2, @liker1, and others liked your post.", notifications[0].Message)
 }
 
 func TestAddLikeNotification_HandlesRemovedLikes(t *testing.T) {
 	env := setupNotificationService(t)
 
 	postOwner := testutil.CreateTestUser(t, env.userRepository, "user0")
+	appVersion := "v1.8.3"
+	err := env.userRepository.UpdateUserDisplayProperties(t.Context(), postOwner.UserID, &db.UserDisplayProperties{LatestAppVersion: &appVersion})
+	require.NoError(t, err)
+
 	post, err := env.postRepository.InsertPost(t.Context(), postOwner.UserID, "test post", nil, nil, new(models.VisibilityPublic))
 	require.NoError(t, err)
 

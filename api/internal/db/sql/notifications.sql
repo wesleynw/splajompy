@@ -113,7 +113,7 @@ WHERE notification_id = $1;
 -- name: InsertNotificationActor :exec
 INSERT INTO notification_actor (notification_id, user_id)
 VALUES ($1, $2)
-ON CONFLICT DO NOTHING;
+ON CONFLICT (notification_id, user_id) DO NOTHING;
 
 -- name: DeleteNotificationActor :exec
 DELETE FROM notification_actor
