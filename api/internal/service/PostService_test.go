@@ -29,7 +29,7 @@ func setupPostTest(t *testing.T) postServiceTestEnv {
 	_ = os.Setenv("ENVIRONMENT", "test")
 
 	notificationService := notification.NewService(db.NotificationStore, db.PostRepository, db.CommentRepository, db.UserRepository, db.BucketRepository)
-	svc := service.NewPostService(db.PostRepository, db.UserRepository, db.LikeRepository, *notificationService, db.NotificationStore, db.BucketRepository, nil)
+	svc := service.NewPostService(db.PostRepository, db.UserRepository, db.LikeRepository, *notificationService, db.BucketRepository, nil)
 	commentSvc := service.NewCommentService(db.CommentRepository, db.PostRepository, db.NotificationStore, db.UserRepository, db.LikeRepository, db.BucketRepository)
 
 	return postServiceTestEnv{

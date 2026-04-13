@@ -26,21 +26,18 @@ type PostService struct {
 	userRepository      user.Store
 	likeRepository      repositories.LikeRepository
 	notificationService notification.Service
-	// Deprecated: start relying on notificationStore
-	notificationRepository notification.NotificationStore
-	bucketRepository       bucket.Repository
-	emailService           *resend.Client
+	bucketRepository    bucket.Repository
+	emailService        *resend.Client
 }
 
-func NewPostService(postRepository repositories.PostRepository, userRepository user.Store, likeRepository repositories.LikeRepository, notificationService notification.Service, notificationRepository notification.NotificationStore, bucketRepo bucket.Repository, emailService *resend.Client) *PostService {
+func NewPostService(postRepository repositories.PostRepository, userRepository user.Store, likeRepository repositories.LikeRepository, notificationService notification.Service, bucketRepo bucket.Repository, emailService *resend.Client) *PostService {
 	return &PostService{
-		postRepository:         postRepository,
-		userRepository:         userRepository,
-		likeRepository:         likeRepository,
-		notificationService:    notificationService,
-		notificationRepository: notificationRepository,
-		bucketRepository:       bucketRepo,
-		emailService:           emailService,
+		postRepository:      postRepository,
+		userRepository:      userRepository,
+		likeRepository:      likeRepository,
+		notificationService: notificationService,
+		bucketRepository:    bucketRepo,
+		emailService:        emailService,
 	}
 }
 
@@ -91,14 +88,9 @@ func (s *PostService) NewPost(ctx context.Context, currentUser models.PublicUser
 
 	for userId := range usersToNotify {
 		text := fmt.Sprintf("@%s mentioned you in a post.", currentUser.Username)
-		notificationFacets, err := utilities.GenerateFacets(ctx, s.userRepository, text)
+		_, err = s.notificationService.AddNotification(ctx, userId, postId, nil, text, models.NotificationTypeMention)
 		if err != nil {
 			return nil, err
-		}
-
-		_, err = s.notificationRepository.InsertNotification(ctx, userId, &postId, nil, &notificationFacets, text, models.NotificationTypeMention, nil)
-		if err != nil {
-			return nil, errors.New("unable to create post")
 		}
 	}
 
@@ -358,11 +350,7 @@ func (s *PostService) VoteOnPoll(ctx context.Context, currentUser models.PublicU
 	if currentUser.UserID != post.UserID {
 		optionTitle := post.Attributes.Poll.Options[optionIndex]
 		text := fmt.Sprintf("@%s voted \"%s\" in your poll.", currentUser.Username, optionTitle)
-		facets, err := utilities.GenerateFacets(ctx, s.userRepository, text)
-		if err != nil {
-			return err
-		}
-		_, err = s.notificationRepository.InsertNotification(ctx, post.UserID, &postId, nil, &facets, text, models.NotificationTypePoll, nil)
+		_, err = s.notificationService.AddNotification(ctx, post.UserID, postId, nil, text, models.NotificationTypePoll)
 		if err != nil {
 			return err
 		}
