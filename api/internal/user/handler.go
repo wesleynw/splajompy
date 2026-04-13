@@ -428,7 +428,7 @@ func (h *Handler) ListNotificationActors(w http.ResponseWriter, r *http.Request)
 	result, err := h.svc.GetNotificationActors(r.Context(), user.UserID, notificationId, limit, before)
 	if err != nil {
 		if errors.Is(err, utilities.ErrUnauthorized) {
-			utilities.HandleError(w, http.StatusUnauthorized, "Unauthorized")
+			utilities.HandleError(w, http.StatusBadRequest, "Unauthorized")
 			return
 		}
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")

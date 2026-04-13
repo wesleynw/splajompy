@@ -232,7 +232,7 @@ struct ProfileService: ProfileServiceProtocol {
     }
 
     return await APIService.performRequest(
-      endpoint: "/users/notification/\(notificationId)",
+      endpoint: "users/notification/\(notificationId)",
       queryItems: queryItems
     )
   }

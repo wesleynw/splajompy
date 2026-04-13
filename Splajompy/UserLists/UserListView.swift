@@ -199,7 +199,7 @@ struct UserRowView: View {
       Spacer()
       if variant == .friends {
         removeButton
-      } else {
+      } else if variant != .notification {
         followButton
       }
     }
