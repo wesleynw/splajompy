@@ -23,7 +23,6 @@ type NotificationType string
 const (
 	NotificationTypeMention      NotificationType = "mention"
 	NotificationTypeLike         NotificationType = "like"
-	NotificationTypeLikeCombined NotificationType = "like_combined"
 	NotificationTypeComment      NotificationType = "comment"
 	NotificationTypeAnnouncement NotificationType = "announcement"
 	NotificationTypeFollowers    NotificationType = "followers"

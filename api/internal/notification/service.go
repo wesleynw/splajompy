@@ -168,8 +168,18 @@ func (s *Service) AddLikeNotification(ctx context.Context, currentUserId int, po
 		return err
 	}
 
+	// resolve recipient: comment author for comment likes, post author otherwise
+	recipientId := post.UserID
+	if commentId != nil {
+		comment, err := s.commentRepository.GetCommentById(ctx, *commentId)
+		if err != nil {
+			return err
+		}
+		recipientId = comment.UserID
+	}
+
 	// do not self-notify
-	if currentUserId == post.UserID {
+	if currentUserId == recipientId {
 		return nil
 	}
 
@@ -178,7 +188,7 @@ func (s *Service) AddLikeNotification(ctx context.Context, currentUserId int, po
 		return err
 	}
 
-	recipientVersion, err := s.userRepository.GetUserLatestAppVersion(ctx, post.UserID)
+	recipientVersion, err := s.userRepository.GetUserLatestAppVersion(ctx, recipientId)
 	if err != nil {
 		return err
 	}
@@ -186,12 +196,12 @@ func (s *Service) AddLikeNotification(ctx context.Context, currentUserId int, po
 	if !utilities.IsStoredVersionAtLeast(recipientVersion, "v1.8.3") {
 		// Recipient is on an old client that can't navigate to the actors list —
 		// send a plain per-liker notification instead of combining.
-		message := fmt.Sprintf("@%s liked your post.", currentUser.Username)
-		_, err = s.AddNotification(ctx, post.UserID, postId, nil, message, models.NotificationTypeLike)
+		message, err := s.buildLikedMessage(ctx, []int{currentUserId}, commentId != nil)
+		_, err = s.AddNotification(ctx, recipientId, postId, commentId, *message, models.NotificationTypeLike)
 		return err
 	}
 
-	existingLikeNotification, err := s.notificationRepository.FindUnreadCombinedLikeNotification(ctx, post.UserID, postId)
+	existingLikeNotification, err := s.notificationRepository.FindUnreadLikeNotification(ctx, recipientId, postId, commentId)
 	if err != nil {
 		return err
 	}
@@ -199,11 +209,11 @@ func (s *Service) AddLikeNotification(ctx context.Context, currentUserId int, po
 	// TODO: add a unique constraint on the notifications table (e.g. (user_id, post_id, notification_type) with a
 	// partial index WHERE NOT viewed)
 	if existingLikeNotification == nil {
-		message, err := s.buildLikedMessage(ctx, []int{currentUser.UserID})
+		message, err := s.buildLikedMessage(ctx, []int{currentUser.UserID}, commentId != nil)
 		if err != nil {
 			return err
 		}
-		notification, err := s.AddNotification(ctx, post.UserID, postId, nil, *message, models.NotificationTypeLikeCombined)
+		notification, err := s.AddNotification(ctx, recipientId, postId, commentId, *message, models.NotificationTypeLike)
 		if err != nil {
 			return err
 		}
@@ -220,7 +230,7 @@ func (s *Service) AddLikeNotification(ctx context.Context, currentUserId int, po
 		return err
 	}
 
-	message, err := s.buildLikedMessage(ctx, actors)
+	message, err := s.buildLikedMessage(ctx, actors, commentId != nil)
 	if err != nil {
 		return err
 	}
@@ -241,23 +251,29 @@ func (s *Service) RemoveLikeNotification(ctx context.Context, currentUserId int,
 		return err
 	}
 
-	recipientVersion, err := s.userRepository.GetUserLatestAppVersion(ctx, post.UserID)
+	// resolve recipient: comment author for comment likes, post author otherwise
+	recipientId := post.UserID
+	if commentId != nil {
+		comment, err := s.commentRepository.GetCommentById(ctx, *commentId)
+		if err != nil {
+			return err
+		}
+		recipientId = comment.UserID
+	}
+
+	existingLikeNotification, err := s.notificationRepository.FindUnreadLikeNotification(ctx, recipientId, postId, commentId)
+	if err != nil || existingLikeNotification == nil {
+		return err
+	}
+
+	recipientVersion, err := s.userRepository.GetUserLatestAppVersion(ctx, recipientId)
 	if err != nil {
 		return err
 	}
 
 	if !utilities.IsStoredVersionAtLeast(recipientVersion, "v1.8.3") {
-		// Old client: plain like notifications, delete directly.
-		existingLikeNotification, err := s.notificationRepository.FindUnreadLikeNotification(ctx, post.UserID, postId, nil)
-		if err != nil || existingLikeNotification == nil {
-			return err
-		}
+		// Old client: plain notifications were created without actor tracking, just delete directly.
 		return s.notificationRepository.DeleteNotificationById(ctx, existingLikeNotification.NotificationID)
-	}
-
-	existingLikeNotification, err := s.notificationRepository.FindUnreadCombinedLikeNotification(ctx, post.UserID, postId)
-	if err != nil || existingLikeNotification == nil {
-		return err
 	}
 
 	err = s.notificationRepository.DeleteNotificationActor(ctx, existingLikeNotification.NotificationID, currentUserId)
@@ -274,7 +290,7 @@ func (s *Service) RemoveLikeNotification(ctx context.Context, currentUserId int,
 		return s.notificationRepository.DeleteNotificationById(ctx, existingLikeNotification.NotificationID)
 	}
 
-	message, err := s.buildLikedMessage(ctx, actors)
+	message, err := s.buildLikedMessage(ctx, actors, commentId != nil)
 	if err != nil {
 		return err
 	}
@@ -297,7 +313,7 @@ func (s *Service) AddNotification(ctx context.Context, targetUserId int, postId 
 	return s.notificationRepository.InsertNotification(ctx, targetUserId, &postId, commentId, &facets, message, notificationType, nil)
 }
 
-func (s *Service) buildLikedMessage(ctx context.Context, userIds []int) (*string, error) {
+func (s *Service) buildLikedMessage(ctx context.Context, userIds []int, isComment bool) (*string, error) {
 	users := []models.PublicUser{}
 	for _, userId := range userIds[:min(3, len(userIds))] {
 		user, err := s.userRepository.GetUserById(ctx, userId)
@@ -307,18 +323,26 @@ func (s *Service) buildLikedMessage(ctx context.Context, userIds []int) (*string
 		users = append(users, user)
 	}
 
+	// i hate this
+	var noun string
+	if isComment {
+		noun = "comment"
+	} else {
+		noun = "post"
+	}
+
 	if len(userIds) == 1 {
-		return new(fmt.Sprintf("@%s liked your post.", users[0].Username)), nil
+		return new(fmt.Sprintf("@%s liked your %s.", users[0].Username, noun)), nil
 	}
 
 	if len(userIds) == 2 {
-		return new(fmt.Sprintf("@%s and @%s liked your post.", users[0].Username, users[1].Username)), nil
+		return new(fmt.Sprintf("@%s and @%s liked your %s.", users[0].Username, users[1].Username, noun)), nil
 	}
 
 	if len(userIds) == 3 {
-		return new(fmt.Sprintf("@%s, @%s, and @%s liked your post.", users[0].Username, users[1].Username, users[2].Username)), nil
+		return new(fmt.Sprintf("@%s, @%s, and @%s liked your %s.", users[0].Username, users[1].Username, users[2].Username, noun)), nil
 	}
 
-	message := fmt.Sprintf("@%s, @%s, @%s, and others liked your post.", users[0].Username, users[1].Username, users[2].Username)
+	message := fmt.Sprintf("@%s, @%s, @%s, and others liked your %s.", users[0].Username, users[1].Username, users[2].Username, noun)
 	return &message, nil
 }

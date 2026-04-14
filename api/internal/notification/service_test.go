@@ -32,7 +32,7 @@ func setupNotificationService(t *testing.T) notificationTestEnv {
 	db := testutil.StartPostgres(t)
 
 	notificationService := notification.NewService(db.NotificationStore, db.PostRepository, db.CommentRepository, db.UserRepository, db.BucketRepository)
-	commentService := service.NewCommentService(db.CommentRepository, db.PostRepository, db.NotificationStore, db.UserRepository, db.LikeRepository, db.BucketRepository)
+	commentService := service.NewCommentService(db.CommentRepository, db.PostRepository, *notificationService, db.UserRepository, db.LikeRepository, db.BucketRepository)
 	postService := service.NewPostService(db.PostRepository, db.UserRepository, db.LikeRepository, *notificationService, db.BucketRepository, nil)
 
 	return notificationTestEnv{
@@ -465,4 +465,110 @@ func TestRemoveLikeNotification_WithSelfLikes(t *testing.T) {
 	notifications, err = env.svc.GetUnreadNotificationsByUserIdWithTimeOffset(t.Context(), postOwner, time.Now().UTC(), 10, nil)
 	require.NoError(t, err)
 	assert.Empty(t, notifications)
+}
+
+func TestAddLikeNotification_Comment_MultipleNotificationsCombine(t *testing.T) {
+	env := setupNotificationService(t)
+
+	commenter := testutil.CreateTestUser(t, env.userRepository, "commenter")
+	appVersion := "v1.8.3"
+	err := env.userRepository.UpdateUserDisplayProperties(t.Context(), commenter.UserID, &db.UserDisplayProperties{LatestAppVersion: &appVersion})
+	require.NoError(t, err)
+
+	postOwner := testutil.CreateTestUser(t, env.userRepository, "postOwner")
+	post, err := env.postRepository.InsertPost(t.Context(), postOwner.UserID, "test post", nil, nil, new(models.VisibilityPublic))
+	require.NoError(t, err)
+
+	comment, err := env.commentRepository.AddCommentToPost(t.Context(), commenter.UserID, post.PostID, "test comment", nil)
+	require.NoError(t, err)
+
+	liker0 := testutil.CreateTestUser(t, env.userRepository, "liker0")
+	err = env.svc.AddLikeNotification(t.Context(), liker0.UserID, post.PostID, &comment.CommentID)
+	require.NoError(t, err)
+
+	notifications, err := env.svc.GetUnreadNotificationsByUserIdWithTimeOffset(t.Context(), commenter, time.Now().UTC(), 10, nil)
+	require.NoError(t, err)
+	require.Len(t, notifications, 1, "commenter should have 1 unread notification")
+	assert.Equal(t, "@liker0 liked your comment.", notifications[0].Message)
+
+	liker1 := testutil.CreateTestUser(t, env.userRepository, "liker1")
+	err = env.svc.AddLikeNotification(t.Context(), liker1.UserID, post.PostID, &comment.CommentID)
+	require.NoError(t, err)
+
+	notifications, err = env.svc.GetUnreadNotificationsByUserIdWithTimeOffset(t.Context(), commenter, time.Now().UTC(), 10, nil)
+	require.NoError(t, err)
+	require.Len(t, notifications, 1, "commenter should still have 1 unread notification after second like")
+	assert.Equal(t, "@liker1 and @liker0 liked your comment.", notifications[0].Message)
+
+	liker2 := testutil.CreateTestUser(t, env.userRepository, "liker2")
+	err = env.svc.AddLikeNotification(t.Context(), liker2.UserID, post.PostID, &comment.CommentID)
+	require.NoError(t, err)
+
+	notifications, err = env.svc.GetUnreadNotificationsByUserIdWithTimeOffset(t.Context(), commenter, time.Now().UTC(), 10, nil)
+	require.NoError(t, err)
+	require.Len(t, notifications, 1, "commenter should still have 1 unread notification after third like")
+	assert.Equal(t, "@liker2, @liker1, and @liker0 liked your comment.", notifications[0].Message)
+}
+
+func TestAddLikeNotification_Comment_HandlesRemovedLikes(t *testing.T) {
+	env := setupNotificationService(t)
+
+	commenter := testutil.CreateTestUser(t, env.userRepository, "commenter")
+	appVersion := "v1.8.3"
+	err := env.userRepository.UpdateUserDisplayProperties(t.Context(), commenter.UserID, &db.UserDisplayProperties{LatestAppVersion: &appVersion})
+	require.NoError(t, err)
+
+	postOwner := testutil.CreateTestUser(t, env.userRepository, "postOwner")
+	post, err := env.postRepository.InsertPost(t.Context(), postOwner.UserID, "test post", nil, nil, new(models.VisibilityPublic))
+	require.NoError(t, err)
+
+	comment, err := env.commentRepository.AddCommentToPost(t.Context(), commenter.UserID, post.PostID, "test comment", nil)
+	require.NoError(t, err)
+
+	liker0 := testutil.CreateTestUser(t, env.userRepository, "liker0")
+	err = env.svc.AddLikeNotification(t.Context(), liker0.UserID, post.PostID, &comment.CommentID)
+	require.NoError(t, err)
+
+	liker1 := testutil.CreateTestUser(t, env.userRepository, "liker1")
+	err = env.svc.AddLikeNotification(t.Context(), liker1.UserID, post.PostID, &comment.CommentID)
+	require.NoError(t, err)
+
+	notifications, err := env.svc.GetUnreadNotificationsByUserIdWithTimeOffset(t.Context(), commenter, time.Now().UTC(), 10, nil)
+	require.NoError(t, err)
+	require.Len(t, notifications, 1)
+	assert.Equal(t, "@liker1 and @liker0 liked your comment.", notifications[0].Message)
+
+	err = env.svc.RemoveLikeNotification(t.Context(), liker1.UserID, post.PostID, &comment.CommentID)
+	require.NoError(t, err)
+
+	notifications, err = env.svc.GetUnreadNotificationsByUserIdWithTimeOffset(t.Context(), commenter, time.Now().UTC(), 10, nil)
+	require.NoError(t, err)
+	require.Len(t, notifications, 1)
+	assert.Equal(t, "@liker0 liked your comment.", notifications[0].Message)
+
+	err = env.svc.RemoveLikeNotification(t.Context(), liker0.UserID, post.PostID, &comment.CommentID)
+	require.NoError(t, err)
+
+	notifications, err = env.svc.GetUnreadNotificationsByUserIdWithTimeOffset(t.Context(), commenter, time.Now().UTC(), 10, nil)
+	require.NoError(t, err)
+	assert.Empty(t, notifications)
+}
+
+func TestAddLikeNotification_Comment_SelfLikeIgnored(t *testing.T) {
+	env := setupNotificationService(t)
+
+	commenter := testutil.CreateTestUser(t, env.userRepository, "commenter")
+	postOwner := testutil.CreateTestUser(t, env.userRepository, "postOwner")
+	post, err := env.postRepository.InsertPost(t.Context(), postOwner.UserID, "test post", nil, nil, new(models.VisibilityPublic))
+	require.NoError(t, err)
+
+	comment, err := env.commentRepository.AddCommentToPost(t.Context(), commenter.UserID, post.PostID, "test comment", nil)
+	require.NoError(t, err)
+
+	err = env.svc.AddLikeNotification(t.Context(), commenter.UserID, post.PostID, &comment.CommentID)
+	require.NoError(t, err)
+
+	notifications, err := env.svc.GetUnreadNotificationsByUserIdWithTimeOffset(t.Context(), commenter, time.Now().UTC(), 10, nil)
+	require.NoError(t, err)
+	assert.Empty(t, notifications, "commenter liking their own comment should not create a notification")
 }

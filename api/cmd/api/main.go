@@ -82,7 +82,7 @@ func main() {
 	notificationService := notification.NewService(notificationsRepository, postRepository, commentRepository, userRepository, bucketRepository)
 
 	postService := service.NewPostService(postRepository, userRepository, likeRepository, *notificationService, bucketRepository, resendClient)
-	commentService := service.NewCommentService(commentRepository, postRepository, notificationsRepository, userRepository, likeRepository, bucketRepository)
+	commentService := service.NewCommentService(commentRepository, postRepository, *notificationService, userRepository, likeRepository, bucketRepository)
 	userService := user.NewUserService(userRepository, notificationsRepository, resendClient)
 	userHandler := user.NewHandler(userService)
 	notificationHandler := notification.NewHandler(notificationService)

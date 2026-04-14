@@ -37,42 +37,6 @@ func (q *Queries) DeleteNotificationById(ctx context.Context, notificationID int
 	return err
 }
 
-const findUnreadCombinedLikeNotificationForPost = `-- name: FindUnreadCombinedLikeNotificationForPost :one
-SELECT notification_id, user_id, post_id, comment_id, target_user_id, message, link, viewed, facets, notification_type, created_at
-FROM notifications
-WHERE user_id = $1
-  AND notification_type = 'like_combined'
-  AND viewed = FALSE
-  AND post_id = $2
-  AND comment_id IS NULL
-ORDER BY created_at DESC
-LIMIT 1
-`
-
-type FindUnreadCombinedLikeNotificationForPostParams struct {
-	UserID int  `json:"userId"`
-	PostID *int `json:"postId"`
-}
-
-func (q *Queries) FindUnreadCombinedLikeNotificationForPost(ctx context.Context, arg FindUnreadCombinedLikeNotificationForPostParams) (Notification, error) {
-	row := q.db.QueryRow(ctx, findUnreadCombinedLikeNotificationForPost, arg.UserID, arg.PostID)
-	var i Notification
-	err := row.Scan(
-		&i.NotificationID,
-		&i.UserID,
-		&i.PostID,
-		&i.CommentID,
-		&i.TargetUserID,
-		&i.Message,
-		&i.Link,
-		&i.Viewed,
-		&i.Facets,
-		&i.NotificationType,
-		&i.CreatedAt,
-	)
-	return i, err
-}
-
 const findUnreadLikeNotificationForComment = `-- name: FindUnreadLikeNotificationForComment :one
 SELECT notification_id, user_id, post_id, comment_id, target_user_id, message, link, viewed, facets, notification_type, created_at
 FROM notifications
