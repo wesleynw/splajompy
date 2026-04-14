@@ -22,7 +22,7 @@ func (r NotificationStore) InsertNotification(ctx context.Context, userId int, p
 	params := queries.InsertNotificationParams{
 		UserID:           userId,
 		Message:          message,
-		NotificationType: notificationType.String(),
+		NotificationType: string(notificationType),
 	}
 
 	if postId != nil {
@@ -178,6 +178,21 @@ func (r NotificationStore) FindUnreadLikeNotification(ctx context.Context, userI
 		return nil, err
 	}
 
+	return new(utilities.MapNotification(notification)), nil
+}
+
+// FindUnreadCombinedLikeNotification finds an unread like_combined notification for a user on a post.
+func (r NotificationStore) FindUnreadCombinedLikeNotification(ctx context.Context, userId int, postId int) (*models.Notification, error) {
+	notification, err := r.querier.FindUnreadCombinedLikeNotificationForPost(ctx, queries.FindUnreadCombinedLikeNotificationForPostParams{
+		UserID: userId,
+		PostID: &postId,
+	})
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, err
+	}
 	return new(utilities.MapNotification(notification)), nil
 }
 

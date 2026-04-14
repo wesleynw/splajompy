@@ -3,7 +3,7 @@ import SwiftUI
 struct NotificationIcon {
   static func iconName(for notificationType: String) -> String {
     switch notificationType {
-    case "like":
+    case "like", "like_combined":
       return "heart"
     case "comment":
       return "bubble.middle.bottom"

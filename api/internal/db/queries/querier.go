@@ -24,6 +24,7 @@ type Querier interface {
 	DeletePost(ctx context.Context, postID int) error
 	DeleteSession(ctx context.Context, id string) error
 	DeleteUserById(ctx context.Context, userID int) error
+	FindUnreadCombinedLikeNotificationForPost(ctx context.Context, arg FindUnreadCombinedLikeNotificationForPostParams) (Notification, error)
 	FindUnreadLikeNotificationForComment(ctx context.Context, arg FindUnreadLikeNotificationForCommentParams) (Notification, error)
 	FindUnreadLikeNotificationForPost(ctx context.Context, arg FindUnreadLikeNotificationForPostParams) (Notification, error)
 	GetAllImagesByUserId(ctx context.Context, userID int) ([]Image, error)

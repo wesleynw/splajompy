@@ -191,7 +191,7 @@ func (s *Service) AddLikeNotification(ctx context.Context, currentUserId int, po
 		return err
 	}
 
-	existingLikeNotification, err := s.notificationRepository.FindUnreadLikeNotification(ctx, post.UserID, postId, nil)
+	existingLikeNotification, err := s.notificationRepository.FindUnreadCombinedLikeNotification(ctx, post.UserID, postId)
 	if err != nil {
 		return err
 	}
@@ -203,7 +203,7 @@ func (s *Service) AddLikeNotification(ctx context.Context, currentUserId int, po
 		if err != nil {
 			return err
 		}
-		notification, err := s.AddNotification(ctx, post.UserID, postId, nil, *message, models.NotificationTypeLike)
+		notification, err := s.AddNotification(ctx, post.UserID, postId, nil, *message, models.NotificationTypeLikeCombined)
 		if err != nil {
 			return err
 		}
@@ -241,19 +241,23 @@ func (s *Service) RemoveLikeNotification(ctx context.Context, currentUserId int,
 		return err
 	}
 
-	existingLikeNotification, err := s.notificationRepository.FindUnreadLikeNotification(ctx, post.UserID, postId, nil)
-	if err != nil || existingLikeNotification == nil {
-		return err
-	}
-
 	recipientVersion, err := s.userRepository.GetUserLatestAppVersion(ctx, post.UserID)
 	if err != nil {
 		return err
 	}
 
 	if !utilities.IsStoredVersionAtLeast(recipientVersion, "v1.8.3") {
-		// Old client: plain notifications were created without actor tracking, just delete directly.
+		// Old client: plain like notifications, delete directly.
+		existingLikeNotification, err := s.notificationRepository.FindUnreadLikeNotification(ctx, post.UserID, postId, nil)
+		if err != nil || existingLikeNotification == nil {
+			return err
+		}
 		return s.notificationRepository.DeleteNotificationById(ctx, existingLikeNotification.NotificationID)
+	}
+
+	existingLikeNotification, err := s.notificationRepository.FindUnreadCombinedLikeNotification(ctx, post.UserID, postId)
+	if err != nil || existingLikeNotification == nil {
+		return err
 	}
 
 	err = s.notificationRepository.DeleteNotificationActor(ctx, existingLikeNotification.NotificationID, currentUserId)

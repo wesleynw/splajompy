@@ -95,6 +95,17 @@ WHERE user_id = $1
 ORDER BY created_at DESC
 LIMIT 1;
 
+-- name: FindUnreadCombinedLikeNotificationForPost :one
+SELECT *
+FROM notifications
+WHERE user_id = $1
+  AND notification_type = 'like_combined'
+  AND viewed = FALSE
+  AND post_id = $2
+  AND comment_id IS NULL
+ORDER BY created_at DESC
+LIMIT 1;
+
 -- name: FindUnreadLikeNotificationForComment :one
 SELECT *
 FROM notifications

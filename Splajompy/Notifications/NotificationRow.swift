@@ -12,7 +12,7 @@ struct NotificationRow: View {
   }
 
   var body: some View {
-    if notification.notificationType == "like" {
+    if notification.notificationType == "like_combined" {
       NavigationLink(
         value: Route.notificationActorsList(notificationId: notification.id)
       ) {

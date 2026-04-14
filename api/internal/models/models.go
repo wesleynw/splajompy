@@ -23,24 +23,12 @@ type NotificationType string
 const (
 	NotificationTypeMention      NotificationType = "mention"
 	NotificationTypeLike         NotificationType = "like"
+	NotificationTypeLikeCombined NotificationType = "like_combined"
 	NotificationTypeComment      NotificationType = "comment"
 	NotificationTypeAnnouncement NotificationType = "announcement"
 	NotificationTypeFollowers    NotificationType = "followers"
 	NotificationTypePoll         NotificationType = "poll"
 )
-
-func (nt NotificationType) String() string {
-	return string(nt)
-}
-
-func (nt NotificationType) IsValid() bool {
-	switch nt {
-	case NotificationTypeMention, NotificationTypeLike, NotificationTypeComment, NotificationTypeAnnouncement, NotificationTypeFollowers, NotificationTypePoll:
-		return true
-	default:
-		return false
-	}
-}
 
 type APIResponse struct {
 	Success bool   `json:"success"`
