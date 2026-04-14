@@ -197,6 +197,9 @@ func (s *Service) AddLikeNotification(ctx context.Context, currentUserId int, po
 		// Recipient is on an old client that can't navigate to the actors list —
 		// send a plain per-liker notification instead of combining.
 		message, err := s.buildLikedMessage(ctx, []int{currentUserId}, commentId != nil)
+		if err != nil {
+			return err
+		}
 		_, err = s.AddNotification(ctx, recipientId, postId, commentId, *message, models.NotificationTypeLike)
 		return err
 	}
