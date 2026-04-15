@@ -212,13 +212,12 @@ func (s *Service) AddLikeNotification(ctx context.Context, currentUserId int, po
 		return err
 	}
 
-	existingLikeNotification, err := s.notificationRepository.FindUnreadLikeNotification(ctx, recipientId, postId, commentId)
+	existingLikeNotification, err := s.notificationRepository.FindLikeNotification(ctx, recipientId, postId, commentId)
 	if err != nil {
 		return err
 	}
 
-	// TODO: add a unique constraint on the notifications table (e.g. (user_id, post_id, notification_type) with a
-	// partial index WHERE NOT viewed)
+	// TODO: add a unique constraint on the notifications table (e.g. (user_id, post_id, notification_type))
 	if existingLikeNotification == nil {
 		message, err := s.buildLikedMessage(ctx, []int{currentUser.UserID}, commentId != nil)
 		if err != nil {
@@ -272,7 +271,7 @@ func (s *Service) RemoveLikeNotification(ctx context.Context, currentUserId int,
 		recipientId = comment.UserID
 	}
 
-	existingLikeNotification, err := s.notificationRepository.FindUnreadLikeNotification(ctx, recipientId, postId, commentId)
+	existingLikeNotification, err := s.notificationRepository.FindLikeNotification(ctx, recipientId, postId, commentId)
 	if err != nil || existingLikeNotification == nil {
 		return err
 	}

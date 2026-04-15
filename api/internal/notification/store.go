@@ -153,18 +153,18 @@ func (r NotificationStore) GetUnreadNotificationsForUserIdWithTimeOffset(ctx con
 	return result, nil
 }
 
-// FindUnreadLikeNotification finds an unread like notification for a user
-func (r NotificationStore) FindUnreadLikeNotification(ctx context.Context, userId int, postId int, commentId *int) (*models.Notification, error) {
+// FindLikeNotification finds the most recent like notification for a user on a post or comment
+func (r NotificationStore) FindLikeNotification(ctx context.Context, userId int, postId int, commentId *int) (*models.Notification, error) {
 	var notification queries.Notification
 	var err error
 
 	if commentId == nil {
-		notification, err = r.querier.FindUnreadLikeNotificationForPost(ctx, queries.FindUnreadLikeNotificationForPostParams{
+		notification, err = r.querier.FindLikeNotificationForPost(ctx, queries.FindLikeNotificationForPostParams{
 			UserID: userId,
 			PostID: &postId,
 		})
 	} else {
-		notification, err = r.querier.FindUnreadLikeNotificationForComment(ctx, queries.FindUnreadLikeNotificationForCommentParams{
+		notification, err = r.querier.FindLikeNotificationForComment(ctx, queries.FindLikeNotificationForCommentParams{
 			UserID:    userId,
 			PostID:    &postId,
 			CommentID: commentId,
