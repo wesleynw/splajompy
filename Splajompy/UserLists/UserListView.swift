@@ -79,7 +79,15 @@ struct UserListView: View {
         #endif
       }
       if let postId {
-        ToolbarItem(placement: .topBarTrailing) {
+        ToolbarItem(
+          placement: {
+            #if os(iOS)
+              .topBarTrailing
+            #else
+              .primaryAction
+            #endif
+          }()
+        ) {
           NavigationLink(value: Route.post(id: postId)) {
             Label("Go to post", systemImage: "arrow.up.right.square")
           }
