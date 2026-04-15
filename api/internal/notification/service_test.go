@@ -324,7 +324,7 @@ func TestAddLikeNotification_MultipleNotificationsCombine(t *testing.T) {
 	env := setupNotificationService(t)
 
 	postOwner := testutil.CreateTestUser(t, env.userRepository, "user0")
-	appVersion := "v1.8.3"
+	appVersion := "v1.8.2"
 	err := env.userRepository.UpdateUserDisplayProperties(t.Context(), postOwner.UserID, &db.UserDisplayProperties{LatestAppVersion: &appVersion})
 	require.NoError(t, err)
 
@@ -388,7 +388,7 @@ func TestAddLikeNotification_HandlesRemovedLikes(t *testing.T) {
 	env := setupNotificationService(t)
 
 	postOwner := testutil.CreateTestUser(t, env.userRepository, "user0")
-	appVersion := "v1.8.3"
+	appVersion := "v1.8.2"
 	err := env.userRepository.UpdateUserDisplayProperties(t.Context(), postOwner.UserID, &db.UserDisplayProperties{LatestAppVersion: &appVersion})
 	require.NoError(t, err)
 
@@ -471,7 +471,7 @@ func TestAddLikeNotification_Comment_MultipleNotificationsCombine(t *testing.T) 
 	env := setupNotificationService(t)
 
 	commenter := testutil.CreateTestUser(t, env.userRepository, "commenter")
-	appVersion := "v1.8.3"
+	appVersion := "v1.8.2"
 	err := env.userRepository.UpdateUserDisplayProperties(t.Context(), commenter.UserID, &db.UserDisplayProperties{LatestAppVersion: &appVersion})
 	require.NoError(t, err)
 
@@ -514,7 +514,7 @@ func TestAddLikeNotification_Comment_HandlesRemovedLikes(t *testing.T) {
 	env := setupNotificationService(t)
 
 	commenter := testutil.CreateTestUser(t, env.userRepository, "commenter")
-	appVersion := "v1.8.3"
+	appVersion := "v1.8.2"
 	err := env.userRepository.UpdateUserDisplayProperties(t.Context(), commenter.UserID, &db.UserDisplayProperties{LatestAppVersion: &appVersion})
 	require.NoError(t, err)
 

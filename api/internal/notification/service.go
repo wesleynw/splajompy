@@ -201,7 +201,7 @@ func (s *Service) AddLikeNotification(ctx context.Context, currentUserId int, po
 		return err
 	}
 
-	if !utilities.IsStoredVersionAtLeast(recipientVersion, "v1.8.3") {
+	if !utilities.IsStoredVersionAtLeast(recipientVersion, "v1.8.2") {
 		// Recipient is on an old client that can't navigate to the actors list —
 		// send a plain per-liker notification instead of combining.
 		message, err := s.buildLikedMessage(ctx, []int{currentUserId}, commentId != nil)
@@ -282,7 +282,7 @@ func (s *Service) RemoveLikeNotification(ctx context.Context, currentUserId int,
 		return err
 	}
 
-	if !utilities.IsStoredVersionAtLeast(recipientVersion, "v1.8.3") {
+	if !utilities.IsStoredVersionAtLeast(recipientVersion, "v1.8.2") {
 		// Old client: plain notifications were created without actor tracking, just delete directly.
 		return s.notificationRepository.DeleteNotificationById(ctx, existingLikeNotification.NotificationID)
 	}
