@@ -439,7 +439,7 @@ func (q *Queries) MarkNotificationAsReadById(ctx context.Context, notificationID
 
 const updateNotificationMessage = `-- name: UpdateNotificationMessage :exec
 UPDATE notifications
-SET message = $2, facets = $3
+SET message = $2, facets = $3, created_at = CURRENT_TIMESTAMP, viewed = FALSE
 WHERE notification_id = $1
 `
 

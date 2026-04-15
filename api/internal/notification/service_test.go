@@ -343,11 +343,14 @@ func TestAddLikeNotification_MultipleNotificationsCombine(t *testing.T) {
 	err = env.svc.AddLikeNotification(t.Context(), liker1.UserID, post.PostID, nil)
 	require.NoError(t, err)
 
+	originalCommentTimestamp := notifications[0].CreatedAt
+
 	notifications, err = env.svc.GetUnreadNotificationsByUserIdWithTimeOffset(t.Context(), postOwner, time.Now().UTC(), 10, nil)
 	require.NoError(t, err)
 	require.Len(t, notifications, 1, "poster should still have 1 unread notification")
 
 	assert.Equal(t, "@liker1 and @liker0 liked your post.", notifications[0].Message)
+	assert.Greater(t, notifications[0].CreatedAt, originalCommentTimestamp)
 
 	expectedFacets, err := utilities.GenerateFacets(t.Context(), env.userRepository, notifications[0].Message)
 	require.NoError(t, err)
