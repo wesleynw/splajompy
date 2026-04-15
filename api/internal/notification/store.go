@@ -211,6 +211,14 @@ func (r *NotificationStore) UpdateNotificationMessage(ctx context.Context, notif
 	})
 }
 
+func (r *NotificationStore) UpdateNotificationMessageOnly(ctx context.Context, notificationId int, message string, facets db.Facets) error {
+	return r.querier.UpdateNotificationMessageOnly(ctx, queries.UpdateNotificationMessageOnlyParams{
+		NotificationID: notificationId,
+		Message:        message,
+		Facets:         facets,
+	})
+}
+
 // NewNotificationStore creates a new notification repository
 func NewNotificationStore(querier queries.Querier) NotificationStore {
 	return NotificationStore{querier: querier}

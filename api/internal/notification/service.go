@@ -311,7 +311,7 @@ func (s *Service) RemoveLikeNotification(ctx context.Context, currentUserId int,
 		return err
 	}
 
-	return s.notificationRepository.UpdateNotificationMessage(ctx, existingLikeNotification.NotificationID, *message, facets)
+	return s.notificationRepository.UpdateNotificationMessageOnly(ctx, existingLikeNotification.NotificationID, *message, facets)
 }
 
 // AddNotification will enrich the notification message with facets, then store.

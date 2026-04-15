@@ -97,6 +97,7 @@ type Querier interface {
 	UnmuteUser(ctx context.Context, arg UnmuteUserParams) error
 	UnpinPost(ctx context.Context, userID int) error
 	UpdateNotificationMessage(ctx context.Context, arg UpdateNotificationMessageParams) error
+	UpdateNotificationMessageOnly(ctx context.Context, arg UpdateNotificationMessageOnlyParams) error
 	UpdateSessionExpiry(ctx context.Context, arg UpdateSessionExpiryParams) error
 	UpdateUserBio(ctx context.Context, arg UpdateUserBioParams) error
 	UpdateUserDisplayProperties(ctx context.Context, arg UpdateUserDisplayPropertiesParams) error
