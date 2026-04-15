@@ -37,7 +37,7 @@ struct Notification: Identifiable, Decodable, Equatable {
   }
 
   static func == (lhs: Notification, rhs: Notification) -> Bool {
-    return lhs.notificationId == rhs.notificationId
+    return lhs.notificationId == rhs.notificationId && lhs.message == rhs.message
   }
 }
 
@@ -75,7 +75,7 @@ protocol NotificationServiceProtocol: Sendable {
   func getUnreadNotificationCount() async -> AsyncResult<Int>
 
   func getReadNotificationsWithTimeOffset(
-    beforeTime: String,
+    beforeTime: String?,
     limit: Int,
     notificationType: String?
   )
@@ -84,7 +84,7 @@ protocol NotificationServiceProtocol: Sendable {
     >
 
   func getUnreadNotificationsWithTimeOffset(
-    beforeTime: String,
+    beforeTime: String?,
     limit: Int,
     notificationType: String?
   ) async -> AsyncResult<
@@ -92,7 +92,7 @@ protocol NotificationServiceProtocol: Sendable {
   >
 
   func getReadNotificationWithSectionsWithTimeOffset(
-    beforeTime: String,
+    beforeTime: String?,
     limit: Int,
     notificationType: String?
   ) async
@@ -203,16 +203,17 @@ struct NotificationService: NotificationServiceProtocol {
   }
 
   func getReadNotificationsWithTimeOffset(
-    beforeTime: String,
+    beforeTime: String?,
     limit: Int,
     notificationType: String? = nil
   ) async -> AsyncResult<
     [Notification]
   > {
-    var queryItems = [
-      URLQueryItem(name: "before_time", value: beforeTime),
-      URLQueryItem(name: "limit", value: "\(limit)"),
-    ]
+    var queryItems = [URLQueryItem(name: "limit", value: "\(limit)")]
+
+    if let beforeTime {
+      queryItems.append(URLQueryItem(name: "before_time", value: beforeTime))
+    }
 
     if let notificationType = notificationType {
       queryItems.append(
@@ -227,16 +228,17 @@ struct NotificationService: NotificationServiceProtocol {
   }
 
   func getUnreadNotificationsWithTimeOffset(
-    beforeTime: String,
+    beforeTime: String?,
     limit: Int,
     notificationType: String? = nil
   ) async -> AsyncResult<
     [Notification]
   > {
-    var queryItems = [
-      URLQueryItem(name: "before_time", value: beforeTime),
-      URLQueryItem(name: "limit", value: "\(limit)"),
-    ]
+    var queryItems = [URLQueryItem(name: "limit", value: "\(limit)")]
+
+    if let beforeTime {
+      queryItems.append(URLQueryItem(name: "before_time", value: beforeTime))
+    }
 
     if let notificationType = notificationType {
       queryItems.append(
@@ -251,7 +253,7 @@ struct NotificationService: NotificationServiceProtocol {
   }
 
   func getReadNotificationWithSectionsWithTimeOffset(
-    beforeTime: String,
+    beforeTime: String?,
     limit: Int,
     notificationType: String? = nil
   ) async

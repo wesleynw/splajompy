@@ -129,3 +129,8 @@ ORDER BY created_at DESC;
 UPDATE notifications
 SET message = $2, facets = $3, created_at = CURRENT_TIMESTAMP, viewed = FALSE
 WHERE notification_id = $1;
+
+-- name: UpdateNotificationMessageOnly :exec
+UPDATE notifications
+SET message = $2, facets = $3
+WHERE notification_id = $1;

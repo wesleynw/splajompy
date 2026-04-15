@@ -483,7 +483,9 @@ class MockNotificationService: @unchecked Sendable, NotificationServiceProtocol 
     }
   }
 
-  func getReadNotificationsWithTimeOffset(beforeTime: String, limit: Int, notificationType: String?)
+  func getReadNotificationsWithTimeOffset(
+    beforeTime: String?, limit: Int, notificationType: String?
+  )
     async -> AsyncResult<
       [Notification]
     >
@@ -515,7 +517,7 @@ class MockNotificationService: @unchecked Sendable, NotificationServiceProtocol 
   }
 
   func getUnreadNotificationsWithTimeOffset(
-    beforeTime: String, limit: Int, notificationType: String?
+    beforeTime: String?, limit: Int, notificationType: String?
   ) async -> AsyncResult<
     [Notification]
   > {
@@ -546,7 +548,7 @@ class MockNotificationService: @unchecked Sendable, NotificationServiceProtocol 
   }
 
   func getReadNotificationWithSectionsWithTimeOffset(
-    beforeTime: String, limit: Int, notificationType: String?
+    beforeTime: String?, limit: Int, notificationType: String?
   ) async
     -> AsyncResult<NotificationSectionData>
   {

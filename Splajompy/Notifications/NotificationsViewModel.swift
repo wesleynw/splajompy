@@ -104,13 +104,13 @@ extension NotificationsView {
       lastUnreadNotificationTime = nil
 
       async let unreadResult = service.getUnreadNotificationsWithTimeOffset(
-        beforeTime: ISO8601DateFormatter().string(from: Date()),
+        beforeTime: nil,
         limit: limit,
         notificationType: selectedFilter.apiValue
       )
       async let readResult =
         service.getReadNotificationWithSectionsWithTimeOffset(
-          beforeTime: ISO8601DateFormatter().string(from: Date()),
+          beforeTime: nil,
           limit: limit,
           notificationType: selectedFilter.apiValue
         )

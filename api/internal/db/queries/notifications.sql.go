@@ -454,6 +454,23 @@ func (q *Queries) UpdateNotificationMessage(ctx context.Context, arg UpdateNotif
 	return err
 }
 
+const updateNotificationMessageOnly = `-- name: UpdateNotificationMessageOnly :exec
+UPDATE notifications
+SET message = $2, facets = $3
+WHERE notification_id = $1
+`
+
+type UpdateNotificationMessageOnlyParams struct {
+	NotificationID int       `json:"notificationId"`
+	Message        string    `json:"message"`
+	Facets         db.Facets `json:"facets"`
+}
+
+func (q *Queries) UpdateNotificationMessageOnly(ctx context.Context, arg UpdateNotificationMessageOnlyParams) error {
+	_, err := q.db.Exec(ctx, updateNotificationMessageOnly, arg.NotificationID, arg.Message, arg.Facets)
+	return err
+}
+
 const userHasUnreadNotifications = `-- name: UserHasUnreadNotifications :one
 SELECT EXISTS (
   SELECT 1
