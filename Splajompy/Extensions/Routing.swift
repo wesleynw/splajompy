@@ -5,7 +5,7 @@ enum Route: Hashable {
   case post(id: Int)
   case followingList(userId: Int)
   case mutualsList(userId: Int)
-  case notificationActorsList(notificationId: Int)
+  case notificationActorsList(notificationId: Int, postId: Int)
 }
 
 enum SettingsRoute: Hashable {

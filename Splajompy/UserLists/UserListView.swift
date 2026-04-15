@@ -4,10 +4,15 @@ import SwiftUI
 /// A flexible view to display a list of users.
 struct UserListView: View {
   private var userListVariant: UserListVariantEnum
+  private var postId: Int?
   @State private var viewModel: UserListViewModel
   @State private var isPresentingUserSearch: Bool = false
 
-  init(identifier: Int, userListVariant: UserListVariantEnum) {
+  init(
+    identifier: Int,
+    userListVariant: UserListVariantEnum,
+    postId: Int? = nil
+  ) {
     _viewModel = State(
       wrappedValue: UserListViewModel(
         identifier: identifier,
@@ -15,6 +20,7 @@ struct UserListView: View {
       )
     )
     self.userListVariant = userListVariant
+    self.postId = postId
   }
 
   init(viewModel: UserListViewModel, userListVariant: UserListVariantEnum) {
@@ -71,6 +77,13 @@ struct UserListView: View {
             .buttonStyle(.borderedProminent)
           }
         #endif
+      }
+      if let postId {
+        ToolbarItem(placement: .topBarTrailing) {
+          NavigationLink(value: Route.post(id: postId)) {
+            Label("Go to post", systemImage: "arrow.up.right.square")
+          }
+        }
       }
     }
     .sheet(isPresented: $isPresentingUserSearch) {
