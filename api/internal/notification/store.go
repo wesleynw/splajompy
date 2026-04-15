@@ -2,8 +2,10 @@ package notification
 
 import (
 	"context"
+	"errors"
 	"time"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 	"splajompy.com/api/v2/internal/db"
 	"splajompy.com/api/v2/internal/db/queries"
@@ -16,11 +18,11 @@ type NotificationStore struct {
 }
 
 // InsertNotification adds a new notification for a user
-func (r NotificationStore) InsertNotification(ctx context.Context, userId int, postId *int, commentId *int, facets *db.Facets, message string, notificationType models.NotificationType, targetUserId *int) error {
+func (r NotificationStore) InsertNotification(ctx context.Context, userId int, postId *int, commentId *int, facets *db.Facets, message string, notificationType models.NotificationType, targetUserId *int) (*models.Notification, error) {
 	params := queries.InsertNotificationParams{
 		UserID:           userId,
 		Message:          message,
-		NotificationType: notificationType.String(),
+		NotificationType: string(notificationType),
 	}
 
 	if postId != nil {
@@ -35,7 +37,12 @@ func (r NotificationStore) InsertNotification(ctx context.Context, userId int, p
 	if targetUserId != nil {
 		params.TargetUserID = targetUserId
 	}
-	return r.querier.InsertNotification(ctx, params)
+	notification, err := r.querier.InsertNotification(ctx, params)
+	if err != nil {
+		return nil, err
+	}
+
+	return new(utilities.MapNotification(notification)), nil
 }
 
 // GetNotificationsForUserId retrieves notifications for a user.
@@ -86,26 +93,6 @@ func (r NotificationStore) GetUserHasUnreadNotifications(ctx context.Context, us
 func (r NotificationStore) GetUserUnreadNotificationCount(ctx context.Context, userId int) (int, error) {
 	count, err := r.querier.GetUserUnreadNotificationCount(ctx, userId)
 	return int(count), err
-}
-
-// GetUnreadNotificationsForUserId retrieves unread notifications for a user with pagination
-func (r NotificationStore) GetUnreadNotificationsForUserId(ctx context.Context, userId int, offset int, limit int) ([]*models.Notification, error) {
-	notifications, err := r.querier.GetUnreadNotificationsForUserId(ctx, queries.GetUnreadNotificationsForUserIdParams{
-		UserID: userId,
-		Offset: offset,
-		Limit:  limit,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	result := make([]*models.Notification, len(notifications))
-	for i, notification := range notifications {
-		mapped := utilities.MapNotification(notification)
-		result[i] = &mapped
-	}
-
-	return result, nil
 }
 
 // GetReadNotificationsForUserIdWithTimeOffset retrieves read notifications for a user with time-based pagination
@@ -185,6 +172,9 @@ func (r NotificationStore) FindUnreadLikeNotification(ctx context.Context, userI
 	}
 
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, nil
+		}
 		return nil, err
 	}
 
@@ -194,6 +184,31 @@ func (r NotificationStore) FindUnreadLikeNotification(ctx context.Context, userI
 // DeleteNotificationById deletes a notification by its ID
 func (r NotificationStore) DeleteNotificationById(ctx context.Context, notificationId int) error {
 	return r.querier.DeleteNotificationById(ctx, notificationId)
+}
+
+func (r *NotificationStore) InsertNotificationActor(ctx context.Context, notificationId int, userId int) error {
+	return r.querier.InsertNotificationActor(ctx, queries.InsertNotificationActorParams{
+		NotificationID: notificationId,
+		UserID:         userId,
+	})
+}
+
+func (r *NotificationStore) DeleteNotificationActor(ctx context.Context, notificationId int, userId int) error {
+	return r.querier.DeleteNotificationActor(ctx, queries.DeleteNotificationActorParams{
+		NotificationID: notificationId,
+		UserID:         userId,
+	})
+}
+
+func (r *NotificationStore) GetNotificationActors(ctx context.Context, notificationId int) ([]int, error) {
+	return r.querier.GetNotificationActors(ctx, notificationId)
+}
+func (r *NotificationStore) UpdateNotificationMessage(ctx context.Context, notificationId int, message string, facets db.Facets) error {
+	return r.querier.UpdateNotificationMessage(ctx, queries.UpdateNotificationMessageParams{
+		NotificationID: notificationId,
+		Message:        message,
+		Facets:         facets,
+	})
 }
 
 // NewNotificationStore creates a new notification repository

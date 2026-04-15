@@ -12,6 +12,16 @@ sql:
         emit_interface: true
         json_tags_case_style: "camel"
         overrides:
+          - db_type: "timestamptz"
+            go_type:
+              import: "time"
+              type: "Time"
+          - db_type: "timestamptz"
+            go_type:
+              import: "time"
+              type: "Time"
+              pointer: true
+            nullable: true
           - db_type: "pg_catalog.int4"
             go_type: "int"
           - db_type: "serial"

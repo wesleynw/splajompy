@@ -2,10 +2,7 @@ package handler
 
 import (
 	"encoding/json"
-	"errors"
 	"net/http"
-	"strconv"
-	"time"
 
 	"splajompy.com/api/v2/internal/db"
 	"splajompy.com/api/v2/internal/service"
@@ -99,37 +96,6 @@ func (h *Handler) DeletePostById(w http.ResponseWriter, r *http.Request) {
 	utilities.HandleEmptySuccess(w)
 }
 
-// Deprecated: in factor of parseTimeBasedPagination
-func (h *Handler) parsePagination(r *http.Request) (int, int) {
-	limit, offset := 10, 0
-	if l, err := strconv.Atoi(r.URL.Query().Get("limit")); err == nil && l > 0 {
-		limit = l
-	}
-	if o, err := strconv.Atoi(r.URL.Query().Get("offset")); err == nil && o >= 0 {
-		offset = o
-	}
-	return limit, offset
-}
-
-func (h *Handler) parseTimeBasedPagination(r *http.Request) (int, *time.Time, error) {
-	limit := 10
-	if l, err := strconv.Atoi(r.URL.Query().Get("limit")); err == nil && l > 0 {
-		limit = l
-	}
-
-	var beforeTimestamp *time.Time
-	beforeStr := r.URL.Query().Get("before")
-	if beforeStr != "" {
-		timestamp, err := time.Parse(time.RFC3339, beforeStr)
-		if err != nil {
-			return 0, nil, errors.New("invalid timestamp format, expected RFC3339")
-		}
-		beforeTimestamp = &timestamp
-	}
-
-	return limit, beforeTimestamp, nil
-}
-
 func (h *Handler) GetPostsByUserIdWithTimeOffset(w http.ResponseWriter, r *http.Request) {
 	currentUser := utilities.GetAuthenticatedUser(r)
 
@@ -139,7 +105,7 @@ func (h *Handler) GetPostsByUserIdWithTimeOffset(w http.ResponseWriter, r *http.
 		return
 	}
 
-	limit, beforeTimestamp, err := h.parseTimeBasedPagination(r)
+	limit, beforeTimestamp, err := utilities.ParseTimeBasedPagination(r)
 	if err != nil {
 		utilities.HandleError(w, http.StatusBadRequest, err.Error())
 		return
@@ -237,7 +203,7 @@ func (h *Handler) VoteOnPost(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) GetAllPostsWithTimeOffset(w http.ResponseWriter, r *http.Request) {
 	currentUser := utilities.GetAuthenticatedUser(r)
 
-	limit, beforeTimestamp, err := h.parseTimeBasedPagination(r)
+	limit, beforeTimestamp, err := utilities.ParseTimeBasedPagination(r)
 	if err != nil {
 		utilities.HandleError(w, http.StatusBadRequest, err.Error())
 		return
@@ -255,7 +221,7 @@ func (h *Handler) GetAllPostsWithTimeOffset(w http.ResponseWriter, r *http.Reque
 func (h *Handler) GetPostsByFollowingWithTimeOffset(w http.ResponseWriter, r *http.Request) {
 	currentUser := utilities.GetAuthenticatedUser(r)
 
-	limit, beforeTimestamp, err := h.parseTimeBasedPagination(r)
+	limit, beforeTimestamp, err := utilities.ParseTimeBasedPagination(r)
 	if err != nil {
 		utilities.HandleError(w, http.StatusBadRequest, err.Error())
 		return
@@ -276,7 +242,7 @@ func (h *Handler) GetPostsByFollowingWithTimeOffset(w http.ResponseWriter, r *ht
 func (h *Handler) GetMutualFeedWithTimeOffset(w http.ResponseWriter, r *http.Request) {
 	currentUser := utilities.GetAuthenticatedUser(r)
 
-	limit, beforeTimestamp, err := h.parseTimeBasedPagination(r)
+	limit, beforeTimestamp, err := utilities.ParseTimeBasedPagination(r)
 	if err != nil {
 		utilities.HandleError(w, http.StatusBadRequest, err.Error())
 		return

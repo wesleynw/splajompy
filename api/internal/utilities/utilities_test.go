@@ -1,6 +1,7 @@
-package utilities
+package utilities_test
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -8,6 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"splajompy.com/api/v2/internal/db"
 	"splajompy.com/api/v2/internal/db/queries"
+	"splajompy.com/api/v2/internal/utilities"
 )
 
 func TestMapNotification_WithZeroPostIDAndCommentID(t *testing.T) {
@@ -23,7 +25,7 @@ func TestMapNotification_WithZeroPostIDAndCommentID(t *testing.T) {
 		CreatedAt:      pgtype.Timestamp{Time: time.Now(), Valid: true},
 	}
 
-	result := MapNotification(notification)
+	result := utilities.MapNotification(notification)
 
 	assert.Nil(t, result.PostID, "PostID should be nil when it's nil")
 	assert.Nil(t, result.CommentID, "CommentID should be nil when it's nil")
@@ -53,7 +55,7 @@ func TestMapNotification_WithValidPostIDAndCommentID(t *testing.T) {
 		CreatedAt:      pgtype.Timestamp{Time: time.Now(), Valid: true},
 	}
 
-	result := MapNotification(notification)
+	result := utilities.MapNotification(notification)
 
 	assert.Equal(t, 789, *result.PostID)
 	assert.Equal(t, 101112, *result.CommentID)
@@ -62,4 +64,34 @@ func TestMapNotification_WithValidPostIDAndCommentID(t *testing.T) {
 	assert.Equal(t, "Test notification", result.Message)
 	assert.Equal(t, "https://example.com", result.Link)
 	assert.Equal(t, true, result.Viewed)
+}
+
+func TestIsUpdatedToVersion_UnknownVersion(t *testing.T) {
+	valid := utilities.IsAppUpdatedToVersion(t.Context(), "v1.0.0")
+	assert.True(t, valid)
+}
+
+func TestIsUpdatedToVersion_PastVersion(t *testing.T) {
+	ctx := context.WithValue(t.Context(), utilities.AppVersionKey, "v1.0.0")
+	valid := utilities.IsAppUpdatedToVersion(ctx, "v1.1.0")
+	assert.False(t, valid)
+}
+
+func TestIsUpdatedToVersion_FutureVersion(t *testing.T) {
+	ctx := context.WithValue(t.Context(), utilities.AppVersionKey, "v1.1.0")
+	valid := utilities.IsAppUpdatedToVersion(ctx, "v1.0.0")
+	assert.True(t, valid)
+}
+
+func TestIsUpdatedToVersion_EqualVersion(t *testing.T) {
+	ctx := context.WithValue(t.Context(), utilities.AppVersionKey, "v1.1.0")
+	valid := utilities.IsAppUpdatedToVersion(ctx, "v1.1.0")
+	assert.True(t, valid)
+}
+
+func TestSeededRandom(t *testing.T) {
+	rand0 := utilities.SeededRandom(456)
+	rand1 := utilities.SeededRandom(456)
+
+	assert.Equal(t, rand0, rand1)
 }

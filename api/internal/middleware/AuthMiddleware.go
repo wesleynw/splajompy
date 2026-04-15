@@ -100,7 +100,7 @@ func AuthMiddleware(q *queries.Queries) func(http.Handler) http.Handler {
 			}
 
 			// log latest app version in profile
-			versionAny := ctx.Value(AppVersionKey)
+			versionAny := ctx.Value(utilities.AppVersionKey)
 			version, ok := versionAny.(string)
 			userDisplayProperties := dbUser.UserDisplayProperties
 			if userDisplayProperties == nil {

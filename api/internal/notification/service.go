@@ -4,10 +4,12 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"time"
 
 	"splajompy.com/api/v2/internal/bucket"
 	"splajompy.com/api/v2/internal/repositories"
+	"splajompy.com/api/v2/internal/utilities"
 
 	"splajompy.com/api/v2/internal/models"
 )
@@ -16,11 +18,17 @@ type Service struct {
 	notificationRepository NotificationStore
 	postRepository         repositories.PostRepository
 	commentRepository      repositories.CommentRepository
-	userRepository         repositories.UserRepository
+	userRepository         userReader
 	bucketRepository       bucket.Repository
 }
 
-func NewNotificationService(notificationRepository NotificationStore, postRepository repositories.PostRepository, commentRepository repositories.CommentRepository, userRepository repositories.UserRepository, bucketRepository bucket.Repository) *Service {
+type userReader interface {
+	GetUserById(ctx context.Context, userId int) (models.PublicUser, error)
+	GetUserByUsername(ctx context.Context, username string) (models.PublicUser, error)
+	GetUserLatestAppVersion(ctx context.Context, userId int) (*string, error)
+}
+
+func NewService(notificationRepository NotificationStore, postRepository repositories.PostRepository, commentRepository repositories.CommentRepository, userRepository userReader, bucketRepository bucket.Repository) *Service {
 	return &Service{
 		notificationRepository: notificationRepository,
 		postRepository:         postRepository,
@@ -145,8 +153,207 @@ func (s *Service) buildDetailedNotifications(ctx context.Context, currentUserId 
 			detailedNotification.TargetUserUsername = &user.Username
 		}
 
+		if notification.NotificationType == models.NotificationTypeLike {
+			actors, err := s.notificationRepository.GetNotificationActors(ctx, notification.NotificationID)
+			if err != nil {
+				return nil, errors.New("unable to retrieve notification actors")
+			}
+			detailedNotification.HasNotificationActors = len(actors) > 0
+		}
+
 		detailedNotifications = append(detailedNotifications, detailedNotification)
 	}
 
 	return detailedNotifications, nil
+}
+
+// AddLikeNotification creates a like notification for the owner of the target post or comment
+// or upserts an existing like notification, adding the current user.
+// Pass nil for commentId when liking a post directly.
+func (s *Service) AddLikeNotification(ctx context.Context, currentUserId int, postId int, commentId *int) error {
+	post, err := s.postRepository.GetPostById(ctx, postId, currentUserId)
+	if err != nil {
+		return err
+	}
+
+	// resolve recipient: comment author for comment likes, post author otherwise
+	recipientId := post.UserID
+	if commentId != nil {
+		comment, err := s.commentRepository.GetCommentById(ctx, *commentId)
+		if err != nil {
+			return err
+		}
+		recipientId = comment.UserID
+	}
+
+	// do not self-notify
+	if currentUserId == recipientId {
+		return nil
+	}
+
+	currentUser, err := s.userRepository.GetUserById(ctx, currentUserId)
+	if err != nil {
+		return err
+	}
+
+	recipientVersion, err := s.userRepository.GetUserLatestAppVersion(ctx, recipientId)
+	if err != nil {
+		return err
+	}
+
+	if !utilities.IsStoredVersionAtLeast(recipientVersion, "v1.8.2") {
+		// Recipient is on an old client that can't navigate to the actors list —
+		// send a plain per-liker notification instead of combining.
+		message, err := s.buildLikedMessage(ctx, []int{currentUserId}, commentId != nil)
+		if err != nil {
+			return err
+		}
+		_, err = s.AddNotification(ctx, recipientId, postId, commentId, *message, models.NotificationTypeLike)
+		return err
+	}
+
+	existingLikeNotification, err := s.notificationRepository.FindUnreadLikeNotification(ctx, recipientId, postId, commentId)
+	if err != nil {
+		return err
+	}
+
+	// TODO: add a unique constraint on the notifications table (e.g. (user_id, post_id, notification_type) with a
+	// partial index WHERE NOT viewed)
+	if existingLikeNotification == nil {
+		message, err := s.buildLikedMessage(ctx, []int{currentUser.UserID}, commentId != nil)
+		if err != nil {
+			return err
+		}
+		notification, err := s.AddNotification(ctx, recipientId, postId, commentId, *message, models.NotificationTypeLike)
+		if err != nil {
+			return err
+		}
+		return s.notificationRepository.InsertNotificationActor(ctx, notification.NotificationID, currentUserId)
+	}
+
+	err = s.notificationRepository.InsertNotificationActor(ctx, existingLikeNotification.NotificationID, currentUserId)
+	if err != nil {
+		return err
+	}
+
+	actors, err := s.notificationRepository.GetNotificationActors(ctx, existingLikeNotification.NotificationID)
+	if err != nil {
+		return err
+	}
+
+	message, err := s.buildLikedMessage(ctx, actors, commentId != nil)
+	if err != nil {
+		return err
+	}
+
+	facets, err := utilities.GenerateFacets(ctx, s.userRepository, *message)
+	if err != nil {
+		return err
+	}
+
+	return s.notificationRepository.UpdateNotificationMessage(ctx, existingLikeNotification.NotificationID, *message, facets)
+}
+
+// RemoveLikeNotification updates relevant notifications that reference the current user liking a post, and removes
+// the notification entirely if the current user is the only liker.
+func (s *Service) RemoveLikeNotification(ctx context.Context, currentUserId int, postId int, commentId *int) error {
+	post, err := s.postRepository.GetPostById(ctx, postId, currentUserId)
+	if err != nil {
+		return err
+	}
+
+	// resolve recipient: comment author for comment likes, post author otherwise
+	recipientId := post.UserID
+	if commentId != nil {
+		comment, err := s.commentRepository.GetCommentById(ctx, *commentId)
+		if err != nil {
+			return err
+		}
+		recipientId = comment.UserID
+	}
+
+	existingLikeNotification, err := s.notificationRepository.FindUnreadLikeNotification(ctx, recipientId, postId, commentId)
+	if err != nil || existingLikeNotification == nil {
+		return err
+	}
+
+	recipientVersion, err := s.userRepository.GetUserLatestAppVersion(ctx, recipientId)
+	if err != nil {
+		return err
+	}
+
+	if !utilities.IsStoredVersionAtLeast(recipientVersion, "v1.8.2") {
+		// Old client: plain notifications were created without actor tracking, just delete directly.
+		return s.notificationRepository.DeleteNotificationById(ctx, existingLikeNotification.NotificationID)
+	}
+
+	err = s.notificationRepository.DeleteNotificationActor(ctx, existingLikeNotification.NotificationID, currentUserId)
+	if err != nil {
+		return err
+	}
+
+	actors, err := s.notificationRepository.GetNotificationActors(ctx, existingLikeNotification.NotificationID)
+	if err != nil {
+		return err
+	}
+
+	if len(actors) == 0 {
+		return s.notificationRepository.DeleteNotificationById(ctx, existingLikeNotification.NotificationID)
+	}
+
+	message, err := s.buildLikedMessage(ctx, actors, commentId != nil)
+	if err != nil {
+		return err
+	}
+
+	facets, err := utilities.GenerateFacets(ctx, s.userRepository, *message)
+	if err != nil {
+		return err
+	}
+
+	return s.notificationRepository.UpdateNotificationMessage(ctx, existingLikeNotification.NotificationID, *message, facets)
+}
+
+// AddNotification will enrich the notification message with facets, then store.
+func (s *Service) AddNotification(ctx context.Context, targetUserId int, postId int, commentId *int, message string, notificationType models.NotificationType) (*models.Notification, error) {
+	facets, err := utilities.GenerateFacets(ctx, s.userRepository, message)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.notificationRepository.InsertNotification(ctx, targetUserId, &postId, commentId, &facets, message, notificationType, nil)
+}
+
+func (s *Service) buildLikedMessage(ctx context.Context, userIds []int, isComment bool) (*string, error) {
+	users := []models.PublicUser{}
+	for _, userId := range userIds[:min(3, len(userIds))] {
+		user, err := s.userRepository.GetUserById(ctx, userId)
+		if err != nil {
+			return nil, err
+		}
+		users = append(users, user)
+	}
+
+	// i hate this
+	var noun string
+	if isComment {
+		noun = "comment"
+	} else {
+		noun = "post"
+	}
+
+	if len(userIds) == 1 {
+		return new(fmt.Sprintf("@%s liked your %s.", users[0].Username, noun)), nil
+	}
+
+	if len(userIds) == 2 {
+		return new(fmt.Sprintf("@%s and @%s liked your %s.", users[0].Username, users[1].Username, noun)), nil
+	}
+
+	if len(userIds) == 3 {
+		return new(fmt.Sprintf("@%s, @%s, and @%s liked your %s.", users[0].Username, users[1].Username, users[2].Username, noun)), nil
+	}
+
+	message := fmt.Sprintf("@%s, @%s, @%s, and others liked your %s.", users[0].Username, users[1].Username, users[2].Username, noun)
+	return &message, nil
 }

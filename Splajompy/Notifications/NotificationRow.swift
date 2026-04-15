@@ -12,7 +12,15 @@ struct NotificationRow: View {
   }
 
   var body: some View {
-    if let postId = notification.postId {
+    if let postId = notification.postId, notification.notificationType == "like",
+      notification.hasNotificationActors == true
+    {
+      NavigationLink(
+        value: Route.notificationActorsList(notificationId: notification.id, postId: postId)
+      ) {
+        notificationContent
+      }
+    } else if let postId = notification.postId {
       NavigationLink(value: Route.post(id: postId)) {
         notificationContent
       }

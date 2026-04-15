@@ -7,6 +7,7 @@ package queries
 
 import (
 	"context"
+	"time"
 
 	"github.com/jackc/pgx/v5/pgtype"
 	db "splajompy.com/api/v2/internal/db"
@@ -251,6 +252,45 @@ func (q *Queries) GetIsUsernameInUse(ctx context.Context, username string) (bool
 	return exists, err
 }
 
+const getNotificationActorUserIds = `-- name: GetNotificationActorUserIds :many
+SELECT user_id, created_at
+FROM notification_actor
+WHERE notification_id = $1 AND ($3::timestamptz IS NULL OR created_at < $3)
+ORDER BY created_at DESC
+LIMIT $2
+`
+
+type GetNotificationActorUserIdsParams struct {
+	NotificationID int        `json:"notificationId"`
+	Limit          int        `json:"limit"`
+	Before         *time.Time `json:"before"`
+}
+
+type GetNotificationActorUserIdsRow struct {
+	UserID    int        `json:"userId"`
+	CreatedAt *time.Time `json:"createdAt"`
+}
+
+func (q *Queries) GetNotificationActorUserIds(ctx context.Context, arg GetNotificationActorUserIdsParams) ([]GetNotificationActorUserIdsRow, error) {
+	rows, err := q.db.Query(ctx, getNotificationActorUserIds, arg.NotificationID, arg.Limit, arg.Before)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetNotificationActorUserIdsRow
+	for rows.Next() {
+		var i GetNotificationActorUserIdsRow
+		if err := rows.Scan(&i.UserID, &i.CreatedAt); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getSessionById = `-- name: GetSessionById :one
 SELECT id, user_id, expires_at
 FROM sessions
@@ -395,9 +435,9 @@ LIMIT $3::int
 `
 
 type ListUserRelationshipsParams struct {
-	UserID int                `json:"userId"`
-	Before pgtype.Timestamptz `json:"before"`
-	Limit  int                `json:"limit"`
+	UserID int        `json:"userId"`
+	Before *time.Time `json:"before"`
+	Limit  int        `json:"limit"`
 }
 
 type ListUserRelationshipsRow struct {

@@ -4,17 +4,23 @@ import SwiftUI
 /// A flexible view to display a list of users.
 struct UserListView: View {
   private var userListVariant: UserListVariantEnum
+  private var postId: Int?
   @State private var viewModel: UserListViewModel
   @State private var isPresentingUserSearch: Bool = false
 
-  init(userId: Int, userListVariant: UserListVariantEnum) {
+  init(
+    identifier: Int,
+    userListVariant: UserListVariantEnum,
+    postId: Int? = nil
+  ) {
     _viewModel = State(
       wrappedValue: UserListViewModel(
-        userId: userId,
+        identifier: identifier,
         userListVariant: userListVariant
       )
     )
     self.userListVariant = userListVariant
+    self.postId = postId
   }
 
   init(viewModel: UserListViewModel, userListVariant: UserListVariantEnum) {
@@ -72,12 +78,27 @@ struct UserListView: View {
           }
         #endif
       }
+      if let postId {
+        ToolbarItem(
+          placement: {
+            #if os(iOS)
+              .topBarTrailing
+            #else
+              .primaryAction
+            #endif
+          }()
+        ) {
+          NavigationLink(value: Route.post(id: postId)) {
+            Label("Go to post", systemImage: "arrow.up.right.square")
+          }
+        }
+      }
     }
     .sheet(isPresented: $isPresentingUserSearch) {
       NavigationStack {
         SearchView(onUserSelected: { selectedUser in
           // don't allow adding self
-          guard selectedUser.userId != viewModel.userId else { return }
+          guard selectedUser.userId != viewModel.identifier else { return }
           isPresentingUserSearch = false
           Task {
             await viewModel.addFriend(publicUser: selectedUser)
@@ -199,7 +220,7 @@ struct UserRowView: View {
       Spacer()
       if variant == .friends {
         removeButton
-      } else {
+      } else if variant != .notification {
         followButton
       }
     }
@@ -276,7 +297,7 @@ struct UserRowView: View {
 
 #Preview {
   let viewModel = UserListViewModel(
-    userId: 1,
+    identifier: 1,
     userListVariant: .following,
     profileService: MockProfileService()
   )

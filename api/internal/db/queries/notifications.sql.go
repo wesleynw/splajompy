@@ -12,6 +12,21 @@ import (
 	db "splajompy.com/api/v2/internal/db"
 )
 
+const deleteNotificationActor = `-- name: DeleteNotificationActor :exec
+DELETE FROM notification_actor
+WHERE notification_id = $1 AND user_id = $2
+`
+
+type DeleteNotificationActorParams struct {
+	NotificationID int `json:"notificationId"`
+	UserID         int `json:"userId"`
+}
+
+func (q *Queries) DeleteNotificationActor(ctx context.Context, arg DeleteNotificationActorParams) error {
+	_, err := q.db.Exec(ctx, deleteNotificationActor, arg.NotificationID, arg.UserID)
+	return err
+}
+
 const deleteNotificationById = `-- name: DeleteNotificationById :exec
 DELETE FROM notifications
 WHERE notification_id = $1
@@ -93,6 +108,33 @@ func (q *Queries) FindUnreadLikeNotificationForPost(ctx context.Context, arg Fin
 		&i.CreatedAt,
 	)
 	return i, err
+}
+
+const getNotificationActors = `-- name: GetNotificationActors :many
+SELECT user_id
+FROM notification_actor
+WHERE notification_id = $1
+ORDER BY created_at DESC
+`
+
+func (q *Queries) GetNotificationActors(ctx context.Context, notificationID int) ([]int, error) {
+	rows, err := q.db.Query(ctx, getNotificationActors, notificationID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []int
+	for rows.Next() {
+		var user_id int
+		if err := rows.Scan(&user_id); err != nil {
+			return nil, err
+		}
+		items = append(items, user_id)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const getNotificationById = `-- name: GetNotificationById :one
@@ -312,9 +354,10 @@ func (q *Queries) GetUserUnreadNotificationCount(ctx context.Context, userID int
 	return count, err
 }
 
-const insertNotification = `-- name: InsertNotification :exec
+const insertNotification = `-- name: InsertNotification :one
 INSERT INTO notifications (user_id, post_id, comment_id, message, facets, link, notification_type, target_user_id)
 VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+RETURNING notification_id, user_id, post_id, comment_id, target_user_id, message, link, viewed, facets, notification_type, created_at
 `
 
 type InsertNotificationParams struct {
@@ -328,8 +371,8 @@ type InsertNotificationParams struct {
 	TargetUserID     *int        `json:"targetUserId"`
 }
 
-func (q *Queries) InsertNotification(ctx context.Context, arg InsertNotificationParams) error {
-	_, err := q.db.Exec(ctx, insertNotification,
+func (q *Queries) InsertNotification(ctx context.Context, arg InsertNotificationParams) (Notification, error) {
+	row := q.db.QueryRow(ctx, insertNotification,
 		arg.UserID,
 		arg.PostID,
 		arg.CommentID,
@@ -339,6 +382,36 @@ func (q *Queries) InsertNotification(ctx context.Context, arg InsertNotification
 		arg.NotificationType,
 		arg.TargetUserID,
 	)
+	var i Notification
+	err := row.Scan(
+		&i.NotificationID,
+		&i.UserID,
+		&i.PostID,
+		&i.CommentID,
+		&i.TargetUserID,
+		&i.Message,
+		&i.Link,
+		&i.Viewed,
+		&i.Facets,
+		&i.NotificationType,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const insertNotificationActor = `-- name: InsertNotificationActor :exec
+INSERT INTO notification_actor (notification_id, user_id)
+VALUES ($1, $2)
+ON CONFLICT (notification_id, user_id) DO NOTHING
+`
+
+type InsertNotificationActorParams struct {
+	NotificationID int `json:"notificationId"`
+	UserID         int `json:"userId"`
+}
+
+func (q *Queries) InsertNotificationActor(ctx context.Context, arg InsertNotificationActorParams) error {
+	_, err := q.db.Exec(ctx, insertNotificationActor, arg.NotificationID, arg.UserID)
 	return err
 }
 
@@ -361,6 +434,23 @@ WHERE notification_id = $1
 
 func (q *Queries) MarkNotificationAsReadById(ctx context.Context, notificationID int) error {
 	_, err := q.db.Exec(ctx, markNotificationAsReadById, notificationID)
+	return err
+}
+
+const updateNotificationMessage = `-- name: UpdateNotificationMessage :exec
+UPDATE notifications
+SET message = $2, facets = $3, created_at = CURRENT_TIMESTAMP, viewed = FALSE
+WHERE notification_id = $1
+`
+
+type UpdateNotificationMessageParams struct {
+	NotificationID int       `json:"notificationId"`
+	Message        string    `json:"message"`
+	Facets         db.Facets `json:"facets"`
+}
+
+func (q *Queries) UpdateNotificationMessage(ctx context.Context, arg UpdateNotificationMessageParams) error {
+	_, err := q.db.Exec(ctx, updateNotificationMessage, arg.NotificationID, arg.Message, arg.Facets)
 	return err
 }
 

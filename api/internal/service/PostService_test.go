@@ -8,41 +8,34 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"splajompy.com/api/v2/internal/bucket"
-	"splajompy.com/api/v2/internal/middleware"
 	"splajompy.com/api/v2/internal/models"
 	"splajompy.com/api/v2/internal/notification"
-	"splajompy.com/api/v2/internal/repositories"
 	"splajompy.com/api/v2/internal/service"
 	"splajompy.com/api/v2/internal/testutil"
+	"splajompy.com/api/v2/internal/user"
+	"splajompy.com/api/v2/internal/utilities"
 )
 
 type postServiceTestEnv struct {
 	svc            *service.PostService
 	commentSvc     *service.CommentService
-	userRepository repositories.UserRepository
+	userRepository user.Store
 }
 
 func setupPostTest(t *testing.T) postServiceTestEnv {
 	t.Helper()
-	testDb := testutil.StartPostgres(t)
-
-	postRepository := repositories.NewDBPostRepository(testDb.Queries)
-	userRepository := repositories.NewDBUserRepository(testDb.Queries)
-	likeRepository := repositories.NewDBLikeRepository(testDb.Queries)
-	notificationRepository := notification.NewNotificationStore(testDb.Queries)
-	commentRepository := repositories.NewDBCommentRepository(testDb.Queries)
-	bucketRepository := &bucket.FakeBucketRepository{}
-
-	svc := service.NewPostService(postRepository, userRepository, likeRepository, notificationRepository, bucketRepository, nil)
-	commentSvc := service.NewCommentService(commentRepository, postRepository, notificationRepository, userRepository, likeRepository, bucketRepository)
+	db := testutil.StartPostgres(t)
 
 	_ = os.Setenv("ENVIRONMENT", "test")
+
+	notificationService := notification.NewService(db.NotificationStore, db.PostRepository, db.CommentRepository, db.UserRepository, db.BucketRepository)
+	svc := service.NewPostService(db.PostRepository, db.UserRepository, db.LikeRepository, *notificationService, db.BucketRepository, nil)
+	commentSvc := service.NewCommentService(db.CommentRepository, db.PostRepository, *notificationService, db.UserRepository, db.LikeRepository, db.BucketRepository)
 
 	return postServiceTestEnv{
 		svc:            svc,
 		commentSvc:     commentSvc,
-		userRepository: userRepository,
+		userRepository: db.UserRepository,
 	}
 }
 
@@ -190,7 +183,7 @@ func TestGetPosts_ProfilePinnedPostDoesNotReduceSubsequentPageSize(t *testing.T)
 	env := setupPostTest(t)
 
 	// enables pinned-post logic.
-	ctx := context.WithValue(t.Context(), middleware.AppVersionKey, "v1.4.0")
+	ctx := context.WithValue(t.Context(), utilities.AppVersionKey, "v1.4.0")
 
 	user := testutil.CreateTestUser(t, env.userRepository, "user1")
 

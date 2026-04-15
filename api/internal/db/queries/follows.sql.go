@@ -7,6 +7,7 @@ package queries
 
 import (
 	"context"
+	"time"
 
 	"github.com/jackc/pgx/v5/pgtype"
 )
@@ -135,9 +136,9 @@ LIMIT $3::int
 `
 
 type GetFollowingUserIdsParams struct {
-	UserID int                `json:"userId"`
-	Before pgtype.Timestamptz `json:"before"`
-	Limit  int                `json:"limit"`
+	UserID int        `json:"userId"`
+	Before *time.Time `json:"before"`
+	Limit  int        `json:"limit"`
 }
 
 type GetFollowingUserIdsRow struct {
@@ -284,10 +285,10 @@ LIMIT $4::int
 `
 
 type GetMutualsByUserIdV2Params struct {
-	UserID       int                `json:"userId"`
-	TargetUserID int                `json:"targetUserId"`
-	Before       pgtype.Timestamptz `json:"before"`
-	Limit        int                `json:"limit"`
+	UserID       int        `json:"userId"`
+	TargetUserID int        `json:"targetUserId"`
+	Before       *time.Time `json:"before"`
+	Limit        int        `json:"limit"`
 }
 
 type GetMutualsByUserIdV2Row struct {

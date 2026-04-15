@@ -312,16 +312,10 @@ func (s *WrappedService) getUserActivityData(ctx context.Context, userId int) (*
 
 	// likes
 	for {
-		var timestamp pgtype.Timestamptz
-		if cursor != nil {
-			timestamp.Time = *cursor
-			timestamp.Valid = true
-		}
-
 		likes, err := s.querier.WrappedGetAllUserLikesWithCursor(ctx, queries.WrappedGetAllUserLikesWithCursorParams{
 			UserID: userId,
 			Limit:  fetchLimit,
-			Cursor: timestamp,
+			Cursor: *cursor,
 		})
 		if err != nil {
 			return nil, nil, err

@@ -1,12 +1,56 @@
-package handler
+package user
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
+	"strconv"
 
 	"splajompy.com/api/v2/internal/models"
 	"splajompy.com/api/v2/internal/utilities"
 )
+
+type Handler struct {
+	svc *Service
+}
+
+func NewHandler(svc *Service) *Handler {
+	return &Handler{svc: svc}
+}
+
+func (h *Handler) RegisterRoutes(withAuth func(string, func(http.ResponseWriter, *http.Request))) {
+	// blocking
+	withAuth("POST /user/{user_id}/block", h.BlockUser)
+	withAuth("DELETE /user/{user_id}/block", h.UnblockUser)
+
+	// muting
+	withAuth("POST /user/{user_id}/mute", h.MuteUser)
+	withAuth("DELETE /user/{user_id}/mute", h.UnmuteUser)
+
+	// users
+	withAuth("GET /user/{id}", h.GetUserById)
+	withAuth("GET /user/{id}/followers", h.GetFollowersByUserId)
+	withAuth("GET /v2/user/{id}/following", h.GetFollowingByUserId)
+	withAuth("GET /v3/user/{id}/following", h.GetFollowingByUserIdV3)
+	withAuth("GET /v2/user/{id}/mutuals", h.GetMutualsByUserId)
+	withAuth("GET /v3/user/{id}/mutuals", h.GetMutualsByUserIdV3)
+	withAuth("GET /users/notification/{id}", h.ListNotificationActors)
+	withAuth("GET /users/search", h.SearchUsers)
+
+	withAuth("POST /user/{id}/friend", h.AddUserToCloseFriendsList)
+	withAuth("DELETE /user/{id}/friend", h.RemoveUserFromCloseFriendsList)
+	withAuth("GET /user/friends", h.ListUserCloseFriends)
+	withAuth("GET /v2/user/friends", h.ListUserCloseFriendsV2)
+
+	withAuth("POST /request-feature", h.RequestFeature)
+
+	// follow
+	withAuth("POST /follow/{user_id}", h.FollowUser)
+	withAuth("DELETE /follow/{user_id}", h.UnfollowUser)
+
+	withAuth("POST /user/profile", h.UpdateProfile)
+
+}
 
 // GetUserById returns a user by id, unless the target user is blocking the current user.
 func (h *Handler) GetUserById(w http.ResponseWriter, r *http.Request) {
@@ -18,13 +62,13 @@ func (h *Handler) GetUserById(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := h.userService.GetUserById(r.Context(), *currentUser, id)
+	user, err := h.svc.GetUserById(r.Context(), currentUser.UserID, id)
 	if err != nil {
 		utilities.HandleError(w, http.StatusNotFound, "This user doesn't exist")
 		return
 	}
 
-	isBlocking, err := h.userService.IsBlockingUser(r.Context(), user.UserID, currentUser.UserID)
+	isBlocking, err := h.svc.IsBlockingUser(r.Context(), user.UserID, currentUser.UserID)
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
 		return
@@ -48,7 +92,7 @@ func (h *Handler) SearchUsers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	users, err := h.userService.GetUserByUsernameSearch(r.Context(), prefix, currentUser.UserID)
+	users, err := h.svc.GetUserByUsernameSearch(r.Context(), prefix, currentUser.UserID)
 	if err != nil {
 		utilities.HandleError(w, http.StatusNotFound, "This user doesn't exist")
 		return
@@ -66,7 +110,7 @@ func (h *Handler) FollowUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.userService.FollowUser(r.Context(), *currentUser, userId)
+	err = h.svc.FollowUser(r.Context(), *currentUser, userId)
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
 		return
@@ -84,7 +128,7 @@ func (h *Handler) UnfollowUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.userService.UnfollowUser(r.Context(), *currentUser, userId)
+	err = h.svc.UnfollowUser(r.Context(), *currentUser, userId)
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
 		return
@@ -108,7 +152,7 @@ func (h *Handler) UpdateProfile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := h.userService.UpdateProfile(r.Context(), currentUser.UserID, &request.Name, &request.Bio, &request.DisplayProperties)
+	err := h.svc.UpdateProfile(r.Context(), currentUser.UserID, &request.Name, &request.Bio, &request.DisplayProperties)
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
 		return
@@ -126,7 +170,7 @@ func (h *Handler) BlockUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.userService.BlockUser(r.Context(), *currentUser, userId)
+	err = h.svc.BlockUser(r.Context(), *currentUser, userId)
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
 		return
@@ -144,7 +188,7 @@ func (h *Handler) UnblockUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.userService.UnblockUser(r.Context(), *currentUser, userId)
+	err = h.svc.UnblockUser(r.Context(), *currentUser, userId)
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
 		return
@@ -162,7 +206,7 @@ func (h *Handler) MuteUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.userService.MuteUser(r.Context(), *currentUser, userId)
+	err = h.svc.MuteUser(r.Context(), *currentUser, userId)
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
 		return
@@ -180,34 +224,13 @@ func (h *Handler) UnmuteUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.userService.UnmuteUser(r.Context(), *currentUser, userId)
+	err = h.svc.UnmuteUser(r.Context(), *currentUser, userId)
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
 		return
 	}
 
 	utilities.HandleEmptySuccess(w)
-}
-
-// Deprecated in favor of new pagination pattern in
-func (h *Handler) GetFollowersByUserId_old(w http.ResponseWriter, r *http.Request) {
-	currentUser := utilities.GetAuthenticatedUser(r)
-
-	userId, err := utilities.GetIntPathParam(r, "id")
-	if err != nil {
-		utilities.HandleError(w, http.StatusBadRequest, "Missing user ID parameter")
-		return
-	}
-
-	limit, offset := h.parsePagination(r)
-
-	followers, err := h.userService.GetFollowersByUserId_old(r.Context(), *currentUser, userId, offset, limit)
-	if err != nil {
-		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
-		return
-	}
-
-	utilities.HandleSuccess(w, followers)
 }
 
 // GetFollowingByUserId returns a paginated list of users the given user follows.
@@ -220,13 +243,13 @@ func (h *Handler) GetFollowingByUserId(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	limit, before, err := h.parseTimeBasedPagination(r)
+	limit, before, err := utilities.ParseTimeBasedPagination(r)
 	if err != nil {
 		utilities.HandleError(w, http.StatusBadRequest, "Unable to parse pagination parameters ('limit' and 'before'")
 		return
 	}
 
-	result, err := h.userService.GetFollowingByUserId(r.Context(), *currentUser, userId, limit, before)
+	result, err := h.svc.GetFollowingByUserId(r.Context(), *currentUser, userId, limit, before)
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
 		return
@@ -245,60 +268,19 @@ func (h *Handler) GetFollowingByUserIdV3(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	limit, before, err := h.parseTimeBasedPagination(r)
+	limit, before, err := utilities.ParseTimeBasedPagination(r)
 	if err != nil {
 		utilities.HandleError(w, http.StatusBadRequest, "Unable to parse pagination parameters ('limit' and 'before'")
 		return
 	}
 
-	result, err := h.userService.GetFollowingByUserId(r.Context(), *currentUser, userId, limit, before)
+	result, err := h.svc.GetFollowingByUserId(r.Context(), *currentUser, userId, limit, before)
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
 		return
 	}
 
 	utilities.HandleSuccess(w, result)
-}
-
-func (h *Handler) GetFollowingByUserId_old(w http.ResponseWriter, r *http.Request) {
-	currentUser := utilities.GetAuthenticatedUser(r)
-
-	userId, err := utilities.GetIntPathParam(r, "id")
-	if err != nil {
-		utilities.HandleError(w, http.StatusBadRequest, "Missing user ID parameter")
-		return
-	}
-
-	limit, offset := h.parsePagination(r)
-
-	following, err := h.userService.GetFollowingByUserId_old(r.Context(), *currentUser, userId, offset, limit)
-	if err != nil {
-		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
-		return
-	}
-
-	utilities.HandleSuccess(w, following)
-}
-
-// Deprecated: prefer GetMutualsByUserId
-func (h *Handler) GetMutualsByUserId_old(w http.ResponseWriter, r *http.Request) {
-	currentUser := utilities.GetAuthenticatedUser(r)
-
-	userId, err := utilities.GetIntPathParam(r, "id")
-	if err != nil {
-		utilities.HandleError(w, http.StatusBadRequest, "Missing user ID parameter")
-		return
-	}
-
-	limit, offset := h.parsePagination(r)
-
-	mutuals, err := h.userService.GetMutualsByUserId_old(r.Context(), *currentUser, userId, offset, limit)
-	if err != nil {
-		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
-		return
-	}
-
-	utilities.HandleSuccess(w, mutuals)
 }
 
 func (h Handler) GetMutualsByUserId(w http.ResponseWriter, r *http.Request) {
@@ -310,13 +292,13 @@ func (h Handler) GetMutualsByUserId(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	limit, before, err := h.parseTimeBasedPagination(r)
+	limit, before, err := utilities.ParseTimeBasedPagination(r)
 	if err != nil {
 		utilities.HandleError(w, http.StatusBadRequest, "Unable to parse pagination parameters ('limit' and 'before'")
 		return
 	}
 
-	result, err := h.userService.GetMutualsByUserId(r.Context(), *user, targetUserId, limit, before)
+	result, err := h.svc.GetMutualsByUserId(r.Context(), *user, targetUserId, limit, before)
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
 		return
@@ -334,19 +316,46 @@ func (h Handler) GetMutualsByUserIdV3(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	limit, before, err := h.parseTimeBasedPagination(r)
+	limit, before, err := utilities.ParseTimeBasedPagination(r)
 	if err != nil {
 		utilities.HandleError(w, http.StatusBadRequest, "Unable to parse pagination parameters ('limit' and 'before'")
 		return
 	}
 
-	result, err := h.userService.GetMutualsByUserId(r.Context(), *user, targetUserId, limit, before)
+	result, err := h.svc.GetMutualsByUserId(r.Context(), *user, targetUserId, limit, before)
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
 		return
 	}
 
 	utilities.HandleSuccess(w, result)
+}
+
+// GetFollowersByUserId returns a list of users following the given user (offset-based pagination).
+func (h *Handler) GetFollowersByUserId(w http.ResponseWriter, r *http.Request) {
+	currentUser := utilities.GetAuthenticatedUser(r)
+
+	userId, err := utilities.GetIntPathParam(r, "id")
+	if err != nil {
+		utilities.HandleError(w, http.StatusBadRequest, "Missing user ID parameter")
+		return
+	}
+
+	limit, offset := 10, 0
+	if l, err := strconv.Atoi(r.URL.Query().Get("limit")); err == nil && l > 0 {
+		limit = l
+	}
+	if o, err := strconv.Atoi(r.URL.Query().Get("offset")); err == nil && o >= 0 {
+		offset = o
+	}
+
+	followers, err := h.svc.GetFollowersByUserId_old(r.Context(), *currentUser, userId, offset, limit)
+	if err != nil {
+		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
+		return
+	}
+
+	utilities.HandleSuccess(w, followers)
 }
 
 type RequestFeaturePayload struct {
@@ -367,7 +376,7 @@ func (h *Handler) RequestFeature(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := h.userService.RequestFeature(r.Context(), *currentUser, payload.Text)
+	err := h.svc.RequestFeature(r.Context(), *currentUser, payload.Text)
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
 		return
@@ -385,7 +394,7 @@ func (h Handler) AddUserToCloseFriendsList(w http.ResponseWriter, r *http.Reques
 
 	user := utilities.GetAuthenticatedUser(r)
 
-	err = h.userService.AddUserToCloseFriendsList(r.Context(), *user, targetUserId)
+	err = h.svc.AddUserToCloseFriendsList(r.Context(), *user, targetUserId)
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
 		return
@@ -403,7 +412,7 @@ func (h Handler) RemoveUserFromCloseFriendsList(w http.ResponseWriter, r *http.R
 
 	user := utilities.GetAuthenticatedUser(r)
 
-	err = h.userService.RemoveUserFromCloseFriendsList(r.Context(), *user, targetUserId)
+	err = h.svc.RemoveUserFromCloseFriendsList(r.Context(), *user, targetUserId)
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
 		return
@@ -413,7 +422,7 @@ func (h Handler) RemoveUserFromCloseFriendsList(w http.ResponseWriter, r *http.R
 }
 
 func (h Handler) ListUserCloseFriends(w http.ResponseWriter, r *http.Request) {
-	limit, before, err := h.parseTimeBasedPagination(r)
+	limit, before, err := utilities.ParseTimeBasedPagination(r)
 	if err != nil {
 		utilities.HandleError(w, http.StatusBadRequest, "Unable to parse pagination parameters ('limit' and 'before'")
 		return
@@ -421,7 +430,7 @@ func (h Handler) ListUserCloseFriends(w http.ResponseWriter, r *http.Request) {
 
 	user := utilities.GetAuthenticatedUser(r)
 
-	result, err := h.userService.GetCloseFriendsByUserId(r.Context(), *user, limit, before)
+	result, err := h.svc.GetCloseFriendsByUserId(r.Context(), *user, limit, before)
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
 		return
@@ -430,8 +439,14 @@ func (h Handler) ListUserCloseFriends(w http.ResponseWriter, r *http.Request) {
 	utilities.HandleSuccess(w, result.Users)
 }
 
-func (h Handler) ListUserCloseFriendsV2(w http.ResponseWriter, r *http.Request) {
-	limit, before, err := h.parseTimeBasedPagination(r)
+func (h *Handler) ListNotificationActors(w http.ResponseWriter, r *http.Request) {
+	notificationId, err := utilities.GetIntPathParam(r, "id")
+	if err != nil {
+		utilities.HandleError(w, http.StatusBadRequest, "Missing ID parameter")
+		return
+	}
+
+	limit, before, err := utilities.ParseTimeBasedPagination(r)
 	if err != nil {
 		utilities.HandleError(w, http.StatusBadRequest, "Unable to parse pagination parameters ('limit' and 'before'")
 		return
@@ -439,7 +454,29 @@ func (h Handler) ListUserCloseFriendsV2(w http.ResponseWriter, r *http.Request) 
 
 	user := utilities.GetAuthenticatedUser(r)
 
-	result, err := h.userService.GetCloseFriendsByUserId(r.Context(), *user, limit, before)
+	result, err := h.svc.GetNotificationActors(r.Context(), user.UserID, notificationId, limit, before)
+	if err != nil {
+		if errors.Is(err, utilities.ErrUnauthorized) {
+			utilities.HandleError(w, http.StatusForbidden, "Unauthorized")
+			return
+		}
+		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
+		return
+	}
+
+	utilities.HandleSuccess(w, result)
+}
+
+func (h Handler) ListUserCloseFriendsV2(w http.ResponseWriter, r *http.Request) {
+	limit, before, err := utilities.ParseTimeBasedPagination(r)
+	if err != nil {
+		utilities.HandleError(w, http.StatusBadRequest, "Unable to parse pagination parameters ('limit' and 'before'")
+		return
+	}
+
+	user := utilities.GetAuthenticatedUser(r)
+
+	result, err := h.svc.GetCloseFriendsByUserId(r.Context(), *user, limit, before)
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
 		return
@@ -447,3 +484,4 @@ func (h Handler) ListUserCloseFriendsV2(w http.ResponseWriter, r *http.Request) 
 
 	utilities.HandleSuccess(w, result)
 }
+

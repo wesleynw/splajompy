@@ -7,6 +7,7 @@ package queries
 
 import (
 	"context"
+	"time"
 
 	"github.com/jackc/pgx/v5/pgtype"
 	db "splajompy.com/api/v2/internal/db"
@@ -138,9 +139,9 @@ LIMIT $2
 `
 
 type WrappedGetAllUserLikesWithCursorParams struct {
-	UserID int                `json:"userId"`
-	Limit  int                `json:"limit"`
-	Cursor pgtype.Timestamptz `json:"cursor"`
+	UserID int       `json:"userId"`
+	Limit  int       `json:"limit"`
+	Cursor time.Time `json:"cursor"`
 }
 
 func (q *Queries) WrappedGetAllUserLikesWithCursor(ctx context.Context, arg WrappedGetAllUserLikesWithCursorParams) ([]Like, error) {

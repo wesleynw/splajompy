@@ -160,6 +160,12 @@ final class MockUserRepository: @unchecked Sendable {
 }
 
 struct MockProfileService: ProfileServiceProtocol {
+  func getNotificationActors(notificationId: Int, limit: Int, before: Date?) async -> AsyncResult<
+    PaginatedUserList
+  > {
+    return .success(PaginatedUserList(users: [], nextCursor: nil))
+  }
+
   func getFriends(userId: Int, limit: Int, before: Date?) async -> AsyncResult<PaginatedUserList> {
     return .success(PaginatedUserList(users: [], nextCursor: nil))
   }

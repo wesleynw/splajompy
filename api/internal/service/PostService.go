@@ -5,46 +5,45 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"math"
 	"sort"
 	"time"
 
 	"github.com/resend/resend-go/v3"
-	"golang.org/x/mod/semver"
 	"golang.org/x/sync/errgroup"
 	"splajompy.com/api/v2/internal/bucket"
 	"splajompy.com/api/v2/internal/db"
 	"splajompy.com/api/v2/internal/db/queries"
-	"splajompy.com/api/v2/internal/middleware"
 	"splajompy.com/api/v2/internal/models"
 	"splajompy.com/api/v2/internal/notification"
 	"splajompy.com/api/v2/internal/repositories"
 	"splajompy.com/api/v2/internal/templates"
+	"splajompy.com/api/v2/internal/user"
+	"splajompy.com/api/v2/internal/utilities"
 )
 
 type PostService struct {
-	postRepository         repositories.PostRepository
-	userRepository         repositories.UserRepository
-	likeRepository         repositories.LikeRepository
-	notificationRepository notification.NotificationStore
-	bucketRepository       bucket.Repository
-	emailService           *resend.Client
+	postRepository      repositories.PostRepository
+	userRepository      user.Store
+	likeRepository      repositories.LikeRepository
+	notificationService notification.Service
+	bucketRepository    bucket.Repository
+	emailService        *resend.Client
 }
 
-func NewPostService(postRepository repositories.PostRepository, userRepository repositories.UserRepository, likeRepository repositories.LikeRepository, notificationRepository notification.NotificationStore, bucketRepo bucket.Repository, emailService *resend.Client) *PostService {
+func NewPostService(postRepository repositories.PostRepository, userRepository user.Store, likeRepository repositories.LikeRepository, notificationService notification.Service, bucketRepo bucket.Repository, emailService *resend.Client) *PostService {
 	return &PostService{
-		postRepository:         postRepository,
-		userRepository:         userRepository,
-		likeRepository:         likeRepository,
-		notificationRepository: notificationRepository,
-		bucketRepository:       bucketRepo,
-		emailService:           emailService,
+		postRepository:      postRepository,
+		userRepository:      userRepository,
+		likeRepository:      likeRepository,
+		notificationService: notificationService,
+		bucketRepository:    bucketRepo,
+		emailService:        emailService,
 	}
 }
 
 // NewPost preprocesses a new post and stores it in the database.
 func (s *PostService) NewPost(ctx context.Context, currentUser models.PublicUser, text string, imageKeymap map[int]models.ImageData, poll *db.Poll, visibilityEnum *int) (*models.Post, error) {
-	facets, err := repositories.GenerateFacets(ctx, s.userRepository, text)
+	facets, err := utilities.GenerateFacets(ctx, s.userRepository, text)
 	if err != nil {
 		return nil, err
 	}
@@ -89,14 +88,9 @@ func (s *PostService) NewPost(ctx context.Context, currentUser models.PublicUser
 
 	for userId := range usersToNotify {
 		text := fmt.Sprintf("@%s mentioned you in a post.", currentUser.Username)
-		notificationFacets, err := repositories.GenerateFacets(ctx, s.userRepository, text)
+		_, err = s.notificationService.AddNotification(ctx, userId, postId, nil, text, models.NotificationTypeMention)
 		if err != nil {
 			return nil, err
-		}
-
-		err = s.notificationRepository.InsertNotification(ctx, userId, &postId, nil, &notificationFacets, text, models.NotificationTypeMention, nil)
-		if err != nil {
-			return nil, errors.New("unable to create post")
 		}
 	}
 
@@ -155,9 +149,7 @@ func (s *PostService) GetPostById(ctx context.Context, userId int, postId int) (
 	pinnedPostId, _ := s.postRepository.GetPinnedPostId(ctx, post.UserID)
 	isPinned := pinnedPostId != nil && *pinnedPostId == postId
 
-	versionAny := ctx.Value(middleware.AppVersionKey)
-	version, ok := versionAny.(string)
-	if pollDetails != nil && (!ok || version == "unknown" || semver.Compare(version, "v1.3.0") < 0) {
+	if pollDetails != nil && !utilities.IsAppUpdatedToVersion(ctx, "v1.3.0") {
 		if post.Text != "" {
 			post.Text += "\n\n"
 		}
@@ -206,24 +198,7 @@ func (s *PostService) AddLikeToPost(ctx context.Context, currentUser models.Publ
 		return err
 	}
 
-	post, err := s.postRepository.GetPostById(ctx, postId, currentUser.UserID)
-	if err != nil {
-		return err
-	}
-
-	if currentUser.UserID != post.UserID {
-		text := fmt.Sprintf("@%s liked your post.", currentUser.Username)
-		facets, err := repositories.GenerateFacets(ctx, s.userRepository, text)
-		if err != nil {
-			return err
-		}
-		err = s.notificationRepository.InsertNotification(ctx, post.UserID, &postId, nil, &facets, text, models.NotificationTypeLike, nil)
-		if err != nil {
-			return err
-		}
-	}
-
-	return err
+	return s.notificationService.AddLikeNotification(ctx, currentUser.UserID, postId, nil)
 }
 
 // RemoveLikeFromPost removes the current user's like from a post and deletes
@@ -234,22 +209,7 @@ func (s *PostService) RemoveLikeFromPost(ctx context.Context, currentUser models
 		return err
 	}
 
-	post, err := s.postRepository.GetPostById(ctx, postId, currentUser.UserID)
-	if err != nil {
-		return err
-	}
-
-	notification, err := s.notificationRepository.FindUnreadLikeNotification(ctx, post.UserID, postId, nil)
-	if err == nil && notification != nil {
-		if time.Since(notification.CreatedAt) <= 5*time.Minute {
-			err = s.notificationRepository.DeleteNotificationById(ctx, notification.NotificationID)
-			if err != nil {
-				return err
-			}
-		}
-	}
-
-	return nil
+	return s.notificationService.RemoveLikeNotification(ctx, currentUser.UserID, postId, nil)
 }
 
 func (s *PostService) DeletePost(ctx context.Context, currentUser models.PublicUser, postId int) error {
@@ -274,7 +234,7 @@ func (s *PostService) getRelevantLikes(ctx context.Context, userId int, postId i
 	}
 
 	sort.SliceStable(likes, func(i, j int) bool {
-		return seededRandom(postId+likes[i].UserID) < seededRandom(postId+likes[j].UserID)
+		return utilities.SeededRandom(postId+likes[i].UserID) < utilities.SeededRandom(postId+likes[j].UserID)
 	})
 
 	hasOtherLikes := len(likes) > 2
@@ -390,11 +350,7 @@ func (s *PostService) VoteOnPoll(ctx context.Context, currentUser models.PublicU
 	if currentUser.UserID != post.UserID {
 		optionTitle := post.Attributes.Poll.Options[optionIndex]
 		text := fmt.Sprintf("@%s voted \"%s\" in your poll.", currentUser.Username, optionTitle)
-		facets, err := repositories.GenerateFacets(ctx, s.userRepository, text)
-		if err != nil {
-			return err
-		}
-		err = s.notificationRepository.InsertNotification(ctx, post.UserID, &postId, nil, &facets, text, models.NotificationTypePoll, nil)
+		_, err = s.notificationService.AddNotification(ctx, post.UserID, postId, nil, text, models.NotificationTypePoll)
 		if err != nil {
 			return err
 		}
@@ -437,9 +393,7 @@ func (s *PostService) GetPosts(ctx context.Context, currentUser models.PublicUse
 		}
 
 		var pinnedPostId *int
-		versionAny := ctx.Value(middleware.AppVersionKey)
-		version, ok := versionAny.(string)
-		if ok && version != "unknown" && semver.Compare(version, "v1.4.0") >= 0 {
+		if utilities.IsAppUpdatedToVersion(ctx, "v1.4.0") {
 			pinnedPostId, _ = s.postRepository.GetPinnedPostId(ctx, *userId)
 		}
 
@@ -458,11 +412,6 @@ func (s *PostService) GetPosts(ctx context.Context, currentUser models.PublicUse
 	}
 
 	return s.getPostsByPostIDs(ctx, currentUser, postIDs)
-}
-
-func seededRandom(seed int) float64 {
-	var x = math.Sin(float64(seed)) * 1000
-	return x - math.Floor(x)
 }
 
 // PinPost pins a post for the current user

@@ -29,19 +29,6 @@ const (
 	NotificationTypePoll         NotificationType = "poll"
 )
 
-func (nt NotificationType) String() string {
-	return string(nt)
-}
-
-func (nt NotificationType) IsValid() bool {
-	switch nt {
-	case NotificationTypeMention, NotificationTypeLike, NotificationTypeComment, NotificationTypeAnnouncement, NotificationTypeFollowers, NotificationTypePoll:
-		return true
-	default:
-		return false
-	}
-}
-
 type APIResponse struct {
 	Success bool   `json:"success"`
 	Data    any    `json:"data,omitempty"`
@@ -54,17 +41,18 @@ type RelevantLike struct {
 }
 
 type Notification struct {
-	NotificationID   int              `json:"notificationId"`
-	UserID           int              `json:"userId"`
-	PostID           *int             `json:"postId"`
-	CommentID        *int             `json:"commentId"`
-	TargetUserId     *int             `json:"targetUserId"`
-	Message          string           `json:"message"`
-	Link             string           `json:"link"`
-	Viewed           bool             `json:"viewed"`
-	Facets           db.Facets        `json:"facets"`
-	NotificationType NotificationType `json:"notificationType"`
-	CreatedAt        time.Time        `json:"createdAt"`
+	NotificationID        int              `json:"notificationId"`
+	UserID                int              `json:"userId"`
+	PostID                *int             `json:"postId"`
+	CommentID             *int             `json:"commentId"`
+	TargetUserId          *int             `json:"targetUserId"`
+	Message               string           `json:"message"`
+	Link                  string           `json:"link"`
+	Viewed                bool             `json:"viewed"`
+	Facets                db.Facets        `json:"facets"`
+	NotificationType      NotificationType `json:"notificationType"`
+	CreatedAt             time.Time        `json:"createdAt"`
+	HasNotificationActors bool             `json:"hasNotificationActors"`
 }
 
 type Post struct {

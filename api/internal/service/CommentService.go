@@ -4,41 +4,39 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"time"
 
-	"golang.org/x/mod/semver"
 	"splajompy.com/api/v2/internal/bucket"
-	"splajompy.com/api/v2/internal/middleware"
 	"splajompy.com/api/v2/internal/models"
 	"splajompy.com/api/v2/internal/notification"
 	"splajompy.com/api/v2/internal/repositories"
+	"splajompy.com/api/v2/internal/user"
+	"splajompy.com/api/v2/internal/utilities"
 )
 
 type CommentService struct {
-	commentRepository      repositories.CommentRepository
-	postRepository         repositories.PostRepository
-	notificationRepository notification.NotificationStore
-	userRepository         repositories.UserRepository
-	likeRepository         repositories.LikeRepository
-	bucketRepository       bucket.Repository
+	commentRepository   repositories.CommentRepository
+	postRepository      repositories.PostRepository
+	notificationService notification.Service
+	userRepository      user.Store
+	likeRepository      repositories.LikeRepository
+	bucketRepository    bucket.Repository
 }
 
-// NewCommentService creates a new comment service instance
 func NewCommentService(
 	commentRepo repositories.CommentRepository,
 	postRepository repositories.PostRepository,
-	notificationRepository notification.NotificationStore,
-	userRepository repositories.UserRepository,
+	notificationService notification.Service,
+	userRepository user.Store,
 	likeRepository repositories.LikeRepository,
 	bucketRepository bucket.Repository,
 ) *CommentService {
 	return &CommentService{
-		commentRepository:      commentRepo,
-		postRepository:         postRepository,
-		notificationRepository: notificationRepository,
-		userRepository:         userRepository,
-		likeRepository:         likeRepository,
-		bucketRepository:       bucketRepository,
+		commentRepository:   commentRepo,
+		postRepository:      postRepository,
+		notificationService: notificationService,
+		userRepository:      userRepository,
+		likeRepository:      likeRepository,
+		bucketRepository:    bucketRepository,
 	}
 }
 
@@ -49,7 +47,7 @@ func (s *CommentService) AddCommentToPost(ctx context.Context, currentUser model
 		return nil, errors.New("unable to find post")
 	}
 
-	commentFacets, err := repositories.GenerateFacets(ctx, s.userRepository, content)
+	commentFacets, err := utilities.GenerateFacets(ctx, s.userRepository, content)
 	if err != nil {
 		return nil, errors.New("unable to generate facets")
 	}
@@ -90,23 +88,9 @@ func (s *CommentService) AddCommentToPost(ctx context.Context, currentUser model
 
 	if currentUser.UserID != post.UserID {
 		text := fmt.Sprintf("@%s commented on your post.", currentUser.Username)
-		notificationFacets, err := repositories.GenerateFacets(ctx, s.userRepository, text)
+		_, err = s.notificationService.AddNotification(ctx, post.UserID, postId, &commentId, text, models.NotificationTypeComment)
 		if err != nil {
-			return nil, errors.New("unable to generate facets")
-		}
-
-		err = s.notificationRepository.InsertNotification(
-			ctx,
-			post.UserID,
-			&postId,
-			&commentId,
-			&notificationFacets,
-			text,
-			models.NotificationTypeComment,
-			nil,
-		)
-		if err != nil {
-			return nil, errors.New("unable to create a new comment notification")
+			return nil, err
 		}
 	}
 
@@ -120,12 +104,7 @@ func (s *CommentService) AddCommentToPost(ctx context.Context, currentUser model
 
 	for userId := range usersToNotify {
 		text := fmt.Sprintf("@%s mentioned you in a comment.", currentUser.Username)
-		notificationFacets, err := repositories.GenerateFacets(ctx, s.userRepository, text)
-		if err != nil {
-			return nil, errors.New("unable to generate facets")
-		}
-
-		err = s.notificationRepository.InsertNotification(ctx, userId, &postId, &commentId, &notificationFacets, text, models.NotificationTypeMention, nil)
+		_, err = s.notificationService.AddNotification(ctx, userId, postId, &commentId, text, models.NotificationTypeMention)
 		if err != nil {
 			return nil, errors.New("unable to create a new comment notification")
 		}
@@ -196,9 +175,7 @@ func (s *CommentService) GetCommentsByPostId(ctx context.Context, currentUser mo
 		}
 
 		if len(dbImages) > 0 {
-			versionAny := ctx.Value(middleware.AppVersionKey)
-			version, ok := versionAny.(string)
-			if ok && version != "unknown" && semver.Compare(version, "v1.8.0") < 0 {
+			if !utilities.IsAppUpdatedToVersion(ctx, "v1.8.0") {
 				prefix := ""
 				if dbComment.Text != "" {
 					prefix = "\n\n"
@@ -238,14 +215,9 @@ func (s *CommentService) AddLikeToCommentById(ctx context.Context, currentUser m
 	}
 
 	if currentUser.UserID != comment.UserID {
-		text := fmt.Sprintf("@%s liked your comment.", currentUser.Username)
-		facets, err := repositories.GenerateFacets(ctx, s.userRepository, text)
+		err = s.notificationService.AddLikeNotification(ctx, currentUser.UserID, postId, &commentId)
 		if err != nil {
 			return err
-		}
-		err = s.notificationRepository.InsertNotification(ctx, comment.UserID, &postId, &commentId, &facets, text, models.NotificationTypeLike, nil)
-		if err != nil {
-			return errors.New("unable to create a new comment notification")
 		}
 	}
 
@@ -260,22 +232,7 @@ func (s *CommentService) RemoveLikeFromCommentById(ctx context.Context, user mod
 		return errors.New("unable to remove like from comment")
 	}
 
-	comment, err := s.commentRepository.GetCommentById(ctx, commentId)
-	if err != nil {
-		return errors.New("unable to find comment")
-	}
-
-	notification, err := s.notificationRepository.FindUnreadLikeNotification(ctx, comment.UserID, postId, &commentId)
-	if err == nil && notification != nil {
-		if time.Since(notification.CreatedAt) <= 5*time.Minute {
-			err = s.notificationRepository.DeleteNotificationById(ctx, notification.NotificationID)
-			if err != nil {
-				return errors.New("unable to remove liked comment")
-			}
-		}
-	}
-
-	return nil
+	return s.notificationService.RemoveLikeNotification(ctx, user.UserID, postId, &commentId)
 }
 
 // DeleteComment deletes a comment by ID if the current user owns it
