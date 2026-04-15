@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"strconv"
 
 	"splajompy.com/api/v2/internal/models"
 	"splajompy.com/api/v2/internal/utilities"
@@ -28,6 +29,7 @@ func (h *Handler) RegisterRoutes(withAuth func(string, func(http.ResponseWriter,
 
 	// users
 	withAuth("GET /user/{id}", h.GetUserById)
+	withAuth("GET /user/{id}/followers", h.GetFollowersByUserId)
 	withAuth("GET /v2/user/{id}/following", h.GetFollowingByUserId)
 	withAuth("GET /v3/user/{id}/following", h.GetFollowingByUserIdV3)
 	withAuth("GET /v2/user/{id}/mutuals", h.GetMutualsByUserId)
@@ -329,6 +331,33 @@ func (h Handler) GetMutualsByUserIdV3(w http.ResponseWriter, r *http.Request) {
 	utilities.HandleSuccess(w, result)
 }
 
+// GetFollowersByUserId returns a list of users following the given user (offset-based pagination).
+func (h *Handler) GetFollowersByUserId(w http.ResponseWriter, r *http.Request) {
+	currentUser := utilities.GetAuthenticatedUser(r)
+
+	userId, err := utilities.GetIntPathParam(r, "id")
+	if err != nil {
+		utilities.HandleError(w, http.StatusBadRequest, "Missing user ID parameter")
+		return
+	}
+
+	limit, offset := 10, 0
+	if l, err := strconv.Atoi(r.URL.Query().Get("limit")); err == nil && l > 0 {
+		limit = l
+	}
+	if o, err := strconv.Atoi(r.URL.Query().Get("offset")); err == nil && o >= 0 {
+		offset = o
+	}
+
+	followers, err := h.svc.GetFollowersByUserId_old(r.Context(), *currentUser, userId, offset, limit)
+	if err != nil {
+		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
+		return
+	}
+
+	utilities.HandleSuccess(w, followers)
+}
+
 type RequestFeaturePayload struct {
 	Text string
 }
@@ -455,3 +484,4 @@ func (h Handler) ListUserCloseFriendsV2(w http.ResponseWriter, r *http.Request) 
 
 	utilities.HandleSuccess(w, result)
 }
+

@@ -16,6 +16,7 @@ struct Notification: Identifiable, Decodable, Equatable {
   let imageHeight: Int?
   let facets: [Facet]?
   let notificationType: String
+  var hasNotificationActors: Bool? = nil
 
   var post: Post?
   var comment: Comment?

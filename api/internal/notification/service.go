@@ -153,6 +153,14 @@ func (s *Service) buildDetailedNotifications(ctx context.Context, currentUserId 
 			detailedNotification.TargetUserUsername = &user.Username
 		}
 
+		if notification.NotificationType == models.NotificationTypeLike {
+			actors, err := s.notificationRepository.GetNotificationActors(ctx, notification.NotificationID)
+			if err != nil {
+				return nil, errors.New("unable to retrieve notification actors")
+			}
+			detailedNotification.HasNotificationActors = len(actors) > 0
+		}
+
 		detailedNotifications = append(detailedNotifications, detailedNotification)
 	}
 
