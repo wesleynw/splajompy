@@ -37,26 +37,25 @@ func (q *Queries) DeleteNotificationById(ctx context.Context, notificationID int
 	return err
 }
 
-const findUnreadLikeNotificationForComment = `-- name: FindUnreadLikeNotificationForComment :one
+const findLikeNotificationForComment = `-- name: FindLikeNotificationForComment :one
 SELECT notification_id, user_id, post_id, comment_id, target_user_id, message, link, viewed, facets, notification_type, created_at
 FROM notifications
 WHERE user_id = $1
   AND notification_type = 'like'
-  AND viewed = FALSE
   AND post_id = $2
   AND comment_id = $3
 ORDER BY created_at DESC
 LIMIT 1
 `
 
-type FindUnreadLikeNotificationForCommentParams struct {
+type FindLikeNotificationForCommentParams struct {
 	UserID    int  `json:"userId"`
 	PostID    *int `json:"postId"`
 	CommentID *int `json:"commentId"`
 }
 
-func (q *Queries) FindUnreadLikeNotificationForComment(ctx context.Context, arg FindUnreadLikeNotificationForCommentParams) (Notification, error) {
-	row := q.db.QueryRow(ctx, findUnreadLikeNotificationForComment, arg.UserID, arg.PostID, arg.CommentID)
+func (q *Queries) FindLikeNotificationForComment(ctx context.Context, arg FindLikeNotificationForCommentParams) (Notification, error) {
+	row := q.db.QueryRow(ctx, findLikeNotificationForComment, arg.UserID, arg.PostID, arg.CommentID)
 	var i Notification
 	err := row.Scan(
 		&i.NotificationID,
@@ -74,25 +73,24 @@ func (q *Queries) FindUnreadLikeNotificationForComment(ctx context.Context, arg 
 	return i, err
 }
 
-const findUnreadLikeNotificationForPost = `-- name: FindUnreadLikeNotificationForPost :one
+const findLikeNotificationForPost = `-- name: FindLikeNotificationForPost :one
 SELECT notification_id, user_id, post_id, comment_id, target_user_id, message, link, viewed, facets, notification_type, created_at
 FROM notifications
 WHERE user_id = $1
   AND notification_type = 'like'
-  AND viewed = FALSE
   AND post_id = $2
   AND comment_id IS NULL
 ORDER BY created_at DESC
 LIMIT 1
 `
 
-type FindUnreadLikeNotificationForPostParams struct {
+type FindLikeNotificationForPostParams struct {
 	UserID int  `json:"userId"`
 	PostID *int `json:"postId"`
 }
 
-func (q *Queries) FindUnreadLikeNotificationForPost(ctx context.Context, arg FindUnreadLikeNotificationForPostParams) (Notification, error) {
-	row := q.db.QueryRow(ctx, findUnreadLikeNotificationForPost, arg.UserID, arg.PostID)
+func (q *Queries) FindLikeNotificationForPost(ctx context.Context, arg FindLikeNotificationForPostParams) (Notification, error) {
+	row := q.db.QueryRow(ctx, findLikeNotificationForPost, arg.UserID, arg.PostID)
 	var i Notification
 	err := row.Scan(
 		&i.NotificationID,

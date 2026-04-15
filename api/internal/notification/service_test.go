@@ -162,7 +162,7 @@ func TestGetUserUnreadNotificationsCount(t *testing.T) {
 	assert.Equal(t, 1, count)
 }
 
-func TestFindUnreadLikeNotification_PostNotification(t *testing.T) {
+func TestFindLikeNotification_PostNotification(t *testing.T) {
 	env := setupNotificationService(t)
 	user := testutil.CreateTestUser(t, env.userRepository, "testUser")
 
@@ -173,13 +173,13 @@ func TestFindUnreadLikeNotification_PostNotification(t *testing.T) {
 	_, err = env.notificationRepository.InsertNotification(t.Context(), user.UserID, &post.PostID, nil, nil, "@user liked your post.", models.NotificationTypeLike, nil)
 	require.NoError(t, err)
 
-	result, err := env.notificationRepository.FindUnreadLikeNotification(t.Context(), user.UserID, post.PostID, nil)
+	result, err := env.notificationRepository.FindLikeNotification(t.Context(), user.UserID, post.PostID, nil)
 	require.NoError(t, err)
 	require.NotNil(t, result)
 	assert.Equal(t, "@user liked your post.", result.Message)
 }
 
-func TestFindUnreadLikeNotification_CommentNotification(t *testing.T) {
+func TestFindLikeNotification_CommentNotification(t *testing.T) {
 	env := setupNotificationService(t)
 	user := testutil.CreateTestUser(t, env.userRepository, "testUser")
 
@@ -193,7 +193,7 @@ func TestFindUnreadLikeNotification_CommentNotification(t *testing.T) {
 	_, err = env.notificationRepository.InsertNotification(t.Context(), user.UserID, &post.PostID, &comment.CommentID, nil, "@user liked your comment.", models.NotificationTypeLike, nil)
 	require.NoError(t, err)
 
-	result, err := env.notificationRepository.FindUnreadLikeNotification(t.Context(), user.UserID, post.PostID, &comment.CommentID)
+	result, err := env.notificationRepository.FindLikeNotification(t.Context(), user.UserID, post.PostID, &comment.CommentID)
 	require.NoError(t, err)
 	require.NotNil(t, result)
 	assert.Equal(t, "@user liked your comment.", result.Message)
