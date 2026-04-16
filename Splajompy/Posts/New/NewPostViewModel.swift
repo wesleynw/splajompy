@@ -20,26 +20,22 @@ extension NewPostView {
     var visibility: VisibilityType = .everyone
 
     var imageStates = [
-      (itemIdentifier: String, pickerItem: PhotosPickerItem, state: PhotoState)
+      (itemIdentifier: String, pickerItem: PhotosPickerItem?, state: PhotoState)
     ]()
     var imageSelection = [PhotosPickerItem]() {
       didSet {
-        let oldStates = imageStates
-        imageStates = imageSelection.map { item in
+        imageStates = imageStates.filter { entry in
+          guard let pickerItem = entry.pickerItem else { return true }
+          return imageSelection.contains(pickerItem)
+        }
+        let existingPickerItems = imageStates.compactMap { $0.pickerItem }
+        for item in imageSelection where !existingPickerItems.contains(item) {
           let itemId = item.itemIdentifier ?? UUID().uuidString
-          if let existingState = oldStates.first(where: {
-            $0.pickerItem == item
-          }) {
-            return (
-              itemIdentifier: existingState.itemIdentifier, pickerItem: item,
-              state: existingState.state
-            )
-          } else {
-            return (
-              itemIdentifier: itemId, pickerItem: item,
+          imageStates.append(
+            (
+              itemIdentifier: itemId, pickerItem: Optional(item),
               state: .loading(loadTransferable(from: item, itemId: itemId))
-            )
-          }
+            ))
         }
       }
     }
@@ -57,6 +53,9 @@ extension NewPostView {
         })?.pickerItem,
         let index = imageSelection.firstIndex(where: { $0 == pickerItem })
       else {
+        withAnimation(.snappy) {
+          imageStates.removeAll { $0.itemIdentifier == itemIdentifier }
+        }
         return
       }
       _ = withAnimation(.snappy) {
@@ -68,14 +67,26 @@ extension NewPostView {
       guard
         let index = imageStates.firstIndex(where: {
           $0.itemIdentifier == itemIdentifier
-        })
+        }),
+        let pickerItem = imageStates[index].pickerItem
       else {
         return
       }
-      let pickerItem = imageStates[index].pickerItem
       imageStates[index].state = .loading(
         loadTransferable(from: pickerItem, itemId: itemIdentifier)
       )
+    }
+
+    func addDroppedImages(_ images: [PlatformImage]) {
+      let remaining = max(0, 10 - imageStates.count)
+      guard remaining > 0 else { return }
+      withAnimation(.snappy) {
+        imageStates.append(
+          contentsOf: images.prefix(remaining).map { image in
+            (itemIdentifier: UUID().uuidString, pickerItem: nil, state: .success(image))
+          }
+        )
+      }
     }
 
     func submitPost(
