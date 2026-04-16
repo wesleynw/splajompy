@@ -29,6 +29,12 @@ struct AttributedTextEditor: NSViewRepresentable {
     textView.drawsBackground = false
     textView.isRichText = true
     textView.allowsUndo = true
+    textView.isVerticallyResizable = true
+    textView.autoresizingMask = [.width]
+    textView.maxSize = NSSize(
+      width: CGFloat.greatestFiniteMagnitude,
+      height: CGFloat.greatestFiniteMagnitude
+    )
 
     textView.isAutomaticSpellingCorrectionEnabled = true
     textView.typingAttributes = [
