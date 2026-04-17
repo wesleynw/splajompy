@@ -45,6 +45,7 @@ func main() {
 			log.Printf("failed to shutdown OpenTelemetry SDK: %v", err)
 		}
 	}()
+	utilities.InitializeProfiling()
 
 	connString := os.Getenv("DB_CONNECTION_STRING")
 	cfg, err := pgxpool.ParseConfig(connString)

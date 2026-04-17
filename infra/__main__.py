@@ -107,6 +107,8 @@ api_spec = cast(
                     ),
                     secret_env("OTEL_RESOURCE_ATTRIBUTES", "apiOtelResourceAttributes"),
                     secret_env("RESEND_API_KEY", "apiResendApiKey"),
+                    secret_env("PYROSCOPE_USER", "pyroscopeUser"),
+                    secret_env("PYROSCOPE_PW", "apiGrafanaCloudApiKey"),
                     {"key": "ENVIRONMENT", "value": config.get("environment")},
                 ],
                 "github": {
