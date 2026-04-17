@@ -16,7 +16,7 @@ import (
 
 type Service struct {
 	commentRepository   *Store
-	postRepository      post.PostRepository
+	postRepository      post.Store
 	notificationService notification.Service
 	userRepository      user.Store
 	likeRepository      repositories.LikeRepository
@@ -25,7 +25,7 @@ type Service struct {
 
 func NewService(
 	commentRepo *Store,
-	postRepository post.PostRepository,
+	postRepository post.Store,
 	notificationService notification.Service,
 	userRepository user.Store,
 	likeRepository repositories.LikeRepository,

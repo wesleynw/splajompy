@@ -18,7 +18,7 @@ import (
 )
 
 type postServiceTestEnv struct {
-	svc            *post.PostService
+	svc            *post.Service
 	commentSvc     *comment.Service
 	userRepository user.Store
 }
@@ -30,7 +30,7 @@ func setupPostTest(t *testing.T) postServiceTestEnv {
 	_ = os.Setenv("ENVIRONMENT", "test")
 
 	notificationService := notification.NewService(db.NotificationStore, db.PostRepository, &db.CommentRepository, db.UserRepository, db.BucketRepository)
-	svc := post.NewPostService(db.PostRepository, db.UserRepository, db.LikeRepository, *notificationService, db.BucketRepository, nil)
+	svc := post.NewService(db.PostRepository, db.UserRepository, db.LikeRepository, *notificationService, db.BucketRepository, nil)
 	commentSvc := comment.NewService(&db.CommentRepository, db.PostRepository, *notificationService, db.UserRepository, db.LikeRepository, db.BucketRepository)
 
 	return postServiceTestEnv{

@@ -28,7 +28,7 @@ type TestDB struct {
 	Pool              *pgxpool.Pool
 	Queries           *queries.Queries
 	UserRepository    user.Store
-	PostRepository    post.PostRepository
+	PostRepository    post.Store
 	CommentRepository comment.Store
 	LikeRepository    repositories.LikeRepository
 	NotificationStore notification.NotificationStore

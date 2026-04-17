@@ -24,12 +24,12 @@ import (
 
 type AuthService struct {
 	userRepository   user.Store
-	postRepository   post.PostRepository
+	postRepository   post.Store
 	bucketRepository bucket.Repository
 	resendClient     *resend.Client
 }
 
-func NewAuthService(userRepository user.Store, postRepository post.PostRepository, bucketRepository bucket.Repository, resendClient *resend.Client) *AuthService {
+func NewAuthService(userRepository user.Store, postRepository post.Store, bucketRepository bucket.Repository, resendClient *resend.Client) *AuthService {
 	return &AuthService{
 		userRepository:   userRepository,
 		postRepository:   postRepository,

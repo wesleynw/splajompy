@@ -16,7 +16,7 @@ import (
 type commentServiceTestEnv struct {
 	svc            *comment.Service
 	userSvc        *user.Service
-	postRepository post.PostRepository
+	postRepository post.Store
 	userRepository user.Store
 }
 

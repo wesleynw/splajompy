@@ -14,7 +14,7 @@ import (
 
 type Handler struct {
 	queries             queries.Querier
-	postService         *post.PostService
+	postService         *post.Service
 	commentHandler      *comment.Handler
 	userHandler         *user.Handler
 	notificationHandler *notification.Handler
@@ -24,7 +24,7 @@ type Handler struct {
 }
 
 func NewHandler(queries queries.Querier,
-	postService *post.PostService,
+	postService *post.Service,
 	commentHandler *comment.Handler,
 	userHandler *user.Handler,
 	notificationHandler *notification.Handler,

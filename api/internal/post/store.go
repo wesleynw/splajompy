@@ -13,7 +13,7 @@ import (
 	"splajompy.com/api/v2/internal/utilities"
 )
 
-type PostRepository interface {
+type Store interface {
 	InsertPost(ctx context.Context, userId int, content string, facets db.Facets, attributes *db.Attributes, visibilityType *models.VisibilityTypeEnum) (*models.Post, error)
 	DeletePost(ctx context.Context, postId int) error
 	GetPostById(ctx context.Context, postId int, currentUserId int) (*models.Post, error)
@@ -231,6 +231,6 @@ func (r DBPostRepository) GetPinnedPostId(ctx context.Context, userId int) (*int
 }
 
 // NewDBPostRepository creates a new post repository instance
-func NewDBPostRepository(querier queries.Querier) PostRepository {
+func NewDBPostRepository(querier queries.Querier) Store {
 	return &DBPostRepository{querier: querier}
 }
