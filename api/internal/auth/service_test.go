@@ -11,7 +11,7 @@ import (
 )
 
 type authServiceTestEnv struct {
-	svc            *auth.AuthService
+	svc            *auth.Service
 	userRepository user.Store
 }
 
@@ -21,7 +21,7 @@ func setupAuthServiceTest(t *testing.T) authServiceTestEnv {
 
 	_ = os.Setenv("ENVIRONMENT", "test")
 
-	svc := auth.NewAuthService(db.UserRepository, db.PostRepository, db.BucketRepository, nil)
+	svc := auth.NewService(db.UserRepository, db.PostRepository, db.BucketRepository, nil)
 
 	return authServiceTestEnv{
 		svc:            svc,

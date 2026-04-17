@@ -9,7 +9,7 @@ import (
 )
 
 func TestAuthService_ValidateRegistrationData(t *testing.T) {
-	authService := auth.NewAuthService(user.Store{}, nil, nil, nil)
+	authService := auth.NewService(user.Store{}, nil, nil, nil)
 
 	tests := []struct {
 		name     string
