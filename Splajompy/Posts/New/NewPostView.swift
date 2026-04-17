@@ -70,9 +70,9 @@ struct NewPostView: View {
           // to allow mentions overlay to be visible when at bottom of text view
           .padding(.bottom, 250)
         }
-        .dropDestination(for: PlatformImage.self) { images, _ in
-          viewModel.addDroppedImages(images)
-          return !images.isEmpty
+        .dropDestination(for: DroppedImage.self) { dropped, _ in
+          viewModel.addDroppedImages(dropped.map { $0.image })
+          return !dropped.isEmpty
         } isTargeted: {
           isDragTargeted = $0
         }

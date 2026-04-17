@@ -1,6 +1,20 @@
 import PhotosUI
 import PostHog
 import SwiftUI
+import UniformTypeIdentifiers
+
+struct DroppedImage: Transferable {
+  let image: PlatformImage
+
+  static var transferRepresentation: some TransferRepresentation {
+    DataRepresentation(importedContentType: .image) { data in
+      guard let image = PlatformImage(data: data) else {
+        throw CocoaError(.fileReadCorruptFile)
+      }
+      return DroppedImage(image: image)
+    }
+  }
+}
 
 enum PhotoState: Equatable {
   case loading(Progress)
