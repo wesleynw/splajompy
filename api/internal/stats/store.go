@@ -1,4 +1,4 @@
-package repositories
+package stats
 
 import (
 	"context"
@@ -6,52 +6,43 @@ import (
 	"splajompy.com/api/v2/internal/db/queries"
 )
 
-type StatsRepository interface {
-	GetTotalPosts(ctx context.Context) (int64, error)
-	GetTotalComments(ctx context.Context) (int64, error)
-	GetTotalLikes(ctx context.Context) (int64, error)
-	GetTotalFollows(ctx context.Context) (int64, error)
-	GetTotalUsers(ctx context.Context) (int64, error)
-	GetTotalNotifications(ctx context.Context) (int64, error)
-}
-
-type DBStatsRepository struct {
+type Store struct {
 	querier queries.Querier
 }
 
 // GetTotalPosts returns the total number of posts in the system
-func (r DBStatsRepository) GetTotalPosts(ctx context.Context) (int64, error) {
+func (r Store) GetTotalPosts(ctx context.Context) (int64, error) {
 	return r.querier.GetTotalPosts(ctx)
 }
 
 // GetTotalComments returns the total number of comments in the system
-func (r DBStatsRepository) GetTotalComments(ctx context.Context) (int64, error) {
+func (r Store) GetTotalComments(ctx context.Context) (int64, error) {
 	return r.querier.GetTotalComments(ctx)
 }
 
 // GetTotalLikes returns the total number of likes in the system
-func (r DBStatsRepository) GetTotalLikes(ctx context.Context) (int64, error) {
+func (r Store) GetTotalLikes(ctx context.Context) (int64, error) {
 	return r.querier.GetTotalLikes(ctx)
 }
 
 // GetTotalFollows returns the total number of follow relationships in the system
-func (r DBStatsRepository) GetTotalFollows(ctx context.Context) (int64, error) {
+func (r Store) GetTotalFollows(ctx context.Context) (int64, error) {
 	return r.querier.GetTotalFollows(ctx)
 }
 
 // GetTotalUsers returns the total number of users in the system
-func (r DBStatsRepository) GetTotalUsers(ctx context.Context) (int64, error) {
+func (r Store) GetTotalUsers(ctx context.Context) (int64, error) {
 	return r.querier.GetTotalUsers(ctx)
 }
 
 // GetTotalNotifications returns the total number of notifications in the system
-func (r DBStatsRepository) GetTotalNotifications(ctx context.Context) (int64, error) {
+func (r Store) GetTotalNotifications(ctx context.Context) (int64, error) {
 	return r.querier.GetTotalNotifications(ctx)
 }
 
 // NewDBStatsRepository creates a new stats repository
-func NewDBStatsRepository(querier queries.Querier) StatsRepository {
-	return &DBStatsRepository{
+func NewDBStatsRepository(querier queries.Querier) Store {
+	return Store{
 		querier: querier,
 	}
 }

@@ -8,6 +8,7 @@ import (
 	"splajompy.com/api/v2/internal/db/queries"
 	"splajompy.com/api/v2/internal/notification"
 	"splajompy.com/api/v2/internal/post"
+	"splajompy.com/api/v2/internal/stats"
 	"splajompy.com/api/v2/internal/user"
 
 	"splajompy.com/api/v2/internal/service"
@@ -20,7 +21,7 @@ type Handler struct {
 	userHandler         *user.Handler
 	notificationHandler *notification.Handler
 	authHandler         *auth.Handler
-	statsService        *service.StatsService
+	statsHandler        *stats.Handler
 	wrappedService      *service.WrappedService
 }
 
@@ -30,7 +31,7 @@ func NewHandler(queries queries.Querier,
 	userHandler *user.Handler,
 	notificationHandler *notification.Handler,
 	authHandler *auth.Handler,
-	statsService *service.StatsService,
+	statsHandler *stats.Handler,
 	wrappedService *service.WrappedService) *Handler {
 	return &Handler{
 		queries:             queries,
@@ -39,7 +40,7 @@ func NewHandler(queries queries.Querier,
 		userHandler:         userHandler,
 		notificationHandler: notificationHandler,
 		authHandler:         authHandler,
-		statsService:        statsService,
+		statsHandler:        statsHandler,
 		wrappedService:      wrappedService,
 	}
 }
@@ -55,17 +56,11 @@ func (h *Handler) RegisterRoutes(handleFunc func(pattern string, handlerFunc fun
 	h.notificationHandler.RegisterRoutes(handleFuncWithAuth)
 	h.authHandler.RegisterPublicRoutes(handleFunc)
 	h.authHandler.RegisterRoutes(handleFuncWithAuth)
-
-	// misc
-	handleFuncWithAuth("GET /stats", h.GetAppStats)
+	h.statsHandler.RegisterPublicRoutes(handleFunc)
+	h.statsHandler.RegisterRoutes(handleFuncWithAuth)
 
 	// wrapped
 	handleFuncWithAuth("POST /precomuputeWrapped", h.WrappedPrecomputation)
 	handleFuncWithAuth("GET /wrapped", h.GetWrappedActivityData)
 	handleFuncWithAuth("GET /wrapped/eligibility", h.GetIsUserEligibleForWrapped)
-}
-
-func (h *Handler) RegisterPublicRoutes(handleFunc func(pattern string, handlerFunc func(http.ResponseWriter, *http.Request))) {
-	handleFunc("GET /health", h.GetAppHealth)
-	handleFunc("GET /version-availability", h.GetVersionAvailability)
 }

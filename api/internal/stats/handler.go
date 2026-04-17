@@ -16,10 +16,16 @@ func NewHandler(svc *Service) *Handler {
 }
 
 func (h *Handler) RegisterRoutes(withAuth func(string, func(http.ResponseWriter, *http.Request))) {
+	withAuth("GET /stats", h.GetAppStats)
+}
+
+func (h *Handler) RegisterPublicRoutes(handleFunc func(pattern string, handlerFunc func(http.ResponseWriter, *http.Request))) {
+	handleFunc("GET /health", h.GetAppHealth)
+	handleFunc("GET /version-availability", h.GetVersionAvailability)
 }
 
 func (h *Handler) GetAppStats(w http.ResponseWriter, r *http.Request) {
-	stats, err := h.statsService.GetAppStats(r.Context())
+	stats, err := h.svc.GetAppStats(r.Context())
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
 		return

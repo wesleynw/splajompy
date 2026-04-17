@@ -1,24 +1,23 @@
-package service
+package stats
 
 import (
 	"context"
 	"errors"
 
 	"splajompy.com/api/v2/internal/models"
-	"splajompy.com/api/v2/internal/repositories"
 )
 
-type StatsService struct {
-	statsRepository repositories.StatsRepository
+type Service struct {
+	statsRepository Store
 }
 
-func NewStatsService(statsRepository repositories.StatsRepository) *StatsService {
-	return &StatsService{
+func NewService(statsRepository Store) *Service {
+	return &Service{
 		statsRepository: statsRepository,
 	}
 }
 
-func (s *StatsService) GetAppStats(ctx context.Context) (*models.AppStats, error) {
+func (s *Service) GetAppStats(ctx context.Context) (*models.AppStats, error) {
 	totalPosts, err := s.statsRepository.GetTotalPosts(ctx)
 	if err != nil {
 		return nil, errors.New("unable to retrieve total posts")

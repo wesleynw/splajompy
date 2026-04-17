@@ -18,6 +18,7 @@ import (
 	"splajompy.com/api/v2/internal/notification"
 	"splajompy.com/api/v2/internal/post"
 	"splajompy.com/api/v2/internal/repositories"
+	"splajompy.com/api/v2/internal/stats"
 	"splajompy.com/api/v2/internal/user"
 	"splajompy.com/api/v2/internal/utilities"
 
@@ -81,7 +82,7 @@ func main() {
 	notificationsRepository := notification.NewNotificationStore(q)
 	commentRepository := comment.NewStore(q)
 	likeRepository := repositories.NewDBLikeRepository(q)
-	statsRepository := repositories.NewDBStatsRepository(q)
+	statsRepository := stats.NewDBStatsRepository(q)
 
 	notificationService := notification.NewService(notificationsRepository, postRepository, commentRepository, userRepository, bucketRepository)
 
@@ -93,16 +94,16 @@ func main() {
 	notificationHandler := notification.NewHandler(notificationService)
 	authService := auth.NewService(userRepository, postRepository, bucketRepository, resendClient)
 	authHandler := auth.NewHandler(authService)
-	statsService := service.NewStatsService(statsRepository)
+	statsService := stats.NewService(statsRepository)
+	statsHandler := stats.NewHandler(statsService)
 	wrappedService := service.NewWrappedService(q, postService)
 
-	h := handler.NewHandler(q, postService, commentHandler, userHandler, notificationHandler, authHandler, statsService, wrappedService)
+	h := handler.NewHandler(q, postService, commentHandler, userHandler, notificationHandler, authHandler, statsHandler, wrappedService)
 
 	mux := http.NewServeMux()
 
 	authMiddleware := middleware.AuthMiddleware(q)
 	h.RegisterRoutes(mux.HandleFunc, authMiddleware)
-	h.RegisterPublicRoutes(mux.HandleFunc)
 
 	routedMux := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		mux.ServeHTTP(w, r)
