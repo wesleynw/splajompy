@@ -1,12 +1,30 @@
-package handler
+package auth
 
 import (
 	"encoding/json"
 	"net/http"
 
-	"splajompy.com/api/v2/internal/service"
 	"splajompy.com/api/v2/internal/utilities"
 )
+
+type Handler struct {
+	svc *AuthService
+}
+
+func NewHandler(svc *AuthService) *Handler {
+	return &Handler{svc: svc}
+}
+
+func (h *Handler) RegisterRoutes(withAuth func(string, func(http.ResponseWriter, *http.Request))) {
+	withAuth("POST /account/delete", h.DeleteAccount)
+}
+
+func (h *Handler) RegisterPublicRoutes(handleFunc func(pattern string, handlerFunc func(http.ResponseWriter, *http.Request))) {
+	handleFunc("POST /register", h.Register)
+	handleFunc("POST /login", h.Login)
+	handleFunc("POST /otc/generate", h.GenerateOTC)
+	handleFunc("POST /otc/verify", h.VerifyOTC)
+}
 
 type LoginRequest struct {
 	Identifier string `json:"identifier"`
@@ -33,12 +51,12 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response, err := h.authService.LoginWithCredentials(r.Context(), (*service.Credentials)(&request))
+	response, err := h.svc.LoginWithCredentials(r.Context(), (*Credentials)(&request))
 	if err != nil {
 		switch err {
-		case service.ErrUserNotFound:
+		case ErrUserNotFound:
 			utilities.HandleError(w, http.StatusBadRequest, "This user doesn't exist")
-		case service.ErrInvalidPassword:
+		case ErrInvalidPassword:
 			utilities.HandleError(w, http.StatusBadRequest, "Incorrect password")
 		default:
 			utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
@@ -62,20 +80,20 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response, err := h.authService.Register(r.Context(), request.Email, request.Username, request.Password)
+	response, err := h.svc.Register(r.Context(), request.Email, request.Username, request.Password)
 	if err != nil {
 		switch err {
-		case service.ErrEmailTaken:
+		case ErrEmailTaken:
 			utilities.HandleError(w, http.StatusBadRequest, "An account already exists with this email")
-		case service.ErrUsernameTaken:
+		case ErrUsernameTaken:
 			utilities.HandleError(w, http.StatusBadRequest, "An account already exists with this username")
-		case service.ErrUsernameInvalidFormat:
+		case ErrUsernameInvalidFormat:
 			utilities.HandleError(w, http.StatusBadRequest, "Username must start and end with a letter or number, and can only contain letters, numbers, periods, and underscores")
-		case service.ErrUsernameTooShort:
+		case ErrUsernameTooShort:
 			utilities.HandleError(w, http.StatusBadRequest, "Username must be at least 2 character")
-		case service.ErrPasswordTooShort:
+		case ErrPasswordTooShort:
 			utilities.HandleError(w, http.StatusBadRequest, "Password must be at least 8 characters")
-		case service.ErrInvalidEmail:
+		case ErrInvalidEmail:
 			utilities.HandleError(w, http.StatusBadRequest, "Please enter a valid email address")
 		default:
 			utilities.HandleError(w, http.StatusBadRequest, err.Error())
@@ -97,7 +115,7 @@ func (h *Handler) GenerateOTC(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := h.authService.ProcessOTC(r.Context(), request.Identifier)
+	err := h.svc.ProcessOTC(r.Context(), request.Identifier)
 	if err != nil {
 		utilities.HandleError(w, http.StatusBadRequest, "Unable to generate code")
 		return
@@ -118,7 +136,7 @@ func (h *Handler) VerifyOTC(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response, err := h.authService.VerifyOTCCode(r.Context(), request.Identifier, request.Code)
+	response, err := h.svc.VerifyOTCCode(r.Context(), request.Identifier, request.Code)
 	if err != nil {
 		utilities.HandleError(w, http.StatusBadRequest, "Unable to verify code")
 		return
@@ -146,13 +164,13 @@ func (h *Handler) DeleteAccount(w http.ResponseWriter, r *http.Request) {
 
 	user := utilities.GetAuthenticatedUser(r)
 
-	success, err := h.authService.VerifyPassword(r.Context(), user.Username, request.Password)
+	success, err := h.svc.VerifyPassword(r.Context(), user.Username, request.Password)
 	if err != nil || !success {
 		utilities.HandleError(w, http.StatusUnauthorized, "Unauthorized")
 		return
 	}
 
-	err = h.authService.DeleteAccount(r.Context(), *user)
+	err = h.svc.DeleteAccount(r.Context(), *user)
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
 		return

@@ -3,6 +3,7 @@ package handler
 import (
 	"net/http"
 
+	"splajompy.com/api/v2/internal/auth"
 	"splajompy.com/api/v2/internal/comment"
 	"splajompy.com/api/v2/internal/db/queries"
 	"splajompy.com/api/v2/internal/notification"
@@ -18,7 +19,7 @@ type Handler struct {
 	commentHandler      *comment.Handler
 	userHandler         *user.Handler
 	notificationHandler *notification.Handler
-	authService         *service.AuthService
+	authHandler         *auth.Handler
 	statsService        *service.StatsService
 	wrappedService      *service.WrappedService
 }
@@ -28,7 +29,7 @@ func NewHandler(queries queries.Querier,
 	commentHandler *comment.Handler,
 	userHandler *user.Handler,
 	notificationHandler *notification.Handler,
-	authService *service.AuthService,
+	authHandler *auth.Handler,
 	statsService *service.StatsService,
 	wrappedService *service.WrappedService) *Handler {
 	return &Handler{
@@ -37,7 +38,7 @@ func NewHandler(queries queries.Querier,
 		commentHandler:      commentHandler,
 		userHandler:         userHandler,
 		notificationHandler: notificationHandler,
-		authService:         authService,
+		authHandler:         authHandler,
 		statsService:        statsService,
 		wrappedService:      wrappedService,
 	}
@@ -50,11 +51,10 @@ func (h *Handler) RegisterRoutes(handleFunc func(pattern string, handlerFunc fun
 		})
 	}
 
-	// auth
-	handleFuncWithAuth("POST /account/delete", h.DeleteAccount)
-
 	h.userHandler.RegisterRoutes(handleFuncWithAuth)
 	h.notificationHandler.RegisterRoutes(handleFuncWithAuth)
+	h.authHandler.RegisterPublicRoutes(handleFunc)
+	h.authHandler.RegisterRoutes(handleFuncWithAuth)
 
 	// misc
 	handleFuncWithAuth("GET /stats", h.GetAppStats)
@@ -66,10 +66,6 @@ func (h *Handler) RegisterRoutes(handleFunc func(pattern string, handlerFunc fun
 }
 
 func (h *Handler) RegisterPublicRoutes(handleFunc func(pattern string, handlerFunc func(http.ResponseWriter, *http.Request))) {
-	handleFunc("POST /register", h.Register)
-	handleFunc("POST /login", h.Login)
-	handleFunc("POST /otc/generate", h.GenerateOTC)
-	handleFunc("POST /otc/verify", h.VerifyOTC)
 	handleFunc("GET /health", h.GetAppHealth)
 	handleFunc("GET /version-availability", h.GetVersionAvailability)
 }

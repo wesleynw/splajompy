@@ -11,6 +11,7 @@ import (
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	semconv "go.opentelemetry.io/otel/semconv/v1.39.0"
 	"go.opentelemetry.io/otel/trace"
+	"splajompy.com/api/v2/internal/auth"
 	"splajompy.com/api/v2/internal/bucket"
 	"splajompy.com/api/v2/internal/comment"
 	"splajompy.com/api/v2/internal/db/queries"
@@ -90,11 +91,12 @@ func main() {
 	userService := user.NewUserService(userRepository, notificationsRepository, resendClient)
 	userHandler := user.NewHandler(userService)
 	notificationHandler := notification.NewHandler(notificationService)
-	authManager := service.NewAuthService(userRepository, postRepository, bucketRepository, resendClient)
+	authService := auth.NewAuthService(userRepository, postRepository, bucketRepository, resendClient)
+	authHandler := auth.NewHandler(authService)
 	statsService := service.NewStatsService(statsRepository)
 	wrappedService := service.NewWrappedService(q, postService)
 
-	h := handler.NewHandler(q, postService, commentHandler, userHandler, notificationHandler, authManager, statsService, wrappedService)
+	h := handler.NewHandler(q, postService, commentHandler, userHandler, notificationHandler, authHandler, statsService, wrappedService)
 
 	mux := http.NewServeMux()
 

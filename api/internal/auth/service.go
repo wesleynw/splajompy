@@ -1,4 +1,4 @@
-package service
+package auth
 
 import (
 	"context"
@@ -50,12 +50,6 @@ var (
 	ErrPasswordTooShort      = errors.New("password must be at least 8 characters")
 	ErrInvalidEmail          = errors.New("please enter a valid email address")
 )
-
-type RegisterRequest struct {
-	Email    string `json:"email"`
-	Username string `json:"username"`
-	Password string `json:"password"`
-}
 
 // Register performs all the necessary actions to set up a user in the system.
 func (s *AuthService) Register(ctx context.Context, email string, username string, password string) (*AuthResponse, error) {

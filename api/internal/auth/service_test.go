@@ -1,17 +1,17 @@
-package service_test
+package auth_test
 
 import (
 	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"splajompy.com/api/v2/internal/service"
+	"splajompy.com/api/v2/internal/auth"
 	"splajompy.com/api/v2/internal/testutil"
 	"splajompy.com/api/v2/internal/user"
 )
 
 type authServiceTestEnv struct {
-	svc            *service.AuthService
+	svc            *auth.AuthService
 	userRepository user.Store
 }
 
@@ -21,7 +21,7 @@ func setupAuthServiceTest(t *testing.T) authServiceTestEnv {
 
 	_ = os.Setenv("ENVIRONMENT", "test")
 
-	svc := service.NewAuthService(db.UserRepository, db.PostRepository, db.BucketRepository, nil)
+	svc := auth.NewAuthService(db.UserRepository, db.PostRepository, db.BucketRepository, nil)
 
 	return authServiceTestEnv{
 		svc:            svc,
