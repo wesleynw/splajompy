@@ -36,6 +36,7 @@ func main() {
 	}
 
 	// Setup OpenTelemetry SDK
+	utilities.InitializeProfiling()
 	shutdown, err := utilities.SetupOTelSDK(ctx)
 	if err != nil {
 		log.Fatalf("failed to setup OpenTelemetry SDK: %v", err)
