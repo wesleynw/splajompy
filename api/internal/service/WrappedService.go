@@ -11,15 +11,16 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	"splajompy.com/api/v2/internal/db/queries"
 	"splajompy.com/api/v2/internal/models"
+	"splajompy.com/api/v2/internal/post"
 	"splajompy.com/api/v2/internal/utilities"
 )
 
 type WrappedService struct {
 	querier     queries.Querier
-	postService *PostService
+	postService *post.PostService
 }
 
-func NewWrappedService(querier queries.Querier, postService *PostService) *WrappedService {
+func NewWrappedService(querier queries.Querier, postService *post.PostService) *WrappedService {
 	return &WrappedService{
 		querier:     querier,
 		postService: postService,

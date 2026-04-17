@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"splajompy.com/api/v2/internal/bucket"
-	"splajompy.com/api/v2/internal/repositories"
+	"splajompy.com/api/v2/internal/post"
 	"splajompy.com/api/v2/internal/user"
 	"splajompy.com/api/v2/internal/utilities"
 
@@ -24,12 +24,12 @@ import (
 
 type AuthService struct {
 	userRepository   user.Store
-	postRepository   repositories.PostRepository
+	postRepository   post.PostRepository
 	bucketRepository bucket.Repository
 	resendClient     *resend.Client
 }
 
-func NewAuthService(userRepository user.Store, postRepository repositories.PostRepository, bucketRepository bucket.Repository, resendClient *resend.Client) *AuthService {
+func NewAuthService(userRepository user.Store, postRepository post.PostRepository, bucketRepository bucket.Repository, resendClient *resend.Client) *AuthService {
 	return &AuthService{
 		userRepository:   userRepository,
 		postRepository:   postRepository,

@@ -18,6 +18,7 @@ import (
 	"splajompy.com/api/v2/internal/comment"
 	"splajompy.com/api/v2/internal/db/queries"
 	"splajompy.com/api/v2/internal/notification"
+	"splajompy.com/api/v2/internal/post"
 	"splajompy.com/api/v2/internal/repositories"
 	"splajompy.com/api/v2/internal/user"
 )
@@ -27,7 +28,7 @@ type TestDB struct {
 	Pool              *pgxpool.Pool
 	Queries           *queries.Queries
 	UserRepository    user.Store
-	PostRepository    repositories.PostRepository
+	PostRepository    post.PostRepository
 	CommentRepository comment.Store
 	LikeRepository    repositories.LikeRepository
 	NotificationStore notification.NotificationStore
@@ -86,7 +87,7 @@ func StartPostgres(t *testing.T) *TestDB {
 		Pool:              pool,
 		Queries:           q,
 		UserRepository:    user.NewUserRepository(q),
-		PostRepository:    repositories.NewDBPostRepository(q),
+		PostRepository:    post.NewDBPostRepository(q),
 		CommentRepository: *comment.NewStore(q),
 		LikeRepository:    repositories.NewDBLikeRepository(q),
 		NotificationStore: notification.NewNotificationStore(q),

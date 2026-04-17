@@ -6,6 +6,7 @@ import (
 	"splajompy.com/api/v2/internal/comment"
 	"splajompy.com/api/v2/internal/db/queries"
 	"splajompy.com/api/v2/internal/notification"
+	"splajompy.com/api/v2/internal/post"
 	"splajompy.com/api/v2/internal/user"
 
 	"splajompy.com/api/v2/internal/service"
@@ -13,7 +14,7 @@ import (
 
 type Handler struct {
 	queries             queries.Querier
-	postService         *service.PostService
+	postService         *post.PostService
 	commentHandler      *comment.Handler
 	userHandler         *user.Handler
 	notificationHandler *notification.Handler
@@ -23,7 +24,7 @@ type Handler struct {
 }
 
 func NewHandler(queries queries.Querier,
-	postService *service.PostService,
+	postService *post.PostService,
 	commentHandler *comment.Handler,
 	userHandler *user.Handler,
 	notificationHandler *notification.Handler,
@@ -52,35 +53,9 @@ func (h *Handler) RegisterRoutes(handleFunc func(pattern string, handlerFunc fun
 	// auth
 	handleFuncWithAuth("POST /account/delete", h.DeleteAccount)
 
-	// posts
-	handleFuncWithAuth("GET /post/presignedUrl", h.GetPresignedUrl)
-	handleFuncWithAuth("POST /v2/post/new", h.CreateNewPostV2)
-	handleFuncWithAuth("GET /post/{id}", h.GetPostById)
-	// handleFuncWithAuth("GET /user/{id}/posts", h.GetPostsByUserId)
-	handleFuncWithAuth("DELETE /post/{id}", h.DeletePostById)
-	handleFuncWithAuth("POST /post/{id}/report", h.ReportPost)
-
-	// polls
-	handleFuncWithAuth("POST /post/{post_id}/vote/{option_index}", h.VoteOnPost)
-
-	// likes
-	handleFuncWithAuth("POST /post/{id}/liked", h.AddPostLike)
-	handleFuncWithAuth("DELETE /post/{id}/liked", h.RemovePostLike)
-
-	// pinning
-	handleFuncWithAuth("POST /posts/{id}/pin", h.PinPost)
-	handleFuncWithAuth("DELETE /posts/pin", h.UnpinPost)
-
 	h.userHandler.RegisterRoutes(handleFuncWithAuth)
 	h.notificationHandler.RegisterRoutes(handleFuncWithAuth)
 
-	// comments
-
-	// post routes with time-based offset
-	handleFuncWithAuth("GET /v2/posts/following", h.GetPostsByFollowingWithTimeOffset)
-	handleFuncWithAuth("GET /v2/posts/all", h.GetAllPostsWithTimeOffset)
-	handleFuncWithAuth("GET /v2/posts/mutual", h.GetMutualFeedWithTimeOffset)
-	handleFuncWithAuth("GET /v2/user/{id}/posts", h.GetPostsByUserIdWithTimeOffset)
 	// misc
 	handleFuncWithAuth("GET /stats", h.GetAppStats)
 

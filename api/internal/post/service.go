@@ -1,4 +1,4 @@
-package service
+package post
 
 import (
 	"context"
@@ -22,7 +22,7 @@ import (
 )
 
 type PostService struct {
-	postRepository      repositories.PostRepository
+	postRepository      PostRepository
 	userRepository      user.Store
 	likeRepository      repositories.LikeRepository
 	notificationService notification.Service
@@ -30,7 +30,7 @@ type PostService struct {
 	emailService        *resend.Client
 }
 
-func NewPostService(postRepository repositories.PostRepository, userRepository user.Store, likeRepository repositories.LikeRepository, notificationService notification.Service, bucketRepo bucket.Repository, emailService *resend.Client) *PostService {
+func NewPostService(postRepository PostRepository, userRepository user.Store, likeRepository repositories.LikeRepository, notificationService notification.Service, bucketRepo bucket.Repository, emailService *resend.Client) *PostService {
 	return &PostService{
 		postRepository:      postRepository,
 		userRepository:      userRepository,

@@ -15,6 +15,7 @@ import (
 	"splajompy.com/api/v2/internal/comment"
 	"splajompy.com/api/v2/internal/db/queries"
 	"splajompy.com/api/v2/internal/notification"
+	"splajompy.com/api/v2/internal/post"
 	"splajompy.com/api/v2/internal/repositories"
 	"splajompy.com/api/v2/internal/user"
 	"splajompy.com/api/v2/internal/utilities"
@@ -74,7 +75,7 @@ func main() {
 
 	bucketRepository := bucket.NewS3BucketRepository(s3Client)
 
-	postRepository := repositories.NewDBPostRepository(q)
+	postRepository := post.NewDBPostRepository(q)
 	userRepository := user.NewUserRepository(q)
 	notificationsRepository := notification.NewNotificationStore(q)
 	commentRepository := comment.NewStore(q)
@@ -83,7 +84,7 @@ func main() {
 
 	notificationService := notification.NewService(notificationsRepository, postRepository, commentRepository, userRepository, bucketRepository)
 
-	postService := service.NewPostService(postRepository, userRepository, likeRepository, *notificationService, bucketRepository, resendClient)
+	postService := post.NewPostService(postRepository, userRepository, likeRepository, *notificationService, bucketRepository, resendClient)
 	commentService := comment.NewService(commentRepository, postRepository, *notificationService, userRepository, likeRepository, bucketRepository)
 	commentHandler := comment.NewHandler(commentService)
 	userService := user.NewUserService(userRepository, notificationsRepository, resendClient)
