@@ -6,20 +6,12 @@ import (
 	"splajompy.com/api/v2/internal/db/queries"
 )
 
-type LikeRepository interface {
-	AddLike(ctx context.Context, userId int, postId int, commentId *int) error
-	RemoveLike(ctx context.Context, userId int, postId int, commentId *int) error
-	IsLiked(ctx context.Context, userId int, postId int, commentId *int) (bool, error)
-	// GetOtherPostLikes returns other likes on a given post
-	GetOtherPostLikes(ctx context.Context, postId int, currentUserId int) ([]queries.GetPostLikesRow, error)
-}
-
-type DBLikeRepository struct {
+type Store struct {
 	querier queries.Querier
 }
 
 // AddLike adds a like to a post or comment
-func (r DBLikeRepository) AddLike(ctx context.Context, userId int, postId int, commentId *int) error {
+func (r Store) AddLike(ctx context.Context, userId int, postId int, commentId *int) error {
 	return r.querier.AddLike(ctx, queries.AddLikeParams{
 		PostID:    postId,
 		CommentID: commentId,
@@ -28,7 +20,7 @@ func (r DBLikeRepository) AddLike(ctx context.Context, userId int, postId int, c
 }
 
 // RemoveLike removes a like from a post or comment
-func (r DBLikeRepository) RemoveLike(ctx context.Context, userId int, postId int, commentId *int) error {
+func (r Store) RemoveLike(ctx context.Context, userId int, postId int, commentId *int) error {
 	return r.querier.RemoveLike(ctx, queries.RemoveLikeParams{
 		PostID:    postId,
 		UserID:    userId,
@@ -38,7 +30,7 @@ func (r DBLikeRepository) RemoveLike(ctx context.Context, userId int, postId int
 }
 
 // IsLiked checks if a user has liked a post or comment
-func (r DBLikeRepository) IsLiked(ctx context.Context, userId int, postId int, commentId *int) (bool, error) {
+func (r Store) IsLiked(ctx context.Context, userId int, postId int, commentId *int) (bool, error) {
 	return r.querier.GetIsLikedByUser(ctx, queries.GetIsLikedByUserParams{
 		UserID:    userId,
 		PostID:    postId,
@@ -47,16 +39,16 @@ func (r DBLikeRepository) IsLiked(ctx context.Context, userId int, postId int, c
 	})
 }
 
-func (r DBLikeRepository) GetOtherPostLikes(ctx context.Context, postId int, currentUserId int) ([]queries.GetPostLikesRow, error) {
+func (r Store) GetOtherPostLikes(ctx context.Context, postId int, currentUserId int) ([]queries.GetPostLikesRow, error) {
 	return r.querier.GetPostLikes(ctx, queries.GetPostLikesParams{
 		PostID: postId,
 		UserID: currentUserId,
 	})
 }
 
-// NewDBLikeRepository creates a new like repository
-func NewDBLikeRepository(querier queries.Querier) LikeRepository {
-	return &DBLikeRepository{
+// NewStore creates a new like repository
+func NewStore(querier queries.Querier) Store {
+	return Store{
 		querier: querier,
 	}
 }

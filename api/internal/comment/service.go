@@ -6,10 +6,10 @@ import (
 	"fmt"
 
 	"splajompy.com/api/v2/internal/bucket"
+	"splajompy.com/api/v2/internal/like"
 	"splajompy.com/api/v2/internal/models"
 	"splajompy.com/api/v2/internal/notification"
 	"splajompy.com/api/v2/internal/post"
-	"splajompy.com/api/v2/internal/repositories"
 	"splajompy.com/api/v2/internal/user"
 	"splajompy.com/api/v2/internal/utilities"
 )
@@ -19,7 +19,7 @@ type Service struct {
 	postRepository      post.Store
 	notificationService notification.Service
 	userRepository      user.Store
-	likeRepository      repositories.LikeRepository
+	likeRepository      like.Store
 	bucketRepository    bucket.Repository
 }
 
@@ -28,7 +28,7 @@ func NewService(
 	postRepository post.Store,
 	notificationService notification.Service,
 	userRepository user.Store,
-	likeRepository repositories.LikeRepository,
+	likeRepository like.Store,
 	bucketRepository bucket.Repository,
 ) *Service {
 	return &Service{
