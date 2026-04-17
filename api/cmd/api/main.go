@@ -15,6 +15,7 @@ import (
 	"splajompy.com/api/v2/internal/bucket"
 	"splajompy.com/api/v2/internal/comment"
 	"splajompy.com/api/v2/internal/db/queries"
+	"splajompy.com/api/v2/internal/like"
 	"splajompy.com/api/v2/internal/notification"
 	"splajompy.com/api/v2/internal/post"
 	"splajompy.com/api/v2/internal/stats"
@@ -79,7 +80,7 @@ func main() {
 	userRepository := user.NewUserRepository(q)
 	notificationsRepository := notification.NewNotificationStore(q)
 	commentRepository := comment.NewStore(q)
-	likeRepository := repositories.NewDBLikeRepository(q)
+	likeRepository := like.NewStore(q)
 	statsRepository := stats.NewDBStatsRepository(q)
 
 	notificationService := notification.NewService(notificationsRepository, postRepository, commentRepository, userRepository, bucketRepository)

@@ -13,9 +13,9 @@ import (
 	"splajompy.com/api/v2/internal/bucket"
 	"splajompy.com/api/v2/internal/db"
 	"splajompy.com/api/v2/internal/db/queries"
+	"splajompy.com/api/v2/internal/like"
 	"splajompy.com/api/v2/internal/models"
 	"splajompy.com/api/v2/internal/notification"
-	"splajompy.com/api/v2/internal/repositories"
 	"splajompy.com/api/v2/internal/templates"
 	"splajompy.com/api/v2/internal/user"
 	"splajompy.com/api/v2/internal/utilities"
@@ -24,13 +24,13 @@ import (
 type Service struct {
 	postRepository      Store
 	userRepository      user.Store
-	likeRepository      repositories.LikeRepository
+	likeRepository      like.Store
 	notificationService notification.Service
 	bucketRepository    bucket.Repository
 	emailService        *resend.Client
 }
 
-func NewService(postRepository Store, userRepository user.Store, likeRepository repositories.LikeRepository, notificationService notification.Service, bucketRepo bucket.Repository, emailService *resend.Client) *Service {
+func NewService(postRepository Store, userRepository user.Store, likeRepository like.Store, notificationService notification.Service, bucketRepo bucket.Repository, emailService *resend.Client) *Service {
 	return &Service{
 		postRepository:      postRepository,
 		userRepository:      userRepository,
