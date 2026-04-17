@@ -36,7 +36,6 @@ func main() {
 	}
 
 	// Setup OpenTelemetry SDK
-	utilities.InitializeProfiling()
 	shutdown, err := utilities.SetupOTelSDK(ctx)
 	if err != nil {
 		log.Fatalf("failed to setup OpenTelemetry SDK: %v", err)
@@ -46,6 +45,7 @@ func main() {
 			log.Printf("failed to shutdown OpenTelemetry SDK: %v", err)
 		}
 	}()
+	utilities.InitializeProfiling()
 
 	connString := os.Getenv("DB_CONNECTION_STRING")
 	cfg, err := pgxpool.ParseConfig(connString)
