@@ -28,7 +28,6 @@ import (
 
 	"splajompy.com/api/v2/internal/handler"
 	"splajompy.com/api/v2/internal/middleware"
-	"splajompy.com/api/v2/internal/service"
 )
 
 func main() {
@@ -96,9 +95,8 @@ func main() {
 	authHandler := auth.NewHandler(authService)
 	statsService := stats.NewService(statsRepository)
 	statsHandler := stats.NewHandler(statsService)
-	wrappedService := service.NewWrappedService(q, postService)
 
-	h := handler.NewHandler(q, postService, commentHandler, userHandler, notificationHandler, authHandler, statsHandler, wrappedService)
+	h := handler.NewHandler(q, postService, commentHandler, userHandler, notificationHandler, authHandler, statsHandler)
 
 	mux := http.NewServeMux()
 

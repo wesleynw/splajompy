@@ -10,8 +10,6 @@ import (
 	"splajompy.com/api/v2/internal/post"
 	"splajompy.com/api/v2/internal/stats"
 	"splajompy.com/api/v2/internal/user"
-
-	"splajompy.com/api/v2/internal/service"
 )
 
 type Handler struct {
@@ -22,7 +20,6 @@ type Handler struct {
 	notificationHandler *notification.Handler
 	authHandler         *auth.Handler
 	statsHandler        *stats.Handler
-	wrappedService      *service.WrappedService
 }
 
 func NewHandler(queries queries.Querier,
@@ -31,8 +28,7 @@ func NewHandler(queries queries.Querier,
 	userHandler *user.Handler,
 	notificationHandler *notification.Handler,
 	authHandler *auth.Handler,
-	statsHandler *stats.Handler,
-	wrappedService *service.WrappedService) *Handler {
+	statsHandler *stats.Handler) *Handler {
 	return &Handler{
 		queries:             queries,
 		postService:         postService,
@@ -41,7 +37,6 @@ func NewHandler(queries queries.Querier,
 		notificationHandler: notificationHandler,
 		authHandler:         authHandler,
 		statsHandler:        statsHandler,
-		wrappedService:      wrappedService,
 	}
 }
 
@@ -58,9 +53,4 @@ func (h *Handler) RegisterRoutes(handleFunc func(pattern string, handlerFunc fun
 	h.authHandler.RegisterRoutes(handleFuncWithAuth)
 	h.statsHandler.RegisterPublicRoutes(handleFunc)
 	h.statsHandler.RegisterRoutes(handleFuncWithAuth)
-
-	// wrapped
-	handleFuncWithAuth("POST /precomuputeWrapped", h.WrappedPrecomputation)
-	handleFuncWithAuth("GET /wrapped", h.GetWrappedActivityData)
-	handleFuncWithAuth("GET /wrapped/eligibility", h.GetIsUserEligibleForWrapped)
 }
