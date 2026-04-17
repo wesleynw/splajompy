@@ -9,7 +9,7 @@ import (
 
 func InitializeProfiling() {
 	_, err := pyroscope.Start(pyroscope.Config{
-		ApplicationName:   "splajompy-api",
+		ApplicationName:   "api",
 		ServerAddress:     "https://profiles-prod-001.grafana.net",
 		Logger:            pyroscope.StandardLogger,
 		BasicAuthUser:     os.Getenv("PYROSCOPE_USER"),
