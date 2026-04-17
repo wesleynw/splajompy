@@ -77,14 +77,14 @@ func main() {
 	postRepository := repositories.NewDBPostRepository(q)
 	userRepository := user.NewUserRepository(q)
 	notificationsRepository := notification.NewNotificationStore(q)
-	commentRepository := comment.NewDBCommentRepository(q)
+	commentRepository := comment.NewStore(q)
 	likeRepository := repositories.NewDBLikeRepository(q)
 	statsRepository := repositories.NewDBStatsRepository(q)
 
 	notificationService := notification.NewService(notificationsRepository, postRepository, commentRepository, userRepository, bucketRepository)
 
 	postService := service.NewPostService(postRepository, userRepository, likeRepository, *notificationService, bucketRepository, resendClient)
-	commentService := comment.NewCommentService(commentRepository, postRepository, *notificationService, userRepository, likeRepository, bucketRepository)
+	commentService := comment.NewService(commentRepository, postRepository, *notificationService, userRepository, likeRepository, bucketRepository)
 	commentHandler := comment.NewHandler(commentService)
 	userService := user.NewUserService(userRepository, notificationsRepository, resendClient)
 	userHandler := user.NewHandler(userService)

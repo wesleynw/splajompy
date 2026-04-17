@@ -20,20 +20,20 @@ import (
 
 type notificationTestEnv struct {
 	svc                    *notification.Service
-	commentSvc             *comment.CommentService
+	commentSvc             *comment.Service
 	postSvc                *service.PostService
 	notificationRepository notification.NotificationStore
 	userRepository         user.Store
 	postRepository         repositories.PostRepository
-	commentRepository      comment.CommentRepository
+	commentRepository      comment.Store
 }
 
 func setupNotificationService(t *testing.T) notificationTestEnv {
 	t.Helper()
 	db := testutil.StartPostgres(t)
 
-	notificationService := notification.NewService(db.NotificationStore, db.PostRepository, db.CommentRepository, db.UserRepository, db.BucketRepository)
-	commentService := comment.NewCommentService(db.CommentRepository, db.PostRepository, *notificationService, db.UserRepository, db.LikeRepository, db.BucketRepository)
+	notificationService := notification.NewService(db.NotificationStore, db.PostRepository, &db.CommentRepository, db.UserRepository, db.BucketRepository)
+	commentService := comment.NewService(&db.CommentRepository, db.PostRepository, *notificationService, db.UserRepository, db.LikeRepository, db.BucketRepository)
 	postService := service.NewPostService(db.PostRepository, db.UserRepository, db.LikeRepository, *notificationService, db.BucketRepository, nil)
 
 	return notificationTestEnv{

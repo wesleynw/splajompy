@@ -28,7 +28,7 @@ type TestDB struct {
 	Queries           *queries.Queries
 	UserRepository    user.Store
 	PostRepository    repositories.PostRepository
-	CommentRepository comment.CommentRepository
+	CommentRepository comment.Store
 	LikeRepository    repositories.LikeRepository
 	NotificationStore notification.NotificationStore
 	BucketRepository  bucket.Repository
@@ -87,7 +87,7 @@ func StartPostgres(t *testing.T) *TestDB {
 		Queries:           q,
 		UserRepository:    user.NewUserRepository(q),
 		PostRepository:    repositories.NewDBPostRepository(q),
-		CommentRepository: comment.NewDBCommentRepository(q),
+		CommentRepository: *comment.NewStore(q),
 		LikeRepository:    repositories.NewDBLikeRepository(q),
 		NotificationStore: notification.NewNotificationStore(q),
 		BucketRepository:  &bucket.FakeBucketRepository{},

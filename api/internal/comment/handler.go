@@ -9,10 +9,10 @@ import (
 )
 
 type Handler struct {
-	svc *CommentService
+	svc *Service
 }
 
-func NewHandler(svc *CommentService) *Handler {
+func NewHandler(svc *Service) *Handler {
 	return &Handler{svc: svc}
 }
 

@@ -13,8 +13,8 @@ import (
 	"splajompy.com/api/v2/internal/utilities"
 )
 
-type CommentService struct {
-	commentRepository   CommentRepository
+type Service struct {
+	commentRepository   *Store
 	postRepository      repositories.PostRepository
 	notificationService notification.Service
 	userRepository      user.Store
@@ -22,15 +22,15 @@ type CommentService struct {
 	bucketRepository    bucket.Repository
 }
 
-func NewCommentService(
-	commentRepo CommentRepository,
+func NewService(
+	commentRepo *Store,
 	postRepository repositories.PostRepository,
 	notificationService notification.Service,
 	userRepository user.Store,
 	likeRepository repositories.LikeRepository,
 	bucketRepository bucket.Repository,
-) *CommentService {
-	return &CommentService{
+) *Service {
+	return &Service{
 		commentRepository:   commentRepo,
 		postRepository:      postRepository,
 		notificationService: notificationService,
@@ -41,7 +41,7 @@ func NewCommentService(
 }
 
 // AddCommentToPost adds a comment to a post and creates a notification
-func (s *CommentService) AddCommentToPost(ctx context.Context, currentUser models.PublicUser, postId int, content string, imageKeyMap map[int]models.ImageData) (*models.DetailedComment, error) {
+func (s *Service) AddCommentToPost(ctx context.Context, currentUser models.PublicUser, postId int, content string, imageKeyMap map[int]models.ImageData) (*models.DetailedComment, error) {
 	post, err := s.postRepository.GetPostById(ctx, postId, currentUser.UserID)
 	if err != nil {
 		return nil, errors.New("unable to find post")
@@ -126,7 +126,7 @@ func (s *CommentService) AddCommentToPost(ctx context.Context, currentUser model
 }
 
 // GetCommentsByPostId retrieves all comments for a specific post with like status
-func (s *CommentService) GetCommentsByPostId(ctx context.Context, currentUser models.PublicUser, postID int) ([]models.DetailedComment, error) {
+func (s *Service) GetCommentsByPostId(ctx context.Context, currentUser models.PublicUser, postID int) ([]models.DetailedComment, error) {
 
 	dbComments, err := s.commentRepository.GetCommentsByPostId(ctx, postID, currentUser.UserID)
 	if err != nil {
@@ -203,7 +203,7 @@ func (s *CommentService) GetCommentsByPostId(ctx context.Context, currentUser mo
 }
 
 // AddLikeToCommentById adds a like to a comment
-func (s *CommentService) AddLikeToCommentById(ctx context.Context, currentUser models.PublicUser, postId int, commentId int) error {
+func (s *Service) AddLikeToCommentById(ctx context.Context, currentUser models.PublicUser, postId int, commentId int) error {
 	err := s.likeRepository.AddLike(ctx, currentUser.UserID, postId, &commentId)
 	if err != nil {
 		return errors.New("unable to add like to comment")
@@ -226,7 +226,7 @@ func (s *CommentService) AddLikeToCommentById(ctx context.Context, currentUser m
 
 // RemoveLikeFromCommentById removes the current user's like from a comment and
 // deletes related notifications.
-func (s *CommentService) RemoveLikeFromCommentById(ctx context.Context, user models.PublicUser, postId int, commentId int) error {
+func (s *Service) RemoveLikeFromCommentById(ctx context.Context, user models.PublicUser, postId int, commentId int) error {
 	err := s.likeRepository.RemoveLike(ctx, user.UserID, postId, &commentId)
 	if err != nil {
 		return errors.New("unable to remove like from comment")
@@ -236,7 +236,7 @@ func (s *CommentService) RemoveLikeFromCommentById(ctx context.Context, user mod
 }
 
 // DeleteComment deletes a comment by ID if the current user owns it
-func (s *CommentService) DeleteComment(ctx context.Context, currentUser models.PublicUser, commentId int) error {
+func (s *Service) DeleteComment(ctx context.Context, currentUser models.PublicUser, commentId int) error {
 	comment, err := s.commentRepository.GetCommentById(ctx, commentId)
 	if err != nil {
 		return errors.New("unable to find comment")
