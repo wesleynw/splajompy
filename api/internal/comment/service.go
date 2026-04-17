@@ -1,4 +1,4 @@
-package service
+package comment
 
 import (
 	"context"
@@ -14,7 +14,7 @@ import (
 )
 
 type CommentService struct {
-	commentRepository   repositories.CommentRepository
+	commentRepository   CommentRepository
 	postRepository      repositories.PostRepository
 	notificationService notification.Service
 	userRepository      user.Store
@@ -23,7 +23,7 @@ type CommentService struct {
 }
 
 func NewCommentService(
-	commentRepo repositories.CommentRepository,
+	commentRepo CommentRepository,
 	postRepository repositories.PostRepository,
 	notificationService notification.Service,
 	userRepository user.Store,

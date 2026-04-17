@@ -3,6 +3,7 @@ package handler
 import (
 	"net/http"
 
+	"splajompy.com/api/v2/internal/comment"
 	"splajompy.com/api/v2/internal/db/queries"
 	"splajompy.com/api/v2/internal/notification"
 	"splajompy.com/api/v2/internal/user"
@@ -13,7 +14,7 @@ import (
 type Handler struct {
 	queries             queries.Querier
 	postService         *service.PostService
-	commentService      *service.CommentService
+	commentHandler      *comment.Handler
 	userHandler         *user.Handler
 	notificationHandler *notification.Handler
 	authService         *service.AuthService
@@ -23,7 +24,7 @@ type Handler struct {
 
 func NewHandler(queries queries.Querier,
 	postService *service.PostService,
-	commentService *service.CommentService,
+	commentHandler *comment.Handler,
 	userHandler *user.Handler,
 	notificationHandler *notification.Handler,
 	authService *service.AuthService,
@@ -32,7 +33,7 @@ func NewHandler(queries queries.Querier,
 	return &Handler{
 		queries:             queries,
 		postService:         postService,
-		commentService:      commentService,
+		commentHandler:      commentHandler,
 		userHandler:         userHandler,
 		notificationHandler: notificationHandler,
 		authService:         authService,
@@ -74,11 +75,6 @@ func (h *Handler) RegisterRoutes(handleFunc func(pattern string, handlerFunc fun
 	h.notificationHandler.RegisterRoutes(handleFuncWithAuth)
 
 	// comments
-	handleFuncWithAuth("POST /post/{post_id}/comment", h.AddCommentToPostById)
-	handleFuncWithAuth("POST /post/{post_id}/comment/{comment_id}/liked", h.AddCommentLike)
-	handleFuncWithAuth("DELETE /post/{post_id}/comment/{comment_id}/liked", h.RemoveCommentLike)
-	handleFuncWithAuth("DELETE /comment/{comment_id}", h.DeleteComment)
-	handleFuncWithAuth("GET /post/{id}/comments", h.GetCommentsByPost)
 
 	// post routes with time-based offset
 	handleFuncWithAuth("GET /v2/posts/following", h.GetPostsByFollowingWithTimeOffset)

@@ -8,6 +8,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"splajompy.com/api/v2/internal/comment"
 	"splajompy.com/api/v2/internal/models"
 	"splajompy.com/api/v2/internal/notification"
 	"splajompy.com/api/v2/internal/service"
@@ -18,7 +19,7 @@ import (
 
 type postServiceTestEnv struct {
 	svc            *service.PostService
-	commentSvc     *service.CommentService
+	commentSvc     *comment.CommentService
 	userRepository user.Store
 }
 
@@ -30,7 +31,7 @@ func setupPostTest(t *testing.T) postServiceTestEnv {
 
 	notificationService := notification.NewService(db.NotificationStore, db.PostRepository, db.CommentRepository, db.UserRepository, db.BucketRepository)
 	svc := service.NewPostService(db.PostRepository, db.UserRepository, db.LikeRepository, *notificationService, db.BucketRepository, nil)
-	commentSvc := service.NewCommentService(db.CommentRepository, db.PostRepository, *notificationService, db.UserRepository, db.LikeRepository, db.BucketRepository)
+	commentSvc := comment.NewCommentService(db.CommentRepository, db.PostRepository, *notificationService, db.UserRepository, db.LikeRepository, db.BucketRepository)
 
 	return postServiceTestEnv{
 		svc:            svc,

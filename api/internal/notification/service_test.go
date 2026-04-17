@@ -7,6 +7,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"splajompy.com/api/v2/internal/comment"
 	db "splajompy.com/api/v2/internal/db"
 	"splajompy.com/api/v2/internal/models"
 	"splajompy.com/api/v2/internal/notification"
@@ -19,12 +20,12 @@ import (
 
 type notificationTestEnv struct {
 	svc                    *notification.Service
-	commentSvc             *service.CommentService
+	commentSvc             *comment.CommentService
 	postSvc                *service.PostService
 	notificationRepository notification.NotificationStore
 	userRepository         user.Store
 	postRepository         repositories.PostRepository
-	commentRepository      repositories.CommentRepository
+	commentRepository      comment.CommentRepository
 }
 
 func setupNotificationService(t *testing.T) notificationTestEnv {
@@ -32,7 +33,7 @@ func setupNotificationService(t *testing.T) notificationTestEnv {
 	db := testutil.StartPostgres(t)
 
 	notificationService := notification.NewService(db.NotificationStore, db.PostRepository, db.CommentRepository, db.UserRepository, db.BucketRepository)
-	commentService := service.NewCommentService(db.CommentRepository, db.PostRepository, *notificationService, db.UserRepository, db.LikeRepository, db.BucketRepository)
+	commentService := comment.NewCommentService(db.CommentRepository, db.PostRepository, *notificationService, db.UserRepository, db.LikeRepository, db.BucketRepository)
 	postService := service.NewPostService(db.PostRepository, db.UserRepository, db.LikeRepository, *notificationService, db.BucketRepository, nil)
 
 	return notificationTestEnv{

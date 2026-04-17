@@ -15,6 +15,7 @@ import (
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
 	"github.com/testcontainers/testcontainers-go/wait"
 	"splajompy.com/api/v2/internal/bucket"
+	"splajompy.com/api/v2/internal/comment"
 	"splajompy.com/api/v2/internal/db/queries"
 	"splajompy.com/api/v2/internal/notification"
 	"splajompy.com/api/v2/internal/repositories"
@@ -27,7 +28,7 @@ type TestDB struct {
 	Queries           *queries.Queries
 	UserRepository    user.Store
 	PostRepository    repositories.PostRepository
-	CommentRepository repositories.CommentRepository
+	CommentRepository comment.CommentRepository
 	LikeRepository    repositories.LikeRepository
 	NotificationStore notification.NotificationStore
 	BucketRepository  bucket.Repository
@@ -86,7 +87,7 @@ func StartPostgres(t *testing.T) *TestDB {
 		Queries:           q,
 		UserRepository:    user.NewUserRepository(q),
 		PostRepository:    repositories.NewDBPostRepository(q),
-		CommentRepository: repositories.NewDBCommentRepository(q),
+		CommentRepository: comment.NewDBCommentRepository(q),
 		LikeRepository:    repositories.NewDBLikeRepository(q),
 		NotificationStore: notification.NewNotificationStore(q),
 		BucketRepository:  &bucket.FakeBucketRepository{},

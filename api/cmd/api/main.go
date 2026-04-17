@@ -12,6 +12,7 @@ import (
 	semconv "go.opentelemetry.io/otel/semconv/v1.39.0"
 	"go.opentelemetry.io/otel/trace"
 	"splajompy.com/api/v2/internal/bucket"
+	"splajompy.com/api/v2/internal/comment"
 	"splajompy.com/api/v2/internal/db/queries"
 	"splajompy.com/api/v2/internal/notification"
 	"splajompy.com/api/v2/internal/repositories"
@@ -76,14 +77,15 @@ func main() {
 	postRepository := repositories.NewDBPostRepository(q)
 	userRepository := user.NewUserRepository(q)
 	notificationsRepository := notification.NewNotificationStore(q)
-	commentRepository := repositories.NewDBCommentRepository(q)
+	commentRepository := comment.NewDBCommentRepository(q)
 	likeRepository := repositories.NewDBLikeRepository(q)
 	statsRepository := repositories.NewDBStatsRepository(q)
 
 	notificationService := notification.NewService(notificationsRepository, postRepository, commentRepository, userRepository, bucketRepository)
 
 	postService := service.NewPostService(postRepository, userRepository, likeRepository, *notificationService, bucketRepository, resendClient)
-	commentService := service.NewCommentService(commentRepository, postRepository, *notificationService, userRepository, likeRepository, bucketRepository)
+	commentService := comment.NewCommentService(commentRepository, postRepository, *notificationService, userRepository, likeRepository, bucketRepository)
+	commentHandler := comment.NewHandler(commentService)
 	userService := user.NewUserService(userRepository, notificationsRepository, resendClient)
 	userHandler := user.NewHandler(userService)
 	notificationHandler := notification.NewHandler(notificationService)
@@ -91,7 +93,7 @@ func main() {
 	statsService := service.NewStatsService(statsRepository)
 	wrappedService := service.NewWrappedService(q, postService)
 
-	h := handler.NewHandler(q, postService, commentService, userHandler, notificationHandler, authManager, statsService, wrappedService)
+	h := handler.NewHandler(q, postService, commentHandler, userHandler, notificationHandler, authManager, statsService, wrappedService)
 
 	mux := http.NewServeMux()
 

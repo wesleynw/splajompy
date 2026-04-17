@@ -1,4 +1,4 @@
-package handler
+package comment
 
 import (
 	"encoding/json"
@@ -8,6 +8,22 @@ import (
 	"splajompy.com/api/v2/internal/utilities"
 )
 
+type Handler struct {
+	svc *CommentService
+}
+
+func NewHandler(svc *CommentService) *Handler {
+	return &Handler{svc: svc}
+}
+
+func (h *Handler) RegisterRoutes(withAuth func(string, func(http.ResponseWriter, *http.Request))) {
+	withAuth("POST /post/{post_id}/comment", h.AddCommentToPostById)
+	withAuth("POST /post/{post_id}/comment/{comment_id}/liked", h.AddCommentLike)
+	withAuth("DELETE /post/{post_id}/comment/{comment_id}/liked", h.RemoveCommentLike)
+	withAuth("DELETE /comment/{comment_id}", h.DeleteComment)
+	withAuth("GET /post/{id}/comments", h.GetCommentsByPost)
+}
+
 func (h *Handler) GetCommentsByPost(w http.ResponseWriter, r *http.Request) {
 	id, err := utilities.GetIntPathParam(r, "id")
 	if err != nil {
@@ -16,7 +32,7 @@ func (h *Handler) GetCommentsByPost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	currentUser := utilities.GetAuthenticatedUser(r)
-	comments, err := h.commentService.GetCommentsByPostId(r.Context(), *currentUser, id)
+	comments, err := h.svc.GetCommentsByPostId(r.Context(), *currentUser, id)
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
 		return
@@ -45,7 +61,7 @@ func (h *Handler) AddCommentToPostById(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	comment, err := h.commentService.AddCommentToPost(r.Context(), *currentUser, postId, requestBody.Text, requestBody.ImageKeyMap)
+	comment, err := h.svc.AddCommentToPost(r.Context(), *currentUser, postId, requestBody.Text, requestBody.ImageKeyMap)
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
 		return
@@ -69,7 +85,7 @@ func (h *Handler) AddCommentLike(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.commentService.AddLikeToCommentById(r.Context(), *currentUser, postId, commentId)
+	err = h.svc.AddLikeToCommentById(r.Context(), *currentUser, postId, commentId)
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
 		return
@@ -94,7 +110,7 @@ func (h *Handler) RemoveCommentLike(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.commentService.RemoveLikeFromCommentById(r.Context(), *currentUser, postId, commentId)
+	err = h.svc.RemoveLikeFromCommentById(r.Context(), *currentUser, postId, commentId)
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
 		return
@@ -113,7 +129,7 @@ func (h *Handler) DeleteComment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.commentService.DeleteComment(r.Context(), *currentUser, commentId)
+	err = h.svc.DeleteComment(r.Context(), *currentUser, commentId)
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
 		return
