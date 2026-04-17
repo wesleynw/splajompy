@@ -17,6 +17,6 @@ func InitializeProfiling() {
 	})
 
 	if err != nil {
-		slog.Warn("profiler could not start")
+		slog.Warn("profiler could not start", "error", err)
 	}
 }
