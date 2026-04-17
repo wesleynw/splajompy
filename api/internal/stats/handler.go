@@ -1,4 +1,4 @@
-package handler
+package stats
 
 import (
 	"net/http"
@@ -6,6 +6,17 @@ import (
 	"splajompy.com/api/v2/internal/middleware"
 	"splajompy.com/api/v2/internal/utilities"
 )
+
+type Handler struct {
+	svc *Service
+}
+
+func NewHandler(svc *Service) *Handler {
+	return &Handler{svc: svc}
+}
+
+func (h *Handler) RegisterRoutes(withAuth func(string, func(http.ResponseWriter, *http.Request))) {
+}
 
 func (h *Handler) GetAppStats(w http.ResponseWriter, r *http.Request) {
 	stats, err := h.statsService.GetAppStats(r.Context())
