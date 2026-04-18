@@ -29,7 +29,6 @@ func (h *Handler) RegisterRoutes(_, withAuth func(string, func(http.ResponseWrit
 	withAuth("GET /post/presignedUrl", h.GetPresignedUrl)
 	withAuth("POST /v2/post/new", h.CreateNewPostV2)
 	withAuth("GET /post/{id}", h.GetPostById)
-	// withAuth("GET /user/{id}/posts", h.GetPostsByUserId)
 	withAuth("DELETE /post/{id}", h.DeletePostById)
 	withAuth("POST /post/{id}/report", h.ReportPost)
 
