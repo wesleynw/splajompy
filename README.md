@@ -9,7 +9,7 @@
 [![iOS Build](https://github.com/wesleynw/splajompy/actions/workflows/ios.yml/badge.svg)](https://github.com/wesleynw/splajompy/actions/workflows/ios.yml)
 
 ## What is this?
-Splajompy is built rooted in the belief that mainstream social media has long stopped being an ideal place to connect with others online, and that what the internet needs isn't a public town square, but rather a small, safe, and familiar group of people.
+Splajompy is rooted in the belief that mainstream social media has long stopped being an ideal place to connect with others online, and that an online space for connection shouldn't necessarily be a public town square, but rather a small, familiar group of people that slightly extends beyond the connections we have in real life. 
 
 Splajompy avoids the common social media designs that allow us to compare ourselves with others based on like or follower counts, which drive us towards treating posts as content, and instead nudges you to keep up with only people you know, or mutual friends.
 
@@ -18,6 +18,7 @@ Features:
 - profiles, bios, profile appearance customization
 - polls, customizable feeds
 - blocking, muting, following
+- tagging users, notifications
 
 Originally written as a full-stack Typescript application, Splajompy now has an API written in Go and a mobile app written almost entirely in SwiftUI to feel as native as possible.
 
