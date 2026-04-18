@@ -24,7 +24,7 @@ struct MentionUtilities {
     Regex {
       ChoiceOf {
         Anchor.startOfSubject
-        " "
+        CharacterClass.whitespace
       }
       Capture {
         "@"
