@@ -9,7 +9,15 @@
 [![iOS Build](https://github.com/wesleynw/splajompy/actions/workflows/ios.yml/badge.svg)](https://github.com/wesleynw/splajompy/actions/workflows/ios.yml)
 
 ## What is this?
-Splajompy is a social app that allows users to do all the things you'd expect to be able to do on a social-media app, with an emphasis on only being able to see people in your social circle. Without emphasis on algorithmically shown content, Splajompy is a place to share interesting things with friends.
+Splajompy is built rooted in the belief that mainstream social media has long stopped being an ideal place to connect with others online, and that what the internet needs isn't a public town square, but rather a small, safe, and familiar group of people.
+
+Splajompy avoids the common social media designs that allow us to compare ourselves with others based on like or follower counts, which drive us towards treating posts as content, and instead nudges you to keep up with only people you know, or mutual friends.
+
+Features:
+- posts, likes, comments, images in both posts and comments
+- profiles, bios, profile appearance customization
+- polls, customizable feeds
+- blocking, muting, following
 
 Originally written as a full-stack Typescript application, Splajompy now has an API written in Go and a mobile app written almost entirely in SwiftUI to feel as native as possible.
 
@@ -23,7 +31,7 @@ type RouteRegistrar interface {
 }
 ```
 
-Both public (unauthenticated) and authenticated routes are registered in a single `RegisterRoutes` call. The root handler in `internal/handler` holds a slice of `RouteRegistrar`s and wires everything up, so adding a new domain is as simple as implementing the interface and appending the handler in `main.go`.
+The root handler in `internal/handler` holds a slice of `RouteRegistrar`s and registers routes for each domain.
 
 `Store`s are currently a thin layer over the database, but exist as a natural place to add caching per domain in the future.
 
@@ -36,7 +44,9 @@ Start the API by running `go run cmd/api/main.go` from the `api` directory.
 The API uses [SQLC](https://docs.sqlc.dev/en/stable/tutorials/getting-started-postgresql.html) to generate typed functions from database calls. Given a raw SQL query, you can have SQLC generate a function that can be called from a `querier` interface.
 
 To do this, install SQLC locally, and run:
-> `sqlc generate -f api/internal/db/sqlc.yaml`
+```bash
+sqlc generate -f api/internal/db/sqlc.yaml
+```
 
 ## DB Migrations
 Migrations are handled with `golang-migrate`. To make changes to the DB, follow the linked guide below. This usually involves writing up and down migrations, which you can first push to the development DB, and then to production when new API code is merged.
@@ -56,7 +66,7 @@ Docker must be installed as tests spin up a Postgres container.
 ### Go Code
 Before pushing Go code changes, run golangci-lint to check for issues:
 ```bash
-# Install golangci-lint (if not already installed)
+# install golangci-lint (if not already installed)
 go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
 
 # Run linting from the api directory
