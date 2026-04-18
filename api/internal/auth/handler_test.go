@@ -5,11 +5,12 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"splajompy.com/api/v2/internal/auth"
+	"splajompy.com/api/v2/internal/post"
 	"splajompy.com/api/v2/internal/user"
 )
 
 func TestAuthService_ValidateRegistrationData(t *testing.T) {
-	authService := auth.NewService(user.Store{}, nil, nil, nil)
+	authService := auth.NewService(user.Store{}, post.Store{}, nil, nil)
 
 	tests := []struct {
 		name     string
