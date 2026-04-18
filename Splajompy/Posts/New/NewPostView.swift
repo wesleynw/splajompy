@@ -5,6 +5,7 @@ import SwiftUI
 struct NewPostView: View {
   @State private var cursorY: CGFloat = 0
   @State private var showingPollCreation: Bool = false
+  @State private var isDragTargeted: Bool = false
 
   @State private var viewModel: ViewModel
   @State private var mentionViewModel =
@@ -68,6 +69,24 @@ struct NewPostView: View {
           }
           // to allow mentions overlay to be visible when at bottom of text view
           .padding(.bottom, 250)
+        }
+        .dropDestination(for: DroppedImage.self) { dropped, _ in
+          viewModel.addDroppedImages(dropped.map { $0.image })
+          return !dropped.isEmpty
+        } isTargeted: {
+          isDragTargeted = $0
+        }
+        .overlay {
+          if isDragTargeted {
+            RoundedRectangle(cornerRadius: 12)
+              .strokeBorder(.tint.opacity(0.6), lineWidth: 2)
+              .background(
+                RoundedRectangle(cornerRadius: 12)
+                  .fill(.tint.opacity(0.08))
+              )
+              .padding(4)
+              .allowsHitTesting(false)
+          }
         }
 
         Divider()
