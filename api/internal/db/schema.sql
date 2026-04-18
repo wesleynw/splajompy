@@ -2,9 +2,9 @@ CREATE EXTENSION IF NOT EXISTS pg_trgm;
 
 CREATE TABLE users (
     user_id SERIAL PRIMARY KEY,
-    email character varying(255) NOT NULL,
+    email character varying(255) NOT NULL UNIQUE,
     password character varying(255) NOT NULL,
-    username character varying(100) NOT NULL,
+    username character varying(100) NOT NULL UNIQUE,
     created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     name text,
     pinned_post_id integer,
