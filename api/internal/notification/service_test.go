@@ -7,11 +7,11 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"splajompy.com/api/v2/internal/comment"
 	db "splajompy.com/api/v2/internal/db"
 	"splajompy.com/api/v2/internal/models"
 	"splajompy.com/api/v2/internal/notification"
-	"splajompy.com/api/v2/internal/repositories"
-	"splajompy.com/api/v2/internal/service"
+	"splajompy.com/api/v2/internal/post"
 	"splajompy.com/api/v2/internal/testutil"
 	"splajompy.com/api/v2/internal/user"
 	"splajompy.com/api/v2/internal/utilities"
@@ -19,21 +19,21 @@ import (
 
 type notificationTestEnv struct {
 	svc                    *notification.Service
-	commentSvc             *service.CommentService
-	postSvc                *service.PostService
+	commentSvc             *comment.Service
+	postSvc                *post.Service
 	notificationRepository notification.NotificationStore
 	userRepository         user.Store
-	postRepository         repositories.PostRepository
-	commentRepository      repositories.CommentRepository
+	postRepository         post.Store
+	commentRepository      comment.Store
 }
 
 func setupNotificationService(t *testing.T) notificationTestEnv {
 	t.Helper()
 	db := testutil.StartPostgres(t)
 
-	notificationService := notification.NewService(db.NotificationStore, db.PostRepository, db.CommentRepository, db.UserRepository, db.BucketRepository)
-	commentService := service.NewCommentService(db.CommentRepository, db.PostRepository, *notificationService, db.UserRepository, db.LikeRepository, db.BucketRepository)
-	postService := service.NewPostService(db.PostRepository, db.UserRepository, db.LikeRepository, *notificationService, db.BucketRepository, nil)
+	notificationService := notification.NewService(db.NotificationStore, db.PostRepository, &db.CommentRepository, db.UserRepository, db.BucketRepository)
+	commentService := comment.NewService(&db.CommentRepository, db.PostRepository, *notificationService, db.UserRepository, db.LikeRepository, db.BucketRepository)
+	postService := post.NewService(db.PostRepository, db.UserRepository, db.LikeRepository, *notificationService, db.BucketRepository, nil)
 
 	return notificationTestEnv{
 		svc:                    notificationService,

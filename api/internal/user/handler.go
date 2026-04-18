@@ -18,7 +18,7 @@ func NewHandler(svc *Service) *Handler {
 	return &Handler{svc: svc}
 }
 
-func (h *Handler) RegisterRoutes(withAuth func(string, func(http.ResponseWriter, *http.Request))) {
+func (h *Handler) RegisterRoutes(_, withAuth func(string, func(http.ResponseWriter, *http.Request))) {
 	// blocking
 	withAuth("POST /user/{user_id}/block", h.BlockUser)
 	withAuth("DELETE /user/{user_id}/block", h.UnblockUser)
@@ -283,7 +283,7 @@ func (h *Handler) GetFollowingByUserIdV3(w http.ResponseWriter, r *http.Request)
 	utilities.HandleSuccess(w, result)
 }
 
-func (h Handler) GetMutualsByUserId(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) GetMutualsByUserId(w http.ResponseWriter, r *http.Request) {
 	user := utilities.GetAuthenticatedUser(r)
 
 	targetUserId, err := utilities.GetIntPathParam(r, "id")
@@ -307,7 +307,7 @@ func (h Handler) GetMutualsByUserId(w http.ResponseWriter, r *http.Request) {
 	utilities.HandleSuccess(w, result.Users)
 }
 
-func (h Handler) GetMutualsByUserIdV3(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) GetMutualsByUserIdV3(w http.ResponseWriter, r *http.Request) {
 	user := utilities.GetAuthenticatedUser(r)
 
 	targetUserId, err := utilities.GetIntPathParam(r, "id")
@@ -484,4 +484,3 @@ func (h Handler) ListUserCloseFriendsV2(w http.ResponseWriter, r *http.Request) 
 
 	utilities.HandleSuccess(w, result)
 }
-

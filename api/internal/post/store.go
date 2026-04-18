@@ -1,4 +1,4 @@
-package repositories
+package post
 
 import (
 	"context"
@@ -13,33 +13,12 @@ import (
 	"splajompy.com/api/v2/internal/utilities"
 )
 
-type PostRepository interface {
-	InsertPost(ctx context.Context, userId int, content string, facets db.Facets, attributes *db.Attributes, visibilityType *models.VisibilityTypeEnum) (*models.Post, error)
-	DeletePost(ctx context.Context, postId int) error
-	GetPostById(ctx context.Context, postId int, currentUserId int) (*models.Post, error)
-	IsPostLikedByUserId(ctx context.Context, userId int, postId int) (bool, error)
-	GetImagesForPost(ctx context.Context, postId int) ([]queries.Image, error)
-	GetAllImagesForUser(ctx context.Context, userId int) ([]queries.Image, error)
-	InsertImage(ctx context.Context, postId int, height int, width int, url string, displayOrder int) (*queries.Image, error)
-	GetCommentCountForPost(ctx context.Context, postId int) (int, error)
-	GetPostIdsByUserIdCursor(ctx context.Context, userId int, targetUserId int, limit int, beforeTimestamp *time.Time) ([]int, error)
-	GetAllPostIdsCursor(ctx context.Context, limit int, beforeTimestamp *time.Time, currentUserId int) ([]int, error)
-	GetPostIdsForFollowingCursor(ctx context.Context, userId int, limit int, beforeTimestamp *time.Time) ([]int, error)
-	GetPostIdsForMutualFeedCursor(ctx context.Context, userId int, limit int, beforeTimestamp *time.Time) ([]queries.GetPostIdsForMutualFeedCursorRow, error)
-	GetPollVotesGrouped(ctx context.Context, postId int) ([]queries.GetPollVotesGroupedRow, error)
-	GetUserVoteInPoll(ctx context.Context, postId int, userId int) (*int, error)
-	InsertVote(ctx context.Context, postId int, userId int, optionIndex int) error
-	PinPost(ctx context.Context, userId int, postId int) error
-	UnpinPost(ctx context.Context, userId int) error
-	GetPinnedPostId(ctx context.Context, userId int) (*int, error)
-}
-
-type DBPostRepository struct {
+type Store struct {
 	querier queries.Querier
 }
 
 // InsertPost creates a new post
-func (r DBPostRepository) InsertPost(ctx context.Context, userId int, content string, facets db.Facets, attributes *db.Attributes, visibilityType *models.VisibilityTypeEnum) (*models.Post, error) {
+func (r Store) InsertPost(ctx context.Context, userId int, content string, facets db.Facets, attributes *db.Attributes, visibilityType *models.VisibilityTypeEnum) (*models.Post, error) {
 	var post, err = r.querier.InsertPost(ctx, queries.InsertPostParams{
 		UserID:         userId,
 		Text:           pgtype.Text{String: content, Valid: true},
@@ -55,12 +34,12 @@ func (r DBPostRepository) InsertPost(ctx context.Context, userId int, content st
 }
 
 // DeletePost removes a post by ID
-func (r DBPostRepository) DeletePost(ctx context.Context, postId int) error {
+func (r Store) DeletePost(ctx context.Context, postId int) error {
 	return r.querier.DeletePost(ctx, postId)
 }
 
 // GetPostById retrieves a post by ID
-func (r DBPostRepository) GetPostById(ctx context.Context, postId int, currentUserId int) (*models.Post, error) {
+func (r Store) GetPostById(ctx context.Context, postId int, currentUserId int) (*models.Post, error) {
 	var dbPost, err = r.querier.GetPostById(ctx, queries.GetPostByIdParams{
 		PostID:       postId,
 		TargetUserID: currentUserId,
@@ -80,7 +59,7 @@ func (r DBPostRepository) GetPostById(ctx context.Context, postId int, currentUs
 }
 
 // IsPostLikedByUserId checks if a post is liked by a specific user
-func (r DBPostRepository) IsPostLikedByUserId(ctx context.Context, userId int, postId int) (bool, error) {
+func (r Store) IsPostLikedByUserId(ctx context.Context, userId int, postId int) (bool, error) {
 	return r.querier.GetIsPostLikedByUser(ctx, queries.GetIsPostLikedByUserParams{
 		PostID: postId,
 		UserID: userId,
@@ -88,17 +67,17 @@ func (r DBPostRepository) IsPostLikedByUserId(ctx context.Context, userId int, p
 }
 
 // GetImagesForPost retrieves all images for a specific post
-func (r DBPostRepository) GetImagesForPost(ctx context.Context, postId int) ([]queries.Image, error) {
+func (r Store) GetImagesForPost(ctx context.Context, postId int) ([]queries.Image, error) {
 	return r.querier.GetImagesByPostId(ctx, postId)
 }
 
 // GetAllImagesForUser retrieves all images for a specific user
-func (r DBPostRepository) GetAllImagesForUser(ctx context.Context, userId int) ([]queries.Image, error) {
+func (r Store) GetAllImagesForUser(ctx context.Context, userId int) ([]queries.Image, error) {
 	return r.querier.GetAllImagesByUserId(ctx, userId)
 }
 
 // InsertImage adds a new image to a post
-func (r DBPostRepository) InsertImage(ctx context.Context, postId int, height int, width int, url string, displayOrder int) (*queries.Image, error) {
+func (r Store) InsertImage(ctx context.Context, postId int, height int, width int, url string, displayOrder int) (*queries.Image, error) {
 	image, err := r.querier.InsertImage(ctx, queries.InsertImageParams{
 		Height:       height,
 		Width:        width,
@@ -121,18 +100,18 @@ func (r DBPostRepository) InsertImage(ctx context.Context, postId int, height in
 }
 
 // GetCommentCountForPost returns the number of comments for a post
-func (r DBPostRepository) GetCommentCountForPost(ctx context.Context, postId int) (int, error) {
+func (r Store) GetCommentCountForPost(ctx context.Context, postId int) (int, error) {
 	count, err := r.querier.GetCommentCountByPostID(ctx, postId)
 	return int(count), err
 }
 
 // GetPollVotesGrouped retrieves poll votes grouped by option index
-func (r DBPostRepository) GetPollVotesGrouped(ctx context.Context, postId int) ([]queries.GetPollVotesGroupedRow, error) {
+func (r Store) GetPollVotesGrouped(ctx context.Context, postId int) ([]queries.GetPollVotesGroupedRow, error) {
 	return r.querier.GetPollVotesGrouped(ctx, postId)
 }
 
 // GetUserVoteInPoll retrieves the user's vote for a specific poll
-func (r DBPostRepository) GetUserVoteInPoll(ctx context.Context, postId int, userId int) (*int, error) {
+func (r Store) GetUserVoteInPoll(ctx context.Context, postId int, userId int) (*int, error) {
 	vote, err := r.querier.GetUserVoteInPoll(ctx, queries.GetUserVoteInPollParams{
 		PostID: postId,
 		UserID: userId,
@@ -147,7 +126,7 @@ func (r DBPostRepository) GetUserVoteInPoll(ctx context.Context, postId int, use
 }
 
 // InsertVote adds a vote for a poll option
-func (r DBPostRepository) InsertVote(ctx context.Context, postId int, userId int, optionIndex int) error {
+func (r Store) InsertVote(ctx context.Context, postId int, userId int, optionIndex int) error {
 	return r.querier.InsertVote(ctx, queries.InsertVoteParams{
 		PostID:      postId,
 		UserID:      userId,
@@ -156,7 +135,7 @@ func (r DBPostRepository) InsertVote(ctx context.Context, postId int, userId int
 }
 
 // GetAllPostIdsCursor retrieves IDs of all posts using cursor-based pagination
-func (r DBPostRepository) GetAllPostIdsCursor(ctx context.Context, limit int, beforeTimestamp *time.Time, currentUserId int) ([]int, error) {
+func (r Store) GetAllPostIdsCursor(ctx context.Context, limit int, beforeTimestamp *time.Time, currentUserId int) ([]int, error) {
 	var timestamp pgtype.Timestamp
 	if beforeTimestamp != nil {
 		timestamp = pgtype.Timestamp{Time: *beforeTimestamp, Valid: true}
@@ -170,7 +149,7 @@ func (r DBPostRepository) GetAllPostIdsCursor(ctx context.Context, limit int, be
 }
 
 // GetPostIdsForFollowingCursor retrieves post IDs from users a specified user follows using cursor-based pagination
-func (r DBPostRepository) GetPostIdsForFollowingCursor(ctx context.Context, userId int, limit int, beforeTimestamp *time.Time) ([]int, error) {
+func (r Store) GetPostIdsForFollowingCursor(ctx context.Context, userId int, limit int, beforeTimestamp *time.Time) ([]int, error) {
 	var timestamp pgtype.Timestamp
 	if beforeTimestamp != nil {
 		timestamp = pgtype.Timestamp{Time: *beforeTimestamp, Valid: true}
@@ -184,7 +163,7 @@ func (r DBPostRepository) GetPostIdsForFollowingCursor(ctx context.Context, user
 }
 
 // GetPostIdsForMutualFeedCursor retrieves post IDs for mutual feed
-func (r DBPostRepository) GetPostIdsForMutualFeedCursor(ctx context.Context, userId int, limit int, beforeTimestamp *time.Time) ([]queries.GetPostIdsForMutualFeedCursorRow, error) {
+func (r Store) GetPostIdsForMutualFeedCursor(ctx context.Context, userId int, limit int, beforeTimestamp *time.Time) ([]queries.GetPostIdsForMutualFeedCursorRow, error) {
 	var timestamp pgtype.Timestamp
 	if beforeTimestamp != nil {
 		timestamp = pgtype.Timestamp{Time: *beforeTimestamp, Valid: true}
@@ -198,7 +177,7 @@ func (r DBPostRepository) GetPostIdsForMutualFeedCursor(ctx context.Context, use
 }
 
 // GetPostIdsByUserIdCursor retrieves post IDs for a specific user
-func (r DBPostRepository) GetPostIdsByUserIdCursor(ctx context.Context, userId int, targetUserId int, limit int, beforeTimestamp *time.Time) ([]int, error) {
+func (r Store) GetPostIdsByUserIdCursor(ctx context.Context, userId int, targetUserId int, limit int, beforeTimestamp *time.Time) ([]int, error) {
 	var timestamp pgtype.Timestamp
 	if beforeTimestamp != nil {
 		timestamp = pgtype.Timestamp{Time: *beforeTimestamp, Valid: true}
@@ -213,7 +192,7 @@ func (r DBPostRepository) GetPostIdsByUserIdCursor(ctx context.Context, userId i
 }
 
 // PinPost sets a post as pinned for a user
-func (r DBPostRepository) PinPost(ctx context.Context, userId int, postId int) error {
+func (r Store) PinPost(ctx context.Context, userId int, postId int) error {
 	return r.querier.PinPost(ctx, queries.PinPostParams{
 		UserID:       userId,
 		PinnedPostID: &postId,
@@ -221,16 +200,16 @@ func (r DBPostRepository) PinPost(ctx context.Context, userId int, postId int) e
 }
 
 // UnpinPost removes the pinned post for a user
-func (r DBPostRepository) UnpinPost(ctx context.Context, userId int) error {
+func (r Store) UnpinPost(ctx context.Context, userId int) error {
 	return r.querier.UnpinPost(ctx, userId)
 }
 
 // GetPinnedPostId retrieves the pinned post ID for a user
-func (r DBPostRepository) GetPinnedPostId(ctx context.Context, userId int) (*int, error) {
+func (r Store) GetPinnedPostId(ctx context.Context, userId int) (*int, error) {
 	return r.querier.GetPinnedPostId(ctx, userId)
 }
 
 // NewDBPostRepository creates a new post repository instance
-func NewDBPostRepository(querier queries.Querier) PostRepository {
-	return &DBPostRepository{querier: querier}
+func NewDBPostRepository(querier queries.Querier) Store {
+	return Store{querier: querier}
 }

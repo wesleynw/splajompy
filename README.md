@@ -13,6 +13,20 @@ Splajompy is a social app that allows users to do all the things you'd expect to
 
 Originally written as a full-stack Typescript application, Splajompy now has an API written in Go and a mobile app written almost entirely in SwiftUI to feel as native as possible.
 
+## API Architecture
+The API follows a domain-scoped architecture. Each domain (e.g. `post`, `user`, `auth`) lives in its own package under `internal/` and owns its store, service, and handler.
+
+Each domain handler implements the `RouteRegistrar` interface:
+```go
+type RouteRegistrar interface {
+    RegisterRoutes(public, withAuth func(string, func(http.ResponseWriter, *http.Request)))
+}
+```
+
+Both public (unauthenticated) and authenticated routes are registered in a single `RegisterRoutes` call. The root handler in `internal/handler` holds a slice of `RouteRegistrar`s and wires everything up, so adding a new domain is as simple as implementing the interface and appending the handler in `main.go`.
+
+`Store`s are currently a thin layer over the database, but exist as a natural place to add caching per domain in the future.
+
 ## Starting the API
 You'll need to have a `.env` file in the `api` folder that includes a DB connection string, Resend API key, S3 API Key, and a few other things.
 
@@ -28,6 +42,14 @@ To do this, install SQLC locally, and run:
 Migrations are handled with `golang-migrate`. To make changes to the DB, follow the linked guide below. This usually involves writing up and down migrations, which you can first push to the development DB, and then to production when new API code is merged.
 
 [Database migrations in Go with golang-migrate](https://betterstack.com/community/guides/scaling-go/golang-migrate)
+
+## Testing
+Run the test suite from the `api` directory:
+```bash
+go test ./...
+```
+
+Docker must be installed as tests spin up a Postgres container.
 
 ## Linting
 

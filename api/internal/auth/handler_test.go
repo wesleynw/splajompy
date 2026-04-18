@@ -1,15 +1,16 @@
-package handler
+package auth_test
 
 import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"splajompy.com/api/v2/internal/service"
+	"splajompy.com/api/v2/internal/auth"
+	"splajompy.com/api/v2/internal/post"
 	"splajompy.com/api/v2/internal/user"
 )
 
 func TestAuthService_ValidateRegistrationData(t *testing.T) {
-	authService := service.NewAuthService(user.Store{}, nil, nil, nil)
+	authService := auth.NewService(user.Store{}, post.Store{}, nil, nil)
 
 	tests := []struct {
 		name     string
@@ -67,35 +68,35 @@ func TestAuthService_ValidateRegistrationData(t *testing.T) {
 			email:    "testexample.com",
 			username: "testuser",
 			password: "password123",
-			expected: service.ErrInvalidEmail,
+			expected: auth.ErrInvalidEmail,
 		},
 		{
 			name:     "invalid email - missing domain",
 			email:    "test@",
 			username: "testuser",
 			password: "password123",
-			expected: service.ErrInvalidEmail,
+			expected: auth.ErrInvalidEmail,
 		},
 		{
 			name:     "invalid email - missing TLD",
 			email:    "test@example",
 			username: "testuser",
 			password: "password123",
-			expected: service.ErrInvalidEmail,
+			expected: auth.ErrInvalidEmail,
 		},
 		{
 			name:     "invalid email - multiple @",
 			email:    "test@@example.com",
 			username: "testuser",
 			password: "password123",
-			expected: service.ErrInvalidEmail,
+			expected: auth.ErrInvalidEmail,
 		},
 		{
 			name:     "invalid email - spaces",
 			email:    "test @example.com",
 			username: "testuser",
 			password: "password123",
-			expected: service.ErrInvalidEmail,
+			expected: auth.ErrInvalidEmail,
 		},
 
 		// Username validation tests
@@ -104,7 +105,7 @@ func TestAuthService_ValidateRegistrationData(t *testing.T) {
 			email:    "test@example.com",
 			username: "",
 			password: "password123",
-			expected: service.ErrUsernameTooShort,
+			expected: auth.ErrUsernameTooShort,
 		},
 		{
 			name:     "valid registration with 2 character username",
@@ -118,7 +119,7 @@ func TestAuthService_ValidateRegistrationData(t *testing.T) {
 			email:    "test@example.com",
 			username: "user@name",
 			password: "password123",
-			expected: service.ErrUsernameInvalidFormat,
+			expected: auth.ErrUsernameInvalidFormat,
 		},
 		{
 			name:     "username with underscore",
@@ -132,42 +133,42 @@ func TestAuthService_ValidateRegistrationData(t *testing.T) {
 			email:    "test@example.com",
 			username: "_username",
 			password: "password123",
-			expected: service.ErrUsernameInvalidFormat,
+			expected: auth.ErrUsernameInvalidFormat,
 		},
 		{
 			name:     "username with trailing underscore",
 			email:    "test@example.com",
 			username: "username_",
 			password: "password123",
-			expected: service.ErrUsernameInvalidFormat,
+			expected: auth.ErrUsernameInvalidFormat,
 		},
 		{
 			name:     "username with leading period",
 			email:    "test@example.com",
 			username: ".username",
 			password: "password123",
-			expected: service.ErrUsernameInvalidFormat,
+			expected: auth.ErrUsernameInvalidFormat,
 		},
 		{
 			name:     "username with trailing period",
 			email:    "test@example.com",
 			username: "username.",
 			password: "password123",
-			expected: service.ErrUsernameInvalidFormat,
+			expected: auth.ErrUsernameInvalidFormat,
 		},
 		{
 			name:     "username with hyphen",
 			email:    "test@example.com",
 			username: "user-name",
 			password: "password123",
-			expected: service.ErrUsernameInvalidFormat,
+			expected: auth.ErrUsernameInvalidFormat,
 		},
 		{
 			name:     "username with space",
 			email:    "test@example.com",
 			username: "user name",
 			password: "password123",
-			expected: service.ErrUsernameInvalidFormat,
+			expected: auth.ErrUsernameInvalidFormat,
 		},
 		{
 			name:     "username with period",
@@ -190,14 +191,14 @@ func TestAuthService_ValidateRegistrationData(t *testing.T) {
 			email:    "test@example.com",
 			username: "testuser",
 			password: "a",
-			expected: service.ErrPasswordTooShort,
+			expected: auth.ErrPasswordTooShort,
 		},
 		{
 			name:     "password too short - 7 characters",
 			email:    "test@example.com",
 			username: "testuser",
 			password: "1234567",
-			expected: service.ErrPasswordTooShort,
+			expected: auth.ErrPasswordTooShort,
 		},
 	}
 

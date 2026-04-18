@@ -1,15 +1,48 @@
-package handler
+package post
 
 import (
 	"encoding/json"
 	"net/http"
 
 	"splajompy.com/api/v2/internal/db"
-	"splajompy.com/api/v2/internal/service"
 
 	"splajompy.com/api/v2/internal/models"
 	"splajompy.com/api/v2/internal/utilities"
 )
+
+type Handler struct {
+	svc *Service
+}
+
+func NewHandler(svc *Service) *Handler {
+	return &Handler{svc: svc}
+}
+
+func (h *Handler) RegisterRoutes(_, withAuth func(string, func(http.ResponseWriter, *http.Request))) {
+	// post routes with time-based offset
+	withAuth("GET /v2/posts/following", h.GetPostsByFollowingWithTimeOffset)
+	withAuth("GET /v2/posts/all", h.GetAllPostsWithTimeOffset)
+	withAuth("GET /v2/posts/mutual", h.GetMutualFeedWithTimeOffset)
+	withAuth("GET /v2/user/{id}/posts", h.GetPostsByUserIdWithTimeOffset)
+
+	// posts
+	withAuth("GET /post/presignedUrl", h.GetPresignedUrl)
+	withAuth("POST /v2/post/new", h.CreateNewPostV2)
+	withAuth("GET /post/{id}", h.GetPostById)
+	withAuth("DELETE /post/{id}", h.DeletePostById)
+	withAuth("POST /post/{id}/report", h.ReportPost)
+
+	// polls
+	withAuth("POST /post/{post_id}/vote/{option_index}", h.VoteOnPost)
+
+	// likes
+	withAuth("POST /post/{id}/liked", h.AddPostLike)
+	withAuth("DELETE /post/{id}/liked", h.RemovePostLike)
+
+	// pinning
+	withAuth("POST /posts/{id}/pin", h.PinPost)
+	withAuth("DELETE /posts/pin", h.UnpinPost)
+}
 
 func (h *Handler) CreateNewPostV2(w http.ResponseWriter, r *http.Request) {
 	currentUser := utilities.GetAuthenticatedUser(r)
@@ -31,7 +64,7 @@ func (h *Handler) CreateNewPostV2(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err := h.postService.NewPost(r.Context(), *currentUser, requestBody.Text, requestBody.ImageKeymap, requestBody.Poll, requestBody.Visibility)
+	_, err := h.svc.NewPost(r.Context(), *currentUser, requestBody.Text, requestBody.ImageKeymap, requestBody.Poll, requestBody.Visibility)
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
 		return
@@ -51,7 +84,7 @@ func (h *Handler) GetPresignedUrl(w http.ResponseWriter, r *http.Request) {
 
 	folder := r.URL.Query().Get("folder")
 
-	key, url, err := h.postService.NewPresignedStagingUrl(r.Context(), *currentUser, &extension, &folder)
+	key, url, err := h.svc.NewPresignedStagingUrl(r.Context(), *currentUser, &extension, &folder)
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
 		return
@@ -69,7 +102,7 @@ func (h *Handler) GetPostById(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	post, err := h.postService.GetPostById(r.Context(), currentUser.UserID, id)
+	post, err := h.svc.GetPostById(r.Context(), currentUser.UserID, id)
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
 		return
@@ -87,7 +120,7 @@ func (h *Handler) DeletePostById(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.postService.DeletePost(r.Context(), *currentUser, id)
+	err = h.svc.DeletePost(r.Context(), *currentUser, id)
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
 		return
@@ -111,7 +144,7 @@ func (h *Handler) GetPostsByUserIdWithTimeOffset(w http.ResponseWriter, r *http.
 		return
 	}
 
-	posts, err := h.postService.GetPosts(r.Context(), *currentUser, service.FeedTypeProfile, &userId, limit, beforeTimestamp)
+	posts, err := h.svc.GetPosts(r.Context(), *currentUser, FeedTypeProfile, &userId, limit, beforeTimestamp)
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
 		return
@@ -129,7 +162,7 @@ func (h *Handler) AddPostLike(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.postService.AddLikeToPost(r.Context(), *currentUser, id)
+	err = h.svc.AddLikeToPost(r.Context(), *currentUser, id)
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
 		return
@@ -148,7 +181,7 @@ func (h *Handler) RemovePostLike(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.postService.RemoveLikeFromPost(r.Context(), *currentUser, id)
+	err = h.svc.RemoveLikeFromPost(r.Context(), *currentUser, id)
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
 		return
@@ -167,7 +200,7 @@ func (h *Handler) ReportPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.postService.ReportPost(r.Context(), currentUser, id)
+	err = h.svc.ReportPost(r.Context(), currentUser, id)
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
 		return
@@ -191,7 +224,7 @@ func (h *Handler) VoteOnPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.postService.VoteOnPoll(r.Context(), *currentUser, postId, optionIndex)
+	err = h.svc.VoteOnPoll(r.Context(), *currentUser, postId, optionIndex)
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
 		return
@@ -209,7 +242,7 @@ func (h *Handler) GetAllPostsWithTimeOffset(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	posts, err := h.postService.GetPosts(r.Context(), *currentUser, service.FeedTypeAll, nil, limit, beforeTimestamp)
+	posts, err := h.svc.GetPosts(r.Context(), *currentUser, FeedTypeAll, nil, limit, beforeTimestamp)
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
 		return
@@ -227,7 +260,7 @@ func (h *Handler) GetPostsByFollowingWithTimeOffset(w http.ResponseWriter, r *ht
 		return
 	}
 
-	posts, err := h.postService.GetPosts(r.Context(), *currentUser, service.FeedTypeFollowing, nil, limit, beforeTimestamp)
+	posts, err := h.svc.GetPosts(r.Context(), *currentUser, FeedTypeFollowing, nil, limit, beforeTimestamp)
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
 		return
@@ -248,7 +281,7 @@ func (h *Handler) GetMutualFeedWithTimeOffset(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	posts, err := h.postService.GetPosts(r.Context(), *currentUser, service.FeedTypeMutual, nil, limit, beforeTimestamp)
+	posts, err := h.svc.GetPosts(r.Context(), *currentUser, FeedTypeMutual, nil, limit, beforeTimestamp)
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
 		return
@@ -270,7 +303,7 @@ func (h *Handler) PinPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.postService.PinPost(r.Context(), *currentUser, postId)
+	err = h.svc.PinPost(r.Context(), *currentUser, postId)
 	if err != nil {
 		if err.Error() == "post not found" {
 			utilities.HandleError(w, http.StatusNotFound, "Post not found")
@@ -291,7 +324,7 @@ func (h *Handler) PinPost(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) UnpinPost(w http.ResponseWriter, r *http.Request) {
 	currentUser := utilities.GetAuthenticatedUser(r)
 
-	err := h.postService.UnpinPost(r.Context(), *currentUser)
+	err := h.svc.UnpinPost(r.Context(), *currentUser)
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
 		return

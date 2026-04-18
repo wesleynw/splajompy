@@ -1,4 +1,4 @@
-package service_test
+package post_test
 
 import (
 	"context"
@@ -8,17 +8,18 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"splajompy.com/api/v2/internal/comment"
 	"splajompy.com/api/v2/internal/models"
 	"splajompy.com/api/v2/internal/notification"
-	"splajompy.com/api/v2/internal/service"
+	"splajompy.com/api/v2/internal/post"
 	"splajompy.com/api/v2/internal/testutil"
 	"splajompy.com/api/v2/internal/user"
 	"splajompy.com/api/v2/internal/utilities"
 )
 
 type postServiceTestEnv struct {
-	svc            *service.PostService
-	commentSvc     *service.CommentService
+	svc            *post.Service
+	commentSvc     *comment.Service
 	userRepository user.Store
 }
 
@@ -28,9 +29,9 @@ func setupPostTest(t *testing.T) postServiceTestEnv {
 
 	_ = os.Setenv("ENVIRONMENT", "test")
 
-	notificationService := notification.NewService(db.NotificationStore, db.PostRepository, db.CommentRepository, db.UserRepository, db.BucketRepository)
-	svc := service.NewPostService(db.PostRepository, db.UserRepository, db.LikeRepository, *notificationService, db.BucketRepository, nil)
-	commentSvc := service.NewCommentService(db.CommentRepository, db.PostRepository, *notificationService, db.UserRepository, db.LikeRepository, db.BucketRepository)
+	notificationService := notification.NewService(db.NotificationStore, db.PostRepository, &db.CommentRepository, db.UserRepository, db.BucketRepository)
+	svc := post.NewService(db.PostRepository, db.UserRepository, db.LikeRepository, *notificationService, db.BucketRepository, nil)
+	commentSvc := comment.NewService(&db.CommentRepository, db.PostRepository, *notificationService, db.UserRepository, db.LikeRepository, db.BucketRepository)
 
 	return postServiceTestEnv{
 		svc:            svc,
@@ -99,27 +100,27 @@ func TestGetPosts_DoesNotReturnPrivatePosts(t *testing.T) {
 	user0 := testutil.CreateTestUser(t, env.userRepository, "user0")
 	user1 := testutil.CreateTestUser(t, env.userRepository, "user1")
 
-	post, err := env.svc.NewPost(t.Context(), user0, "test post please ignore", nil, nil, new(int(models.VisibilityCloseFriends)))
+	new_post, err := env.svc.NewPost(t.Context(), user0, "test post please ignore", nil, nil, new(int(models.VisibilityCloseFriends)))
 	assert.NoError(t, err)
 
 	// user1 should not be able to see the private post
-	returned_post, err := env.svc.GetPostById(t.Context(), user1.UserID, post.PostID)
+	returned_post, err := env.svc.GetPostById(t.Context(), user1.UserID, new_post.PostID)
 	assert.Error(t, err)
 	assert.Nil(t, returned_post)
 
-	all_posts, err := env.svc.GetPosts(t.Context(), user1, service.FeedTypeAll, nil, 10, nil)
+	all_posts, err := env.svc.GetPosts(t.Context(), user1, post.FeedTypeAll, nil, 10, nil)
 	require.NoError(t, err)
 	assert.Len(t, all_posts, 0)
 
-	mutual_posts, err := env.svc.GetPosts(t.Context(), user1, service.FeedTypeMutual, nil, 10, nil)
+	mutual_posts, err := env.svc.GetPosts(t.Context(), user1, post.FeedTypeMutual, nil, 10, nil)
 	require.NoError(t, err)
 	assert.Len(t, mutual_posts, 0)
 
-	following_posts, err := env.svc.GetPosts(t.Context(), user1, service.FeedTypeFollowing, nil, 10, nil)
+	following_posts, err := env.svc.GetPosts(t.Context(), user1, post.FeedTypeFollowing, nil, 10, nil)
 	require.NoError(t, err)
 	assert.Len(t, following_posts, 0)
 
-	profile_posts, err := env.svc.GetPosts(t.Context(), user1, service.FeedTypeProfile, &user0.UserID, 10, nil)
+	profile_posts, err := env.svc.GetPosts(t.Context(), user1, post.FeedTypeProfile, &user0.UserID, 10, nil)
 	require.NoError(t, err)
 	assert.Len(t, profile_posts, 0)
 }
@@ -157,19 +158,19 @@ func TestGetPosts_HiddenWhenPosterBlockedViewer(t *testing.T) {
 	err = env.userRepository.BlockUser(t.Context(), poster.UserID, viewer.UserID)
 	assert.NoError(t, err)
 
-	posts, err := env.svc.GetPosts(t.Context(), viewer, service.FeedTypeAll, nil, 10, nil)
+	posts, err := env.svc.GetPosts(t.Context(), viewer, post.FeedTypeAll, nil, 10, nil)
 	assert.NoError(t, err)
 	assert.Len(t, posts, 0)
 
-	posts, err = env.svc.GetPosts(t.Context(), viewer, service.FeedTypeFollowing, nil, 10, nil)
+	posts, err = env.svc.GetPosts(t.Context(), viewer, post.FeedTypeFollowing, nil, 10, nil)
 	assert.NoError(t, err)
 	assert.Len(t, posts, 0)
 
-	posts, err = env.svc.GetPosts(t.Context(), viewer, service.FeedTypeMutual, nil, 10, nil)
+	posts, err = env.svc.GetPosts(t.Context(), viewer, post.FeedTypeMutual, nil, 10, nil)
 	assert.NoError(t, err)
 	assert.Len(t, posts, 0)
 
-	posts, err = env.svc.GetPosts(t.Context(), viewer, service.FeedTypeProfile, &poster.UserID, 10, nil)
+	posts, err = env.svc.GetPosts(t.Context(), viewer, post.FeedTypeProfile, &poster.UserID, 10, nil)
 	assert.NoError(t, err)
 	assert.Len(t, posts, 0)
 }
@@ -199,13 +200,13 @@ func TestGetPosts_ProfilePinnedPostDoesNotReduceSubsequentPageSize(t *testing.T)
 	err := env.svc.PinPost(ctx, user, created[0].PostID)
 	require.NoError(t, err)
 
-	page1, err := env.svc.GetPosts(ctx, user, service.FeedTypeProfile, &user.UserID, limit, nil)
+	page1, err := env.svc.GetPosts(ctx, user, post.FeedTypeProfile, &user.UserID, limit, nil)
 	require.NoError(t, err)
 	require.Len(t, page1, limit+1) // pinned post returned in first page
 
 	cursor := page1[len(page1)-1].Post.CreatedAt
 
-	page2, err := env.svc.GetPosts(ctx, user, service.FeedTypeProfile, &user.UserID, limit, &cursor)
+	page2, err := env.svc.GetPosts(ctx, user, post.FeedTypeProfile, &user.UserID, limit, &cursor)
 	require.NoError(t, err)
 	assert.Len(t, page2, limit)
 	for _, p := range page2 {

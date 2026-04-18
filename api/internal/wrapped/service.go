@@ -1,4 +1,4 @@
-package service
+package wrapped
 
 import (
 	"context"
@@ -11,16 +11,17 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	"splajompy.com/api/v2/internal/db/queries"
 	"splajompy.com/api/v2/internal/models"
+	"splajompy.com/api/v2/internal/post"
 	"splajompy.com/api/v2/internal/utilities"
 )
 
-type WrappedService struct {
+type Service struct {
 	querier     queries.Querier
-	postService *PostService
+	postService *post.Service
 }
 
-func NewWrappedService(querier queries.Querier, postService *PostService) *WrappedService {
-	return &WrappedService{
+func NewService(querier queries.Querier, postService *post.Service) *Service {
+	return &Service{
 		querier:     querier,
 		postService: postService,
 	}
@@ -28,7 +29,7 @@ func NewWrappedService(querier queries.Querier, postService *PostService) *Wrapp
 
 var fetchLimit = 50
 
-func (s *WrappedService) GetPrecomputedWrappedDataByUserId(ctx context.Context, userId int) (*models.WrappedData, error) {
+func (s *Service) GetPrecomputedWrappedDataByUserId(ctx context.Context, userId int) (*models.WrappedData, error) {
 	data, err := s.querier.WrappedGetCompiledDataByUserId(ctx, userId)
 	if err != nil {
 		return nil, err
@@ -60,7 +61,7 @@ type PrecomputationResult struct {
 	MissingWordCountData       int
 }
 
-func (s *WrappedService) PrecomputeWrappedForAllUsers(ctx context.Context) (*PrecomputationResult, error) {
+func (s *Service) PrecomputeWrappedForAllUsers(ctx context.Context) (*PrecomputationResult, error) {
 	err := s.querier.WrappedDeleteAllStored(ctx)
 	if err != nil {
 		return nil, err
@@ -109,7 +110,7 @@ func (s *WrappedService) PrecomputeWrappedForAllUsers(ctx context.Context) (*Pre
 // 1. have at least one post
 // 2. have an account created prior to 12/25/2025
 // 3. has one like on a post
-func (s *WrappedService) IsUserEligibleForWrapped(ctx context.Context, userId int) (bool, error) {
+func (s *Service) IsUserEligibleForWrapped(ctx context.Context, userId int) (bool, error) {
 	user, err := s.querier.GetUserById(ctx, userId)
 	if err != nil {
 		return false, err
@@ -141,7 +142,7 @@ func (s *WrappedService) IsUserEligibleForWrapped(ctx context.Context, userId in
 	return true, nil
 }
 
-func (s *WrappedService) compileWrappedForUser(ctx context.Context, userId int, precomputationResult *PrecomputationResult) (*models.WrappedData, error) {
+func (s *Service) compileWrappedForUser(ctx context.Context, userId int, precomputationResult *PrecomputationResult) (*models.WrappedData, error) {
 	var data models.WrappedData
 
 	activity, weeklyActivity, err := s.getUserActivityData(ctx, userId)
@@ -222,7 +223,7 @@ func (s *WrappedService) compileWrappedForUser(ctx context.Context, userId int, 
 	return &data, nil
 }
 
-func (s *WrappedService) getUserActivityData(ctx context.Context, userId int) (*models.UserActivityData, *[]int, error) {
+func (s *Service) getUserActivityData(ctx context.Context, userId int) (*models.UserActivityData, *[]int, error) {
 	counts := make(map[string]int)
 	weeklyCounts := make([]int, 7)
 	yearStart := time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC)
@@ -353,7 +354,7 @@ func (s *WrappedService) getUserActivityData(ctx context.Context, userId int) (*
 	}, &weeklyCounts, nil
 }
 
-func (s *WrappedService) getPercentShareOfContent(ctx context.Context, userId int) (*models.SliceData, error) {
+func (s *Service) getPercentShareOfContent(ctx context.Context, userId int) (*models.SliceData, error) {
 	totalPosts, err := s.querier.WrappedGetTotalPosts(ctx)
 	if err != nil {
 		return nil, err
@@ -408,7 +409,7 @@ func (s *WrappedService) getPercentShareOfContent(ctx context.Context, userId in
 	}, nil
 }
 
-func (s *WrappedService) getComparativePostData(ctx context.Context, userId int) (*models.ComparativePostStatisticsData, error) {
+func (s *Service) getComparativePostData(ctx context.Context, userId int) (*models.ComparativePostStatisticsData, error) {
 	averagePostLength, err := s.querier.WrappedGetAveragePostLength(ctx)
 	if err != nil {
 		return nil, err
@@ -437,7 +438,7 @@ func (s *WrappedService) getComparativePostData(ctx context.Context, userId int)
 	return &data, nil
 }
 
-func (s *WrappedService) getMostLikedPost(ctx context.Context, userId int) (*models.DetailedPost, error) {
+func (s *Service) getMostLikedPost(ctx context.Context, userId int) (*models.DetailedPost, error) {
 	postId, err := s.querier.WrappedGetMostLikedPostId(ctx, userId)
 	if err != nil {
 		return nil, err
@@ -451,7 +452,7 @@ func (s *WrappedService) getMostLikedPost(ctx context.Context, userId int) (*mod
 	return post, nil
 }
 
-func (s *WrappedService) getFavoriteUsers(ctx context.Context, userId int) (*[]models.FavoriteUserData, error) {
+func (s *Service) getFavoriteUsers(ctx context.Context, userId int) (*[]models.FavoriteUserData, error) {
 	givenPostLikes, err := s.querier.WrappedGetUsersWhoGetMostLikesForPosts(ctx, userId)
 	if err != nil {
 		return nil, err
@@ -532,7 +533,7 @@ func (s *WrappedService) getFavoriteUsers(ctx context.Context, userId int) (*[]m
 	return &users, nil
 }
 
-func (s *WrappedService) getControversialPoll(ctx context.Context, userId int) (*models.DetailedPoll, error) {
+func (s *Service) getControversialPoll(ctx context.Context, userId int) (*models.DetailedPoll, error) {
 	polls, err := s.querier.WrappedGetPollsThatUserVotedIn(ctx, userId)
 	if err != nil {
 		return nil, err
@@ -567,7 +568,7 @@ func (s *WrappedService) getControversialPoll(ctx context.Context, userId int) (
 }
 
 // getWordCountData sums the total number of words used in a user's  posts and comments
-func (s *WrappedService) getWordCountData(ctx context.Context, userId int) (*int, error) {
+func (s *Service) getWordCountData(ctx context.Context, userId int) (*int, error) {
 	totalWordCount := 0
 	var cursor *time.Time
 

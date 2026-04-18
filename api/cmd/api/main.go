@@ -11,10 +11,14 @@ import (
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	semconv "go.opentelemetry.io/otel/semconv/v1.39.0"
 	"go.opentelemetry.io/otel/trace"
+	"splajompy.com/api/v2/internal/auth"
 	"splajompy.com/api/v2/internal/bucket"
+	"splajompy.com/api/v2/internal/comment"
 	"splajompy.com/api/v2/internal/db/queries"
+	"splajompy.com/api/v2/internal/like"
 	"splajompy.com/api/v2/internal/notification"
-	"splajompy.com/api/v2/internal/repositories"
+	"splajompy.com/api/v2/internal/post"
+	"splajompy.com/api/v2/internal/stats"
 	"splajompy.com/api/v2/internal/user"
 	"splajompy.com/api/v2/internal/utilities"
 
@@ -24,7 +28,6 @@ import (
 
 	"splajompy.com/api/v2/internal/handler"
 	"splajompy.com/api/v2/internal/middleware"
-	"splajompy.com/api/v2/internal/service"
 )
 
 func main() {
@@ -73,31 +76,33 @@ func main() {
 
 	bucketRepository := bucket.NewS3BucketRepository(s3Client)
 
-	postRepository := repositories.NewDBPostRepository(q)
+	postRepository := post.NewDBPostRepository(q)
 	userRepository := user.NewUserRepository(q)
 	notificationsRepository := notification.NewNotificationStore(q)
-	commentRepository := repositories.NewDBCommentRepository(q)
-	likeRepository := repositories.NewDBLikeRepository(q)
-	statsRepository := repositories.NewDBStatsRepository(q)
+	commentRepository := comment.NewStore(q)
+	likeRepository := like.NewStore(q)
+	statsRepository := stats.NewStore(q)
 
 	notificationService := notification.NewService(notificationsRepository, postRepository, commentRepository, userRepository, bucketRepository)
 
-	postService := service.NewPostService(postRepository, userRepository, likeRepository, *notificationService, bucketRepository, resendClient)
-	commentService := service.NewCommentService(commentRepository, postRepository, *notificationService, userRepository, likeRepository, bucketRepository)
+	postService := post.NewService(postRepository, userRepository, likeRepository, *notificationService, bucketRepository, resendClient)
+	postHandler := post.NewHandler(postService)
+	commentService := comment.NewService(commentRepository, postRepository, *notificationService, userRepository, likeRepository, bucketRepository)
+	commentHandler := comment.NewHandler(commentService)
 	userService := user.NewUserService(userRepository, notificationsRepository, resendClient)
 	userHandler := user.NewHandler(userService)
 	notificationHandler := notification.NewHandler(notificationService)
-	authManager := service.NewAuthService(userRepository, postRepository, bucketRepository, resendClient)
-	statsService := service.NewStatsService(statsRepository)
-	wrappedService := service.NewWrappedService(q, postService)
+	authService := auth.NewService(userRepository, postRepository, bucketRepository, resendClient)
+	authHandler := auth.NewHandler(authService)
+	statsService := stats.NewService(statsRepository)
+	statsHandler := stats.NewHandler(statsService)
 
-	h := handler.NewHandler(q, postService, commentService, userHandler, notificationHandler, authManager, statsService, wrappedService)
+	h := handler.NewHandler(postHandler, commentHandler, userHandler, notificationHandler, authHandler, statsHandler)
 
 	mux := http.NewServeMux()
 
 	authMiddleware := middleware.AuthMiddleware(q)
 	h.RegisterRoutes(mux.HandleFunc, authMiddleware)
-	h.RegisterPublicRoutes(mux.HandleFunc)
 
 	routedMux := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		mux.ServeHTTP(w, r)

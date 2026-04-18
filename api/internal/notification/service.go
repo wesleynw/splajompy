@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"splajompy.com/api/v2/internal/bucket"
-	"splajompy.com/api/v2/internal/repositories"
+	"splajompy.com/api/v2/internal/db/queries"
 	"splajompy.com/api/v2/internal/utilities"
 
 	"splajompy.com/api/v2/internal/models"
@@ -16,10 +16,15 @@ import (
 
 type Service struct {
 	notificationRepository NotificationStore
-	postRepository         repositories.PostRepository
-	commentRepository      repositories.CommentRepository
+	postRepository         postReader
+	commentRepository      commentReader
 	userRepository         userReader
 	bucketRepository       bucket.Repository
+}
+
+type postReader interface {
+	GetPostById(ctx context.Context, postId int, currentUserId int) (*models.Post, error)
+	GetImagesForPost(ctx context.Context, postId int) ([]queries.Image, error)
 }
 
 type userReader interface {
@@ -28,7 +33,12 @@ type userReader interface {
 	GetUserLatestAppVersion(ctx context.Context, userId int) (*string, error)
 }
 
-func NewService(notificationRepository NotificationStore, postRepository repositories.PostRepository, commentRepository repositories.CommentRepository, userRepository userReader, bucketRepository bucket.Repository) *Service {
+type commentReader interface {
+	GetCommentById(ctx context.Context, commentId int) (queries.Comment, error)
+	GetImagesByCommentId(ctx context.Context, commentId int) ([]queries.Image, error)
+}
+
+func NewService(notificationRepository NotificationStore, postRepository postReader, commentRepository commentReader, userRepository userReader, bucketRepository bucket.Repository) *Service {
 	return &Service{
 		notificationRepository: notificationRepository,
 		postRepository:         postRepository,

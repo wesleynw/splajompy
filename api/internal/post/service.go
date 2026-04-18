@@ -1,4 +1,4 @@
-package service
+package post
 
 import (
 	"context"
@@ -13,25 +13,25 @@ import (
 	"splajompy.com/api/v2/internal/bucket"
 	"splajompy.com/api/v2/internal/db"
 	"splajompy.com/api/v2/internal/db/queries"
+	"splajompy.com/api/v2/internal/like"
 	"splajompy.com/api/v2/internal/models"
 	"splajompy.com/api/v2/internal/notification"
-	"splajompy.com/api/v2/internal/repositories"
 	"splajompy.com/api/v2/internal/templates"
 	"splajompy.com/api/v2/internal/user"
 	"splajompy.com/api/v2/internal/utilities"
 )
 
-type PostService struct {
-	postRepository      repositories.PostRepository
+type Service struct {
+	postRepository      Store
 	userRepository      user.Store
-	likeRepository      repositories.LikeRepository
+	likeRepository      like.Store
 	notificationService notification.Service
 	bucketRepository    bucket.Repository
 	emailService        *resend.Client
 }
 
-func NewPostService(postRepository repositories.PostRepository, userRepository user.Store, likeRepository repositories.LikeRepository, notificationService notification.Service, bucketRepo bucket.Repository, emailService *resend.Client) *PostService {
-	return &PostService{
+func NewService(postRepository Store, userRepository user.Store, likeRepository like.Store, notificationService notification.Service, bucketRepo bucket.Repository, emailService *resend.Client) *Service {
+	return &Service{
 		postRepository:      postRepository,
 		userRepository:      userRepository,
 		likeRepository:      likeRepository,
@@ -42,7 +42,7 @@ func NewPostService(postRepository repositories.PostRepository, userRepository u
 }
 
 // NewPost preprocesses a new post and stores it in the database.
-func (s *PostService) NewPost(ctx context.Context, currentUser models.PublicUser, text string, imageKeymap map[int]models.ImageData, poll *db.Poll, visibilityEnum *int) (*models.Post, error) {
+func (s *Service) NewPost(ctx context.Context, currentUser models.PublicUser, text string, imageKeymap map[int]models.ImageData, poll *db.Poll, visibilityEnum *int) (*models.Post, error) {
 	facets, err := utilities.GenerateFacets(ctx, s.userRepository, text)
 	if err != nil {
 		return nil, err
@@ -97,12 +97,12 @@ func (s *PostService) NewPost(ctx context.Context, currentUser models.PublicUser
 	return post, nil
 }
 
-func (s *PostService) NewPresignedStagingUrl(ctx context.Context, currentUser models.PublicUser, extension *string, folder *string) (string, string, error) {
+func (s *Service) NewPresignedStagingUrl(ctx context.Context, currentUser models.PublicUser, extension *string, folder *string) (string, string, error) {
 	return s.bucketRepository.GetPresignedPutObject(ctx, currentUser.UserID, extension, folder)
 }
 
 // GetPostById fetches a post by its id.
-func (s *PostService) GetPostById(ctx context.Context, userId int, postId int) (*models.DetailedPost, error) {
+func (s *Service) GetPostById(ctx context.Context, userId int, postId int) (*models.DetailedPost, error) {
 	post, err := s.postRepository.GetPostById(ctx, postId, userId)
 	if err != nil {
 		return nil, err
@@ -169,7 +169,7 @@ func (s *PostService) GetPostById(ctx context.Context, userId int, postId int) (
 	}, nil
 }
 
-func (s *PostService) getPostsByPostIDs(ctx context.Context, currentUser models.PublicUser, postIDs []int) ([]models.DetailedPost, error) {
+func (s *Service) getPostsByPostIDs(ctx context.Context, currentUser models.PublicUser, postIDs []int) ([]models.DetailedPost, error) {
 	posts := make([]models.DetailedPost, len(postIDs))
 
 	g, ctx := errgroup.WithContext(ctx)
@@ -192,7 +192,7 @@ func (s *PostService) getPostsByPostIDs(ctx context.Context, currentUser models.
 	return posts, nil
 }
 
-func (s *PostService) AddLikeToPost(ctx context.Context, currentUser models.PublicUser, postId int) error {
+func (s *Service) AddLikeToPost(ctx context.Context, currentUser models.PublicUser, postId int) error {
 	err := s.likeRepository.AddLike(ctx, currentUser.UserID, postId, nil)
 	if err != nil {
 		return err
@@ -203,7 +203,7 @@ func (s *PostService) AddLikeToPost(ctx context.Context, currentUser models.Publ
 
 // RemoveLikeFromPost removes the current user's like from a post and deletes
 // related notifications created within the last 5 minutes.
-func (s *PostService) RemoveLikeFromPost(ctx context.Context, currentUser models.PublicUser, postId int) error {
+func (s *Service) RemoveLikeFromPost(ctx context.Context, currentUser models.PublicUser, postId int) error {
 	err := s.likeRepository.RemoveLike(ctx, currentUser.UserID, postId, nil)
 	if err != nil {
 		return err
@@ -212,7 +212,7 @@ func (s *PostService) RemoveLikeFromPost(ctx context.Context, currentUser models
 	return s.notificationService.RemoveLikeNotification(ctx, currentUser.UserID, postId, nil)
 }
 
-func (s *PostService) DeletePost(ctx context.Context, currentUser models.PublicUser, postId int) error {
+func (s *Service) DeletePost(ctx context.Context, currentUser models.PublicUser, postId int) error {
 	post, err := s.postRepository.GetPostById(ctx, postId, currentUser.UserID)
 	if err != nil {
 		return err
@@ -227,7 +227,7 @@ func (s *PostService) DeletePost(ctx context.Context, currentUser models.PublicU
 
 // getRelevantLikes deterministically returns a short list of other users who have liked a given post,
 // along with a bool indicating whether there are more likers beyond the returned slice.
-func (s *PostService) getRelevantLikes(ctx context.Context, userId int, postId int) ([]models.RelevantLike, bool, error) {
+func (s *Service) getRelevantLikes(ctx context.Context, userId int, postId int) ([]models.RelevantLike, bool, error) {
 	likes, err := s.likeRepository.GetOtherPostLikes(ctx, postId, userId)
 	if err != nil {
 		return nil, false, err
@@ -251,7 +251,7 @@ func (s *PostService) getRelevantLikes(ctx context.Context, userId int, postId i
 	return mappedLikes, hasOtherLikes, nil
 }
 
-func (s *PostService) ReportPost(ctx context.Context, currentUser *models.PublicUser, postId int) error {
+func (s *Service) ReportPost(ctx context.Context, currentUser *models.PublicUser, postId int) error {
 	post, err := s.postRepository.GetPostById(ctx, postId, currentUser.UserID)
 	if err != nil {
 		return err
@@ -296,7 +296,7 @@ func (s *PostService) ReportPost(ctx context.Context, currentUser *models.Public
 	return err
 }
 
-func (s *PostService) GetPollDetails(ctx context.Context, userId int, postId int, poll db.Poll) (*models.DetailedPoll, error) {
+func (s *Service) GetPollDetails(ctx context.Context, userId int, postId int, poll db.Poll) (*models.DetailedPoll, error) {
 	currentUserVote, err := s.postRepository.GetUserVoteInPoll(ctx, postId, userId)
 	if err != nil {
 		return nil, err
@@ -331,7 +331,7 @@ func (s *PostService) GetPollDetails(ctx context.Context, userId int, postId int
 	}, nil
 }
 
-func (s *PostService) VoteOnPoll(ctx context.Context, currentUser models.PublicUser, postId int, optionIndex int) error {
+func (s *Service) VoteOnPoll(ctx context.Context, currentUser models.PublicUser, postId int, optionIndex int) error {
 	post, err := s.postRepository.GetPostById(ctx, postId, currentUser.UserID)
 	if err != nil {
 		return err
@@ -369,7 +369,7 @@ const (
 )
 
 // GetPosts returns paginated posts from the source defined by feedType
-func (s *PostService) GetPosts(ctx context.Context, currentUser models.PublicUser, feedType FeedType, userId *int, limit int, beforeTimestamp *time.Time) ([]models.DetailedPost, error) {
+func (s *Service) GetPosts(ctx context.Context, currentUser models.PublicUser, feedType FeedType, userId *int, limit int, beforeTimestamp *time.Time) ([]models.DetailedPost, error) {
 	var postIDs []int
 	var err error
 
@@ -415,7 +415,7 @@ func (s *PostService) GetPosts(ctx context.Context, currentUser models.PublicUse
 }
 
 // PinPost pins a post for the current user
-func (s *PostService) PinPost(ctx context.Context, currentUser models.PublicUser, postId int) error {
+func (s *Service) PinPost(ctx context.Context, currentUser models.PublicUser, postId int) error {
 	post, err := s.postRepository.GetPostById(ctx, postId, currentUser.UserID)
 	if err != nil {
 		return errors.New("post not found")
@@ -429,11 +429,11 @@ func (s *PostService) PinPost(ctx context.Context, currentUser models.PublicUser
 }
 
 // UnpinPost unpins the currently pinned post for the user
-func (s *PostService) UnpinPost(ctx context.Context, currentUser models.PublicUser) error {
+func (s *Service) UnpinPost(ctx context.Context, currentUser models.PublicUser) error {
 	return s.postRepository.UnpinPost(ctx, currentUser.UserID)
 }
 
 // GetPinnedPostId retrieves the pinned post ID for a user
-func (s *PostService) GetPinnedPostId(ctx context.Context, userId int) (*int, error) {
+func (s *Service) GetPinnedPostId(ctx context.Context, userId int) (*int, error) {
 	return s.postRepository.GetPinnedPostId(ctx, userId)
 }

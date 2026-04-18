@@ -15,9 +15,11 @@ import (
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
 	"github.com/testcontainers/testcontainers-go/wait"
 	"splajompy.com/api/v2/internal/bucket"
+	"splajompy.com/api/v2/internal/comment"
 	"splajompy.com/api/v2/internal/db/queries"
+	"splajompy.com/api/v2/internal/like"
 	"splajompy.com/api/v2/internal/notification"
-	"splajompy.com/api/v2/internal/repositories"
+	"splajompy.com/api/v2/internal/post"
 	"splajompy.com/api/v2/internal/user"
 )
 
@@ -26,9 +28,9 @@ type TestDB struct {
 	Pool              *pgxpool.Pool
 	Queries           *queries.Queries
 	UserRepository    user.Store
-	PostRepository    repositories.PostRepository
-	CommentRepository repositories.CommentRepository
-	LikeRepository    repositories.LikeRepository
+	PostRepository    post.Store
+	CommentRepository comment.Store
+	LikeRepository    like.Store
 	NotificationStore notification.NotificationStore
 	BucketRepository  bucket.Repository
 }
@@ -85,9 +87,9 @@ func StartPostgres(t *testing.T) *TestDB {
 		Pool:              pool,
 		Queries:           q,
 		UserRepository:    user.NewUserRepository(q),
-		PostRepository:    repositories.NewDBPostRepository(q),
-		CommentRepository: repositories.NewDBCommentRepository(q),
-		LikeRepository:    repositories.NewDBLikeRepository(q),
+		PostRepository:    post.NewDBPostRepository(q),
+		CommentRepository: *comment.NewStore(q),
+		LikeRepository:    like.NewStore(q),
 		NotificationStore: notification.NewNotificationStore(q),
 		BucketRepository:  &bucket.FakeBucketRepository{},
 	}
