@@ -14,7 +14,7 @@ import (
 
 type Handler struct {
 	queries             queries.Querier
-	postService         *post.Service
+	postHandler         *post.Handler
 	commentHandler      *comment.Handler
 	userHandler         *user.Handler
 	notificationHandler *notification.Handler
@@ -23,7 +23,7 @@ type Handler struct {
 }
 
 func NewHandler(queries queries.Querier,
-	postService *post.Service,
+	postHandler *post.Handler,
 	commentHandler *comment.Handler,
 	userHandler *user.Handler,
 	notificationHandler *notification.Handler,
@@ -31,7 +31,7 @@ func NewHandler(queries queries.Querier,
 	statsHandler *stats.Handler) *Handler {
 	return &Handler{
 		queries:             queries,
-		postService:         postService,
+		postHandler:         postHandler,
 		commentHandler:      commentHandler,
 		userHandler:         userHandler,
 		notificationHandler: notificationHandler,
@@ -51,6 +51,8 @@ func (h *Handler) RegisterRoutes(handleFunc func(pattern string, handlerFunc fun
 	h.notificationHandler.RegisterRoutes(handleFuncWithAuth)
 	h.authHandler.RegisterPublicRoutes(handleFunc)
 	h.authHandler.RegisterRoutes(handleFuncWithAuth)
+	h.commentHandler.RegisterRoutes(handleFuncWithAuth)
+	h.postHandler.RegisterRoutes(handleFuncWithAuth)
 	h.statsHandler.RegisterPublicRoutes(handleFunc)
 	h.statsHandler.RegisterRoutes(handleFuncWithAuth)
 }
