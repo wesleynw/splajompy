@@ -15,15 +15,12 @@ func NewHandler(svc *Service) *Handler {
 	return &Handler{svc: svc}
 }
 
-func (h *Handler) RegisterRoutes(withAuth func(string, func(http.ResponseWriter, *http.Request))) {
+func (h *Handler) RegisterRoutes(public, withAuth func(string, func(http.ResponseWriter, *http.Request))) {
+	public("POST /register", h.Register)
+	public("POST /login", h.Login)
+	public("POST /otc/generate", h.GenerateOTC)
+	public("POST /otc/verify", h.VerifyOTC)
 	withAuth("POST /account/delete", h.DeleteAccount)
-}
-
-func (h *Handler) RegisterPublicRoutes(handleFunc func(pattern string, handlerFunc func(http.ResponseWriter, *http.Request))) {
-	handleFunc("POST /register", h.Register)
-	handleFunc("POST /login", h.Login)
-	handleFunc("POST /otc/generate", h.GenerateOTC)
-	handleFunc("POST /otc/verify", h.VerifyOTC)
 }
 
 type LoginRequest struct {

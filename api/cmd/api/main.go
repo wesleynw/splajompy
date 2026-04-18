@@ -81,7 +81,7 @@ func main() {
 	notificationsRepository := notification.NewNotificationStore(q)
 	commentRepository := comment.NewStore(q)
 	likeRepository := like.NewStore(q)
-	statsRepository := stats.NewDBStatsRepository(q)
+	statsRepository := stats.NewStore(q)
 
 	notificationService := notification.NewService(notificationsRepository, postRepository, commentRepository, userRepository, bucketRepository)
 
@@ -97,7 +97,7 @@ func main() {
 	statsService := stats.NewService(statsRepository)
 	statsHandler := stats.NewHandler(statsService)
 
-	h := handler.NewHandler(q, postHandler, commentHandler, userHandler, notificationHandler, authHandler, statsHandler)
+	h := handler.NewHandler(postHandler, commentHandler, userHandler, notificationHandler, authHandler, statsHandler)
 
 	mux := http.NewServeMux()
 

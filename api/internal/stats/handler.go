@@ -15,13 +15,10 @@ func NewHandler(svc *Service) *Handler {
 	return &Handler{svc: svc}
 }
 
-func (h *Handler) RegisterRoutes(withAuth func(string, func(http.ResponseWriter, *http.Request))) {
+func (h *Handler) RegisterRoutes(public, withAuth func(string, func(http.ResponseWriter, *http.Request))) {
+	public("GET /health", h.GetAppHealth)
+	public("GET /version-availability", h.GetVersionAvailability)
 	withAuth("GET /stats", h.GetAppStats)
-}
-
-func (h *Handler) RegisterPublicRoutes(handleFunc func(pattern string, handlerFunc func(http.ResponseWriter, *http.Request))) {
-	handleFunc("GET /health", h.GetAppHealth)
-	handleFunc("GET /version-availability", h.GetVersionAvailability)
 }
 
 func (h *Handler) GetAppStats(w http.ResponseWriter, r *http.Request) {

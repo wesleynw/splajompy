@@ -40,8 +40,8 @@ func (r Store) GetTotalNotifications(ctx context.Context) (int64, error) {
 	return r.querier.GetTotalNotifications(ctx)
 }
 
-// NewDBStatsRepository creates a new stats repository
-func NewDBStatsRepository(querier queries.Querier) Store {
+// NewStore creates a new stats repository
+func NewStore(querier queries.Querier) Store {
 	return Store{
 		querier: querier,
 	}

@@ -16,7 +16,7 @@ func NewHandler(svc *Service) *Handler {
 	return &Handler{svc: svc}
 }
 
-func (h *Handler) RegisterRoutes(withAuth func(string, func(http.ResponseWriter, *http.Request))) {
+func (h *Handler) RegisterRoutes(_, withAuth func(string, func(http.ResponseWriter, *http.Request))) {
 	withAuth("POST /post/{post_id}/comment", h.AddCommentToPostById)
 	withAuth("POST /post/{post_id}/comment/{comment_id}/liked", h.AddCommentLike)
 	withAuth("DELETE /post/{post_id}/comment/{comment_id}/liked", h.RemoveCommentLike)

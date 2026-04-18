@@ -18,7 +18,7 @@ func NewHandler(svc *Service) *Handler {
 	return &Handler{svc: svc}
 }
 
-func (h *Handler) RegisterRoutes(withAuth func(string, func(http.ResponseWriter, *http.Request))) {
+func (h *Handler) RegisterRoutes(_, withAuth func(string, func(http.ResponseWriter, *http.Request))) {
 	// post routes with time-based offset
 	withAuth("GET /v2/posts/following", h.GetPostsByFollowingWithTimeOffset)
 	withAuth("GET /v2/posts/all", h.GetAllPostsWithTimeOffset)
