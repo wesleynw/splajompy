@@ -56,19 +56,28 @@ struct FeedView: View {
       .toolbar {
         FeedTypeToggle(selectedFeedType: $selectedFeedType)
 
-        #if os(macOS)
-          if #available(macOS 26, *) {
-            ToolbarSpacer(.flexible)
+        #if os(iOS)
+          ToolbarItem(placement: .navigationBarTrailing) {
+            Button(action: { isShowingNewPostView = true }) {
+              Image(systemName: "plus")
+            }
           }
-        #endif
-
-        addPostToolbarItem
-
-        #if os(macOS)
-          if #available(macOS 26, *) {
-            ToolbarSpacer(.fixed)
+        #else
+          ToolbarItemGroup(placement: .automatic) {
+            Spacer()
+            Button(action: { isShowingNewPostView = true }) {
+              Image(systemName: "plus")
+            }
+            Button {
+              Task {
+                await viewModel.loadPosts(reset: true, useLoadingState: true)
+                PostHogSDK.shared.capture("feed_refreshed")
+              }
+            } label: {
+              Label("Refresh", systemImage: "arrow.clockwise")
+            }
+            .keyboardShortcut("r", modifiers: .command)
           }
-          feedRefreshToolbarItem
         #endif
       }
   }
@@ -94,38 +103,6 @@ struct FeedView: View {
         onRetry: { await viewModel.loadPosts(reset: true) }
       )
       .frame(maxWidth: .infinity, maxHeight: .infinity)
-    }
-  }
-
-  @ToolbarContentBuilder
-  private var addPostToolbarItem: some ToolbarContent {
-    #if os(iOS)
-      ToolbarItem(placement: .navigationBarTrailing) {
-        Button(action: { isShowingNewPostView = true }) {
-          Image(systemName: "plus")
-        }
-      }
-    #else
-      ToolbarItem(placement: .automatic) {
-        Button(action: { isShowingNewPostView = true }) {
-          Image(systemName: "plus")
-        }
-      }
-    #endif
-  }
-
-  @ToolbarContentBuilder
-  private var feedRefreshToolbarItem: some ToolbarContent {
-    ToolbarItem(placement: .automatic) {
-      Button {
-        Task {
-          await viewModel.loadPosts(reset: true, useLoadingState: true)
-          PostHogSDK.shared.capture("feed_refreshed")
-        }
-      } label: {
-        Label("Refresh", systemImage: "arrow.clockwise")
-      }
-      .keyboardShortcut("r", modifiers: .command)
     }
   }
 
