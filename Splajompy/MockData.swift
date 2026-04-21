@@ -3,7 +3,6 @@ import Foundation
 struct Mocks {
   static let testUser1 = DetailedUser(
     userId: 1,
-    email: "wesleynw@pm.me",
     username: "wesley",
     createdAt: Date(),
     name: "Wesley Weisenberger",
@@ -21,7 +20,6 @@ struct Mocks {
 
   static let testUser2 = DetailedUser(
     userId: 2,
-    email: "john@example.com",
     username: "johndoe",
     createdAt: Date(),
     name: "John Doe",
@@ -39,7 +37,6 @@ struct Mocks {
 
   static let testUser3 = DetailedUser(
     userId: 3,
-    email: "john@example.com",
     username: "johndoe",
     createdAt: Date(),
     name: nil,
@@ -55,13 +52,12 @@ struct Mocks {
     displayProperties: UserDisplayProperties(fontChoiceId: 2)
   )
 
-  static let basicUser = User(
+  static let basicUser = CurrentUserModel(
     userId: 0,
     email: "wesleynw@pmme",
     username: "Wesley",
     createdAt: Date(),
     name: "test",
-    isVerified: false
   )
 
   static let testPublicUser1 = PublicUser(

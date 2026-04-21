@@ -49,13 +49,13 @@ func (r Store) GetUserByUsername(ctx context.Context, username string) (models.P
 }
 
 // GetUserByIdentifier retrieves a user by email or username
-func (r Store) GetUserByIdentifier(ctx context.Context, identifier string) (models.PublicUser, error) {
+func (r Store) GetUserByIdentifier(ctx context.Context, identifier string) (models.FullUser, error) {
 	user, err := r.querier.GetUserByIdentifier(ctx, identifier)
 	if err != nil {
-		return models.PublicUser{}, err
+		return models.FullUser{}, err
 	}
 
-	return utilities.MapUserToPublicUser(user), nil
+	return utilities.MapUserToCurrentUserDTO(user), nil
 }
 
 // GetBioForUser retrieves a user's bio
@@ -165,7 +165,7 @@ func (r Store) GetIsEmailInUse(ctx context.Context, email string) (bool, error) 
 }
 
 // CreateUser creates a new user
-func (r Store) CreateUser(ctx context.Context, username string, email string, password string, referralCode string) (models.PublicUser, error) {
+func (r Store) CreateUser(ctx context.Context, username string, email string, password string, referralCode string) (models.FullUser, error) {
 	user, err := r.querier.CreateUser(ctx, queries.CreateUserParams{
 		Username:     username,
 		Email:        email,
@@ -173,10 +173,10 @@ func (r Store) CreateUser(ctx context.Context, username string, email string, pa
 		ReferralCode: referralCode,
 	})
 	if err != nil {
-		return models.PublicUser{}, err
+		return models.FullUser{}, err
 	}
 
-	return utilities.MapUserToPublicUser(user), nil
+	return utilities.MapUserToCurrentUserDTO(user), nil
 }
 
 // GetVerificationCode retrieves a verification code for a user

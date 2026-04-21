@@ -4,14 +4,12 @@ struct UserDisplayProperties: Codable {
   let fontChoiceId: Int?
 }
 
-struct User: Decodable {
+struct CurrentUserModel: Decodable {
   let userId: Int
   let email: String
   let username: String
   let createdAt: Date
   let name: String?
-  var isFollowing: Bool?
-  let isVerified: Bool?
 }
 
 struct PublicUser: Decodable, Identifiable {
@@ -56,7 +54,6 @@ struct PublicUser: Decodable, Identifiable {
 
 struct DetailedUser: Decodable, Identifiable {
   let userId: Int
-  let email: String
   let username: String
   let createdAt: Date
   var name: String?

@@ -1,6 +1,7 @@
 package models
 
 import (
+	"encoding/json"
 	"time"
 
 	"splajompy.com/api/v2/internal/db"
@@ -120,6 +121,15 @@ type DetailedNotification struct {
 	TargetUserUsername *string          `json:"targetUserUsername"`
 }
 
+type FullUser struct {
+	UserID            int                         `json:"userId"`
+	Email             string                      `json:"email"`
+	Username          string                      `json:"username"`
+	CreatedAt         time.Time                   `json:"createdAt"`
+	Name              string                      `json:"name"`
+	DisplayProperties PublicUserDisplayProperties `json:"displayProperties"`
+}
+
 type PublicUser struct {
 	UserID            int                         `json:"userId"`
 	Email             string                      `json:"email"`
@@ -129,6 +139,20 @@ type PublicUser struct {
 	IsVerified        bool                        `json:"isVerified"`
 	DisplayProperties PublicUserDisplayProperties `json:"displayProperties"`
 	IsFriend          *bool                       `json:"isFriend,omitempty"`
+}
+
+func (u PublicUser) MarshalJSON() ([]byte, error) {
+	type Alias PublicUser
+	return json.Marshal(Alias{
+		UserID:            u.UserID,
+		Email:             "",
+		Username:          u.Username,
+		CreatedAt:         u.CreatedAt,
+		Name:              u.Name,
+		IsVerified:        u.IsVerified,
+		DisplayProperties: u.DisplayProperties,
+		IsFriend:          u.IsFriend,
+	})
 }
 
 type DetailedUser struct {
@@ -147,6 +171,27 @@ type DetailedUser struct {
 	MutualCount       int                         `json:"mutualCount"`
 	IsVerified        bool                        `json:"isVerified"`
 	DisplayProperties PublicUserDisplayProperties `json:"displayProperties"`
+}
+
+func (u DetailedUser) MarshalJSON() ([]byte, error) {
+	type Alias DetailedUser
+	return json.Marshal(Alias{
+		UserID:            u.UserID,
+		Email:             "",
+		Username:          u.Username,
+		CreatedAt:         u.CreatedAt,
+		Name:              u.Name,
+		Bio:               u.Bio,
+		IsFollower:        u.IsFollower,
+		IsFollowing:       u.IsFollowing,
+		IsBlocking:        u.IsBlocking,
+		IsMuting:          u.IsMuting,
+		IsFriend:          u.IsFriend,
+		Mutuals:           u.Mutuals,
+		MutualCount:       u.MutualCount,
+		IsVerified:        u.IsVerified,
+		DisplayProperties: u.DisplayProperties,
+	})
 }
 
 type PaginatedUserList struct {

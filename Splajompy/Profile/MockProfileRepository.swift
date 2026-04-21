@@ -11,7 +11,6 @@ final class MockUserRepository: @unchecked Sendable {
     self.users = [
       1: DetailedUser(
         userId: 1,
-        email: "wesleynw@pm.me",
         username: "wesleynw",
         createdAt: baseDate.addingTimeInterval(-31_536_000),
         name: "Wesley Weisenberger",
@@ -32,7 +31,6 @@ final class MockUserRepository: @unchecked Sendable {
       ),
       6: DetailedUser(
         userId: 6,
-        email: "wesley@example.com",
         username: "wesley",
         createdAt: baseDate.addingTimeInterval(-25_920_000),
         name: "Wesley",
@@ -50,7 +48,6 @@ final class MockUserRepository: @unchecked Sendable {
       ),
       25: DetailedUser(
         userId: 25,
-        email: "joel@example.com",
         username: "joel",
         createdAt: baseDate.addingTimeInterval(-20_736_000),
         name: "Joel",
@@ -67,7 +64,6 @@ final class MockUserRepository: @unchecked Sendable {
       ),
       120: DetailedUser(
         userId: 120,
-        email: "sophie@example.com",
         username: "realsophie",
         createdAt: baseDate.addingTimeInterval(-18_144_000),
         name: "Sophie",
@@ -85,7 +81,6 @@ final class MockUserRepository: @unchecked Sendable {
       ),
       103: DetailedUser(
         userId: 103,
-        email: "splazackly@example.com",
         username: "splazackly",
         createdAt: baseDate.addingTimeInterval(-15_552_000),
         name: "Splazackly",
@@ -103,7 +98,6 @@ final class MockUserRepository: @unchecked Sendable {
       ),
       112: DetailedUser(
         userId: 112,
-        email: "giuseppe@example.com",
         username: "giuseppe",
         createdAt: baseDate.addingTimeInterval(-12_960_000),
         name: "Giuseppe",
@@ -121,7 +115,6 @@ final class MockUserRepository: @unchecked Sendable {
       ),
       97: DetailedUser(
         userId: 97,
-        email: "elena@example.com",
         username: "elena",
         createdAt: baseDate.addingTimeInterval(-10_368_000),
         name: "Elena",
@@ -139,7 +132,6 @@ final class MockUserRepository: @unchecked Sendable {
       ),
       113: DetailedUser(
         userId: 113,
-        email: "pari@example.com",
         username: "pari",
         createdAt: baseDate.addingTimeInterval(-7_776_000),
         name: "Pari",
@@ -282,7 +274,6 @@ struct MockProfileService: ProfileServiceProtocol {
     let paginatedUsers = Array(allUsers).map { profile in
       DetailedUser(
         userId: profile.userId,
-        email: profile.email,
         username: profile.username,
         createdAt: profile.createdAt,
         name: profile.name,

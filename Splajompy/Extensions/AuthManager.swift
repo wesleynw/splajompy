@@ -4,7 +4,7 @@ import PostHog
 
 struct AuthResponse: Decodable {
   let token: String
-  let user: User
+  let user: CurrentUserModel
 }
 
 enum AuthError {
@@ -79,7 +79,7 @@ class AuthManager: Sendable {
     isAuthenticated = false
   }
 
-  func getCurrentUser() -> User? {
+  func getCurrentUser() -> CurrentUserModel? {
     let defaults = UserDefaults.standard
 
     guard let userId = defaults.object(forKey: "CurrentUserID") as? Int,
@@ -99,17 +99,16 @@ class AuthManager: Sendable {
     ]
     let createdAt = formatter.date(from: createdAtString) ?? Date()
 
-    return User(
+    return CurrentUserModel(
       userId: userId,
       email: email,
       username: username,
       createdAt: createdAt,
       name: name,
-      isVerified: nil
     )
   }
 
-  private func saveUserData(_ user: User, token: String) {
+  private func saveUserData(_ user: CurrentUserModel, token: String) {
     KeychainHelper.standard.save(
       token,
       service: "session-token",
@@ -192,15 +191,6 @@ class AuthManager: Sendable {
     switch result {
     case .success(let authResponse):
       saveUserData(authResponse.user, token: authResponse.token)
-      #if !DEBUG
-        PostHogSDK.shared.identify(
-          String(authResponse.user.userId),
-          userProperties: [
-            "email": authResponse.user.email,
-            "username": authResponse.user.username,
-          ]
-        )
-      #endif
       PostHogSDK.shared.capture("user_signin_otc")
       return true
     case .error:
@@ -237,15 +227,6 @@ class AuthManager: Sendable {
     switch result {
     case .success(let authResponse):
       saveUserData(authResponse.user, token: authResponse.token)
-      #if !DEBUG
-        PostHogSDK.shared.identify(
-          String(authResponse.user.userId),
-          userProperties: [
-            "email": authResponse.user.email,
-            "username": authResponse.user.username,
-          ]
-        )
-      #endif
       PostHogSDK.shared.capture("user_signin")
       return (true, "")
     case .error(let error):
@@ -286,15 +267,6 @@ class AuthManager: Sendable {
     switch result {
     case .success(let authResponse):
       saveUserData(authResponse.user, token: authResponse.token)
-      #if !DEBUG
-        PostHogSDK.shared.identify(
-          String(authResponse.user.userId),
-          userProperties: [
-            "email": authResponse.user.email,
-            "username": authResponse.user.username,
-          ]
-        )
-      #endif
       PostHogSDK.shared.capture("user_register")
       return (true, "")
     case .error(let error):

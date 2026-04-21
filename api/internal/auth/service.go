@@ -139,8 +139,8 @@ type Credentials struct {
 }
 
 type AuthResponse struct {
-	Token string            `json:"token"`
-	User  models.PublicUser `json:"user"`
+	Token string          `json:"token"`
+	User  models.FullUser `json:"user"`
 }
 
 func (s *Service) VerifyPassword(ctx context.Context, identifier string, password string) (bool, error) {
