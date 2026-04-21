@@ -11,7 +11,7 @@ func InitializeProfiling() {
 	_, err := pyroscope.Start(pyroscope.Config{
 		ApplicationName:   "api",
 		ServerAddress:     "https://profiles-prod-001.grafana.net",
-		Logger:            pyroscope.StandardLogger,
+		Logger:            nil,
 		BasicAuthUser:     os.Getenv("PYROSCOPE_USER"),
 		BasicAuthPassword: os.Getenv("PYROSCOPE_PW"),
 	})
