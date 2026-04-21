@@ -132,7 +132,6 @@ class UserListViewModel {
     // create a temporary DetailedUser for optimistic update
     let tempUser = DetailedUser(
       userId: publicUser.userId,
-      email: "",
       username: publicUser.username,
       createdAt: publicUser.createdAt,
       name: publicUser.name,

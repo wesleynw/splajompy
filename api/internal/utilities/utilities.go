@@ -34,6 +34,24 @@ func MapUserToPublicUser(user queries.User) models.PublicUser {
 	return publicUser
 }
 
+func MapUserToCurrentUserDTO(user queries.User) models.FullUser {
+	dto := models.FullUser{
+		UserID:    user.UserID,
+		Email:     user.Email,
+		Username:  user.Username,
+		Name:      user.Name.String,
+		CreatedAt: user.CreatedAt.Time,
+	}
+
+	if user.UserDisplayProperties != nil {
+		dto.DisplayProperties = models.PublicUserDisplayProperties{
+			FontChoiceId: user.UserDisplayProperties.FontChoiceId,
+		}
+	}
+
+	return dto
+}
+
 // MapPost is a utility function to convert from queries.Post to models.Post.
 func MapPost(post queries.Post) models.Post {
 	return models.Post{

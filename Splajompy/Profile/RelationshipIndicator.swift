@@ -67,7 +67,6 @@ struct RelationshipIndicator: View {
       RelationshipIndicator(
         user: DetailedUser(
           userId: 4,
-          email: "friend_with_mutuals@example.com",
           username: "friend_with_mutuals",
           createdAt: Date(),
           name: "Friend With Mutuals",
@@ -87,7 +86,6 @@ struct RelationshipIndicator: View {
       RelationshipIndicator(
         user: DetailedUser(
           userId: 4,
-          email: "friend_with_mutuals@example.com",
           username: "friend_with_mutuals",
           createdAt: Date(),
           name: "Friend With Mutuals",
@@ -107,7 +105,6 @@ struct RelationshipIndicator: View {
       RelationshipIndicator(
         user: DetailedUser(
           userId: 2,
-          email: "mutual@example.com",
           username: "mutual_user",
           createdAt: Date(),
           name: "Mutual User",
@@ -127,7 +124,6 @@ struct RelationshipIndicator: View {
       RelationshipIndicator(
         user: DetailedUser(
           userId: 3,
-          email: "none@example.com",
           username: "no_connection",
           createdAt: Date(),
           name: "No Connection",
@@ -147,7 +143,6 @@ struct RelationshipIndicator: View {
       RelationshipIndicator(
         user: DetailedUser(
           userId: 3,
-          email: "none@example.com",
           username: "no_connection",
           createdAt: Date(),
           name: "No Connection",
