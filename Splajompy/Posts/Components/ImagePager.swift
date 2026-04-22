@@ -12,7 +12,7 @@ struct ImagePager: View {
   @State private var currentIndex: Int
   @State private var downloadState: DownloadState = .idle
   @State private var showPermissionAlert = false
-  @State private var isZooming = false
+  @State private var isToolbarDismissed: Bool = false
 
   enum DownloadState {
     case idle, downloading, done, error
@@ -33,121 +33,132 @@ struct ImagePager: View {
   }
 
   var body: some View {
-    NavigationStack {
-      Group {
-        #if os(iOS)
-          VStack(spacing: 0) {
-            TabView(selection: $currentIndex) {
-              ForEach(Array(imageUrls.enumerated()), id: \.offset) {
-                index,
-                url in
-                ZoomableAsyncImage(
-                  imageUrl: url,
-                  cornerRadius: 20,
-                  isZooming: $isZooming
-                )
-                .tag(index)
+    Group {
+      #if os(iOS)
+        TabView(selection: $currentIndex) {
+          ForEach(Array(imageUrls.enumerated()), id: \.offset) { index, url in
+            ZoomableAsyncImage(
+              imageUrl: url,
+              cornerRadius: 0,
+              isShowingAccessories: !isToolbarDismissed
+            )
+            .ignoresSafeArea()
+            .tag(index)
+            .onTapGesture {
+              withAnimation {
+                isToolbarDismissed.toggle()
               }
             }
-            .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
+          }
+        }
+        .tabViewStyle(
+          PageTabViewStyle(
+            indexDisplayMode: isToolbarDismissed ? .never : .always
+          )
+        )
+      #else
+        ZStack {
+          ZoomableAsyncImageMac(imageUrl: imageUrls[currentIndex])
+            .id(currentIndex)
+            .edgesIgnoringSafeArea(.all)
 
-            if imageUrls.count > 1 {
-              HStack(spacing: 8) {
-                ForEach(0..<imageUrls.count, id: \.self) { index in
-                  Circle()
-                    .fill(
-                      index == currentIndex
-                        ? Color.primary : Color.secondary.opacity(0.4)
-                    )
-                    .frame(width: 7, height: 7)
-                }
+          if imageUrls.count > 1 {
+            HStack {
+              Button {
+                withAnimation { currentIndex -= 1 }
+              } label: {
+                Image(systemName: "chevron.left")
+                  .font(.title)
+                  .padding()
+                  .contentShape(Rectangle())
               }
-              .padding(.horizontal, 12)
-              .padding(.vertical, 8)
-              .background(.ultraThinMaterial, in: .capsule)
-              .padding(.top, 8)
-            }
-          }
-        #else
-          ZStack {
-            ZoomableAsyncImageMac(imageUrl: imageUrls[currentIndex])
-              .id(currentIndex)
-              .edgesIgnoringSafeArea(.all)
+              .buttonStyle(.plain)
+              .keyboardShortcut(.leftArrow, modifiers: [])
+              .disabled(currentIndex == 0)
 
-            if imageUrls.count > 1 {
-              HStack {
-                Button {
-                  withAnimation { currentIndex -= 1 }
-                } label: {
-                  Image(systemName: "chevron.left")
-                    .font(.title)
-                    .padding()
-                    .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
-                .keyboardShortcut(.leftArrow, modifiers: [])
-                .disabled(currentIndex == 0)
+              Spacer()
 
-                Spacer()
-
-                Button {
-                  withAnimation { currentIndex += 1 }
-                } label: {
-                  Image(systemName: "chevron.right")
-                    .font(.title)
-                    .padding()
-                    .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
-                .keyboardShortcut(.rightArrow, modifiers: [])
-                .disabled(currentIndex == imageUrls.count - 1)
+              Button {
+                withAnimation { currentIndex += 1 }
+              } label: {
+                Image(systemName: "chevron.right")
+                  .font(.title)
+                  .padding()
+                  .contentShape(Rectangle())
               }
-              .padding(.horizontal)
+              .buttonStyle(.plain)
+              .keyboardShortcut(.rightArrow, modifiers: [])
+              .disabled(currentIndex == imageUrls.count - 1)
             }
+            .padding(.horizontal)
           }
-        #endif
-      }
-      .toolbar {
-        #if os(iOS)
-          if PostHogSDK.shared.isFeatureEnabled("image-downloads") {
-            saveImageToolbarItem
-          }
-        #else
-          ToolbarItem(placement: .principal) {
-            if imageUrls.count > 1 {
-              Text("\(currentIndex + 1) of \(imageUrls.count)")
-                .monospacedDigit()
-                .foregroundStyle(.secondary)
-            }
-          }
-        #endif
+        }
+      #endif
+    }
+    #if os(iOS)
+      .statusBarHidden(isToolbarDismissed)
+    #endif
+    .ignoresSafeArea()
+    .overlay(alignment: .top) {
+      if !isToolbarDismissed {
+        if #available(iOS 26, macOS 26, *) {
+          GlassEffectContainer {
+            HStack {
+              #if os(iOS)
+                if PostHogSDK.shared.isFeatureEnabled("image-downloads") {
+                  saveButton.buttonStyle(.glass)
+                }
+              #endif
 
-        ToolbarItemGroup(
-          placement: {
+              if imageUrls.count > 1 {
+                Text("\(currentIndex + 1) of \(imageUrls.count)")
+                  .monospacedDigit()
+                  .foregroundStyle(.secondary)
+              }
+
+              Spacer()
+
+              Button {
+                onDismiss()
+              } label: {
+                Label("Close", systemImage: "xmark")
+                  .labelStyle(.iconOnly)
+                  .fontWeight(.bold)
+              }
+              .buttonBorderShape(.circle)
+              .buttonStyle(.glass)
+              .controlSize(.large)
+            }
+            .padding(.horizontal)
+          }
+          .padding(.vertical, 8)
+          .safeAreaPadding(.top)
+        } else {
+          HStack {
             #if os(iOS)
-              .topBarTrailing
+              if PostHogSDK.shared.isFeatureEnabled("image-downloads") {
+                saveButton
+              }
             #else
-              .cancellationAction
+              if imageUrls.count > 1 {
+                Text("\(currentIndex + 1) of \(imageUrls.count)")
+                  .monospacedDigit()
+                  .foregroundStyle(.secondary)
+              }
             #endif
-          }()
-        ) {
-          if #available(iOS 26, macOS 26, *) {
-            Button(role: .close) {
-              onDismiss()
-            }
-          } else {
+
+            Spacer()
+
             Button("Close", systemImage: "xmark") {
               onDismiss()
             }
           }
+          .padding(.horizontal)
+          .padding(.vertical, 8)
+          .safeAreaPadding(.top)
         }
       }
     }
-    #if os(iOS)
-      .toolbar(isZooming ? .hidden : .visible, for: .navigationBar)
-    #endif
-    .ignoresSafeArea(.all, edges: isZooming ? .top : [])
-    .animation(.easeInOut(duration: 0.2), value: isZooming)
     .modifier(
       NavigationTransitionModifier(
         sourceID: "image-\(currentIndex)",
@@ -156,7 +167,6 @@ struct ImagePager: View {
     )
     .onChange(of: currentIndex) {
       downloadState = .idle
-      isZooming = false
     }
     .onChange(of: downloadState) {
       if downloadState == .error {
@@ -220,40 +230,35 @@ struct ImagePager: View {
       }
     }
 
-    @ToolbarContentBuilder
-    private var saveImageToolbarItem: some ToolbarContent {
-      ToolbarItemGroup(placement: .topBarTrailing) {
-        Button(action: {
-          let urlString = imageUrls[currentIndex]
-          Task {
-            await saveImageToPhotoLibrary(urlString: urlString)
-          }
-        }) {
-          switch downloadState {
-          case .downloading:
-            ProgressView()
-          case .done:
-            Image(systemName: "checkmark")
-          case .error:
-            Image(systemName: "exclamationmark.triangle")
-          case .idle:
-            Image(systemName: "arrow.down.to.line")
-          }
+    @ViewBuilder
+    private var saveButton: some View {
+      Button(action: {
+        let urlString = imageUrls[currentIndex]
+        Task {
+          await saveImageToPhotoLibrary(urlString: urlString)
         }
-        .contentTransition(.symbolEffect(.replace))
-        .disabled(downloadState == .downloading)
-        .sensoryFeedback(.success, trigger: downloadState) {
-          _,
-          newValue in
-          newValue == .done
-        }
-        .sensoryFeedback(.error, trigger: downloadState) { _, newValue in
-          newValue == .error
+      }) {
+        switch downloadState {
+        case .downloading:
+          ProgressView()
+        case .done:
+          Image(systemName: "checkmark")
+        case .error:
+          Image(systemName: "exclamationmark.triangle")
+        case .idle:
+          Image(systemName: "arrow.down.to.line")
         }
       }
-
-      if #available(iOS 26, *) {
-        ToolbarSpacer(.fixed, placement: .topBarTrailing)
+      .fontWeight(.bold)
+      .buttonBorderShape(.circle)
+      .controlSize(.large)
+      .contentTransition(.symbolEffect(.replace))
+      .disabled(downloadState == .downloading)
+      .sensoryFeedback(.success, trigger: downloadState) { _, newValue in
+        newValue == .done
+      }
+      .sensoryFeedback(.error, trigger: downloadState) { _, newValue in
+        newValue == .error
       }
     }
   #endif
@@ -263,6 +268,7 @@ struct ImagePager: View {
   @Previewable @Namespace var previewAnimation
 
   let imageUrls = [
+    "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/production/6/comment/11713/4b5d1415-3a84-4acd-884f-3b4233993880.jpg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Checksum-Mode=ENABLED&X-Amz-Credential=DO00R7A3VXT8XKRVG3JT%2F20260422%2Fnyc3%2Fs3%2Faws4_request&X-Amz-Date=20260422T193143Z&X-Amz-Expires=86400&X-Amz-SignedHeaders=host&x-id=GetObject&X-Amz-Signature=b71155b0076b65aae03ca224798d02cccb764bcf7681d3d92b67e82a9600f68f",
     "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/development/posts/1/9278fc8a-401b-4145-83bb-ef05d4d52632.jpeg",
     "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/development/posts/1/9278fc8a-401b-4145-83bb-ef05d4d52632.jpeg",
   ]
