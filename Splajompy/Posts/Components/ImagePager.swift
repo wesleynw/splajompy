@@ -38,9 +38,15 @@ struct ImagePager: View {
         #if os(iOS)
           VStack(spacing: 0) {
             TabView(selection: $currentIndex) {
-              ForEach(Array(imageUrls.enumerated()), id: \.offset) { index, url in
-                ZoomableAsyncImage(imageUrl: url, cornerRadius: 20, isZooming: $isZooming)
-                  .tag(index)
+              ForEach(Array(imageUrls.enumerated()), id: \.offset) {
+                index,
+                url in
+                ZoomableAsyncImage(
+                  imageUrl: url,
+                  cornerRadius: 20,
+                  isZooming: $isZooming
+                )
+                .tag(index)
               }
             }
             .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
@@ -49,7 +55,10 @@ struct ImagePager: View {
               HStack(spacing: 8) {
                 ForEach(0..<imageUrls.count, id: \.self) { index in
                   Circle()
-                    .fill(index == currentIndex ? Color.primary : Color.secondary.opacity(0.4))
+                    .fill(
+                      index == currentIndex
+                        ? Color.primary : Color.secondary.opacity(0.4)
+                    )
                     .frame(width: 7, height: 7)
                 }
               }
@@ -134,7 +143,9 @@ struct ImagePager: View {
         }
       }
     }
-    .toolbar(isZooming ? .hidden : .visible, for: .navigationBar)
+    #if os(iOS)
+      .toolbar(isZooming ? .hidden : .visible, for: .navigationBar)
+    #endif
     .ignoresSafeArea(.all, edges: isZooming ? .top : [])
     .animation(.easeInOut(duration: 0.2), value: isZooming)
     .modifier(
