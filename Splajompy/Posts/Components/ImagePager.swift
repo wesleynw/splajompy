@@ -12,6 +12,7 @@ struct ImagePager: View {
   @State private var currentIndex: Int
   @State private var downloadState: DownloadState = .idle
   @State private var showPermissionAlert = false
+  @State private var isZooming = false
 
   enum DownloadState {
     case idle, downloading, done, error
@@ -38,7 +39,7 @@ struct ImagePager: View {
           VStack(spacing: 0) {
             TabView(selection: $currentIndex) {
               ForEach(Array(imageUrls.enumerated()), id: \.offset) { index, url in
-                ZoomableAsyncImage(imageUrl: url, cornerRadius: 20)
+                ZoomableAsyncImage(imageUrl: url, cornerRadius: 20, isZooming: $isZooming)
                   .tag(index)
               }
             }
@@ -133,6 +134,9 @@ struct ImagePager: View {
         }
       }
     }
+    .toolbar(isZooming ? .hidden : .visible, for: .navigationBar)
+    .ignoresSafeArea(.all, edges: isZooming ? .top : [])
+    .animation(.easeInOut(duration: 0.2), value: isZooming)
     .modifier(
       NavigationTransitionModifier(
         sourceID: "image-\(currentIndex)",
@@ -141,6 +145,7 @@ struct ImagePager: View {
     )
     .onChange(of: currentIndex) {
       downloadState = .idle
+      isZooming = false
     }
     .onChange(of: downloadState) {
       if downloadState == .error {
