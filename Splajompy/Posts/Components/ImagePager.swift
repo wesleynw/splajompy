@@ -35,16 +35,29 @@ struct ImagePager: View {
     NavigationStack {
       Group {
         #if os(iOS)
-          TabView(selection: $currentIndex) {
-            ForEach(Array(imageUrls.enumerated()), id: \.offset) { index, url in
-              ZoomableAsyncImage(imageUrl: url)
-                .ignoresSafeArea()
-                .tag(index)
+          VStack(spacing: 0) {
+            TabView(selection: $currentIndex) {
+              ForEach(Array(imageUrls.enumerated()), id: \.offset) { index, url in
+                ZoomableAsyncImage(imageUrl: url, cornerRadius: 20)
+                  .tag(index)
+              }
+            }
+            .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
+
+            if imageUrls.count > 1 {
+              HStack(spacing: 8) {
+                ForEach(0..<imageUrls.count, id: \.self) { index in
+                  Circle()
+                    .fill(index == currentIndex ? Color.primary : Color.secondary.opacity(0.4))
+                    .frame(width: 7, height: 7)
+                }
+              }
+              .padding(.horizontal, 12)
+              .padding(.vertical, 8)
+              .background(.ultraThinMaterial, in: .capsule)
+              .padding(.top, 8)
             }
           }
-          .tabViewStyle(PageTabViewStyle())
-          .indexViewStyle(PageIndexViewStyle(backgroundDisplayMode: .always))
-          .ignoresSafeArea()
         #else
           ZStack {
             ZoomableAsyncImageMac(imageUrl: imageUrls[currentIndex])
@@ -234,7 +247,6 @@ struct ImagePager: View {
   @Previewable @Namespace var previewAnimation
 
   let imageUrls = [
-    "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/development/posts/1/9278fc8a-401b-4145-83bb-ef05d4d52632.jpeg",
     "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/development/posts/1/9278fc8a-401b-4145-83bb-ef05d4d52632.jpeg",
     "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/development/posts/1/9278fc8a-401b-4145-83bb-ef05d4d52632.jpeg",
   ]

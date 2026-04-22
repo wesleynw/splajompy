@@ -6,6 +6,7 @@ import SwiftUI
   /// A zoomable, pannable async image display. Wraps UIScrollView and LazyImageView.
   struct ZoomableAsyncImage: UIViewRepresentable {
     let imageUrl: String
+    var cornerRadius: CGFloat = 0
 
     func makeUIView(context: Context) -> some UIView {
       let scrollView = UIScrollView()
@@ -24,7 +25,13 @@ import SwiftUI
       doubleTapRecognizer.numberOfTapsRequired = 2
       scrollView.addGestureRecognizer(doubleTapRecognizer)
 
+      scrollView.backgroundColor = .clear
+
       imageLoaderView.placeholderView = UIActivityIndicatorView()
+      imageLoaderView.processors = [
+        .resize(size: UIScreen.main.bounds.size, contentMode: .aspectFit),
+        .roundedCorners(radius: cornerRadius, unit: .points),
+      ]
       imageLoaderView.url = URL(string: imageUrl)
       imageLoaderView.imageView.contentMode = .scaleAspectFit
       imageLoaderView.imageView.backgroundColor = .clear
