@@ -7,6 +7,7 @@ import SwiftUI
   struct ZoomableAsyncImage: UIViewRepresentable {
     let imageUrl: String
     var cornerRadius: CGFloat = 0
+    var isZooming: Binding<Bool> = .constant(false)
 
     func makeUIView(context: Context) -> some UIView {
       let scrollView = UIScrollView()
@@ -14,6 +15,7 @@ import SwiftUI
 
       scrollView.delegate = context.coordinator
       context.coordinator.imageLoaderView = imageLoaderView
+      context.coordinator.isZooming = isZooming
 
       scrollView.minimumZoomScale = 1
       scrollView.maximumZoomScale = 4
@@ -52,10 +54,21 @@ import SwiftUI
     }
 
     class Coordinator: NSObject, UIScrollViewDelegate {
+      var isZooming: Binding<Bool> = .constant(false)
       weak var imageLoaderView: LazyImageView?
 
       func viewForZooming(in scrollView: UIScrollView) -> UIView? {
         imageLoaderView
+      }
+
+      func scrollViewDidZoom(_ scrollView: UIScrollView) {
+        isZooming.wrappedValue = scrollView.zoomScale > 1
+      }
+
+      func scrollViewDidEndZooming(
+        _ scrollView: UIScrollView, with view: UIView?, atScale scale: CGFloat
+      ) {
+        isZooming.wrappedValue = scale > 1
       }
 
       @objc func handleDoubleTap(_ gesture: UITapGestureRecognizer) {
