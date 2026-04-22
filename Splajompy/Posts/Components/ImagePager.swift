@@ -35,16 +35,29 @@ struct ImagePager: View {
     NavigationStack {
       Group {
         #if os(iOS)
-          TabView(selection: $currentIndex) {
-            ForEach(Array(imageUrls.enumerated()), id: \.offset) { index, url in
-              ZoomableAsyncImage(imageUrl: url)
-                .ignoresSafeArea()
-                .tag(index)
+          VStack(spacing: 0) {
+            TabView(selection: $currentIndex) {
+              ForEach(Array(imageUrls.enumerated()), id: \.offset) { index, url in
+                ZoomableAsyncImage(imageUrl: url, cornerRadius: 20)
+                  .tag(index)
+              }
+            }
+            .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
+
+            if imageUrls.count > 1 {
+              HStack(spacing: 8) {
+                ForEach(0..<imageUrls.count, id: \.self) { index in
+                  Circle()
+                    .fill(index == currentIndex ? Color.primary : Color.secondary.opacity(0.4))
+                    .frame(width: 7, height: 7)
+                }
+              }
+              .padding(.horizontal, 12)
+              .padding(.vertical, 8)
+              .background(.ultraThinMaterial, in: .capsule)
+              .padding(.top, 8)
             }
           }
-          .tabViewStyle(PageTabViewStyle())
-          .indexViewStyle(PageIndexViewStyle(backgroundDisplayMode: .always))
-          .ignoresSafeArea()
         #else
           ZStack {
             ZoomableAsyncImageMac(imageUrl: imageUrls[currentIndex])
@@ -234,7 +247,7 @@ struct ImagePager: View {
   @Previewable @Namespace var previewAnimation
 
   let imageUrls = [
-    "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/development/posts/1/9278fc8a-401b-4145-83bb-ef05d4d52632.jpeg",
+    "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/production/6/comment/11713/4b5d1415-3a84-4acd-884f-3b4233993880.jpg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Checksum-Mode=ENABLED&X-Amz-Credential=DO00R7A3VXT8XKRVG3JT%2F20260421%2Fnyc3%2Fs3%2Faws4_request&X-Amz-Date=20260421T232747Z&X-Amz-Expires=86400&X-Amz-SignedHeaders=host&x-id=GetObject&X-Amz-Signature=6f872c7b4a9fd64ee28986be21e610b4a1bc637c9a724744b41c62fe52a4854b",
     "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/development/posts/1/9278fc8a-401b-4145-83bb-ef05d4d52632.jpeg",
     "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/development/posts/1/9278fc8a-401b-4145-83bb-ef05d4d52632.jpeg",
   ]
