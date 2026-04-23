@@ -5,8 +5,8 @@ struct ImageGallery: View {
   let images: [ImageDTO]
 
   @State private var selectedImageIndex: Int? = nil
-  @Environment(\.colorScheme) var colorScheme
   @Namespace var animation
+  @AppStorage("image_layout_carousel") private var useCarousel: Bool = true
 
   var body: some View {
     Group {
@@ -15,7 +15,16 @@ struct ImageGallery: View {
       } else if images.count == 1 {
         singleImageCell()
       } else {
-        multipleImagesLayout()
+        #if os(iOS)
+          if useCarousel {
+            ImageCarousel(images: images)
+              .ignoresSafeArea(.container, edges: .horizontal)
+          } else {
+            multipleImagesLayout()
+          }
+        #else
+          multipleImagesLayout()
+        #endif
       }
     }
     #if os(iOS)
