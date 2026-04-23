@@ -6,6 +6,7 @@ struct ZoomableAsyncImage: UIViewRepresentable {
   let imageUrl: String
   var cornerRadius: CGFloat = 0
   var isShowingAccessories: Bool
+  var onTap: (() -> Void)? = nil
 
   func makeUIView(context: Context) -> some UIView {
     let scrollView = UIScrollView()
@@ -13,8 +14,9 @@ struct ZoomableAsyncImage: UIViewRepresentable {
 
     scrollView.delegate = context.coordinator
     context.coordinator.imageLoaderView = imageLoaderView
+    context.coordinator.onTap = onTap
 
-    scrollView.minimumZoomScale = 0.8
+    scrollView.minimumZoomScale = 1
     scrollView.maximumZoomScale = 4
 
     let doubleTapRecognizer = UITapGestureRecognizer(
@@ -23,6 +25,14 @@ struct ZoomableAsyncImage: UIViewRepresentable {
     )
     doubleTapRecognizer.numberOfTapsRequired = 2
     scrollView.addGestureRecognizer(doubleTapRecognizer)
+
+    let singleTapRecognizer = UITapGestureRecognizer(
+      target: context.coordinator,
+      action: #selector(Coordinator.handleSingleTap)
+    )
+    singleTapRecognizer.numberOfTapsRequired = 1
+    singleTapRecognizer.require(toFail: doubleTapRecognizer)
+    scrollView.addGestureRecognizer(singleTapRecognizer)
 
     scrollView.showsHorizontalScrollIndicator = false
     scrollView.showsVerticalScrollIndicator = false
@@ -67,6 +77,7 @@ struct ZoomableAsyncImage: UIViewRepresentable {
     if context.coordinator.imageLoaderView?.url != newURL {
       context.coordinator.imageLoaderView?.url = newURL
     }
+    context.coordinator.onTap = onTap
   }
 
   func makeCoordinator() -> Coordinator {
@@ -75,18 +86,40 @@ struct ZoomableAsyncImage: UIViewRepresentable {
 
   class Coordinator: NSObject, UIScrollViewDelegate {
     weak var imageLoaderView: LazyImageView?
+    var onTap: (() -> Void)?
 
     func viewForZooming(in scrollView: UIScrollView) -> UIView? {
       imageLoaderView
     }
 
+    @objc func handleSingleTap() {
+      onTap?()
+    }
+
     @objc func handleDoubleTap(_ gesture: UITapGestureRecognizer) {
-      guard let scrollView = gesture.view as? UIScrollView else { return }
+      guard let scrollView = gesture.view as? UIScrollView,
+        let imageLoaderView = imageLoaderView,
+        let image = imageLoaderView.imageView.image
+      else { return }
+
+      // imageView fills the scroll view entirely, so we must compute the
+      // actual pixel rect of the aspect-fit image within it.
+      let tapPoint = gesture.location(in: imageLoaderView)
+      let b = imageLoaderView.bounds
+      let s = image.size
+      let scale = min(b.width / s.width, b.height / s.height)
+      let fittedRect = CGRect(
+        x: b.midX - s.width * scale / 2,
+        y: b.midY - s.height * scale / 2,
+        width: s.width * scale,
+        height: s.height * scale
+      )
+      guard fittedRect.contains(tapPoint) else { return }
+
       if scrollView.zoomScale == 1 {
-        let point = gesture.location(in: imageLoaderView)
         let zoomRect = zoomRectForScale(
           scale: scrollView.maximumZoomScale,
-          center: point,
+          center: tapPoint,
           scrollView: scrollView
         )
         scrollView.zoom(to: zoomRect, animated: true)

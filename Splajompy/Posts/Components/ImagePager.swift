@@ -40,22 +40,28 @@ struct ImagePager: View {
             ZoomableAsyncImage(
               imageUrl: url,
               cornerRadius: 0,
-              isShowingAccessories: !isToolbarDismissed
+              isShowingAccessories: !isToolbarDismissed,
+              onTap: { withAnimation { isToolbarDismissed.toggle() } }
             )
             .ignoresSafeArea()
             .tag(index)
-            .onTapGesture {
-              withAnimation {
-                isToolbarDismissed.toggle()
-              }
-            }
           }
         }
-        .tabViewStyle(
-          PageTabViewStyle(
-            indexDisplayMode: isToolbarDismissed ? .never : .always
+        .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
+        .ignoresSafeArea()
+        .overlay(alignment: .top) {
+          ImagePagerNavigationBar(
+            isHidden: isToolbarDismissed,
+            counter: imageUrls.count > 1 ? "\(currentIndex + 1) of \(imageUrls.count)" : nil,
+            showDownload: PostHogSDK.shared.isFeatureEnabled("image-downloads"),
+            onDismiss: onDismiss,
+            onSave: {
+              let urlString = imageUrls[currentIndex]
+              Task { await saveImageToPhotoLibrary(urlString: urlString) }
+            }
           )
-        )
+          .allowsHitTesting(false)
+        }
       #else
         ZStack {
           ZoomableAsyncImageMac(imageUrl: imageUrls[currentIndex])
@@ -99,66 +105,6 @@ struct ImagePager: View {
       .statusBarHidden(isToolbarDismissed)
     #endif
     .ignoresSafeArea()
-    .overlay(alignment: .top) {
-      if !isToolbarDismissed {
-        if #available(iOS 26, macOS 26, *) {
-          GlassEffectContainer {
-            HStack {
-              #if os(iOS)
-                if PostHogSDK.shared.isFeatureEnabled("image-downloads") {
-                  saveButton.buttonStyle(.glass)
-                }
-              #endif
-
-              if imageUrls.count > 1 {
-                Text("\(currentIndex + 1) of \(imageUrls.count)")
-                  .monospacedDigit()
-                  .foregroundStyle(.secondary)
-              }
-
-              Spacer()
-
-              Button {
-                onDismiss()
-              } label: {
-                Label("Close", systemImage: "xmark")
-                  .labelStyle(.iconOnly)
-                  .fontWeight(.bold)
-              }
-              .buttonBorderShape(.circle)
-              .buttonStyle(.glass)
-              .controlSize(.large)
-            }
-            .padding(.horizontal)
-          }
-          .padding(.vertical, 8)
-          .safeAreaPadding(.top)
-        } else {
-          HStack {
-            #if os(iOS)
-              if PostHogSDK.shared.isFeatureEnabled("image-downloads") {
-                saveButton
-              }
-            #else
-              if imageUrls.count > 1 {
-                Text("\(currentIndex + 1) of \(imageUrls.count)")
-                  .monospacedDigit()
-                  .foregroundStyle(.secondary)
-              }
-            #endif
-
-            Spacer()
-
-            Button("Close", systemImage: "xmark") {
-              onDismiss()
-            }
-          }
-          .padding(.horizontal)
-          .padding(.vertical, 8)
-          .safeAreaPadding(.top)
-        }
-      }
-    }
     .modifier(
       NavigationTransitionModifier(
         sourceID: "image-\(currentIndex)",
@@ -241,17 +187,15 @@ struct ImagePager: View {
         switch downloadState {
         case .downloading:
           ProgressView()
+            .controlSize(.small)
         case .done:
-          Image(systemName: "checkmark")
+          Label("Saved", systemImage: "checkmark").labelStyle(.iconOnly)
         case .error:
-          Image(systemName: "exclamationmark.triangle")
+          Label("Error", systemImage: "exclamationmark.triangle").labelStyle(.iconOnly)
         case .idle:
-          Image(systemName: "arrow.down.to.line")
+          Label("Save", systemImage: "arrow.down.to.line").labelStyle(.iconOnly)
         }
       }
-      .fontWeight(.bold)
-      .buttonBorderShape(.circle)
-      .controlSize(.large)
       .contentTransition(.symbolEffect(.replace))
       .disabled(downloadState == .downloading)
       .sensoryFeedback(.success, trigger: downloadState) { _, newValue in
@@ -263,6 +207,105 @@ struct ImagePager: View {
     }
   #endif
 }
+
+#if os(iOS)
+  private struct ImagePagerNavigationBar: UIViewRepresentable {
+    let isHidden: Bool
+    let counter: String?
+    let showDownload: Bool
+    let onDismiss: () -> Void
+    let onSave: () -> Void
+
+    func makeUIView(context: Context) -> UIView {
+      let container = UIView()
+      container.backgroundColor = .clear
+
+      let bar = UINavigationBar()
+      let appearance = UINavigationBarAppearance()
+      appearance.configureWithDefaultBackground()
+      bar.standardAppearance = appearance
+      bar.scrollEdgeAppearance = appearance
+
+      let item = UINavigationItem()
+      item.rightBarButtonItems = context.coordinator.makeTrailingItems()
+      if let counter = counter {
+        item.leftBarButtonItem = context.coordinator.makeCounterItem(counter)
+      }
+      bar.setItems([item], animated: false)
+
+      bar.translatesAutoresizingMaskIntoConstraints = false
+      container.addSubview(bar)
+      NSLayoutConstraint.activate([
+        bar.topAnchor.constraint(equalTo: container.safeAreaLayoutGuide.topAnchor),
+        bar.leadingAnchor.constraint(equalTo: container.leadingAnchor),
+        bar.trailingAnchor.constraint(equalTo: container.trailingAnchor),
+      ])
+
+      context.coordinator.bar = bar
+      return container
+    }
+
+    func updateUIView(_ container: UIView, context: Context) {
+      context.coordinator.onDismiss = onDismiss
+      context.coordinator.onSave = onSave
+
+      if let item = context.coordinator.bar?.topItem {
+        item.rightBarButtonItems = context.coordinator.makeTrailingItems()
+        item.leftBarButtonItem = counter.map { context.coordinator.makeCounterItem($0) }
+      }
+
+      UIView.animate(withDuration: 0.2) {
+        container.alpha = self.isHidden ? 0 : 1
+      }
+    }
+
+    func makeCoordinator() -> Coordinator {
+      Coordinator(onDismiss: onDismiss, onSave: onSave, showDownload: showDownload)
+    }
+
+    @MainActor
+    class Coordinator: NSObject {
+      var onDismiss: () -> Void
+      var onSave: () -> Void
+      let showDownload: Bool
+      weak var bar: UINavigationBar?
+
+      init(onDismiss: @escaping () -> Void, onSave: @escaping () -> Void, showDownload: Bool) {
+        self.onDismiss = onDismiss
+        self.onSave = onSave
+        self.showDownload = showDownload
+      }
+
+      func makeTrailingItems() -> [UIBarButtonItem] {
+        let closeItem = UIBarButtonItem(
+          image: UIImage(systemName: "xmark"),
+          style: .plain,
+          target: self,
+          action: #selector(handleDismiss)
+        )
+        guard showDownload else { return [closeItem] }
+        let saveItem = UIBarButtonItem(
+          image: UIImage(systemName: "arrow.down.to.line"),
+          style: .plain,
+          target: self,
+          action: #selector(handleSave)
+        )
+        return [closeItem, saveItem]
+      }
+
+      func makeCounterItem(_ text: String) -> UIBarButtonItem {
+        let label = UILabel()
+        label.text = text
+        label.font = .monospacedDigitSystemFont(ofSize: 17, weight: .regular)
+        label.textColor = .secondaryLabel
+        return UIBarButtonItem(customView: label)
+      }
+
+      @objc func handleDismiss() { onDismiss() }
+      @objc func handleSave() { onSave() }
+    }
+  }
+#endif
 
 #Preview("Fullscreen Images") {
   @Previewable @Namespace var previewAnimation
