@@ -31,6 +31,7 @@ struct ImageCarousel: View {
         )
       }
     }
+    .frame(height: maxHeight)
   }
 
   private func carouselCell(index: Int, image: ImageDTO, maxWidth: CGFloat)
