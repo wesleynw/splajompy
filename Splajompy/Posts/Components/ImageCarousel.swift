@@ -63,6 +63,7 @@ struct ImageCarousel: View {
         }
       }
       .processors([.resize(height: maxHeight)])
+      .aspectRatio(contentMode: .fill)
       .frame(width: width, height: maxHeight)
       .clipShape(RoundedRectangle(cornerRadius: 15))
       .contentShape(.rect)
