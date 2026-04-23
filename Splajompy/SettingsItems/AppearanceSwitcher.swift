@@ -3,7 +3,9 @@ import SwiftUI
 
 struct AppearanceSwitcher: View {
   @AppStorage("appearance_mode") var appearanceMode: String = "Automatic"
-  @AppStorage("comment_sort_order") private var commentSortOrder: String = "Newest First"
+  @AppStorage("comment_sort_order") private var commentSortOrder: String =
+    "Newest First"
+  @AppStorage("image_layout_carousel") private var useCarousel: Bool = true
 
   let options = ["Automatic", "Light", "Dark"]
 
@@ -41,6 +43,15 @@ struct AppearanceSwitcher: View {
           .labelsHidden()
         }
       }
+
+      #if os(iOS)
+        Section {
+          Picker("Image Style", selection: $useCarousel) {
+            Text("Carousel").tag(true)
+            Text("Grid").tag(false)
+          }
+        }
+      #endif
     }
     .navigationTitle("Appearance")
     #if os(iOS)

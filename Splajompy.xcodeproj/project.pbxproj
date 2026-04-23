@@ -65,6 +65,7 @@
 			);
 			platformFiltersByRelativePath = {
 				Extensions/ImageResize.swift = (ios, );
+				Posts/Components/ImageCarousel.swift = (ios, );
 				Posts/Components/ZoomableAsyncImage.swift = (ios, );
 				SettingsItems/AppIconPicker.swift = (ios, );
 				Utilities/AttributedTextEditor.swift = (ios, );
