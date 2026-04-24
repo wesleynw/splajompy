@@ -65,6 +65,7 @@
 			);
 			platformFiltersByRelativePath = {
 				Extensions/ImageResize.swift = (ios, );
+				Extensions/PhotoLibrary.swift = (ios, );
 				Posts/Components/ImageCarousel.swift = (ios, );
 				Posts/Components/ImagePager_ios.swift = (ios, );
 				Posts/Components/ImagePager_macos.swift = (macos, );
