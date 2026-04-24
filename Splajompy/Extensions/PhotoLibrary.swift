@@ -20,8 +20,8 @@ class PhotoSaveViewModel {
   var shouldShowPermissionsPrompt: Bool = false
 
   func saveImageToPhotoLibrary(urlString: String) async {
-    let status = await PHPhotoLibrary.requestAuthorization(for: .addOnly)
-    guard status == .authorized || status == .limited else {
+    let status = PHPhotoLibrary.authorizationStatus(for: .addOnly)
+    guard status != .denied else {
       shouldShowPermissionsPrompt = true
       return
     }
