@@ -45,6 +45,7 @@ struct ImagePager: View {
     .ignoresSafeArea()
     .overlay(alignment: .top) {
       ImagePagerNavigationBar(
+        downloadState: $photoSaveViewModel.downloadState,
         isHidden: isToolbarDismissed,
         counter: imageUrls.count > 1
           ? "\(currentIndex + 1) of \(imageUrls.count)" : nil,
@@ -58,7 +59,6 @@ struct ImagePager: View {
           }
         }
       )
-      .safeAreaPadding(.top)
     }
     .modifier(
       NavigationTransitionModifier(
@@ -70,7 +70,13 @@ struct ImagePager: View {
       photoSaveViewModel.downloadState = .idle
     }
     .onChange(of: photoSaveViewModel.downloadState) { _, newState in
-      if newState == .error {
+      // if successful, wait for a sec, then reset state to done
+      if newState == .done {
+        Task {
+          try? await Task.sleep(for: .seconds(1))
+          photoSaveViewModel.downloadState = .idle
+        }
+      } else if newState == .error {
         Task {
           try? await Task.sleep(for: .seconds(2.5))
           photoSaveViewModel.downloadState = .idle
@@ -96,6 +102,7 @@ struct ImagePager: View {
 }
 
 private struct ImagePagerNavigationBar: View {
+  @Binding var downloadState: DownloadState
   let isHidden: Bool
   let counter: String?
   let onDismiss: () -> Void
@@ -119,9 +126,17 @@ private struct ImagePagerNavigationBar: View {
 
       if PostHogSDK.shared.isFeatureEnabled("image-downloads") {
         Button(action: onSave) {
-          Image(systemName: "arrow.down.to.line")
-            .font(.title3)
-            .frame(width: 20, height: 20)
+          ZStack {
+            if downloadState == .downloading {
+              ProgressView()
+                .controlSize(.small)
+            } else {
+              Image(systemName: downloadState.iconName)
+                .contentTransition(.symbolEffect(.replace.downUp))
+                .frame(width: 20, height: 20)
+            }
+          }
+          .frame(width: 20, height: 20)
         }
         .buttonBorderShape(.circle)
         .controlSize(.large)
