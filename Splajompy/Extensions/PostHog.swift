@@ -3,7 +3,7 @@ import PostHog
 /// Initializes PostHog SDK, which handles feature flags, events, telemetry, e.g.
 func initializePostHog() {
   let posthogApiKey = "phc_sSDHxTCqpjwoSDSOQiNAAgmybjEakfePBsaNHWaWy74"
-  let config = PostHogConfig(apiKey: posthogApiKey)
+  let config = PostHogConfig(projectToken: posthogApiKey)
   config.captureScreenViews = false
 
   #if os(iOS)
