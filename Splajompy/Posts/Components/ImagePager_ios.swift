@@ -36,10 +36,8 @@ struct ImagePager: View {
           .tag(index)
         }
       }
-      .tabViewStyle(.page)
-      .indexViewStyle(
-        .page(backgroundDisplayMode: isToolbarDismissed ? .never : .always)
-      )
+      .tabViewStyle(.page(indexDisplayMode: isToolbarDismissed ? .never : .automatic))
+      .indexViewStyle(.page(backgroundDisplayMode: .always))
     }
     .statusBarHidden(isToolbarDismissed)
     .ignoresSafeArea()
