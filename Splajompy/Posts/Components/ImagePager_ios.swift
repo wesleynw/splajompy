@@ -147,11 +147,15 @@ private struct ImagePagerNavigationBar: View {
             $0.buttonStyle(.glass)
           }
         }
-        .sensoryFeedback(.success, trigger: downloadState) { _, newValue in
-          newValue == .done
-        }
-        .sensoryFeedback(.error, trigger: downloadState) { _, newValue in
-          newValue == .error
+        .sensoryFeedback(trigger: downloadState) {
+          switch downloadState {
+          case .done:
+            .success
+          case .error:
+            .error
+          default:
+            nil
+          }
         }
       }
       Button(action: onDismiss) {
