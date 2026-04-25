@@ -138,12 +138,23 @@ private struct ImagePagerNavigationBar: View {
           }
           .frame(width: 20, height: 20)
         }
+        .disabled(downloadState == .downloading)
         .buttonBorderShape(.circle)
         .controlSize(.large)
         .fontWeight(.semibold)
         .modify {
           if #available(iOS 26, *) {
             $0.buttonStyle(.glass)
+          }
+        }
+        .sensoryFeedback(trigger: downloadState) {
+          switch downloadState {
+          case .done:
+            .success
+          case .error:
+            .error
+          default:
+            nil
           }
         }
       }
