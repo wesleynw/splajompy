@@ -118,6 +118,7 @@ struct SplajompyApp: App {
     .onOpenURL { url in
       handleDeepLink(url)
     }
+    .modifier(ImageLayoutOnboardingViewModifier())
   }
 
   #if os(macOS)

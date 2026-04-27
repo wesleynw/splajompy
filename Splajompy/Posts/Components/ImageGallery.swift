@@ -6,7 +6,8 @@ struct ImageGallery: View {
 
   @State private var selectedImageIndex: Int? = nil
   @Namespace var animation
-  @AppStorage("image_layout_carousel") private var useCarousel: Bool = true
+  @AppStorage("image_layout_preference") private var imageLayoutPreference: ImageLayoutPreference =
+    .undecided
 
   var body: some View {
     Group {
@@ -16,7 +17,7 @@ struct ImageGallery: View {
         singleImageCell()
       } else {
         #if os(iOS)
-          if useCarousel {
+          if imageLayoutPreference == .carousel {
             ImageCarousel(images: images)
               .ignoresSafeArea(.container, edges: .horizontal)
           } else {
