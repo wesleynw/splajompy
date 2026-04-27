@@ -1,3 +1,4 @@
+import PostHog
 import SwiftUI
 
 enum ImageLayoutPreference: String {
@@ -67,6 +68,7 @@ struct ImageLayoutOnboardingViewModifier: ViewModifier {
       }
       .safeAreaInset(edge: .bottom) {
         Button {
+          PostHogSDK.shared.register(["image_layout_preference": currentSelection.rawValue])
           preference = currentSelection
         } label: {
           Text("Save")
@@ -94,6 +96,7 @@ struct ImageLayoutOnboardingViewModifier: ViewModifier {
         }
       }
       .animation(.easeInOut, value: allReady)
+      .postHogScreenView("ImageLayoutOnboarding")
     }
   }
 

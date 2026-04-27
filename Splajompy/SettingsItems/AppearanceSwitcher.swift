@@ -46,10 +46,12 @@ struct AppearanceSwitcher: View {
       }
 
       #if os(iOS)
-        Section {
-          Picker("Image Layout", selection: $imageLayoutPreference) {
-            Text("Carousel").tag(ImageLayoutPreference.carousel)
-            Text("Grid").tag(ImageLayoutPreference.grid)
+        if imageLayoutPreference != .undecided {
+          Section {
+            Picker("Image Layout", selection: $imageLayoutPreference) {
+              Text("Carousel").tag(ImageLayoutPreference.carousel)
+              Text("Grid").tag(ImageLayoutPreference.grid)
+            }
           }
         }
       #endif
