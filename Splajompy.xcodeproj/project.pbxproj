@@ -16,6 +16,7 @@
 		1868AF452F0C7598001E15E9 /* OpenTelemetryProtocolExporterHTTP in Frameworks */ = {isa = PBXBuildFile; productRef = 1868AF442F0C7598001E15E9 /* OpenTelemetryProtocolExporterHTTP */; };
 		1868AF472F0C75BD001E15E9 /* URLSessionInstrumentation in Frameworks */ = {isa = PBXBuildFile; productRef = 1868AF462F0C75BD001E15E9 /* URLSessionInstrumentation */; };
 		1868AF492F0C9FF0001E15E9 /* ResourceExtension in Frameworks */ = {isa = PBXBuildFile; productRef = 1868AF482F0C9FF0001E15E9 /* ResourceExtension */; };
+		18770CD42FA00C0D00609B67 /* DitheringEngine in Frameworks */ = {isa = PBXBuildFile; productRef = 18770CD32FA00C0D00609B67 /* DitheringEngine */; };
 		187974BA2DDC1EE300BA0F37 /* PostHog in Frameworks */ = {isa = PBXBuildFile; productRef = 187974B92DDC1EE300BA0F37 /* PostHog */; };
 /* End PBXBuildFile section */
 
@@ -64,6 +65,8 @@
 				Tests/GreatestRemainderQuotaTests.swift,
 			);
 			platformFiltersByRelativePath = {
+				Extensions/DitherCard.swift = (ios, );
+				Extensions/ImageOnboardingViewModifier.swift = (ios, );
 				Extensions/ImageResize.swift = (ios, );
 				Extensions/PhotoLibrary.swift = (ios, );
 				Posts/Components/ImageCarousel.swift = (ios, );
@@ -141,6 +144,7 @@
 				180DEE622E39AE0F00A4D29D /* NukeExtensions in Frameworks */,
 				187974BA2DDC1EE300BA0F37 /* PostHog in Frameworks */,
 				1868AF472F0C75BD001E15E9 /* URLSessionInstrumentation in Frameworks */,
+				18770CD42FA00C0D00609B67 /* DitheringEngine in Frameworks */,
 				1868AF492F0C9FF0001E15E9 /* ResourceExtension in Frameworks */,
 				1868AF3D2F0C74C7001E15E9 /* OpenTelemetryApi in Frameworks */,
 				1868AF452F0C7598001E15E9 /* OpenTelemetryProtocolExporterHTTP in Frameworks */,
@@ -217,6 +221,7 @@
 				1868AF442F0C7598001E15E9 /* OpenTelemetryProtocolExporterHTTP */,
 				1868AF462F0C75BD001E15E9 /* URLSessionInstrumentation */,
 				1868AF482F0C9FF0001E15E9 /* ResourceExtension */,
+				18770CD32FA00C0D00609B67 /* DitheringEngine */,
 			);
 			productName = Splajompy;
 			productReference = 184A63CB2D88CBA100860D6B /* Splajompy.app */;
@@ -295,6 +300,7 @@
 				180DEE5E2E39AD6400A4D29D /* XCRemoteSwiftPackageReference "Nuke" */,
 				1868AF362F0C726C001E15E9 /* XCRemoteSwiftPackageReference "opentelemetry-swift-core" */,
 				1868AF372F0C728E001E15E9 /* XCRemoteSwiftPackageReference "opentelemetry-swift" */,
+				18770CD02FA00B4400609B67 /* XCRemoteSwiftPackageReference "DitheringEngine" */,
 			);
 			preferredProjectObjectVersion = 90;
 			productRefGroup = 184A63CC2D88CBA100860D6B /* Products */;
@@ -727,6 +733,14 @@
 				minimumVersion = 2.3.0;
 			};
 		};
+		18770CD02FA00B4400609B67 /* XCRemoteSwiftPackageReference "DitheringEngine" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/Eskils/DitheringEngine";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.10.0;
+			};
+		};
 		187974B82DDC1EE300BA0F37 /* XCRemoteSwiftPackageReference "posthog-ios" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/PostHog/posthog-ios.git";
@@ -782,6 +796,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 1868AF372F0C728E001E15E9 /* XCRemoteSwiftPackageReference "opentelemetry-swift" */;
 			productName = ResourceExtension;
+		};
+		18770CD32FA00C0D00609B67 /* DitheringEngine */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 18770CD02FA00B4400609B67 /* XCRemoteSwiftPackageReference "DitheringEngine" */;
+			productName = DitheringEngine;
 		};
 		187974B92DDC1EE300BA0F37 /* PostHog */ = {
 			isa = XCSwiftPackageProductDependency;
