@@ -1,12 +1,6 @@
 import PostHog
 import SwiftUI
 
-enum ImageLayoutPreference: String {
-  case undecided
-  case grid
-  case carousel
-}
-
 struct ImageLayoutOnboardingViewModifier: ViewModifier {
   @AppStorage("image_layout_preference") private var imageLayoutPreference: ImageLayoutPreference =
     .undecided

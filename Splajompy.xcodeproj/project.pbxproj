@@ -65,6 +65,8 @@
 				Tests/GreatestRemainderQuotaTests.swift,
 			);
 			platformFiltersByRelativePath = {
+				Extensions/DitherCard.swift = (ios, );
+				Extensions/ImageOnboardingViewModifier.swift = (ios, );
 				Extensions/ImageResize.swift = (ios, );
 				Extensions/PhotoLibrary.swift = (ios, );
 				Posts/Components/ImageCarousel.swift = (ios, );

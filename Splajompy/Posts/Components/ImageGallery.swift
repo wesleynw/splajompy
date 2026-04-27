@@ -1,6 +1,12 @@
 import NukeUI
 import SwiftUI
 
+enum ImageLayoutPreference: String {
+  case undecided
+  case grid
+  case carousel
+}
+
 struct ImageGallery: View {
   let images: [ImageDTO]
 
