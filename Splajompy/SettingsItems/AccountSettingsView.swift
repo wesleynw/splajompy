@@ -41,8 +41,8 @@ struct AccountSettingsView: View {
           isPresented: $isShowingSignoutConfirm
         ) {
           Button("Sign Out", role: .destructive) {
-            PostHogSDK.shared.reset()
             authManager.signOut()
+            PostHogSDK.shared.reset()
           }
           Button("Cancel", role: .cancel) {}
         }

@@ -31,9 +31,14 @@ class AuthManager: Sendable {
     checkAuthenticationState()
   }
 
-  private func checkAuthenticationState() {
+  func checkAuthenticationState() {
     let hasToken = getAuthToken() != nil
     let hasValidUserData = getCurrentUser() != nil
+
+    PostHogSDK.shared.capture(
+      "auth_state_check",
+      properties: ["has_token": hasToken, "has_user_data": hasValidUserData]
+    )
 
     isAuthenticated = hasToken && hasValidUserData
 
@@ -43,20 +48,38 @@ class AuthManager: Sendable {
   }
 
   nonisolated func getAuthToken() -> String? {
-    guard
-      let tokenData = KeychainHelper.standard.read(
-        service: "session-token",
-        account: "self"
-      )
-    else {
+    let (tokenData, status) = KeychainHelper.standard.readWithStatus(
+      service: "session-token",
+      account: "self"
+    )
+
+    guard let tokenData else {
+      if status != errSecSuccess {
+        PostHogSDK.shared.capture(
+          "keychain_read_failed",
+          properties: ["status": status, "item": "session-token"]
+        )
+      }
       return nil
     }
 
-    guard let tokenString = String(data: tokenData, encoding: .utf8) else {
+    guard var tokenString = String(data: tokenData, encoding: .utf8) else {
       return nil
     }
 
-    return tokenString.trimmingCharacters(in: CharacterSet(charactersIn: "\""))
+    // migrate tokens saved in old JSON-encoded format (surrounded by quotes).
+    if tokenString.hasPrefix("\"") && tokenString.hasSuffix("\"") {
+      tokenString = String(tokenString.dropFirst().dropLast())
+      if let migrated = tokenString.data(using: .utf8) {
+        KeychainHelper.standard.save(
+          migrated,
+          service: "session-token",
+          account: "self"
+        )
+      }
+    }
+
+    return tokenString
   }
 
   func signOut(reason: String = "manual") {
@@ -92,12 +115,7 @@ class AuthManager: Sendable {
     }
 
     let name = defaults.string(forKey: "CurrentUserName")
-
-    let formatter = ISO8601DateFormatter()
-    formatter.formatOptions = [
-      .withInternetDateTime, .withFractionalSeconds, .withTimeZone,
-    ]
-    let createdAt = formatter.date(from: createdAtString) ?? Date()
+    let createdAt = (try? Date(createdAtString, strategy: .iso8601)) ?? Date()
 
     return CurrentUserModel(
       userId: userId,
@@ -109,22 +127,20 @@ class AuthManager: Sendable {
   }
 
   private func saveUserData(_ user: CurrentUserModel, token: String) {
-    KeychainHelper.standard.save(
-      token,
-      service: "session-token",
-      account: "self"
-    )
+    if let tokenData = token.data(using: .utf8) {
+      KeychainHelper.standard.save(
+        tokenData,
+        service: "session-token",
+        account: "self"
+      )
+    }
 
     let defaults = UserDefaults.standard
     defaults.set(user.userId, forKey: "CurrentUserID")
     defaults.set(user.username, forKey: "CurrentUserUsername")
     defaults.set(user.email, forKey: "CurrentUserEmail")
 
-    let formatter = ISO8601DateFormatter()
-    formatter.formatOptions = [
-      .withInternetDateTime, .withFractionalSeconds, .withTimeZone,
-    ]
-    let createdAtString = formatter.string(from: user.createdAt)
+    let createdAtString = user.createdAt.ISO8601Format()
     defaults.set(createdAtString, forKey: "CurrentUserCreatedAt")
 
     if let name = user.name {
@@ -191,6 +207,15 @@ class AuthManager: Sendable {
     switch result {
     case .success(let authResponse):
       saveUserData(authResponse.user, token: authResponse.token)
+      #if !DEBUG
+        PostHogSDK.shared.identify(
+          String(authResponse.user.userId),
+          userProperties: [
+            "email": authResponse.user.email,
+            "username": authResponse.user.username,
+          ]
+        )
+      #endif
       PostHogSDK.shared.capture("user_signin_otc")
       return true
     case .error:
@@ -214,6 +239,16 @@ class AuthManager: Sendable {
       password: password
     )
 
+    #if !DEBUG
+      PostHogSDK.shared.identify(
+        String(authResponse.user.userId),
+        userProperties: [
+          "email": authResponse.user.email,
+          "username": authResponse.user.username,
+        ]
+      )
+    #endif
+
     guard let jsonData = try? JSONEncoder().encode(credentials) else {
       return (false, "Failed to encode credentials")
     }
@@ -227,6 +262,15 @@ class AuthManager: Sendable {
     switch result {
     case .success(let authResponse):
       saveUserData(authResponse.user, token: authResponse.token)
+      #if !DEBUG
+        PostHogSDK.shared.identify(
+          String(authResponse.user.userId),
+          userProperties: [
+            "email": authResponse.user.email,
+            "username": authResponse.user.username,
+          ]
+        )
+      #endif
       PostHogSDK.shared.capture("user_signin")
       return (true, "")
     case .error(let error):
@@ -267,6 +311,15 @@ class AuthManager: Sendable {
     switch result {
     case .success(let authResponse):
       saveUserData(authResponse.user, token: authResponse.token)
+      #if !DEBUG
+        PostHogSDK.shared.identify(
+          String(authResponse.user.userId),
+          userProperties: [
+            "email": authResponse.user.email,
+            "username": authResponse.user.username,
+          ]
+        )
+      #endif
       PostHogSDK.shared.capture("user_register")
       return (true, "")
     case .error(let error):

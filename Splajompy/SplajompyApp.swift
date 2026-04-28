@@ -13,7 +13,7 @@ struct SplajompyApp: App {
     NavigationPath(),
   ]
 
-  @State private var authManager = AuthManager.shared
+  @State private var authManager: AuthManager
   @State private var postManager = PostStore()
   @AppStorage("appearance_mode") var appearanceMode: String = "Automatic"
 
@@ -21,6 +21,7 @@ struct SplajompyApp: App {
     initializeOtel()
     initializePostHog()
     initializeImageCache()
+    _authManager = State(initialValue: AuthManager.shared)
   }
 
   var body: some Scene {

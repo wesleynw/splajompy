@@ -1,4 +1,5 @@
 import Foundation
+import PostHog
 
 final class KeychainHelper: @unchecked Sendable {
 
@@ -6,93 +7,68 @@ final class KeychainHelper: @unchecked Sendable {
   private init() {}
 
   func save(_ data: Data, service: String, account: String) {
-
     let query =
       [
         kSecValueData: data,
         kSecAttrService: service,
         kSecAttrAccount: account,
         kSecClass: kSecClassGenericPassword,
+        kSecUseDataProtectionKeychain: true,
       ] as CFDictionary
 
-    // Add data in query to keychain
     let status = SecItemAdd(query, nil)
 
     if status == errSecDuplicateItem {
-      // Item already exist, thus update it.
-      let query =
+      let findQuery =
         [
           kSecAttrService: service,
           kSecAttrAccount: account,
           kSecClass: kSecClassGenericPassword,
+          kSecUseDataProtectionKeychain: true,
         ] as CFDictionary
 
       let attributesToUpdate = [kSecValueData: data] as CFDictionary
+      let updateStatus = SecItemUpdate(findQuery, attributesToUpdate)
 
-      // Update existing item
-      SecItemUpdate(query, attributesToUpdate)
+      if updateStatus != errSecSuccess {
+        PostHogSDK.shared.capture(
+          "keychain_write_failed",
+          properties: ["op": "update", "service": service, "status": updateStatus]
+        )
+      }
+    } else if status != errSecSuccess {
+      PostHogSDK.shared.capture(
+        "keychain_write_failed",
+        properties: ["op": "add", "service": service, "status": status]
+      )
     }
   }
 
-  func read(service: String, account: String) -> Data? {
-
+  func readWithStatus(service: String, account: String) -> (data: Data?, status: OSStatus) {
     let query =
       [
         kSecAttrService: service,
         kSecAttrAccount: account,
         kSecClass: kSecClassGenericPassword,
         kSecReturnData: true,
+        kSecUseDataProtectionKeychain: true,
       ] as CFDictionary
 
     var result: AnyObject?
-    SecItemCopyMatching(query, &result)
+    let status = SecItemCopyMatching(query, &result)
 
-    return (result as? Data)
+    return (result as? Data, status)
   }
 
   func delete(service: String, account: String) {
-
     let query =
       [
         kSecAttrService: service,
         kSecAttrAccount: account,
         kSecClass: kSecClassGenericPassword,
+        kSecUseDataProtectionKeychain: true,
       ] as CFDictionary
 
-    // Delete item from keychain
     SecItemDelete(query)
   }
-}
-
-extension KeychainHelper {
-
-  func save<T>(_ item: T, service: String, account: String) where T: Codable {
-
-    do {
-      // Encode as JSON data and save in keychain
-      let data = try JSONEncoder().encode(item)
-      save(data, service: service, account: account)
-
-    } catch {
-      assertionFailure("Fail to encode item for keychain: \(error)")
-    }
-  }
-
-  func read<T>(service: String, account: String, type: T.Type) -> T? where T: Codable {
-
-    // Read item data from keychain
-    guard let data = read(service: service, account: account) else {
-      return nil
-    }
-
-    // Decode JSON data to object
-    do {
-      let item = try JSONDecoder().decode(type, from: data)
-      return item
-    } catch {
-      assertionFailure("Fail to decode item for keychain: \(error)")
-      return nil
-    }
-  }
-
 }
