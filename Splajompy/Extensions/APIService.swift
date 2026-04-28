@@ -22,6 +22,12 @@ public struct APIErrorMessage: Error, LocalizedError {
   }
 }
 
+extension Foundation.Notification.Name {
+  static let userNeedsAppUpgrade = Foundation.Notification.Name(
+    "user_needs_app_upgrade"
+  )
+}
+
 public struct APIService {
   static let baseUrl: String =
     Bundle.main.object(forInfoDictionaryKey: "API_URL") as? String
@@ -101,6 +107,15 @@ public struct APIService {
           value: httpResponse.statusCode
         )
 
+        if httpResponse.statusCode == 426 {
+          await MainActor.run {
+            NotificationCenter.default.post(
+              name: .userNeedsAppUpgrade,
+              object: nil
+            )
+          }
+        }
+
         if httpResponse.statusCode == 401 {
           span.status = .error(description: "Unauthorized")
           await AuthManager.shared.signOut(reason: "401_\(endpoint)")
@@ -128,8 +143,9 @@ public struct APIService {
         let dateString = try container.decode(String.self)
 
         if let date = try? Date(
-          dateString, strategy: Date.ISO8601FormatStyle(includingFractionalSeconds: true))
-        {
+          dateString,
+          strategy: Date.ISO8601FormatStyle(includingFractionalSeconds: true)
+        ) {
           return date
         }
 
