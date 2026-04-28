@@ -71,7 +71,11 @@ class AuthManager: Sendable {
     if tokenString.hasPrefix("\"") && tokenString.hasSuffix("\"") {
       tokenString = String(tokenString.dropFirst().dropLast())
       if let migrated = tokenString.data(using: .utf8) {
-        KeychainHelper.standard.save(migrated, service: "session-token", account: "self")
+        KeychainHelper.standard.save(
+          migrated,
+          service: "session-token",
+          account: "self"
+        )
       }
     }
 
@@ -124,7 +128,11 @@ class AuthManager: Sendable {
 
   private func saveUserData(_ user: CurrentUserModel, token: String) {
     if let tokenData = token.data(using: .utf8) {
-      KeychainHelper.standard.save(tokenData, service: "session-token", account: "self")
+      KeychainHelper.standard.save(
+        tokenData,
+        service: "session-token",
+        account: "self"
+      )
     }
 
     let defaults = UserDefaults.standard
@@ -199,6 +207,15 @@ class AuthManager: Sendable {
     switch result {
     case .success(let authResponse):
       saveUserData(authResponse.user, token: authResponse.token)
+      #if !DEBUG
+        PostHogSDK.shared.identify(
+          String(authResponse.user.userId),
+          userProperties: [
+            "email": authResponse.user.email,
+            "username": authResponse.user.username,
+          ]
+        )
+      #endif
       PostHogSDK.shared.capture("user_signin_otc")
       return true
     case .error:
@@ -222,6 +239,16 @@ class AuthManager: Sendable {
       password: password
     )
 
+    #if !DEBUG
+      PostHogSDK.shared.identify(
+        String(authResponse.user.userId),
+        userProperties: [
+          "email": authResponse.user.email,
+          "username": authResponse.user.username,
+        ]
+      )
+    #endif
+
     guard let jsonData = try? JSONEncoder().encode(credentials) else {
       return (false, "Failed to encode credentials")
     }
@@ -235,6 +262,15 @@ class AuthManager: Sendable {
     switch result {
     case .success(let authResponse):
       saveUserData(authResponse.user, token: authResponse.token)
+      #if !DEBUG
+        PostHogSDK.shared.identify(
+          String(authResponse.user.userId),
+          userProperties: [
+            "email": authResponse.user.email,
+            "username": authResponse.user.username,
+          ]
+        )
+      #endif
       PostHogSDK.shared.capture("user_signin")
       return (true, "")
     case .error(let error):
@@ -275,6 +311,15 @@ class AuthManager: Sendable {
     switch result {
     case .success(let authResponse):
       saveUserData(authResponse.user, token: authResponse.token)
+      #if !DEBUG
+        PostHogSDK.shared.identify(
+          String(authResponse.user.userId),
+          userProperties: [
+            "email": authResponse.user.email,
+            "username": authResponse.user.username,
+          ]
+        )
+      #endif
       PostHogSDK.shared.capture("user_register")
       return (true, "")
     case .error(let error):
