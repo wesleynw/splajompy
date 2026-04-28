@@ -121,6 +121,7 @@ struct SplajompyApp: App {
     #if os(iOS)
       .modifier(ImageLayoutOnboardingViewModifier())
     #endif
+    .modifier(SupportedVersionViewModifier())
   }
 
   #if os(macOS)
