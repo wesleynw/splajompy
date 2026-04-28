@@ -9,7 +9,11 @@ struct SupportedVersionViewModifier: ViewModifier {
           if let url = URL(
             string: "https://apps.apple.com/us/app/splajompy/id6744034321"
           ) {
-            UIApplication.shared.open(url)
+            #if os(iOS)
+              UIApplication.shared.open(url)
+            #else
+              NSWorkspace.shared.open(url)
+            #endif
           }
         }
       } message: {
