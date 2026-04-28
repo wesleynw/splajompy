@@ -239,16 +239,6 @@ class AuthManager: Sendable {
       password: password
     )
 
-    #if !DEBUG
-      PostHogSDK.shared.identify(
-        String(authResponse.user.userId),
-        userProperties: [
-          "email": authResponse.user.email,
-          "username": authResponse.user.username,
-        ]
-      )
-    #endif
-
     guard let jsonData = try? JSONEncoder().encode(credentials) else {
       return (false, "Failed to encode credentials")
     }
