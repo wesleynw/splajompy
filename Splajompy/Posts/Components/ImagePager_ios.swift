@@ -116,6 +116,8 @@ private struct ImagePagerNavigationBar: View {
           .modify {
             if #available(iOS 26, *) {
               $0.glassEffect(.regular.interactive(), in: .capsule)
+            } else {
+              $0.background(.thinMaterial, in: .capsule)
             }
           }
       }
@@ -143,6 +145,9 @@ private struct ImagePagerNavigationBar: View {
         .modify {
           if #available(iOS 26, *) {
             $0.buttonStyle(.glass)
+          } else {
+            $0.buttonStyle(.bordered)
+              .background(.thinMaterial, in: .circle)
           }
         }
         .sensoryFeedback(trigger: downloadState) {
@@ -167,6 +172,9 @@ private struct ImagePagerNavigationBar: View {
       .modify {
         if #available(iOS 26, *) {
           $0.buttonStyle(.glass)
+        } else {
+          $0.buttonStyle(.bordered)
+            .background(.thinMaterial, in: .circle)
         }
       }
     }
