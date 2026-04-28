@@ -5,7 +5,8 @@ struct AppearanceSwitcher: View {
   @AppStorage("appearance_mode") var appearanceMode: String = "Automatic"
   @AppStorage("comment_sort_order") private var commentSortOrder: String =
     "Newest First"
-  @AppStorage("image_layout_carousel") private var useCarousel: Bool = true
+  @AppStorage("image_layout_preference") private var imageLayoutPreference: ImageLayoutPreference =
+    .undecided
 
   let options = ["Automatic", "Light", "Dark"]
 
@@ -45,10 +46,12 @@ struct AppearanceSwitcher: View {
       }
 
       #if os(iOS)
-        Section {
-          Picker("Image Style", selection: $useCarousel) {
-            Text("Carousel").tag(true)
-            Text("Grid").tag(false)
+        if imageLayoutPreference != .undecided {
+          Section {
+            Picker("Image Layout", selection: $imageLayoutPreference) {
+              Text("Carousel").tag(ImageLayoutPreference.carousel)
+              Text("Grid").tag(ImageLayoutPreference.grid)
+            }
           }
         }
       #endif
