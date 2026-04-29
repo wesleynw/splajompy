@@ -57,7 +57,7 @@ class AuthManager: Sendable {
       if status != errSecSuccess {
         PostHogSDK.shared.capture(
           "keychain_read_failed",
-          properties: ["status": status, "item": "session-token"]
+          properties: ["status": status.description, "item": "session-token"]
         )
       }
       return nil
@@ -170,7 +170,8 @@ class AuthManager: Sendable {
     let result: AsyncResult<EmptyResponse> = await APIService.performRequest(
       endpoint: "otc/generate",
       method: "POST",
-      body: jsonData
+      body: jsonData,
+      requiresAuth: false
     )
 
     switch result {
@@ -201,7 +202,8 @@ class AuthManager: Sendable {
     let result: AsyncResult<AuthResponse> = await APIService.performRequest(
       endpoint: "otc/verify",
       method: "POST",
-      body: jsonData
+      body: jsonData,
+      requiresAuth: false
     )
 
     switch result {
@@ -246,7 +248,8 @@ class AuthManager: Sendable {
     let result: AsyncResult<AuthResponse> = await APIService.performRequest(
       endpoint: "login",
       method: "POST",
-      body: jsonData
+      body: jsonData,
+      requiresAuth: false
     )
 
     switch result {
@@ -295,7 +298,8 @@ class AuthManager: Sendable {
     let result: AsyncResult<AuthResponse> = await APIService.performRequest(
       endpoint: "register",
       method: "POST",
-      body: requestBody
+      body: requestBody,
+      requiresAuth: false
     )
 
     switch result {

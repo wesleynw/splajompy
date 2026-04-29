@@ -36,13 +36,17 @@ public struct APIService {
   private static func createRequest(
     for url: URL,
     method: String = "GET",
-    body: Data? = nil
-  ) async -> URLRequest {
+    body: Data? = nil,
+    requiresAuth: Bool = true
+  ) async throws -> URLRequest {
     var request = URLRequest(url: url)
     request.httpMethod = method
 
     let token = await AuthManager.shared.getAuthToken()
-    if let token = token {
+    if requiresAuth {
+      guard let token else {
+        throw APIErrorMessage(message: "Not authenticated")
+      }
       request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
     }
 
@@ -63,7 +67,8 @@ public struct APIService {
     endpoint: String,
     method: String = "GET",
     queryItems: [URLQueryItem]? = nil,
-    body: Data? = nil
+    body: Data? = nil,
+    requiresAuth: Bool = true
   ) async -> AsyncResult<T> {
     let tracer = OpenTelemetry.instance.tracerProvider.get(
       instrumentationName: "APIService"
@@ -96,7 +101,14 @@ public struct APIService {
     span.setAttribute(key: "http.target", value: endpoint)
 
     print("REQUEST: \(method) \(url)")
-    let request = await createRequest(for: url, method: method, body: body)
+    let request: URLRequest
+    do {
+      request = try await createRequest(
+        for: url, method: method, body: body, requiresAuth: requiresAuth)
+    } catch {
+      span.status = .error(description: error.localizedDescription)
+      return .error(error)
+    }
 
     do {
       let (data, response) = try await URLSession.shared.data(for: request)
