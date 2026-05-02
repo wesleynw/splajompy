@@ -40,13 +40,7 @@ extension NotificationsView {
     var state: NotificationState = .idle
     var hasMoreToLoad: Bool = true
     var hasMoreUnreadToLoad: Bool = true
-    var selectedFilter: NotificationFilter = .all {
-      didSet {
-        guard selectedFilter != oldValue else { return }
-        state = .idle
-        Task { await refreshNotifications() }
-      }
-    }
+    var selectedFilter: NotificationFilter = .all
     private var isFetching: Bool = false
     private var isFetchingUnread: Bool = false
 
