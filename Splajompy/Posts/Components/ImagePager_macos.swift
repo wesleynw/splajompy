@@ -23,7 +23,7 @@ struct ImagePager: View {
   }
 
   var body: some View {
-    Group {
+    NavigationStack {
       ZStack {
         ZoomableAsyncImageMac(imageUrl: imageUrls[currentIndex])
           .id(currentIndex)
@@ -60,8 +60,14 @@ struct ImagePager: View {
           .padding(.horizontal)
         }
       }
+      .toolbar {
+        ToolbarItem(placement: .cancellationAction) {
+          Button("Close") {
+            onDismiss()
+          }
+        }
+      }
     }
-    .ignoresSafeArea()
     .modifier(
       NavigationTransitionModifier(
         sourceID: "image-\(currentIndex)",
