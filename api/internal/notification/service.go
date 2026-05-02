@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	"splajompy.com/api/v2/internal/apns"
 	"splajompy.com/api/v2/internal/bucket"
 	"splajompy.com/api/v2/internal/db/queries"
 	"splajompy.com/api/v2/internal/utilities"
@@ -20,6 +21,7 @@ type Service struct {
 	commentRepository      commentReader
 	userRepository         userReader
 	bucketRepository       bucket.Repository
+	apnsClient             apns.Client
 }
 
 type postReader interface {
@@ -38,13 +40,14 @@ type commentReader interface {
 	GetImagesByCommentId(ctx context.Context, commentId int) ([]queries.Image, error)
 }
 
-func NewService(notificationRepository NotificationStore, postRepository postReader, commentRepository commentReader, userRepository userReader, bucketRepository bucket.Repository) *Service {
+func NewService(notificationRepository NotificationStore, postRepository postReader, commentRepository commentReader, userRepository userReader, bucketRepository bucket.Repository, apnClient apns.Client) *Service {
 	return &Service{
 		notificationRepository: notificationRepository,
 		postRepository:         postRepository,
 		commentRepository:      commentRepository,
 		userRepository:         userRepository,
 		bucketRepository:       bucketRepository,
+		apnsClient:             apnClient,
 	}
 }
 
@@ -369,4 +372,31 @@ func (s *Service) buildLikedMessage(ctx context.Context, userIds []int, isCommen
 
 func (s *Service) RegisterDeviceToken(ctx context.Context, userId int, deviceId string, deviceToken string) error {
 	return s.notificationRepository.InsertDeviceToken(ctx, userId, deviceId, deviceToken)
+}
+
+func (s *Service) SendTestPushNotification(ctx context.Context, userId int) error {
+	devices, err := s.notificationRepository.GetDeviceTokensForUser(ctx, userId)
+	if err != nil {
+		return err
+	}
+
+	if len(devices) < 1 {
+		return errors.New("no device for given user")
+	}
+
+	notification := apns.Notification{
+		Payload: apns.NotificationPayload{
+			Aps: apns.Aps{
+				Alert: apns.Alert{
+					Title:    "Test notification",
+					Subtitle: "Please ignore",
+				},
+				Badge:     1,
+				Timestamp: time.Now().Unix(),
+			},
+		},
+		DeviceToken: devices[0],
+	}
+
+	return s.apnsClient.Push(ctx, &notification)
 }

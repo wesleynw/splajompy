@@ -227,6 +227,10 @@ func (r *NotificationStore) InsertDeviceToken(ctx context.Context, userId int, d
 	})
 }
 
+func (r *NotificationStore) GetDeviceTokensForUser(ctx context.Context, userId int) ([]string, error) {
+	return r.querier.GetDeviceTokensForUser(ctx, userId)
+}
+
 // NewNotificationStore creates a new notification repository
 func NewNotificationStore(querier queries.Querier) NotificationStore {
 	return NotificationStore{querier: querier}

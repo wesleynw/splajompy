@@ -108,6 +108,32 @@ func (q *Queries) FindLikeNotificationForPost(ctx context.Context, arg FindLikeN
 	return i, err
 }
 
+const getDeviceTokensForUser = `-- name: GetDeviceTokensForUser :many
+SELECT device_token
+FROM device_token
+WHERE user_id = $1
+`
+
+func (q *Queries) GetDeviceTokensForUser(ctx context.Context, userID int) ([]string, error) {
+	rows, err := q.db.Query(ctx, getDeviceTokensForUser, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []string
+	for rows.Next() {
+		var device_token string
+		if err := rows.Scan(&device_token); err != nil {
+			return nil, err
+		}
+		items = append(items, device_token)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getNotificationActors = `-- name: GetNotificationActors :many
 SELECT user_id
 FROM notification_actor

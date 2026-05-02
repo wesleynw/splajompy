@@ -32,6 +32,7 @@ type Querier interface {
 	GetCommentById(ctx context.Context, commentID int) (Comment, error)
 	GetCommentCountByPostID(ctx context.Context, postID int) (int64, error)
 	GetCommentsByPostId(ctx context.Context, arg GetCommentsByPostIdParams) ([]GetCommentsByPostIdRow, error)
+	GetDeviceTokensForUser(ctx context.Context, userID int) ([]string, error)
 	GetFollowersByUserId(ctx context.Context, arg GetFollowersByUserIdParams) ([]GetFollowersByUserIdRow, error)
 	GetFollowingByUserId(ctx context.Context, arg GetFollowingByUserIdParams) ([]GetFollowingByUserIdRow, error)
 	GetFollowingUserIds(ctx context.Context, arg GetFollowingUserIdsParams) ([]GetFollowingUserIdsRow, error)

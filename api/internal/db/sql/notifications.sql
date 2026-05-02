@@ -137,3 +137,8 @@ WHERE notification_id = $1;
 INSERT INTO device_token (user_id, device_id, device_token)
 VALUES ($1, $2, $3)
 ON CONFLICT (device_id) DO UPDATE SET device_token = $3, modified_at = CURRENT_TIMESTAMP;
+
+-- name: GetDeviceTokensForUser :many
+SELECT device_token
+FROM device_token
+WHERE user_id = $1;
