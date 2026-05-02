@@ -388,8 +388,8 @@ func (s *Service) SendTestPushNotification(ctx context.Context, userId int) erro
 		Payload: apns.NotificationPayload{
 			Aps: apns.Aps{
 				Alert: apns.Alert{
-					Title:    "Test notification",
-					Subtitle: "Please ignore",
+					// Title: "Test notification",
+					Body: "@wesley just mentioned you in a post.",
 				},
 				Badge:     1,
 				Timestamp: time.Now().Unix(),

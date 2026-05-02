@@ -24,11 +24,13 @@ class AppDelegate: NSObject, UIApplicationDelegate {
   ) {
     print("did register for push notifications")
     if let deviceId = UIDevice.current.identifierForVendor?.uuidString {
+      let tokenString = deviceToken.map { String(format: "%02.2hhx", $0) }.joined()
+
       let payload = DeviceTokenRequest(
         deviceId: deviceId,
-        deviceToken: deviceToken.base64EncodedString()
+        deviceToken: tokenString
       )
-      print("new device token: \(deviceToken.base64EncodedString())")
+      print("new device token: \(tokenString)")
 
       if let data = try? JSONEncoder().encode(payload) {
         Task {

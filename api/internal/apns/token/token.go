@@ -84,6 +84,7 @@ func (t *Token) Generate() error {
 	}
 
 	jwt := jwt.NewWithClaims(jwt.SigningMethodES256, claims)
+	jwt.Header["kid"] = t.KeyId
 	s, err := jwt.SignedString(t.PrivateKey)
 	if err != nil {
 		return err
