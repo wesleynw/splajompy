@@ -56,21 +56,12 @@
       }
     },
     {
-      "identity" : "plcrashreporter",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/microsoft/plcrashreporter.git",
-      "state" : {
-        "revision" : "0254f941c646b1ed17b243654723d0f071e990d0",
-        "version" : "1.12.2"
-      }
-    },
-    {
       "identity" : "posthog-ios",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/PostHog/posthog-ios.git",
       "state" : {
-        "revision" : "67358c217ba864780ccc9baab0f57efcd2496f12",
-        "version" : "3.57.2"
+        "revision" : "218fb6fe016a27baa3651613d53dae5c6e36af15",
+        "version" : "3.57.3"
       }
     },
     {
@@ -114,8 +105,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-certificates.git",
       "state" : {
-        "revision" : "5aa1c0d1bc204908df47c2075bdbb39573d05e8d",
-        "version" : "1.19.0"
+        "revision" : "bde8ca32a096825dfce37467137c903418c1893d",
+        "version" : "1.19.1"
       }
     },
     {
