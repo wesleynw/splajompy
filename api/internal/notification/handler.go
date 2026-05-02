@@ -1,6 +1,7 @@
 package notification
 
 import (
+	"encoding/json"
 	"net/http"
 	"strconv"
 	"time"
@@ -25,6 +26,7 @@ func (h *Handler) RegisterRoutes(_, withAuth func(string, func(http.ResponseWrit
 	withAuth("GET /notifications/unreadCount", h.GetUnreadNotificationCount)
 	withAuth("GET /notifications/read/time", h.GetReadNotificationsByUserIdWithTimeOffset)
 	withAuth("GET /notifications/unread/time", h.GetUnreadNotificationsByUserIdWithTimeOffset)
+	withAuth("POST /notifications/registerDevice", h.SetDeviceToken)
 }
 
 func (h *Handler) MarkAllNotificationsAsRead(w http.ResponseWriter, r *http.Request) {
@@ -159,4 +161,26 @@ func (h *Handler) GetUnreadNotificationsByUserIdWithTimeOffset(w http.ResponseWr
 	}
 
 	utilities.HandleSuccess(w, notifications)
+}
+
+func (h *Handler) SetDeviceToken(w http.ResponseWriter, r *http.Request) {
+	currentUser := utilities.GetAuthenticatedUser(r)
+
+	var body struct {
+		DeviceId    string `json:"deviceId"`
+		DeviceToken string `json:"deviceToken"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		utilities.HandleError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	err := h.svc.RegisterDeviceToken(r.Context(), currentUser.UserID, body.DeviceId, body.DeviceToken)
+	if err != nil {
+		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
+		return
+	}
+
+	utilities.HandleEmptySuccess(w)
 }

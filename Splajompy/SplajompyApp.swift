@@ -4,6 +4,8 @@ import SwiftUI
 
 @main
 struct SplajompyApp: App {
+  @UIApplicationDelegateAdaptor private var appDelegate: AppDelegate
+  
   @State private var selection: Int = 0
   @State private var navigationPaths = [
     NavigationPath(),

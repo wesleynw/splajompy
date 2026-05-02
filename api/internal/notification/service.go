@@ -366,3 +366,7 @@ func (s *Service) buildLikedMessage(ctx context.Context, userIds []int, isCommen
 	message := fmt.Sprintf("@%s, @%s, @%s, and others liked your %s.", users[0].Username, users[1].Username, users[2].Username, noun)
 	return &message, nil
 }
+
+func (s *Service) RegisterDeviceToken(ctx context.Context, userId int, deviceId string, deviceToken string) error {
+	return s.notificationRepository.InsertDeviceToken(ctx, userId, deviceId, deviceToken)
+}
