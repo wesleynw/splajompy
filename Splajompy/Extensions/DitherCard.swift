@@ -60,7 +60,7 @@ struct DitheredCard: View {
           withPaletteSettings: QuantizedColorSettingsConfiguration(bits: 1)
         )
       else { return nil }
-      return UIImage(cgImage: result, scale: renderScale, orientation: .up)
+      return UIImage(cgImage: result, scale: 1, orientation: .up)
     }.value
   }
 }
