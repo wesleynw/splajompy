@@ -1,4 +1,4 @@
-package token
+package apns
 
 import (
 	"crypto/ecdsa"

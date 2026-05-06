@@ -12,7 +12,6 @@ import (
 	semconv "go.opentelemetry.io/otel/semconv/v1.39.0"
 	"go.opentelemetry.io/otel/trace"
 	"splajompy.com/api/v2/internal/apns"
-	"splajompy.com/api/v2/internal/apns/token"
 	"splajompy.com/api/v2/internal/auth"
 	"splajompy.com/api/v2/internal/bucket"
 	"splajompy.com/api/v2/internal/comment"
@@ -85,7 +84,7 @@ func main() {
 	likeRepository := like.NewStore(q)
 	statsRepository := stats.NewStore(q)
 
-	apnClient := apns.NewClient(token.NewToken())
+	apnClient := apns.NewClient(apns.NewToken())
 
 	notificationService := notification.NewService(notificationsRepository, postRepository, commentRepository, userRepository, bucketRepository, *apnClient)
 

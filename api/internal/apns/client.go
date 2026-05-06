@@ -7,8 +7,6 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
-
-	"splajompy.com/api/v2/internal/apns/token"
 )
 
 const (
@@ -19,10 +17,10 @@ const (
 type Client struct {
 	httpClient *http.Client
 	baseUrl    string
-	token      *token.Token
+	token      *Token
 }
 
-func NewClient(token *token.Token) *Client {
+func NewClient(token *Token) *Client {
 	return &Client{
 		httpClient: &http.Client{},
 		baseUrl:    DevelopmentServer,
