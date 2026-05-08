@@ -252,53 +252,59 @@ struct ImageGallery: View {
   @ViewBuilder
   private func singleImageCell() -> some View {
     let image = images[0]
-    let aspectRatio = CGFloat(image.width) / CGFloat(image.height)
-    let isVeryWide = aspectRatio > 2.5
-    let isVeryTall = aspectRatio < 0.4
+    let rawAspectRatio = CGFloat(image.width) / CGFloat(image.height)
+    let isVeryWide = rawAspectRatio > 2.5
+    let isVeryTall = rawAspectRatio < 0.4
 
-    let geo = GeometryReader { geometry in
-      if let url = URL(string: image.imageBlobUrl) {
-        Button {
-          selectedImageIndex = 0
-        } label: {
-          LazyImage(url: url) { state in
-            if let img = state.image {
-              img.resizable()
-            } else if state.error != nil {
-              Color.clear
-                .background(.thinMaterial)
-                .overlay {
-                  Image(systemName: "photo.badge.exclamationmark")
-                    .foregroundStyle(.secondary)
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-            } else {
-              ProgressView()
-                #if os(macOS)
-                  .controlSize(.small)
-                #endif
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+    if let url = URL(string: image.imageBlobUrl) {
+      Button {
+        selectedImageIndex = 0
+      } label: {
+        Group {
+          if isVeryWide || isVeryTall {
+            LazyImage(url: url) { state in
+              singleImageStateView(state, aspectRatio: nil)
+            }
+            .frame(maxWidth: .infinity, maxHeight: isVeryWide ? 200 : 500)
+          } else {
+            LazyImage(url: url) { state in
+              singleImageStateView(state, aspectRatio: rawAspectRatio)
             }
           }
-          .processors([.resize(width: geometry.size.width)])
-          .aspectRatio(contentMode: .fill)
-          .frame(width: geometry.size.width, height: geometry.size.height)
-          .clipShape(RoundedRectangle(cornerRadius: 8))
-          .contentShape(.rect)
-          .modifier(
-            TransitionSourceModifier(id: "image-0", namespace: animation)
-          )
         }
-        .buttonStyle(.plain)
+        .clipShape(RoundedRectangle(cornerRadius: 8))
+        .contentShape(.rect)
+        .modifier(TransitionSourceModifier(id: "image-0", namespace: animation))
       }
+      .buttonStyle(.plain)
     }
+  }
 
-    if isVeryWide {
-      geo.frame(height: 200)
-    } else if isVeryTall {
-      geo.frame(height: 500)
+  @ViewBuilder
+  private func singleImageStateView(
+    _ state: LazyImageState,
+    aspectRatio: CGFloat?
+  ) -> some View {
+    if let img = state.image {
+      img.resizable().aspectRatio(contentMode: .fit)
+    } else if state.error != nil {
+      Color.clear
+        .background(.thinMaterial)
+        .overlay {
+          Image(systemName: "photo.badge.exclamationmark")
+            .foregroundStyle(.secondary)
+        }
+        .aspectRatio(aspectRatio, contentMode: .fit)
     } else {
-      geo.aspectRatio(aspectRatio, contentMode: .fit)
+      Color.clear
+        .background(.thinMaterial)
+        .overlay {
+          ProgressView()
+            #if os(macOS)
+              .controlSize(.small)
+            #endif
+        }
+        .aspectRatio(aspectRatio, contentMode: .fit)
     }
   }
 }

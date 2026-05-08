@@ -135,6 +135,8 @@ struct PostView: View {
   private var postTextContent: some View {
     if let content = post.post.richContent {
       Text(content)
+        .lineLimit(nil)
+        .fixedSize(horizontal: false, vertical: true)
     }
   }
 
