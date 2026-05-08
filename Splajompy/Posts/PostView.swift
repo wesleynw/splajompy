@@ -136,7 +136,7 @@ struct PostView: View {
     if let content = post.post.richContent {
       Text(content)
         .lineLimit(nil)
-        .fixedSize(horizontal: false, vertical: true)
+        .fixedSize(horizontal: false, vertical: true)  // this is kind of a hack, for some reason the gallery keeps taking up extra space
     }
   }
 

@@ -251,60 +251,43 @@ struct ImageGallery: View {
 
   @ViewBuilder
   private func singleImageCell() -> some View {
-    let image = images[0]
-    let rawAspectRatio = CGFloat(image.width) / CGFloat(image.height)
-    let isVeryWide = rawAspectRatio > 2.5
-    let isVeryTall = rawAspectRatio < 0.4
+    if let image = images.first, let url = URL(string: image.imageBlobUrl) {
+      let rawAspectRatio = CGFloat(image.width) / CGFloat(image.height)
+      let displayAspectRatio = max(0.4, min(2.5, rawAspectRatio))
 
-    if let url = URL(string: image.imageBlobUrl) {
       Button {
         selectedImageIndex = 0
       } label: {
-        Group {
-          if isVeryWide || isVeryTall {
-            LazyImage(url: url) { state in
-              singleImageStateView(state, aspectRatio: nil)
-            }
-            .frame(maxWidth: .infinity, maxHeight: isVeryWide ? 200 : 500)
+        LazyImage(url: url) { state in
+          if let img = state.image {
+            img.resizable()
+              .aspectRatio(contentMode: .fill)
+          } else if state.error != nil {
+            Color.clear
+              .background(.thinMaterial)
+              .overlay {
+                Image(systemName: "photo.badge.exclamationmark")
+                  .foregroundStyle(.secondary)
+              }
+              .aspectRatio(displayAspectRatio, contentMode: .fit)
           } else {
-            LazyImage(url: url) { state in
-              singleImageStateView(state, aspectRatio: rawAspectRatio)
-            }
+            Color.clear
+              .background(.thinMaterial)
+              .overlay {
+                ProgressView()
+                  #if os(macOS)
+                    .controlSize(.small)
+                  #endif
+              }
+              .aspectRatio(displayAspectRatio, contentMode: .fit)
           }
         }
-        .clipShape(RoundedRectangle(cornerRadius: 8))
+        .aspectRatio(displayAspectRatio, contentMode: .fit)
+        .clipShape(RoundedRectangle(cornerRadius: 15))
         .contentShape(.rect)
         .modifier(TransitionSourceModifier(id: "image-0", namespace: animation))
       }
       .buttonStyle(.plain)
-    }
-  }
-
-  @ViewBuilder
-  private func singleImageStateView(
-    _ state: LazyImageState,
-    aspectRatio: CGFloat?
-  ) -> some View {
-    if let img = state.image {
-      img.resizable().aspectRatio(contentMode: .fit)
-    } else if state.error != nil {
-      Color.clear
-        .background(.thinMaterial)
-        .overlay {
-          Image(systemName: "photo.badge.exclamationmark")
-            .foregroundStyle(.secondary)
-        }
-        .aspectRatio(aspectRatio, contentMode: .fit)
-    } else {
-      Color.clear
-        .background(.thinMaterial)
-        .overlay {
-          ProgressView()
-            #if os(macOS)
-              .controlSize(.small)
-            #endif
-        }
-        .aspectRatio(aspectRatio, contentMode: .fit)
     }
   }
 }
