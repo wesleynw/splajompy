@@ -60,12 +60,12 @@
 			membershipExceptions = (
 				Configuration/Debug.xcconfig,
 				Configuration/Release.xcconfig,
+				Extensions/DitherCard.swift,
 				Info.plist,
 				Splajompy.xctestplan,
 				Tests/GreatestRemainderQuotaTests.swift,
 			);
 			platformFiltersByRelativePath = {
-				Extensions/DitherCard.swift = (ios, );
 				Extensions/ImageOnboardingViewModifier.swift = (ios, );
 				Extensions/ImageResize.swift = (ios, );
 				Extensions/PhotoLibrary.swift = (ios, );
