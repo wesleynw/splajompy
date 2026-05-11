@@ -16,9 +16,6 @@ struct ImageLayoutOnboardingViewModifier: ViewModifier {
   private struct OnboardingView: View {
     @Binding var preference: ImageLayoutPreference
     @State private var currentSelection: ImageLayoutPreference = .carousel
-    @State private var readyCount = 0
-
-    private var allReady: Bool { readyCount >= 2 }
 
     var body: some View {
       ScrollView {
@@ -35,10 +32,10 @@ struct ImageLayoutOnboardingViewModifier: ViewModifier {
           .padding()
 
           ZStack {
-            CarouselPreview(onAllLoaded: { readyCount += 1 })
+            CarouselPreview()
               .opacity(currentSelection == .carousel ? 1 : 0)
               .blur(radius: currentSelection == .carousel ? 0 : 8)
-            GridPreview(onAllLoaded: { readyCount += 1 })
+            GridPreview()
               .padding()
               .opacity(currentSelection == .grid ? 1 : 0)
               .blur(radius: currentSelection == .grid ? 0 : 8)
@@ -79,26 +76,13 @@ struct ImageLayoutOnboardingViewModifier: ViewModifier {
         }
         .padding()
       }
-      .overlay {
-        if !allReady {
-          ZStack {
-            Color(.systemBackground)
-            ProgressView()
-          }
-          .ignoresSafeArea()
-          .transition(.opacity)
-        }
-      }
-      .animation(.easeInOut, value: allReady)
       .postHogScreenView("ImageLayoutOnboarding")
     }
   }
 
   private struct CarouselPreview: View {
-    var onAllLoaded: (() -> Void)? = nil
     private let maxHeight: CGFloat = 300
     private let cardHeight: CGFloat = 260
-    @State private var loadedCount = 0
 
     var body: some View {
       GeometryReader { geometry in
@@ -109,9 +93,12 @@ struct ImageLayoutOnboardingViewModifier: ViewModifier {
 
         ScrollView(.horizontal) {
           HStack(alignment: .center) {
-            DitheredCard(color: .green, width: narrow, height: cardHeight, onLoaded: cardLoaded)
-            DitheredCard(color: .blue, width: medium, height: cardHeight, onLoaded: cardLoaded)
-            DitheredCard(color: .red, width: wide, height: cardHeight, onLoaded: cardLoaded)
+            RoundedRectangle(cornerRadius: 12).fill(Color.green.gradient).frame(
+              width: narrow, height: cardHeight)
+            RoundedRectangle(cornerRadius: 12).fill(Color.blue.gradient).frame(
+              width: medium, height: cardHeight)
+            RoundedRectangle(cornerRadius: 12).fill(Color.red.gradient).frame(
+              width: wide, height: cardHeight)
           }
           .frame(height: maxHeight)
         }
@@ -120,17 +107,9 @@ struct ImageLayoutOnboardingViewModifier: ViewModifier {
       }
       .frame(height: maxHeight)
     }
-
-    private func cardLoaded() {
-      loadedCount += 1
-      if loadedCount >= 3 { onAllLoaded?() }
-    }
   }
 
   private struct GridPreview: View {
-    var onAllLoaded: (() -> Void)? = nil
-    @State private var loadedCount = 0
-
     var body: some View {
       GeometryReader { geometry in
         let size = geometry.size.width
@@ -138,19 +117,17 @@ struct ImageLayoutOnboardingViewModifier: ViewModifier {
         let halfHeight = (size - 4) / 2
 
         HStack(spacing: 4) {
-          DitheredCard(color: .green, width: halfWidth, height: size, onLoaded: cardLoaded)
+          RoundedRectangle(cornerRadius: 12).fill(Color.green.gradient).frame(
+            width: halfWidth, height: size)
           VStack(spacing: 4) {
-            DitheredCard(color: .blue, width: halfWidth, height: halfHeight, onLoaded: cardLoaded)
-            DitheredCard(color: .red, width: halfWidth, height: halfHeight, onLoaded: cardLoaded)
+            RoundedRectangle(cornerRadius: 12).fill(Color.blue.gradient).frame(
+              width: halfWidth, height: halfHeight)
+            RoundedRectangle(cornerRadius: 12).fill(Color.red.gradient).frame(
+              width: halfWidth, height: halfHeight)
           }
         }
       }
       .aspectRatio(1, contentMode: .fit)
-    }
-
-    private func cardLoaded() {
-      loadedCount += 1
-      if loadedCount >= 3 { onAllLoaded?() }
     }
   }
 }
