@@ -41,23 +41,25 @@ struct OneTimeCodeView: View {
 
     }
     .frame(maxHeight: .infinity, alignment: .topLeading)
-    .safeAreaInset(edge: .bottom) {
-      AsyncActionButton(
-        title: "Continue",
-        isLoading: authManager.isLoading,
-        isDisabled: authManager.isLoading || oneTimeCode.isEmpty
-      ) {
-        Task {
-          let success = await authManager.verifyOneTimeCode(
-            for: identifier,
-            code: oneTimeCode
-          )
-          if !success {
-            showError = true
+    #if os(iOS)
+      .safeAreaInset(edge: .bottom) {
+        AsyncActionButton(
+          title: "Continue",
+          isLoading: authManager.isLoading,
+          isDisabled: authManager.isLoading || oneTimeCode.isEmpty
+        ) {
+          Task {
+            let success = await authManager.verifyOneTimeCode(
+              for: identifier,
+              code: oneTimeCode
+            )
+            if !success {
+              showError = true
+            }
           }
         }
       }
-    }
+    #endif
     .navigationTitle("Check your email")
     .padding()
     .alert(isPresented: $showError) {
@@ -72,7 +74,6 @@ struct OneTimeCodeView: View {
 }
 
 #Preview {
-
   NavigationStack {
     OneTimeCodeView(identifier: "wesleynw")
       .environment(AuthManager())

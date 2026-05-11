@@ -19,10 +19,6 @@ struct AboutView: View {
               .resizable()
               .aspectRatio(contentMode: .fit)
               .frame(width: 80, height: 80)
-
-            Text("Splajompy")
-              .font(.title2)
-              .fontWeight(.semibold)
           }
           .padding()
           .frame(maxWidth: .infinity)

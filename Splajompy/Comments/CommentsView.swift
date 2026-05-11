@@ -301,10 +301,9 @@ struct CommentRow: View {
           }
         )
     )
-    .confirmationDialog(
+    .alert(
       "Are you sure you want to delete this comment?",
       isPresented: $showDeleteConfirmation,
-      titleVisibility: .visible
     ) {
       Button("Delete", role: .destructive) {
         deleteComment()

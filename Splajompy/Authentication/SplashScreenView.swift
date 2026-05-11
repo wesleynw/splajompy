@@ -11,16 +11,9 @@ struct SplashScreenView: View {
         .resizable()
         .scaledToFit()
         .frame(height: 130)
-        .shadow(color: .white, radius: 1)
-
-      Text("Splajompy")
-        .fontWeight(.black)
-        .font(.title)
-        .fontDesign(.rounded)
-        .shadow(color: .white, radius: 1)
+        .padding(.top, 150)
     }
-    .frame(maxHeight: .infinity)
-    .frame(maxWidth: .infinity)
+    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
     .overlay(alignment: .bottom) {
       HStack(spacing: 16) {
         Button {
@@ -83,4 +76,5 @@ struct SplashScreenView: View {
 
 #Preview {
   SplashScreenView()
+    .environment(AuthManager())
 }
