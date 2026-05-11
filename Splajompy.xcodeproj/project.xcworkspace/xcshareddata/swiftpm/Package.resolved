@@ -1,15 +1,6 @@
 {
-  "originHash" : "1703f7cc23711e3295c394b2ea9ab75cbfb7b2c8dacb1f15e1f622c1c5df212e",
+  "originHash" : "89054cfeda66d29a0bd814ebc482f7afbb12a2a824bcf1c9776b877cf8148c51",
   "pins" : [
-    {
-      "identity" : "ditheringengine",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/Eskils/DitheringEngine",
-      "state" : {
-        "revision" : "0197a146b3f62fa9003f55129ec610043e109390",
-        "version" : "1.10.0"
-      }
-    },
     {
       "identity" : "grpc-swift",
       "kind" : "remoteSourceControl",
