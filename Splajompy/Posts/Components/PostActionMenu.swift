@@ -77,10 +77,9 @@ struct PostActionMenu<MenuLabel: View>: View {
     } message: {
       Text("Thanks. A notification has been sent to the developer.")
     }
-    .confirmationDialog(
+    .alert(
       "Are you sure you want to delete this post?",
       isPresented: $showDeleteConfirmation,
-      titleVisibility: .visible
     ) {
       Button("Delete", role: .destructive) {
         onPostDeleted()

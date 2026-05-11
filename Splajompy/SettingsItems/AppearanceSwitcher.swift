@@ -2,6 +2,10 @@ import PostHog
 import SwiftUI
 
 struct AppearanceSwitcher: View {
+  @AppStorage("meme_onion_style") var onionStyle: Int = 0
+  @AppStorage("meme_pickles_included") var picklesIncluded: Bool = true
+  @AppStorage("meme_sauce_amount") var sauceAmount: Int = 1
+
   @AppStorage("appearance_mode") var appearanceMode: String = "Automatic"
   @AppStorage("comment_sort_order") private var commentSortOrder: String =
     "Newest First"
@@ -28,20 +32,12 @@ struct AppearanceSwitcher: View {
           }
           .foregroundStyle(.primary)
         }
-      } header: {
-        Text("Theme")
       }
 
       Section {
-        HStack {
-          Text("Comment Sort Order")
-          Spacer()
-          Picker("Comment Sort Order", selection: $commentSortOrder) {
-            Text("Newest First").tag("Newest First")
-            Text("Oldest First").tag("Oldest First")
-          }
-          .pickerStyle(.menu)
-          .labelsHidden()
+        Picker("Comment Sort Order", selection: $commentSortOrder) {
+          Text("Newest First").tag("Newest First")
+          Text("Oldest First").tag("Oldest First")
         }
       }
 
@@ -55,6 +51,23 @@ struct AppearanceSwitcher: View {
           }
         }
       #endif
+
+      Section {
+        Picker("Onion Style", selection: $onionStyle) {
+          Text("Grilled").tag(0)
+          Text("Normal")
+        }
+
+        Toggle(isOn: $picklesIncluded) {
+          Text("Pickles")
+        }
+
+        Stepper(
+          "Splajompy Sauce: \(sauceAmount)",
+          onIncrement: { sauceAmount += 1 },
+          onDecrement: { if sauceAmount > 0 { sauceAmount -= 1 } },
+        )
+      }
     }
     .navigationTitle("Appearance")
     #if os(iOS)
