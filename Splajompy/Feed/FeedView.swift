@@ -100,6 +100,7 @@ struct FeedView: View {
     case .failed(let error):
       ErrorScreen(
         errorString: error.localizedDescription,
+        source: "FeedView",
         onRetry: { await viewModel.loadPosts(reset: true) }
       )
       .frame(maxWidth: .infinity, maxHeight: .infinity)
