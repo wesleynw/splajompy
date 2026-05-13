@@ -61,6 +61,7 @@ struct StandalonePostView: View {
         case .failed(let error):
           ErrorScreen(
             errorString: error.localizedDescription,
+            source: "StandalonePostView",
             onRetry: {
               async let post: () = viewModel.load()
               async let comments: () = commentsViewModel.loadComments()

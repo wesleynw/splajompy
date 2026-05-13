@@ -20,6 +20,7 @@ struct SearchView: View {
       case .error(let error):
         ErrorScreen(
           errorString: error.localizedDescription,
+          source: "SearchView",
           onRetry: { await viewModel.searchUsers(prefix: searchText) }
         )
         .frame(maxWidth: .infinity, maxHeight: .infinity)

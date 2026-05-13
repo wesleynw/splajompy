@@ -3,6 +3,7 @@ import SwiftUI
 
 struct ErrorScreen: View {
   let errorString: String
+  var source: String? = nil
   let onRetry: () async -> Void
   @State private var isRetrying = false
 
@@ -47,10 +48,9 @@ struct ErrorScreen: View {
     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
     .padding()
     .onAppear {
-      PostHogSDK.shared.capture(
-        "error_screen_shown",
-        properties: ["message": errorString]
-      )
+      var properties: [String: Any] = ["message": errorString]
+      if let source { properties["source"] = source }
+      PostHogSDK.shared.capture("error_screen_shown", properties: properties)
     }
   }
 }

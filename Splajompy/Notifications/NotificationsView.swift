@@ -40,6 +40,7 @@ struct NotificationsView: View {
       case .failed(let error):
         ErrorScreen(
           errorString: error.localizedDescription,
+          source: "NotificationsView",
           onRetry: { await viewModel.refreshNotifications() }
         )
       default:

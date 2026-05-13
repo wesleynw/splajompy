@@ -41,6 +41,7 @@ struct StatisticsView: View {
       case .failed(let error):
         ErrorScreen(
           errorString: error.localizedDescription,
+          source: "StatisticsView",
           onRetry: { await viewModel.load() }
         )
       }
