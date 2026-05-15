@@ -315,6 +315,14 @@ struct MockProfileService: ProfileServiceProtocol {
     return .success(EmptyResponse())
   }
 
+  func getPushPreferences() async -> AsyncResult<PushPreferences> {
+    return .success(PushPreferences(comments: false, mentions: false, followers: false))
+  }
+
+  func updatePushPreferences(prefs: PushPreferences) async -> AsyncResult<EmptyResponse> {
+    return .success(EmptyResponse())
+  }
+
   func getAppStatistics() async -> AsyncResult<AppStatistics> {
     try? await Task.sleep(nanoseconds: 500_000_000)
     return .success(

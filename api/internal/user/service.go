@@ -143,6 +143,30 @@ func (s *Service) UpdateProfile(ctx context.Context, userId int, name *string, b
 	return nil
 }
 
+func (s *Service) GetPushPreferences(ctx context.Context, userId int) (*db.PushPreferences, error) {
+	props, err := s.store.GetUserDisplayProperties(ctx, userId)
+	if err != nil {
+		return nil, err
+	}
+	if props == nil {
+		return nil, nil
+	}
+	return props.PushPreferences, nil
+}
+
+func (s *Service) UpdatePushPreferences(ctx context.Context, userId int, prefs db.PushPreferences) error {
+	current, err := s.store.GetUserDisplayProperties(ctx, userId)
+	if err != nil {
+		return err
+	}
+	var props db.UserDisplayProperties
+	if current != nil {
+		props = *current
+	}
+	props.PushPreferences = &prefs
+	return s.store.UpdateUserDisplayProperties(ctx, userId, &props)
+}
+
 func (s *Service) IsBlockingUser(ctx context.Context, userId int, targetUserId int) (bool, error) {
 	return s.store.IsUserBlockingUser(ctx, userId, targetUserId)
 }

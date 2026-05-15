@@ -1,5 +1,11 @@
 import Foundation
 
+struct PushPreferences: Codable {
+  var comments: Bool
+  var mentions: Bool
+  var followers: Bool
+}
+
 struct UserDisplayProperties: Codable {
   let fontChoiceId: Int?
 }

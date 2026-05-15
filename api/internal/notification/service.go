@@ -9,6 +9,7 @@ import (
 
 	"splajompy.com/api/v2/internal/apns"
 	"splajompy.com/api/v2/internal/bucket"
+	"splajompy.com/api/v2/internal/db"
 	"splajompy.com/api/v2/internal/db/queries"
 	"splajompy.com/api/v2/internal/utilities"
 
@@ -33,6 +34,7 @@ type userReader interface {
 	GetUserById(ctx context.Context, userId int) (models.PublicUser, error)
 	GetUserByUsername(ctx context.Context, username string) (models.PublicUser, error)
 	GetUserLatestAppVersion(ctx context.Context, userId int) (*string, error)
+	GetUserDisplayProperties(ctx context.Context, userId int) (*db.UserDisplayProperties, error)
 }
 
 type commentReader interface {
@@ -333,7 +335,60 @@ func (s *Service) AddNotification(ctx context.Context, targetUserId int, postId 
 		return nil, err
 	}
 
-	return s.notificationRepository.InsertNotification(ctx, targetUserId, &postId, commentId, &facets, message, notificationType, nil)
+	notification, err := s.notificationRepository.InsertNotification(ctx, targetUserId, &postId, commentId, &facets, message, notificationType, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	go s.sendPushIfEnabled(ctx, targetUserId, message, notificationType)
+
+	return notification, nil
+}
+
+// sendPushIfEnabled checks the recipient's push preferences and sends to all their devices if enabled.
+func (s *Service) sendPushIfEnabled(ctx context.Context, recipientId int, body string, notifType models.NotificationType) {
+	props, err := s.userRepository.GetUserDisplayProperties(ctx, recipientId)
+	if err != nil || props == nil {
+		return
+	}
+
+	prefs := props.PushPreferences
+	if prefs == nil {
+		return
+	}
+
+	var enabled bool
+	switch notifType {
+	case models.NotificationTypeComment:
+		enabled = prefs.Comments
+	case models.NotificationTypeMention:
+		enabled = prefs.Mentions
+	case models.NotificationTypeFollowers:
+		enabled = prefs.Followers
+	}
+
+	if !enabled {
+		return
+	}
+
+	devices, err := s.notificationRepository.GetDeviceTokensForUser(ctx, recipientId)
+	if err != nil || len(devices) == 0 {
+		return
+	}
+
+	for _, device := range devices {
+		n := apns.Notification{
+			Payload: apns.NotificationPayload{
+				Aps: apns.Aps{
+					Alert:     apns.Alert{Body: body},
+					Badge:     1,
+					Timestamp: time.Now().Unix(),
+				},
+			},
+			DeviceToken: device,
+		}
+		_ = s.apnsClient.Push(ctx, &n)
+	}
 }
 
 func (s *Service) buildLikedMessage(ctx context.Context, userIds []int, isComment bool) (*string, error) {
