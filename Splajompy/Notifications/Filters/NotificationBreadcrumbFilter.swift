@@ -6,7 +6,6 @@ private let filterOptions: [NotificationFilter] = [
 
 struct NotificationBreadcrumbFilter: View {
   @Binding var filter: NotificationFilter
-  var onFilterChangeComplete: () -> Void = {}
   @Namespace private var namespace
 
   var body: some View {
@@ -17,14 +16,12 @@ struct NotificationBreadcrumbFilter: View {
             title: filterOption.displayName,
             isActive: filter == filterOption,
             onTap: {
-              withAnimation(.spring, completionCriteria: .logicallyComplete) {
+              withAnimation(.spring) {
                 if filter == .all {
                   filter = filterOption
                 } else {
                   filter = .all
                 }
-              } completion: {
-                onFilterChangeComplete()
               }
             }
           )
@@ -45,11 +42,7 @@ struct NotificationBreadcrumbFilter: View {
       if filter != .all {
         HStack(spacing: 5) {
           Button(action: {
-            withAnimation(.spring, completionCriteria: .logicallyComplete) {
-              filter = .all
-            } completion: {
-              onFilterChangeComplete()
-            }
+            withAnimation(.spring) { filter = .all }
           }) {
             Image(systemName: "xmark")
               .font(.callout)
@@ -64,11 +57,7 @@ struct NotificationBreadcrumbFilter: View {
             title: filter.displayName,
             isActive: filter == .all,
             onTap: {
-              withAnimation(.spring, completionCriteria: .logicallyComplete) {
-                filter = .all
-              } completion: {
-                onFilterChangeComplete()
-              }
+              withAnimation(.spring) { filter = .all }
             }
           )
           .opacity(0)

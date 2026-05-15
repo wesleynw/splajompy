@@ -52,6 +52,7 @@ struct UserListView: View {
       case .failed(let error):
         ErrorScreen(
           errorString: error.localizedDescription,
+          source: "UserListView",
           onRetry: { await viewModel.loadUsers(reset: true) }
         )
       }

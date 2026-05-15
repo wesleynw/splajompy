@@ -152,6 +152,7 @@ struct CommentsView: View {
       case .failed(let error):
         ErrorScreen(
           errorString: error.localizedDescription,
+          source: "CommentsView",
           onRetry: { viewModel.loadComments() }
         )
       }
@@ -301,10 +302,9 @@ struct CommentRow: View {
           }
         )
     )
-    .confirmationDialog(
+    .alert(
       "Are you sure you want to delete this comment?",
       isPresented: $showDeleteConfirmation,
-      titleVisibility: .visible
     ) {
       Button("Delete", role: .destructive) {
         deleteComment()

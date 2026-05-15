@@ -251,54 +251,43 @@ struct ImageGallery: View {
 
   @ViewBuilder
   private func singleImageCell() -> some View {
-    let image = images[0]
-    let aspectRatio = CGFloat(image.width) / CGFloat(image.height)
-    let isVeryWide = aspectRatio > 2.5
-    let isVeryTall = aspectRatio < 0.4
+    if let image = images.first, let url = URL(string: image.imageBlobUrl) {
+      let rawAspectRatio = CGFloat(image.width) / CGFloat(image.height)
+      let displayAspectRatio = max(0.4, min(2.5, rawAspectRatio))
 
-    let geo = GeometryReader { geometry in
-      if let url = URL(string: image.imageBlobUrl) {
-        Button {
-          selectedImageIndex = 0
-        } label: {
-          LazyImage(url: url) { state in
-            if let img = state.image {
-              img.resizable()
-            } else if state.error != nil {
-              Color.clear
-                .background(.thinMaterial)
-                .overlay {
-                  Image(systemName: "photo.badge.exclamationmark")
-                    .foregroundStyle(.secondary)
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-            } else {
-              ProgressView()
-                #if os(macOS)
-                  .controlSize(.small)
-                #endif
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-            }
+      Button {
+        selectedImageIndex = 0
+      } label: {
+        LazyImage(url: url) { state in
+          if let img = state.image {
+            img.resizable()
+              .aspectRatio(contentMode: .fill)
+          } else if state.error != nil {
+            Color.clear
+              .background(.thinMaterial)
+              .overlay {
+                Image(systemName: "photo.badge.exclamationmark")
+                  .foregroundStyle(.secondary)
+              }
+              .aspectRatio(displayAspectRatio, contentMode: .fit)
+          } else {
+            Color.clear
+              .background(.thinMaterial)
+              .overlay {
+                ProgressView()
+                  #if os(macOS)
+                    .controlSize(.small)
+                  #endif
+              }
+              .aspectRatio(displayAspectRatio, contentMode: .fit)
           }
-          .processors([.resize(width: geometry.size.width)])
-          .aspectRatio(contentMode: .fill)
-          .frame(width: geometry.size.width, height: geometry.size.height)
-          .clipShape(RoundedRectangle(cornerRadius: 8))
-          .contentShape(.rect)
-          .modifier(
-            TransitionSourceModifier(id: "image-0", namespace: animation)
-          )
         }
-        .buttonStyle(.plain)
+        .aspectRatio(displayAspectRatio, contentMode: .fit)
+        .clipShape(RoundedRectangle(cornerRadius: 15))
+        .contentShape(.rect)
+        .modifier(TransitionSourceModifier(id: "image-0", namespace: animation))
       }
-    }
-
-    if isVeryWide {
-      geo.frame(height: 200)
-    } else if isVeryTall {
-      geo.frame(height: 500)
-    } else {
-      geo.aspectRatio(aspectRatio, contentMode: .fit)
+      .buttonStyle(.plain)
     }
   }
 }

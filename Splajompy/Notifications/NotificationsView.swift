@@ -19,18 +19,10 @@ struct NotificationsView: View {
           )
         }
       } header: {
-        NotificationBreadcrumbFilter(
-          filter: $viewModel.selectedFilter,
-          onFilterChangeComplete: {
-            Task { @MainActor in
-              viewModel.state = .idle
-              await viewModel.refreshNotifications()
-            }
-          }
-        )
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .contentMargins(.leading, 10, for: .scrollContent)
-        .listRowInsets(EdgeInsets())
+        NotificationBreadcrumbFilter(filter: $viewModel.selectedFilter)
+          .frame(maxWidth: .infinity, alignment: .leading)
+          .contentMargins(.leading, 10, for: .scrollContent)
+          .listRowInsets(EdgeInsets())
       }
     }
     .listStyle(.plain)
@@ -48,6 +40,7 @@ struct NotificationsView: View {
       case .failed(let error):
         ErrorScreen(
           errorString: error.localizedDescription,
+          source: "NotificationsView",
           onRetry: { await viewModel.refreshNotifications() }
         )
       default:

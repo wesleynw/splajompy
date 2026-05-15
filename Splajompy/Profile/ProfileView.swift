@@ -66,6 +66,7 @@ struct ProfileView: View {
       case .failed(let error):
         ErrorScreen(
           errorString: error,
+          source: "ProfileView",
           onRetry: { await viewModel.loadProfileAndPosts(useLoadingState: false) }
         )
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -292,6 +293,7 @@ struct ProfileView: View {
           case .failed(let error):
             ErrorScreen(
               errorString: error,
+              source: "ProfileView",
               onRetry: { await viewModel.loadPosts(reset: true) }
             )
           }
