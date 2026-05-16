@@ -12,17 +12,18 @@
 Splajompy /splʌd͡ʒɑmpi/ is a free, open-source social media application for iOS. 
 
 Features:
-- Posts, likes, comments, images, and polls
-- Search, profiles, and bios
-- Blocking, muting, following, and tagging
-- Notifications
+- Posts, comments, likes, images, polls
+- Following, tagging, muting, blocking
+- Search, profiles, notifications
 
 Free from:
-- AI, ads, and bots
+- AI, ads, bots
 - Short-form video content
 - *The Algorithm*
 
 Originally a full-stack Typescript application, Splajompy is now a native SwitfUI app with an API written in Go.
+
+[iOS and macOS app download](https://apps.apple.com/us/app/splajompy/id6744034321)
 
 ## Architecture
 The API follows a domain-scoped architecture. Each domain (e.g. `post`, `user`, `auth`) lives in its own package under `internal/` and implements its own store, service, and handler.
