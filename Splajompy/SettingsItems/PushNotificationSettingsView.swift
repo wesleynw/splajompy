@@ -7,7 +7,7 @@ private enum SaveStatus {
 
 struct PushNotificationSettingsView: View {
   @Environment(\.scenePhase) private var scenePhase
-  
+
   @AppStorage("push_notifications_enabled") private
     var isPushNotificationsEnabled: Bool = false
   @AppStorage("push_pref_comments") private var comments: Bool = false
@@ -25,11 +25,10 @@ struct PushNotificationSettingsView: View {
 
   var body: some View {
     List {
-      Toggle("Push Notifications", isOn: $isPushNotificationsEnabled)
-
-      if notificationAuthorizationStatus == .denied {
+      if notificationAuthorizationStatus == .denied || true {
         VStack {
-          Text("Enable Push Notifications")
+          Text("Turn on Push Notifications")
+
           Button("Open Settings") {
             Task {
               if let url = URL(
@@ -39,17 +38,22 @@ struct PushNotificationSettingsView: View {
               }
             }
           }
+          .buttonStyle(.borderedProminent)
         }
-      }
+        .frame(maxWidth: .infinity)
+        .multilineTextAlignment(.center)
+      } else {
+        Toggle("Push Notifications", isOn: $isPushNotificationsEnabled)
 
-      if isPushNotificationsEnabled && notificationAuthorizationStatus == .authorized {
-        Section {
-          Toggle("Comments", isOn: $comments)
-            .onChange(of: comments) { _, _ in savePreferences() }
-          Toggle("Mentions", isOn: $mentions)
-            .onChange(of: mentions) { _, _ in savePreferences() }
-          Toggle("Follows", isOn: $follows)
-            .onChange(of: follows) { _, _ in savePreferences() }
+        if isPushNotificationsEnabled && notificationAuthorizationStatus == .authorized {
+          Section {
+            Toggle("Comments", isOn: $comments)
+              .onChange(of: comments) { _, _ in savePreferences() }
+            Toggle("Mentions", isOn: $mentions)
+              .onChange(of: mentions) { _, _ in savePreferences() }
+            Toggle("Follows", isOn: $follows)
+              .onChange(of: follows) { _, _ in savePreferences() }
+          }
         }
       }
     }

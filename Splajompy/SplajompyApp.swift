@@ -257,6 +257,8 @@ struct SplajompyApp: App {
       RequestSupportView()
     case .about:
       AboutView()
+    case .notifications:
+      PushNotificationSettingsView()
     }
   }
 

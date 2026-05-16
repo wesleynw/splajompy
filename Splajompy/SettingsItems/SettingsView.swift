@@ -42,11 +42,11 @@ struct SettingsView: View {
           NavigationLink(value: SettingsRoute.appIcon) {
             Label("App Icon", systemImage: "square.grid.2x2")
           }
-
-          NavigationLink(destination: PushNotificationSettingsView()) {
-            Label("Push Notifications", systemImage: "bell")  // TODO: change to value based nav
-          }
         #endif
+
+        NavigationLink(value: SettingsRoute.notifications) {
+          Label("Notifications", systemImage: "bell")
+        }
 
         if PostHogSDK.shared.isFeatureEnabled("secret-tab") {
           NavigationLink(value: SettingsRoute.secretPage) {

@@ -69,8 +69,6 @@ class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
     withCompletionHandler completionHandler:
       @escaping () -> Void
   ) {
-    print("received notification: \(response.notification.request.content)")
-
     guard
       let notificationType = response.notification.request.content.userInfo[
         "type"
@@ -79,7 +77,7 @@ class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
       print("unknown notification type")
       return
     }
-    
+
     guard
       let identifier = response.notification.request.content.userInfo[
         "identifier"
@@ -89,15 +87,16 @@ class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
       return
     }
 
-    let route: Route? = switch notificationType {
-    case "follow":
+    let route: Route? =
+      switch notificationType {
+      case "follow":
         .profile(id: String(identifier), username: "idk")
-    case "comment", "mention":
+      case "comment", "mention":
         .post(id: identifier)
-    default:
+      default:
         nil
-    }
-    
+      }
+
     if let route {
       NotificationCenter.default.post(
         name: .pushNotificationReceived,
