@@ -5,25 +5,27 @@
 </div>
 
 # Splajompy
-[![API Build](https://github.com/wesleynw/splajompy/actions/workflows/go.yml/badge.svg)](https://github.com/wesleynw/splajompy/actions/workflows/go.yml)
 [![iOS Build](https://github.com/wesleynw/splajompy/actions/workflows/ios.yml/badge.svg)](https://github.com/wesleynw/splajompy/actions/workflows/ios.yml)
+[![API Build](https://github.com/wesleynw/splajompy/actions/workflows/go.yml/badge.svg)](https://github.com/wesleynw/splajompy/actions/workflows/go.yml)
 
-## What is this?
-Splajompy is rooted in the belief that mainstream social media has long stopped being an ideal place to connect with others online, and that an online space for connection shouldn't necessarily be a public town square, but rather a small, familiar group of people that slightly extends beyond the connections we have in real life. 
-
-Splajompy avoids the common social media designs that allow us to compare ourselves with others based on like or follower counts, which drive us towards treating posts as content, and instead nudges you to keep up with only people you know, or mutual friends.
+## What is Splajompy?
+Splajompy /splʌd͡ʒɑmpi/ is a free, open-source social media application for iOS. 
 
 Features:
-- posts, likes, comments, images in both posts and comments
-- profiles, bios, profile appearance customization
-- polls, customizable feeds
-- blocking, muting, following
-- tagging users, notifications
+- Posts, likes, comments, images, and polls
+- Search, profiles, and bios
+- Blocking, muting, following, and tagging
+- Notifications
 
-Originally written as a full-stack Typescript application, Splajompy now has an API written in Go and a mobile app written almost entirely in SwiftUI to feel as native as possible.
+Free from:
+- AI, ads, and bots
+- Short-form video content
+- *The Algorithm*
 
-## API Architecture
-The API follows a domain-scoped architecture. Each domain (e.g. `post`, `user`, `auth`) lives in its own package under `internal/` and owns its store, service, and handler.
+Originally a full-stack Typescript application, Splajompy is now a native SwitfUI app with an API written in Go.
+
+## Architecture
+The API follows a domain-scoped architecture. Each domain (e.g. `post`, `user`, `auth`) lives in its own package under `internal/` and implements its own store, service, and handler.
 
 Each domain handler implements the `RouteRegistrar` interface:
 ```go
@@ -67,7 +69,7 @@ Docker must be installed as tests spin up a Postgres container.
 ### Go Code
 Before pushing Go code changes, run golangci-lint to check for issues:
 ```bash
-# install golangci-lint (if not already installed)
+# install golangci-lint
 go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
 
 # Run linting from the api directory
@@ -86,6 +88,6 @@ xcrun swift-format -ri .
 Swift linting is also enforced via a GitHub action that runs on pull requests.
 
 ## Deployment
-API code merged to the `main` branch is automatically deployed to the production API environment.
+API code merged to the `main` branch is automatically deployed to the production environment.
 
 Merges that change any Swift code will also trigger a XCode Cloud build and release to an internal TestFlight group.
