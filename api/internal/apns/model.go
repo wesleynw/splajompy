@@ -1,12 +1,16 @@
 package apns
 
+import "splajompy.com/api/v2/internal/models"
+
 type Notification struct {
 	Payload     NotificationPayload
 	DeviceToken string
 }
 
 type NotificationPayload struct {
-	Aps Aps `json:"aps"`
+	Aps        Aps                     `json:"aps"`
+	Type       models.NotificationType `json:"notificationType"`
+	Identifier int                     `json:"identifier"`
 }
 
 type Aps struct {

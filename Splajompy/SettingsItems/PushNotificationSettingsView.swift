@@ -1,3 +1,4 @@
+import PostHog
 import SwiftUI
 
 private enum SaveStatus {
@@ -5,12 +6,16 @@ private enum SaveStatus {
 }
 
 struct PushNotificationSettingsView: View {
-  @AppStorage("push_notifications_enabled") private var isPushNotificationsEnabled: Bool = false
+  @Environment(\.scenePhase) private var scenePhase
+  
+  @AppStorage("push_notifications_enabled") private
+    var isPushNotificationsEnabled: Bool = false
   @AppStorage("push_pref_comments") private var comments: Bool = false
   @AppStorage("push_pref_mentions") private var mentions: Bool = false
   @AppStorage("push_pref_follows") private var follows: Bool = false
 
   @State private var saveStatus: SaveStatus = .idle
+  @State private var notificationAuthorizationStatus: UNAuthorizationStatus?
 
   private let profileService: ProfileServiceProtocol
 
@@ -22,13 +27,30 @@ struct PushNotificationSettingsView: View {
     List {
       Toggle("Push Notifications", isOn: $isPushNotificationsEnabled)
 
-      if isPushNotificationsEnabled {
-        Toggle("Comments", isOn: $comments)
-          .onChange(of: comments) { _, _ in savePreferences() }
-        Toggle("Mentions", isOn: $mentions)
-          .onChange(of: mentions) { _, _ in savePreferences() }
-        Toggle("Follows", isOn: $follows)
-          .onChange(of: follows) { _, _ in savePreferences() }
+      if notificationAuthorizationStatus == .denied {
+        VStack {
+          Text("Enable Push Notifications")
+          Button("Open Settings") {
+            Task {
+              if let url = URL(
+                string: UIApplication.openNotificationSettingsURLString
+              ) {
+                await UIApplication.shared.open(url)
+              }
+            }
+          }
+        }
+      }
+
+      if isPushNotificationsEnabled && notificationAuthorizationStatus == .authorized {
+        Section {
+          Toggle("Comments", isOn: $comments)
+            .onChange(of: comments) { _, _ in savePreferences() }
+          Toggle("Mentions", isOn: $mentions)
+            .onChange(of: mentions) { _, _ in savePreferences() }
+          Toggle("Follows", isOn: $follows)
+            .onChange(of: follows) { _, _ in savePreferences() }
+        }
       }
     }
     .toolbar {
@@ -45,20 +67,36 @@ struct PushNotificationSettingsView: View {
         }
       }
     }
+    .task {
+      let settings = await UNUserNotificationCenter.current()
+        .notificationSettings()
+      notificationAuthorizationStatus = settings.authorizationStatus
+    }
+    .onChange(of: scenePhase) {
+      if scenePhase == .active {
+        Task {
+          let settings = await UNUserNotificationCenter.current()
+            .notificationSettings()
+          notificationAuthorizationStatus = settings.authorizationStatus
+        }
+      }
+    }
     .onChange(of: isPushNotificationsEnabled) { _, newValue in
       if newValue {
         Task {
           do {
-            try await UNUserNotificationCenter.current().requestAuthorization(options: [
-              .alert, .badge,
-            ])
+            try await UNUserNotificationCenter.current().requestAuthorization(
+              options: [
+                .alert, .badge,
+              ])
             UIApplication.shared.registerForRemoteNotifications()
+            PostHogSDK.shared.register(["push_notifications_enabled": true])
           } catch {
-            print("error")
           }
         }
       } else {
         UIApplication.shared.unregisterForRemoteNotifications()
+        PostHogSDK.shared.register(["push_notifications_enabled": false])
       }
     }
     .task(id: isPushNotificationsEnabled) {
@@ -75,7 +113,11 @@ struct PushNotificationSettingsView: View {
 
   private func savePreferences() {
     saveStatus = .saving
-    let prefs = PushPreferences(comments: comments, mentions: mentions, followers: follows)
+    let prefs = PushPreferences(
+      comments: comments,
+      mentions: mentions,
+      followers: follows
+    )
     Task {
       let result = await profileService.updatePushPreferences(prefs: prefs)
       withAnimation {

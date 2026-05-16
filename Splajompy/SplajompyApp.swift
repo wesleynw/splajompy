@@ -39,6 +39,14 @@ struct SplajompyApp: App {
         _ in
         handleUserSignOut()
       }
+      .onReceive(
+        NotificationCenter.default.publisher(for: .pushNotificationReceived)
+      ) {
+        notification in
+        if let route = notification.userInfo?["route"] as? Route {
+          navigationPaths[selection].append(route)
+        }
+      }
       .environment(authManager)
       .preferredColorScheme(colorScheme)
     }

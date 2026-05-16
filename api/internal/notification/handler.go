@@ -27,7 +27,6 @@ func (h *Handler) RegisterRoutes(_, withAuth func(string, func(http.ResponseWrit
 	withAuth("GET /notifications/read/time", h.GetReadNotificationsByUserIdWithTimeOffset)
 	withAuth("GET /notifications/unread/time", h.GetUnreadNotificationsByUserIdWithTimeOffset)
 	withAuth("POST /notifications/registerDevice", h.SetDeviceToken)
-	withAuth("POST /notifications/pushTest", h.SendTestNotification)
 }
 
 func (h *Handler) MarkAllNotificationsAsRead(w http.ResponseWriter, r *http.Request) {
@@ -181,17 +180,6 @@ func (h *Handler) SetDeviceToken(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
 		return
-	}
-
-	utilities.HandleEmptySuccess(w)
-}
-
-func (h *Handler) SendTestNotification(w http.ResponseWriter, r *http.Request) {
-	currentUser := utilities.GetAuthenticatedUser(r)
-
-	err := h.svc.SendTestPushNotification(r.Context(), currentUser.UserID)
-	if err != nil {
-		utilities.HandleError(w, http.StatusInternalServerError, err.Error())
 	}
 
 	utilities.HandleEmptySuccess(w)

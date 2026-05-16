@@ -340,13 +340,23 @@ func (s *Service) AddNotification(ctx context.Context, targetUserId int, postId 
 		return nil, err
 	}
 
-	go s.sendPushIfEnabled(ctx, targetUserId, message, notificationType)
+	var identifier int
+	switch notificationType {
+	case models.NotificationTypeComment:
+		identifier = postId
+	case models.NotificationTypeFollowers:
+		identifier = targetUserId
+	default:
+		identifier = 0
+	}
+
+	s.sendPushIfEnabled(ctx, targetUserId, message, notificationType, identifier)
 
 	return notification, nil
 }
 
 // sendPushIfEnabled checks the recipient's push preferences and sends to all their devices if enabled.
-func (s *Service) sendPushIfEnabled(ctx context.Context, recipientId int, body string, notifType models.NotificationType) {
+func (s *Service) sendPushIfEnabled(ctx context.Context, recipientId int, body string, notificationType models.NotificationType, identifier int) {
 	props, err := s.userRepository.GetUserDisplayProperties(ctx, recipientId)
 	if err != nil || props == nil {
 		return
@@ -358,7 +368,7 @@ func (s *Service) sendPushIfEnabled(ctx context.Context, recipientId int, body s
 	}
 
 	var enabled bool
-	switch notifType {
+	switch notificationType {
 	case models.NotificationTypeComment:
 		enabled = prefs.Comments
 	case models.NotificationTypeMention:
@@ -384,6 +394,8 @@ func (s *Service) sendPushIfEnabled(ctx context.Context, recipientId int, body s
 					Badge:     1,
 					Timestamp: time.Now().Unix(),
 				},
+				Type:       notificationType,
+				Identifier: identifier,
 			},
 			DeviceToken: device,
 		}
@@ -427,31 +439,4 @@ func (s *Service) buildLikedMessage(ctx context.Context, userIds []int, isCommen
 
 func (s *Service) RegisterDeviceToken(ctx context.Context, userId int, deviceId string, deviceToken string) error {
 	return s.notificationRepository.InsertDeviceToken(ctx, userId, deviceId, deviceToken)
-}
-
-func (s *Service) SendTestPushNotification(ctx context.Context, userId int) error {
-	devices, err := s.notificationRepository.GetDeviceTokensForUser(ctx, userId)
-	if err != nil {
-		return err
-	}
-
-	if len(devices) < 1 {
-		return errors.New("no device for given user")
-	}
-
-	notification := apns.Notification{
-		Payload: apns.NotificationPayload{
-			Aps: apns.Aps{
-				Alert: apns.Alert{
-					// Title: "Test notification",
-					Body: "@wesley just mentioned you in a post.",
-				},
-				Badge:     1,
-				Timestamp: time.Now().Unix(),
-			},
-		},
-		DeviceToken: devices[0],
-	}
-
-	return s.apnsClient.Push(ctx, &notification)
 }
