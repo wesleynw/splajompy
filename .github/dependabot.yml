@@ -54,7 +54,7 @@ updates:
     directory: "/web"
     schedule:
       interval: "weekly"
-      groups:
-        web-dependencies:
-          patterns:
-            - "*"
+    groups:
+      web-dependencies:
+        patterns:
+          - "*"
