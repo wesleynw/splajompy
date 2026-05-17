@@ -4,7 +4,6 @@ import pulumi
 from pulumi_digitalocean import (
     App,
     AppSpecArgsDict,
-    AppSpecDomainNameArgsDict,
     AppSpecEnvArgsDict,
     DatabaseCluster,
     DatabaseDb,
@@ -39,20 +38,6 @@ private_network_uuid = config.require("privateNetworkUuid")
 api_service_name = config.get("apiServiceName") or "splajompy-native-api"
 otel_service_name = config.get("otelServiceName") or "splajompy-api-internal-utilitie2"
 api_domain = config.get("apiDomain") or "api.splajompy.com"
-web_domains = cast(
-    list[str],
-    config.get_object("webDomains") or ["splajompy.com", "www.splajompy.com"],
-)
-web_domain_names = cast(
-    list[AppSpecDomainNameArgsDict],
-    [
-        {
-            "name": domain,
-            "type": "PRIMARY" if index == 0 else "ALIAS",
-        }
-        for index, domain in enumerate(web_domains)
-    ],
-)
 
 api_spec = cast(
     AppSpecArgsDict,
@@ -141,69 +126,11 @@ api_spec = cast(
     },
 )
 
-web_spec = cast(
-    AppSpecArgsDict,
-    {
-        "alerts": [{"rule": "DEPLOYMENT_FAILED"}, {"rule": "DOMAIN_FAILED"}],
-        "domain_names": web_domain_names,
-        "envs": [
-            secret_env("CA_CERT", "webCaCert"),
-            secret_env("ENVIRONMENT", "webEnvironment"),
-            secret_env("NEXT_PUBLIC_POSTHOG_KEY", "webNextPublicPosthogKey"),
-            secret_env("POSTGRES_URL", "webPostgresUrl"),
-            secret_env("POSTGRES_URL_NON_POOLED", "webPostgresUrlNonPooled"),
-            secret_env("RESEND_API_KEY", "webResendApiKey"),
-            secret_env("SPACES_ACCESS_KEY", "webSpacesAccessKey"),
-            secret_env("SPACES_SECRET_KEY", "webSpacesSecretKey"),
-            secret_env("SPACE_NAME", "webSpaceName"),
-            secret_env("SPACE_REGION", "webSpaceRegion"),
-        ],
-        "features": ["buildpack-stack=ubuntu-22"],
-        "ingress": {
-            "rules": [
-                {
-                    "component": {"name": "splajompy"},
-                    "match": {"path": {"prefix": "/"}},
-                }
-            ]
-        },
-        "maintenance": {
-            "archive": False,
-            "enabled": False,
-            "offline_page_url": "",
-        },
-        "name": "splajompy-app",
-        "region": "nyc",
-        "services": [
-            {
-                "http_port": 8080,
-                "image": {
-                    "deploy_on_pushes": [{"enabled": True}],
-                    "registry": "splajompy",
-                    "registry_type": "DOCR",
-                    "repository": "splajompy",
-                    "tag": "latest",
-                },
-                "instance_count": 1,
-                "instance_size_slug": "apps-s-1vcpu-0.5gb",
-                "name": "splajompy",
-            }
-        ],
-    },
-)
-
 splajompy_api = App(
     "splajompy-api",
     project_id=project_id,
     spec=api_spec,
     opts=pulumi.ResourceOptions(protect=True, ignore_changes=["deploymentPerPage"]),
-)
-
-splajompy_app = App(
-    "splajompy-app",
-    project_id=project_id,
-    spec=web_spec,
-    opts=pulumi.ResourceOptions(protect=False, ignore_changes=["deploymentPerPage"]),
 )
 
 splajompy_cluster = DatabaseCluster(
