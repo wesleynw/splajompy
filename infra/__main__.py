@@ -203,7 +203,7 @@ splajompy_app = App(
     "splajompy-app",
     project_id=project_id,
     spec=web_spec,
-    opts=pulumi.ResourceOptions(protect=True, ignore_changes=["deploymentPerPage"]),
+    opts=pulumi.ResourceOptions(protect=False, ignore_changes=["deploymentPerPage"]),
 )
 
 splajompy_cluster = DatabaseCluster(
