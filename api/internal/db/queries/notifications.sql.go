@@ -379,19 +379,18 @@ func (q *Queries) GetUserUnreadNotificationCount(ctx context.Context, userID int
 }
 
 const insertDeviceToken = `-- name: InsertDeviceToken :exec
-INSERT INTO device_token (user_id, device_id, device_token)
-VALUES ($1, $2, $3)
-ON CONFLICT (device_id) DO UPDATE SET device_token = $3, modified_at = CURRENT_TIMESTAMP
+INSERT INTO device_token (user_id, device_token)
+VALUES ($1, $2)
+ON CONFLICT (device_token) DO NOTHING
 `
 
 type InsertDeviceTokenParams struct {
 	UserID      int    `json:"userId"`
-	DeviceID    string `json:"deviceId"`
 	DeviceToken string `json:"deviceToken"`
 }
 
 func (q *Queries) InsertDeviceToken(ctx context.Context, arg InsertDeviceTokenParams) error {
-	_, err := q.db.Exec(ctx, insertDeviceToken, arg.UserID, arg.DeviceID, arg.DeviceToken)
+	_, err := q.db.Exec(ctx, insertDeviceToken, arg.UserID, arg.DeviceToken)
 	return err
 }
 

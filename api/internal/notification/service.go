@@ -390,8 +390,11 @@ func (s *Service) sendPushIfEnabled(ctx context.Context, recipientId int, body s
 		n := apns.Notification{
 			Payload: apns.NotificationPayload{
 				Aps: apns.Aps{
-					Alert:     apns.Alert{Body: body},
-					Badge:     1,
+					Alert: apns.Alert{
+						Title: "Splajompy",
+						Body:  body,
+					},
+					Badge:     0,
 					Timestamp: time.Now().Unix(),
 				},
 				Type:       notificationType,
@@ -437,6 +440,6 @@ func (s *Service) buildLikedMessage(ctx context.Context, userIds []int, isCommen
 	return &message, nil
 }
 
-func (s *Service) RegisterDeviceToken(ctx context.Context, userId int, deviceId string, deviceToken string) error {
-	return s.notificationRepository.InsertDeviceToken(ctx, userId, deviceId, deviceToken)
+func (s *Service) RegisterDeviceToken(ctx context.Context, userId int, deviceToken string) error {
+	return s.notificationRepository.InsertDeviceToken(ctx, userId, deviceToken)
 }

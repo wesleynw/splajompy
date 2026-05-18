@@ -41,7 +41,6 @@ type CommentImage struct {
 type DeviceToken struct {
 	ID          int        `json:"id"`
 	UserID      int        `json:"userId"`
-	DeviceID    string     `json:"deviceId"`
 	DeviceToken string     `json:"deviceToken"`
 	CreatedAt   *time.Time `json:"createdAt"`
 	ModifiedAt  *time.Time `json:"modifiedAt"`

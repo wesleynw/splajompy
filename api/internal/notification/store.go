@@ -219,10 +219,9 @@ func (r *NotificationStore) UpdateNotificationMessageOnly(ctx context.Context, n
 	})
 }
 
-func (r *NotificationStore) InsertDeviceToken(ctx context.Context, userId int, deviceId string, deviceToken string) error {
+func (r *NotificationStore) InsertDeviceToken(ctx context.Context, userId int, deviceToken string) error {
 	return r.querier.InsertDeviceToken(ctx, queries.InsertDeviceTokenParams{
 		UserID:      userId,
-		DeviceID:    deviceId,
 		DeviceToken: deviceToken,
 	})
 }

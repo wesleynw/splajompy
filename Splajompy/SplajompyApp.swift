@@ -4,7 +4,11 @@ import SwiftUI
 
 @main
 struct SplajompyApp: App {
-  @UIApplicationDelegateAdaptor private var appDelegate: AppDelegate
+  #if os(iOS)
+    @UIApplicationDelegateAdaptor private var appDelegate: AppDelegate
+  #else
+    @NSApplicationDelegateAdaptor private var appDelegate: AppDelegate
+  #endif
 
   @State private var selection: Int = 0
   @State private var navigationPaths = [

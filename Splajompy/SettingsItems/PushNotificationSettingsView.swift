@@ -1,5 +1,6 @@
 import PostHog
 import SwiftUI
+import UserNotifications
 
 private enum SaveStatus {
   case idle, saving, error
@@ -25,27 +26,32 @@ struct PushNotificationSettingsView: View {
 
   var body: some View {
     List {
-      if notificationAuthorizationStatus == .denied || true {
+      if notificationAuthorizationStatus == .denied {
         VStack {
-          Text("Turn on Push Notifications")
+          Text("Turn on Push Notifications in Settings")
 
-          Button("Open Settings") {
-            Task {
-              if let url = URL(
-                string: UIApplication.openNotificationSettingsURLString
-              ) {
-                await UIApplication.shared.open(url)
+          #if os(iOS)
+            Button("Open Settings") {
+              Task {
+                if let url = URL(
+                  string:
+                    UIApplication.openNotificationSettingsURLString
+                ) {
+                  await UIApplication.shared.open(url)
+                }
               }
             }
-          }
-          .buttonStyle(.borderedProminent)
+            .buttonStyle(.borderedProminent)
+          #endif
         }
         .frame(maxWidth: .infinity)
         .multilineTextAlignment(.center)
       } else {
         Toggle("Push Notifications", isOn: $isPushNotificationsEnabled)
 
-        if isPushNotificationsEnabled && notificationAuthorizationStatus == .authorized {
+        if isPushNotificationsEnabled
+          && notificationAuthorizationStatus == .authorized
+        {
           Section {
             Toggle("Comments", isOn: $comments)
               .onChange(of: comments) { _, _ in savePreferences() }
@@ -58,7 +64,15 @@ struct PushNotificationSettingsView: View {
       }
     }
     .toolbar {
-      ToolbarItem(placement: .topBarTrailing) {
+      ToolbarItem(
+        placement: {
+          #if os(iOS)
+            .topBarTrailing
+          #else
+            .primaryAction
+          #endif
+        }()
+      ) {
         switch saveStatus {
         case .saving:
           ProgressView()
@@ -93,13 +107,21 @@ struct PushNotificationSettingsView: View {
               options: [
                 .alert, .badge,
               ])
-            UIApplication.shared.registerForRemoteNotifications()
+            #if os(iOS)
+              UIApplication.shared.registerForRemoteNotifications()
+            #else
+              NSApplication.shared.registerForRemoteNotifications()
+            #endif
             PostHogSDK.shared.register(["push_notifications_enabled": true])
           } catch {
           }
         }
       } else {
-        UIApplication.shared.unregisterForRemoteNotifications()
+        #if os(iOS)
+          UIApplication.shared.unregisterForRemoteNotifications()
+        #else
+          NSApplication.shared.unregisterForRemoteNotifications()
+        #endif
         PostHogSDK.shared.register(["push_notifications_enabled": false])
       }
     }
@@ -112,7 +134,9 @@ struct PushNotificationSettingsView: View {
       }
     }
     .navigationTitle("Notifications")
-    .navigationBarTitleDisplayMode(.inline)
+    #if os(iOS)
+      .navigationBarTitleDisplayMode(.inline)
+    #endif
   }
 
   private func savePreferences() {

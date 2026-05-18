@@ -1,58 +1,47 @@
+import AppKit
 import PostHog
-import UIKit
+import UserNotifications
 
-struct DeviceTokenRequest: Codable {
-  let deviceId: String
-  let deviceToken: String
-}
-
-class AppDelegate: NSObject, UIApplicationDelegate {
+class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
   private let notificationDelegate = NotificationDelegate()
 
-  func application(
-    _ application: UIApplication,
-    didFinishLaunchingWithOptions launchOptions: [UIApplication
-      .LaunchOptionsKey: Any]?
-  ) -> Bool {
+  func applicationDidFinishLaunching(
+    _ notification: UserNotifications.Notification
+  ) {
     if UserDefaults.standard.bool(forKey: "push_notifications_enabled") {
-      UIApplication.shared.registerForRemoteNotifications()
+      Task { @MainActor in
+        NSApplication.shared.registerForRemoteNotifications()
+      }
     }
 
     UNUserNotificationCenter.current().delegate = notificationDelegate
-
-    return true
   }
 
   func application(
-    _ application: UIApplication,
+    _ application: NSApplication,
     didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data
   ) {
-    print("did register for push notifications")
-    if let deviceId = UIDevice.current.identifierForVendor?.uuidString {
-      let tokenString = deviceToken.map { String(format: "%02.2hhx", $0) }
-        .joined()
+    let tokenString = deviceToken.map { String(format: "%02.2hhx", $0) }
+      .joined()
 
-      let payload = DeviceTokenRequest(
-        deviceId: deviceId,
-        deviceToken: tokenString
-      )
-      print("new device token: \(tokenString)")
+    let payload = DeviceTokenRequest(
+      deviceToken: tokenString
+    )
 
-      if let data = try? JSONEncoder().encode(payload) {
-        Task {
-          let _: AsyncResult<EmptyResponse> = await APIService.performRequest(
-            endpoint: "notifications/registerDevice",
-            method: "POST",
-            queryItems: nil,
-            body: data
-          )
-        }
+    if let data = try? JSONEncoder().encode(payload) {
+      Task {
+        let _: AsyncResult<EmptyResponse> = await APIService.performRequest(
+          endpoint: "notifications/registerDevice",
+          method: "POST",
+          queryItems: nil,
+          body: data
+        )
       }
     }
   }
 
   func application(
-    _ application: UIApplication,
+    _ application: NSApplication,
     didFailToRegisterForRemoteNotificationsWithError error: Error
   ) {
     PostHogSDK.shared.capture(

@@ -100,7 +100,11 @@ class AuthManager: Sendable {
     ImagePipeline.shared.cache.removeAll()
 
     NotificationCenter.default.post(name: .userDidSignOut, object: nil)
-    UIApplication.shared.unregisterForRemoteNotifications()
+    #if os(iOS)
+      UIApplication.shared.unregisterForRemoteNotifications()
+    #else
+      NSApplication.shared.unregisterForRemoteNotifications()
+    #endif
 
     isAuthenticated = false
   }

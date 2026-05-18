@@ -6,6 +6,10 @@ struct PushPreferences: Codable {
   var followers: Bool
 }
 
+struct DeviceTokenRequest: Codable {
+  let deviceToken: String
+}
+
 struct UserDisplayProperties: Codable {
   let fontChoiceId: Int?
 }

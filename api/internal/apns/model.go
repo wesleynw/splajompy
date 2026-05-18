@@ -13,6 +13,10 @@ type NotificationPayload struct {
 	Identifier int                     `json:"identifier"`
 }
 
+type NotificationResponse struct {
+	Reason string `json:"reason"`
+}
+
 type Aps struct {
 	Alert     Alert `json:"alert"`
 	Badge     int   `json:"badge"`

@@ -44,8 +44,10 @@ struct SettingsView: View {
           }
         #endif
 
-        NavigationLink(value: SettingsRoute.notifications) {
-          Label("Notifications", systemImage: "bell")
+        if PostHogSDK.shared.isFeatureEnabled("push-notifications") {
+          NavigationLink(value: SettingsRoute.notifications) {
+            Label("Notifications", systemImage: "bell")
+          }
         }
 
         if PostHogSDK.shared.isFeatureEnabled("secret-tab") {
