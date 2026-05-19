@@ -56,7 +56,6 @@ class AuthManager: Sendable {
 
     guard let tokenData else {
       if status != errSecSuccess {
-        print("keychain error: ", status.description)
         PostHogSDK.shared.capture(
           "keychain_read_failed",
           properties: ["status": status.description, "item": "session-token"]
@@ -100,11 +99,7 @@ class AuthManager: Sendable {
     ImagePipeline.shared.cache.removeAll()
 
     NotificationCenter.default.post(name: .userDidSignOut, object: nil)
-    #if os(iOS)
-      UIApplication.shared.unregisterForRemoteNotifications()
-    #else
-      NSApplication.shared.unregisterForRemoteNotifications()
-    #endif
+    RemoteNotificationUtilities.unregisterForRemoteNotifications()
 
     isAuthenticated = false
   }

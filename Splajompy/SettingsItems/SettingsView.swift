@@ -46,7 +46,7 @@ struct SettingsView: View {
 
         if PostHogSDK.shared.isFeatureEnabled("push-notifications") {
           NavigationLink(value: SettingsRoute.notifications) {
-            Label("Notifications", systemImage: "bell")
+            Label("Notifications", systemImage: "bell.badge")
           }
         }
 

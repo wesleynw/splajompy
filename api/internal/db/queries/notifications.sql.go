@@ -109,7 +109,7 @@ func (q *Queries) FindLikeNotificationForPost(ctx context.Context, arg FindLikeN
 }
 
 const getDeviceTokensForUser = `-- name: GetDeviceTokensForUser :many
-SELECT device_token
+SELECT token
 FROM device_token
 WHERE user_id = $1
 `
@@ -122,11 +122,11 @@ func (q *Queries) GetDeviceTokensForUser(ctx context.Context, userID int) ([]str
 	defer rows.Close()
 	var items []string
 	for rows.Next() {
-		var device_token string
-		if err := rows.Scan(&device_token); err != nil {
+		var token string
+		if err := rows.Scan(&token); err != nil {
 			return nil, err
 		}
-		items = append(items, device_token)
+		items = append(items, token)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
@@ -379,18 +379,18 @@ func (q *Queries) GetUserUnreadNotificationCount(ctx context.Context, userID int
 }
 
 const insertDeviceToken = `-- name: InsertDeviceToken :exec
-INSERT INTO device_token (user_id, device_token)
+INSERT INTO device_token (user_id, token)
 VALUES ($1, $2)
 ON CONFLICT (device_token) DO NOTHING
 `
 
 type InsertDeviceTokenParams struct {
-	UserID      int    `json:"userId"`
-	DeviceToken string `json:"deviceToken"`
+	UserID int    `json:"userId"`
+	Token  string `json:"token"`
 }
 
 func (q *Queries) InsertDeviceToken(ctx context.Context, arg InsertDeviceTokenParams) error {
-	_, err := q.db.Exec(ctx, insertDeviceToken, arg.UserID, arg.DeviceToken)
+	_, err := q.db.Exec(ctx, insertDeviceToken, arg.UserID, arg.Token)
 	return err
 }
 

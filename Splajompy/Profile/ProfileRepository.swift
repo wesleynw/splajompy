@@ -61,7 +61,9 @@ protocol ProfileServiceProtocol: Sendable {
   func getPushPreferences() async -> AsyncResult<PushPreferences>
 
   /// Update the current user's push notification preferences.
-  func updatePushPreferences(prefs: PushPreferences) async -> AsyncResult<EmptyResponse>
+  func updatePushPreferences(prefs: PushPreferences) async -> AsyncResult<
+    EmptyResponse
+  >
 
   /// Fetch statistics about app.
   func getAppStatistics() async -> AsyncResult<AppStatistics>
@@ -264,7 +266,9 @@ struct ProfileService: ProfileServiceProtocol {
     )
   }
 
-  func updatePushPreferences(prefs: PushPreferences) async -> AsyncResult<EmptyResponse> {
+  func updatePushPreferences(prefs: PushPreferences) async -> AsyncResult<
+    EmptyResponse
+  > {
     guard let data = try? JSONEncoder().encode(prefs) else {
       return .error(APIErrorMessage(message: "Failed to encode preferences"))
     }

@@ -134,11 +134,11 @@ SET message = $2, facets = $3
 WHERE notification_id = $1;
 
 -- name: InsertDeviceToken :exec
-INSERT INTO device_token (user_id, device_token)
+INSERT INTO device_token (user_id, token)
 VALUES ($1, $2)
 ON CONFLICT (device_token) DO NOTHING;
 
 -- name: GetDeviceTokensForUser :many
-SELECT device_token
+SELECT token
 FROM device_token
 WHERE user_id = $1;
