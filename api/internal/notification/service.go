@@ -223,7 +223,7 @@ func (s *Service) AddLikeNotification(ctx context.Context, currentUserId int, po
 		if err != nil {
 			return err
 		}
-		_, err = s.AddNotification(ctx, recipientId, postId, commentId, *message, models.NotificationTypeLike)
+		_, err = s.AddNotification(ctx, recipientId, postId, commentId, *message, models.NotificationTypeLike, nil)
 		return err
 	}
 
@@ -238,7 +238,7 @@ func (s *Service) AddLikeNotification(ctx context.Context, currentUserId int, po
 		if err != nil {
 			return err
 		}
-		notification, err := s.AddNotification(ctx, recipientId, postId, commentId, *message, models.NotificationTypeLike)
+		notification, err := s.AddNotification(ctx, recipientId, postId, commentId, *message, models.NotificationTypeLike, nil)
 		if err != nil {
 			return err
 		}
@@ -329,7 +329,7 @@ func (s *Service) RemoveLikeNotification(ctx context.Context, currentUserId int,
 }
 
 // AddNotification will enrich the notification message with facets, then store.
-func (s *Service) AddNotification(ctx context.Context, targetUserId int, postId int, commentId *int, message string, notificationType models.NotificationType) (*models.Notification, error) {
+func (s *Service) AddNotification(ctx context.Context, targetUserId int, postId int, commentId *int, message string, notificationType models.NotificationType, notificationBody *string) (*models.Notification, error) {
 	facets, err := utilities.GenerateFacets(ctx, s.userRepository, message)
 	if err != nil {
 		return nil, err
@@ -350,13 +350,13 @@ func (s *Service) AddNotification(ctx context.Context, targetUserId int, postId 
 		identifier = 0
 	}
 
-	s.sendPushIfEnabled(ctx, targetUserId, message, notificationType, identifier)
+	s.sendPushIfEnabled(ctx, targetUserId, message, notificationBody, notificationType, identifier)
 
 	return notification, nil
 }
 
 // sendPushIfEnabled checks the recipient's push preferences and sends to all their devices if enabled.
-func (s *Service) sendPushIfEnabled(ctx context.Context, recipientId int, body string, notificationType models.NotificationType, identifier int) {
+func (s *Service) sendPushIfEnabled(ctx context.Context, recipientId int, title string, body *string, notificationType models.NotificationType, identifier int) {
 	props, err := s.userRepository.GetUserDisplayProperties(ctx, recipientId)
 	if err != nil || props == nil {
 		return
@@ -391,8 +391,8 @@ func (s *Service) sendPushIfEnabled(ctx context.Context, recipientId int, body s
 			Payload: apns.NotificationPayload{
 				Aps: apns.Aps{
 					Alert: apns.Alert{
-						Title: "Splajompy",
-						Body:  body,
+						Title: title,
+						Body:  *body,
 					},
 					Badge:     0,
 					Timestamp: time.Now().Unix(),

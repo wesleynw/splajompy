@@ -22,6 +22,11 @@ const (
 	ProductionServer  = "https://api.push.apple.com/"
 )
 
+const (
+	DevelopmentBundleId = "splajompy.com.Splajompy.devW"
+	ProductionBundleId  = "splajompy.com.Splajompy"
+)
+
 var tracer trace.Tracer = otel.Tracer("apns-service")
 var meter metric.Meter = otel.Meter("apns-service")
 
@@ -34,7 +39,7 @@ type Client struct {
 func NewClient(token *Token) *Client {
 	return &Client{
 		httpClient: &http.Client{},
-		baseUrl:    DevelopmentServer,
+		baseUrl:    ProductionServer,
 		token:      token,
 	}
 }
@@ -73,7 +78,7 @@ func (c *Client) Push(ctx context.Context, notification *Notification) error {
 	}
 
 	req.Header.Add("authorization", "bearer "+*bearer)
-	req.Header.Add("apns-topic", "splajompy.com.Splajompy.devW")
+	req.Header.Add("apns-topic", ProductionBundleId)
 	req.Header.Add("apns-push-type", "alert")
 
 	push_counter, err := meter.Int64Counter("push.counter", metric.WithDescription("Number of push notifications requested"), metric.WithUnit("{call}"))

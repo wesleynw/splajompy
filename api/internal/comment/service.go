@@ -88,8 +88,8 @@ func (s *Service) AddCommentToPost(ctx context.Context, currentUser models.Publi
 	commentId := comment.CommentID
 
 	if currentUser.UserID != post.UserID {
-		text := fmt.Sprintf("@%s commented on your post.", currentUser.Username)
-		_, err = s.notificationService.AddNotification(ctx, post.UserID, postId, &commentId, text, models.NotificationTypeComment)
+		text := fmt.Sprintf("@%s commented on your post", currentUser.Username)
+		_, err = s.notificationService.AddNotification(ctx, post.UserID, postId, &commentId, text, models.NotificationTypeComment, &comment.Text)
 		if err != nil {
 			return nil, err
 		}
@@ -104,8 +104,8 @@ func (s *Service) AddCommentToPost(ctx context.Context, currentUser models.Publi
 	}
 
 	for userId := range usersToNotify {
-		text := fmt.Sprintf("@%s mentioned you in a comment.", currentUser.Username)
-		_, err = s.notificationService.AddNotification(ctx, userId, postId, &commentId, text, models.NotificationTypeMention)
+		text := fmt.Sprintf("@%s mentioned you in a comment", currentUser.Username)
+		_, err = s.notificationService.AddNotification(ctx, userId, postId, &commentId, text, models.NotificationTypeMention, &comment.Text)
 		if err != nil {
 			return nil, errors.New("unable to create a new comment notification")
 		}
