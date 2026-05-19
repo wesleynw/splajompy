@@ -750,7 +750,7 @@
 			repositoryURL = "https://github.com/PostHog/posthog-ios.git";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 3.49.0;
+				minimumVersion = 3.58.3;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
