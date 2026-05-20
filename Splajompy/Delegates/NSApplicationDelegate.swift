@@ -86,6 +86,19 @@ class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
         nil
       }
 
+    guard
+      let notificationId = response.notification.request.content.userInfo[
+        "notificationId"
+      ] as? Int
+    else {
+      print("unknown notification id")
+      return
+    }
+
+    Task {
+      await NotificationService().markNotificationAsRead(notificationId: notificationId)
+    }
+
     if let route {
       NotificationCenter.default.post(
         name: .pushNotificationReceived,

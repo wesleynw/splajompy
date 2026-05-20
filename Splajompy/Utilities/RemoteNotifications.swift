@@ -8,4 +8,12 @@ struct RemoteNotificationUtilities {
       NSApplication.shared.unregisterForRemoteNotifications()
     #endif
   }
+
+  @MainActor static func registerForRemoteNotifications() {
+    #if os(iOS)
+      UIApplication.shared.registerForRemoteNotifications()
+    #else
+      NSApplication.shared.registerForRemoteNotifications()
+    #endif
+  }
 }

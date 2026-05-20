@@ -381,7 +381,7 @@ func (q *Queries) GetUserUnreadNotificationCount(ctx context.Context, userID int
 const insertDeviceToken = `-- name: InsertDeviceToken :exec
 INSERT INTO device_token (user_id, token)
 VALUES ($1, $2)
-ON CONFLICT (device_token) DO NOTHING
+ON CONFLICT (token) DO NOTHING
 `
 
 type InsertDeviceTokenParams struct {

@@ -576,3 +576,19 @@ func TestAddLikeNotification_Comment_SelfLikeIgnored(t *testing.T) {
 	require.NoError(t, err)
 	assert.Empty(t, notifications, "commenter liking their own comment should not create a notification")
 }
+
+func TestRegisterDeviceToken_UpdatesOldToken(t *testing.T) {
+	env := setupNotificationService(t)
+
+	user := testutil.CreateTestUser(t, env.userRepository, "user0")
+	err := env.svc.RegisterDeviceToken(t.Context(), user.UserID, "abc123")
+	require.NoError(t, err)
+
+	err = env.svc.RegisterDeviceToken(t.Context(), user.UserID, "def456")
+	require.NoError(t, err)
+
+	tokens, err := env.notificationRepository.GetDeviceTokensForUser(t.Context(), user.UserID)
+	require.NoError(t, err)
+
+	assert.Contains(t, tokens, "def456", "device token should have been updated")
+}

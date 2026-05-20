@@ -33,13 +33,15 @@ var meter metric.Meter = otel.Meter("apns-service")
 type Client struct {
 	httpClient *http.Client
 	baseUrl    string
+	bundleId   string
 	token      *Token
 }
 
 func NewClient(token *Token) *Client {
 	return &Client{
 		httpClient: &http.Client{},
-		baseUrl:    ProductionServer,
+		baseUrl:    DevelopmentServer,
+		bundleId:   DevelopmentBundleId,
 		token:      token,
 	}
 }
@@ -78,7 +80,7 @@ func (c *Client) Push(ctx context.Context, notification *Notification) error {
 	}
 
 	req.Header.Add("authorization", "bearer "+*bearer)
-	req.Header.Add("apns-topic", ProductionBundleId)
+	req.Header.Add("apns-topic", c.bundleId)
 	req.Header.Add("apns-push-type", "alert")
 
 	push_counter, err := meter.Int64Counter("push.counter", metric.WithDescription("Number of push notifications requested"), metric.WithUnit("{call}"))
@@ -89,18 +91,34 @@ func (c *Client) Push(ctx context.Context, notification *Notification) error {
 	}
 
 	res, err := c.httpClient.Do(req)
-	push_counter.Add(ctx, 1, metric.WithAttributes(semconv.HTTPResponseStatusCode(res.StatusCode)))
 	if err != nil {
 		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		slog.ErrorContext(ctx, "apns request failed", "error", err)
+		return err
+	}
+	push_counter.Add(ctx, 1, metric.WithAttributes(semconv.HTTPResponseStatusCode(res.StatusCode)))
+
+	if res.StatusCode != http.StatusOK {
+		slog.ErrorContext(ctx, "apn request did not return success", "code", res.Status)
+
 		bodyBytes, err := io.ReadAll(res.Body)
 		if err != nil {
+			span.RecordError(err)
+			span.SetStatus(codes.Error, err.Error())
+			slog.ErrorContext(ctx, "unable to react request body", "error", err)
 			return err
 		}
 		var body NotificationResponse
 		err = json.Unmarshal(bodyBytes, &body)
-		span.SetStatus(codes.Error, body.Reason)
-		return err
+		if err != nil {
+			span.RecordError(err)
+			span.SetStatus(codes.Error, err.Error())
+			slog.ErrorContext(ctx, "unable to unmarshall request body", "error", err)
+			return err
+		}
+		slog.WarnContext(ctx, "apns error", "status", res.Status, "reason", body.Reason)
+		return fmt.Errorf("apns error %s: %s", res.Status, body.Reason)
 	}
 
 	defer func() {

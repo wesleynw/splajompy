@@ -350,13 +350,13 @@ func (s *Service) AddNotification(ctx context.Context, targetUserId int, postId 
 		identifier = 0
 	}
 
-	s.sendPushIfEnabled(ctx, targetUserId, message, notificationBody, notificationType, identifier)
+	s.sendPushIfEnabled(ctx, notification.NotificationID, targetUserId, message, notificationBody, notificationType, identifier)
 
 	return notification, nil
 }
 
 // sendPushIfEnabled checks the recipient's push preferences and sends to all their devices if enabled.
-func (s *Service) sendPushIfEnabled(ctx context.Context, recipientId int, title string, body *string, notificationType models.NotificationType, identifier int) {
+func (s *Service) sendPushIfEnabled(ctx context.Context, notificationId int, recipientId int, title string, body *string, notificationType models.NotificationType, identifier int) {
 	props, err := s.userRepository.GetUserDisplayProperties(ctx, recipientId)
 	if err != nil || props == nil {
 		return
@@ -397,8 +397,9 @@ func (s *Service) sendPushIfEnabled(ctx context.Context, recipientId int, title 
 					Badge:     0,
 					Timestamp: time.Now().Unix(),
 				},
-				Type:       notificationType,
-				Identifier: identifier,
+				Type:           notificationType,
+				Identifier:     identifier,
+				NotificationId: notificationId,
 			},
 			DeviceToken: device,
 		}

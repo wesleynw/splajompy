@@ -8,9 +8,10 @@ type Notification struct {
 }
 
 type NotificationPayload struct {
-	Aps        Aps                     `json:"aps"`
-	Type       models.NotificationType `json:"type"`
-	Identifier int                     `json:"identifier"`
+	Aps            Aps                     `json:"aps"`
+	Type           models.NotificationType `json:"type"`
+	Identifier     int                     `json:"identifier"`
+	NotificationId int                     `json:"notificationId"`
 }
 
 type NotificationResponse struct {

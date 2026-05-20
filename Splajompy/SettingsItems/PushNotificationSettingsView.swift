@@ -107,21 +107,13 @@ struct PushNotificationSettingsView: View {
               options: [
                 .alert, .badge,
               ])
-            #if os(iOS)
-              UIApplication.shared.registerForRemoteNotifications()
-            #else
-              NSApplication.shared.registerForRemoteNotifications()
-            #endif
+            RemoteNotificationUtilities.registerForRemoteNotifications()
             PostHogSDK.shared.register(["push_notifications_enabled": true])
           } catch {
           }
         }
       } else {
-        #if os(iOS)
-          UIApplication.shared.unregisterForRemoteNotifications()
-        #else
-          NSApplication.shared.unregisterForRemoteNotifications()
-        #endif
+        RemoteNotificationUtilities.unregisterForRemoteNotifications()
         PostHogSDK.shared.register(["push_notifications_enabled": false])
       }
     }
