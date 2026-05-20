@@ -94,12 +94,20 @@ func (c *Client) Push(ctx context.Context, notification *Notification) error {
 		span.RecordError(err)
 		slog.ErrorContext(ctx, "apns request failed", "error", err)
 		bodyBytes, err := io.ReadAll(res.Body)
+		if err != nil {
+			return err
+		}
 		var body NotificationResponse
 		err = json.Unmarshal(bodyBytes, &body)
 		span.SetStatus(codes.Error, body.Reason)
 		return err
 	}
-	defer res.Body.Close()
+
+	defer func() {
+		if err := res.Body.Close(); err != nil {
+			slog.WarnContext(ctx, "failed to close response body: %v", err)
+		}
+	}()
 
 	notification_id := res.Header.Get("apns-id")
 	span.SetAttributes(attribute.String("notification.id", notification_id))
