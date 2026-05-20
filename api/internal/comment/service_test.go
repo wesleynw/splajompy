@@ -5,6 +5,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"splajompy.com/api/v2/internal/apns"
 	"splajompy.com/api/v2/internal/comment"
 	"splajompy.com/api/v2/internal/models"
 	"splajompy.com/api/v2/internal/notification"
@@ -24,7 +25,7 @@ func setupCommentTest(t *testing.T) commentServiceTestEnv {
 	t.Helper()
 	db := testutil.StartPostgres(t)
 
-	notificationService := notification.NewService(db.NotificationStore, db.PostRepository, &db.CommentRepository, db.UserRepository, db.BucketRepository)
+	notificationService := notification.NewService(db.NotificationStore, db.PostRepository, &db.CommentRepository, db.UserRepository, db.BucketRepository, apns.Client{})
 	svc := comment.NewService(&db.CommentRepository, db.PostRepository, *notificationService, db.UserRepository, db.LikeRepository, db.BucketRepository)
 	userSvc := user.NewUserService(db.UserRepository, db.NotificationStore, nil)
 

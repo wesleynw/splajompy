@@ -87,8 +87,8 @@ func (s *Service) NewPost(ctx context.Context, currentUser models.PublicUser, te
 	}
 
 	for userId := range usersToNotify {
-		text := fmt.Sprintf("@%s mentioned you in a post.", currentUser.Username)
-		_, err = s.notificationService.AddNotification(ctx, userId, postId, nil, text, models.NotificationTypeMention)
+		text := fmt.Sprintf("@%s mentioned you in a post", currentUser.Username)
+		_, err = s.notificationService.AddNotification(ctx, userId, postId, nil, text, models.NotificationTypeMention, &post.Text)
 		if err != nil {
 			return nil, err
 		}
@@ -349,8 +349,8 @@ func (s *Service) VoteOnPoll(ctx context.Context, currentUser models.PublicUser,
 	// send notification to poll owner (unless voting on own poll)
 	if currentUser.UserID != post.UserID {
 		optionTitle := post.Attributes.Poll.Options[optionIndex]
-		text := fmt.Sprintf("@%s voted \"%s\" in your poll.", currentUser.Username, optionTitle)
-		_, err = s.notificationService.AddNotification(ctx, post.UserID, postId, nil, text, models.NotificationTypePoll)
+		text := fmt.Sprintf("@%s voted \"%s\" in your poll", currentUser.Username, optionTitle)
+		_, err = s.notificationService.AddNotification(ctx, post.UserID, postId, nil, text, models.NotificationTypePoll, nil)
 		if err != nil {
 			return err
 		}

@@ -1,6 +1,7 @@
 import Foundation
 import Nuke
 import PostHog
+import SwiftUI
 
 struct AuthResponse: Decodable {
   let token: String
@@ -98,6 +99,7 @@ class AuthManager: Sendable {
     ImagePipeline.shared.cache.removeAll()
 
     NotificationCenter.default.post(name: .userDidSignOut, object: nil)
+    RemoteNotificationUtilities.unregisterForRemoteNotifications()
 
     isAuthenticated = false
   }
