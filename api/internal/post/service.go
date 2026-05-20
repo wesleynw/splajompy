@@ -21,6 +21,8 @@ import (
 	"splajompy.com/api/v2/internal/utilities"
 )
 
+var ErrPostNotFound = errors.New("this post does not exist")
+
 type Service struct {
 	postRepository      Store
 	userRepository      user.Store
@@ -104,6 +106,9 @@ func (s *Service) NewPresignedStagingUrl(ctx context.Context, currentUser models
 // GetPostById fetches a post by its id.
 func (s *Service) GetPostById(ctx context.Context, userId int, postId int) (*models.DetailedPost, error) {
 	post, err := s.postRepository.GetPostById(ctx, postId, userId)
+	if errors.Is(err, ErrPostNotFound) {
+		return nil, ErrPostNotFound
+	}
 	if err != nil {
 		return nil, err
 	}

@@ -1,7 +1,6 @@
 package post
 
 import (
-	"database/sql"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -105,7 +104,7 @@ func (h *Handler) GetPostById(w http.ResponseWriter, r *http.Request) {
 	}
 
 	post, err := h.svc.GetPostById(r.Context(), currentUser.UserID, id)
-	if errors.Is(err, sql.ErrNoRows) {
+	if errors.Is(err, ErrPostNotFound) {
 		utilities.HandleError(w, http.StatusNotFound, "This post doesn't exist")
 		return
 	}
