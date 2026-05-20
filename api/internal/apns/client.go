@@ -105,7 +105,7 @@ func (c *Client) Push(ctx context.Context, notification *Notification) error {
 
 	defer func() {
 		if err := res.Body.Close(); err != nil {
-			slog.WarnContext(ctx, "failed to close response body: %v", err)
+			slog.WarnContext(ctx, "failed to close response body", "error", err)
 		}
 	}()
 
