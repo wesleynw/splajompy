@@ -7,6 +7,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"splajompy.com/api/v2/internal/apns"
 	"splajompy.com/api/v2/internal/comment"
 	db "splajompy.com/api/v2/internal/db"
 	"splajompy.com/api/v2/internal/models"
@@ -31,7 +32,7 @@ func setupNotificationService(t *testing.T) notificationTestEnv {
 	t.Helper()
 	db := testutil.StartPostgres(t)
 
-	notificationService := notification.NewService(db.NotificationStore, db.PostRepository, &db.CommentRepository, db.UserRepository, db.BucketRepository)
+	notificationService := notification.NewService(db.NotificationStore, db.PostRepository, &db.CommentRepository, db.UserRepository, db.BucketRepository, apns.Client{})
 	commentService := comment.NewService(&db.CommentRepository, db.PostRepository, *notificationService, db.UserRepository, db.LikeRepository, db.BucketRepository)
 	postService := post.NewService(db.PostRepository, db.UserRepository, db.LikeRepository, *notificationService, db.BucketRepository, nil)
 
@@ -574,4 +575,20 @@ func TestAddLikeNotification_Comment_SelfLikeIgnored(t *testing.T) {
 	notifications, err := env.svc.GetUnreadNotificationsByUserIdWithTimeOffset(t.Context(), commenter, time.Now().UTC(), 10, nil)
 	require.NoError(t, err)
 	assert.Empty(t, notifications, "commenter liking their own comment should not create a notification")
+}
+
+func TestRegisterDeviceToken_UpdatesOldToken(t *testing.T) {
+	env := setupNotificationService(t)
+
+	user := testutil.CreateTestUser(t, env.userRepository, "user0")
+	err := env.svc.RegisterDeviceToken(t.Context(), user.UserID, "abc123")
+	require.NoError(t, err)
+
+	err = env.svc.RegisterDeviceToken(t.Context(), user.UserID, "def456")
+	require.NoError(t, err)
+
+	tokens, err := env.notificationRepository.GetDeviceTokensForUser(t.Context(), user.UserID)
+	require.NoError(t, err)
+
+	assert.Contains(t, tokens, "def456", "device token should have been updated")
 }

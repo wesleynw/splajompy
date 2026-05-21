@@ -18,7 +18,6 @@ func initializeOtel() {
   )
   let spanProcessor = BatchSpanProcessor(spanExporter: spanExporter)
 
-  let serviceName = "ios-app"
   #if DEBUG
     let environment = "development"
   #else
@@ -26,12 +25,12 @@ func initializeOtel() {
   #endif
 
   let resource = Resource(attributes: [
-    "service.name": AttributeValue.string(serviceName),
+    "service.name": AttributeValue.string("ios"),
     "service.version": AttributeValue.string(
       Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String
         ?? "unknown"
     ),
-    "service.instance.id": AttributeValue.string(UUID().uuidString),
+    "service.namespace": AttributeValue.string("splajompy"),
     "deployment.environment": AttributeValue.string(environment),
   ])
 

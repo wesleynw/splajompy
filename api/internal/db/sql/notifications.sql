@@ -132,3 +132,13 @@ WHERE notification_id = $1;
 UPDATE notifications
 SET message = $2, facets = $3
 WHERE notification_id = $1;
+
+-- name: InsertDeviceToken :exec
+INSERT INTO device_token (user_id, token)
+VALUES ($1, $2)
+ON CONFLICT (token) DO NOTHING;
+
+-- name: GetDeviceTokensForUser :many
+SELECT token
+FROM device_token
+WHERE user_id = $1;

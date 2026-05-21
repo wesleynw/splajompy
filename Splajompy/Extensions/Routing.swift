@@ -16,6 +16,7 @@ enum SettingsRoute: Hashable {
   case secretPage
   case support
   case about
+  case notifications
 }
 
 func parseDeepLink(_ url: URL) -> Route? {

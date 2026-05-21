@@ -4,6 +4,12 @@ import SwiftUI
 
 @main
 struct SplajompyApp: App {
+  #if os(iOS)
+    @UIApplicationDelegateAdaptor private var appDelegate: AppDelegate
+  #else
+    @NSApplicationDelegateAdaptor private var appDelegate: AppDelegate
+  #endif
+
   @State private var selection: Int = 0
   @State private var navigationPaths = [
     NavigationPath(),
@@ -36,6 +42,14 @@ struct SplajompyApp: App {
       .onReceive(NotificationCenter.default.publisher(for: .userDidSignOut)) {
         _ in
         handleUserSignOut()
+      }
+      .onReceive(
+        NotificationCenter.default.publisher(for: .pushNotificationReceived)
+      ) {
+        notification in
+        if let route = notification.userInfo?["route"] as? Route {
+          navigationPaths[selection].append(route)
+        }
       }
       .environment(authManager)
       .preferredColorScheme(colorScheme)
@@ -247,6 +261,8 @@ struct SplajompyApp: App {
       RequestSupportView()
     case .about:
       AboutView()
+    case .notifications:
+      PushNotificationSettingsView()
     }
   }
 

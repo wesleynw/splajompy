@@ -7,6 +7,7 @@ import (
 	"github.com/grafana/pyroscope-go"
 )
 
+// InitializeProfiling profiles the application using Pyroscope.
 func InitializeProfiling() {
 	_, err := pyroscope.Start(pyroscope.Config{
 		ApplicationName:   "api",

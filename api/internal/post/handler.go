@@ -2,6 +2,7 @@ package post
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 
 	"splajompy.com/api/v2/internal/db"
@@ -103,6 +104,10 @@ func (h *Handler) GetPostById(w http.ResponseWriter, r *http.Request) {
 	}
 
 	post, err := h.svc.GetPostById(r.Context(), currentUser.UserID, id)
+	if errors.Is(err, ErrPostNotFound) {
+		utilities.HandleError(w, http.StatusNotFound, "This post doesn't exist")
+		return
+	}
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
 		return
