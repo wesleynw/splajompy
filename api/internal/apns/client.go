@@ -40,8 +40,8 @@ type Client struct {
 func NewClient(token *Token) *Client {
 	return &Client{
 		httpClient: &http.Client{},
-		baseUrl:    DevelopmentServer,
-		bundleId:   DevelopmentBundleId,
+		baseUrl:    ProductionServer,
+		bundleId:   ProductionBundleId,
 		token:      token,
 	}
 }
