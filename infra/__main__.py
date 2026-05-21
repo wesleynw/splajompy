@@ -95,6 +95,9 @@ api_spec = cast(
                     secret_env("PYROSCOPE_USER", "pyroscopeUser"),
                     secret_env("PYROSCOPE_PW", "apiGrafanaCloudApiKey"),
                     {"key": "ENVIRONMENT", "value": config.get("environment")},
+                    secret_env("APN_KEY_ID", "apnKeyId"),
+                    secret_env("APN_PRIVATE_KEY", "apnPrivateKey"),
+                    secret_env("APN_TEAM_ID", "apnTeamId"),
                 ],
                 "github": {
                     "branch": "main",
