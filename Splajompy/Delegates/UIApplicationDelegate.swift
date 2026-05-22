@@ -99,6 +99,8 @@ class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
         userInfo: ["route": route]
       )
     }
+    
+    completionHandler()
   }
 }
 
