@@ -89,7 +89,7 @@ func (s *Service) NewPost(ctx context.Context, currentUser models.PublicUser, te
 	}
 
 	for userId := range usersToNotify {
-		text := fmt.Sprintf("@%s mentioned you in a post", currentUser.Username)
+		text := fmt.Sprintf("@%s mentioned you", currentUser.Username)
 		_, err = s.notificationService.AddNotification(ctx, userId, postId, nil, text, models.NotificationTypeMention, &post.Text)
 		if err != nil {
 			return nil, err

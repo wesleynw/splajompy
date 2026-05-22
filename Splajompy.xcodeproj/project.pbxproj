@@ -59,7 +59,6 @@
 			membershipExceptions = (
 				Configuration/Debug.xcconfig,
 				Configuration/Release.xcconfig,
-				Extensions/DitherCard.swift,
 				Info.plist,
 				Splajompy.xctestplan,
 				Tests/GreatestRemainderQuotaTests.swift,

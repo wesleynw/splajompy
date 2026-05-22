@@ -87,13 +87,14 @@ class AuthManager: Sendable {
     PostHogSDK.shared.capture("user_signout", properties: ["reason": reason])
     KeychainHelper.standard.delete(service: "session-token", account: "self")
 
+    // todo: put these in a map so can iterate over them and keep track of them everywhere???
     UserDefaults.standard.removeObject(forKey: "CurrentUserID")
     UserDefaults.standard.removeObject(forKey: "CurrentUserUsername")
     UserDefaults.standard.removeObject(forKey: "CurrentUserEmail")
     UserDefaults.standard.removeObject(forKey: "CurrentUserCreatedAt")
     UserDefaults.standard.removeObject(forKey: "CurrentUserName")
-
     UserDefaults.standard.removeObject(forKey: "selectedFeedType")
+    UserDefaults.standard.removeObject(forKey: "push_notifications_enabled")
 
     ImageCache.shared.removeAll()
     ImagePipeline.shared.cache.removeAll()
