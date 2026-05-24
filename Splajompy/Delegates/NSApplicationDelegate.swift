@@ -1,6 +1,7 @@
 import AppKit
 import PostHog
 import UserNotifications
+import OSLog
 
 class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
   private let notificationDelegate = NotificationDelegate()
@@ -8,6 +9,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
   func applicationDidFinishLaunching(
     _ notification: UserNotifications.Notification
   ) {
+    let modelLogger = Logger.init(
+      subsystem: "com.myapp.models",
+      category: "myapp.debugging"
+    )
+    modelLogger.warning("LAUNCHING")
     if UserDefaults.standard.bool(forKey: "push_notifications_enabled") {
       Task { @MainActor in
         NSApplication.shared.registerForRemoteNotifications()
@@ -21,6 +27,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
     _ application: NSApplication,
     didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data
   ) {
+    let modelLogger = Logger.init(
+      subsystem: "com.myapp.models",
+      category: "myapp.debugging"
+    )
+    modelLogger.warning("REGISTERING")
     let tokenString = deviceToken.map { String(format: "%02.2hhx", $0) }
       .joined()
 
@@ -58,6 +69,11 @@ class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
     withCompletionHandler completionHandler:
       @escaping () -> Void
   ) {
+    let modelLogger = Logger.init(
+      subsystem: "com.myapp.models",
+      category: "myapp.debugging"
+    )
+    modelLogger.warning("RECEIVING")
     guard
       let notificationType = response.notification.request.content.userInfo[
         "type"
@@ -99,11 +115,12 @@ class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
       await NotificationService().markNotificationAsRead(notificationId: notificationId)
     }
 
+    modelLogger.warning("PREROUTING")
     if let route {
+      modelLogger.warning("ROUTING")
       NotificationCenter.default.post(
-        name: .pushNotificationReceived,
-        object: nil,
-        userInfo: ["route": route]
+        name: .navigateFromNotification,
+        object: route
       )
     }
 

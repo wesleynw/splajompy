@@ -1,6 +1,7 @@
 import Nuke
 import PostHog
 import SwiftUI
+import OSLog
 
 @main
 struct SplajompyApp: App {
@@ -22,6 +23,11 @@ struct SplajompyApp: App {
   @State private var authManager: AuthManager
   @State private var postManager = PostStore()
   @AppStorage("appearance_mode") var appearanceMode: String = "Automatic"
+  
+  let modelLogger = Logger.init(
+    subsystem: "com.myapp.models",
+    category: "myapp.debugging"
+  )
 
   init() {
     initializeOtel()
@@ -39,17 +45,19 @@ struct SplajompyApp: App {
           SplashScreenView()
         }
       }
+      .onReceive(
+        NotificationCenter.default.publisher(for: .navigateFromNotification)
+      ) { notification in
+        modelLogger.warning("ONRECEIVE SWIFTUI")
+        print("ASDF")
+        if let route = notification.object as? Route {
+          print("FDSA")
+          navigationPaths[selection].append(route)
+        }
+      }
       .onReceive(NotificationCenter.default.publisher(for: .userDidSignOut)) {
         _ in
         handleUserSignOut()
-      }
-      .onReceive(
-        NotificationCenter.default.publisher(for: .pushNotificationReceived)
-      ) {
-        notification in
-        if let route = notification.userInfo?["route"] as? Route {
-          navigationPaths[selection].append(route)
-        }
       }
       .environment(authManager)
       .preferredColorScheme(colorScheme)
@@ -289,4 +297,10 @@ struct SplajompyApp: App {
       PostHogSDK.shared.reset()
     #endif
   }
+}
+
+extension Foundation.Notification.Name {
+  static let navigateFromNotification = Foundation.Notification.Name(
+    "navigateFromNotification"
+  )
 }
