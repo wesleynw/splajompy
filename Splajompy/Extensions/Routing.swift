@@ -1,29 +1,12 @@
 import SwiftUI
 
 enum Route: Hashable {
-  case profile(id: String, username: String)
+  // TODO: id should be int
+  case profile(id: String, username: String?)
   case post(id: Int)
   case followingList(userId: Int)
   case mutualsList(userId: Int)
   case notificationActorsList(notificationId: Int, postId: Int)
-}
-
-// TODO: remove
-extension Route: CustomStringConvertible {
-    var description: String {
-        switch self {
-        case .profile(let id, let username):
-            return "profile(id: \(id), username: \(username))"
-        case .post(let id):
-            return "post(id: \(id))"
-        case .followingList(let userId):
-            return "followingList(userId: \(userId))"
-        case .mutualsList(let userId):
-            return "mutualsList(userId: \(userId))"
-        case .notificationActorsList(let notificationId, let postId):
-            return "notificationActorsList(notificationId: \(notificationId), postId: \(postId))"
-        }
-    }
 }
 
 enum SettingsRoute: Hashable {

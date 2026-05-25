@@ -11,9 +11,9 @@ struct PushNotificationSettingsView: View {
 
   @AppStorage("push_notifications_enabled") private
     var isPushNotificationsEnabled: Bool = false
-  @AppStorage("push_pref_comments") private var comments: Bool = false
-  @AppStorage("push_pref_mentions") private var mentions: Bool = false
-  @AppStorage("push_pref_follows") private var follows: Bool = false
+  @AppStorage("push_pref_comments") private var comments: Bool = true
+  @AppStorage("push_pref_mentions") private var mentions: Bool = true
+  @AppStorage("push_pref_follows") private var follows: Bool = true
 
   @State private var saveStatus: SaveStatus = .idle
   @State private var notificationAuthorizationStatus: UNAuthorizationStatus?

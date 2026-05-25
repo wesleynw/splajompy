@@ -1,4 +1,3 @@
-import OSLog
 import PostHog
 import UIKit
 
@@ -10,11 +9,6 @@ class AppDelegate: NSObject, UIApplicationDelegate,
     didFinishLaunchingWithOptions launchOptions: [UIApplication
       .LaunchOptionsKey: Any]?
   ) -> Bool {
-    let modelLogger = Logger.init(
-      subsystem: "com.myapp.models",
-      category: "myapp.debugging"
-    )
-    modelLogger.warning("BOOTING")
     if UserDefaults.standard.bool(forKey: "push_notifications_enabled") {
       UIApplication.shared.registerForRemoteNotifications()
     }
@@ -27,11 +21,6 @@ class AppDelegate: NSObject, UIApplicationDelegate,
     _ application: UIApplication,
     didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data
   ) {
-    let modelLogger = Logger.init(
-      subsystem: "com.myapp.models",
-      category: "myapp.debugging"
-    )
-    modelLogger.warning("REGISTERING")
     let tokenString = deviceToken.map { String(format: "%02.2hhx", $0) }
       .joined()
 
@@ -66,12 +55,6 @@ class AppDelegate: NSObject, UIApplicationDelegate,
     withCompletionHandler completionHandler:
       @escaping () -> Void
   ) {
-    let modelLogger = Logger.init(
-      subsystem: "com.myapp.models",
-      category: "myapp.debugging"
-    )
-    modelLogger.warning("CAPTURING")
-
     defer { completionHandler() }
 
     guard
@@ -100,24 +83,15 @@ class AppDelegate: NSObject, UIApplicationDelegate,
     let route: Route? =
       switch notificationType {
       case "follow":
-        .profile(id: String(identifier), username: "idk")
+        .profile(id: String(identifier), username: nil)
       case "comment", "mention":
         .post(id: identifier)
       default:
         nil
       }
-    
-    modelLogger.warning("Route: \(route!.description, privacy: .public)")
-    
-    modelLogger.warning("PREROUTING")
+
     if let route {
-      modelLogger.warning("ROUTING")
-      NotificationCenter.default.post(
-        name: .navigateFromNotification,
-        object: route
-      )
+      RoutingHelper.shared.pendingRoute = route
     }
   }
 }
-
-

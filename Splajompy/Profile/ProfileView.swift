@@ -3,7 +3,7 @@ import SwiftUI
 
 /// The primary view for displaying a user's profile
 struct ProfileView: View {
-  let username: String
+  let username: String?
   let userId: Int
   let isProfileTab: Bool
 
@@ -16,6 +16,19 @@ struct ProfileView: View {
   private var isCurrentUser: Bool {
     guard let currentUser = authManager.getCurrentUser() else { return false }
     return currentUser.userId == userId
+  }
+
+  private var computedTitle: String {
+    if let username = username {
+      return username
+    }
+
+    switch viewModel.profileState {
+    case .loaded(let user):
+      return user.username
+    default:
+      return ""
+    }
   }
 
   private var alertTitle: String {
@@ -37,7 +50,7 @@ struct ProfileView: View {
 
   init(
     userId: Int,
-    username: String,
+    username: String?,
     postManager: PostStore,
     isProfileTab: Bool = false,
     viewModel: ViewModel? = nil
@@ -67,7 +80,9 @@ struct ProfileView: View {
         ErrorScreen(
           errorString: error,
           source: "ProfileView",
-          onRetry: { await viewModel.loadProfileAndPosts(useLoadingState: false) }
+          onRetry: {
+            await viewModel.loadProfileAndPosts(useLoadingState: false)
+          }
         )
         .frame(maxWidth: .infinity, maxHeight: .infinity)
       }
@@ -99,7 +114,7 @@ struct ProfileView: View {
       .navigationBarTitleDisplayMode(.inline)
       .toolbarRole(.browser)
     #endif
-    .navigationTitle("@" + username)
+    .navigationTitle(computedTitle)
     .toolbar {
       #if os(iOS)
         titleToolbar()
@@ -179,7 +194,7 @@ struct ProfileView: View {
           ToolbarItem(
             placement: .principal
           ) {
-            Text("@" + self.username)
+            Text("@" + computedTitle)
               .font(.title2)
               .fontWeight(.black)
           }
@@ -189,7 +204,7 @@ struct ProfileView: View {
             placement: .principal
           ) {
             HStack {
-              Text("@" + self.username)
+              Text("@" + computedTitle)
                 .font(.title2)
                 .fontWeight(.black)
 
@@ -201,14 +216,14 @@ struct ProfileView: View {
       } else {
         if #available(iOS 26, *) {
           ToolbarItem(placement: .principal) {
-            Text("@" + self.username)
+            Text("@" + computedTitle)
               .font(.callout)
               .fontWeight(.bold)
           }
           .sharedBackgroundVisibility(.hidden)
         } else {
           ToolbarItem(placement: .principal) {
-            Text("@" + self.username)
+            Text("@" + computedTitle)
               .font(.callout)
               .fontWeight(.bold)
           }

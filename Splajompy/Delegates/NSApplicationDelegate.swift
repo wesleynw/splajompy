@@ -1,37 +1,26 @@
 import AppKit
 import PostHog
 import UserNotifications
-import OSLog
 
-class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
-  private let notificationDelegate = NotificationDelegate()
-
+class AppDelegate: NSObject, NSApplicationDelegate,
+  @MainActor UNUserNotificationCenterDelegate
+{
   func applicationDidFinishLaunching(
     _ notification: UserNotifications.Notification
   ) {
-    let modelLogger = Logger.init(
-      subsystem: "com.myapp.models",
-      category: "myapp.debugging"
-    )
-    modelLogger.warning("LAUNCHING")
+    UNUserNotificationCenter.current().delegate = self
+
     if UserDefaults.standard.bool(forKey: "push_notifications_enabled") {
       Task { @MainActor in
         NSApplication.shared.registerForRemoteNotifications()
       }
     }
-
-    UNUserNotificationCenter.current().delegate = notificationDelegate
   }
 
   func application(
     _ application: NSApplication,
     didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data
   ) {
-    let modelLogger = Logger.init(
-      subsystem: "com.myapp.models",
-      category: "myapp.debugging"
-    )
-    modelLogger.warning("REGISTERING")
     let tokenString = deviceToken.map { String(format: "%02.2hhx", $0) }
       .joined()
 
@@ -60,20 +49,14 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
       properties: ["error": error.localizedDescription]
     )
   }
-}
 
-class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
+  @MainActor
   func userNotificationCenter(
     _ center: UNUserNotificationCenter,
     didReceive response: UNNotificationResponse,
     withCompletionHandler completionHandler:
       @escaping () -> Void
   ) {
-    let modelLogger = Logger.init(
-      subsystem: "com.myapp.models",
-      category: "myapp.debugging"
-    )
-    modelLogger.warning("RECEIVING")
     guard
       let notificationType = response.notification.request.content.userInfo[
         "type"
@@ -95,7 +78,7 @@ class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
     let route: Route? =
       switch notificationType {
       case "follow":
-        .profile(id: String(identifier), username: "idk")
+        .profile(id: String(identifier), username: nil)
       case "comment", "mention":
         .post(id: identifier)
       default:
@@ -112,24 +95,15 @@ class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
     }
 
     Task {
-      await NotificationService().markNotificationAsRead(notificationId: notificationId)
+      await NotificationService().markNotificationAsRead(
+        notificationId: notificationId
+      )
     }
 
-    modelLogger.warning("PREROUTING")
     if let route {
-      modelLogger.warning("ROUTING")
-      NotificationCenter.default.post(
-        name: .navigateFromNotification,
-        object: route
-      )
+      RoutingHelper.shared.pendingRoute = route
     }
 
     completionHandler()
   }
-}
-
-extension Foundation.Notification.Name {
-  static let pushNotificationReceived = Foundation.Notification.Name(
-    "pushNotificationReceived"
-  )
 }
