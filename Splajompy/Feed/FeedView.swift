@@ -169,8 +169,13 @@ struct FeedView: View {
       #endif
     }
     .refreshable {
-      await viewModel.loadPosts(reset: true)
-      PostHogSDK.shared.capture("feed_refreshed")
+      // I don't particularly understand why, but this needs to be wrapped in an unstructured task to avoid task cancellation
+      // in some contexts. Previously, if you opened the app switcher while this was loading, it would cancel the task immediately
+      // and show an error screen.
+      await Task {
+        await viewModel.loadPosts(reset: true)
+        PostHogSDK.shared.capture("feed_refreshed")
+      }.value
     }
   }
 

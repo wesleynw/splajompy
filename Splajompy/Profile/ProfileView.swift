@@ -319,7 +319,9 @@ struct ProfileView: View {
         #endif
       }
       .refreshable {
-        await viewModel.loadProfileAndPosts()
+        await Task {
+          await viewModel.loadProfileAndPosts()
+        }.value
       }
     }
   }
