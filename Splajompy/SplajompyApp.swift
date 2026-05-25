@@ -1,5 +1,4 @@
 import Nuke
-import OSLog
 import PostHog
 import SwiftUI
 
