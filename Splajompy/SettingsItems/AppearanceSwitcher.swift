@@ -35,7 +35,7 @@ struct AppearanceSwitcher: View {
       }
 
       Section {
-        Picker("Comment Sort Order", selection: $commentSortOrder) {
+        Picker("Comment Sort", selection: $commentSortOrder) {
           Text("Newest First").tag("Newest First")
           Text("Oldest First").tag("Oldest First")
         }

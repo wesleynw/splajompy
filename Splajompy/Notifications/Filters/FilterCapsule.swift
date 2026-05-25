@@ -13,17 +13,21 @@ struct FilterCapsule: View {
         .fontWeight(.semibold)
         .foregroundStyle(.primary)
         .padding(10)
+        .background(
+          isActive ? Color.blue.opacity(2 / 3) : Color.clear,
+          in: .capsule
+        )
+        .background(.thinMaterial, in: .capsule)
+        .overlay(
+          Capsule()
+            .strokeBorder(
+              isActive ? Color.clear : Color.secondary.opacity(0.05),
+              lineWidth: 2
+            )
+        )
+        .contentShape(.capsule)
     }
     .buttonStyle(.plain)
-    .background(
-      isActive ? Color.blue.opacity(2 / 3) : Color.clear,
-      in: .capsule
-    )
-    .background(.thinMaterial, in: .capsule)
-    .overlay(
-      Capsule()
-        .strokeBorder(isActive ? Color.clear : Color.secondary.opacity(0.05), lineWidth: 2)
-    )
   }
 }
 

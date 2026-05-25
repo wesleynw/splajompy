@@ -272,10 +272,10 @@ struct CommentRow: View {
                   Image(systemName: "ellipsis")
                     .font(.system(size: 16))
                     .frame(width: 32, height: 32)
+                    .contentShape(.rect)
                 }
               )
               .buttonStyle(.plain)
-              .contentShape(.rect)
             }
           }
 

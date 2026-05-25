@@ -11,7 +11,7 @@ struct AccountSettingsView: View {
 
   var body: some View {
     List {
-      Section("Account Information") {
+      Section {
         if let user = authManager.getCurrentUser() {
           HStack {
             Text("Email")
@@ -48,7 +48,7 @@ struct AccountSettingsView: View {
         }
       }
 
-      Section("Danger Zone") {
+      Section {
         Button(action: { isShowingDeleteAccountConfirm = true }) {
           Label("Delete Account", systemImage: "trash")
             .foregroundStyle(.red)
