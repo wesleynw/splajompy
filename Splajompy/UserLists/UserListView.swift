@@ -189,9 +189,9 @@ struct UserListView: View {
       #endif
     }
     .refreshable {
-      Task {
+      await Task {
         await viewModel.loadUsers(reset: true)
-      }
+      }.value
     }
   }
 }
