@@ -10,6 +10,7 @@ struct SplajompyApp: App {
     @NSApplicationDelegateAdaptor private var appDelegate: AppDelegate
   #endif
 
+  @State private var routingHelper = RoutingHelper.shared
   @State private var selection: Int = 0
   @State private var navigationPaths = [
     NavigationPath(),
@@ -39,17 +40,16 @@ struct SplajompyApp: App {
           SplashScreenView()
         }
       }
+      .modifier(
+        NavigateOnNotificationModifier(
+          pendingRoute: $routingHelper.pendingRoute,
+          selection: $selection,
+          navigationPaths: $navigationPaths
+        )
+      )
       .onReceive(NotificationCenter.default.publisher(for: .userDidSignOut)) {
         _ in
         handleUserSignOut()
-      }
-      .onReceive(
-        NotificationCenter.default.publisher(for: .pushNotificationReceived)
-      ) {
-        notification in
-        if let route = notification.userInfo?["route"] as? Route {
-          navigationPaths[selection].append(route)
-        }
       }
       .environment(authManager)
       .preferredColorScheme(colorScheme)

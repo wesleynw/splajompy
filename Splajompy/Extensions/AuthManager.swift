@@ -95,6 +95,9 @@ class AuthManager: Sendable {
     UserDefaults.standard.removeObject(forKey: "CurrentUserName")
     UserDefaults.standard.removeObject(forKey: "selectedFeedType")
     UserDefaults.standard.removeObject(forKey: "push_notifications_enabled")
+    UserDefaults.standard.removeObject(forKey: "push_pref_comments")
+    UserDefaults.standard.removeObject(forKey: "push_pref_mentions")
+    UserDefaults.standard.removeObject(forKey: "push_pref_follows")
 
     ImageCache.shared.removeAll()
     ImagePipeline.shared.cache.removeAll()

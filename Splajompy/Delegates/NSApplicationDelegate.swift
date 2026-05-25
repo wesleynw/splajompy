@@ -2,19 +2,19 @@ import AppKit
 import PostHog
 import UserNotifications
 
-class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
-  private let notificationDelegate = NotificationDelegate()
-
+class AppDelegate: NSObject, NSApplicationDelegate,
+  @MainActor UNUserNotificationCenterDelegate
+{
   func applicationDidFinishLaunching(
     _ notification: UserNotifications.Notification
   ) {
+    UNUserNotificationCenter.current().delegate = self
+
     if UserDefaults.standard.bool(forKey: "push_notifications_enabled") {
       Task { @MainActor in
         NSApplication.shared.registerForRemoteNotifications()
       }
     }
-
-    UNUserNotificationCenter.current().delegate = notificationDelegate
   }
 
   func application(
@@ -49,9 +49,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
       properties: ["error": error.localizedDescription]
     )
   }
-}
 
-class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
+  @MainActor
   func userNotificationCenter(
     _ center: UNUserNotificationCenter,
     didReceive response: UNNotificationResponse,
@@ -79,7 +78,7 @@ class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
     let route: Route? =
       switch notificationType {
       case "follow":
-        .profile(id: String(identifier), username: "idk")
+        .profile(id: String(identifier), username: nil)
       case "comment", "mention":
         .post(id: identifier)
       default:
@@ -96,23 +95,15 @@ class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
     }
 
     Task {
-      await NotificationService().markNotificationAsRead(notificationId: notificationId)
+      await NotificationService().markNotificationAsRead(
+        notificationId: notificationId
+      )
     }
 
     if let route {
-      NotificationCenter.default.post(
-        name: .pushNotificationReceived,
-        object: nil,
-        userInfo: ["route": route]
-      )
+      RoutingHelper.shared.pendingRoute = route
     }
 
     completionHandler()
   }
-}
-
-extension Foundation.Notification.Name {
-  static let pushNotificationReceived = Foundation.Notification.Name(
-    "pushNotificationReceived"
-  )
 }

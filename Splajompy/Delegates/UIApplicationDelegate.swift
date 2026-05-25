@@ -1,9 +1,9 @@
 import PostHog
 import UIKit
 
-@Observable class AppDelegate: NSObject, UIApplicationDelegate {
-  private let notificationDelegate = NotificationDelegate()
-
+class AppDelegate: NSObject, UIApplicationDelegate,
+  @MainActor UNUserNotificationCenterDelegate
+{
   func application(
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication
@@ -12,8 +12,7 @@ import UIKit
     if UserDefaults.standard.bool(forKey: "push_notifications_enabled") {
       UIApplication.shared.registerForRemoteNotifications()
     }
-
-    UNUserNotificationCenter.current().delegate = notificationDelegate
+    UNUserNotificationCenter.current().delegate = self
 
     return true
   }
@@ -50,15 +49,14 @@ import UIKit
       properties: ["error": error.localizedDescription]
     )
   }
-}
-
-class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
   func userNotificationCenter(
     _ center: UNUserNotificationCenter,
     didReceive response: UNNotificationResponse,
     withCompletionHandler completionHandler:
       @escaping () -> Void
   ) {
+    defer { completionHandler() }
+
     guard
       let notificationType = response.notification.request.content.userInfo[
         "type"
@@ -85,7 +83,7 @@ class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
     let route: Route? =
       switch notificationType {
       case "follow":
-        .profile(id: String(identifier), username: "idk")
+        .profile(id: String(identifier), username: nil)
       case "comment", "mention":
         .post(id: identifier)
       default:
@@ -93,19 +91,7 @@ class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
       }
 
     if let route {
-      NotificationCenter.default.post(
-        name: .pushNotificationReceived,
-        object: nil,
-        userInfo: ["route": route]
-      )
+      RoutingHelper.shared.pendingRoute = route
     }
-
-    completionHandler()
   }
-}
-
-extension Foundation.Notification.Name {
-  static let pushNotificationReceived = Foundation.Notification.Name(
-    "pushNotificationReceived"
-  )
 }
