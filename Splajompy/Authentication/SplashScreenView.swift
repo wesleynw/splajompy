@@ -1,3 +1,4 @@
+import PostHog
 import SwiftUI
 
 struct SplashScreenView: View {
@@ -59,16 +60,20 @@ struct SplashScreenView: View {
     #if os(iOS)
       .fullScreenCover(isPresented: $isLoginViewPresenting) {
         LoginView()
+        .postHogScreenView()
       }
       .fullScreenCover(isPresented: $isRegisterViewPresenting) {
         RegisterView()
+        .postHogScreenView()
       }
     #else
       .sheet(isPresented: $isLoginViewPresenting) {
         LoginView()
+        .postHogScreenView()
       }
       .sheet(isPresented: $isRegisterViewPresenting) {
         RegisterView()
+        .postHogScreenView()
       }
     #endif
   }

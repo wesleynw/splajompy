@@ -77,7 +77,6 @@ struct StandalonePostView: View {
         .padding(.bottom, 200)
       #endif
     }
-    .postHogScreenView()
     .scrollDismissesKeyboard(.interactively)
     .refreshable {
       async let post: () = await viewModel.load(resetLoadingState: false)

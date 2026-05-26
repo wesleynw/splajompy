@@ -133,7 +133,6 @@ struct UserListView: View {
     } message: {
       Text(viewModel.errorMessage ?? "")
     }
-    .postHogScreenView()
   }
 
   private var noUsersView: some View {

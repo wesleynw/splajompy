@@ -73,7 +73,6 @@ struct AppearanceSwitcher: View {
     #if os(iOS)
       .navigationBarTitleDisplayMode(.inline)
     #endif
-    .postHogScreenView()
   }
 }
 

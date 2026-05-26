@@ -69,7 +69,6 @@ struct OneTimeCodeView: View {
         dismissButton: .default(Text("OK"))
       )
     }
-    .postHogScreenView()
   }
 }
 

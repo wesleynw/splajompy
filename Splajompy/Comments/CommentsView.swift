@@ -192,7 +192,6 @@ struct CommentsView: View {
       dismiss()
     }
     .presentationDragIndicator(.visible)
-    .postHogScreenView("CommentsView", ["post": postId])
   }
 }
 

@@ -104,7 +104,6 @@ struct AboutView: View {
     .task {
       updateCacheSize()
     }
-    .postHogScreenView()
   }
 
   private func updateCacheSize() {

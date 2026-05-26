@@ -150,6 +150,7 @@ struct LoginView: View {
       }
       .navigationDestination(isPresented: $isShowingOtcVerify) {
         OneTimeCodeView(identifier: identifier)
+          .postHogScreenView()
       }
       .alert(isPresented: $showError) {
         Alert(
@@ -162,7 +163,6 @@ struct LoginView: View {
         )
       }
     }
-    .postHogScreenView()
   }
 
   private func handleSubmit() async {

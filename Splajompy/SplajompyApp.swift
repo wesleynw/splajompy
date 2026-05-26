@@ -38,6 +38,7 @@ struct SplajompyApp: App {
           authenticatedView
         } else {
           SplashScreenView()
+            .postHogScreenView()
         }
       }
       .modifier(
@@ -222,21 +223,26 @@ struct SplajompyApp: App {
           username: username,
           postManager: postManager
         )
+        .postHogScreenView()
       } else {
         EmptyView()
       }
     case .post(let id):
       StandalonePostView(postId: id, postManager: postManager)
+        .postHogScreenView()
     case .followingList(let userId):
       UserListView(identifier: userId, userListVariant: .following)
+        .postHogScreenView()
     case .mutualsList(let userId):
       UserListView(identifier: userId, userListVariant: .mutuals)
+        .postHogScreenView()
     case .notificationActorsList(let notificationId, let postId):
       UserListView(
         identifier: notificationId,
         userListVariant: .notification,
         postId: postId
       )
+      .postHogScreenView()
     }
   }
 
@@ -245,24 +251,32 @@ struct SplajompyApp: App {
     switch route {
     case .settings:
       SettingsView()
+        .postHogScreenView()
     case .account:
       AccountSettingsView()
+        .postHogScreenView()
     case .appearance:
       AppearanceSwitcher()
+        .postHogScreenView()
     case .appIcon:
       #if os(iOS)
         AppIconPickerView()
+          .postHogScreenView()
       #else
         EmptyView()
       #endif
     case .secretPage:
       SecretPageView()
+        .postHogScreenView()
     case .support:
       RequestSupportView()
+        .postHogScreenView()
     case .about:
       AboutView()
+        .postHogScreenView()
     case .notifications:
       PushNotificationSettingsView()
+        .postHogScreenView()
     }
   }
 

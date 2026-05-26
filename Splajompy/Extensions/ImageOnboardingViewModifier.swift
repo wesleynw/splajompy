@@ -9,6 +9,7 @@ struct ImageLayoutOnboardingViewModifier: ViewModifier {
     content
       .sheet(isPresented: .constant(imageLayoutPreference == .undecided)) {
         OnboardingView(preference: $imageLayoutPreference)
+          .postHogScreenView()
           .interactiveDismissDisabled()
       }
   }
@@ -76,7 +77,6 @@ struct ImageLayoutOnboardingViewModifier: ViewModifier {
         }
         .padding()
       }
-      .postHogScreenView("ImageLayoutOnboarding")
     }
   }
 
