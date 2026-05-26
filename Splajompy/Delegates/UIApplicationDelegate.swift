@@ -82,7 +82,7 @@ class AppDelegate: NSObject, UIApplicationDelegate,
 
     let route: Route? =
       switch notificationType {
-      case "follow":
+      case "followers":
         .profile(id: String(identifier), username: nil)
       case "comment", "mention":
         .post(id: identifier)

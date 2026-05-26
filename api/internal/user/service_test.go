@@ -6,6 +6,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"splajompy.com/api/v2/internal/apns"
 	db "splajompy.com/api/v2/internal/db"
 	"splajompy.com/api/v2/internal/models"
 	"splajompy.com/api/v2/internal/notification"
@@ -24,7 +25,8 @@ func setupTest(t *testing.T) userServiceTestEnv {
 	t.Helper()
 	db := testutil.StartPostgres(t)
 
-	svc := user.NewUserService(db.UserRepository, db.NotificationStore, nil)
+	notificationService := notification.NewService(db.NotificationStore, db.PostRepository, &db.CommentRepository, db.UserRepository, db.BucketRepository, apns.Client{})
+	svc := user.NewUserService(db.UserRepository, *notificationService, nil)
 
 	return userServiceTestEnv{
 		svc:               svc,
@@ -116,4 +118,32 @@ func TestUpdatePushPreferences_StoresAndRetrieves(t *testing.T) {
 	assert.True(t, prefs.Comments)
 	assert.True(t, prefs.Mentions)
 	assert.False(t, prefs.Followers)
+}
+
+func TestFollowUser_SendsNotification(t *testing.T) {
+	env := setupTest(t)
+	u0 := testutil.CreateTestUser(t, env.userRepository, "user0")
+	u1 := testutil.CreateTestUser(t, env.userRepository, "user1")
+
+	err := env.svc.FollowUser(t.Context(), u0, u1.UserID)
+	require.NoError(t, err)
+
+	notifications, err := env.notificationStore.GetUnreadNotificationsForUserIdWithTimeOffset(t.Context(), u1.UserID, time.Now().UTC(), 10, nil)
+	require.NoError(t, err)
+
+	assert.Len(t, notifications, 1)
+	follow_notification := notifications[0]
+	assert.Equal(t, "@user0 followed you", follow_notification.Message)
+}
+
+func TestFollowUser_Idempotent(t *testing.T) {
+	env := setupTest(t)
+	u0 := testutil.CreateTestUser(t, env.userRepository, "user0")
+	u1 := testutil.CreateTestUser(t, env.userRepository, "user1")
+
+	err := env.svc.FollowUser(t.Context(), u0, u1.UserID)
+	require.NoError(t, err)
+
+	err = env.svc.FollowUser(t.Context(), u0, u1.UserID)
+	require.NoError(t, err)
 }

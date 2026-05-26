@@ -223,7 +223,7 @@ func (s *Service) AddLikeNotification(ctx context.Context, currentUserId int, po
 		if err != nil {
 			return err
 		}
-		_, err = s.AddNotification(ctx, recipientId, postId, commentId, *message, models.NotificationTypeLike, nil)
+		_, err = s.AddNotification(ctx, recipientId, &postId, commentId, *message, models.NotificationTypeLike, nil)
 		return err
 	}
 
@@ -238,7 +238,7 @@ func (s *Service) AddLikeNotification(ctx context.Context, currentUserId int, po
 		if err != nil {
 			return err
 		}
-		notification, err := s.AddNotification(ctx, recipientId, postId, commentId, *message, models.NotificationTypeLike, nil)
+		notification, err := s.AddNotification(ctx, recipientId, &postId, commentId, *message, models.NotificationTypeLike, nil)
 		if err != nil {
 			return err
 		}
@@ -329,13 +329,13 @@ func (s *Service) RemoveLikeNotification(ctx context.Context, currentUserId int,
 }
 
 // AddNotification will enrich the notification message with facets, then store.
-func (s *Service) AddNotification(ctx context.Context, targetUserId int, postId int, commentId *int, message string, notificationType models.NotificationType, notificationBody *string) (*models.Notification, error) {
+func (s *Service) AddNotification(ctx context.Context, targetUserId int, postId *int, commentId *int, message string, notificationType models.NotificationType, notificationBody *string) (*models.Notification, error) {
 	facets, err := utilities.GenerateFacets(ctx, s.userRepository, message)
 	if err != nil {
 		return nil, err
 	}
 
-	notification, err := s.notificationRepository.InsertNotification(ctx, targetUserId, &postId, commentId, &facets, message, notificationType, nil)
+	notification, err := s.notificationRepository.InsertNotification(ctx, targetUserId, postId, commentId, &facets, message, notificationType, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -343,7 +343,10 @@ func (s *Service) AddNotification(ctx context.Context, targetUserId int, postId 
 	var identifier int
 	switch notificationType {
 	case models.NotificationTypeComment:
-		identifier = postId
+		if postId == nil {
+			return nil, errors.New("postid cannot be null for a comment notification")
+		}
+		identifier = *postId
 	case models.NotificationTypeFollowers:
 		identifier = targetUserId
 	default:
@@ -387,13 +390,17 @@ func (s *Service) sendPushIfEnabled(ctx context.Context, notificationId int, rec
 	}
 
 	for _, device := range devices {
+		alert := apns.Alert{
+			Title: title,
+		}
+		if body != nil {
+			alert.Body = *body
+		}
+
 		n := apns.Notification{
 			Payload: apns.NotificationPayload{
 				Aps: apns.Aps{
-					Alert: apns.Alert{
-						Title: title,
-						Body:  *body,
-					},
+					Alert:     alert,
 					Badge:     0,
 					Timestamp: time.Now().Unix(),
 				},

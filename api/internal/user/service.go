@@ -17,16 +17,16 @@ import (
 )
 
 type Service struct {
-	store                  Store
-	notificationRepository notification.NotificationStore
-	emailService           *resend.Client
+	store               Store
+	notificationService notification.Service
+	emailService        *resend.Client
 }
 
-func NewUserService(userRepository Store, notificationRepository notification.NotificationStore, emailClient *resend.Client) *Service {
+func NewUserService(userRepository Store, notificationService notification.Service, emailClient *resend.Client) *Service {
 	return &Service{
-		store:                  userRepository,
-		notificationRepository: notificationRepository,
-		emailService:           emailClient,
+		store:               userRepository,
+		notificationService: notificationService,
+		emailService:        emailClient,
 	}
 }
 
@@ -96,12 +96,10 @@ func (s *Service) FollowUser(ctx context.Context, currentUser models.PublicUser,
 		return err
 	}
 
-	text := fmt.Sprintf("@%s started following you.", currentUser.Username)
-	if facets, _ := utilities.GenerateFacets(ctx, s.store, text); facets != nil {
-		_, err := s.notificationRepository.InsertNotification(ctx, user.UserID, nil, nil, &facets, text, models.NotificationTypeFollowers, &currentUser.UserID)
-		if err != nil {
-			return err
-		}
+	text := fmt.Sprintf("@%s followed you", currentUser.Username)
+	_, err = s.notificationService.AddNotification(ctx, user.UserID, nil, nil, text, models.NotificationTypeFollowers, nil)
+	if err != nil {
+		return err
 	}
 	return nil
 }
