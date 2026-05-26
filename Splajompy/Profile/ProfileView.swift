@@ -20,7 +20,7 @@ struct ProfileView: View {
 
   private var computedTitle: String {
     if let username = username {
-      return username
+      return "@" + username
     }
 
     switch viewModel.profileState {

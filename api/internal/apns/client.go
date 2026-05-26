@@ -42,7 +42,7 @@ func NewClient(token *Token) *Client {
 	env := os.Getenv("ENVIRONMENT")
 	var baseUrl string
 	var bundleId string
-	if env == "PRODUCTION" {
+	if env == "production" {
 		baseUrl = ProductionServer
 		bundleId = ProductionBundleId
 	} else {
@@ -111,7 +111,7 @@ func (c *Client) Push(ctx context.Context, notification *Notification) error {
 	push_counter.Add(ctx, 1, metric.WithAttributes(semconv.HTTPResponseStatusCode(res.StatusCode)))
 
 	if res.StatusCode != http.StatusOK {
-		slog.ErrorContext(ctx, "apn request did not return success", "code", res.Status)
+		slog.ErrorContext(ctx, "apn did not return success code", "code", res.Status)
 
 		bodyBytes, err := io.ReadAll(res.Body)
 		if err != nil {
@@ -129,6 +129,8 @@ func (c *Client) Push(ctx context.Context, notification *Notification) error {
 			return err
 		}
 		slog.WarnContext(ctx, "apns error", "status", res.Status, "reason", body.Reason)
+		span.RecordError(err)
+		span.SetStatus(codes.Error, body.Reason)
 		return fmt.Errorf("apns error %s: %s", res.Status, body.Reason)
 	}
 
