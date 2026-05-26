@@ -107,7 +107,6 @@ struct RegisterView: View {
       .animation(.easeInOut(duration: 0.25), value: emailError.isEmpty)
       .animation(.easeInOut(duration: 0.25), value: passwordError.isEmpty)
     }
-    .postHogScreenView()
   }
 
   private var usernameField: some View {

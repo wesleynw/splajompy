@@ -56,7 +56,6 @@ struct StatisticsView: View {
     .task {
       await viewModel.load()
     }
-    .postHogScreenView()
   }
 }
 

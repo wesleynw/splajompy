@@ -199,8 +199,8 @@ struct NewPostView: View {
     #endif
     .sheet(isPresented: $showingPollCreation) {
       PollCreationView(poll: $viewModel.poll)
+        .postHogScreenView()
     }
-    .postHogScreenView()
   }
 
   var imagePreviewsView: some View {

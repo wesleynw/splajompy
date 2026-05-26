@@ -154,7 +154,6 @@ struct ProfileEditorView: View {
         }
       }
     }
-    .postHogScreenView()
   }
 }
 

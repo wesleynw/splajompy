@@ -87,7 +87,6 @@ struct ProfileView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
       }
     }
-    .postHogScreenView()
     .onAppear {
       if case .idle = viewModel.profileState {
         Task {
@@ -97,6 +96,7 @@ struct ProfileView: View {
     }
     .sheet(isPresented: $isShowingProfileEditor) {
       ProfileEditorView(viewModel: viewModel)
+        .postHogScreenView()
         .interactiveDismissDisabled()
     }
     .alert(

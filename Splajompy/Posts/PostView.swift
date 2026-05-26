@@ -89,6 +89,7 @@ struct PostView: View {
     .safeAreaPadding(.horizontal, 16)
     .sheet(isPresented: $isShowingComments) {
       CommentsView(postId: post.post.postId, postManager: postManager)
+        .postHogScreenView()
     }
   }
 

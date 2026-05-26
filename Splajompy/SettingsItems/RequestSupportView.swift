@@ -76,7 +76,6 @@ struct RequestSupportView: View {
     .onAppear {
       isFocused = true
     }
-    .postHogScreenView()
   }
 
   private func sendRequestedFeature() {

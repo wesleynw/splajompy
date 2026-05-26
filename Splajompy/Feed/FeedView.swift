@@ -113,6 +113,7 @@ struct FeedView: View {
         Task { await viewModel.loadPosts(reset: true, useLoadingState: true) }
       }
     )
+    .postHogScreenView()
     .interactiveDismissDisabled()
   }
 

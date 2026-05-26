@@ -52,7 +52,6 @@ struct SettingsView: View {
       }
     }
     .navigationTitle("Settings")
-    .postHogScreenView()
   }
 }
 

@@ -35,6 +35,7 @@ struct PostVisibilityToggle: View {
       if let userId = authManager.getCurrentUser()?.userId {
         NavigationStack {
           UserListView(identifier: userId, userListVariant: .friends)
+            .postHogScreenView()
             .toolbar {
               #if os(iOS)
                 ToolbarItem(placement: .topBarLeading) {

@@ -158,7 +158,6 @@ struct AccountSettingsView: View {
         .padding(24)
       }
     }
-    .postHogScreenView()
   }
 
   private func formatDate(_ date: Date) -> String {
