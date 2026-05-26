@@ -8,6 +8,7 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
+	"os"
 
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
@@ -38,10 +39,20 @@ type Client struct {
 }
 
 func NewClient(token *Token) *Client {
+	env := os.Getenv("ENVIRONMENT")
+	var baseUrl string
+	var bundleId string
+	if env == "PRODUCTION" {
+		baseUrl = ProductionServer
+		bundleId = ProductionBundleId
+	} else {
+		baseUrl = DevelopmentServer
+		bundleId = DevelopmentBundleId
+	}
 	return &Client{
 		httpClient: &http.Client{},
-		baseUrl:    ProductionServer,
-		bundleId:   ProductionBundleId,
+		baseUrl:    baseUrl,
+		bundleId:   bundleId,
 		token:      token,
 	}
 }

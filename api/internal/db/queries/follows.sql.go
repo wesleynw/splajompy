@@ -324,6 +324,7 @@ func (q *Queries) GetMutualsByUserIdV2(ctx context.Context, arg GetMutualsByUser
 const insertFollow = `-- name: InsertFollow :exec
 INSERT INTO follows (follower_id, following_id)
 VALUES ($1, $2)
+ON CONFLICT DO NOTHING
 `
 
 type InsertFollowParams struct {

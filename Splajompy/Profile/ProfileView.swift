@@ -25,7 +25,7 @@ struct ProfileView: View {
 
     switch viewModel.profileState {
     case .loaded(let user):
-      return user.username
+      return "@" + user.username
     default:
       return ""
     }
@@ -114,7 +114,7 @@ struct ProfileView: View {
       .navigationBarTitleDisplayMode(.inline)
       .toolbarRole(.browser)
     #endif
-    .navigationTitle("@" + computedTitle)
+    .navigationTitle(computedTitle)
     .toolbar {
       #if os(iOS)
         titleToolbar()
@@ -194,7 +194,7 @@ struct ProfileView: View {
           ToolbarItem(
             placement: .principal
           ) {
-            Text("@" + computedTitle)
+            Text(computedTitle)
               .font(.title2)
               .fontWeight(.black)
           }
@@ -204,7 +204,7 @@ struct ProfileView: View {
             placement: .principal
           ) {
             HStack {
-              Text("@" + computedTitle)
+              Text(computedTitle)
                 .font(.title2)
                 .fontWeight(.black)
 
@@ -216,14 +216,14 @@ struct ProfileView: View {
       } else {
         if #available(iOS 26, *) {
           ToolbarItem(placement: .principal) {
-            Text("@" + computedTitle)
+            Text(computedTitle)
               .font(.callout)
               .fontWeight(.bold)
           }
           .sharedBackgroundVisibility(.hidden)
         } else {
           ToolbarItem(placement: .principal) {
-            Text("@" + computedTitle)
+            Text(computedTitle)
               .font(.callout)
               .fontWeight(.bold)
           }

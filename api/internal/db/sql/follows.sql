@@ -7,7 +7,8 @@ SELECT EXISTS (
 
 -- name: InsertFollow :exec
 INSERT INTO follows (follower_id, following_id)
-VALUES ($1, $2);
+VALUES ($1, $2)
+ON CONFLICT DO NOTHING;
 
 -- name: DeleteFollow :exec
 DELETE FROM follows

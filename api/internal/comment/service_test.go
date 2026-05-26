@@ -27,7 +27,7 @@ func setupCommentTest(t *testing.T) commentServiceTestEnv {
 
 	notificationService := notification.NewService(db.NotificationStore, db.PostRepository, &db.CommentRepository, db.UserRepository, db.BucketRepository, apns.Client{})
 	svc := comment.NewService(&db.CommentRepository, db.PostRepository, *notificationService, db.UserRepository, db.LikeRepository, db.BucketRepository)
-	userSvc := user.NewUserService(db.UserRepository, db.NotificationStore, nil)
+	userSvc := user.NewUserService(db.UserRepository, *notificationService, nil)
 
 	return commentServiceTestEnv{
 		svc:            svc,
