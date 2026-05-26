@@ -83,7 +83,7 @@ func (c *Client) Push(ctx context.Context, notification *Notification) error {
 	req.Header.Add("apns-topic", c.bundleId)
 	req.Header.Add("apns-push-type", "alert")
 
-	push_counter, err := meter.Int64Counter("push.counter", metric.WithDescription("Number of push notifications requested"), metric.WithUnit("{call}"))
+	push_counter, err := meter.Int64Counter("notification.push.counter", metric.WithDescription("Number of push notifications requested"), metric.WithUnit("{call}"))
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(codes.Error, err.Error())

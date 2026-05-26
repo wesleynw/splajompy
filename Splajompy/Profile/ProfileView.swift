@@ -114,7 +114,7 @@ struct ProfileView: View {
       .navigationBarTitleDisplayMode(.inline)
       .toolbarRole(.browser)
     #endif
-    .navigationTitle(computedTitle)
+    .navigationTitle("@" + computedTitle)
     .toolbar {
       #if os(iOS)
         titleToolbar()
