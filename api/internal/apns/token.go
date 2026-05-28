@@ -83,9 +83,9 @@ func (t *Token) Generate() error {
 		"iat": issuedAt,
 	}
 
-	jwt := jwt.NewWithClaims(jwt.SigningMethodES256, claims)
-	jwt.Header["kid"] = t.KeyId
-	s, err := jwt.SignedString(t.PrivateKey)
+	token := jwt.NewWithClaims(jwt.SigningMethodES256, claims)
+	token.Header["kid"] = t.KeyId
+	s, err := token.SignedString(t.PrivateKey)
 	if err != nil {
 		return err
 	}

@@ -31,7 +31,7 @@ type TestDB struct {
 	PostRepository    post.Store
 	CommentRepository comment.Store
 	LikeRepository    like.Store
-	NotificationStore notification.NotificationStore
+	NotificationStore notification.Store
 	BucketRepository  bucket.Repository
 }
 

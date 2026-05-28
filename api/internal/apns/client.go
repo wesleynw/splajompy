@@ -28,8 +28,8 @@ const (
 	ProductionBundleId  = "splajompy.com.Splajompy"
 )
 
-var tracer trace.Tracer = otel.Tracer("apns-service")
-var meter metric.Meter = otel.Meter("apns-service")
+var tracer = otel.Tracer("apns-service")
+var meter = otel.Meter("apns-service")
 
 type Client struct {
 	httpClient *http.Client
@@ -94,7 +94,7 @@ func (c *Client) Push(ctx context.Context, notification *Notification) error {
 	req.Header.Add("apns-topic", c.bundleId)
 	req.Header.Add("apns-push-type", "alert")
 
-	push_counter, err := meter.Int64Counter("notification.push.counter", metric.WithDescription("Number of push notifications requested"), metric.WithUnit("{call}"))
+	pushCounter, err := meter.Int64Counter("notification.push.counter", metric.WithDescription("Number of push notifications requested"), metric.WithUnit("{call}"))
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(codes.Error, err.Error())
@@ -102,13 +102,18 @@ func (c *Client) Push(ctx context.Context, notification *Notification) error {
 	}
 
 	res, err := c.httpClient.Do(req)
+	defer func() {
+		if err := res.Body.Close(); err != nil {
+			slog.WarnContext(ctx, "failed to close response body", "error", err)
+		}
+	}()
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(codes.Error, err.Error())
 		slog.ErrorContext(ctx, "apns request failed", "error", err)
 		return err
 	}
-	push_counter.Add(ctx, 1, metric.WithAttributes(semconv.HTTPResponseStatusCode(res.StatusCode)))
+	pushCounter.Add(ctx, 1, metric.WithAttributes(semconv.HTTPResponseStatusCode(res.StatusCode)))
 
 	if res.StatusCode != http.StatusOK {
 		slog.ErrorContext(ctx, "apn did not return success code", "code", res.Status)
@@ -134,14 +139,8 @@ func (c *Client) Push(ctx context.Context, notification *Notification) error {
 		return fmt.Errorf("apns error %s: %s", res.Status, body.Reason)
 	}
 
-	defer func() {
-		if err := res.Body.Close(); err != nil {
-			slog.WarnContext(ctx, "failed to close response body", "error", err)
-		}
-	}()
-
-	notification_id := res.Header.Get("apns-id")
-	span.SetAttributes(attribute.String("notification.id", notification_id))
+	notificationId := res.Header.Get("apns-id")
+	span.SetAttributes(attribute.String("notification.id", notificationId))
 	span.SetAttributes(attribute.Int("http.status_code", res.StatusCode))
 
 	body, err = io.ReadAll(res.Body)

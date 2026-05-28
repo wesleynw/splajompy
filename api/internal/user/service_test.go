@@ -18,7 +18,7 @@ import (
 type userServiceTestEnv struct {
 	svc               *user.Service
 	userRepository    user.Store
-	notificationStore notification.NotificationStore
+	notificationStore notification.Store
 }
 
 func setupTest(t *testing.T) userServiceTestEnv {

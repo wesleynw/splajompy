@@ -17,7 +17,7 @@ import (
 )
 
 type Service struct {
-	notificationRepository NotificationStore
+	notificationRepository Store
 	postRepository         postReader
 	commentRepository      commentReader
 	userRepository         userReader
@@ -42,7 +42,7 @@ type commentReader interface {
 	GetImagesByCommentId(ctx context.Context, commentId int) ([]queries.Image, error)
 }
 
-func NewService(notificationRepository NotificationStore, postRepository postReader, commentRepository commentReader, userRepository userReader, bucketRepository bucket.Repository, apnClient apns.Client) *Service {
+func NewService(notificationRepository Store, postRepository postReader, commentRepository commentReader, userRepository userReader, bucketRepository bucket.Repository, apnClient apns.Client) *Service {
 	return &Service{
 		notificationRepository: notificationRepository,
 		postRepository:         postRepository,
@@ -344,7 +344,7 @@ func (s *Service) AddNotification(ctx context.Context, targetUserId int, postId 
 	switch notificationType {
 	case models.NotificationTypeComment:
 		if postId == nil {
-			return nil, errors.New("postid cannot be null for a comment notification")
+			return nil, errors.New("post id cannot be null for a comment notification")
 		}
 		identifier = *postId
 	case models.NotificationTypeFollowers:
@@ -415,7 +415,7 @@ func (s *Service) sendPushIfEnabled(ctx context.Context, notificationId int, rec
 }
 
 func (s *Service) buildLikedMessage(ctx context.Context, userIds []int, isComment bool) (*string, error) {
-	users := []models.PublicUser{}
+	var users []models.PublicUser
 	for _, userId := range userIds[:min(3, len(userIds))] {
 		user, err := s.userRepository.GetUserById(ctx, userId)
 		if err != nil {
@@ -424,7 +424,7 @@ func (s *Service) buildLikedMessage(ctx context.Context, userIds []int, isCommen
 		users = append(users, user)
 	}
 
-	// i hate this
+	// I hate this
 	var noun string
 	if isComment {
 		noun = "comment"
@@ -444,8 +444,7 @@ func (s *Service) buildLikedMessage(ctx context.Context, userIds []int, isCommen
 		return new(fmt.Sprintf("@%s, @%s, and @%s liked your %s.", users[0].Username, users[1].Username, users[2].Username, noun)), nil
 	}
 
-	message := fmt.Sprintf("@%s, @%s, @%s, and others liked your %s.", users[0].Username, users[1].Username, users[2].Username, noun)
-	return &message, nil
+	return new(fmt.Sprintf("@%s, @%s, @%s, and others liked your %s.", users[0].Username, users[1].Username, users[2].Username, noun)), nil
 }
 
 func (s *Service) RegisterDeviceToken(ctx context.Context, userId int, deviceToken string) error {

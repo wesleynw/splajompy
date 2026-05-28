@@ -22,7 +22,7 @@ type notificationTestEnv struct {
 	svc                    *notification.Service
 	commentSvc             *comment.Service
 	postSvc                *post.Service
-	notificationRepository notification.NotificationStore
+	notificationRepository notification.Store
 	userRepository         user.Store
 	postRepository         post.Store
 	commentRepository      comment.Store
