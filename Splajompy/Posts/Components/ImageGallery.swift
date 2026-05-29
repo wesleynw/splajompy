@@ -19,8 +19,12 @@ struct ImageGallery: View {
     Group {
       if images.isEmpty {
         EmptyView()
-      } else if images.count == 1 {
-        singleImageCell()
+      } else if images.count == 1, let firstImage = images.first {
+        SingleImageCellView(
+          selectedImageIndex: $selectedImageIndex,
+          animation: animation,
+          image: firstImage
+        )
       } else {
         #if os(iOS)
           if imageLayoutPreference == .carousel {
@@ -246,48 +250,6 @@ struct ImageGallery: View {
         }
         .buttonStyle(.plain)
       }
-    }
-  }
-
-  @ViewBuilder
-  private func singleImageCell() -> some View {
-    if let image = images.first, let url = URL(string: image.imageBlobUrl) {
-      let rawAspectRatio = CGFloat(image.width) / CGFloat(image.height)
-      let displayAspectRatio = max(0.4, min(2.5, rawAspectRatio))
-
-      Button {
-        selectedImageIndex = 0
-      } label: {
-        LazyImage(url: url) { state in
-          if let img = state.image {
-            img.resizable()
-              .aspectRatio(contentMode: .fill)
-          } else if state.error != nil {
-            Color.clear
-              .background(.thinMaterial)
-              .overlay {
-                Image(systemName: "photo.badge.exclamationmark")
-                  .foregroundStyle(.secondary)
-              }
-              .aspectRatio(displayAspectRatio, contentMode: .fit)
-          } else {
-            Color.clear
-              .background(.thinMaterial)
-              .overlay {
-                ProgressView()
-                  #if os(macOS)
-                    .controlSize(.small)
-                  #endif
-              }
-              .aspectRatio(displayAspectRatio, contentMode: .fit)
-          }
-        }
-        .aspectRatio(displayAspectRatio, contentMode: .fit)
-        .clipShape(RoundedRectangle(cornerRadius: 15))
-        .contentShape(.rect)
-        .modifier(TransitionSourceModifier(id: "image-0", namespace: animation))
-      }
-      .buttonStyle(.plain)
     }
   }
 }

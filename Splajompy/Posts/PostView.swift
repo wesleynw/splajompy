@@ -62,6 +62,7 @@ struct PostView: View {
       Divider()
     }
     .frame(maxWidth: .infinity)
+    .containerRelativeFrame(.horizontal)
   }
 
   private var postContent: some View {
@@ -82,7 +83,6 @@ struct PostView: View {
       relevantLikes
       timestampAndMenu
     }
-    .frame(maxWidth: .infinity)
     .contentShape(Rectangle())
     .animation(.easeInOut(duration: 0.3), value: post.isPinned)
     .padding(.vertical, 4)
@@ -91,6 +91,7 @@ struct PostView: View {
       CommentsView(postId: post.post.postId, postManager: postManager)
         .postHogScreenView()
     }
+    .containerRelativeFrame(.horizontal)
   }
 
   private var authorHeader: some View {
