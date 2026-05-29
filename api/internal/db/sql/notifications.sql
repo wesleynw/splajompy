@@ -134,11 +134,14 @@ SET message = $2, facets = $3
 WHERE notification_id = $1;
 
 -- name: InsertDeviceToken :exec
-INSERT INTO device_token (user_id, token)
-VALUES ($1, $2)
-ON CONFLICT (token) DO NOTHING;
+INSERT INTO device_token (user_id, token, is_enabled_mentions, is_enabled_comments, is_enabled_follows)
+VALUES ($1, $2, $3, $4, $5)
+ON CONFLICT (token) DO UPDATE SET
+  is_enabled_mentions = EXCLUDED.is_enabled_mentions,
+  is_enabled_comments = EXCLUDED.is_enabled_comments,
+  is_enabled_follows = EXCLUDED.is_enabled_follows;
 
 -- name: GetDeviceTokensForUser :many
-SELECT token
+SELECT *
 FROM device_token
 WHERE user_id = $1;

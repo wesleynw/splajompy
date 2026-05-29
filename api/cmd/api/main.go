@@ -63,6 +63,9 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed to connect to database: %v", err)
 	}
+	if err := otelpgx.RecordStats(conn); err != nil {
+		log.Fatalf("unable to record database stats: %v", err)
+	}
 	defer conn.Close()
 
 	q := queries.New(conn)

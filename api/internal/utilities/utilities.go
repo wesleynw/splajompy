@@ -104,6 +104,16 @@ func MapComment(comment queries.Comment, user models.PublicUser, isLiked bool) m
 	}
 }
 
+func MapToken(token queries.DeviceToken) models.Device {
+	return models.Device{
+		UserID:            token.UserID,
+		Token:             token.Token,
+		IsEnabledMentions: token.IsEnabledMentions,
+		IsEnabledComments: token.IsEnabledComments,
+		IsEnabledFollows:  token.IsEnabledFollows,
+	}
+}
+
 type ErrorResponse struct {
 	Message string `json:"message"`
 }

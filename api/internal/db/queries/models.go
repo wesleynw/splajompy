@@ -39,10 +39,13 @@ type CommentImage struct {
 }
 
 type DeviceToken struct {
-	ID        int        `json:"id"`
-	UserID    int        `json:"userId"`
-	Token     string     `json:"token"`
-	CreatedAt *time.Time `json:"createdAt"`
+	ID                int        `json:"id"`
+	UserID            int        `json:"userId"`
+	Token             string     `json:"token"`
+	IsEnabledMentions bool       `json:"isEnabledMentions"`
+	IsEnabledComments bool       `json:"isEnabledComments"`
+	IsEnabledFollows  bool       `json:"isEnabledFollows"`
+	CreatedAt         *time.Time `json:"createdAt"`
 }
 
 type Follow struct {

@@ -167,7 +167,10 @@ func (h *Handler) SetDeviceToken(w http.ResponseWriter, r *http.Request) {
 	currentUser := utilities.GetAuthenticatedUser(r)
 
 	var body struct {
-		DeviceToken string `json:"deviceToken"`
+		Token     string `json:"token"`
+		Comments  bool   `json:"comments"`
+		Mentions  bool   `json:"mentions"`
+		Followers bool   `json:"followers"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
@@ -175,7 +178,7 @@ func (h *Handler) SetDeviceToken(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := h.svc.RegisterDeviceToken(r.Context(), currentUser.UserID, body.DeviceToken)
+	err := h.svc.RegisterDevice(r.Context(), currentUser.UserID, body.Token, body.Mentions, body.Comments, body.Followers)
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
 		return

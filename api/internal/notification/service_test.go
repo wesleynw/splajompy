@@ -581,14 +581,38 @@ func TestRegisterDeviceToken_UpdatesOldToken(t *testing.T) {
 	env := setupNotificationService(t)
 
 	user := testutil.CreateTestUser(t, env.userRepository, "user0")
-	err := env.svc.RegisterDeviceToken(t.Context(), user.UserID, "abc123")
+	err := env.svc.RegisterDevice(t.Context(), user.UserID, "abc123", false, false, false)
 	require.NoError(t, err)
 
-	err = env.svc.RegisterDeviceToken(t.Context(), user.UserID, "def456")
+	err = env.svc.RegisterDevice(t.Context(), user.UserID, "def456", false, false, false)
+	require.NoError(t, err)
+
+	devices, err := env.notificationRepository.GetDeviceTokensForUser(t.Context(), user.UserID)
+	require.NoError(t, err)
+
+	tokens := make([]string, len(devices))
+	for i, d := range devices {
+		tokens[i] = d.Token
+	}
+	assert.Contains(t, tokens, "def456")
+}
+
+func TestRegisterDevice_UpdatePreferences(t *testing.T) {
+	env := setupNotificationService(t)
+
+	user := testutil.CreateTestUser(t, env.userRepository, "user0")
+	err := env.svc.RegisterDevice(t.Context(), user.UserID, "abc123", true, true, false)
+	require.NoError(t, err)
+
+	err = env.svc.RegisterDevice(t.Context(), user.UserID, "abc123", false, false, true)
 	require.NoError(t, err)
 
 	tokens, err := env.notificationRepository.GetDeviceTokensForUser(t.Context(), user.UserID)
 	require.NoError(t, err)
+	require.Len(t, tokens, 1)
 
-	assert.Contains(t, tokens, "def456", "device token should have been updated")
+	device := tokens[0]
+	assert.False(t, device.IsEnabledMentions)
+	assert.False(t, device.IsEnabledComments)
+	assert.True(t, device.IsEnabledFollows)
 }

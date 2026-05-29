@@ -57,14 +57,6 @@ protocol ProfileServiceProtocol: Sendable {
   /// Remove a user from the current user's friends list.
   func removeFriend(userId: Int) async -> AsyncResult<EmptyResponse>
 
-  /// Fetch the current user's push notification preferences.
-  func getPushPreferences() async -> AsyncResult<PushPreferences>
-
-  /// Update the current user's push notification preferences.
-  func updatePushPreferences(prefs: PushPreferences) async -> AsyncResult<
-    EmptyResponse
-  >
-
   /// Fetch statistics about app.
   func getAppStatistics() async -> AsyncResult<AppStatistics>
 }
@@ -256,26 +248,6 @@ struct ProfileService: ProfileServiceProtocol {
     return await APIService.performRequest(
       endpoint: "user/\(userId)/friend",
       method: "DELETE"
-    )
-  }
-
-  func getPushPreferences() async -> AsyncResult<PushPreferences> {
-    return await APIService.performRequest(
-      endpoint: "user/push-preferences",
-      method: "GET"
-    )
-  }
-
-  func updatePushPreferences(prefs: PushPreferences) async -> AsyncResult<
-    EmptyResponse
-  > {
-    guard let data = try? JSONEncoder().encode(prefs) else {
-      return .error(APIErrorMessage(message: "Failed to encode preferences"))
-    }
-    return await APIService.performRequest(
-      endpoint: "user/push-preferences",
-      method: "PATCH",
-      body: data
     )
   }
 

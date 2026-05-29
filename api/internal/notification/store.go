@@ -216,15 +216,28 @@ func (r Store) UpdateNotificationMessageOnly(ctx context.Context, notificationId
 	})
 }
 
-func (r Store) InsertDeviceToken(ctx context.Context, userId int, deviceToken string) error {
+func (r Store) InsertDeviceToken(ctx context.Context, userId int, deviceToken string, mentionsEnabled bool, commentsEnabled bool, followsEnabled bool) error {
 	return r.querier.InsertDeviceToken(ctx, queries.InsertDeviceTokenParams{
-		UserID: userId,
-		Token:  deviceToken,
+		UserID:            userId,
+		Token:             deviceToken,
+		IsEnabledMentions: mentionsEnabled,
+		IsEnabledComments: commentsEnabled,
+		IsEnabledFollows:  followsEnabled,
 	})
 }
 
-func (r Store) GetDeviceTokensForUser(ctx context.Context, userId int) ([]string, error) {
-	return r.querier.GetDeviceTokensForUser(ctx, userId)
+func (r Store) GetDeviceTokensForUser(ctx context.Context, userId int) ([]models.Device, error) {
+	tokens, err := r.querier.GetDeviceTokensForUser(ctx, userId)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]models.Device, len(tokens))
+	for i, token := range tokens {
+		result[i] = utilities.MapToken(token)
+	}
+
+	return result, nil
 }
 
 // NewNotificationStore creates a new notification repository
