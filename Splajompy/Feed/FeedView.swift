@@ -118,7 +118,7 @@ struct FeedView: View {
   }
 
   private var postList: some View {
-    ScrollView {
+    ScrollView(.vertical) {
       LazyVStack(spacing: 0) {
         ForEach(Array(viewModel.posts.enumerated()), id: \.element.id) {
           index,
@@ -134,9 +134,6 @@ struct FeedView: View {
           .onAppear {
             viewModel.handlePostAppear(at: index)
           }
-          #if os(macOS)
-            .frame(maxWidth: 600)
-          #endif
         }
 
         if viewModel.canLoadMore {
@@ -165,9 +162,6 @@ struct FeedView: View {
           .padding()
         }
       }
-      #if os(macOS)
-        .frame(maxWidth: .infinity)
-      #endif
     }
     .refreshable {
       // I don't particularly understand why, but this needs to be wrapped in an unstructured task to avoid task cancellation
