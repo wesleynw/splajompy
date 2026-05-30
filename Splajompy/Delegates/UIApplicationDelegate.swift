@@ -61,7 +61,7 @@ class AppDelegate: NSObject, UIApplicationDelegate,
       print("unknown notification type")
       return
     }
-    
+
     PostHogSDK.shared.capture(
       "push_notification_click",
       properties: ["type": notificationType]
