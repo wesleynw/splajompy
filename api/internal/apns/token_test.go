@@ -7,7 +7,6 @@ import (
 	"crypto/x509"
 	"encoding/base64"
 	"encoding/pem"
-	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -17,11 +16,7 @@ import (
 
 func TestGenerate_ReusesUnexpiredToken(t *testing.T) {
 	testKey, _ := generateTestPrivateKey(t)
-	os.Setenv("APN_PRIVATE_KEY", testKey)
-	os.Setenv("APN_KEY_ID", "123")
-	os.Setenv("APN_TEAM_ID", "456")
-
-	tok := apns.NewToken()
+	tok := apns.NewToken(testKey, "123", "456")
 	require.NotEmpty(t, tok)
 
 	bearer, err := tok.GetBearerToken()

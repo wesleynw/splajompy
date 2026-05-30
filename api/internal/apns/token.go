@@ -6,7 +6,6 @@ import (
 	"encoding/base64"
 	"encoding/pem"
 	"errors"
-	"os"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -29,12 +28,8 @@ type Token struct {
 	Bearer     string
 }
 
-func NewToken() *Token {
-	privateKeyString := os.Getenv("APN_PRIVATE_KEY")
-	keyId := os.Getenv("APN_KEY_ID")
-	teamId := os.Getenv("APN_TEAM_ID")
-
-	pKey, err := decodePrivateKey(privateKeyString)
+func NewToken(privateKey string, keyId string, teamId string) *Token {
+	pKey, err := decodePrivateKey(privateKey)
 	if err != nil {
 		return nil
 	}
