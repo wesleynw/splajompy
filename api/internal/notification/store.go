@@ -240,6 +240,10 @@ func (r Store) GetDeviceTokensForUser(ctx context.Context, userId int) ([]models
 	return result, nil
 }
 
+func (r Store) RemoveDeviceToken(ctx context.Context, token string) error {
+	return r.querier.DeleteDeviceToken(ctx, token)
+}
+
 // NewNotificationStore creates a new notification repository
 func NewNotificationStore(querier queries.Querier) Store {
 	return Store{querier: querier}

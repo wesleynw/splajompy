@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log/slog"
@@ -30,6 +31,8 @@ const (
 
 var tracer = otel.Tracer("apns-service")
 var meter = otel.Meter("apns-service")
+
+var ErrUnregisteredDevice = errors.New("device is reported unregisted")
 
 type Client struct {
 	httpClient *http.Client
@@ -136,6 +139,9 @@ func (c *Client) Push(ctx context.Context, notification *Notification) error {
 		slog.WarnContext(ctx, "apns error", "status", res.Status, "reason", body.Reason)
 		span.RecordError(err)
 		span.SetStatus(codes.Error, body.Reason)
+		if res.StatusCode == http.StatusGone {
+			return ErrUnregisteredDevice
+		}
 		return fmt.Errorf("apns error %s: %s", res.Status, body.Reason)
 	}
 

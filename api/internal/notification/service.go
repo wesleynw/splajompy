@@ -351,7 +351,7 @@ func (s *Service) AddNotification(ctx context.Context, targetUserId int, postId 
 		identifier = 0
 	}
 
-	go s.sendPush(ctx, notification.NotificationID, targetUserId, message, notificationBody, notificationType, identifier)
+	go s.sendPush(context.Background(), notification.NotificationID, targetUserId, message, notificationBody, notificationType, identifier)
 
 	return notification, nil
 }
@@ -398,7 +398,10 @@ func (s *Service) sendPush(ctx context.Context, notificationId int, recipientId 
 			},
 			DeviceToken: device.Token,
 		}
-		_ = s.apnsClient.Push(ctx, &n)
+		err = s.apnsClient.Push(ctx, &n)
+		if errors.Is(err, apns.ErrUnregisteredDevice) {
+			go s.notificationRepository.RemoveDeviceToken(ctx, device.Token)
+		}
 	}
 }
 

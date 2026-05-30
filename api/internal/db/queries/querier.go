@@ -18,6 +18,7 @@ type Querier interface {
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
 	CreateVerificationCode(ctx context.Context, arg CreateVerificationCodeParams) error
 	DeleteComment(ctx context.Context, commentID int) error
+	DeleteDeviceToken(ctx context.Context, token string) error
 	DeleteFollow(ctx context.Context, arg DeleteFollowParams) error
 	DeleteNotificationActor(ctx context.Context, arg DeleteNotificationActorParams) error
 	DeleteNotificationById(ctx context.Context, notificationID int) error

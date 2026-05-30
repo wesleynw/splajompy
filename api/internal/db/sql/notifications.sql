@@ -145,3 +145,7 @@ ON CONFLICT (token) DO UPDATE SET
 SELECT *
 FROM device_token
 WHERE user_id = $1;
+
+-- name: DeleteDeviceToken :exec
+DELETE FROM device_token
+WHERE token = $1;

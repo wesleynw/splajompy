@@ -12,6 +12,16 @@ import (
 	db "splajompy.com/api/v2/internal/db"
 )
 
+const deleteDeviceToken = `-- name: DeleteDeviceToken :exec
+DELETE FROM device_token
+WHERE token = $1
+`
+
+func (q *Queries) DeleteDeviceToken(ctx context.Context, token string) error {
+	_, err := q.db.Exec(ctx, deleteDeviceToken, token)
+	return err
+}
+
 const deleteNotificationActor = `-- name: DeleteNotificationActor :exec
 DELETE FROM notification_actor
 WHERE notification_id = $1 AND user_id = $2
