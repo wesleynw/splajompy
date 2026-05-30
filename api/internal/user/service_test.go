@@ -7,7 +7,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"splajompy.com/api/v2/internal/apns"
-	db "splajompy.com/api/v2/internal/db"
 	"splajompy.com/api/v2/internal/models"
 	"splajompy.com/api/v2/internal/notification"
 	"splajompy.com/api/v2/internal/testutil"
@@ -18,7 +17,7 @@ import (
 type userServiceTestEnv struct {
 	svc               *user.Service
 	userRepository    user.Store
-	notificationStore notification.NotificationStore
+	notificationStore notification.Store
 }
 
 func setupTest(t *testing.T) userServiceTestEnv {
@@ -90,34 +89,6 @@ func TestGetNotificationActors_DoesntReturnForNonOwningUser(t *testing.T) {
 	page, err := env.svc.GetNotificationActors(t.Context(), user1.UserID, notification.NotificationID, 10, new(time.Now().UTC()))
 	assert.Nil(t, page)
 	assert.ErrorIs(t, err, utilities.ErrUnauthorized)
-}
-
-func TestGetPushPreferences_ReturnsNilWhenNotSet(t *testing.T) {
-	env := setupTest(t)
-	u := testutil.CreateTestUser(t, env.userRepository, "user0")
-
-	prefs, err := env.svc.GetPushPreferences(t.Context(), u.UserID)
-	require.NoError(t, err)
-	assert.Nil(t, prefs)
-}
-
-func TestUpdatePushPreferences_StoresAndRetrieves(t *testing.T) {
-	env := setupTest(t)
-	u := testutil.CreateTestUser(t, env.userRepository, "user0")
-
-	err := env.svc.UpdatePushPreferences(t.Context(), u.UserID, db.PushPreferences{
-		Comments:  true,
-		Mentions:  true,
-		Followers: false,
-	})
-	require.NoError(t, err)
-
-	prefs, err := env.svc.GetPushPreferences(t.Context(), u.UserID)
-	require.NoError(t, err)
-	require.NotNil(t, prefs)
-	assert.True(t, prefs.Comments)
-	assert.True(t, prefs.Mentions)
-	assert.False(t, prefs.Followers)
 }
 
 func TestFollowUser_SendsNotification(t *testing.T) {

@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"strconv"
 
-	"splajompy.com/api/v2/internal/db"
 	"splajompy.com/api/v2/internal/models"
 	"splajompy.com/api/v2/internal/utilities"
 )
@@ -50,8 +49,6 @@ func (h *Handler) RegisterRoutes(_, withAuth func(string, func(http.ResponseWrit
 	withAuth("DELETE /follow/{user_id}", h.UnfollowUser)
 
 	withAuth("POST /user/profile", h.UpdateProfile)
-	withAuth("GET /user/push-preferences", h.GetPushPreferences)
-	withAuth("PATCH /user/push-preferences", h.UpdatePushPreferences)
 
 }
 
@@ -486,38 +483,4 @@ func (h Handler) ListUserCloseFriendsV2(w http.ResponseWriter, r *http.Request) 
 	}
 
 	utilities.HandleSuccess(w, result)
-}
-
-func (h *Handler) GetPushPreferences(w http.ResponseWriter, r *http.Request) {
-	currentUser := utilities.GetAuthenticatedUser(r)
-
-	prefs, err := h.svc.GetPushPreferences(r.Context(), currentUser.UserID)
-	if err != nil {
-		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
-		return
-	}
-
-	if prefs == nil {
-		utilities.HandleSuccess(w, db.PushPreferences{})
-		return
-	}
-
-	utilities.HandleSuccess(w, *prefs)
-}
-
-func (h *Handler) UpdatePushPreferences(w http.ResponseWriter, r *http.Request) {
-	currentUser := utilities.GetAuthenticatedUser(r)
-
-	var prefs db.PushPreferences
-	if err := json.NewDecoder(r.Body).Decode(&prefs); err != nil {
-		utilities.HandleError(w, http.StatusBadRequest, err.Error())
-		return
-	}
-
-	if err := h.svc.UpdatePushPreferences(r.Context(), currentUser.UserID, prefs); err != nil {
-		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
-		return
-	}
-
-	utilities.HandleEmptySuccess(w)
 }

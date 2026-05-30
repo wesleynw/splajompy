@@ -24,20 +24,7 @@ class AppDelegate: NSObject, NSApplicationDelegate,
     let tokenString = deviceToken.map { String(format: "%02.2hhx", $0) }
       .joined()
 
-    let payload = DeviceTokenRequest(
-      deviceToken: tokenString
-    )
-
-    if let data = try? JSONEncoder().encode(payload) {
-      Task {
-        let _: AsyncResult<EmptyResponse> = await APIService.performRequest(
-          endpoint: "notifications/registerDevice",
-          method: "POST",
-          queryItems: nil,
-          body: data
-        )
-      }
-    }
+    RemoteNotificationUtilities.registerDeviceWithAPI(token: tokenString)
   }
 
   func application(

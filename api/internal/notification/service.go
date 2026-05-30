@@ -5,11 +5,11 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"log/slog"
 	"time"
 
 	"splajompy.com/api/v2/internal/apns"
 	"splajompy.com/api/v2/internal/bucket"
-	"splajompy.com/api/v2/internal/db"
 	"splajompy.com/api/v2/internal/db/queries"
 	"splajompy.com/api/v2/internal/utilities"
 
@@ -17,7 +17,7 @@ import (
 )
 
 type Service struct {
-	notificationRepository NotificationStore
+	notificationRepository Store
 	postRepository         postReader
 	commentRepository      commentReader
 	userRepository         userReader
@@ -34,7 +34,6 @@ type userReader interface {
 	GetUserById(ctx context.Context, userId int) (models.PublicUser, error)
 	GetUserByUsername(ctx context.Context, username string) (models.PublicUser, error)
 	GetUserLatestAppVersion(ctx context.Context, userId int) (*string, error)
-	GetUserDisplayProperties(ctx context.Context, userId int) (*db.UserDisplayProperties, error)
 }
 
 type commentReader interface {
@@ -42,7 +41,7 @@ type commentReader interface {
 	GetImagesByCommentId(ctx context.Context, commentId int) ([]queries.Image, error)
 }
 
-func NewService(notificationRepository NotificationStore, postRepository postReader, commentRepository commentReader, userRepository userReader, bucketRepository bucket.Repository, apnClient apns.Client) *Service {
+func NewService(notificationRepository Store, postRepository postReader, commentRepository commentReader, userRepository userReader, bucketRepository bucket.Repository, apnClient apns.Client) *Service {
 	return &Service{
 		notificationRepository: notificationRepository,
 		postRepository:         postRepository,
@@ -344,7 +343,7 @@ func (s *Service) AddNotification(ctx context.Context, targetUserId int, postId 
 	switch notificationType {
 	case models.NotificationTypeComment:
 		if postId == nil {
-			return nil, errors.New("postid cannot be null for a comment notification")
+			return nil, errors.New("post id cannot be null for a comment notification")
 		}
 		identifier = *postId
 	case models.NotificationTypeFollowers:
@@ -353,43 +352,33 @@ func (s *Service) AddNotification(ctx context.Context, targetUserId int, postId 
 		identifier = 0
 	}
 
-	s.sendPushIfEnabled(ctx, notification.NotificationID, targetUserId, message, notificationBody, notificationType, identifier)
+	go s.sendPush(context.Background(), notification.NotificationID, targetUserId, message, notificationBody, notificationType, identifier)
 
 	return notification, nil
 }
 
-// sendPushIfEnabled checks the recipient's push preferences and sends to all their devices if enabled.
-func (s *Service) sendPushIfEnabled(ctx context.Context, notificationId int, recipientId int, title string, body *string, notificationType models.NotificationType, identifier int) {
-	props, err := s.userRepository.GetUserDisplayProperties(ctx, recipientId)
-	if err != nil || props == nil {
-		return
-	}
-
-	prefs := props.PushPreferences
-	if prefs == nil {
-		return
-	}
-
-	var enabled bool
-	switch notificationType {
-	case models.NotificationTypeComment:
-		enabled = prefs.Comments
-	case models.NotificationTypeMention:
-		enabled = prefs.Mentions
-	case models.NotificationTypeFollowers:
-		enabled = prefs.Followers
-	}
-
-	if !enabled {
-		return
-	}
-
+// sendPush checks the recipient's push preferences and sends to all their devices if enabled.
+func (s *Service) sendPush(ctx context.Context, notificationId int, recipientId int, title string, body *string, notificationType models.NotificationType, identifier int) {
 	devices, err := s.notificationRepository.GetDeviceTokensForUser(ctx, recipientId)
 	if err != nil || len(devices) == 0 {
 		return
 	}
 
 	for _, device := range devices {
+		var enabled bool
+		switch notificationType {
+		case models.NotificationTypeMention:
+			enabled = device.IsEnabledMentions
+		case models.NotificationTypeComment:
+			enabled = device.IsEnabledComments
+		case models.NotificationTypeFollowers:
+			enabled = device.IsEnabledFollows
+		}
+
+		if !enabled {
+			continue
+		}
+
 		alert := apns.Alert{
 			Title: title,
 		}
@@ -408,14 +397,20 @@ func (s *Service) sendPushIfEnabled(ctx context.Context, notificationId int, rec
 				Identifier:     identifier,
 				NotificationId: notificationId,
 			},
-			DeviceToken: device,
+			DeviceToken: device.Token,
 		}
-		_ = s.apnsClient.Push(ctx, &n)
+		err = s.apnsClient.Push(ctx, &n)
+		if errors.Is(err, apns.ErrUnregisteredDevice) {
+			err := s.notificationRepository.RemoveDeviceToken(ctx, device.Token)
+			if err != nil {
+				slog.WarnContext(ctx, "unable to remove device token", "error", err)
+			}
+		}
 	}
 }
 
 func (s *Service) buildLikedMessage(ctx context.Context, userIds []int, isComment bool) (*string, error) {
-	users := []models.PublicUser{}
+	var users []models.PublicUser
 	for _, userId := range userIds[:min(3, len(userIds))] {
 		user, err := s.userRepository.GetUserById(ctx, userId)
 		if err != nil {
@@ -424,7 +419,7 @@ func (s *Service) buildLikedMessage(ctx context.Context, userIds []int, isCommen
 		users = append(users, user)
 	}
 
-	// i hate this
+	// I hate this
 	var noun string
 	if isComment {
 		noun = "comment"
@@ -444,10 +439,9 @@ func (s *Service) buildLikedMessage(ctx context.Context, userIds []int, isCommen
 		return new(fmt.Sprintf("@%s, @%s, and @%s liked your %s.", users[0].Username, users[1].Username, users[2].Username, noun)), nil
 	}
 
-	message := fmt.Sprintf("@%s, @%s, @%s, and others liked your %s.", users[0].Username, users[1].Username, users[2].Username, noun)
-	return &message, nil
+	return new(fmt.Sprintf("@%s, @%s, @%s, and others liked your %s.", users[0].Username, users[1].Username, users[2].Username, noun)), nil
 }
 
-func (s *Service) RegisterDeviceToken(ctx context.Context, userId int, deviceToken string) error {
-	return s.notificationRepository.InsertDeviceToken(ctx, userId, deviceToken)
+func (s *Service) RegisterDevice(ctx context.Context, userId int, token string, mentionsEnabled bool, commentsEnabled bool, followsEnabled bool) error {
+	return s.notificationRepository.InsertDeviceToken(ctx, userId, token, mentionsEnabled, commentsEnabled, followsEnabled)
 }

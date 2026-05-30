@@ -9,7 +9,7 @@ import (
 
 	"github.com/exaring/otelpgx"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
-	semconv "go.opentelemetry.io/otel/semconv/v1.39.0"
+	semconv "go.opentelemetry.io/otel/semconv/v1.40.0"
 	"go.opentelemetry.io/otel/trace"
 	"splajompy.com/api/v2/internal/apns"
 	"splajompy.com/api/v2/internal/auth"
@@ -63,6 +63,9 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed to connect to database: %v", err)
 	}
+	if err := otelpgx.RecordStats(conn); err != nil {
+		log.Fatalf("unable to record database stats: %v", err)
+	}
 	defer conn.Close()
 
 	q := queries.New(conn)
@@ -84,7 +87,10 @@ func main() {
 	likeRepository := like.NewStore(q)
 	statsRepository := stats.NewStore(q)
 
-	apnClient := apns.NewClient(apns.NewToken())
+	privateKeyString := os.Getenv("APN_PRIVATE_KEY")
+	keyId := os.Getenv("APN_KEY_ID")
+	teamId := os.Getenv("APN_TEAM_ID")
+	apnClient := apns.NewClient(apns.NewToken(privateKeyString, keyId, teamId))
 
 	notificationService := notification.NewService(notificationsRepository, postRepository, commentRepository, userRepository, bucketRepository, *apnClient)
 

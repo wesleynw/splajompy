@@ -220,3 +220,11 @@ const (
 	VisibilityPublic       VisibilityTypeEnum = 0
 	VisibilityCloseFriends VisibilityTypeEnum = 1
 )
+
+type Device struct {
+	UserID            int    `json:"userId"`
+	Token             string `json:"token"`
+	IsEnabledMentions bool   `json:"isEnabledMentions"`
+	IsEnabledComments bool   `json:"isEnabledComments"`
+	IsEnabledFollows  bool   `json:"isEnabledFollows"`
+}

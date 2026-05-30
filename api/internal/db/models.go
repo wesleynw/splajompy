@@ -1,6 +1,8 @@
 package db
 
-import "time"
+import (
+	"time"
+)
 
 type Facet struct {
 	Type       string `json:"type"`
@@ -20,15 +22,8 @@ type Poll struct {
 	Options []string `json:"options"`
 }
 
-type PushPreferences struct {
-	Comments  bool `json:"comments"`
-	Mentions  bool `json:"mentions"`
-	Followers bool `json:"followers"`
-}
-
 type UserDisplayProperties struct {
-	FontChoiceId     *int             `json:"fontChoiceId"`
-	LatestAppVersion *string          `json:"latestAppVersion"`
-	LastLoginDate    *time.Time       `json:"lastLoginDate"`
-	PushPreferences  *PushPreferences `json:"pushPreferences"`
+	FontChoiceId     *int       `json:"fontChoiceId"`
+	LatestAppVersion *string    `json:"latestAppVersion"`
+	LastLoginDate    *time.Time `json:"lastLoginDate"`
 }

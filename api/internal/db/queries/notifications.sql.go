@@ -12,6 +12,16 @@ import (
 	db "splajompy.com/api/v2/internal/db"
 )
 
+const deleteDeviceToken = `-- name: DeleteDeviceToken :exec
+DELETE FROM device_token
+WHERE token = $1
+`
+
+func (q *Queries) DeleteDeviceToken(ctx context.Context, token string) error {
+	_, err := q.db.Exec(ctx, deleteDeviceToken, token)
+	return err
+}
+
 const deleteNotificationActor = `-- name: DeleteNotificationActor :exec
 DELETE FROM notification_actor
 WHERE notification_id = $1 AND user_id = $2
@@ -109,24 +119,32 @@ func (q *Queries) FindLikeNotificationForPost(ctx context.Context, arg FindLikeN
 }
 
 const getDeviceTokensForUser = `-- name: GetDeviceTokensForUser :many
-SELECT token
+SELECT id, user_id, token, is_enabled_mentions, is_enabled_comments, is_enabled_follows, created_at
 FROM device_token
 WHERE user_id = $1
 `
 
-func (q *Queries) GetDeviceTokensForUser(ctx context.Context, userID int) ([]string, error) {
+func (q *Queries) GetDeviceTokensForUser(ctx context.Context, userID int) ([]DeviceToken, error) {
 	rows, err := q.db.Query(ctx, getDeviceTokensForUser, userID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []string
+	var items []DeviceToken
 	for rows.Next() {
-		var token string
-		if err := rows.Scan(&token); err != nil {
+		var i DeviceToken
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.Token,
+			&i.IsEnabledMentions,
+			&i.IsEnabledComments,
+			&i.IsEnabledFollows,
+			&i.CreatedAt,
+		); err != nil {
 			return nil, err
 		}
-		items = append(items, token)
+		items = append(items, i)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
@@ -379,18 +397,30 @@ func (q *Queries) GetUserUnreadNotificationCount(ctx context.Context, userID int
 }
 
 const insertDeviceToken = `-- name: InsertDeviceToken :exec
-INSERT INTO device_token (user_id, token)
-VALUES ($1, $2)
-ON CONFLICT (token) DO NOTHING
+INSERT INTO device_token (user_id, token, is_enabled_mentions, is_enabled_comments, is_enabled_follows)
+VALUES ($1, $2, $3, $4, $5)
+ON CONFLICT (token) DO UPDATE SET
+  is_enabled_mentions = EXCLUDED.is_enabled_mentions,
+  is_enabled_comments = EXCLUDED.is_enabled_comments,
+  is_enabled_follows = EXCLUDED.is_enabled_follows
 `
 
 type InsertDeviceTokenParams struct {
-	UserID int    `json:"userId"`
-	Token  string `json:"token"`
+	UserID            int    `json:"userId"`
+	Token             string `json:"token"`
+	IsEnabledMentions bool   `json:"isEnabledMentions"`
+	IsEnabledComments bool   `json:"isEnabledComments"`
+	IsEnabledFollows  bool   `json:"isEnabledFollows"`
 }
 
 func (q *Queries) InsertDeviceToken(ctx context.Context, arg InsertDeviceTokenParams) error {
-	_, err := q.db.Exec(ctx, insertDeviceToken, arg.UserID, arg.Token)
+	_, err := q.db.Exec(ctx, insertDeviceToken,
+		arg.UserID,
+		arg.Token,
+		arg.IsEnabledMentions,
+		arg.IsEnabledComments,
+		arg.IsEnabledFollows,
+	)
 	return err
 }
 

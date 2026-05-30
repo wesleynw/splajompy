@@ -18,6 +18,7 @@ type Querier interface {
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
 	CreateVerificationCode(ctx context.Context, arg CreateVerificationCodeParams) error
 	DeleteComment(ctx context.Context, commentID int) error
+	DeleteDeviceToken(ctx context.Context, token string) error
 	DeleteFollow(ctx context.Context, arg DeleteFollowParams) error
 	DeleteNotificationActor(ctx context.Context, arg DeleteNotificationActorParams) error
 	DeleteNotificationById(ctx context.Context, notificationID int) error
@@ -32,7 +33,7 @@ type Querier interface {
 	GetCommentById(ctx context.Context, commentID int) (Comment, error)
 	GetCommentCountByPostID(ctx context.Context, postID int) (int64, error)
 	GetCommentsByPostId(ctx context.Context, arg GetCommentsByPostIdParams) ([]GetCommentsByPostIdRow, error)
-	GetDeviceTokensForUser(ctx context.Context, userID int) ([]string, error)
+	GetDeviceTokensForUser(ctx context.Context, userID int) ([]DeviceToken, error)
 	GetFollowersByUserId(ctx context.Context, arg GetFollowersByUserIdParams) ([]GetFollowersByUserIdRow, error)
 	GetFollowingByUserId(ctx context.Context, arg GetFollowingByUserIdParams) ([]GetFollowingByUserIdRow, error)
 	GetFollowingUserIds(ctx context.Context, arg GetFollowingUserIdsParams) ([]GetFollowingUserIdsRow, error)
