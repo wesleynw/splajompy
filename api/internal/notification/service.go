@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"log/slog"
 	"time"
 
 	"splajompy.com/api/v2/internal/apns"
@@ -400,7 +401,10 @@ func (s *Service) sendPush(ctx context.Context, notificationId int, recipientId 
 		}
 		err = s.apnsClient.Push(ctx, &n)
 		if errors.Is(err, apns.ErrUnregisteredDevice) {
-			go s.notificationRepository.RemoveDeviceToken(ctx, device.Token)
+			err := s.notificationRepository.RemoveDeviceToken(ctx, device.Token)
+			if err != nil {
+				slog.WarnContext(ctx, "unable to remove device token", "error", err)
+			}
 		}
 	}
 }
