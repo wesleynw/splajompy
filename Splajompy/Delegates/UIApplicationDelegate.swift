@@ -63,7 +63,7 @@ class AppDelegate: NSObject, UIApplicationDelegate,
     }
 
     PostHogSDK.shared.capture(
-      "push-notification-click",
+      "push_notification_click",
       properties: ["type": notificationType]
     )
 

@@ -339,17 +339,17 @@ func (s *Service) AddNotification(ctx context.Context, targetUserId int, postId 
 		return nil, err
 	}
 
-	var identifier int
+	var identifier *int
 	switch notificationType {
-	case models.NotificationTypeComment:
+	case models.NotificationTypeComment, models.NotificationTypeMention:
 		if postId == nil {
 			return nil, errors.New("post id cannot be null for a comment notification")
 		}
-		identifier = *postId
+		identifier = postId
 	case models.NotificationTypeFollowers:
-		identifier = targetUserId
+		identifier = &targetUserId
 	default:
-		identifier = 0
+		identifier = nil
 	}
 
 	go s.sendPush(context.Background(), notification.NotificationID, targetUserId, message, notificationBody, notificationType, identifier)
@@ -358,7 +358,7 @@ func (s *Service) AddNotification(ctx context.Context, targetUserId int, postId 
 }
 
 // sendPush checks the recipient's push preferences and sends to all their devices if enabled.
-func (s *Service) sendPush(ctx context.Context, notificationId int, recipientId int, title string, body *string, notificationType models.NotificationType, identifier int) {
+func (s *Service) sendPush(ctx context.Context, notificationId int, recipientId int, title string, body *string, notificationType models.NotificationType, identifier *int) {
 	devices, err := s.notificationRepository.GetDeviceTokensForUser(ctx, recipientId)
 	if err != nil || len(devices) == 0 {
 		return
@@ -386,17 +386,22 @@ func (s *Service) sendPush(ctx context.Context, notificationId int, recipientId 
 			alert.Body = *body
 		}
 
-		n := apns.Notification{
-			Payload: apns.NotificationPayload{
-				Aps: apns.Aps{
-					Alert:     alert,
-					Badge:     0,
-					Timestamp: time.Now().Unix(),
-				},
-				Type:           notificationType,
-				Identifier:     identifier,
-				NotificationId: notificationId,
+		payload := apns.NotificationPayload{
+			Aps: apns.Aps{
+				Alert:     alert,
+				Badge:     0,
+				Timestamp: time.Now().Unix(),
 			},
+			Type:           notificationType,
+			NotificationId: notificationId,
+		}
+
+		if identifier != nil {
+			payload.Identifier = *identifier
+		}
+
+		n := apns.Notification{
+			Payload:     payload,
 			DeviceToken: device.Token,
 		}
 		err = s.apnsClient.Push(ctx, &n)
