@@ -35,6 +35,7 @@ struct FeedView: View {
     mainContent
       #if os(macOS)
         .toolbar(removing: .title)
+        .frame(maxWidth: 600)
       #endif
       .onAppear {
         if case .idle = viewModel.state {
