@@ -61,8 +61,6 @@ struct PostView: View {
 
       Divider()
     }
-    .frame(maxWidth: .infinity)
-    .containerRelativeFrame(.horizontal)
   }
 
   private var postContent: some View {
@@ -91,7 +89,6 @@ struct PostView: View {
       CommentsView(postId: post.post.postId, postManager: postManager)
         .postHogScreenView()
     }
-    .containerRelativeFrame(.horizontal)
   }
 
   private var authorHeader: some View {

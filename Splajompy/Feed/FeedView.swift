@@ -35,7 +35,6 @@ struct FeedView: View {
     mainContent
       #if os(macOS)
         .toolbar(removing: .title)
-        .frame(maxWidth: 600)
       #endif
       .onAppear {
         if case .idle = viewModel.state {
@@ -135,6 +134,9 @@ struct FeedView: View {
           .onAppear {
             viewModel.handlePostAppear(at: index)
           }
+          #if os(macOS)
+            .frame(maxWidth: 600)
+          #endif
         }
 
         if viewModel.canLoadMore {
