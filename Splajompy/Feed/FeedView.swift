@@ -134,6 +134,9 @@ struct FeedView: View {
           .onAppear {
             viewModel.handlePostAppear(at: index)
           }
+          #if os(macOS)
+            .frame(maxWidth: 600)
+          #endif
         }
 
         if viewModel.canLoadMore {
