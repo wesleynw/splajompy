@@ -8,6 +8,7 @@ import (
 	"log/slog"
 	"time"
 
+	"go.opentelemetry.io/otel/trace"
 	"splajompy.com/api/v2/internal/apns"
 	"splajompy.com/api/v2/internal/bucket"
 	"splajompy.com/api/v2/internal/db/queries"
@@ -352,7 +353,9 @@ func (s *Service) AddNotification(ctx context.Context, targetUserId int, postId 
 		identifier = nil
 	}
 
-	go s.sendPush(context.Background(), notification.NotificationID, targetUserId, message, notificationBody, notificationType, identifier)
+	// execute in background ctx to avoid cancellation, but still use current span as parent
+	traceCtx := trace.ContextWithSpan(context.Background(), trace.SpanFromContext(ctx))
+	go s.sendPush(traceCtx, notification.NotificationID, targetUserId, message, notificationBody, notificationType, identifier)
 
 	return notification, nil
 }

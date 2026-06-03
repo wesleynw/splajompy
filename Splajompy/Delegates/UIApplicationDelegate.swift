@@ -14,6 +14,12 @@ class AppDelegate: NSObject, UIApplicationDelegate,
     }
     UNUserNotificationCenter.current().delegate = self
 
+    UserDefaults.standard.register(defaults: [
+      "push_pref_comments": true,
+      "push_pref_mentions": true,
+      "push_pref_follows": true,
+    ])
+
     return true
   }
 
@@ -23,7 +29,6 @@ class AppDelegate: NSObject, UIApplicationDelegate,
   ) {
     let tokenString = deviceToken.map { String(format: "%02.2hhx", $0) }
       .joined()
-
     RemoteNotificationUtilities.registerDeviceWithAPI(token: tokenString)
   }
 

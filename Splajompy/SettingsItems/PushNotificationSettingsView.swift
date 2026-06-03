@@ -52,12 +52,12 @@ struct PushNotificationSettingsView: View {
           && notificationAuthorizationStatus == .authorized
         {
           Section {
-            Toggle("Comments", isOn: $comments)
-              .onChange(of: comments) {
-                RemoteNotificationUtilities.registerForRemoteNotifications()
-              }
             Toggle("Mentions", isOn: $mentions)
               .onChange(of: mentions) {
+                RemoteNotificationUtilities.registerForRemoteNotifications()
+              }
+            Toggle("Comments", isOn: $comments)
+              .onChange(of: comments) {
                 RemoteNotificationUtilities.registerForRemoteNotifications()
               }
             Toggle("Follows", isOn: $follows)
