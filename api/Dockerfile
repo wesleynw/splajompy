@@ -1,6 +1,6 @@
 # https://docs.docker.com/guides/golang/build-images/
 
-FROM golang:1.26.3 AS builder
+FROM golang:1.26.4 AS builder
 WORKDIR /app
 COPY go.mod go.sum ./
 RUN go mod download
