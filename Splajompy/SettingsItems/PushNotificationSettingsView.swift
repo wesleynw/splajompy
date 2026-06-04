@@ -2,10 +2,6 @@ import PostHog
 import SwiftUI
 import UserNotifications
 
-private enum SaveStatus {
-  case idle, saving, error
-}
-
 struct PushNotificationSettingsView: View {
   @Environment(\.scenePhase) private var scenePhase
 
