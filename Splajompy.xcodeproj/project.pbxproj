@@ -68,7 +68,7 @@
 				Delegates/UIApplicationDelegate.swift = (ios, );
 				Extensions/ImageResize.swift = (ios, );
 				Extensions/PhotoLibrary.swift = (ios, );
-				Onboarding/ImageOnboardingViewModifier.swift = (ios, );
+				Onboarding/ImageOnboardingView.swift = (ios, );
 				Posts/Components/ImageCarousel.swift = (ios, );
 				Posts/Components/ImagePager_ios.swift = (ios, );
 				Posts/Components/ImagePager_macos.swift = (macos, );
