@@ -1,8 +1,10 @@
+import PostHog
 import SwiftUI
 
 struct OnboardingSheetViewModifier: ViewModifier {
-  @AppStorage("image_layout_preference") private var imageLayoutPreference: ImageLayoutPreference =
-    .undecided
+  @AppStorage("image_layout_preference") private var imageLayoutPreference:
+    ImageLayoutPreference =
+      .undecided
   @State private var tempImageLayoutPreference: ImageLayoutPreference =
     .undecided
 
@@ -16,7 +18,10 @@ struct OnboardingSheetViewModifier: ViewModifier {
       .sheet(
         isPresented: .constant(
           imageLayoutPreference == .undecided
-            || (!hasCompletedPushNotificationOnboarding)
+            || (!hasCompletedPushNotificationOnboarding
+              && PostHogSDK.shared.isFeatureEnabled(
+                "push-notifications-onboarding"
+              ))
         )
       ) {
         Group {
@@ -24,7 +29,11 @@ struct OnboardingSheetViewModifier: ViewModifier {
             if imageLayoutPreference == .undecided {
               ImageLayoutOnboardingView(
                 onComplete: {
-                  if !hasCompletedPushNotificationOnboarding {
+                  if !hasCompletedPushNotificationOnboarding
+                    && PostHogSDK.shared.isFeatureEnabled(
+                      "push-notifications-onboarding"
+                    )
+                  {
                     isNavigationToPushNotificationOnboarding = true
                   } else {
                     imageLayoutPreference = tempImageLayoutPreference
