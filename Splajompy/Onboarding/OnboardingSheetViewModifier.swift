@@ -2,9 +2,8 @@ import PostHog
 import SwiftUI
 
 struct OnboardingSheetViewModifier: ViewModifier {
-  @AppStorage("image_layout_preference") private var imageLayoutPreference:
-    ImageLayoutPreference =
-      .undecided
+  @AppStorage("image_layout_preference") private var imageLayoutPreference: ImageLayoutPreference =
+    .undecided
   @State private var tempImageLayoutPreference: ImageLayoutPreference =
     .undecided
 
