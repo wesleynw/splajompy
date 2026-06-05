@@ -10,6 +10,9 @@ struct OnboardingSheetViewModifier: ViewModifier {
   @AppStorage("hasCompletedPushNotificationOnboarding") private
     var hasCompletedPushNotificationOnboarding: Bool = false
 
+  @AppStorage("push_notifications_enabled") private
+    var isPushNotificationsAlreadyEnabled: Bool = false
+
   @State private var isNavigationToPushNotificationOnboarding: Bool = false
 
   func body(content: Content) -> some View {
@@ -18,6 +21,7 @@ struct OnboardingSheetViewModifier: ViewModifier {
         isPresented: .constant(
           imageLayoutPreference == .undecided
             || (!hasCompletedPushNotificationOnboarding
+              && !isPushNotificationsAlreadyEnabled
               && PostHogSDK.shared.isFeatureEnabled(
                 "push-notifications-onboarding"
               ))
@@ -29,6 +33,7 @@ struct OnboardingSheetViewModifier: ViewModifier {
               ImageLayoutOnboardingView(
                 onComplete: {
                   if !hasCompletedPushNotificationOnboarding
+                    && !isPushNotificationsAlreadyEnabled
                     && PostHogSDK.shared.isFeatureEnabled(
                       "push-notifications-onboarding"
                     )
@@ -57,6 +62,7 @@ struct OnboardingSheetViewModifier: ViewModifier {
                   hasCompletedPushNotificationOnboarding = true
                 }
               )
+              .toolbar(.hidden, for: .navigationBar)
             }
           }
         }
