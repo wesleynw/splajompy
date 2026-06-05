@@ -1,82 +1,74 @@
 import PostHog
 import SwiftUI
 
-struct ImageLayoutOnboardingViewModifier: ViewModifier {
-  @AppStorage("image_layout_preference") private var imageLayoutPreference: ImageLayoutPreference =
-    .undecided
+struct ImageLayoutOnboardingView: View {
+  var onComplete: () -> Void
+  @Binding var preference: ImageLayoutPreference
+  @State private var currentSelection: ImageLayoutPreference = .carousel
 
-  func body(content: Content) -> some View {
-    content
-      .sheet(isPresented: .constant(imageLayoutPreference == .undecided)) {
-        OnboardingView(preference: $imageLayoutPreference)
-          .postHogScreenView()
-          .interactiveDismissDisabled()
-      }
-  }
-
-  private struct OnboardingView: View {
-    @Binding var preference: ImageLayoutPreference
-    @State private var currentSelection: ImageLayoutPreference = .carousel
-
-    var body: some View {
-      ScrollView {
-        VStack {
-          VStack(spacing: 6) {
-            Text("Answer us.")
-              .font(.title)
-              .fontWeight(.bold)
-            Text("Splajompy implores you to choose your preferred way to view images.")
-              .foregroundStyle(.secondary)
-              .padding()
-          }
-          .multilineTextAlignment(.center)
-          .padding()
-
-          ZStack {
-            CarouselPreview()
-              .opacity(currentSelection == .carousel ? 1 : 0)
-              .blur(radius: currentSelection == .carousel ? 0 : 8)
-            GridPreview()
-              .padding()
-              .opacity(currentSelection == .grid ? 1 : 0)
-              .blur(radius: currentSelection == .grid ? 0 : 8)
-          }
-          .frame(height: 300)
-          .clipShape(RoundedRectangle(cornerRadius: 25))
-          .overlay {
-            RoundedRectangle(cornerRadius: 25)
-              .strokeBorder(.secondary.opacity(0.5))
-          }
-          .animation(.easeInOut(duration: 0.3), value: currentSelection)
-
-          Picker("Layout", selection: $currentSelection) {
-            Text("Carousel").tag(ImageLayoutPreference.carousel)
-            Text("Grid").tag(ImageLayoutPreference.grid)
-          }
-          .pickerStyle(.segmented)
+  var body: some View {
+    ScrollView {
+      VStack {
+        VStack(spacing: 6) {
+          Text("Answer us.")
+            .font(.title)
+            .fontWeight(.bold)
+          Text(
+            "Splajompy implores you to choose your preferred way to view images."
+          )
+          .foregroundStyle(.secondary)
           .padding()
         }
+        .multilineTextAlignment(.center)
+        .padding()
+
+        ZStack {
+          CarouselPreview()
+            .opacity(currentSelection == .carousel ? 1 : 0)
+            .blur(radius: currentSelection == .carousel ? 0 : 8)
+          GridPreview()
+            .padding()
+            .opacity(currentSelection == .grid ? 1 : 0)
+            .blur(radius: currentSelection == .grid ? 0 : 8)
+        }
+        .frame(height: 300)
+        .clipShape(RoundedRectangle(cornerRadius: 25))
+        .overlay {
+          RoundedRectangle(cornerRadius: 25)
+            .strokeBorder(.secondary.opacity(0.5))
+        }
+        .animation(.easeInOut(duration: 0.3), value: currentSelection)
+
+        Picker("Layout", selection: $currentSelection) {
+          Text("Carousel").tag(ImageLayoutPreference.carousel)
+          Text("Grid").tag(ImageLayoutPreference.grid)
+        }
+        .pickerStyle(.segmented)
         .padding()
       }
-      .safeAreaInset(edge: .bottom) {
-        Button {
-          PostHogSDK.shared.register(["image_layout_preference": currentSelection.rawValue])
-          preference = currentSelection
-        } label: {
-          Text("Save")
-            .fontWeight(.semibold)
-            .frame(maxWidth: .infinity)
-        }
-        .controlSize(.large)
-        .modify {
-          if #available(iOS 26, *) {
-            $0.buttonStyle(.glassProminent)
-          } else {
-            $0.buttonStyle(.borderedProminent)
-          }
-        }
-        .padding()
+      .padding()
+    }
+    .safeAreaInset(edge: .bottom) {
+      Button {
+        PostHogSDK.shared.register([
+          "image_layout_preference": currentSelection.rawValue
+        ])
+        preference = currentSelection
+        onComplete()
+      } label: {
+        Text("Save")
+          .fontWeight(.semibold)
+          .frame(maxWidth: .infinity)
       }
+      .controlSize(.large)
+      .modify {
+        if #available(iOS 26, *) {
+          $0.buttonStyle(.glassProminent)
+        } else {
+          $0.buttonStyle(.borderedProminent)
+        }
+      }
+      .padding()
     }
   }
 
@@ -94,11 +86,17 @@ struct ImageLayoutOnboardingViewModifier: ViewModifier {
         ScrollView(.horizontal) {
           HStack(alignment: .center) {
             RoundedRectangle(cornerRadius: 12).fill(Color.green.gradient).frame(
-              width: narrow, height: cardHeight)
+              width: narrow,
+              height: cardHeight
+            )
             RoundedRectangle(cornerRadius: 12).fill(Color.blue.gradient).frame(
-              width: medium, height: cardHeight)
+              width: medium,
+              height: cardHeight
+            )
             RoundedRectangle(cornerRadius: 12).fill(Color.red.gradient).frame(
-              width: wide, height: cardHeight)
+              width: wide,
+              height: cardHeight
+            )
           }
           .frame(height: maxHeight)
         }
@@ -118,21 +116,22 @@ struct ImageLayoutOnboardingViewModifier: ViewModifier {
 
         HStack(spacing: 4) {
           RoundedRectangle(cornerRadius: 12).fill(Color.green.gradient).frame(
-            width: halfWidth, height: size)
+            width: halfWidth,
+            height: size
+          )
           VStack(spacing: 4) {
             RoundedRectangle(cornerRadius: 12).fill(Color.blue.gradient).frame(
-              width: halfWidth, height: halfHeight)
+              width: halfWidth,
+              height: halfHeight
+            )
             RoundedRectangle(cornerRadius: 12).fill(Color.red.gradient).frame(
-              width: halfWidth, height: halfHeight)
+              width: halfWidth,
+              height: halfHeight
+            )
           }
         }
       }
       .aspectRatio(1, contentMode: .fit)
     }
   }
-}
-
-#Preview {
-  Color.clear
-    .modifier(ImageLayoutOnboardingViewModifier())
 }

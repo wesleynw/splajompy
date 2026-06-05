@@ -99,6 +99,7 @@ class AuthManager: Sendable {
     UserDefaults.standard.removeObject(forKey: "push_pref_mentions")
     UserDefaults.standard.removeObject(forKey: "push_pref_follows")
     UserDefaults.standard.removeObject(forKey: "image_layout_preference")
+    UserDefaults.standard.removeObject(forKey: "hasCompletedPushNotificationOnboarding")
 
     ImageCache.shared.removeAll()
     ImagePipeline.shared.cache.removeAll()

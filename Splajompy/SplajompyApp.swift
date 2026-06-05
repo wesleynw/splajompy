@@ -135,7 +135,7 @@ struct SplajompyApp: App {
       handleDeepLink(url)
     }
     #if os(iOS)
-      .modifier(ImageLayoutOnboardingViewModifier())
+      .modifier(OnboardingSheetViewModifier())
     #endif
     .modifier(SupportedVersionViewModifier())
   }
