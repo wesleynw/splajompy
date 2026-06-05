@@ -33,8 +33,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/open-telemetry/opentelemetry-swift-core.git",
       "state" : {
-        "revision" : "84b9e341cbb7b4dd62cd1b89cd9e008995084132",
-        "version" : "2.4.1"
+        "revision" : "d77f1400f4c5738f04a1aec0a1246aec5240e9fa",
+        "version" : "2.5.0"
       }
     },
     {
@@ -51,8 +51,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/PostHog/posthog-ios.git",
       "state" : {
-        "revision" : "15c15c48cfe55613255badb2ff23a0359a743293",
-        "version" : "3.59.2"
+        "revision" : "179438b8e0c9a357ab0caf453577f766ffddbcb3",
+        "version" : "3.59.3"
       }
     },
     {
