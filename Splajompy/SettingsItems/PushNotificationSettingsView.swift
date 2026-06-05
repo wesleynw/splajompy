@@ -11,6 +11,9 @@ struct PushNotificationSettingsView: View {
   @AppStorage("push_pref_mentions") private var mentions: Bool = true
   @AppStorage("push_pref_follows") private var follows: Bool = true
 
+  @AppStorage("hasCompletedPushNotificationOnboarding") private
+    var hasCompletedPushNotificationOnboarding: Bool = false
+
   @State private var notificationAuthorizationStatus: UNAuthorizationStatus?
 
   private let profileService: ProfileServiceProtocol
@@ -63,6 +66,9 @@ struct PushNotificationSettingsView: View {
           }
         }
       }
+    }
+    .task {
+      hasCompletedPushNotificationOnboarding = true
     }
     .task {
       let settings = await UNUserNotificationCenter.current()

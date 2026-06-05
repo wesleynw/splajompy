@@ -57,7 +57,7 @@ struct ImageLayoutOnboardingView: View {
         onComplete()
       } label: {
         Text("Save")
-          .fontWeight(.semibold)
+          .fontWeight(.black)
           .frame(maxWidth: .infinity)
       }
       .controlSize(.large)
