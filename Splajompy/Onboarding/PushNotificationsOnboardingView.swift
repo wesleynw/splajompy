@@ -20,7 +20,7 @@ struct PushNotificationsOnboardingView: View {
             .fontWeight(.bold)
 
           Text(
-            "Let Splajompy bother you with push notications."
+            "Let Splajompy bother you with push notifications."
           )
           .foregroundStyle(.secondary)
           .padding()
@@ -38,6 +38,7 @@ struct PushNotificationsOnboardingView: View {
 
               if granted {
                 Task { @MainActor in
+                  isPushNotificationsEnabled = true
                   RemoteNotificationUtilities.registerForRemoteNotifications()
                 }
                 PostHogSDK.shared.register([
@@ -65,9 +66,7 @@ struct PushNotificationsOnboardingView: View {
             }
           }
           .transition(.opacity)
-        }
-
-        if isPushNotificationsEnabled {
+        } else {
           Group {
             Toggle("Mentions", isOn: $mentions)
               .onChange(of: mentions) {
