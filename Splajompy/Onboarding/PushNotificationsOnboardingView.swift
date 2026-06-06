@@ -4,15 +4,12 @@ import UserNotifications
 
 struct PushNotificationsOnboardingView: View {
   var onComplete: () -> Void
-  @Environment(\.scenePhase) private var scenePhase
   @AppStorage("push_notifications_enabled") private
     var isPushNotificationsEnabled: Bool = false
 
   @AppStorage("push_pref_comments") private var comments: Bool = true
   @AppStorage("push_pref_mentions") private var mentions: Bool = true
   @AppStorage("push_pref_follows") private var follows: Bool = true
-
-  @State private var notificationAuthorizationStatus: UNAuthorizationStatus?
 
   var body: some View {
     ScrollView {
@@ -31,34 +28,27 @@ struct PushNotificationsOnboardingView: View {
         .multilineTextAlignment(.center)
         .padding()
 
-        if notificationAuthorizationStatus != .authorized
-          || !isPushNotificationsEnabled
-        {
+        if !isPushNotificationsEnabled {
           Button {
-            Task {
-              if notificationAuthorizationStatus == .denied {
-                if let url = URL(
-                  string:
-                    UIApplication.openNotificationSettingsURLString
-                ) {
-                  await UIApplication.shared.open(url)
-                }
-              } else {
-                do {
-                  isPushNotificationsEnabled = true
-                  try await UNUserNotificationCenter.current()
-                    .requestAuthorization(
-                      options: [
-                        .alert, .badge,
-                      ])
+            UNUserNotificationCenter.current().requestAuthorization(options: [
+              .alert, .badge,
+            ]) {
+              granted,
+              error in
+
+              if granted {
+                Task { @MainActor in
                   RemoteNotificationUtilities.registerForRemoteNotifications()
-                  PostHogSDK.shared.register([
-                    "push_notifications_enabled": true
-                  ])
-                } catch {
-                  PostHogSDK.shared.capture(
-                    "push_notifications_failed_registration"
-                  )
+                }
+                PostHogSDK.shared.register([
+                  "push_notifications_enabled": true
+                ])
+              } else {
+                PostHogSDK.shared.capture(
+                  "push_notifications_failed_registration"
+                )
+                Task { @MainActor in
+                  onComplete()
                 }
               }
             }
@@ -77,9 +67,7 @@ struct PushNotificationsOnboardingView: View {
           .transition(.opacity)
         }
 
-        if isPushNotificationsEnabled
-          && notificationAuthorizationStatus == .authorized
-        {
+        if isPushNotificationsEnabled {
           Group {
             Toggle("Mentions", isOn: $mentions)
               .onChange(of: mentions) {
@@ -98,7 +86,6 @@ struct PushNotificationsOnboardingView: View {
           .transition(.opacity)
         }
       }
-      .animation(.default, value: notificationAuthorizationStatus)
       .animation(.default, value: isPushNotificationsEnabled)
       .padding()
     }
@@ -120,26 +107,6 @@ struct PushNotificationsOnboardingView: View {
       }
     }
     .padding()
-    .task {
-      let settings = await UNUserNotificationCenter.current()
-        .notificationSettings()
-      notificationAuthorizationStatus = settings.authorizationStatus
-    }
-    .onChange(of: notificationAuthorizationStatus) { oldValue, newValue in
-      // recently denied, still show when prior setting was denied
-      if oldValue != nil && newValue == .denied {
-        onComplete()
-      }
-    }
-    .onChange(of: scenePhase) {
-      if scenePhase == .active {
-        Task {
-          let settings = await UNUserNotificationCenter.current()
-            .notificationSettings()
-          notificationAuthorizationStatus = settings.authorizationStatus
-        }
-      }
-    }
   }
 }
 
