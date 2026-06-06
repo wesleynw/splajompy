@@ -37,6 +37,7 @@ struct OnboardingSheetViewModifier: ViewModifier {
               },
               preference: $imageLayoutPreference
             )
+            .postHogScreenView()
             .navigationDestination(
               isPresented: $isNavigationToPushNotificationOnboarding
             ) {
@@ -45,6 +46,7 @@ struct OnboardingSheetViewModifier: ViewModifier {
                   hasCompletedPushNotificationOnboarding = true
                 }
               )
+              .postHogScreenView()
               .toolbar(.hidden, for: .navigationBar)
             }
           } else {
@@ -53,6 +55,7 @@ struct OnboardingSheetViewModifier: ViewModifier {
                 hasCompletedPushNotificationOnboarding = true
               }
             )
+            .postHogScreenView()
             .toolbar(.hidden, for: .navigationBar)
           }
         }
