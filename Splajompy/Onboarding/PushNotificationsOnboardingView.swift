@@ -28,64 +28,66 @@ struct PushNotificationsOnboardingView: View {
         .multilineTextAlignment(.center)
         .padding()
 
-        if !isPushNotificationsEnabled {
-          Button {
-            UNUserNotificationCenter.current().requestAuthorization(options: [
-              .alert, .badge,
-            ]) {
-              granted,
-              error in
+        VStack {
+          if !isPushNotificationsEnabled {
+            Button {
+              UNUserNotificationCenter.current().requestAuthorization(options: [
+                .alert, .badge,
+              ]) {
+                granted,
+                error in
 
-              if granted {
-                Task { @MainActor in
-                  isPushNotificationsEnabled = true
+                if granted {
+                  Task { @MainActor in
+                    isPushNotificationsEnabled = true
+                    RemoteNotificationUtilities.registerForRemoteNotifications()
+                  }
+                  PostHogSDK.shared.register([
+                    "push_notifications_enabled": true
+                  ])
+                } else {
+                  PostHogSDK.shared.capture(
+                    "push_notifications_failed_registration"
+                  )
+                  Task { @MainActor in
+                    onComplete()
+                  }
+                }
+              }
+            } label: {
+              Text("Allow Notifications")
+                .fontWeight(.semibold)
+            }
+            .controlSize(.large)
+            .modify {
+              if #available(iOS 26, *) {
+                $0.buttonStyle(.glass)
+              } else {
+                $0.buttonStyle(.bordered)
+              }
+            }
+            .transition(.opacity)
+          } else {
+            VStack {
+              Toggle("Mentions", isOn: $mentions)
+                .onChange(of: mentions) {
                   RemoteNotificationUtilities.registerForRemoteNotifications()
                 }
-                PostHogSDK.shared.register([
-                  "push_notifications_enabled": true
-                ])
-              } else {
-                PostHogSDK.shared.capture(
-                  "push_notifications_failed_registration"
-                )
-                Task { @MainActor in
-                  onComplete()
+              Toggle("Comments", isOn: $comments)
+                .onChange(of: comments) {
+                  RemoteNotificationUtilities.registerForRemoteNotifications()
                 }
-              }
+              Toggle("Follows", isOn: $follows)
+                .onChange(of: follows) {
+                  RemoteNotificationUtilities.registerForRemoteNotifications()
+                }
             }
-          } label: {
-            Text("Allow Notifications")
-              .fontWeight(.semibold)
+            .padding()
+            .transition(.opacity)
           }
-          .controlSize(.large)
-          .modify {
-            if #available(iOS 26, *) {
-              $0.buttonStyle(.glass)
-            } else {
-              $0.buttonStyle(.bordered)
-            }
-          }
-          .transition(.opacity)
-        } else {
-          Group {
-            Toggle("Mentions", isOn: $mentions)
-              .onChange(of: mentions) {
-                RemoteNotificationUtilities.registerForRemoteNotifications()
-              }
-            Toggle("Comments", isOn: $comments)
-              .onChange(of: comments) {
-                RemoteNotificationUtilities.registerForRemoteNotifications()
-              }
-            Toggle("Follows", isOn: $follows)
-              .onChange(of: follows) {
-                RemoteNotificationUtilities.registerForRemoteNotifications()
-              }
-          }
-          .padding()
-          .transition(.opacity)
         }
+        .animation(.default, value: isPushNotificationsEnabled)
       }
-      .animation(.default, value: isPushNotificationsEnabled)
       .padding()
     }
     .safeAreaInset(edge: .bottom) {

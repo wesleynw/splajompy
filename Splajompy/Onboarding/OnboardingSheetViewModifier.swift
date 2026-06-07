@@ -4,6 +4,7 @@ import SwiftUI
 struct OnboardingSheetViewModifier: ViewModifier {
   @AppStorage("image_layout_preference") private var imageLayoutPreference: ImageLayoutPreference =
     .undecided
+  @State private var stagedImageLayoutPreference: ImageLayoutPreference = .undecided
 
   @AppStorage("hasCompletedPushNotificationOnboarding") private
     var hasCompletedPushNotificationOnboarding: Bool = false
@@ -33,17 +34,21 @@ struct OnboardingSheetViewModifier: ViewModifier {
               onComplete: {
                 if shouldShowNotificationsOnboarding {
                   isNavigationToPushNotificationOnboarding = true
+                } else {
+                  imageLayoutPreference = stagedImageLayoutPreference
                 }
               },
-              preference: $imageLayoutPreference
+              preference: $stagedImageLayoutPreference
             )
             .postHogScreenView()
+            .toolbar(.hidden, for: .navigationBar)
             .navigationDestination(
               isPresented: $isNavigationToPushNotificationOnboarding
             ) {
               PushNotificationsOnboardingView(
                 onComplete: {
                   hasCompletedPushNotificationOnboarding = true
+                  imageLayoutPreference = stagedImageLayoutPreference
                 }
               )
               .postHogScreenView()
