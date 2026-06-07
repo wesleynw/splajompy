@@ -212,39 +212,6 @@ func (s *Service) GetFollowingByUserId(ctx context.Context, user models.PublicUs
 	return &models.PaginatedUserList{Users: users, NextCursor: cursor}, nil
 }
 
-// GetFollowingByUserId retrieves users that the specified user is following.
-// Deprecated Use GetFollowingByUserId instead
-func (s *Service) GetFollowingByUserId_old(ctx context.Context, currentUser models.PublicUser, userId int, offset int, limit int) ([]models.DetailedUser, error) {
-	following, err := s.store.GetFollowingByUserId_old(ctx, userId, limit, offset)
-	if err != nil {
-		return nil, err
-	}
-
-	userIDs := make([]int, len(following))
-	for i, follow := range following {
-		userIDs[i] = follow.UserID
-	}
-
-	return s.fetchDetailedUsersFromIDs(ctx, currentUser.UserID, userIDs)
-}
-
-// GetMutualsByUserId_old retrieves users that both the current user and the target user follow.
-//
-// Deprecated: prefer GetMutualsByUserId
-func (s *Service) GetMutualsByUserId_old(ctx context.Context, currentUser models.PublicUser, userId int, offset int, limit int) ([]models.DetailedUser, error) {
-	mutuals, err := s.store.GetMutualsByUserId_old(ctx, currentUser.UserID, userId, limit, offset)
-	if err != nil {
-		return nil, err
-	}
-
-	userIDs := make([]int, len(mutuals))
-	for i, mutual := range mutuals {
-		userIDs[i] = mutual.UserID
-	}
-
-	return s.fetchDetailedUsersFromIDs(ctx, currentUser.UserID, userIDs)
-}
-
 // GetMutualsByUserId returns users who are 'mutuals' with the current user and target user. That is, who follow both the current user and target user.
 func (s *Service) GetMutualsByUserId(ctx context.Context, user models.PublicUser, targetUserId int, limit int, before *time.Time) (*models.PaginatedUserList, error) {
 	userIDs, cursor, err := s.store.GetMutualUserIds(ctx, user.UserID, targetUserId, limit, before)
