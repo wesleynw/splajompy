@@ -9,7 +9,7 @@ import (
 	"splajompy.com/api/v2/internal/utilities"
 )
 
-const MinimumAppVersion = "v1.3.0"
+const MinimumAppVersion = "v1.5.0"
 
 func AppVersion(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
