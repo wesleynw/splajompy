@@ -269,14 +269,6 @@ func (r Store) GetMutualConnectionsForUser(ctx context.Context, currentUserId in
 	})
 }
 
-func (r Store) GetFollowersByUserId_old(ctx context.Context, userId int, limit int, offset int) ([]queries.GetFollowersByUserIdRow, error) {
-	return r.querier.GetFollowersByUserId(ctx, queries.GetFollowersByUserIdParams{
-		FollowingID: userId,
-		Limit:       limit,
-		Offset:      offset,
-	})
-}
-
 func (r Store) GetFollowingByUserId_old(ctx context.Context, userId int, limit int, offset int) ([]queries.GetFollowingByUserIdRow, error) {
 	return r.querier.GetFollowingByUserId(ctx, queries.GetFollowingByUserIdParams{
 		FollowerID: userId,

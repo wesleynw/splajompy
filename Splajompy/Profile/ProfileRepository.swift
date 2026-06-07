@@ -30,10 +30,6 @@ protocol ProfileServiceProtocol: Sendable {
   >
   func requestFeature(text: String) async -> AsyncResult<EmptyResponse>
 
-  //  func getFollowers(userId: Int, offset: Int, limit: Int) async -> AsyncResult<
-  //    [DetailedUser]
-  //  >
-
   /// Fetch users that the given user is following.
   func getFollowing(userId: Int, limit: Int, before: Date?) async
     -> AsyncResult<PaginatedUserList>
@@ -149,19 +145,6 @@ struct ProfileService: ProfileServiceProtocol {
       method: "POST",
       queryItems: nil,
       body: jsonData
-    )
-  }
-
-  func getFollowers(userId: Int, offset: Int, limit: Int) async -> AsyncResult<
-    [DetailedUser]
-  > {
-    let queryItems = [
-      URLQueryItem(name: "offset", value: "\(offset)"),
-      URLQueryItem(name: "limit", value: "\(limit)"),
-    ]
-    return await APIService.performRequest(
-      endpoint: "user/\(userId)/followers",
-      queryItems: queryItems
     )
   }
 

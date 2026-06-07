@@ -198,22 +198,6 @@ func (s *Service) RequestFeature(ctx context.Context, user models.PublicUser, te
 	return err
 }
 
-// GetFollowersByUserId_old retrieves users that are following the specified user.
-// Deprecated in favor of updated cursor based pagination in
-func (s *Service) GetFollowersByUserId_old(ctx context.Context, currentUser models.PublicUser, userId int, offset int, limit int) ([]models.DetailedUser, error) {
-	followers, err := s.store.GetFollowersByUserId_old(ctx, userId, limit, offset)
-	if err != nil {
-		return nil, err
-	}
-
-	userIDs := make([]int, len(followers))
-	for i, follower := range followers {
-		userIDs[i] = follower.UserID
-	}
-
-	return s.fetchDetailedUsersFromIDs(ctx, currentUser.UserID, userIDs)
-}
-
 func (s *Service) GetFollowingByUserId(ctx context.Context, user models.PublicUser, targetUserId int, limit int, before *time.Time) (*models.PaginatedUserList, error) {
 	userIDs, cursor, err := s.store.GetFollowingUserIds(ctx, targetUserId, limit, before)
 	if err != nil {
