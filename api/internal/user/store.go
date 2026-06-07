@@ -269,31 +269,6 @@ func (r Store) GetMutualConnectionsForUser(ctx context.Context, currentUserId in
 	})
 }
 
-func (r Store) GetFollowersByUserId_old(ctx context.Context, userId int, limit int, offset int) ([]queries.GetFollowersByUserIdRow, error) {
-	return r.querier.GetFollowersByUserId(ctx, queries.GetFollowersByUserIdParams{
-		FollowingID: userId,
-		Limit:       limit,
-		Offset:      offset,
-	})
-}
-
-func (r Store) GetFollowingByUserId_old(ctx context.Context, userId int, limit int, offset int) ([]queries.GetFollowingByUserIdRow, error) {
-	return r.querier.GetFollowingByUserId(ctx, queries.GetFollowingByUserIdParams{
-		FollowerID: userId,
-		Limit:      limit,
-		Offset:     offset,
-	})
-}
-
-func (r Store) GetMutualsByUserId_old(ctx context.Context, currentUserId int, targetUserId int, limit int, offset int) ([]queries.GetMutualsByUserIdRow, error) {
-	return r.querier.GetMutualsByUserId(ctx, queries.GetMutualsByUserIdParams{
-		FollowerID:   currentUserId,
-		FollowerID_2: targetUserId,
-		Limit:        limit,
-		Offset:       offset,
-	})
-}
-
 func (r Store) GetFollowingUserIds(ctx context.Context, userId int, limit int, before *time.Time) ([]int, *time.Time, error) {
 	rows, err := r.querier.GetFollowingUserIds(ctx, queries.GetFollowingUserIdsParams{
 		UserID: userId,
