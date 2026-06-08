@@ -253,7 +253,7 @@ func (h *Handler) GetFollowingByUserId(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utilities.HandleSuccess(w, result.Users)
+	utilities.HandleSuccess(w, result)
 }
 
 func (h *Handler) GetMutualsByUserId(w http.ResponseWriter, r *http.Request) {
