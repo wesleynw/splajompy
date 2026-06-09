@@ -24,7 +24,7 @@ type Service struct {
 }
 
 var (
-	ErrNotificationDoesNotExist = errors.New("This notification no longer exists.")
+	ErrNotificationDoesNotExist = errors.New("this notification no longer exists")
 )
 
 func NewUserService(userRepository Store, notificationService notification.Service, emailClient *resend.Client) *Service {
