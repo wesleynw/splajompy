@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/resend/resend-go/v3"
 	"golang.org/x/sync/errgroup"
 	"splajompy.com/api/v2/internal/db"
@@ -21,6 +22,10 @@ type Service struct {
 	notificationService notification.Service
 	emailService        *resend.Client
 }
+
+var (
+	ErrNotificationDoesNotExist = errors.New("This notification no longer exists.")
+)
 
 func NewUserService(userRepository Store, notificationService notification.Service, emailClient *resend.Client) *Service {
 	return &Service{
@@ -255,6 +260,9 @@ func (s Service) GetCloseFriendsByUserId(ctx context.Context, currentUser models
 func (s *Service) GetNotificationActors(ctx context.Context, currentUserId int, notificationId int, limit int, before *time.Time) (*models.PaginatedUserList, error) {
 	notification, err := s.store.querier.GetNotificationById(ctx, notificationId)
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, ErrNotificationDoesNotExist
+		}
 		return nil, err
 	}
 
