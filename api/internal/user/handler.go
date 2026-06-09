@@ -406,6 +406,10 @@ func (h *Handler) ListNotificationActors(w http.ResponseWriter, r *http.Request)
 			utilities.HandleError(w, http.StatusForbidden, "Unauthorized")
 			return
 		}
+		if errors.Is(err, ErrNotificationDoesNotExist) {
+			utilities.HandleError(w, http.StatusNotFound, "This notification cannot be found.")
+			return
+		}
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
 		return
 	}

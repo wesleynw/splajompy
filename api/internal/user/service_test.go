@@ -91,6 +91,16 @@ func TestGetNotificationActors_DoesntReturnForNonOwningUser(t *testing.T) {
 	assert.ErrorIs(t, err, utilities.ErrUnauthorized)
 }
 
+func TestGetNotificationActors_ReturnsErrorWhenNotificationDoesNotExist(t *testing.T) {
+	env := setupTest(t)
+
+	user0 := testutil.CreateTestUser(t, env.userRepository, "user0")
+
+	page, err := env.svc.GetNotificationActors(t.Context(), user0.UserID, 500, 10, new(time.Now().UTC()))
+	assert.ErrorIs(t, err, user.ErrNotificationDoesNotExist)
+	assert.Nil(t, page)
+}
+
 func TestFollowUser_SendsNotification(t *testing.T) {
 	env := setupTest(t)
 	u0 := testutil.CreateTestUser(t, env.userRepository, "user0")
