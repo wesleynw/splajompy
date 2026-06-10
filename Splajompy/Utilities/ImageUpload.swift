@@ -5,7 +5,7 @@ func uploadImages(images: [PlatformImage]) async throws -> [Int: ImageData] {
   var imageKeymap = [Int: ImageData]()
 
   for (index, image) in images.enumerated() {
-    let response: AsyncResult<PresignedUrlResponse> =
+    let response: Result<PresignedUrlResponse, Error> =
       // TODO: add expiry for staged items
       await APIService.performRequest(
         endpoint: "post/presignedUrl",
@@ -67,7 +67,7 @@ func uploadImages(images: [PlatformImage]) async throws -> [Int: ImageData] {
         print("[uploadImages] S3 upload network error for image \(index): \(error)")
         throw PostCreationService.PostCreationError.s3UploadError(error)
       }
-    case .error(let error):
+    case .failure(let error):
       print("[uploadImages] Presigned URL request failed for image \(index): \(error)")
       throw PostCreationService.PostCreationError.presignedUrlRequestFailed
     }

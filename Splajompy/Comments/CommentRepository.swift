@@ -16,21 +16,19 @@ struct CreateCommentRequest: Encodable {
 }
 
 protocol CommentServiceProtocol: Sendable {
-  func getComments(postId: Int) async -> AsyncResult<[DetailedComment]>
+  func getComments(postId: Int) async -> Result<[DetailedComment], Error>
 
   func toggleLike(postId: Int, commentId: Int, isLiked: Bool) async
-    -> AsyncResult<EmptyResponse>
+    -> Result<Void, Error>
 
   func addComment(postId: Int, text: String, image: PlatformImage?) async
-    -> AsyncResult<
-      DetailedComment
-    >
+    -> Result<DetailedComment, Error>
 
-  func deleteComment(commentId: Int) async -> AsyncResult<EmptyResponse>
+  func deleteComment(commentId: Int) async -> Result<Void, Error>
 }
 
 struct CommentService: CommentServiceProtocol {
-  func getComments(postId: Int) async -> AsyncResult<[DetailedComment]> {
+  func getComments(postId: Int) async -> Result<[DetailedComment], Error> {
     return await APIService.performRequest(
       endpoint: "post/\(postId)/comments",
       method: "GET"
@@ -38,7 +36,7 @@ struct CommentService: CommentServiceProtocol {
   }
 
   func toggleLike(postId: Int, commentId: Int, isLiked: Bool) async
-    -> AsyncResult<EmptyResponse>
+    -> Result<Void, Error>
   {
     let method = isLiked ? "DELETE" : "POST"
 
@@ -49,16 +47,14 @@ struct CommentService: CommentServiceProtocol {
   }
 
   func addComment(postId: Int, text: String, image: PlatformImage?) async
-    -> AsyncResult<
-      DetailedComment
-    >
+    -> Result<DetailedComment, Error>
   {
     var imageKeymap: [Int: ImageData] = [:]
     if let image {
       do {
         imageKeymap = try await uploadImages(images: [image])
       } catch {
-        return .error(error)
+        return .failure(error)
       }
     }
 
@@ -68,7 +64,7 @@ struct CommentService: CommentServiceProtocol {
     do {
       jsonData = try JSONEncoder().encode(body)
     } catch {
-      return .error(error)
+      return .failure(error)
     }
 
     return await APIService.performRequest(
@@ -78,7 +74,7 @@ struct CommentService: CommentServiceProtocol {
     )
   }
 
-  func deleteComment(commentId: Int) async -> AsyncResult<EmptyResponse> {
+  func deleteComment(commentId: Int) async -> Result<Void, Error> {
     return await APIService.performRequest(
       endpoint: "comment/\(commentId)",
       method: "DELETE"

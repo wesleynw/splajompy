@@ -52,7 +52,7 @@ extension MentionTextEditor {
           case .success(let users):
             self.mentionSuggestions = users
             self.isLoading = false
-          case .error:
+          case .failure:
             self.mentionSuggestions = []
             self.isLoading = false
           }

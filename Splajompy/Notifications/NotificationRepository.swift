@@ -37,7 +37,8 @@ struct Notification: Identifiable, Decodable, Equatable {
   }
 
   static func == (lhs: Notification, rhs: Notification) -> Bool {
-    return lhs.notificationId == rhs.notificationId && lhs.message == rhs.message
+    return lhs.notificationId == rhs.notificationId
+      && lhs.message == rhs.message
   }
 }
 
@@ -46,49 +47,45 @@ struct NotificationSectionData: Sendable, Decodable {
 }
 
 protocol NotificationServiceProtocol: Sendable {
-  func getAllNotifications(offset: Int, limit: Int) async -> AsyncResult<
-    [Notification]
+  func getAllNotifications(offset: Int, limit: Int) async -> Result<
+    [Notification], Error
   >
 
   func getAllNotificationWithSections(offset: Int, limit: Int) async
-    -> AsyncResult<NotificationSectionData>
+    -> Result<NotificationSectionData, Error>
 
-  func getUnreadNotifications(offset: Int, limit: Int) async -> AsyncResult<
-    [Notification]
+  func getUnreadNotifications(offset: Int, limit: Int) async -> Result<
+    [Notification], Error
   >
 
-  func getReadNotifications(offset: Int, limit: Int) async -> AsyncResult<
-    [Notification]
+  func getReadNotifications(offset: Int, limit: Int) async -> Result<
+    [Notification], Error
   >
 
   func getReadNotificationWithSections(offset: Int, limit: Int) async
-    -> AsyncResult<NotificationSectionData>
+    -> Result<NotificationSectionData, Error>
 
-  func markNotificationAsRead(notificationId: Int) async -> AsyncResult<
-    EmptyResponse
-  >
+  func markNotificationAsRead(notificationId: Int) async -> Result<Void, Error>
 
-  func markAllNotificationsAsRead() async -> AsyncResult<EmptyResponse>
+  func markAllNotificationsAsRead() async -> Result<Void, Error>
 
-  func hasUnreadNotifications() async -> AsyncResult<Bool>
+  func hasUnreadNotifications() async -> Result<Bool, Error>
 
-  func getUnreadNotificationCount() async -> AsyncResult<Int>
+  func getUnreadNotificationCount() async -> Result<Int, Error>
 
   func getReadNotificationsWithTimeOffset(
     beforeTime: String?,
     limit: Int,
     notificationType: String?
   )
-    async -> AsyncResult<
-      [Notification]
-    >
+    async -> Result<[Notification], Error>
 
   func getUnreadNotificationsWithTimeOffset(
     beforeTime: String?,
     limit: Int,
     notificationType: String?
-  ) async -> AsyncResult<
-    [Notification]
+  ) async -> Result<
+    [Notification], Error
   >
 
   func getReadNotificationWithSectionsWithTimeOffset(
@@ -96,12 +93,12 @@ protocol NotificationServiceProtocol: Sendable {
     limit: Int,
     notificationType: String?
   ) async
-    -> AsyncResult<NotificationSectionData>
+    -> Result<NotificationSectionData, Error>
 }
 
 struct NotificationService: NotificationServiceProtocol {
-  func getAllNotifications(offset: Int, limit: Int) async -> AsyncResult<
-    [Notification]
+  func getAllNotifications(offset: Int, limit: Int) async -> Result<
+    [Notification], Error
   > {
     let queryItems = [
       URLQueryItem(name: "offset", value: "\(offset)"),
@@ -114,34 +111,32 @@ struct NotificationService: NotificationServiceProtocol {
     )
   }
 
-  func markNotificationAsRead(notificationId: Int) async -> AsyncResult<
-    EmptyResponse
-  > {
+  func markNotificationAsRead(notificationId: Int) async -> Result<Void, Error> {
     return await APIService.performRequest(
       endpoint: "notifications/\(notificationId)/markRead",
       method: "POST"
     )
   }
 
-  func markAllNotificationsAsRead() async -> AsyncResult<EmptyResponse> {
+  func markAllNotificationsAsRead() async -> Result<Void, Error> {
     await APIService.performRequest(
       endpoint: "notifications/markRead",
       method: "POST"
     )
   }
 
-  func hasUnreadNotifications() async -> AsyncResult<Bool> {
+  func hasUnreadNotifications() async -> Result<Bool, Error> {
     return await APIService.performRequest(endpoint: "notifications/hasUnread")
   }
 
-  func getUnreadNotificationCount() async -> AsyncResult<Int> {
+  func getUnreadNotificationCount() async -> Result<Int, Error> {
     return await APIService.performRequest(
       endpoint: "notifications/unreadCount"
     )
   }
 
   func getAllNotificationWithSections(offset: Int, limit: Int) async
-    -> AsyncResult<NotificationSectionData>
+    -> Result<NotificationSectionData, Error>
   {
     let result = await getAllNotifications(offset: offset, limit: limit)
 
@@ -152,13 +147,13 @@ struct NotificationService: NotificationServiceProtocol {
         return notification.createdAt.notificationSection()
       }
       return .success(NotificationSectionData(sections: sectionedNotifications))
-    case .error(let error):
-      return .error(error)
+    case .failure(let error):
+      return .failure(error)
     }
   }
 
-  func getUnreadNotifications(offset: Int, limit: Int) async -> AsyncResult<
-    [Notification]
+  func getUnreadNotifications(offset: Int, limit: Int) async -> Result<
+    [Notification], Error
   > {
     let queryItems = [
       URLQueryItem(name: "offset", value: "\(offset)"),
@@ -171,8 +166,8 @@ struct NotificationService: NotificationServiceProtocol {
     )
   }
 
-  func getReadNotifications(offset: Int, limit: Int) async -> AsyncResult<
-    [Notification]
+  func getReadNotifications(offset: Int, limit: Int) async -> Result<
+    [Notification], Error
   > {
     let result = await getAllNotifications(offset: offset, limit: limit)
 
@@ -180,13 +175,13 @@ struct NotificationService: NotificationServiceProtocol {
     case .success(let notifications):
       let readNotifications = notifications.filter { $0.viewed }
       return .success(readNotifications)
-    case .error(let error):
-      return .error(error)
+    case .failure(let error):
+      return .failure(error)
     }
   }
 
   func getReadNotificationWithSections(offset: Int, limit: Int) async
-    -> AsyncResult<NotificationSectionData>
+    -> Result<NotificationSectionData, Error>
   {
     let result = await getReadNotifications(offset: offset, limit: limit)
 
@@ -197,8 +192,8 @@ struct NotificationService: NotificationServiceProtocol {
         return notification.createdAt.notificationSection()
       }
       return .success(NotificationSectionData(sections: sectionedNotifications))
-    case .error(let error):
-      return .error(error)
+    case .failure(let error):
+      return .failure(error)
     }
   }
 
@@ -206,8 +201,8 @@ struct NotificationService: NotificationServiceProtocol {
     beforeTime: String?,
     limit: Int,
     notificationType: String? = nil
-  ) async -> AsyncResult<
-    [Notification]
+  ) async -> Result<
+    [Notification], Error
   > {
     var queryItems = [URLQueryItem(name: "limit", value: "\(limit)")]
 
@@ -231,8 +226,8 @@ struct NotificationService: NotificationServiceProtocol {
     beforeTime: String?,
     limit: Int,
     notificationType: String? = nil
-  ) async -> AsyncResult<
-    [Notification]
+  ) async -> Result<
+    [Notification], Error
   > {
     var queryItems = [URLQueryItem(name: "limit", value: "\(limit)")]
 
@@ -257,7 +252,7 @@ struct NotificationService: NotificationServiceProtocol {
     limit: Int,
     notificationType: String? = nil
   ) async
-    -> AsyncResult<NotificationSectionData>
+    -> Result<NotificationSectionData, Error>
   {
     let result = await getReadNotificationsWithTimeOffset(
       beforeTime: beforeTime,
@@ -272,8 +267,8 @@ struct NotificationService: NotificationServiceProtocol {
         return notification.createdAt.notificationSection()
       }
       return .success(NotificationSectionData(sections: sectionedNotifications))
-    case .error(let error):
-      return .error(error)
+    case .failure(let error):
+      return .failure(error)
     }
   }
 }

@@ -85,7 +85,7 @@ struct RequestSupportView: View {
       let result = await profileService.requestFeature(text: featureText)
 
       switch result {
-      case .error:
+      case .failure(_):
         hadSuccess = false
       case .success:
         hadSuccess = true

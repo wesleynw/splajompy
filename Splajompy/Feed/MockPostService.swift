@@ -323,17 +323,17 @@ final class MockPostStore: @unchecked Sendable {
 struct MockPostService: PostServiceProtocol {
   private let store = MockPostStore.shared
 
-  func getPostById(postId: Int) async -> AsyncResult<DetailedPost> {
+  func getPostById(postId: Int) async -> Result<DetailedPost, Error> {
     try? await Task.sleep(nanoseconds: 300_000_000)
 
     if store.deletedPostIds.contains(postId) {
-      return .error(APIErrorMessage(message: "Post not found"))
+      return .failure(APIErrorMessage(message: "Post not found"))
     }
 
     if let post = store.posts[postId] {
       return .success(post)
     } else {
-      return .error(APIErrorMessage(message: "Post not found"))
+      return .failure(APIErrorMessage(message: "Post not found"))
     }
   }
 
@@ -342,7 +342,7 @@ struct MockPostService: PostServiceProtocol {
     userId: Int? = nil,
     beforeTimestamp: Date?,
     limit: Int
-  ) async -> AsyncResult<[DetailedPost]> {
+  ) async -> Result<[DetailedPost], Error> {
     try? await Task.sleep(nanoseconds: 500_000_000)
 
     let allPosts: [DetailedPost]
@@ -354,7 +354,7 @@ struct MockPostService: PostServiceProtocol {
       allPosts = store.getAllPosts()
     case .profile:
       guard let userId = userId else {
-        return .error(
+        return .failure(
           APIErrorMessage(message: "User ID required for profile feed")
         )
       }
@@ -380,75 +380,73 @@ struct MockPostService: PostServiceProtocol {
     return .success(paginatedPosts)
   }
 
-  func toggleLike(postId: Int, isLiked: Bool) async -> AsyncResult<
-    EmptyResponse
+  func toggleLike(postId: Int, isLiked: Bool) async -> Result<
+    Void, Error
   > {
     try? await Task.sleep(nanoseconds: 200_000_000)
 
     if store.deletedPostIds.contains(postId) {
-      return .error(APIErrorMessage(message: "Post not found"))
+      return .failure(APIErrorMessage(message: "Post not found"))
     }
 
     if var post = store.posts[postId] {
       post.isLiked = !isLiked
       store.posts[postId] = post
-      return .success(EmptyResponse())
+      return .success(())
     } else {
-      return .error(APIErrorMessage(message: "Post not found"))
+      return .failure(APIErrorMessage(message: "Post not found"))
     }
   }
 
-  func addComment(postId: Int, content: String) async -> AsyncResult<
-    EmptyResponse
-  > {
+  func addComment(postId: Int, content: String) async -> Result<Void, Error> {
     try? await Task.sleep(nanoseconds: 400_000_000)
 
     if store.deletedPostIds.contains(postId) {
-      return .error(APIErrorMessage(message: "Post not found"))
+      return .failure(APIErrorMessage(message: "Post not found"))
     }
 
     if var post = store.posts[postId] {
       post.commentCount += 1
       store.posts[postId] = post
-      return .success(EmptyResponse())
+      return .success(())
     } else {
-      return .error(APIErrorMessage(message: "Post not found"))
+      return .failure(APIErrorMessage(message: "Post not found"))
     }
   }
 
-  func deletePost(postId: Int) async -> AsyncResult<EmptyResponse> {
+  func deletePost(postId: Int) async -> Result<Void, Error> {
     try? await Task.sleep(nanoseconds: 300_000_000)
 
     if store.posts[postId] != nil {
       store.deletedPostIds.insert(postId)
-      return .success(EmptyResponse())
+      return .success(())
     } else {
-      return .error(APIErrorMessage(message: "Post not found"))
+      return .failure(APIErrorMessage(message: "Post not found"))
     }
   }
 
-  func reportPost(postId: Int) async -> AsyncResult<EmptyResponse> {
+  func reportPost(postId: Int) async -> Result<Void, Error> {
     try? await Task.sleep(nanoseconds: 300_000_000)
 
     if store.posts[postId] != nil {
-      return .success(EmptyResponse())
+      return .success(())
     } else {
-      return .error(APIErrorMessage(message: "Post not found"))
+      return .failure(APIErrorMessage(message: "Post not found"))
     }
   }
 
-  func voteOnPostPoll(postId: Int, optionIndex: Int) async -> AsyncResult<
-    EmptyResponse
+  func voteOnPostPoll(postId: Int, optionIndex: Int) async -> Result<
+    Void, Error
   > {
     // TODO: implementation
-    return .success(EmptyResponse())
+    return .success(())
   }
 
-  func pinPost(postId: Int) async -> AsyncResult<EmptyResponse> {
+  func pinPost(postId: Int) async -> Result<Void, Error> {
     try? await Task.sleep(nanoseconds: 300_000_000)
 
     if store.deletedPostIds.contains(postId) {
-      return .error(APIErrorMessage(message: "Post not found"))
+      return .failure(APIErrorMessage(message: "Post not found"))
     }
 
     if var post = store.posts[postId] {
@@ -465,13 +463,13 @@ struct MockPostService: PostServiceProtocol {
       store.posts[postId] = post
       store.pinnedPostId = postId
 
-      return .success(EmptyResponse())
+      return .success(())
     } else {
-      return .error(APIErrorMessage(message: "Post not found"))
+      return .failure(APIErrorMessage(message: "Post not found"))
     }
   }
 
-  func unpinPost() async -> AsyncResult<EmptyResponse> {
+  func unpinPost() async -> Result<Void, Error> {
     try? await Task.sleep(nanoseconds: 300_000_000)
 
     if let pinnedId = store.pinnedPostId,
@@ -480,9 +478,9 @@ struct MockPostService: PostServiceProtocol {
       post.isPinned = false
       store.posts[pinnedId] = post
       store.pinnedPostId = nil
-      return .success(EmptyResponse())
+      return .success(())
     }
 
-    return .success(EmptyResponse())
+    return .success(())
   }
 }

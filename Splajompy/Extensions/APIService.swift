@@ -1,17 +1,10 @@
 import Foundation
-@preconcurrency import OpenTelemetryApi
-
-public struct EmptyResponse: Decodable & Sendable {}
+import OpenTelemetryApi
 
 public struct RequestResponse<T: Decodable & Sendable>: Decodable, Sendable {
   let success: Bool
   let data: T?
   let error: String?
-}
-
-public enum AsyncResult<T: Decodable & Sendable>: Sendable {
-  case success(T)
-  case error(Error)
 }
 
 public struct APIErrorMessage: Error, LocalizedError {
@@ -63,13 +56,13 @@ public struct APIService {
     return request
   }
 
-  static func performRequest<T: Decodable & Sendable>(
+  static private func executeRequest(
     endpoint: String,
     method: String = "GET",
     queryItems: [URLQueryItem]? = nil,
     body: Data? = nil,
     requiresAuth: Bool = true
-  ) async -> AsyncResult<T> {
+  ) async -> Result<(Data, URLResponse), Error> {
     let tracer = OpenTelemetry.instance.tracerProvider.get(
       instrumentationName: "APIService"
     )
@@ -86,14 +79,14 @@ public struct APIService {
     guard var urlComponents = URLComponents(string: "\(baseUrl)/\(endpoint)")
     else {
       span.status = .error(description: "Bad URL")
-      return .error(URLError(.badURL))
+      return .failure(URLError(.badURL))
     }
 
     urlComponents.queryItems = queryItems
 
     guard let url = urlComponents.url else {
       span.status = .error(description: "Bad URL")
-      return .error(URLError(.badURL))
+      return .failure(URLError(.badURL))
     }
 
     span.setAttribute(key: "http.method", value: method)
@@ -104,10 +97,14 @@ public struct APIService {
     let request: URLRequest
     do {
       request = try await createRequest(
-        for: url, method: method, body: body, requiresAuth: requiresAuth)
+        for: url,
+        method: method,
+        body: body,
+        requiresAuth: requiresAuth
+      )
     } catch {
       span.status = .error(description: error.localizedDescription)
-      return .error(error)
+      return .failure(error)
     }
 
     do {
@@ -131,22 +128,82 @@ public struct APIService {
         if httpResponse.statusCode == 401 {
           span.status = .error(description: "Unauthorized")
           await AuthManager.shared.signOut(reason: "401_\(endpoint)")
-          return .error(
+          return .failure(
             APIErrorMessage(message: "Session expired. Please sign in again.")
           )
         }
         if httpResponse.statusCode == 503 || httpResponse.statusCode == 504 {
           span.status = .error(description: "Service unavailable")
-          return .error(
+          return .failure(
             APIErrorMessage(message: "Service unavailable.")
           )
         }
 
         if 500...599 ~= httpResponse.statusCode {
           span.status = .error(description: "internal server error")
-          return .error(APIErrorMessage(message: "Internal Server Error"))
+          return .failure(APIErrorMessage(message: "Internal Server Error"))
         }
+
+        return .success((data, response))
       }
+    } catch {
+      print("API call error: \(error)")
+      span.status = .error(
+        description: "Request error: \(error.localizedDescription)"
+      )
+      return .failure(error)
+    }
+
+    return .failure(APIErrorMessage(message: "TODO"))
+  }
+
+  static func performRequest(
+    endpoint: String,
+    method: String = "GET",
+    queryItems: [URLQueryItem]? = nil,
+    body: Data? = nil,
+    requiresAuth: Bool = true
+  ) async -> Result<Void, Error> {
+    let requestReponse = await executeRequest(
+      endpoint: endpoint,
+      method: method,
+      queryItems: queryItems,
+      body: body,
+      requiresAuth: requiresAuth
+    )
+
+    switch requestReponse {
+    case .success(_):
+      return .success(())
+    case .failure(let failure):
+      return .failure(failure)
+    }
+  }
+
+  static func performRequest<T: Decodable & Sendable>(
+    endpoint: String,
+    method: String = "GET",
+    queryItems: [URLQueryItem]? = nil,
+    body: Data? = nil,
+    requiresAuth: Bool = true
+  ) async -> Result<T, Error> {
+    let requestReponse = await executeRequest(
+      endpoint: endpoint,
+      method: method,
+      queryItems: queryItems,
+      body: body,
+      requiresAuth: requiresAuth
+    )
+
+    switch requestReponse {
+    case .success(let (data, _)):
+      let tracer = OpenTelemetry.instance.tracerProvider.get(
+        instrumentationName: "APIService"
+      )
+      let span = tracer.spanBuilder(spanName: "API Decode: \(endpoint)")
+        .setSpanKind(spanKind: .client)
+        .startSpan()
+      defer { span.end() }
 
       let decoder = JSONDecoder()
 
@@ -179,47 +236,29 @@ public struct APIService {
           from: data
         )
         if decodedResponse.success {
-          if let emptyResponse = EmptyResponse() as? T {
-            span.status = .ok
-            return .success(emptyResponse)
-          }
-
           guard let responseData = decodedResponse.data else {
-            span.status = .error(
-              description: "API returned success but no data"
-            )
-            return .error(
+            span.status = .error(description: "Success response missing data")
+            return .failure(
               APIErrorMessage(message: "API returned success but no data")
             )
           }
 
-          span.status = .ok
           return .success(responseData)
         }
-        span.status = .error(
-          description: decodedResponse.error ?? "Unknown API error"
-        )
-        return .error(
+        let errorMessage = decodedResponse.error ?? "Unknown API error"
+        span.status = .error(description: errorMessage)
+        return .failure(
           APIErrorMessage(message: decodedResponse.error ?? "Unknown API error")
         )
       } catch {
-        print("API response decoding error: \(error)")
         span.status = .error(
           description: "Decoding error: \(error.localizedDescription)"
         )
-        return .error(error)
+        print("API response decoding error: \(error)")
+        return .failure(error)
       }
-    } catch is CancellationError {
-      print("API call cancelled: \(method) /\(endpoint)")
-      span.setAttribute(key: "cancelled", value: true)
-      span.status = .error(description: "Task cancelled")
-      return .error(CancellationError())
-    } catch {
-      print("API call error: \(error)")
-      span.status = .error(
-        description: "Request error: \(error.localizedDescription)"
-      )
-      return .error(error)
+    case .failure(let failure):
+      return .failure(failure)
     }
   }
 }

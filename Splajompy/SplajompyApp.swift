@@ -63,8 +63,9 @@ struct SplajompyApp: App {
       Settings {
         NavigationStack(path: $navigationPaths[4]) {
           SettingsView()
+            .postHogScreenView()
             .preferredColorScheme(colorScheme)
-            .navigationDestination(for: SettingsRoute.self) { route in
+            .navigationDestination(for: SettingsRoute.self) { route in  // TODO: consolidate settingsroutes and normal routes
               settingsRouteDestination(route)
             }
         }
@@ -127,7 +128,11 @@ struct SplajompyApp: App {
       }
       .tag(3)
     }
-    .tabViewStyle(.sidebarAdaptable)
+    .modify {
+      if #available(iOS 18, *) {
+        $0.tabViewStyle(.sidebarAdaptable)
+      }
+    }
     .onOpenURL { url in
       handleDeepLink(url)
     }

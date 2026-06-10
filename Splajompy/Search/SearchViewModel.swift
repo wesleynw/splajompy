@@ -32,7 +32,7 @@ extension SearchView {
       switch result {
       case .success(let users):
         state = .loaded(users)
-      case .error(let error):
+      case .failure(let error):
         state = .error(error)
 
       }

@@ -72,7 +72,7 @@ extension ProfileView {
       switch profile {
       case .success(let DetailedUser):
         profileState = .loaded(DetailedUser)
-      case .error(let error):
+      case .failure(let error):
         profileState = .failed(error.localizedDescription)
       }
 
@@ -88,7 +88,7 @@ extension ProfileView {
 
         canLoadMorePosts = fetchedPosts.count >= fetchLimit
         postsState = .loaded(postIds)
-      case .error(let error):
+      case .failure(let error):
         postsState = .failed(error.localizedDescription)
       }
     }
@@ -136,7 +136,7 @@ extension ProfileView {
 
         postsState = .loaded(finalPostIds)
         canLoadMorePosts = fetchedPosts.count >= fetchLimit
-      case .error(let error):
+      case .failure(let error):
         postsState = .failed(error.localizedDescription)
       }
     }
@@ -207,7 +207,7 @@ extension ProfileView {
             profile.displayProperties = displayProperties
             profileState = .loaded(profile)
           }
-        case .error(let error):
+        case .failure(let error):
           updateError = error.localizedDescription
         }
       }
@@ -229,7 +229,7 @@ extension ProfileView {
           var updatedProfile = profile
           updatedProfile.isFollowing.toggle()
           profileState = .loaded(updatedProfile)
-        case .error(let error):
+        case .failure(let error):
           profileState = .failed(error.localizedDescription)
         }
         isLoadingFollowButton = false
@@ -250,7 +250,7 @@ extension ProfileView {
           updatedProfile.isBlocking.toggle()
           updatedProfile.isFollower = false
           profileState = .loaded(updatedProfile)
-        case .error(let error):
+        case .failure(let error):
           profileState = .failed(error.localizedDescription)
         }
         isLoadingBlockButton = false
@@ -270,7 +270,7 @@ extension ProfileView {
           var updatedProfile = profile
           updatedProfile.isMuting.toggle()
           profileState = .loaded(updatedProfile)
-        case .error(let error):
+        case .failure(let error):
           profileState = .failed(error.localizedDescription)
         }
         isLoadingMuteButton = false

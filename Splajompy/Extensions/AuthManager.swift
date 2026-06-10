@@ -175,7 +175,7 @@ class AuthManager: Sendable {
       return false
     }
 
-    let result: AsyncResult<EmptyResponse> = await APIService.performRequest(
+    let result: Result<Void, Error> = await APIService.performRequest(
       endpoint: "otc/generate",
       method: "POST",
       body: jsonData,
@@ -185,7 +185,7 @@ class AuthManager: Sendable {
     switch result {
     case .success:
       return true
-    case .error:
+    case .failure:
       return false
     }
   }
@@ -207,7 +207,7 @@ class AuthManager: Sendable {
       return false
     }
 
-    let result: AsyncResult<AuthResponse> = await APIService.performRequest(
+    let result: Result<AuthResponse, Error> = await APIService.performRequest(
       endpoint: "otc/verify",
       method: "POST",
       body: jsonData,
@@ -226,7 +226,7 @@ class AuthManager: Sendable {
       )
       PostHogSDK.shared.capture("user_signin_otc")
       return true
-    case .error:
+    case .failure:
       return false
     }
   }
@@ -251,7 +251,7 @@ class AuthManager: Sendable {
       return (false, "Failed to encode credentials")
     }
 
-    let result: AsyncResult<AuthResponse> = await APIService.performRequest(
+    let result: Result<AuthResponse, Error> = await APIService.performRequest(
       endpoint: "login",
       method: "POST",
       body: jsonData,
@@ -270,7 +270,7 @@ class AuthManager: Sendable {
       )
       PostHogSDK.shared.capture("user_signin")
       return (true, "")
-    case .error(let error):
+    case .failure(let error):
       return (false, error.localizedDescription)
     }
   }
@@ -299,7 +299,7 @@ class AuthManager: Sendable {
       return (false, "Failed to serialize JSON")
     }
 
-    let result: AsyncResult<AuthResponse> = await APIService.performRequest(
+    let result: Result<AuthResponse, Error> = await APIService.performRequest(
       endpoint: "register",
       method: "POST",
       body: requestBody,
@@ -318,7 +318,7 @@ class AuthManager: Sendable {
       )
       PostHogSDK.shared.capture("user_register")
       return (true, "")
-    case .error(let error):
+    case .failure(let error):
       return (false, error.localizedDescription)
     }
   }
@@ -408,7 +408,7 @@ class AuthManager: Sendable {
       return (false, "Failed to serialize request")
     }
 
-    let result: AsyncResult<EmptyResponse> = await APIService.performRequest(
+    let result: Result<Void, Error> = await APIService.performRequest(
       endpoint: "account/delete",
       method: "POST",
       body: jsonData
@@ -418,7 +418,7 @@ class AuthManager: Sendable {
     case .success:
       signOut(reason: "account_deleted")
       return (true, "")
-    case .error(let error):
+    case .failure(let error):
       return (false, error.localizedDescription)
     }
   }

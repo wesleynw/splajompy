@@ -132,7 +132,7 @@ extension NotificationsView {
         }
         updateLastTimestamp(from: allReadNotifications, isUnread: false)
         updateLastTimestamp(from: unreadNotifications, isUnread: true)
-      case (.error(let error), _), (_, .error(let error)):
+      case (.failure(let error), _), (_, .failure(let error)):
         state = .failed(error)
       }
     }
@@ -171,7 +171,7 @@ extension NotificationsView {
         if !uniqueNewNotifications.isEmpty {
           updateLastTimestamp(from: uniqueNewNotifications, isUnread: true)
         }
-      case .error(let error):
+      case .failure(let error):
         state = .failed(error)
       }
     }
@@ -222,7 +222,7 @@ extension NotificationsView {
         if !allNewNotifications.isEmpty {
           updateLastTimestamp(from: allNewNotifications, isUnread: false)
         }
-      case .error(let error):
+      case .failure(let error):
         state = .failed(error)
       }
     }

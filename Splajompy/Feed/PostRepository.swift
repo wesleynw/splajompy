@@ -9,32 +9,26 @@ enum FeedType: String, CaseIterable {
 }
 
 protocol PostServiceProtocol: Sendable {
-  func getPostById(postId: Int) async -> AsyncResult<DetailedPost>
+  func getPostById(postId: Int) async -> Result<DetailedPost, Error>
   func getPostsForFeedCursor(
     feedType: FeedType,
     userId: Int?,
     beforeTimestamp: Date?,
     limit: Int
-  ) async -> AsyncResult<[DetailedPost]>
-  func toggleLike(postId: Int, isLiked: Bool) async -> AsyncResult<
-    EmptyResponse
-  >
-  func addComment(postId: Int, content: String) async -> AsyncResult<
-    EmptyResponse
-  >
-  func deletePost(postId: Int) async -> AsyncResult<EmptyResponse>
-  func reportPost(postId: Int) async -> AsyncResult<EmptyResponse>
-  func voteOnPostPoll(postId: Int, optionIndex: Int) async -> AsyncResult<
-    EmptyResponse
-  >
-  func pinPost(postId: Int) async -> AsyncResult<EmptyResponse>
-  func unpinPost() async -> AsyncResult<EmptyResponse>
+  ) async -> Result<[DetailedPost], Error>
+  func toggleLike(postId: Int, isLiked: Bool) async -> Result<Void, Error>
+  func addComment(postId: Int, content: String) async -> Result<Void, Error>
+  func deletePost(postId: Int) async -> Result<Void, Error>
+  func reportPost(postId: Int) async -> Result<Void, Error>
+  func voteOnPostPoll(postId: Int, optionIndex: Int) async -> Result<Void, Error>
+  func pinPost(postId: Int) async -> Result<Void, Error>
+  func unpinPost() async -> Result<Void, Error>
 }
 
 struct PostService: PostServiceProtocol {
   private let fetchLimit = 10
 
-  func getPostById(postId: Int) async -> AsyncResult<DetailedPost> {
+  func getPostById(postId: Int) async -> Result<DetailedPost, Error> {
     return await APIService.performRequest(endpoint: "post/\(postId)")
   }
 
@@ -43,7 +37,7 @@ struct PostService: PostServiceProtocol {
     userId: Int? = nil,
     beforeTimestamp: Date?,
     limit: Int
-  ) async -> AsyncResult<[DetailedPost]> {
+  ) async -> Result<[DetailedPost], Error> {
     let urlBase: String
     switch feedType {
     case .home:
@@ -52,7 +46,7 @@ struct PostService: PostServiceProtocol {
       urlBase = "v2/posts/all"
     case .profile:
       guard let userId = userId else {
-        return .error(URLError(.badURL))
+        return .failure(URLError(.badURL))
       }
       urlBase = "v2/user/\(userId)/posts"
     case .mutual:
@@ -76,7 +70,7 @@ struct PostService: PostServiceProtocol {
       )
     }
 
-    let result: AsyncResult<[DetailedPost]> = await APIService.performRequest(
+    let result: Result<[DetailedPost], Error> = await APIService.performRequest(
       endpoint: urlBase,
       queryItems: queryItems
     )
@@ -84,9 +78,7 @@ struct PostService: PostServiceProtocol {
     return result
   }
 
-  func toggleLike(postId: Int, isLiked: Bool) async -> AsyncResult<
-    EmptyResponse
-  > {
+  func toggleLike(postId: Int, isLiked: Bool) async -> Result<Void, Error> {
     let method = isLiked ? "DELETE" : "POST"
     return await APIService.performRequest(
       endpoint: "post/\(postId)/liked",
@@ -94,15 +86,13 @@ struct PostService: PostServiceProtocol {
     )
   }
 
-  func addComment(postId: Int, content: String) async -> AsyncResult<
-    EmptyResponse
-  > {
+  func addComment(postId: Int, content: String) async -> Result<Void, Error> {
     let bodyData: [String: String] = ["Text": content]
     let jsonData: Data
     do {
       jsonData = try JSONEncoder().encode(bodyData)
     } catch {
-      return .error(error)
+      return .failure(error)
     }
     return await APIService.performRequest(
       endpoint: "post/\(postId)/comment",
@@ -111,37 +101,35 @@ struct PostService: PostServiceProtocol {
     )
   }
 
-  func deletePost(postId: Int) async -> AsyncResult<EmptyResponse> {
+  func deletePost(postId: Int) async -> Result<Void, Error> {
     return await APIService.performRequest(
       endpoint: "post/\(postId)",
       method: "DELETE"
     )
   }
 
-  func reportPost(postId: Int) async -> AsyncResult<EmptyResponse> {
+  func reportPost(postId: Int) async -> Result<Void, Error> {
     return await APIService.performRequest(
       endpoint: "post/\(postId)/report",
       method: "POST"
     )
   }
 
-  func voteOnPostPoll(postId: Int, optionIndex: Int) async -> AsyncResult<
-    EmptyResponse
-  > {
+  func voteOnPostPoll(postId: Int, optionIndex: Int) async -> Result<Void, Error> {
     return await APIService.performRequest(
       endpoint: "post/\(postId)/vote/\(optionIndex)",
       method: "POST"
     )
   }
 
-  func pinPost(postId: Int) async -> AsyncResult<EmptyResponse> {
+  func pinPost(postId: Int) async -> Result<Void, Error> {
     return await APIService.performRequest(
       endpoint: "posts/\(postId)/pin",
       method: "POST"
     )
   }
 
-  func unpinPost() async -> AsyncResult<EmptyResponse> {
+  func unpinPost() async -> Result<Void, Error> {
     return await APIService.performRequest(
       endpoint: "posts/pin",
       method: "DELETE"

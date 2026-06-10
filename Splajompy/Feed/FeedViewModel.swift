@@ -73,7 +73,7 @@ enum FeedState {
         canLoadMore = false
       }
 
-    case .error(let error):
+    case .failure(let error):
       state = .failed(error)
     }
   }
