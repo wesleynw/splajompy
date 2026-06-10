@@ -1,4 +1,3 @@
-import Foundation
 import PostHog
 import SwiftUI
 
@@ -14,7 +13,6 @@ enum FeedState {
   var userId: Int?
   var canLoadMore: Bool = true
   var state: FeedState = .idle
-  var isLoadingMore: Bool = false
   var postIds: [Int] = []
 
   var posts: [ObservablePost] {
@@ -39,12 +37,6 @@ enum FeedState {
         state = .loading
       }
       lastPostTimestamp = nil
-    }
-
-    defer {
-      if !reset {
-        isLoadingMore = false
-      }
     }
 
     let result = await postManager.loadFeed(
@@ -104,11 +96,8 @@ enum FeedState {
   func handlePostAppear(at index: Int) {
     guard case .loaded(let currentPostIds) = state,
       index >= currentPostIds.count - 3,
-      canLoadMore,
-      !isLoadingMore
+      canLoadMore
     else { return }
-
-    isLoadingMore = true
 
     Task {
       await loadPosts()

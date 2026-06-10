@@ -1,7 +1,6 @@
 import PostHog
 import SwiftUI
 
-/// Primary view in the app, displays an endless feed of posts.
 struct FeedView: View {
   @State private var isShowingNewPostView: Bool = false
   @State private var viewModel: FeedViewModel
@@ -44,14 +43,21 @@ struct FeedView: View {
         }
       }
       .onChange(of: selectedFeedType) { _, newFeedType in
-        PostHogSDK.shared.capture("feed_type_changed")
         Task {
           viewModel.feedType = newFeedType
           await viewModel.loadPosts(reset: true, useLoadingState: true)
         }
       }
       .sheet(isPresented: $isShowingNewPostView) {
-        newPostSheet
+        NewPostView(
+          onPostCreated: {
+            Task {
+              await viewModel.loadPosts(reset: true, useLoadingState: true)
+            }
+          }
+        )
+        .postHogScreenView()
+        .interactiveDismissDisabled()
       }
       .toolbar {
         FeedTypeToggle(selectedFeedType: $selectedFeedType)
@@ -107,16 +113,6 @@ struct FeedView: View {
     }
   }
 
-  private var newPostSheet: some View {
-    NewPostView(
-      onPostCreated: {
-        Task { await viewModel.loadPosts(reset: true, useLoadingState: true) }
-      }
-    )
-    .postHogScreenView()
-    .interactiveDismissDisabled()
-  }
-
   private var postList: some View {
     ScrollView(.vertical) {
       LazyVStack(spacing: 0) {
@@ -140,15 +136,11 @@ struct FeedView: View {
         }
 
         if viewModel.canLoadMore {
-          HStack {
-            Spacer()
-            ProgressView()
-              #if os(macOS)
-                .controlSize(.small)
-              #endif
-              .padding()
-            Spacer()
-          }
+          ProgressView()
+            #if os(macOS)
+              .controlSize(.small)
+            #endif
+            .frame(maxWidth: .infinity, alignment: .center)
         } else {
           VStack(spacing: 8) {
             Text("Is that the very first post?")
@@ -179,7 +171,6 @@ struct FeedView: View {
 
   private var emptyMessage: some View {
     VStack {
-      Spacer()
       Text("No posts yet.")
         .font(.title3)
         .fontWeight(.bold)
@@ -203,7 +194,7 @@ struct FeedView: View {
       }
       .padding()
       .buttonStyle(.bordered)
-      Spacer()
     }
+    .frame(maxWidth: .infinity, alignment: .center)
   }
 }
