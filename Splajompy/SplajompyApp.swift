@@ -21,7 +21,7 @@ struct SplajompyApp: App {
   ]
 
   @State private var authManager: AuthManager = AuthManager.shared
-  @State private var postManager = PostStore()
+  @State private var postStore = PostStore()
   @AppStorage("appearance_mode") var appearanceMode: String = "Automatic"
 
   init() {
@@ -35,6 +35,7 @@ struct SplajompyApp: App {
       Group {
         if authManager.isAuthenticated {
           authenticatedView
+            .environment(postStore)
         } else {
           SplashScreenView()
             .postHogScreenView()
@@ -78,7 +79,7 @@ struct SplajompyApp: App {
   private var authenticatedView: some View {
     TabView(selection: $selection) {
       NavigationStack(path: $navigationPaths[0]) {
-        FeedView(postManager: postManager)
+        FeedView(postManager: postStore)
           .postHogScreenView()
           .navigationDestination(for: Route.self) { route in
             routeDestination(route)
@@ -114,7 +115,7 @@ struct SplajompyApp: App {
       .tag(2)
 
       NavigationStack(path: $navigationPaths[3]) {
-        CurrentProfileView(postManager: postManager)
+        CurrentProfileView(postManager: postStore)
           .postHogScreenView()
           .navigationDestination(for: Route.self) { route in
             routeDestination(route)
@@ -160,14 +161,14 @@ struct SplajompyApp: App {
         ProfileView(
           userId: userId,
           username: username,
-          postManager: postManager
+          postManager: postStore
         )
         .postHogScreenView()
       } else {
         EmptyView()
       }
     case .post(let id):
-      StandalonePostView(postId: id, postManager: postManager)
+      StandalonePostView(postId: id, postManager: postStore)
         .postHogScreenView()
     case .followingList(let userId):
       UserListView(identifier: userId, userListVariant: .following)
@@ -235,7 +236,7 @@ struct SplajompyApp: App {
     ]
 
     selection = 0
-    postManager.clearCache()
+    postStore.clearCache()
     PostHogSDK.shared.reset()
   }
 }

@@ -120,7 +120,6 @@ struct FeedView: View {
           post in
           PostView(
             post: post,
-            postManager: postManager,
             showAuthor: true,
             onLikeButtonTapped: { Task { await viewModel.toggleLike(on: post) } },
             onPostDeleted: { viewModel.deletePost(on: post) }

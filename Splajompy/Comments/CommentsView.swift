@@ -6,10 +6,9 @@ struct CommentsView: View {
   var isInSheet: Bool
   var showInput: Bool
 
-  var postManager: PostStore
-
   @State private var viewModel: ViewModel
   @Environment(\.dismiss) private var dismiss
+  @Environment(PostStore.self) private var postManager
 
   @State private var cursorY: CGFloat = 0
   @State private var mentionViewModel =
@@ -22,7 +21,6 @@ struct CommentsView: View {
     showInput: Bool = true
   ) {
     self.postId = postId
-    self.postManager = postManager
     _viewModel = State(
       wrappedValue: ViewModel(postId: postId, postManager: postManager)
     )
@@ -38,7 +36,6 @@ struct CommentsView: View {
     showInput: Bool = true
   ) {
     self.postId = postId
-    self.postManager = postManager
     _viewModel = State(wrappedValue: viewModel)
     self.isInSheet = isInSheet
     self.showInput = showInput

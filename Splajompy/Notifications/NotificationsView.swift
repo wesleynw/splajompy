@@ -2,31 +2,30 @@ import SwiftUI
 
 struct NotificationsView: View {
   @State private var viewModel: ViewModel
-  @Environment(AuthManager.self) private var authManager
+
   init(viewModel: ViewModel = ViewModel()) {
     self._viewModel = State(wrappedValue: viewModel)
   }
 
   var body: some View {
-    List {
-      Section {
-        if case .loaded(let sections, let unreadNotifications) = viewModel.state,
-          !sections.isEmpty || !unreadNotifications.isEmpty
-        {
-          notificationsSectionedList(
-            sections: sections,
-            unreadNotifications: unreadNotifications
-          )
-        }
-      } header: {
+    ScrollView {
+      LazyVStack {
         NotificationBreadcrumbFilter(filter: $viewModel.selectedFilter)
           .frame(maxWidth: .infinity, alignment: .leading)
           .contentMargins(.leading, 10, for: .scrollContent)
           .listRowInsets(EdgeInsets())
+
+        if case .loaded(let sections, let unreadNotifications) = viewModel
+          .state,
+          !sections.isEmpty || !unreadNotifications.isEmpty
+        {
+          notificationsList(
+            sections: sections,
+            unreadNotifications: unreadNotifications
+          )
+        }
       }
     }
-    .listStyle(.plain)
-    .contentMargins(.top, 0, for: .scrollContent)
     .overlay {
       switch viewModel.state {
       case .idle, .loading:
@@ -50,10 +49,6 @@ struct NotificationsView: View {
     .refreshable {
       await viewModel.refreshNotifications()
     }
-    #if os(macOS)
-      .frame(maxWidth: .infinity)
-      .navigationTitle("Notifications")
-    #endif
     .onAppear {
       if case .idle = viewModel.state {
         Task { await viewModel.refreshNotifications() }
@@ -78,12 +73,13 @@ struct NotificationsView: View {
           }
         }
       }
+    #else
+      .navigationTitle("Notifications")
     #endif
   }
 
   private var noNotificationsView: some View {
     VStack {
-      Spacer()
       Text("No notifications.")
         .font(.title3)
         .fontWeight(.bold)
@@ -98,107 +94,106 @@ struct NotificationsView: View {
       }
       .padding()
       .buttonStyle(.bordered)
-      Spacer()
     }
+    .frame(maxWidth: .infinity, alignment: .center)
   }
 
-  private func notificationsSectionedList(
+  @ViewBuilder
+  private func notificationsList(
     sections: [NotificationDateSection: [Notification]],
     unreadNotifications: [Notification]
   ) -> some View {
-    Group {
-      if !unreadNotifications.isEmpty {
-        Section {
-          ForEach(unreadNotifications, id: \.notificationId) { notification in
-            NotificationRow(notification: notification)
+    if !unreadNotifications.isEmpty {
+      Section {
+        ForEach(unreadNotifications, id: \.notificationId) { notification in
+          NotificationRow(notification: notification)
+            #if os(macOS)
+              .frame(maxWidth: 600)
+              .frame(maxWidth: .infinity)
+            #endif
+            .swipeActions(edge: .leading) {
+              Button {
+                Task {
+                  await viewModel.markNotificationAsRead(
+                    notificationId: notification.notificationId
+                  )
+                }
+              } label: {
+                Label("Mark as Read", systemImage: "checkmark.circle")
+              }
+              .tint(.blue)
+            }
+            .onAppear {
+              if notification.notificationId
+                == unreadNotifications.last?.notificationId
+              {
+                Task {
+                  await viewModel.loadMoreUnreadNotifications()
+                }
+              }
+            }
+        }
+      } header: {
+        HStack {
+          Text("New")
+            .fontWeight(.semibold)
+
+          Spacer()
+
+          Button(action: {
+            viewModel.markAllNotificationsAsRead()
+          }) {
+            Text("Mark All Read")
+              .fontWeight(.semibold)
+          }
+          .controlSize(.small)
+          .buttonStyle(.bordered)
+        }
+      }
+    }
+
+    if !viewModel.hasMoreUnreadToLoad {
+      let lastSectionWithNotifications = NotificationDateSection.allCases
+        .reversed()
+        .first { sections[$0]?.isEmpty == false }
+
+      ForEach(NotificationDateSection.allCases, id: \.self) { section in
+        if let notifications = sections[section], !notifications.isEmpty {
+          Section(header: Text(section.rawValue).fontWeight(.semibold)) {
+            ForEach(notifications, id: \.notificationId) { notification in
+              NotificationRow(
+                notification: notification
+              )
               #if os(macOS)
                 .frame(maxWidth: 600)
                 .frame(maxWidth: .infinity)
               #endif
-              .swipeActions(edge: .leading) {
-                Button {
-                  Task {
-                    await viewModel.markNotificationAsRead(
-                      notificationId: notification.notificationId
-                    )
-                  }
-                } label: {
-                  Label("Mark as Read", systemImage: "checkmark.circle")
-                }
-                .tint(.blue)
-              }
               .onAppear {
-                if notification.notificationId
-                  == unreadNotifications.last?.notificationId
+                if section == lastSectionWithNotifications
+                  && notification.notificationId
+                    == notifications.last?.notificationId
                 {
                   Task {
-                    await viewModel.loadMoreUnreadNotifications()
+                    await viewModel.loadMoreNotifications()
                   }
                 }
               }
-          }
-        } header: {
-          HStack {
-            Text("New")
-              .fontWeight(.semibold)
-
-            Spacer()
-
-            Button(action: {
-              viewModel.markAllNotificationsAsRead()
-            }) {
-              Text("Mark All Read")
-                .fontWeight(.semibold)
             }
+          }
+        }
+      }
+    }
+
+    if viewModel.hasMoreUnreadToLoad || viewModel.hasMoreToLoad {
+      HStack {
+        ProgressView()
+          .padding()
+          #if os(macOS)
             .controlSize(.small)
-            .buttonStyle(.bordered)
-          }
-        }
+          #endif
       }
-
-      if !viewModel.hasMoreUnreadToLoad {
-        let lastSectionWithNotifications = NotificationDateSection.allCases
-          .reversed()
-          .first { sections[$0]?.isEmpty == false }
-
-        ForEach(NotificationDateSection.allCases, id: \.self) { section in
-          if let notifications = sections[section], !notifications.isEmpty {
-            Section(header: Text(section.rawValue).fontWeight(.semibold)) {
-              ForEach(notifications, id: \.notificationId) { notification in
-                NotificationRow(
-                  notification: notification
-                )
-                #if os(macOS)
-                  .frame(maxWidth: 600)
-                  .frame(maxWidth: .infinity)
-                #endif
-                .onAppear {
-                  if section == lastSectionWithNotifications
-                    && notification.notificationId
-                      == notifications.last?.notificationId
-                  {
-                    Task {
-                      await viewModel.loadMoreNotifications()
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-
-      // the uuid part is a fix from: https://stackoverflow.com/questions/70627642/progressview-hides-on-list-scroll/75431883#75431883
-      if viewModel.hasMoreUnreadToLoad || viewModel.hasMoreToLoad {
-        HStack {
-          Spacer()
-          ProgressView()
-            .padding()
-          Spacer()
-        }
-        .id(UUID())
-        .listRowSeparator(.hidden)
-      }
+      .frame(maxWidth: .infinity, alignment: .center)
+      .listRowSeparator(.hidden)
     }
   }
 }
@@ -210,6 +205,5 @@ struct NotificationsView: View {
         notificationService: MockNotificationService()
       )
     )
-    .environment(AuthManager())
   }
 }

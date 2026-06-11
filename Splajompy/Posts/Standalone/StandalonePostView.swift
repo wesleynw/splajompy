@@ -43,7 +43,6 @@ struct StandalonePostView: View {
           VStack {
             PostView(
               post: post,
-              postManager: postManager,
               showAuthor: true,
               isStandalone: true,
               onLikeButtonTapped: { viewModel.toggleLike() },

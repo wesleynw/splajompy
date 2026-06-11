@@ -4,8 +4,8 @@ struct PostActionMenu<MenuLabel: View>: View {
   let post: ObservablePost?
   var showAuthor: Bool
   var onPostDeleted: () -> Void
-  var onPostPinned: () -> Void
-  var onPostUnpinned: () -> Void
+  var onPostPinned: (() -> Void)?
+  var onPostUnpinned: (() -> Void)?
   @ViewBuilder var label: () -> MenuLabel
 
   @State private var isReporting = false
@@ -20,13 +20,17 @@ struct PostActionMenu<MenuLabel: View>: View {
           if !showAuthor {
             if post.isPinned {
               Button(action: {
-                onPostUnpinned()
+                if let unpin = onPostUnpinned {  // TODO: bad
+                  unpin()
+                }
               }) {
                 Label("Unpin", systemImage: "pin.slash")
               }
             } else {
               Button(action: {
-                onPostPinned()
+                if let pin = onPostPinned {  // TODO: bad
+                  pin()
+                }
               }) {
                 Label("Pin", systemImage: "pin")
               }

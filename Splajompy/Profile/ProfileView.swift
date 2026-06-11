@@ -336,7 +336,6 @@ struct ProfileView: View {
       post in
       PostView(
         post: post,
-        postManager: postManager,
         showAuthor: false,
         onLikeButtonTapped: { viewModel.toggleLike(on: post) },
         onPostDeleted: { viewModel.deletePost(on: post) },
