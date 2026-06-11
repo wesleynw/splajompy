@@ -4,7 +4,6 @@ import SwiftUI
 struct FeedView: View {
   @State private var isShowingNewPostView: Bool = false
   @State private var viewModel: FeedViewModel
-  @Environment(AuthManager.self) private var authManager
 
   var postManager: PostStore
 
@@ -45,14 +44,14 @@ struct FeedView: View {
       .onChange(of: selectedFeedType) { _, newFeedType in
         Task {
           viewModel.feedType = newFeedType
-          await viewModel.loadPosts(reset: true, useLoadingState: true)
+          await viewModel.refreshPosts()
         }
       }
       .sheet(isPresented: $isShowingNewPostView) {
         NewPostView(
           onPostCreated: {
             Task {
-              await viewModel.loadPosts(reset: true, useLoadingState: true)
+              await viewModel.refreshPosts()
             }
           }
         )
@@ -76,7 +75,7 @@ struct FeedView: View {
             }
             Button {
               Task {
-                await viewModel.loadPosts(reset: true, useLoadingState: true)
+                await viewModel.refreshPosts()
                 PostHogSDK.shared.capture("feed_refreshed")
               }
             } label: {
@@ -97,11 +96,11 @@ struct FeedView: View {
           .controlSize(.small)
         #endif
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-    case .loaded(let postIds):
-      if postIds.isEmpty {
+    case .loaded(let posts):
+      if posts.isEmpty {
         emptyMessage
       } else {
-        postList
+        postList(posts: posts)
       }
     case .failed(let error):
       ErrorScreen(
@@ -113,17 +112,17 @@ struct FeedView: View {
     }
   }
 
-  private var postList: some View {
+  private func postList(posts: [ObservablePost]) -> some View {
     ScrollView(.vertical) {
       LazyVStack(spacing: 0) {
-        ForEach(Array(viewModel.posts.enumerated()), id: \.element.id) {
+        ForEach(Array(posts.enumerated()), id: \.element.id) {
           index,
           post in
           PostView(
             post: post,
             postManager: postManager,
             showAuthor: true,
-            onLikeButtonTapped: { viewModel.toggleLike(on: post) },
+            onLikeButtonTapped: { Task { await viewModel.toggleLike(on: post) } },
             onPostDeleted: { viewModel.deletePost(on: post) }
           )
           .geometryGroup()
@@ -140,6 +139,7 @@ struct FeedView: View {
             #if os(macOS)
               .controlSize(.small)
             #endif
+            .padding()
             .frame(maxWidth: .infinity, alignment: .center)
         } else {
           VStack(spacing: 8) {
@@ -178,7 +178,7 @@ struct FeedView: View {
       Text("Here's where you'll see posts from others.")
         .padding()
       Button {
-        Task { await viewModel.loadPosts(reset: true) }
+        Task { await viewModel.refreshPosts() }
       } label: {
         HStack {
           if case .loading = viewModel.state {

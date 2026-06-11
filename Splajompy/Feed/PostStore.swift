@@ -143,7 +143,7 @@ class PostStore {
     }
   }
 
-  func likePost(id: Int) async {
+  func togglePostLiked(id: Int) async {
     guard let currentPost = getPost(id: id) else {
       print("PostManager: Attempted to like non-existent post \(id)")
       return
@@ -239,7 +239,7 @@ class PostStore {
     limit: Int
   )
     async
-    -> Result<[DetailedPost], Error>
+    -> Result<[ObservablePost], Error>
   {
     let result = await postService.getPostsForFeedCursor(
       feedType: feedType,
@@ -248,11 +248,13 @@ class PostStore {
       limit: limit
     )
 
-    if case .success(let posts) = result {
-      cachePosts(posts)
-    }
-
-    return result
+    return
+      result
+      .mapError { $0 as Error }
+      .map { posts in
+        cachePosts(posts)
+        return getPostsById(posts.map { $0.id })
+      }
   }
 
   func pinPost(id: Int) async -> Bool {

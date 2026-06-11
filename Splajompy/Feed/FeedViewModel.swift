@@ -4,7 +4,7 @@ import SwiftUI
 enum FeedState {
   case idle
   case loading
-  case loaded([Int])
+  case loaded([ObservablePost])
   case failed(Error)
 }
 
@@ -13,11 +13,7 @@ enum FeedState {
   var userId: Int?
   var canLoadMore: Bool = true
   var state: FeedState = .idle
-  var postIds: [Int] = []
-
-  var posts: [ObservablePost] {
-    postManager.getPostsById(postIds)
-  }
+  private var isLoadingMore: Bool = false
 
   private var lastPostTimestamp: Date?
   private let fetchLimit = 10
@@ -29,14 +25,18 @@ enum FeedState {
     self.postManager = postManager
   }
 
-  func loadPosts(reset: Bool = false, useLoadingState: Bool = false) async {
-    if reset {
-      if useLoadingState == true {
-        state = .loading
-      } else if case .idle = state {
-        state = .loading
-      }
-      lastPostTimestamp = nil
+  func refreshPosts() async {
+    state = .loading
+    lastPostTimestamp = nil
+
+    await loadPosts(reset: true)
+  }
+
+  func loadPosts(reset: Bool = false) async {
+    guard !isLoadingMore else { return }
+    isLoadingMore = true
+    defer {
+      isLoadingMore = false
     }
 
     let result = await postManager.loadFeed(
@@ -47,56 +47,43 @@ enum FeedState {
     )
 
     switch result {
-    case .success(let fetchedPosts):
-      let newPostIds = fetchedPosts.map { $0.id }
-      let hasMorePosts = fetchedPosts.count >= fetchLimit
-      let lastTimestamp = fetchedPosts.last?.post.createdAt
-
-      if reset {
-        postIds = newPostIds
+    case .success(let newPosts):
+      let existingPosts: [ObservablePost]
+      if case .loaded(let posts) = state, !reset {
+        existingPosts = posts
       } else {
-        postIds.append(contentsOf: newPostIds)
+        existingPosts = []
       }
-      state = .loaded(postIds)
-      canLoadMore = hasMorePosts
-      lastPostTimestamp = lastTimestamp ?? lastPostTimestamp
-
-      if lastTimestamp == nil {
-        canLoadMore = false
-      }
-
+      lastPostTimestamp = newPosts.last?.post.createdAt ?? lastPostTimestamp
+      canLoadMore = newPosts.count >= fetchLimit
+      state = .loaded(existingPosts + newPosts)
     case .failure(let error):
       state = .failed(error)
     }
   }
 
-  func toggleLike(on post: ObservablePost) {
-    Task {
-      await postManager.likePost(id: post.id)
-    }
+  func toggleLike(on post: ObservablePost) async {
+    await postManager.togglePostLiked(id: post.id)
   }
 
-  func addComment(on post: ObservablePost, content: String) {
-    Task {
-      postManager.incrementCommentCount(for: post.id)
-    }
+  func incrementCommentCount(on post: ObservablePost) async {
+    postManager.incrementCommentCount(for: post.id)
   }
 
   func deletePost(on post: ObservablePost) {
-    if let index = postIds.firstIndex(of: post.id) {
-      postIds.remove(at: index)
-      state = .loaded(postIds)
-      PostHogSDK.shared.capture("post_deleted")
-      Task {
-        await postManager.deletePost(id: post.id)
-      }
+    guard case .loaded(let posts) = state else { return }
+    state = .loaded(posts.filter { $0.id != post.id })
+    PostHogSDK.shared.capture("post_deleted")
+    Task {
+      await postManager.deletePost(id: post.id)
     }
   }
 
   func handlePostAppear(at index: Int) {
     guard case .loaded(let currentPostIds) = state,
       index >= currentPostIds.count - 3,
-      canLoadMore
+      canLoadMore,
+      !isLoadingMore
     else { return }
 
     Task {

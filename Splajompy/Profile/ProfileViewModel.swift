@@ -78,7 +78,6 @@ extension ProfileView {
 
       switch posts {
       case .success(let fetchedPosts):
-        postManager.cachePosts(fetchedPosts)
         let postIds = fetchedPosts.map { $0.id }
 
         // update cursor timestamp to the oldest post in the batch
@@ -143,7 +142,7 @@ extension ProfileView {
 
     func toggleLike(on post: ObservablePost) {
       Task {
-        await postManager.likePost(id: post.id)
+        await postManager.togglePostLiked(id: post.id)
       }
     }
 
