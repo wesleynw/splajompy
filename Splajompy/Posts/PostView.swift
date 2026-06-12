@@ -35,7 +35,7 @@ struct PostView: View {
     }
     .contentShape(Rectangle())
     .animation(.easeInOut(duration: 0.3), value: post.isPinned)
-    .padding(.vertical, 4)
+    .padding(.vertical, 8)
     .safeAreaPadding(.horizontal, 16)
     .sheet(isPresented: $isPresentingCommentsSheet) {
       CommentsView(postId: post.post.postId, postManager: postManager)

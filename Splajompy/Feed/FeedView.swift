@@ -118,13 +118,15 @@ struct FeedView: View {
         ForEach(Array(posts.enumerated()), id: \.element.id) {
           index,
           post in
+          Divider()
+            .padding(.bottom, 4)
+
           PostView(
             post: post,
             showAuthor: true,
             onLikeButtonTapped: { Task { await viewModel.toggleLike(on: post) } },
             onPostDeleted: { viewModel.deletePost(on: post) }
           )
-          .geometryGroup()
           .onAppear {
             viewModel.handlePostAppear(at: index)
           }
@@ -141,6 +143,7 @@ struct FeedView: View {
             .padding()
             .frame(maxWidth: .infinity, alignment: .center)
         } else {
+          Divider()
           VStack(spacing: 8) {
             Text("Is that the very first post?")
             Text("What came before that?")

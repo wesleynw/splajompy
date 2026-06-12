@@ -538,20 +538,12 @@ class MockNotificationService: @unchecked Sendable, NotificationServiceProtocol 
   func getReadNotificationWithSectionsWithTimeOffset(
     beforeTime: String?, limit: Int, notificationType: String?
   ) async
-    -> Result<NotificationSectionData, Error>
+    -> Result<[Notification], Error>
   {
     let result = await getReadNotificationsWithTimeOffset(
       beforeTime: beforeTime, limit: limit, notificationType: notificationType)
 
-    switch result {
-    case .success(let notifications):
-      let sectionedNotifications = Dictionary(grouping: notifications) { notification in
-        return notification.createdAt.notificationSection()
-      }
-      return .success(NotificationSectionData(sections: sectionedNotifications))
-    case .failure(let error):
-      return .failure(error)
-    }
+    return result
   }
 
   func resetCallHistory() {

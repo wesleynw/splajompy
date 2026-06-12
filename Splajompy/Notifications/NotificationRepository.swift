@@ -93,7 +93,7 @@ protocol NotificationServiceProtocol: Sendable {
     limit: Int,
     notificationType: String?
   ) async
-    -> Result<NotificationSectionData, Error>
+    -> Result<[Notification], Error>
 }
 
 struct NotificationService: NotificationServiceProtocol {
@@ -252,7 +252,7 @@ struct NotificationService: NotificationServiceProtocol {
     limit: Int,
     notificationType: String? = nil
   ) async
-    -> Result<NotificationSectionData, Error>
+    -> Result<[Notification], Error>
   {
     let result = await getReadNotificationsWithTimeOffset(
       beforeTime: beforeTime,
@@ -260,15 +260,19 @@ struct NotificationService: NotificationServiceProtocol {
       notificationType: notificationType
     )
 
-    switch result {
-    case .success(let notifications):
-      let sectionedNotifications = Dictionary(grouping: notifications) {
-        notification in
-        return notification.createdAt.notificationSection()
-      }
-      return .success(NotificationSectionData(sections: sectionedNotifications))
-    case .failure(let error):
-      return .failure(error)
-    }
+    return result
+
+    //    switch result {
+    //    case .success(let notifications):
+    //      return .success(notifications)
+    // TODO: cleanup
+    //      let sectionedNotifications = Dictionary(grouping: notifications) {
+    //        notification in
+    //        return notification.createdAt.notificationSection()
+    //      }
+    //      return .success(NotificationSectionData(sections: sectionedNotifications))
+    //    case .failure(let error):
+    //      return .failure(error)
+    //    }
   }
 }

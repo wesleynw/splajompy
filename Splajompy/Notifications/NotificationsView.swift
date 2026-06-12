@@ -8,24 +8,24 @@ struct NotificationsView: View {
   }
 
   var body: some View {
-    ScrollView {
-      LazyVStack {
-        NotificationBreadcrumbFilter(filter: $viewModel.selectedFilter)
-          .frame(maxWidth: .infinity, alignment: .leading)
-          .contentMargins(.leading, 10, for: .scrollContent)
-          .listRowInsets(EdgeInsets())
+    List {
+      NotificationBreadcrumbFilter(filter: $viewModel.selectedFilter)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .contentMargins(.leading, 10, for: .scrollContent)
+        .listRowInsets(EdgeInsets())
+        .listRowSeparator(.hidden)
 
-        if case .loaded(let sections, let unreadNotifications) = viewModel
-          .state,
-          !sections.isEmpty || !unreadNotifications.isEmpty
-        {
-          notificationsList(
-            sections: sections,
-            unreadNotifications: unreadNotifications
-          )
-        }
+      if case .loaded(let notifications) = viewModel
+        .state,
+        !notifications.isEmpty
+      {
+        notificationsList(
+          notifications: notifications
+        )
       }
     }
+    .listStyle(.plain)
+    .listSectionSpacing(.compact)
     .overlay {
       switch viewModel.state {
       case .idle, .loading:
@@ -33,8 +33,8 @@ struct NotificationsView: View {
           #if os(macOS)
             .controlSize(.small)
           #endif
-      case .loaded(let sections, let unreadNotifications)
-      where sections.isEmpty && unreadNotifications.isEmpty:
+      case .loaded(let notifications)
+      where notifications.isEmpty:
         noNotificationsView
       case .failed(let error):
         ErrorScreen(
@@ -100,17 +100,22 @@ struct NotificationsView: View {
 
   @ViewBuilder
   private func notificationsList(
-    sections: [NotificationDateSection: [Notification]],
-    unreadNotifications: [Notification]
+    notifications: [Notification]
   ) -> some View {
-    if !unreadNotifications.isEmpty {
+    let unread = notifications.filter({ !$0.viewed })
+    if !unread.isEmpty {
       Section {
-        ForEach(unreadNotifications, id: \.notificationId) { notification in
+        ForEach(unread, id: \.notificationId) { notification in
           NotificationRow(notification: notification)
-            #if os(macOS)
-              .frame(maxWidth: 600)
-              .frame(maxWidth: .infinity)
-            #endif
+            .onAppear {
+              if notification.notificationId
+                == notifications.last?.notificationId
+              {
+                Task {
+                  await viewModel.loadMoreUnreadNotifications()
+                }
+              }
+            }
             .swipeActions(edge: .leading) {
               Button {
                 Task {
@@ -123,65 +128,30 @@ struct NotificationsView: View {
               }
               .tint(.blue)
             }
-            .onAppear {
-              if notification.notificationId
-                == unreadNotifications.last?.notificationId
-              {
-                Task {
-                  await viewModel.loadMoreUnreadNotifications()
-                }
-              }
-            }
         }
       } header: {
-        HStack {
-          Text("New")
-            .fontWeight(.semibold)
-
-          Spacer()
-
-          Button(action: {
-            viewModel.markAllNotificationsAsRead()
-          }) {
-            Text("Mark All Read")
-              .fontWeight(.semibold)
-          }
-          .controlSize(.small)
-          .buttonStyle(.bordered)
-        }
+        Text("New")
+          .fontWeight(.bold)
       }
     }
 
-    if !viewModel.hasMoreUnreadToLoad {
-      let lastSectionWithNotifications = NotificationDateSection.allCases
-        .reversed()
-        .first { sections[$0]?.isEmpty == false }
-
-      ForEach(NotificationDateSection.allCases, id: \.self) { section in
-        if let notifications = sections[section], !notifications.isEmpty {
-          Section(header: Text(section.rawValue).fontWeight(.semibold)) {
-            ForEach(notifications, id: \.notificationId) { notification in
-              NotificationRow(
-                notification: notification
-              )
-              #if os(macOS)
-                .frame(maxWidth: 600)
-                .frame(maxWidth: .infinity)
-              #endif
-              .onAppear {
-                if section == lastSectionWithNotifications
-                  && notification.notificationId
-                    == notifications.last?.notificationId
-                {
-                  Task {
-                    await viewModel.loadMoreNotifications()
-                  }
-                }
+    Section {
+      ForEach(notifications.filter({ $0.viewed }), id: \.notificationId) {
+        notification in
+        NotificationRow(notification: notification)
+          .onAppear {
+            if notification.notificationId
+              == notifications.last?.notificationId
+            {
+              Task {
+                await viewModel.loadMoreUnreadNotifications()
               }
             }
           }
-        }
       }
+    } header: {
+      Text("Older")
+        .fontWeight(.bold)
     }
 
     if viewModel.hasMoreUnreadToLoad || viewModel.hasMoreToLoad {
