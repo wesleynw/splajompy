@@ -22,7 +22,7 @@ struct ProfileView: View {
     }
 
     switch viewModel.profileState {
-    case .loaded(let user):
+    case .loaded(let user, _):
       return "@" + user.username
     default:
       return ""
@@ -30,7 +30,7 @@ struct ProfileView: View {
   }
 
   private var alertTitle: String {
-    guard case .loaded(let user) = viewModel.profileState,
+    guard case .loaded(let user, _) = viewModel.profileState,
       let alertType = activeAlert
     else {
       return ""
@@ -99,7 +99,7 @@ struct ProfileView: View {
       ) { alertType in
         switch alertType {
         case .block:
-          if case .loaded(let user) = viewModel.profileState {
+          if case .loaded(let user, _) = viewModel.profileState {
             if user.isBlocking {
               Button("Unblock") {
                 viewModel.toggleBlocking()
@@ -112,7 +112,7 @@ struct ProfileView: View {
           }
           Button("Cancel", role: .cancel) {}
         case .mute:
-          if case .loaded(let user) = viewModel.profileState {
+          if case .loaded(let user, _) = viewModel.profileState {
             if user.isMuting {
               Button("Unmute") {
                 viewModel.toggleMuting()
@@ -126,7 +126,7 @@ struct ProfileView: View {
           Button("Cancel", role: .cancel) {}
         }
       } message: { alertType in
-        if case .loaded(let user) = viewModel.profileState {
+        if case .loaded(let user, _) = viewModel.profileState {
           switch alertType {
           case .block:
             if user.isBlocking {
@@ -162,14 +162,14 @@ struct ProfileView: View {
           .controlSize(.small)
         #endif
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-    case .loaded(let user):
-      profile(user: user)
+    case .loaded(let user, let feedState):
+      profile(user: user, feedState: feedState)
     case .failed(let error):
       ErrorScreen(
         errorString: error,
         source: "ProfileView",
         onRetry: {
-          await viewModel.loadProfileAndPosts(useLoadingState: false)
+          await viewModel.loadProfileAndPosts(reset: false)
         }
       )
       .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -234,7 +234,7 @@ struct ProfileView: View {
       }()
     ) {
       Menu {
-        if case .loaded(let user) = viewModel.profileState {
+        if case .loaded(let user, _) = viewModel.profileState {
           if user.isBlocking {
             Button(role: .destructive, action: { activeAlert = .block }) {
               Label(
@@ -276,7 +276,7 @@ struct ProfileView: View {
     }
   }
 
-  private func profile(user: DetailedUser)
+  private func profile(user: DetailedUser, feedState: FeedState)
     -> some View
   {
     ScrollViewReader { proxy in
@@ -284,18 +284,18 @@ struct ProfileView: View {
         LazyVStack(spacing: 0) {
           profileHeader(user: user)
 
-          switch viewModel.postsState {
+          switch feedState {
           case .idle, .loading:
             ProgressView()
-          case .loaded(let postIds):
-            if postIds.isEmpty {
+          case .loaded(let posts):
+            if posts.isEmpty {
               emptyMessage
             } else {
-              postsContent(postIds: postIds, scrollProxy: proxy)
+              postsContent(posts: posts, scrollProxy: proxy)
             }
           case .failed(let error):
             ErrorScreen(
-              errorString: error,
+              errorString: error.localizedDescription,
               source: "ProfileView",
               onRetry: { await viewModel.loadPosts(reset: true) }
             )
@@ -315,10 +315,9 @@ struct ProfileView: View {
   }
 
   @ViewBuilder
-  private func postsContent(postIds: [Int], scrollProxy: ScrollViewProxy)
+  private func postsContent(posts: [ObservablePost], scrollProxy: ScrollViewProxy)
     -> some View
   {
-    let posts = postManager.getPostsById(postIds)
     ForEach(Array(posts.enumerated()), id: \.element.id) {
       index,
       post in
@@ -343,7 +342,7 @@ struct ProfileView: View {
       .id(post.id)
       .geometryGroup()
       .onAppear {
-        viewModel.handlePostAppear(at: index, totalCount: postIds.count)
+        viewModel.handlePostAppear(at: index, totalCount: posts.count)
       }
     }
 

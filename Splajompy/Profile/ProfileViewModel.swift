@@ -1,18 +1,10 @@
-import Foundation
 import PostHog
 import SwiftUI
 
 enum ProfileState {
   case idle
   case loading
-  case loaded(DetailedUser)
-  case failed(String)
-}
-
-enum PostsState {
-  case idle
-  case loading
-  case loaded([Int])
+  case loaded(DetailedUser, FeedState)
   case failed(String)
 }
 
@@ -25,7 +17,6 @@ extension ProfileView {
     var postManager: PostStore
 
     var profileState: ProfileState = .idle
-    var postsState: PostsState = .idle
     var updateError: String?
     var isLoading: Bool = false
     var isLoadingFollowButton: Bool = false
@@ -44,18 +35,10 @@ extension ProfileView {
       self.profileService = profileService
     }
 
-    func loadProfileAndPosts(useLoadingState: Bool = false) async {
+    func loadProfileAndPosts(reset: Bool = false) async {
       // if profile or posts are already loaded, don't reset to loading state when updating
-      // this is so dumb
-      if case .loaded(_) = profileState {
-      } else if useLoadingState {
-      } else {
+      if reset {
         profileState = .loading
-      }
-
-      if case .loaded(_) = postsState {
-      } else {
-        postsState = .loading
       }
 
       async let profileResult = profileService.getProfile(userId: userId)
@@ -69,43 +52,32 @@ extension ProfileView {
       let profile = await profileResult
       let posts = await postsResult
 
-      switch profile {
-      case .success(let DetailedUser):
-        profileState = .loaded(DetailedUser)
-      case .failure(let error):
-        profileState = .failed(error.localizedDescription)
-      }
-
-      switch posts {
-      case .success(let fetchedPosts):
-        let postIds = fetchedPosts.map { $0.id }
-
-        // update cursor timestamp to the oldest post in the batch
-        if let oldestPost = fetchedPosts.last {
-          lastPostTimestamp = oldestPost.post.createdAt
-        }
-
+      switch (profile, posts) {
+      case (.success(let user), .success(let fetchedPosts)):
+        lastPostTimestamp = fetchedPosts.last?.post.createdAt
         canLoadMorePosts = fetchedPosts.count >= fetchLimit
-        postsState = .loaded(postIds)
-      case .failure(let error):
-        postsState = .failed(error.localizedDescription)
+        profileState = .loaded(user, .loaded(fetchedPosts))
+
+      case (.success(let user), .failure(let error)):
+        profileState = .loaded(user, .failed(error))
+
+      case (.failure(let error), _):
+        profileState = .failed(error.localizedDescription)
       }
     }
 
     func loadPosts(reset: Bool = false) async {
-      guard case .loaded(_) = profileState else { return }
+      guard case .loaded(let user, let currentFeedState) = profileState else {
+        return
+      }
 
       if reset {
         lastPostTimestamp = nil
-      } else {
-        guard canLoadMorePosts else { return }
-        guard case .loaded(_) = postsState else { return }
+        profileState = .loaded(user, .loading)
       }
 
       defer {
-        if !reset {
-          isLoadingMorePosts = false
-        }
+        isLoadingMorePosts = false
       }
 
       let result = await postManager.loadFeed(
@@ -117,26 +89,19 @@ extension ProfileView {
 
       switch result {
       case .success(let fetchedPosts):
-        let finalPostIds: [Int]
-        if reset {
-          finalPostIds = fetchedPosts.map { $0.id }
-        } else {
-          if case .loaded(let currentIds) = postsState {
-            finalPostIds = currentIds + fetchedPosts.map { $0.id }
-          } else {
-            finalPostIds = fetchedPosts.map { $0.id }
+        let existing: [ObservablePost] = {
+          if case .loaded(let existingPosts) = currentFeedState {
+            return existingPosts
           }
-        }
+          return []
+        }()
 
-        // update cursor timestamp to the oldest post in the batch
-        if let oldestPost = fetchedPosts.last {
-          lastPostTimestamp = oldestPost.post.createdAt
-        }
-
-        postsState = .loaded(finalPostIds)
+        let merged = reset ? fetchedPosts : existing + fetchedPosts
+        lastPostTimestamp = fetchedPosts.last?.post.createdAt
         canLoadMorePosts = fetchedPosts.count >= fetchLimit
+        profileState = .loaded(user, .loaded(merged))
       case .failure(let error):
-        postsState = .failed(error.localizedDescription)
+        profileState = .loaded(user, .failed(error))
       }
     }
 
@@ -147,17 +112,16 @@ extension ProfileView {
     }
 
     func deletePost(on post: ObservablePost) {
-      guard case .loaded(_) = profileState else { return }
-      if case .loaded(let currentIds) = postsState,
-        let index = currentIds.firstIndex(of: post.id)
-      {
-        var updatedIds = currentIds
-        updatedIds.remove(at: index)
-        postsState = .loaded(updatedIds)
-        PostHogSDK.shared.capture("post_deleted")
-        Task {
-          await postManager.deletePost(id: post.id)
-        }
+      guard case .loaded(let user, let feedState) = profileState,
+        case .loaded(let currentPosts) = feedState
+      else { return }
+
+      let updated = currentPosts.filter { $0.id != post.id }
+      profileState = .loaded(user, .loaded(updated))
+
+      PostHogSDK.shared.capture("post_deleted")
+      Task {  // TODO: optimistic update?
+        await postManager.deletePost(id: post.id)
       }
     }
 
@@ -165,7 +129,7 @@ extension ProfileView {
       Task {
         let success = await postManager.pinPost(id: post.id)
         if success {
-          reorderPostsForPin(pinnedPostId: post.id)
+          reorderPostsForPin(pinningPost: post)
         }
       }
     }
@@ -174,7 +138,7 @@ extension ProfileView {
       Task {
         let success = await postManager.unpinPost()
         if success {
-          reorderPostsForUnpin(unpinnedPostId: post.id)
+          repositionPostChronologically(post)
         }
       }
     }
@@ -183,37 +147,38 @@ extension ProfileView {
       name: String,
       bio: String,
       displayProperties: UserDisplayProperties
-    ) {
-      isLoading = true
-      defer {
-        isLoading = false
-      }
+    ) async {
+      guard case .loaded(let user, let feedState) = profileState else { return }
 
       let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
       let trimmedBio = bio.trimmingCharacters(in: .whitespacesAndNewlines)
 
-      Task {
-        let result = await profileService.updateProfile(
-          name: trimmedName,
-          bio: trimmedBio,
-          displayProperties: displayProperties
-        )
-        switch result {
-        case .success(_):
-          if case .loaded(var profile) = profileState {
-            profile.name = trimmedName
-            profile.bio = trimmedBio
-            profile.displayProperties = displayProperties
-            profileState = .loaded(profile)
-          }
-        case .failure(let error):
-          updateError = error.localizedDescription
-        }
+      isLoading = true
+      defer { isLoading = false }
+
+      let result = await profileService.updateProfile(
+        name: trimmedName,
+        bio: trimmedBio,
+        displayProperties: displayProperties
+      )
+
+      switch result {
+      case .success:
+        var updatedUser = user
+        updatedUser.name = trimmedName
+        updatedUser.bio = trimmedBio
+        updatedUser.displayProperties = displayProperties
+        profileState = .loaded(updatedUser, feedState)
+
+      case .failure(let error):
+        updateError = error.localizedDescription
       }
     }
 
     func toggleFollowing() {
-      guard case .loaded(let profile) = profileState else { return }
+      guard case .loaded(let profile, let feedState) = profileState else {
+        return
+      }
       Task {
         isLoadingFollowButton = true
         let result = await profileService.toggleFollowing(
@@ -227,7 +192,7 @@ extension ProfileView {
           )
           var updatedProfile = profile
           updatedProfile.isFollowing.toggle()
-          profileState = .loaded(updatedProfile)
+          profileState = .loaded(updatedProfile, feedState)
         case .failure(let error):
           profileState = .failed(error.localizedDescription)
         }
@@ -236,7 +201,9 @@ extension ProfileView {
     }
 
     func toggleBlocking() {
-      guard case .loaded(let profile) = profileState else { return }
+      guard case .loaded(let profile, let feedState) = profileState else {
+        return
+      }
       Task {
         isLoadingBlockButton = true
         let result = await profileService.toggleBlocking(
@@ -248,7 +215,7 @@ extension ProfileView {
           var updatedProfile = profile
           updatedProfile.isBlocking.toggle()
           updatedProfile.isFollower = false
-          profileState = .loaded(updatedProfile)
+          profileState = .loaded(updatedProfile, feedState)
         case .failure(let error):
           profileState = .failed(error.localizedDescription)
         }
@@ -257,7 +224,9 @@ extension ProfileView {
     }
 
     func toggleMuting() {
-      guard case .loaded(let profile) = profileState else { return }
+      guard case .loaded(let profile, let feedState) = profileState else {
+        return
+      }
       Task {
         isLoadingMuteButton = true
         let result = await profileService.toggleMuting(
@@ -268,7 +237,7 @@ extension ProfileView {
         case .success(_):
           var updatedProfile = profile
           updatedProfile.isMuting.toggle()
-          profileState = .loaded(updatedProfile)
+          profileState = .loaded(updatedProfile, feedState)
         case .failure(let error):
           profileState = .failed(error.localizedDescription)
         }
@@ -277,8 +246,7 @@ extension ProfileView {
     }
 
     func handlePostAppear(at index: Int, totalCount: Int) {
-      guard case .loaded(_) = profileState,
-        case .loaded(_) = postsState,
+      guard case .loaded(_, _) = profileState,
         index >= totalCount - 3,
         canLoadMorePosts,
         !isLoadingMorePosts
@@ -291,47 +259,40 @@ extension ProfileView {
       }
     }
 
-    func reorderPostsForPin(pinnedPostId: Int) {
-      guard case .loaded(var currentIds) = postsState else { return }
+    func reorderPostsForPin(pinningPost: ObservablePost) {
+      guard case .loaded(let user, let feedState) = profileState,
+        case .loaded(var currentPosts) = feedState
+      else { return }
 
-      // If the first post is different from the one being pinned,
-      // move it to its chronological position (it was previously pinned)
-      if let firstId = currentIds.first, firstId != pinnedPostId {
-        repositionPostChronologically(firstId, in: &currentIds)
+      // if the top post is being unpinned, move it to it's chronological placement
+      if let previousPinnedPost = currentPosts.first,
+        previousPinnedPost.isPinned
+      {
+        repositionPostChronologically(previousPinnedPost)
       }
 
-      // Move newly pinned post to top
-      currentIds.removeAll { $0 == pinnedPostId }
-      currentIds.insert(pinnedPostId, at: 0)
+      // move newly pinned post to top
+      currentPosts.removeAll { $0.id == pinningPost.id }
+      currentPosts.insert(pinningPost, at: 0)
 
-      postsState = .loaded(currentIds)
-    }
-
-    func reorderPostsForUnpin(unpinnedPostId: Int) {
-      guard case .loaded(var currentIds) = postsState else { return }
-
-      if currentIds.contains(unpinnedPostId) {
-        repositionPostChronologically(unpinnedPostId, in: &currentIds)
-        postsState = .loaded(currentIds)
-      } else {
-        postsState = .loaded(currentIds.filter { $0 != unpinnedPostId })
-      }
+      profileState = .loaded(user, .loaded(currentPosts))
     }
 
     private func repositionPostChronologically(
-      _ postId: Int,
-      in currentIds: inout [Int]
+      _ post: ObservablePost,
     ) {
-      guard let post = postManager.getPost(id: postId) else { return }
+      guard case .loaded(let user, let feedState) = profileState,
+        case .loaded(var currentPosts) = feedState
+      else { return }
 
-      currentIds.removeAll { $0 == postId }
-      let posts = postManager.getPostsById(currentIds)
-      let insertIndex =
-        posts.firstIndex {
-          !$0.isPinned && $0.post.createdAt < post.post.createdAt
-        }
-        ?? currentIds.count
-      currentIds.insert(postId, at: insertIndex)
+      if let insertIndex = currentPosts.firstIndex(where: {
+        $0.post.createdAt < post.post.createdAt
+      }) {
+        currentPosts.removeAll(where: { $0.id == post.id })
+        currentPosts.insert(post, at: insertIndex)
+      }
+
+      profileState = .loaded(user, .loaded(currentPosts))
     }
   }
 }
