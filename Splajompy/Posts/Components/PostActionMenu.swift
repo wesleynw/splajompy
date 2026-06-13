@@ -15,7 +15,7 @@ struct PostActionMenu<MenuLabel: View>: View {
 
   var body: some View {
     Menu {
-      if let post, let currentUser = authManager.getCurrentUser() {
+      if let post, let currentUser = authManager.currentUser {
         if currentUser.userId == post.user.userId {
           if !showAuthor {
             if post.isPinned {

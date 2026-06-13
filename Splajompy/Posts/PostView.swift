@@ -5,13 +5,32 @@ struct PostView: View {
   @Bindable var post: ObservablePost
   var showAuthor: Bool = true
   var isStandalone: Bool = false
+  var postManager: PostStore
 
   var onLikeButtonTapped: () -> Void
   var onPostDeleted: () -> Void
   var onPostPinned: (() -> Void)?
   var onPostUnpinned: (() -> Void)?
 
-  @Environment(PostStore.self) private var postManager
+  init(
+    post: ObservablePost,
+    showAuthor: Bool = true,
+    isStandalone: Bool = false,
+    postManager: PostStore,
+    onLikeButtonTapped: @escaping () -> Void,
+    onPostDeleted: @escaping () -> Void,
+    onPostPinned: (() -> Void)? = nil,
+    onPostUnpinned: (() -> Void)? = nil
+  ) {
+    self.post = post
+    self.showAuthor = showAuthor
+    self.isStandalone = isStandalone
+    self.postManager = postManager
+    self.onLikeButtonTapped = onLikeButtonTapped
+    self.onPostDeleted = onPostDeleted
+    self.onPostPinned = onPostPinned
+    self.onPostUnpinned = onPostUnpinned
+  }
 
   @State private var isPresentingCommentsSheet: Bool = false
 
@@ -206,7 +225,10 @@ struct PostView: View {
           .padding(.horizontal, 4)
       }
 
-      LikeButtonView(isLiked: $post.isLiked, onLikeButtonTapped: onLikeButtonTapped)
+      LikeButtonView(
+        isLiked: $post.isLiked,
+        onLikeButtonTapped: onLikeButtonTapped
+      )
     }
     .frame(height: 35)
   }
@@ -241,12 +263,12 @@ struct PostView: View {
   NavigationStack {
     PostView(
       post: ObservablePost(from: post),
+      postManager: PostStore(),
       onLikeButtonTapped: {},
       onPostDeleted: {},
       onPostPinned: {},
       onPostUnpinned: {}
     )
     .environment(AuthManager())
-    .environment(PostStore())
   }
 }

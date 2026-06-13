@@ -45,6 +45,7 @@ struct StandalonePostView: View {
               post: post,
               showAuthor: true,
               isStandalone: true,
+              postManager: postManager,
               onLikeButtonTapped: { viewModel.toggleLike() },
               onPostDeleted: handlePostDeleted
             )

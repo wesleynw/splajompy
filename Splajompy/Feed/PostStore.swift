@@ -301,7 +301,7 @@ class PostStore {
   }
 
   private func currentUserPinnedPostId() -> Int? {
-    guard let currentUserId = AuthManager.shared.getCurrentUser()?.userId else {
+    guard let currentUserId = AuthManager.shared.currentUser?.userId else {
       return nil
     }
     return posts.first {

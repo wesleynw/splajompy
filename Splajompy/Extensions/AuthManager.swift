@@ -25,6 +25,7 @@ enum AuthError {
 class AuthManager: Sendable {
   var isAuthenticated: Bool = false
   var isLoading: Bool = false
+  private(set) var currentUser: CurrentUserModel?
 
   static let shared = AuthManager()
 
@@ -34,7 +35,8 @@ class AuthManager: Sendable {
 
   func checkAuthenticationState() {
     let hasToken = getAuthToken() != nil
-    let hasValidUserData = getCurrentUser() != nil
+    currentUser = getCurrentUser()
+    let hasValidUserData = currentUser != nil
 
     PostHogSDK.shared.capture(
       "auth_state_check",
@@ -108,9 +110,10 @@ class AuthManager: Sendable {
     RemoteNotificationUtilities.unregisterForRemoteNotifications()
 
     isAuthenticated = false
+    currentUser = nil
   }
 
-  func getCurrentUser() -> CurrentUserModel? {
+  private func getCurrentUser() -> CurrentUserModel? {
     let defaults = UserDefaults.standard
 
     guard let userId = defaults.object(forKey: "CurrentUserID") as? Int,
@@ -156,6 +159,7 @@ class AuthManager: Sendable {
     }
 
     isAuthenticated = true
+    currentUser = user
   }
 
   /// Request a one time code be sent to the email of the user given by the identifier.

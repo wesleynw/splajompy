@@ -5,10 +5,10 @@ struct CommentsView: View {
   var postId: Int
   var isInSheet: Bool
   var showInput: Bool
+  var postManager: PostStore
 
   @State private var viewModel: ViewModel
   @Environment(\.dismiss) private var dismiss
-  @Environment(PostStore.self) private var postManager
 
   @State private var cursorY: CGFloat = 0
   @State private var mentionViewModel =
@@ -24,6 +24,7 @@ struct CommentsView: View {
     _viewModel = State(
       wrappedValue: ViewModel(postId: postId, postManager: postManager)
     )
+    self.postManager = postManager
     self.isInSheet = isInSheet
     self.showInput = showInput
   }
@@ -38,6 +39,7 @@ struct CommentsView: View {
     self.postId = postId
     _viewModel = State(wrappedValue: viewModel)
     self.isInSheet = isInSheet
+    self.postManager = postManager
     self.showInput = showInput
   }
 
@@ -252,7 +254,7 @@ struct CommentRow: View {
         Spacer()
 
         HStack(spacing: 0) {
-          if let currentUser = authManager.getCurrentUser() {
+          if let currentUser = authManager.currentUser {
             if currentUser.userId == comment.user.userId {
               Menu(
                 content: {

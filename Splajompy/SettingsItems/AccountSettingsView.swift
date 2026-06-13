@@ -12,7 +12,7 @@ struct AccountSettingsView: View {
   var body: some View {
     List {
       Section {
-        if let user = authManager.getCurrentUser() {
+        if let user = authManager.currentUser {
           HStack {
             Text("Email")
               .foregroundStyle(.secondary)

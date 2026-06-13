@@ -29,7 +29,7 @@ struct ControversialPollView: View {
           if let poll = modifiedPoll {
             PollView(
               poll: poll,
-              authorId: authManager.getCurrentUser()?.userId ?? 0,
+              authorId: authManager.currentUser?.userId ?? 0,  // TODO: no null coalesce
               onVote: { _ in }
             )
             .padding()
