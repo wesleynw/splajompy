@@ -152,30 +152,29 @@ final class MockUserRepository: @unchecked Sendable {
 }
 
 struct MockProfileService: ProfileServiceProtocol {
-  func getNotificationActors(notificationId: Int, limit: Int, before: Date?) async -> AsyncResult<
-    PaginatedUserList
+  func getNotificationActors(notificationId: Int, limit: Int, before: Date?) async -> Result<
+    PaginatedUserList, Error
   > {
     return .success(PaginatedUserList(users: [], nextCursor: nil))
   }
 
-  func getFriends(userId: Int, limit: Int, before: Date?) async -> AsyncResult<PaginatedUserList> {
+  func getFriends(userId: Int, limit: Int, before: Date?) async -> Result<PaginatedUserList, Error>
+  {
     return .success(PaginatedUserList(users: [], nextCursor: nil))
   }
 
   private let store = MockUserRepository.shared
 
-  func getProfile(userId: Int) async -> AsyncResult<DetailedUser> {
+  func getProfile(userId: Int) async -> Result<DetailedUser, Error> {
     try? await Task.sleep(nanoseconds: 500_000_000)
     if let user = store.users[userId] {
       return .success(user)
     } else {
-      return .error(APIErrorMessage(message: "User not found"))
+      return .failure(APIErrorMessage(message: "User not found"))
     }
   }
 
-  func getUserFromUsernamePrefix(prefix: String) async -> AsyncResult<
-    [PublicUser]
-  > {
+  func getUserFromUsernamePrefix(prefix: String) async -> Result<[PublicUser], Error> {
     let baseDate = Date()
 
     return .success([
@@ -211,62 +210,52 @@ struct MockProfileService: ProfileServiceProtocol {
     bio: String,
     displayProperties: UserDisplayProperties
   ) async
-    -> AsyncResult<
-      EmptyResponse
-    >
+    -> Result<Void, Error>
   {
     try? await Task.sleep(nanoseconds: 500_000_000)
-    return .success(EmptyResponse())
+    return .success(())
   }
 
-  func toggleFollowing(userId: Int, isFollowing: Bool) async -> AsyncResult<
-    EmptyResponse
-  > {
+  func toggleFollowing(userId: Int, isFollowing: Bool) async -> Result<Void, Error> {
     try? await Task.sleep(nanoseconds: 300_000_000)
     if var user = store.users[userId] {
       user.isFollowing = isFollowing
       store.users[userId] = user
-      return .success(EmptyResponse())
+      return .success(())
     } else {
-      return .error(APIErrorMessage(message: "User not found"))
+      return .failure(APIErrorMessage(message: "User not found"))
     }
   }
 
-  func toggleBlocking(userId: Int, isBlocking: Bool) async -> AsyncResult<
-    EmptyResponse
-  > {
+  func toggleBlocking(userId: Int, isBlocking: Bool) async -> Result<Void, Error> {
     try? await Task.sleep(nanoseconds: 300_000_000)
     if var user = store.users[userId] {
       user.isBlocking = isBlocking
       store.users[userId] = user
-      return .success(EmptyResponse())
+      return .success(())
     } else {
-      return .error(APIErrorMessage(message: "User not found"))
+      return .failure(APIErrorMessage(message: "User not found"))
     }
   }
 
-  func toggleMuting(userId: Int, isMuting: Bool) async -> AsyncResult<
-    EmptyResponse
-  > {
+  func toggleMuting(userId: Int, isMuting: Bool) async -> Result<Void, Error> {
     try? await Task.sleep(nanoseconds: 300_000_000)
     if var user = store.users[userId] {
       user.isMuting = isMuting
       store.users[userId] = user
-      return .success(EmptyResponse())
+      return .success(())
     } else {
-      return .error(APIErrorMessage(message: "User not found"))
+      return .failure(APIErrorMessage(message: "User not found"))
     }
   }
 
-  func requestFeature(text: String) async -> AsyncResult<EmptyResponse> {
+  func requestFeature(text: String) async -> Result<Void, Error> {
     try? await Task.sleep(nanoseconds: 500_000_000)
-    return .success(EmptyResponse())
+    return .success(())
   }
 
   func getFollowers(userId: Int, limit: Int, before: Date?) async
-    -> AsyncResult<
-      [DetailedUser]
-    >
+    -> Result<[DetailedUser], Error>
   {
     try? await Task.sleep(nanoseconds: 300_000_000)
     let allUsers = Array(store.users.values)
@@ -292,30 +281,32 @@ struct MockProfileService: ProfileServiceProtocol {
     return .success(paginatedUsers)
   }
 
-  func getFollowing(userId: Int, limit: Int, before: Date?) async -> AsyncResult<PaginatedUserList>
-  {
+  func getFollowing(userId: Int, limit: Int, before: Date?) async -> Result<
+    PaginatedUserList, Error
+  > {
     try? await Task.sleep(nanoseconds: 300_000_000)
     let users = Array(store.users.values)
     return .success(PaginatedUserList(users: users, nextCursor: nil))
   }
 
-  func getMutuals(userId: Int, limit: Int, before: Date?) async -> AsyncResult<PaginatedUserList> {
+  func getMutuals(userId: Int, limit: Int, before: Date?) async -> Result<PaginatedUserList, Error>
+  {
     try? await Task.sleep(nanoseconds: 300_000_000)
     let mutualUsers = Array(store.users.values).filter { $0.isFollower && $0.isFollowing }
     return .success(PaginatedUserList(users: mutualUsers, nextCursor: nil))
   }
 
-  func addFriend(userId: Int) async -> AsyncResult<EmptyResponse> {
+  func addFriend(userId: Int) async -> Result<Void, Error> {
     try? await Task.sleep(nanoseconds: 300_000_000)
-    return .success(EmptyResponse())
+    return .success(())
   }
 
-  func removeFriend(userId: Int) async -> AsyncResult<EmptyResponse> {
+  func removeFriend(userId: Int) async -> Result<Void, Error> {
     try? await Task.sleep(nanoseconds: 300_000_000)
-    return .success(EmptyResponse())
+    return .success(())
   }
 
-  func getAppStatistics() async -> AsyncResult<AppStatistics> {
+  func getAppStatistics() async -> Result<AppStatistics, Error> {
     try? await Task.sleep(nanoseconds: 500_000_000)
     return .success(
       AppStatistics(

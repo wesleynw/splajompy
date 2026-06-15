@@ -149,4 +149,22 @@ struct Mocks {
     ),
     generatedUtc: Date()
   )
+
+  static let notification: Notification = Notification(
+    notificationId: 0,
+    userId: 0,
+    postId: nil,
+    commentId: nil,
+    targetUserId: nil,
+    targetUserUsername: nil,
+    message: "new notification!",
+    link: nil,
+    viewed: false,
+    createdAt: Date(),
+    imageBlob: nil,
+    imageWidth: nil,
+    imageHeight: nil,
+    facets: nil,
+    notificationType: "mention",
+  )
 }

@@ -3,7 +3,7 @@ import SwiftUI
 enum NotificationState {
   case idle
   case loading
-  case loaded([NotificationDateSection: [Notification]], [Notification])
+  case loaded([Notification])
   case failed(Error)
 }
 
@@ -119,27 +119,27 @@ extension NotificationsView {
 
       switch (unreadRes, readRes) {
       case (.success(let unreadNotifications), .success(let readSectionData)):
-        state = .loaded(readSectionData.sections, unreadNotifications)
+        state = .loaded(readSectionData + unreadNotifications)
 
         updateLoadingState(newCount: unreadNotifications.count, isUnread: true)
         updateLoadingState(
-          newCount: readSectionData.sections.values.flatMap { $0 }.count,
+          newCount: readSectionData.compactMap { $0 }.count,  // TODO: do i need compact map here?
           isUnread: false
         )
 
-        let allReadNotifications = readSectionData.sections.values.flatMap {
+        let allReadNotifications = readSectionData.compactMap {
           $0
         }
         updateLastTimestamp(from: allReadNotifications, isUnread: false)
         updateLastTimestamp(from: unreadNotifications, isUnread: true)
-      case (.error(let error), _), (_, .error(let error)):
+      case (.failure(let error), _), (_, .failure(let error)):
         state = .failed(error)
       }
     }
 
     func loadMoreUnreadNotifications() async {
       guard !isFetchingUnread else { return }
-      guard case .loaded(let sections, let unreadNotifications) = state else { return }
+      guard case .loaded(let notifications) = state else { return }
 
       isFetchingUnread = true
       defer { isFetchingUnread = false }
@@ -155,30 +155,26 @@ extension NotificationsView {
       )
 
       switch result {
-      case .success(let newUnreadNotifications):
-        let existingIds = Set(unreadNotifications.map { $0.notificationId })
-        let uniqueNewNotifications = newUnreadNotifications.filter {
+      case .success(let newUnread):
+        let existingIds = Set(notifications.map { $0.notificationId })
+        let unique = newUnread.filter {
           !existingIds.contains($0.notificationId)
         }
-
-        state = .loaded(sections, unreadNotifications + uniqueNewNotifications)
-
-        updateLoadingState(
-          newCount: uniqueNewNotifications.count,
-          isUnread: true
-        )
-
-        if !uniqueNewNotifications.isEmpty {
-          updateLastTimestamp(from: uniqueNewNotifications, isUnread: true)
+        state = .loaded(notifications + unique)
+        updateLoadingState(newCount: unique.count, isUnread: true)
+        if !unique.isEmpty {
+          updateLastTimestamp(from: unique, isUnread: true)
         }
-      case .error(let error):
+      case .failure(let error):
         state = .failed(error)
       }
     }
 
     func loadMoreNotifications() async {
       guard !isFetching else { return }
-      guard case .loaded(var sections, let unreadNotifications) = state else { return }
+      guard case .loaded(let notifications) = state else {
+        return
+      }
 
       isFetching = true
       defer { isFetching = false }
@@ -193,68 +189,30 @@ extension NotificationsView {
       )
 
       switch result {
-      case .success(let newSectionData):
-        for (section, notifications) in newSectionData.sections {
-          if let existingNotifications = sections[section] {
-            let existingIds = Set(
-              existingNotifications.map { $0.notificationId }
-            )
-            let newUniqueNotifications = notifications.filter {
-              !existingIds.contains($0.notificationId)
-            }
-
-            sections[section] = existingNotifications + newUniqueNotifications
-          } else {
-            sections[section] = notifications
-          }
+      case .success(let newRead):
+        let existingIds = Set(notifications.map { $0.notificationId })
+        let unique = newRead.filter { !existingIds.contains($0.notificationId) }
+        state = .loaded(notifications + unique)
+        updateLoadingState(newCount: unique.count, isUnread: false)
+        if !unique.isEmpty {
+          updateLastTimestamp(from: unique, isUnread: false)
         }
-
-        state = .loaded(sections, unreadNotifications)
-
-        let allNewNotifications = newSectionData.sections.values.flatMap {
-          $0
-        }
-        updateLoadingState(
-          newCount: allNewNotifications.count,
-          isUnread: false
-        )
-
-        if !allNewNotifications.isEmpty {
-          updateLastTimestamp(from: allNewNotifications, isUnread: false)
-        }
-      case .error(let error):
+      case .failure(let error):
         state = .failed(error)
       }
     }
 
     func markNotificationAsRead(notificationId: Int) async {
-      guard case .loaded(var sections, var unreadNotifications) = state else {
-        return
+      guard case .loaded(var notifications) = state else { return }
+
+      if let index = notifications.firstIndex(where: { $0.id == notificationId }
+      ) {
+        notifications[index].viewed = true
       }
 
-      if let unreadIndex = unreadNotifications.firstIndex(where: {
-        $0.notificationId == notificationId
-      }) {
-        var movedNotification = unreadNotifications.remove(at: unreadIndex)
-        movedNotification.viewed = true
-
-        let section = movedNotification.createdAt.notificationSection()
-
-        if var existingNotifications = sections[section] {
-          if !existingNotifications.contains(where: {
-            $0.notificationId == movedNotification.notificationId
-          }) {
-            existingNotifications.append(movedNotification)
-            sections[section] = sortNotificationsByDate(existingNotifications)
-          }
-        } else {
-          sections[section] = [movedNotification]
-        }
-
-        await MainActor.run {
-          withAnimation(.easeInOut(duration: 0.3)) {
-            state = .loaded(sections, unreadNotifications)
-          }
+      await MainActor.run {
+        withAnimation(.easeInOut(duration: 0.3)) {
+          state = .loaded(notifications)
         }
       }
 
@@ -264,40 +222,19 @@ extension NotificationsView {
     }
 
     func markAllNotificationsAsRead() {
-      guard case .loaded(var sections, let unreadNotifications) = state else {
+      guard case .loaded(let notifications) = state else {
         return
       }
 
-      for (section, notifications) in sections {
-        let updatedNotifications = notifications.map { notification in
-          var updated = notification
-          updated.viewed = true
-          return updated
-        }
-        sections[section] = updatedNotifications
-      }
-
-      for var unreadNotification in unreadNotifications {
-        unreadNotification.viewed = true
-
-        let section = unreadNotification.createdAt.notificationSection()
-
-        if var existingNotifications = sections[section] {
-          if !existingNotifications.contains(where: {
-            $0.notificationId == unreadNotification.notificationId
-          }) {
-            existingNotifications.append(unreadNotification)
-            sections[section] = sortNotificationsByDate(existingNotifications)
-          }
-        } else {
-          sections[section] = [unreadNotification]
-        }
-      }
+      // leave ui state
+      //      for index in notifications.indices {
+      //        notifications[index].viewed = true
+      //      }
 
       Task {
         await MainActor.run {
           withAnimation(.easeInOut(duration: 0.3)) {
-            state = .loaded(sections, [])
+            state = .loaded(notifications)
           }
         }
 

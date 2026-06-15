@@ -9,7 +9,7 @@ struct PollView: View {
 
   private var adjustedPercentages: [Int] {
     guard poll.voteTotal > 0,
-      poll.currentUserVote != nil || authManager.getCurrentUser()?.userId == authorId
+      poll.currentUserVote != nil || authManager.currentUser?.userId == authorId
     else {
       return Array(repeating: 0, count: poll.options.count)
     }
@@ -40,7 +40,7 @@ struct PollView: View {
             isSelected: index == poll.currentUserVote,
             option: option,
             showResults: poll.currentUserVote != nil
-              || authManager.getCurrentUser()?.userId == authorId,
+              || authManager.currentUser?.userId == authorId,
             totalVotes: poll.voteTotal,
             percentage: adjustedPercentages[index],
             onTap: { onVote(index) }

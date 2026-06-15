@@ -3,20 +3,16 @@ import SwiftUI
 struct NotificationRow: View {
   let notification: Notification
 
-  private func relativeDate(from createdAt: String) -> String {
-    let date = sharedISO8601Formatter.date(from: createdAt) ?? Date()
-    return sharedRelativeDateTimeFormatter.localizedString(
-      for: date,
-      relativeTo: Date()
-    )
-  }
-
   var body: some View {
-    if let postId = notification.postId, notification.notificationType == "like",
+    if let postId = notification.postId,
+      notification.notificationType == "like",
       notification.hasNotificationActors == true
     {
       NavigationLink(
-        value: Route.notificationActorsList(notificationId: notification.id, postId: postId)
+        value: Route.notificationActorsList(
+          notificationId: notification.id,
+          postId: postId
+        )
       ) {
         notificationContent
       }
@@ -38,7 +34,7 @@ struct NotificationRow: View {
   }
 
   private var notificationContent: some View {
-    HStack(alignment: .top, spacing: 10) {
+    HStack(alignment: .center, spacing: 10) {
       NotificationIcon.icon(for: notification.notificationType)
         .frame(width: 28, height: 28)
 
@@ -58,9 +54,9 @@ struct NotificationRow: View {
             }
           }
 
-          Spacer(minLength: 0)
-
           if let blobUrl = notification.imageBlob {
+            Spacer(minLength: 0)
+
             NotificationImageView(
               url: blobUrl
             )
@@ -77,8 +73,14 @@ struct NotificationRow: View {
         }
       }
     }
+    .frame(maxWidth: .infinity, alignment: .leading)
     .padding(.vertical, 12)
-    .listRowSeparator(.visible)
-    .listRowSeparatorTint(.secondary.opacity(0.3))
   }
+}
+
+#Preview {
+  NotificationRow(
+    notification: Mocks.notification
+  )
+  .padding()
 }

@@ -60,7 +60,7 @@ enum WrappedEligibilityState: Equatable {
   var eligibility: WrappedEligibilityState = .idle
 
   func loadEligibility() async {
-    let result: AsyncResult<Bool> = await APIService.performRequest(
+    let result: Result<Bool, Error> = await APIService.performRequest(
       endpoint: "wrapped/eligibility",
       method: "GET"
     )
@@ -77,13 +77,13 @@ enum WrappedEligibilityState: Equatable {
 
     state = .loading
 
-    let result: AsyncResult<WrappedData> =
+    let result: Result<WrappedData, Error> =
       await APIService.performRequest(endpoint: "wrapped")
 
     switch result {
     case .success(let data):
       state = .loaded(data)
-    case .error(let error):
+    case .failure(let error):
       state = .failed(error.localizedDescription)
     }
   }

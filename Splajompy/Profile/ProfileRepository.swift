@@ -7,67 +7,51 @@ struct UpdateProfileRequest: Encodable {
 }
 
 protocol ProfileServiceProtocol: Sendable {
-  func getProfile(userId: Int) async -> AsyncResult<DetailedUser>
-  func getUserFromUsernamePrefix(prefix: String) async -> AsyncResult<
-    [PublicUser]
-  >
+  func getProfile(userId: Int) async -> Result<DetailedUser, Error>
+  func getUserFromUsernamePrefix(prefix: String) async -> Result<[PublicUser], Error>
   func updateProfile(
     name: String,
     bio: String,
     displayProperties: UserDisplayProperties
   ) async
-    -> AsyncResult<
-      EmptyResponse
-    >
-  func toggleFollowing(userId: Int, isFollowing: Bool) async -> AsyncResult<
-    EmptyResponse
-  >
-  func toggleBlocking(userId: Int, isBlocking: Bool) async -> AsyncResult<
-    EmptyResponse
-  >
-  func toggleMuting(userId: Int, isMuting: Bool) async -> AsyncResult<
-    EmptyResponse
-  >
-  func requestFeature(text: String) async -> AsyncResult<EmptyResponse>
+    -> Result<Void, Error>
+  func toggleFollowing(userId: Int, isFollowing: Bool) async -> Result<Void, Error>
+  func toggleBlocking(userId: Int, isBlocking: Bool) async -> Result<Void, Error>
+  func toggleMuting(userId: Int, isMuting: Bool) async -> Result<Void, Error>
+  func requestFeature(text: String) async -> Result<Void, Error>
 
   /// Fetch users that the given user is following.
   func getFollowing(userId: Int, limit: Int, before: Date?) async
-    -> AsyncResult<PaginatedUserList>
+    -> Result<PaginatedUserList, Error>
 
-  func getMutuals(userId: Int, limit: Int, before: Date?) async -> AsyncResult<
-    PaginatedUserList
-  >
+  func getMutuals(userId: Int, limit: Int, before: Date?) async -> Result<PaginatedUserList, Error>
 
   /// Fetch friends of a target user.
-  func getFriends(userId: Int, limit: Int, before: Date?) async -> AsyncResult<
-    PaginatedUserList
-  >
+  func getFriends(userId: Int, limit: Int, before: Date?) async -> Result<PaginatedUserList, Error>
 
   /// Fetches a list of users who have contributed to a notification.
   func getNotificationActors(notificationId: Int, limit: Int, before: Date?)
-    async -> AsyncResult<PaginatedUserList>
+    async -> Result<PaginatedUserList, Error>
 
   /// Add a user to the current user's friends list.
-  func addFriend(userId: Int) async -> AsyncResult<EmptyResponse>
+  func addFriend(userId: Int) async -> Result<Void, Error>
 
   /// Remove a user from the current user's friends list.
-  func removeFriend(userId: Int) async -> AsyncResult<EmptyResponse>
+  func removeFriend(userId: Int) async -> Result<Void, Error>
 
   /// Fetch statistics about app.
-  func getAppStatistics() async -> AsyncResult<AppStatistics>
+  func getAppStatistics() async -> Result<AppStatistics, Error>
 }
 
 struct ProfileService: ProfileServiceProtocol {
-  func getProfile(userId: Int) async -> AsyncResult<DetailedUser> {
+  func getProfile(userId: Int) async -> Result<DetailedUser, Error> {
     return await APIService.performRequest(
       endpoint: "user/\(userId)",
       method: "GET"
     )
   }
 
-  func getUserFromUsernamePrefix(prefix: String) async -> AsyncResult<
-    [PublicUser]
-  > {
+  func getUserFromUsernamePrefix(prefix: String) async -> Result<[PublicUser], Error> {
     let queryItems = [URLQueryItem(name: "prefix", value: "\(prefix)")]
     return await APIService.performRequest(
       endpoint: "users/search",
@@ -80,9 +64,7 @@ struct ProfileService: ProfileServiceProtocol {
     bio: String,
     displayProperties: UserDisplayProperties
   ) async
-    -> AsyncResult<
-      EmptyResponse
-    >
+    -> Result<Void, Error>
   {
     let request = UpdateProfileRequest(
       name: name,
@@ -93,7 +75,7 @@ struct ProfileService: ProfileServiceProtocol {
     do {
       requestData = try JSONEncoder().encode(request)
     } catch {
-      return .error(error)
+      return .failure(error)
     }
     return await APIService.performRequest(
       endpoint: "user/profile",
@@ -102,9 +84,7 @@ struct ProfileService: ProfileServiceProtocol {
     )
   }
 
-  func toggleFollowing(userId: Int, isFollowing: Bool) async -> AsyncResult<
-    EmptyResponse
-  > {
+  func toggleFollowing(userId: Int, isFollowing: Bool) async -> Result<Void, Error> {
     let method = isFollowing ? "DELETE" : "POST"
     return await APIService.performRequest(
       endpoint: "follow/\(userId)",
@@ -112,9 +92,7 @@ struct ProfileService: ProfileServiceProtocol {
     )
   }
 
-  func toggleBlocking(userId: Int, isBlocking: Bool) async -> AsyncResult<
-    EmptyResponse
-  > {
+  func toggleBlocking(userId: Int, isBlocking: Bool) async -> Result<Void, Error> {
     let method = isBlocking ? "DELETE" : "POST"
     return await APIService.performRequest(
       endpoint: "user/\(userId)/block",
@@ -122,9 +100,7 @@ struct ProfileService: ProfileServiceProtocol {
     )
   }
 
-  func toggleMuting(userId: Int, isMuting: Bool) async -> AsyncResult<
-    EmptyResponse
-  > {
+  func toggleMuting(userId: Int, isMuting: Bool) async -> Result<Void, Error> {
     let method = isMuting ? "DELETE" : "POST"
     return await APIService.performRequest(
       endpoint: "user/\(userId)/mute",
@@ -132,7 +108,7 @@ struct ProfileService: ProfileServiceProtocol {
     )
   }
 
-  func requestFeature(text: String) async -> AsyncResult<EmptyResponse> {
+  func requestFeature(text: String) async -> Result<Void, Error> {
     struct Container: Codable {
       let text: String
     }
@@ -149,7 +125,7 @@ struct ProfileService: ProfileServiceProtocol {
   }
 
   func getFollowing(userId: Int, limit: Int, before: Date?) async
-    -> AsyncResult<PaginatedUserList>
+    -> Result<PaginatedUserList, Error>
   {
     var queryItems = [URLQueryItem(name: "limit", value: "\(limit)")]
     if let before = before {
@@ -165,9 +141,8 @@ struct ProfileService: ProfileServiceProtocol {
     )
   }
 
-  func getMutuals(userId: Int, limit: Int, before: Date?) async -> AsyncResult<
-    PaginatedUserList
-  > {
+  func getMutuals(userId: Int, limit: Int, before: Date?) async -> Result<PaginatedUserList, Error>
+  {
     var queryItems = [URLQueryItem(name: "limit", value: "\(limit)")]
     if let before = before {
       let formatter = ISO8601DateFormatter()
@@ -182,9 +157,8 @@ struct ProfileService: ProfileServiceProtocol {
     )
   }
 
-  func getFriends(userId: Int, limit: Int, before: Date?) async -> AsyncResult<
-    PaginatedUserList
-  > {
+  func getFriends(userId: Int, limit: Int, before: Date?) async -> Result<PaginatedUserList, Error>
+  {
     var queryItems = [URLQueryItem(name: "limit", value: "\(limit)")]
     if let before = before {
       let formatter = ISO8601DateFormatter()
@@ -200,7 +174,7 @@ struct ProfileService: ProfileServiceProtocol {
   }
 
   func getNotificationActors(notificationId: Int, limit: Int, before: Date?)
-    async -> AsyncResult<PaginatedUserList>
+    async -> Result<PaginatedUserList, Error>
   {
     var queryItems = [
       URLQueryItem(name: "limit", value: "\(limit)")
@@ -220,21 +194,21 @@ struct ProfileService: ProfileServiceProtocol {
     )
   }
 
-  func addFriend(userId: Int) async -> AsyncResult<EmptyResponse> {
+  func addFriend(userId: Int) async -> Result<Void, Error> {
     return await APIService.performRequest(
       endpoint: "user/\(userId)/friend",
       method: "POST"
     )
   }
 
-  func removeFriend(userId: Int) async -> AsyncResult<EmptyResponse> {
+  func removeFriend(userId: Int) async -> Result<Void, Error> {
     return await APIService.performRequest(
       endpoint: "user/\(userId)/friend",
       method: "DELETE"
     )
   }
 
-  func getAppStatistics() async -> AsyncResult<AppStatistics> {
+  func getAppStatistics() async -> Result<AppStatistics, Error> {
     return await APIService.performRequest(
       endpoint: "stats",
       method: "GET"

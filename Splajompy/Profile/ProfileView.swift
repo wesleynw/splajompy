@@ -1,21 +1,19 @@
 import PostHog
 import SwiftUI
 
-/// The primary view for displaying a user's profile
 struct ProfileView: View {
   let username: String?
   let userId: Int
   let isProfileTab: Bool
 
-  @State private var isShowingProfileEditor: Bool = false
+  @State private var isPresentingProfileEditor: Bool = false
   @State private var activeAlert: ProfileAlertEnum?
   @State private var viewModel: ViewModel
   @Environment(AuthManager.self) private var authManager
   var postManager: PostStore
 
-  private var isCurrentUser: Bool {
-    guard let currentUser = authManager.getCurrentUser() else { return false }
-    return currentUser.userId == userId
+  private var isProfileSelf: Bool {
+    authManager.currentUser?.userId == self.userId
   }
 
   private var computedTitle: String {
@@ -24,7 +22,7 @@ struct ProfileView: View {
     }
 
     switch viewModel.profileState {
-    case .loaded(let user):
+    case .loaded(let user, _):
       return "@" + user.username
     default:
       return ""
@@ -32,7 +30,7 @@ struct ProfileView: View {
   }
 
   private var alertTitle: String {
-    guard case .loaded(let user) = viewModel.profileState,
+    guard case .loaded(let user, _) = viewModel.profileState,
       let alertType = activeAlert
     else {
       return ""
@@ -66,123 +64,115 @@ struct ProfileView: View {
   }
 
   var body: some View {
-    VStack {
-      switch viewModel.profileState {
-      case .idle, .loading:
-        ProgressView()
-          #if os(macOS)
-            .controlSize(.small)
-          #endif
-          .frame(maxWidth: .infinity, maxHeight: .infinity)
-      case .loaded(let user):
-        profile(user: user)
-      case .failed(let error):
-        ErrorScreen(
-          errorString: error,
-          source: "ProfileView",
-          onRetry: {
-            await viewModel.loadProfileAndPosts(useLoadingState: false)
-          }
-        )
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-      }
-    }
-    .onAppear {
-      if case .idle = viewModel.profileState {
-        Task {
+    mainContent
+      .task {
+        if case .idle = viewModel.profileState {
           await viewModel.loadProfileAndPosts()
         }
       }
-    }
-    .sheet(isPresented: $isShowingProfileEditor) {
-      ProfileEditorView(viewModel: viewModel)
-        .postHogScreenView()
-        .interactiveDismissDisabled()
-    }
-    .alert(
-      "Update Failed",
-      isPresented: Binding(
-        get: { viewModel.updateError != nil },
-        set: { if !$0 { viewModel.updateError = nil } }
-      )
-    ) {
-      Button("OK", role: .cancel) { viewModel.updateError = nil }
-    } message: {
-      Text(viewModel.updateError ?? "")
-    }
-    #if os(iOS)
-      .navigationBarTitleDisplayMode(.inline)
-      .toolbarRole(.browser)
-    #endif
-    .navigationTitle(computedTitle)
-    .toolbar {
-      #if os(iOS)
-        titleToolbar()
-      #endif
-
-      menuToolbar()
-    }
-    .alert(
-      alertTitle,
-      isPresented: Binding(
-        get: { activeAlert != nil },
-        set: { if !$0 { activeAlert = nil } }
-      ),
-      presenting: activeAlert
-    ) { alertType in
-      switch alertType {
-      case .block:
-        if case .loaded(let user) = viewModel.profileState {
-          if user.isBlocking {
-            Button("Unblock") {
-              viewModel.toggleBlocking()
-            }
-          } else {
-            Button("Block", role: .destructive) {
-              viewModel.toggleBlocking()
-            }
-          }
-        }
-        Button("Cancel", role: .cancel) {}
-      case .mute:
-        if case .loaded(let user) = viewModel.profileState {
-          if user.isMuting {
-            Button("Unmute") {
-              viewModel.toggleMuting()
-            }
-          } else {
-            Button("Mute", role: .destructive) {
-              viewModel.toggleMuting()
-            }
-          }
-        }
-        Button("Cancel", role: .cancel) {}
+      .sheet(isPresented: $isPresentingProfileEditor) {
+        ProfileEditorView(viewModel: viewModel)
+          .postHogScreenView()
+          .interactiveDismissDisabled()
       }
-    } message: { alertType in
-      if case .loaded(let user) = viewModel.profileState {
+      #if os(iOS)
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbarRole(.browser)
+      #endif
+      .navigationTitle(computedTitle)
+      .toolbar {
+        #if os(iOS)
+          titleToolbar()
+        #endif
+
+        if !isProfileSelf {
+          profileActionsToolbar()
+        }
+      }
+      .alert(
+        alertTitle,
+        isPresented: Binding(
+          get: { activeAlert != nil },
+          set: { if !$0 { activeAlert = nil } }
+        ),
+        presenting: activeAlert
+      ) { alertType in
         switch alertType {
         case .block:
-          if user.isBlocking {
-            Text(
-              "Unblocking this person will allow you to see their posts and interact with them again."
-            )
-          } else {
-            Text(
-              "Blocking this person will unfollow them and prevent you from seeing their posts. They will be unable to see your presence on the app."
-            )
+          if case .loaded(let user, _) = viewModel.profileState {
+            if user.isBlocking {
+              Button("Unblock") {
+                viewModel.toggleBlocking()
+              }
+            } else {
+              Button("Block", role: .destructive) {
+                viewModel.toggleBlocking()
+              }
+            }
           }
+          Button("Cancel", role: .cancel) {}
         case .mute:
-          if user.isMuting {
-            Text(
-              "Unmuting this person will show their posts in your feeds again."
-            )
-          } else {
-            Text(
-              "Muting this person will hide their posts from your feeds. You'll continue to follow them and they will not be aware that they are muted."
-            )
+          if case .loaded(let user, _) = viewModel.profileState {
+            if user.isMuting {
+              Button("Unmute") {
+                viewModel.toggleMuting()
+              }
+            } else {
+              Button("Mute", role: .destructive) {
+                viewModel.toggleMuting()
+              }
+            }
+          }
+          Button("Cancel", role: .cancel) {}
+        }
+      } message: { alertType in
+        if case .loaded(let user, _) = viewModel.profileState {
+          switch alertType {
+          case .block:
+            if user.isBlocking {
+              Text(
+                "Unblocking this person will allow you to see their posts and interact with them again."
+              )
+            } else {
+              Text(
+                "Blocking this person will unfollow them and prevent you from seeing their posts. They will be unable to see your presence on the app."
+              )
+            }
+          case .mute:
+            if user.isMuting {
+              Text(
+                "Unmuting this person will show their posts in your feeds again."
+              )
+            } else {
+              Text(
+                "Muting this person will hide their posts from your feeds. You'll continue to follow them and they will not be aware that they are muted."
+              )
+            }
           }
         }
       }
+  }
+
+  @ViewBuilder
+  private var mainContent: some View {
+    switch viewModel.profileState {
+    case .idle, .loading:
+      ProgressView()
+        #if os(macOS)
+          .controlSize(.small)
+        #endif
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    case .loaded(let user, let feedState):
+      profile(user: user, feedState: feedState)
+    case .failed(let error):
+      ErrorScreen(
+        errorString: error,
+        source: "ProfileView",
+        onRetry: {
+          await viewModel.loadProfileAndPosts(reset: false)
+        }
+      )
+      .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
   }
 
@@ -233,62 +223,60 @@ struct ProfileView: View {
   #endif
 
   @ToolbarContentBuilder
-  private func menuToolbar() -> some ToolbarContent {
+  private func profileActionsToolbar() -> some ToolbarContent {
     ToolbarItem(
       placement: {
         #if os(iOS)
-          .topBarTrailing
+          .automatic
         #else
           .primaryAction
         #endif
       }()
     ) {
-      if !isProfileTab && !isCurrentUser {
-        Menu {
-          if case .loaded(let user) = viewModel.profileState {
-            if user.isBlocking {
-              Button(role: .destructive, action: { activeAlert = .block }) {
-                Label(
-                  "Unblock @\(user.username)",
-                  systemImage: "person.fill.checkmark"
-                )
-              }
-            } else {
-              Button(role: .destructive, action: { activeAlert = .block }) {
-                Label(
-                  "Block @\(user.username)",
-                  systemImage: "person.fill.xmark"
-                )
-              }
+      Menu {
+        if case .loaded(let user, _) = viewModel.profileState {
+          if user.isBlocking {
+            Button(role: .destructive, action: { activeAlert = .block }) {
+              Label(
+                "Unblock @\(user.username)",
+                systemImage: "person.fill.checkmark"
+              )
             }
-
-            if user.isMuting {
-              Button(action: { activeAlert = .mute }) {
-                Label(
-                  "Unmute @\(user.username)",
-                  systemImage: "speaker.wave.2"
-                )
-              }
-            } else {
-              Button(action: { activeAlert = .mute }) {
-                Label(
-                  "Mute @\(user.username)",
-                  systemImage: "speaker.slash"
-                )
-              }
+          } else {
+            Button(role: .destructive, action: { activeAlert = .block }) {
+              Label(
+                "Block @\(user.username)",
+                systemImage: "person.fill.xmark"
+              )
             }
           }
-        } label: {
-          Image(systemName: "ellipsis.circle")
+
+          if user.isMuting {
+            Button(action: { activeAlert = .mute }) {
+              Label(
+                "Unmute @\(user.username)",
+                systemImage: "speaker.wave.2"
+              )
+            }
+          } else {
+            Button(action: { activeAlert = .mute }) {
+              Label(
+                "Mute @\(user.username)",
+                systemImage: "speaker.slash"
+              )
+            }
+          }
         }
-        .disabled(
-          viewModel.isLoadingBlockButton || viewModel.isLoadingMuteButton
-        )
+      } label: {
+        Image(systemName: "ellipsis.circle")
       }
+      .disabled(
+        viewModel.isLoadingBlockButton || viewModel.isLoadingMuteButton
+      )
     }
   }
 
-  private func profile(user: DetailedUser)
+  private func profile(user: DetailedUser, feedState: FeedState)
     -> some View
   {
     ScrollViewReader { proxy in
@@ -296,18 +284,18 @@ struct ProfileView: View {
         LazyVStack(spacing: 0) {
           profileHeader(user: user)
 
-          switch viewModel.postsState {
+          switch feedState {
           case .idle, .loading:
             ProgressView()
-          case .loaded(let postIds):
-            if postIds.isEmpty {
+          case .loaded(let posts):
+            if posts.isEmpty {
               emptyMessage
             } else {
-              postsContent(postIds: postIds, scrollProxy: proxy)
+              postsContent(posts: posts, scrollProxy: proxy)
             }
           case .failed(let error):
             ErrorScreen(
-              errorString: error,
+              errorString: error.localizedDescription,
               source: "ProfileView",
               onRetry: { await viewModel.loadPosts(reset: true) }
             )
@@ -327,17 +315,16 @@ struct ProfileView: View {
   }
 
   @ViewBuilder
-  private func postsContent(postIds: [Int], scrollProxy: ScrollViewProxy)
+  private func postsContent(posts: [ObservablePost], scrollProxy: ScrollViewProxy)
     -> some View
   {
-    let posts = postManager.getPostsById(postIds)
     ForEach(Array(posts.enumerated()), id: \.element.id) {
       index,
       post in
       PostView(
         post: post,
-        postManager: postManager,
         showAuthor: false,
+        postManager: postManager,
         onLikeButtonTapped: { viewModel.toggleLike(on: post) },
         onPostDeleted: { viewModel.deletePost(on: post) },
         onPostPinned: {
@@ -355,7 +342,7 @@ struct ProfileView: View {
       .id(post.id)
       .geometryGroup()
       .onAppear {
-        viewModel.handlePostAppear(at: index, totalCount: postIds.count)
+        viewModel.handlePostAppear(at: index, totalCount: posts.count)
       }
     }
 
@@ -379,7 +366,7 @@ struct ProfileView: View {
           .fixedSize(horizontal: false, vertical: true)
       }
 
-      if !isProfileTab && !isCurrentUser && user.isMuting {
+      if !isProfileTab && !isProfileSelf && user.isMuting {
         HStack(spacing: 6) {
           Image(systemName: "speaker.slash.fill")
             .font(.system(size: 14))
@@ -395,11 +382,11 @@ struct ProfileView: View {
         .cornerRadius(8)
       }
 
-      if !isProfileTab && !isCurrentUser {
+      if !isProfileSelf {
         RelationshipIndicator(user: user)
       }
 
-      if !isProfileTab && !isCurrentUser {
+      if !isProfileSelf {
         if !user.isBlocking {
           if user.isFollowing {
             Button(action: viewModel.toggleFollowing) {
@@ -444,9 +431,9 @@ struct ProfileView: View {
           }
           .buttonStyle(.bordered)
         }
-      } else if isProfileTab && isCurrentUser {
+      } else if isProfileTab && isProfileSelf {
         HStack(spacing: 12) {
-          Button(action: { isShowingProfileEditor = true }) {
+          Button(action: { isPresentingProfileEditor = true }) {
             Text("Edit Profile")
               .frame(maxWidth: .infinity)
           }
@@ -478,12 +465,9 @@ struct ProfileView: View {
   }
 
   private var emptyMessage: some View {
-    VStack {
-      Spacer()
-      Text(isCurrentUser ? "Your posts will show up here." : "No posts here.")
-        .padding()
-      Spacer()
-    }
+    Text(isProfileSelf ? "Your posts will show up here." : "No posts here.")
+      .frame(maxWidth: .infinity, alignment: .center)
+      .padding()
   }
 }
 

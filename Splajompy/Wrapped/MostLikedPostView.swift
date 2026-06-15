@@ -29,10 +29,9 @@ struct MostLikedPostView: View {
             .fontDesign(.rounded)
             .padding()
 
-          PostView(
-            post: ObservablePost(from: data.mostLikedPost),
-            postManager: PostStore()
-          )
+          //          PostView(
+          //            post: ObservablePost(from: data.mostLikedPost),
+          //          )
         }
         .onAppear {
           DispatchQueue.main.asyncAfter(deadline: .now() + 1) {

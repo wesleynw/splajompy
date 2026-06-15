@@ -32,7 +32,7 @@ struct PostVisibilityToggle: View {
       menuLabel
     }
     .sheet(isPresented: $isPresentingUserList) {
-      if let userId = authManager.getCurrentUser()?.userId {
+      if let userId = authManager.currentUser?.userId {
         NavigationStack {
           UserListView(identifier: userId, userListVariant: .friends)
             .postHogScreenView()

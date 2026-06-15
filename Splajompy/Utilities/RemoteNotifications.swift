@@ -27,7 +27,7 @@ struct RemoteNotificationUtilities {
 
     if let data = try? JSONEncoder().encode(payload) {
       Task {
-        let _: AsyncResult<EmptyResponse> = await APIService.performRequest(
+        let _: Result<Void, Error> = await APIService.performRequest(
           endpoint: "notifications/registerDevice",
           method: "POST",
           queryItems: nil,

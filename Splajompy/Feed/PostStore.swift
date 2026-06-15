@@ -116,7 +116,7 @@ class PostStore {
     switch result {
     case .success(let post):
       cachePost(post)
-    case .error:
+    case .failure(_):
       break
     }
 
@@ -138,12 +138,12 @@ class PostStore {
       } else {
         return .idle
       }
-    case .error(let error):
+    case .failure(let error):
       return .failed(error)
     }
   }
 
-  func likePost(id: Int) async {
+  func togglePostLiked(id: Int) async {
     guard let currentPost = getPost(id: id) else {
       print("PostManager: Attempted to like non-existent post \(id)")
       return
@@ -160,7 +160,7 @@ class PostStore {
       isLiked: !currentPost.isLiked
     )
 
-    if case .error(let error) = result {
+    if case .failure(let error) = result {
       print(
         "PostManager: Failed to sync like for post \(id): \(error.localizedDescription)"
       )
@@ -188,7 +188,7 @@ class PostStore {
         optionIndex: optionIndex
       )
 
-      if case .error = result {
+      if case .failure(_) = result {
         print("error voting on post: \(postId)")
 
         // revert update on failure
@@ -219,14 +219,14 @@ class PostStore {
     switch result {
     case .success:
       removePost(id: id)
-    case .error(let error):
+    case .failure(let error):
       print(
         "PostManager: Failed to delete post \(id): \(error.localizedDescription)"
       )
     }
   }
 
-  func loadSinglePost(postId: Int) async -> AsyncResult<DetailedPost> {
+  func loadSinglePost(postId: Int) async -> Result<DetailedPost, Error> {
     let result = await postService.getPostById(postId: postId)
 
     return result
@@ -239,7 +239,7 @@ class PostStore {
     limit: Int
   )
     async
-    -> AsyncResult<[DetailedPost]>
+    -> Result<[ObservablePost], Error>
   {
     let result = await postService.getPostsForFeedCursor(
       feedType: feedType,
@@ -248,11 +248,13 @@ class PostStore {
       limit: limit
     )
 
-    if case .success(let posts) = result {
-      cachePosts(posts)
-    }
-
-    return result
+    return
+      result
+      .mapError { $0 as Error }
+      .map { posts in
+        cachePosts(posts)
+        return getPostsById(posts.map { $0.id })
+      }
   }
 
   func pinPost(id: Int) async -> Bool {
@@ -268,7 +270,7 @@ class PostStore {
 
     let result = await postService.pinPost(postId: id)
 
-    if case .error(let error) = result {
+    if case .failure(let error) = result {
       print(
         "PostManager: Failed to pin post \(id): \(error.localizedDescription)"
       )
@@ -289,7 +291,7 @@ class PostStore {
 
     let result = await postService.unpinPost()
 
-    if case .error(let error) = result {
+    if case .failure(let error) = result {
       print("PostManager: Failed to unpin post: \(error.localizedDescription)")
       updatePost(id: postId) { $0.isPinned = true }
       return false
@@ -299,7 +301,7 @@ class PostStore {
   }
 
   private func currentUserPinnedPostId() -> Int? {
-    guard let currentUserId = AuthManager.shared.getCurrentUser()?.userId else {
+    guard let currentUserId = AuthManager.shared.currentUser?.userId else {
       return nil
     }
     return posts.first {

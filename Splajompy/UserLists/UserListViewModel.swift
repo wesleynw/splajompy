@@ -61,7 +61,7 @@ class UserListViewModel {
       }
     }
 
-    let result: AsyncResult<PaginatedUserList>
+    let result: Result<PaginatedUserList, Error>
     switch userListVariant {
     case .following:
       result = await profileService.getFollowing(
@@ -88,7 +88,7 @@ class UserListViewModel {
         state = .loaded(page.users)
       }
 
-    case .error(let error):
+    case .failure(let error):
       if case .idle = state {
         state = .failed(error)
       }
@@ -109,7 +109,7 @@ class UserListViewModel {
       isFollowing: user.isFollowing
     )
 
-    if case .error(let error) = result {
+    if case .failure(let error) = result {
       // Rollback
       if case .loaded(var users) = state {
         if let index = users.firstIndex(where: { $0.userId == user.userId }) {
@@ -157,7 +157,7 @@ class UserListViewModel {
     }
 
     let result = await profileService.addFriend(userId: publicUser.userId)
-    if case .error(let error) = result {
+    if case .failure(let error) = result {
       if case .loaded(var users) = state {
         users.removeAll { $0.userId == publicUser.userId }
         state = .loaded(users)
@@ -179,7 +179,7 @@ class UserListViewModel {
     }
 
     let result = await profileService.removeFriend(userId: user.userId)
-    if case .error(let error) = result {
+    if case .failure(let error) = result {
       if case .loaded(var users) = state {
         let insertIndex = min(originalIndex ?? 0, users.count)
         users.insert(user, at: insertIndex)

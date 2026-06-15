@@ -5,7 +5,7 @@ struct CurrentProfileView: View {
   @Environment(AuthManager.self) private var authManager
 
   var body: some View {
-    if let currentUser = authManager.getCurrentUser() {
+    if let currentUser = authManager.currentUser {
       ProfileView(
         userId: currentUser.userId,
         username: currentUser.username,

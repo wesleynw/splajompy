@@ -25,6 +25,7 @@ enum AuthError {
 class AuthManager: Sendable {
   var isAuthenticated: Bool = false
   var isLoading: Bool = false
+  private(set) var currentUser: CurrentUserModel?
 
   static let shared = AuthManager()
 
@@ -34,7 +35,8 @@ class AuthManager: Sendable {
 
   func checkAuthenticationState() {
     let hasToken = getAuthToken() != nil
-    let hasValidUserData = getCurrentUser() != nil
+    currentUser = getCurrentUser()
+    let hasValidUserData = currentUser != nil
 
     PostHogSDK.shared.capture(
       "auth_state_check",
@@ -108,9 +110,10 @@ class AuthManager: Sendable {
     RemoteNotificationUtilities.unregisterForRemoteNotifications()
 
     isAuthenticated = false
+    currentUser = nil
   }
 
-  func getCurrentUser() -> CurrentUserModel? {
+  private func getCurrentUser() -> CurrentUserModel? {
     let defaults = UserDefaults.standard
 
     guard let userId = defaults.object(forKey: "CurrentUserID") as? Int,
@@ -156,6 +159,7 @@ class AuthManager: Sendable {
     }
 
     isAuthenticated = true
+    currentUser = user
   }
 
   /// Request a one time code be sent to the email of the user given by the identifier.
@@ -175,7 +179,7 @@ class AuthManager: Sendable {
       return false
     }
 
-    let result: AsyncResult<EmptyResponse> = await APIService.performRequest(
+    let result: Result<Void, Error> = await APIService.performRequest(
       endpoint: "otc/generate",
       method: "POST",
       body: jsonData,
@@ -185,7 +189,7 @@ class AuthManager: Sendable {
     switch result {
     case .success:
       return true
-    case .error:
+    case .failure:
       return false
     }
   }
@@ -207,7 +211,7 @@ class AuthManager: Sendable {
       return false
     }
 
-    let result: AsyncResult<AuthResponse> = await APIService.performRequest(
+    let result: Result<AuthResponse, Error> = await APIService.performRequest(
       endpoint: "otc/verify",
       method: "POST",
       body: jsonData,
@@ -226,7 +230,7 @@ class AuthManager: Sendable {
       )
       PostHogSDK.shared.capture("user_signin_otc")
       return true
-    case .error:
+    case .failure:
       return false
     }
   }
@@ -251,7 +255,7 @@ class AuthManager: Sendable {
       return (false, "Failed to encode credentials")
     }
 
-    let result: AsyncResult<AuthResponse> = await APIService.performRequest(
+    let result: Result<AuthResponse, Error> = await APIService.performRequest(
       endpoint: "login",
       method: "POST",
       body: jsonData,
@@ -270,7 +274,7 @@ class AuthManager: Sendable {
       )
       PostHogSDK.shared.capture("user_signin")
       return (true, "")
-    case .error(let error):
+    case .failure(let error):
       return (false, error.localizedDescription)
     }
   }
@@ -299,7 +303,7 @@ class AuthManager: Sendable {
       return (false, "Failed to serialize JSON")
     }
 
-    let result: AsyncResult<AuthResponse> = await APIService.performRequest(
+    let result: Result<AuthResponse, Error> = await APIService.performRequest(
       endpoint: "register",
       method: "POST",
       body: requestBody,
@@ -318,7 +322,7 @@ class AuthManager: Sendable {
       )
       PostHogSDK.shared.capture("user_register")
       return (true, "")
-    case .error(let error):
+    case .failure(let error):
       return (false, error.localizedDescription)
     }
   }
@@ -408,7 +412,7 @@ class AuthManager: Sendable {
       return (false, "Failed to serialize request")
     }
 
-    let result: AsyncResult<EmptyResponse> = await APIService.performRequest(
+    let result: Result<Void, Error> = await APIService.performRequest(
       endpoint: "account/delete",
       method: "POST",
       body: jsonData
@@ -418,7 +422,7 @@ class AuthManager: Sendable {
     case .success:
       signOut(reason: "account_deleted")
       return (true, "")
-    case .error(let error):
+    case .failure(let error):
       return (false, error.localizedDescription)
     }
   }

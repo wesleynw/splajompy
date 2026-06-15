@@ -49,7 +49,7 @@ struct PostCreationService {
     images: [PlatformImage],
     visibility: VisibilityType,
     poll: PollCreationRequest? = nil
-  ) async -> AsyncResult<EmptyResponse> {
+  ) async -> Result<Void, Error> {
     do {
       let imageKeymap = try await uploadImages(images: images)
 
@@ -68,7 +68,7 @@ struct PostCreationService {
       )
 
     } catch {
-      return .error(error)
+      return .failure(error)
     }
   }
 

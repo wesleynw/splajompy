@@ -43,9 +43,9 @@ struct StandalonePostView: View {
           VStack {
             PostView(
               post: post,
-              postManager: postManager,
               showAuthor: true,
               isStandalone: true,
+              postManager: postManager,
               onLikeButtonTapped: { viewModel.toggleLike() },
               onPostDeleted: handlePostDeleted
             )

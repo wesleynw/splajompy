@@ -1,91 +1,71 @@
-import Foundation
 import PostHog
 import SwiftUI
 
 struct PostView: View {
-  let post: ObservablePost
-  let postManager: PostStore
-  var showAuthor: Bool
-  var isStandalone: Bool
+  @Bindable var post: ObservablePost
+  var showAuthor: Bool = true
+  var isStandalone: Bool = false
+  var postManager: PostStore
+
+  var onLikeButtonTapped: () -> Void
+  var onPostDeleted: () -> Void
+  var onPostPinned: (() -> Void)?
+  var onPostUnpinned: (() -> Void)?
 
   init(
     post: ObservablePost,
-    postManager: PostStore,
     showAuthor: Bool = true,
     isStandalone: Bool = false,
-    onLikeButtonTapped: @escaping () -> Void = {
-      print("Unimplemented: PostView.onLikeButtonTapped")
-    },
-    onPostDeleted: @escaping () -> Void = {
-      print("Unimplemented: PostView.onPostDeleted")
-    },
-    onPostPinned: @escaping () -> Void = {
-      print("Unimplemented: PostView.onPostPinned")
-    },
-    onPostUnpinned: @escaping () -> Void = {
-      print("Unimplemented: PostView.onPostUnpinned")
-    }
+    postManager: PostStore,
+    onLikeButtonTapped: @escaping () -> Void,
+    onPostDeleted: @escaping () -> Void,
+    onPostPinned: (() -> Void)? = nil,
+    onPostUnpinned: (() -> Void)? = nil
   ) {
     self.post = post
-    self.postManager = postManager
     self.showAuthor = showAuthor
     self.isStandalone = isStandalone
+    self.postManager = postManager
     self.onLikeButtonTapped = onLikeButtonTapped
     self.onPostDeleted = onPostDeleted
     self.onPostPinned = onPostPinned
     self.onPostUnpinned = onPostUnpinned
   }
 
-  var onLikeButtonTapped: () -> Void
-  var onPostDeleted: () -> Void
-  var onPostPinned: () -> Void
-  var onPostUnpinned: () -> Void
-
-  @State private var isShowingComments = false
+  @State private var isPresentingCommentsSheet: Bool = false
 
   var body: some View {
     VStack {
       Divider()
-      if !isStandalone {
-        NavigationLink(
-          value: Route.post(id: post.id)
-        ) {
-          postContent
+        .padding(.bottom, 4)
+
+      VStack(alignment: .leading, spacing: 10) {
+
+        PostVisibilityIndicator(visibility: post.post.visibility)
+
+        if showAuthor {
+          authorHeader
         }
-        .buttonStyle(.plain)
-      } else {
-        postContent
-          .padding(.horizontal, 2)
-          .padding(.vertical, 4)
+
+        if post.isPinned && !showAuthor {
+          pinnedIndicator
+        }
+
+        postTextContent
+        postImages
+        postPoll
+        relevantLikes
+        postFooter
+
       }
+      .padding(.vertical, 8)
 
       Divider()
     }
-  }
-
-  private var postContent: some View {
-    VStack(alignment: .leading, spacing: 10) {
-      PostVisibilityIndicator(visibility: post.post.visibility)
-
-      if showAuthor {
-        authorHeader
-      }
-
-      if post.isPinned && !showAuthor {
-        pinnedIndicator
-      }
-
-      postTextContent
-      postImages
-      postPoll
-      relevantLikes
-      timestampAndMenu
-    }
     .contentShape(Rectangle())
     .animation(.easeInOut(duration: 0.3), value: post.isPinned)
-    .padding(.vertical, 4)
     .safeAreaPadding(.horizontal, 16)
-    .sheet(isPresented: $isShowingComments) {
+    .sheet(isPresented: $isPresentingCommentsSheet) {
       CommentsView(postId: post.post.postId, postManager: postManager)
         .postHogScreenView()
     }
@@ -171,8 +151,8 @@ struct PostView: View {
     .animation(.easeInOut(duration: 0.3), value: post.hasOtherLikes)
   }
 
-  private var timestampAndMenu: some View {
-    HStack(alignment: .firstTextBaseline) {
+  private var postFooter: some View {
+    HStack(alignment: .center) {
       TimelineView(.periodic(from: .now, by: 5)) { _ in
         Text(
           post.post.createdAt
@@ -188,8 +168,9 @@ struct PostView: View {
     }
   }
 
+  @ViewBuilder
   private var postMenu: some View {
-    HStack(spacing: 2) {
+    HStack {
       if !isStandalone {
         PostActionMenu(
           post: post,
@@ -200,9 +181,10 @@ struct PostView: View {
         ) {
           Image(systemName: "ellipsis")
             .font(.system(size: 22))
-            .frame(width: 48, height: 44)
+            .frame(width: 48)
             .contentShape(.rect)
         }
+        .buttonStyle(.plain)
 
         Divider()
           .padding(.vertical, 5)
@@ -212,7 +194,7 @@ struct PostView: View {
       if !isStandalone {
         #if os(iOS)
           Button(action: {
-            isShowingComments = true
+            isPresentingCommentsSheet = true
           }) {
             ZStack {
               Image(systemName: "bubble.middle.bottom")
@@ -228,7 +210,7 @@ struct PostView: View {
             }
           }
           .buttonStyle(.plain)
-          .sensoryFeedback(.impact, trigger: isShowingComments)
+          .sensoryFeedback(.impact, trigger: isPresentingCommentsSheet)
         #else
           NavigationLink(value: Route.post(id: post.id)) {
             ZStack {
@@ -252,159 +234,50 @@ struct PostView: View {
           .padding(.horizontal, 4)
       }
 
-      Button(action: {
-        PostHogSDK.shared.capture(post.isLiked ? "post_unlike" : "post_like")
-        onLikeButtonTapped()
-      }) {
-        Image(systemName: post.isLiked ? "heart.fill" : "heart")
-          .font(.system(size: 22))
-          .foregroundStyle(
-            post.isLiked ? Color.red.gradient : Color.primary.gradient
-          )
-          .frame(width: 48, height: 40)
-          .scaleEffect(post.isLiked ? 1.1 : 1.0)
-          .animation(
-            .spring(response: 0.4, dampingFraction: 0.6, blendDuration: 0),
-            value: post.isLiked
-          )
-      }
-      .sensoryFeedback(.impact, trigger: post.isLiked)
-
+      LikeButtonView(
+        isLiked: $post.isLiked,
+        onLikeButtonTapped: onLikeButtonTapped
+      )
     }
-    .fixedSize()
-    .buttonStyle(.plain)
-    .padding(3)
+    .frame(height: 35)
   }
 
 }
 
 #Preview {
-  let post = Post(
-    postId: 123,
-    userId: 456,
-    text:
-      "This is a sample post with some text content. also here's a link: https://google.com, another link: splajompy.com",
-    createdAt: Date(),
-    facets: nil
-  )
-
-  let user = PublicUser(
-    userId: 456,
-    username: "wesleynw",
-    createdAt: Date(),
-    name: "John Doe",
-    isVerified: false,
-    displayProperties: UserDisplayProperties(fontChoiceId: 0)
-  )
-
-  let images = [
-    ImageDTO(
-      imageId: 789,
-      height: 800,
-      width: 1200,
-      imageBlobUrl:
-        "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/development/posts/1/9278fc8a-401b-4145-83bb-ef05d4d52632.jpeg",
-      displayOrder: 0
+  let post = DetailedPost(
+    post: Post(
+      postId: 123,
+      userId: 456,
+      text:
+        "Weclome to Splajompy!",
+      createdAt: Date(),
+      facets: nil
     ),
-    ImageDTO(
-      imageId: 790,
-      height: 800,
-      width: 1200,
-      imageBlobUrl:
-        "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/development/posts/1/9278fc8a-401b-4145-83bb-ef05d4d52632.jpeg",
-      displayOrder: 1
+    user: PublicUser(
+      userId: 456,
+      username: "wesley",
+      createdAt: Date(),
+      name: "Wesley",
+      isVerified: false,
+      displayProperties: UserDisplayProperties(fontChoiceId: 1)
     ),
-  ]
-
-  let detailedPost = DetailedPost(
-    post: post,
-    user: user,
     isLiked: false,
     commentCount: 0,
-    images: images,
     relevantLikes: [],
     hasOtherLikes: false,
     isPinned: false
   )
 
-  let authManager = AuthManager()
-  let postManager = PostStore()
-
   NavigationStack {
     PostView(
-      post: ObservablePost(from: detailedPost),
-      postManager: postManager,
+      post: ObservablePost(from: post),
+      postManager: PostStore(),
       onLikeButtonTapped: {},
       onPostDeleted: {},
       onPostPinned: {},
       onPostUnpinned: {}
     )
-    .environment(authManager)
-  }
-}
-
-#Preview("Standalone") {
-  let post = Post(
-    postId: 123,
-    userId: 456,
-    text:
-      "This is a sample post with some text content. also here's a link: https://google.com, another link: splajompy.com",
-    createdAt: Date(),
-    facets: nil
-  )
-
-  let user = PublicUser(
-    userId: 456,
-    username: "wesleynw",
-    createdAt: Date(),
-    name: "John Doe",
-    isVerified: false,
-    displayProperties: UserDisplayProperties(fontChoiceId: 0)
-  )
-
-  let images = [
-    ImageDTO(
-      imageId: 789,
-      height: 800,
-      width: 1200,
-      imageBlobUrl:
-        "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/development/posts/1/9278fc8a-401b-4145-83bb-ef05d4d52632.jpeg",
-      displayOrder: 0
-    ),
-    ImageDTO(
-      imageId: 790,
-      height: 800,
-      width: 1200,
-      imageBlobUrl:
-        "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/development/posts/1/9278fc8a-401b-4145-83bb-ef05d4d52632.jpeg",
-      displayOrder: 1
-    ),
-  ]
-
-  let detailedPost = DetailedPost(
-    post: post,
-    user: user,
-    isLiked: false,
-    commentCount: 0,
-    images: images,
-    relevantLikes: [],
-    hasOtherLikes: false,
-    isPinned: false
-  )
-
-  let authManager = AuthManager()
-  let postManager = PostStore()
-
-  NavigationStack {
-    PostView(
-      post: ObservablePost(from: detailedPost),
-      postManager: postManager,
-      isStandalone: true,
-      onLikeButtonTapped: {},
-      onPostDeleted: {},
-      onPostPinned: {},
-      onPostUnpinned: {}
-    )
-    .environment(authManager)
+    .environment(AuthManager())
   }
 }

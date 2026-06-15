@@ -1,4 +1,3 @@
-import Nuke
 import PostHog
 import SwiftUI
 
@@ -18,17 +17,17 @@ struct SplajompyApp: App {
     NavigationPath(),
     NavigationPath(),
     NavigationPath(),
+    NavigationPath(),
   ]
 
-  @State private var authManager: AuthManager
-  @State private var postManager = PostStore()
+  @State private var authManager: AuthManager = AuthManager.shared
+  @State private var postStore = PostStore()
   @AppStorage("appearance_mode") var appearanceMode: String = "Automatic"
 
   init() {
     initializeOtel()
     initializePostHog()
     initializeImageCache()
-    _authManager = State(initialValue: AuthManager.shared)
   }
 
   var body: some Scene {
@@ -36,6 +35,7 @@ struct SplajompyApp: App {
       Group {
         if authManager.isAuthenticated {
           authenticatedView
+            .environment(postStore)
         } else {
           SplashScreenView()
             .postHogScreenView()
@@ -52,36 +52,35 @@ struct SplajompyApp: App {
         _ in
         handleUserSignOut()
       }
+      .modifier(SupportedVersionViewModifier())
       .environment(authManager)
       .preferredColorScheme(colorScheme)
     }
     #if os(macOS)
       .defaultSize(width: 1250, height: 800)
-      .commands {
-        CommandGroup(replacing: .appSettings) {
-          Button("Settings...") {
-            selection = 4
-          }
-          .keyboardShortcut(",", modifiers: .command)
+    #endif
+
+    #if os(macOS)
+      Settings {
+        NavigationStack(path: $navigationPaths[4]) {
+          SettingsView()
+            .postHogScreenView()
+            .preferredColorScheme(colorScheme)
+            // TODO: consolidate settingsroutes and normal routes
+            .navigationDestination(for: SettingsRoute.self) { route in
+              settingsRouteDestination(route)
+            }
         }
       }
+      .environment(authManager)
     #endif
   }
 
   @ViewBuilder
   private var authenticatedView: some View {
-    #if os(iOS)
-      iOSTabView
-    #else
-      splitView
-    #endif
-  }
-
-  @ViewBuilder
-  private var iOSTabView: some View {
     TabView(selection: $selection) {
       NavigationStack(path: $navigationPaths[0]) {
-        FeedView(postManager: postManager)
+        FeedView(postManager: postStore)
           .postHogScreenView()
           .navigationDestination(for: Route.self) { route in
             routeDestination(route)
@@ -117,7 +116,7 @@ struct SplajompyApp: App {
       .tag(2)
 
       NavigationStack(path: $navigationPaths[3]) {
-        CurrentProfileView(postManager: postManager)
+        CurrentProfileView(postManager: postStore)
           .postHogScreenView()
           .navigationDestination(for: Route.self) { route in
             routeDestination(route)
@@ -131,76 +130,18 @@ struct SplajompyApp: App {
       }
       .tag(3)
     }
+    .modify {
+      if #available(iOS 18, *) {
+        $0.tabViewStyle(.sidebarAdaptable)
+      }
+    }
     .onOpenURL { url in
       handleDeepLink(url)
     }
     #if os(iOS)
       .modifier(OnboardingSheetViewModifier())
     #endif
-    .modifier(SupportedVersionViewModifier())
   }
-
-  #if os(macOS)
-    @ViewBuilder
-    private var splitView: some View {
-      NavigationSplitView {
-        List(selection: $selection) {
-          NavigationLink(value: 0) {
-            Label("Home", systemImage: "house")
-          }
-          NavigationLink(value: 1) {
-            Label("Notifications", systemImage: "bell")
-          }
-          NavigationLink(value: 2) {
-            Label("Search", systemImage: "magnifyingglass")
-          }
-          NavigationLink(value: 3) {
-            Label("Profile", systemImage: "person.circle")
-          }
-          NavigationLink(value: 4) {
-            Label("Settings", systemImage: "gearshape")
-          }
-        }
-        .navigationSplitViewColumnWidth(175)
-      } detail: {
-        NavigationStack(path: $navigationPaths[selection]) {
-          Group {
-            switch selection {
-            case 0:
-              FeedView(postManager: postManager)
-                .toolbar(removing: .title)
-                .postHogScreenView()
-            case 1:
-              NotificationsView()
-                .postHogScreenView()
-            case 2:
-              SearchView()
-                .postHogScreenView()
-            case 3:
-              CurrentProfileView(postManager: postManager)
-                .postHogScreenView()
-            case 4:
-              SettingsView()
-                .postHogScreenView()
-            default:
-              FeedView(postManager: postManager)
-                .postHogScreenView()
-            }
-          }
-          .navigationDestination(for: Route.self) { route in
-            routeDestination(route)
-          }
-          .navigationDestination(for: SettingsRoute.self) { route in
-            settingsRouteDestination(route)
-          }
-          .onOpenURL { url in
-            handleDeepLink(url)
-          }
-        }
-      }
-      .scrollIndicators(.visible)
-    }
-  #endif
 
   private var colorScheme: ColorScheme? {
     switch appearanceMode {
@@ -221,14 +162,14 @@ struct SplajompyApp: App {
         ProfileView(
           userId: userId,
           username: username,
-          postManager: postManager
+          postManager: postStore
         )
         .postHogScreenView()
       } else {
         EmptyView()
       }
     case .post(let id):
-      StandalonePostView(postId: id, postManager: postManager)
+      StandalonePostView(postId: id, postManager: postStore)
         .postHogScreenView()
     case .followingList(let userId):
       UserListView(identifier: userId, userListVariant: .following)
@@ -296,11 +237,7 @@ struct SplajompyApp: App {
     ]
 
     selection = 0
-
-    postManager.clearCache()
-
-    #if !DEBUG
-      PostHogSDK.shared.reset()
-    #endif
+    postStore.clearCache()
+    PostHogSDK.shared.reset()
   }
 }

@@ -30,7 +30,7 @@ extension StandalonePostView {
 
     func toggleLike() {
       Task {
-        await postManager.likePost(id: postId)
+        await postManager.togglePostLiked(id: postId)
       }
     }
   }

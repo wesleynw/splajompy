@@ -12,7 +12,7 @@ struct ProfileEditorView: View {
 
   private var currentProfile: DetailedUser? {
     switch viewModel.profileState {
-    case .loaded(let profile):
+    case .loaded(let profile, _):
       return profile
     default:
       return nil
@@ -122,13 +122,15 @@ struct ProfileEditorView: View {
         ToolbarItem(placement: .confirmationAction) {
           if #available(iOS 26, macOS 26, *) {
             Button(role: .confirm) {
-              viewModel.updateProfile(
-                name: name,
-                bio: bio,
-                displayProperties: UserDisplayProperties(
-                  fontChoiceId: displayNameFont.rawValue
+              Task {
+                await viewModel.updateProfile(
+                  name: name,
+                  bio: bio,
+                  displayProperties: UserDisplayProperties(
+                    fontChoiceId: displayNameFont.rawValue
+                  )
                 )
-              )
+              }
               dismiss()
             }
             .disabled(name.count > 25 || bio.count > 400)
@@ -137,13 +139,15 @@ struct ProfileEditorView: View {
             #endif
           } else {
             Button("Done") {
-              viewModel.updateProfile(
-                name: name,
-                bio: bio,
-                displayProperties: UserDisplayProperties(
-                  fontChoiceId: displayNameFont.rawValue
+              Task {
+                await viewModel.updateProfile(
+                  name: name,
+                  bio: bio,
+                  displayProperties: UserDisplayProperties(
+                    fontChoiceId: displayNameFont.rawValue
+                  )
                 )
-              )
+              }
               dismiss()
             }
             .disabled(name.count > 25 || bio.count > 400)

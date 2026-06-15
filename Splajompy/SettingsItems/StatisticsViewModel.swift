@@ -26,7 +26,7 @@ extension StatisticsView {
       switch result {
       case .success(let stats):
         state = .loaded(stats)
-      case .error(let error):
+      case .failure(let error):
         state = .failed(error)
       }
     }

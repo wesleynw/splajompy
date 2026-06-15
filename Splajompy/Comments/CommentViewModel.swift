@@ -75,7 +75,7 @@ extension CommentsView {
             id: postId,
             updates: { post in post.commentCount = fetchedComments.count }
           )
-        case .error(let error):
+        case .failure(let error):
           state = .failed(error)
         }
       }
@@ -100,7 +100,7 @@ extension CommentsView {
           isLiked: comment.isLiked
         )
 
-        if case .error(let error) = result {
+        if case .failure(let error) = result {
           print("Error toggling like: \(error.localizedDescription)")
           guard case .loaded(var revertComments) = state else { return }
           if let index = revertComments.firstIndex(where: {
@@ -171,7 +171,7 @@ extension CommentsView {
         }
 
         return true
-      case .error(let error):
+      case .failure(let error):
         print("Error adding comment: \(error.localizedDescription)")
         errorMessage = error.localizedDescription
         showError = true
@@ -199,7 +199,7 @@ extension CommentsView {
 
       let result = await service.deleteComment(commentId: comment.commentId)
 
-      if case .error(let error) = result {
+      if case .failure(let error) = result {
         print("Error deleting comment: \(error.localizedDescription)")
         guard case .loaded(var revertComments) = state else { return }
         revertComments.insert(comment, at: index)

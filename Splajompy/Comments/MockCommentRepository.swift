@@ -9,7 +9,7 @@ class MockCommentService: CommentServiceProtocol, @unchecked Sendable {
     setupMockData()
   }
 
-  func getComments(postId: Int) async -> AsyncResult<[DetailedComment]> {
+  func getComments(postId: Int) async -> Result<[DetailedComment], Error> {
     if let comments = mockComments[postId] {
       return .success(comments)
     }
@@ -17,16 +17,16 @@ class MockCommentService: CommentServiceProtocol, @unchecked Sendable {
   }
 
   func toggleLike(postId: Int, commentId: Int, isLiked: Bool) async
-    -> AsyncResult<EmptyResponse>
+    -> Result<Void, Error>
   {
     if var comments = mockComments[postId],
       let index = comments.firstIndex(where: { $0.commentId == commentId })
     {
       comments[index].isLiked = !isLiked
       mockComments[postId] = comments
-      return .success(EmptyResponse())
+      return .success(())
     }
-    return .error(
+    return .failure(
       NSError(
         domain: "MockError",
         code: 404,
@@ -35,8 +35,8 @@ class MockCommentService: CommentServiceProtocol, @unchecked Sendable {
     )
   }
 
-  func addComment(postId: Int, text: String, image: PlatformImage?) async -> AsyncResult<
-    DetailedComment
+  func addComment(postId: Int, text: String, image: PlatformImage?) async -> Result<
+    DetailedComment, Error
   > {
     let newCommentId = commentIdCounter
     commentIdCounter += 1
@@ -74,15 +74,15 @@ class MockCommentService: CommentServiceProtocol, @unchecked Sendable {
     return .success(newComment)
   }
 
-  func deleteComment(commentId: Int) async -> AsyncResult<EmptyResponse> {
+  func deleteComment(commentId: Int) async -> Result<Void, Error> {
     for (postId, var comments) in mockComments {
       if let index = comments.firstIndex(where: { $0.commentId == commentId }) {
         comments.remove(at: index)
         mockComments[postId] = comments
-        return .success(EmptyResponse())
+        return .success(())
       }
     }
-    return .error(
+    return .failure(
       NSError(
         domain: "MockError",
         code: 404,
@@ -175,16 +175,16 @@ class MockCommentService: CommentServiceProtocol, @unchecked Sendable {
 }
 
 class MockCommentService_Empty: CommentServiceProtocol, @unchecked Sendable {
-  func getComments(postId: Int) async -> AsyncResult<[DetailedComment]> {
+  func getComments(postId: Int) async -> Result<[DetailedComment], Error> {
     return .success([])
   }
 
-  func toggleLike(postId: Int, commentId: Int, isLiked: Bool) async -> AsyncResult<EmptyResponse> {
-    return .success(EmptyResponse())
+  func toggleLike(postId: Int, commentId: Int, isLiked: Bool) async -> Result<Void, Error> {
+    return .success(())
   }
 
-  func addComment(postId: Int, text: String, image: PlatformImage?) async -> AsyncResult<
-    DetailedComment
+  func addComment(postId: Int, text: String, image: PlatformImage?) async -> Result<
+    DetailedComment, Error
   > {
     let currentDate = Date()
     let user = PublicUser(
@@ -211,8 +211,8 @@ class MockCommentService_Empty: CommentServiceProtocol, @unchecked Sendable {
     return .success(newComment)
   }
 
-  func deleteComment(commentId: Int) async -> AsyncResult<EmptyResponse> {
-    return .success(EmptyResponse())
+  func deleteComment(commentId: Int) async -> Result<Void, Error> {
+    return .success(())
   }
 }
 
@@ -224,55 +224,55 @@ class MockCommentService_Loading: CommentServiceProtocol, @unchecked Sendable {
     self.delay = delay
   }
 
-  func getComments(postId: Int) async -> AsyncResult<[DetailedComment]> {
+  func getComments(postId: Int) async -> Result<[DetailedComment], Error> {
     try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000_000))
     return await mockService.getComments(postId: postId)
   }
 
-  func toggleLike(postId: Int, commentId: Int, isLiked: Bool) async -> AsyncResult<EmptyResponse> {
+  func toggleLike(postId: Int, commentId: Int, isLiked: Bool) async -> Result<Void, Error> {
     try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000_000))
     return await mockService.toggleLike(postId: postId, commentId: commentId, isLiked: isLiked)
   }
 
-  func addComment(postId: Int, text: String, image: PlatformImage?) async -> AsyncResult<
-    DetailedComment
+  func addComment(postId: Int, text: String, image: PlatformImage?) async -> Result<
+    DetailedComment, Error
   > {
     try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000_000))
     return await mockService.addComment(postId: postId, text: text, image: nil)
   }
 
-  func deleteComment(commentId: Int) async -> AsyncResult<EmptyResponse> {
+  func deleteComment(commentId: Int) async -> Result<Void, Error> {
     try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000_000))
     return await mockService.deleteComment(commentId: commentId)
   }
 }
 
 class MockCommentService_Error: CommentServiceProtocol, @unchecked Sendable {
-  func getComments(postId: Int) async -> AsyncResult<[DetailedComment]> {
-    return .error(
+  func getComments(postId: Int) async -> Result<[DetailedComment], Error> {
+    return .failure(
       NSError(
         domain: "MockError", code: 400,
         userInfo: [NSLocalizedDescriptionKey: "Failed to load comments"]))
   }
 
-  func toggleLike(postId: Int, commentId: Int, isLiked: Bool) async -> AsyncResult<EmptyResponse> {
-    return .error(
+  func toggleLike(postId: Int, commentId: Int, isLiked: Bool) async -> Result<Void, Error> {
+    return .failure(
       NSError(
         domain: "MockError", code: 400,
         userInfo: [NSLocalizedDescriptionKey: "Failed to toggle like"]))
   }
 
-  func addComment(postId: Int, text: String, image: PlatformImage?) async -> AsyncResult<
-    DetailedComment
+  func addComment(postId: Int, text: String, image: PlatformImage?) async -> Result<
+    DetailedComment, Error
   > {
-    return .error(
+    return .failure(
       NSError(
         domain: "MockError", code: 400,
         userInfo: [NSLocalizedDescriptionKey: "Failed to add comment"]))
   }
 
-  func deleteComment(commentId: Int) async -> AsyncResult<EmptyResponse> {
-    return .error(
+  func deleteComment(commentId: Int) async -> Result<Void, Error> {
+    return .failure(
       NSError(
         domain: "MockError", code: 400,
         userInfo: [NSLocalizedDescriptionKey: "Failed to delete comment"]))

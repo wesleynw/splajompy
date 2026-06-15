@@ -137,7 +137,7 @@ extension NewPostView {
           PostHogSDK.shared.capture("post_created")
           onPostCreated()
           dismiss()
-        case .error(let error):
+        case .failure(let error):
           errorDisplay = error.localizedDescription
           isLoading = false
           PostHogSDK.shared.capture(
