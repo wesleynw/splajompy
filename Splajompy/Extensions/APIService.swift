@@ -196,7 +196,7 @@ public struct APIService {
     )
 
     switch requestReponse {
-    case .success(let (data, _)):
+    case .success((let data, _)):
       let tracer = OpenTelemetry.instance.tracerProvider.get(
         instrumentationName: "APIService"
       )

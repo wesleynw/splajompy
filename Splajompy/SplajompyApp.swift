@@ -66,7 +66,8 @@ struct SplajompyApp: App {
           SettingsView()
             .postHogScreenView()
             .preferredColorScheme(colorScheme)
-            .navigationDestination(for: SettingsRoute.self) { route in  // TODO: consolidate settingsroutes and normal routes
+            // TODO: consolidate settingsroutes and normal routes
+            .navigationDestination(for: SettingsRoute.self) { route in
               settingsRouteDestination(route)
             }
         }

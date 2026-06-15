@@ -26,7 +26,7 @@ struct NotificationsView: View {
           do {
             try await Task.sleep(for: .seconds(2))
             viewModel.markAllNotificationsAsRead()
-          } catch { }
+          } catch {}
         }
       }
     }
