@@ -22,10 +22,15 @@ struct NotificationsView: View {
         notificationsList(
           notifications: notifications
         )
+        .task {
+          do {
+            try await Task.sleep(for: .seconds(2))
+            viewModel.markAllNotificationsAsRead()
+          } catch { }
+        }
       }
     }
     .listStyle(.plain)
-    .listSectionSpacing(.compact)
     .overlay {
       switch viewModel.state {
       case .idle, .loading:

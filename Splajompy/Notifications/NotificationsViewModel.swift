@@ -222,13 +222,14 @@ extension NotificationsView {
     }
 
     func markAllNotificationsAsRead() {
-      guard case .loaded(var notifications) = state else {
+      guard case .loaded(let notifications) = state else {
         return
       }
 
-      for index in notifications.indices {
-        notifications[index].viewed = true
-      }
+      // leave ui state
+      //      for index in notifications.indices {
+      //        notifications[index].viewed = true
+      //      }
 
       Task {
         await MainActor.run {

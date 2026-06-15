@@ -118,14 +118,14 @@ struct FeedView: View {
         ForEach(Array(posts.enumerated()), id: \.element.id) {
           index,
           post in
-          Divider()
-            .padding(.bottom, 4)
 
           PostView(
             post: post,
             showAuthor: true,
             postManager: postManager,
-            onLikeButtonTapped: { Task { await viewModel.toggleLike(on: post) } },
+            onLikeButtonTapped: {
+              Task { await viewModel.toggleLike(on: post) }
+            },
             onPostDeleted: { viewModel.deletePost(on: post) }
           )
           .onAppear {

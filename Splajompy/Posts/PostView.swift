@@ -35,26 +35,35 @@ struct PostView: View {
   @State private var isPresentingCommentsSheet: Bool = false
 
   var body: some View {
-    VStack(alignment: .leading, spacing: 10) {
-      PostVisibilityIndicator(visibility: post.post.visibility)
+    VStack {
+      Divider()
+        .padding(.bottom, 4)
 
-      if showAuthor {
-        authorHeader
+      VStack(alignment: .leading, spacing: 10) {
+
+        PostVisibilityIndicator(visibility: post.post.visibility)
+
+        if showAuthor {
+          authorHeader
+        }
+
+        if post.isPinned && !showAuthor {
+          pinnedIndicator
+        }
+
+        postTextContent
+        postImages
+        postPoll
+        relevantLikes
+        postFooter
+
       }
+      .padding(.vertical, 8)
 
-      if post.isPinned && !showAuthor {
-        pinnedIndicator
-      }
-
-      postTextContent
-      postImages
-      postPoll
-      relevantLikes
-      postFooter
+      Divider()
     }
     .contentShape(Rectangle())
     .animation(.easeInOut(duration: 0.3), value: post.isPinned)
-    .padding(.vertical, 8)
     .safeAreaPadding(.horizontal, 16)
     .sheet(isPresented: $isPresentingCommentsSheet) {
       CommentsView(postId: post.post.postId, postManager: postManager)
