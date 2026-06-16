@@ -168,7 +168,7 @@ struct FeedView: View {
       // in some contexts. Previously, if you opened the app switcher while this was loading, it would cancel the task immediately
       // and show an error screen.
       await Task {
-        await viewModel.loadPosts(preserveCurrentState: false, reset: true)
+        await viewModel.loadPosts(preserveCurrentState: true, reset: true)
         PostHogSDK.shared.capture("feed_refreshed")
       }.value
     }
