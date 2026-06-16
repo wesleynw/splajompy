@@ -25,18 +25,19 @@ enum FeedState {
     self.postManager = postManager
   }
 
-  func refreshPosts() async {
-    state = .loading
-    lastPostTimestamp = nil
-
-    await loadPosts(reset: true)
-  }
-
   func loadPosts(reset: Bool = false) async {
+    if case .loading = state {
+      return
+    }
     guard !isLoadingMore else { return }
     isLoadingMore = true
     defer {
       isLoadingMore = false
+    }
+
+    if reset {
+      state = .loading
+      lastPostTimestamp = nil
     }
 
     let result = await postManager.loadFeed(
