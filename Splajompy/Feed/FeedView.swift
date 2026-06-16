@@ -44,14 +44,14 @@ struct FeedView: View {
       .onChange(of: selectedFeedType) { _, newFeedType in
         Task {
           viewModel.feedType = newFeedType
-          await viewModel.refreshPosts()
+          await viewModel.loadPosts(reset: true)
         }
       }
       .sheet(isPresented: $isShowingNewPostView) {
         NewPostView(
           onPostCreated: {
             Task {
-              await viewModel.refreshPosts()
+              await viewModel.loadPosts(reset: true)
             }
           }
         )
@@ -75,7 +75,7 @@ struct FeedView: View {
             }
             Button {
               Task {
-                await viewModel.refreshPosts()
+                await viewModel.loadPosts(reset: true)
                 PostHogSDK.shared.capture("feed_refreshed")
               }
             } label: {
@@ -181,7 +181,7 @@ struct FeedView: View {
       Text("Here's where you'll see posts from others.")
         .padding()
       Button {
-        Task { await viewModel.refreshPosts() }
+        Task { await viewModel.loadPosts(reset: true) }
       } label: {
         HStack {
           if case .loading = viewModel.state {
