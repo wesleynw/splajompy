@@ -106,7 +106,9 @@ struct FeedView: View {
       ErrorScreen(
         errorString: error.localizedDescription,
         source: "FeedView",
-        onRetry: { await viewModel.loadPosts(reset: true) }
+        onRetry: {
+          await viewModel.loadPosts(preserveCurrentState: false, reset: true)
+        }
       )
       .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
@@ -166,7 +168,7 @@ struct FeedView: View {
       // in some contexts. Previously, if you opened the app switcher while this was loading, it would cancel the task immediately
       // and show an error screen.
       await Task {
-        await viewModel.loadPosts(reset: true)
+        await viewModel.loadPosts(preserveCurrentState: false, reset: true)
         PostHogSDK.shared.capture("feed_refreshed")
       }.value
     }
@@ -180,23 +182,6 @@ struct FeedView: View {
         .padding(.top, 40)
       Text("Here's where you'll see posts from others.")
         .padding()
-      Button {
-        Task { await viewModel.loadPosts(reset: true) }
-      } label: {
-        HStack {
-          if case .loading = viewModel.state {
-            ProgressView()
-              #if os(macOS)
-                .controlSize(.small)
-              #endif
-          } else {
-            Image(systemName: "arrow.clockwise")
-          }
-          Text("Reload")
-        }
-      }
-      .padding()
-      .buttonStyle(.bordered)
     }
     .frame(maxWidth: .infinity, alignment: .center)
   }
