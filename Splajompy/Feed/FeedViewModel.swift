@@ -87,7 +87,7 @@ enum FeedState {
     else { return }
 
     Task {
-      await loadPosts()
+      await loadPosts(preserveCurrentState: true)
     }
   }
 }
