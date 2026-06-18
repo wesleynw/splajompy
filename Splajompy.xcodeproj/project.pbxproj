@@ -75,7 +75,7 @@
 				Posts/Components/ImagePager_ios.swift = (ios, );
 				Posts/Components/ImagePager_macos.swift = (macos, );
 				Posts/Components/ZoomableAsyncImage.swift = (ios, );
-				SettingsItems/AppIconPicker.swift = (ios, );
+				Settings/AppIconPicker.swift = (ios, );
 				Utilities/AttributedTextEditor.swift = (ios, );
 				Utilities/AttributedTextEditorMac.swift = (macos, );
 			};

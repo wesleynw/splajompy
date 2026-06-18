@@ -42,17 +42,10 @@ struct Notification: Identifiable, Decodable, Equatable {
   }
 }
 
-struct NotificationSectionData: Sendable, Decodable {
-  let sections: [NotificationDateSection: [Notification]]
-}
-
 protocol NotificationServiceProtocol: Sendable {
   func getAllNotifications(offset: Int, limit: Int) async -> Result<
     [Notification], Error
   >
-
-  func getAllNotificationWithSections(offset: Int, limit: Int) async
-    -> Result<NotificationSectionData, Error>
 
   func getUnreadNotifications(offset: Int, limit: Int) async -> Result<
     [Notification], Error
@@ -61,9 +54,6 @@ protocol NotificationServiceProtocol: Sendable {
   func getReadNotifications(offset: Int, limit: Int) async -> Result<
     [Notification], Error
   >
-
-  func getReadNotificationWithSections(offset: Int, limit: Int) async
-    -> Result<NotificationSectionData, Error>
 
   func markNotificationAsRead(notificationId: Int) async -> Result<Void, Error>
 
@@ -135,23 +125,6 @@ struct NotificationService: NotificationServiceProtocol {
     )
   }
 
-  func getAllNotificationWithSections(offset: Int, limit: Int) async
-    -> Result<NotificationSectionData, Error>
-  {
-    let result = await getAllNotifications(offset: offset, limit: limit)
-
-    switch result {
-    case .success(let notifications):
-      let sectionedNotifications = Dictionary(grouping: notifications) {
-        notification in
-        return notification.createdAt.notificationSection()
-      }
-      return .success(NotificationSectionData(sections: sectionedNotifications))
-    case .failure(let error):
-      return .failure(error)
-    }
-  }
-
   func getUnreadNotifications(offset: Int, limit: Int) async -> Result<
     [Notification], Error
   > {
@@ -175,23 +148,6 @@ struct NotificationService: NotificationServiceProtocol {
     case .success(let notifications):
       let readNotifications = notifications.filter { $0.viewed }
       return .success(readNotifications)
-    case .failure(let error):
-      return .failure(error)
-    }
-  }
-
-  func getReadNotificationWithSections(offset: Int, limit: Int) async
-    -> Result<NotificationSectionData, Error>
-  {
-    let result = await getReadNotifications(offset: offset, limit: limit)
-
-    switch result {
-    case .success(let notifications):
-      let sectionedNotifications = Dictionary(grouping: notifications) {
-        notification in
-        return notification.createdAt.notificationSection()
-      }
-      return .success(NotificationSectionData(sections: sectionedNotifications))
     case .failure(let error):
       return .failure(error)
     }

@@ -337,22 +337,6 @@ class MockNotificationService: @unchecked Sendable, NotificationServiceProtocol 
     }
   }
 
-  func getAllNotificationWithSections(offset: Int, limit: Int) async -> Result<
-    NotificationSectionData, Error
-  > {
-    let result = await getAllNotifications(offset: offset, limit: limit)
-
-    switch result {
-    case .success(let notifications):
-      let sectionedNotifications = Dictionary(grouping: notifications) { notification in
-        return notification.createdAt.notificationSection()
-      }
-      return .success(NotificationSectionData(sections: sectionedNotifications))
-    case .failure(let error):
-      return .failure(error)
-    }
-  }
-
   func getUnreadNotifications(offset: Int, limit: Int) async -> Result<[Notification], Error> {
     callHistory.append((offset, limit))
 
@@ -399,22 +383,6 @@ class MockNotificationService: @unchecked Sendable, NotificationServiceProtocol 
       return .failure(
         MockError("Unexpected behavior set for getReadNotifications")
       )
-    }
-  }
-
-  func getReadNotificationWithSections(offset: Int, limit: Int) async -> Result<
-    NotificationSectionData, Error
-  > {
-    let result = await getReadNotifications(offset: offset, limit: limit)
-
-    switch result {
-    case .success(let notifications):
-      let sectionedNotifications = Dictionary(grouping: notifications) { notification in
-        return notification.createdAt.notificationSection()
-      }
-      return .success(NotificationSectionData(sections: sectionedNotifications))
-    case .failure(let error):
-      return .failure(error)
     }
   }
 
