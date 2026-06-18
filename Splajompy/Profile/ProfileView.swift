@@ -157,6 +157,13 @@ struct ProfileView: View {
           onToggleBlock: viewModel.toggleBlocking,
           onToggleMute: viewModel.toggleMuting
         )
+      } else {
+        Menu {
+          EmptyView()
+        } label: {
+          Image(systemName: "ellipsis.circle")
+        }
+        .disabled(true)
       }
     }
   }
@@ -235,12 +242,8 @@ struct ProfileView: View {
     }
 
     if viewModel.canLoadMorePosts {
-      HStack {
-        Spacer()
-        ProgressView()
-          .padding()
-        Spacer()
-      }
+      ProgressView()
+        .frame(maxWidth: .infinity, alignment: .center)
     }
   }
 
@@ -255,19 +258,7 @@ struct ProfileView: View {
       }
 
       if !isProfileTab && !isProfileSelf && user.isMuting {
-        HStack(spacing: 6) {
-          Image(systemName: "speaker.slash.fill")
-            .font(.system(size: 14))
-            .foregroundStyle(.secondary)
-          Text("You have muted this person")
-            .font(.subheadline)
-            .foregroundStyle(.secondary)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 8)
-        .padding(.horizontal, 12)
-        .background(.thinMaterial)
-        .cornerRadius(8)
+        MutedIndicationView()
       }
 
       if !isProfileSelf {
@@ -354,8 +345,10 @@ struct ProfileView: View {
 
   private var emptyMessage: some View {
     Text(isProfileSelf ? "Your posts will show up here." : "No posts here.")
+      .fontWeight(.bold)
+      .font(.subheadline)
       .frame(maxWidth: .infinity, alignment: .center)
-      .padding()
+      .padding(.top, 50)
   }
 }
 
