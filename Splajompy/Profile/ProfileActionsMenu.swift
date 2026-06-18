@@ -22,7 +22,6 @@ struct ProfileActionsMenu: View {
             "Block @\(username)",
             systemImage: "person.fill.xmark"
           )
-          Text("Hide this person's posts and prevent them from interacting with you.")
         }
       }
 
