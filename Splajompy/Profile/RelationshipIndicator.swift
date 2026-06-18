@@ -29,15 +29,8 @@ struct RelationshipIndicator: View {
             .font(.system(size: 14, weight: .semibold))
             .foregroundStyle(.secondary.opacity(0.5))
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
         .padding()
-        .modify {
-          if #available(iOS 26, *) {
-            $0.background(.quinary, in: .rect(cornerRadius: 12))
-          } else {
-            $0.background(.quinary, in: .rect(cornerRadius: 12))
-          }
-        }
+        .background(.quinary, in: .rect(cornerRadius: 20))
       }
       .buttonStyle(.plain)
     }

@@ -7,7 +7,6 @@ struct ProfileView: View {
   let isProfileTab: Bool
 
   @State private var isPresentingProfileEditor: Bool = false
-  @State private var activeAlert: ProfileAlertEnum?
   @State private var viewModel: ViewModel
   @Environment(AuthManager.self) private var authManager
   var postManager: PostStore
@@ -26,23 +25,6 @@ struct ProfileView: View {
       return "@" + user.username
     default:
       return ""
-    }
-  }
-
-  private var alertTitle: String {
-    guard case .loaded(let user, _) = viewModel.profileState,
-      let alertType = activeAlert
-    else {
-      return ""
-    }
-
-    switch alertType {
-    case .block:
-      return user.isBlocking
-        ? "Unblock @\(user.username)" : "Block @\(user.username)"
-    case .mute:
-      return user.isMuting
-        ? "Unmute @\(user.username)" : "Mute @\(user.username)"
     }
   }
 
@@ -70,29 +52,35 @@ struct ProfileView: View {
           profile(user: user, feedState: feedState, proxy: proxy)
         }
       }
+      .frame(maxWidth: .infinity, maxHeight: .infinity)
+      .overlay {
+        switch viewModel.profileState {
+        case .idle, .loading:
+          ProgressView()
+            #if os(macOS)
+              .controlSize(.small)
+            #endif
+        case .failed(let error):
+          ErrorScreen(
+            errorString: error,
+            source: "ProfileView",
+            onRetry: {
+              await viewModel.loadProfileAndPosts(reset: false)
+            }
+          )
+        default:
+          EmptyView()
+        }
+      }
+      .refreshable {
+        await Task {
+          await viewModel.loadProfileAndPosts()
+        }.value
+      }
     }
-    .refreshable {
-      await Task {
-        await viewModel.loadProfileAndPosts()
-      }.value
-    }
-    .overlay {
-      switch viewModel.profileState {
-      case .idle, .loading:
-        ProgressView()
-          #if os(macOS)
-            .controlSize(.small)
-          #endif
-      case .failed(let error):
-        ErrorScreen(
-          errorString: error,
-          source: "ProfileView",
-          onRetry: {
-            await viewModel.loadProfileAndPosts(reset: false)
-          }
-        )
-      default:
-        EmptyView()
+    .modify {
+      if #available(iOS 18, *) {
+        $0.toolbar(removing: .title)
       }
     }
     .toolbar {
@@ -112,76 +100,19 @@ struct ProfileView: View {
         .postHogScreenView()
         .interactiveDismissDisabled()
     }
-
-    .alert(
-      alertTitle,
-      isPresented: Binding(
-        get: { activeAlert != nil },
-        set: { if !$0 { activeAlert = nil } }
-      ),
-      presenting: activeAlert
-    ) { alertType in
-      switch alertType {
-      case .block:
-        if case .loaded(let user, _) = viewModel.profileState {
-          if user.isBlocking {
-            Button("Unblock") {
-              viewModel.toggleBlocking()
-            }
-          } else {
-            Button("Block", role: .destructive) {
-              viewModel.toggleBlocking()
-            }
-          }
-        }
-        Button("Cancel", role: .cancel) {}
-      case .mute:
-        if case .loaded(let user, _) = viewModel.profileState {
-          if user.isMuting {
-            Button("Unmute") {
-              viewModel.toggleMuting()
-            }
-          } else {
-            Button("Mute", role: .destructive) {
-              viewModel.toggleMuting()
-            }
-          }
-        }
-        Button("Cancel", role: .cancel) {}
-      }
-    } message: { alertType in
-      if case .loaded(let user, _) = viewModel.profileState {
-        switch alertType {
-        case .block:
-          if user.isBlocking {
-            Text(
-              "Unblocking this person will allow you to see their posts and interact with them again."
-            )
-          } else {
-            Text(
-              "Blocking this person will unfollow them and prevent you from seeing their posts. They will be unable to see your presence on the app."
-            )
-          }
-        case .mute:
-          if user.isMuting {
-            Text(
-              "Unmuting this person will show their posts in your feeds again."
-            )
-          } else {
-            Text(
-              "Muting this person will hide their posts from your feeds. You'll continue to follow them and they will not be aware that they are muted."
-            )
-          }
-        }
-      }
-    }
   }
 
   @ToolbarContentBuilder
   private func titleToolbar() -> some ToolbarContent {
-    if #available(iOS 26, *) {
+    if #available(iOS 26, macOS 26, *) {
       ToolbarItem(
-        placement: .topBarLeading
+        placement: {
+          #if os(iOS)
+            .topBarLeading
+          #else
+            .navigation
+          #endif
+        }()
       ) {
         Text(computedTitle)
           .font(isProfileTab ? .title2 : .callout)
@@ -191,7 +122,13 @@ struct ProfileView: View {
       .sharedBackgroundVisibility(.hidden)
     } else {
       ToolbarItem(
-        placement: .topBarLeading
+        placement: {
+          #if os(iOS)
+            .topBarLeading
+          #else
+            .navigation
+          #endif
+        }()
       ) {
         Text(computedTitle)
           .font(isProfileTab ? .title2 : .callout)
@@ -212,46 +149,15 @@ struct ProfileView: View {
         #endif
       }()
     ) {
-      Menu {
-        if case .loaded(let user, _) = viewModel.profileState {
-          if user.isBlocking {
-            Button(role: .destructive, action: { activeAlert = .block }) {
-              Label(
-                "Unblock @\(user.username)",
-                systemImage: "person.fill.checkmark"
-              )
-            }
-          } else {
-            Button(role: .destructive, action: { activeAlert = .block }) {
-              Label(
-                "Block @\(user.username)",
-                systemImage: "person.fill.xmark"
-              )
-            }
-          }
-
-          if user.isMuting {
-            Button(action: { activeAlert = .mute }) {
-              Label(
-                "Unmute @\(user.username)",
-                systemImage: "speaker.wave.2"
-              )
-            }
-          } else {
-            Button(action: { activeAlert = .mute }) {
-              Label(
-                "Mute @\(user.username)",
-                systemImage: "speaker.slash"
-              )
-            }
-          }
-        }
-      } label: {
-        Image(systemName: "ellipsis.circle")
+      if case .loaded(let user, _) = viewModel.profileState {
+        ProfileActionsMenu(
+          isBlocking: user.isBlocking,
+          isMuting: user.isMuting,
+          username: user.username,
+          onToggleBlock: viewModel.toggleBlocking,
+          onToggleMute: viewModel.toggleMuting
+        )
       }
-      .disabled(
-        viewModel.isLoadingBlockButton || viewModel.isLoadingMuteButton
-      )
     }
   }
 
@@ -406,7 +312,7 @@ struct ProfileView: View {
             }
           }
         } else {
-          Button(action: { activeAlert = .block }) {
+          Button(action: { viewModel.toggleBlocking() }) {
             Text("Unblock")
               .frame(maxWidth: .infinity)
               .foregroundStyle(.red.opacity(0.7))
@@ -450,18 +356,6 @@ struct ProfileView: View {
     Text(isProfileSelf ? "Your posts will show up here." : "No posts here.")
       .frame(maxWidth: .infinity, alignment: .center)
       .padding()
-  }
-}
-
-enum ProfileAlertEnum: Identifiable {
-  case block
-  case mute
-
-  var id: String {
-    switch self {
-    case .block: return "block"
-    case .mute: return "mute"
-    }
   }
 }
 
