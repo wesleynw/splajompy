@@ -135,7 +135,7 @@ extension NotificationsView {
             lastReadNotificationTime = last.createdAt
           }
         }
-        
+
         // we could have local notifications moved to the read section that are duplicated in the response here
         let filteredNew = newNotifications.filter { item in
           !notifications.contains { $0.notificationId == item.notificationId }
