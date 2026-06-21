@@ -194,13 +194,17 @@ struct NewPostView: View {
         #endif
       }
     }
-    #if os(macOS)
-      .frame(width: 500, height: 450)
-    #endif
+    .sensoryFeedback(.error, trigger: viewModel.errorDisplay) {
+      _,
+      newValue in newValue != nil
+    }
     .sheet(isPresented: $showingPollCreation) {
       PollCreationView(poll: $viewModel.poll)
         .postHogScreenView()
     }
+    #if os(macOS)
+      .frame(width: 500, height: 450)
+    #endif
   }
 
   var imagePreviewsView: some View {

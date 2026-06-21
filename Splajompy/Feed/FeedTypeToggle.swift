@@ -42,40 +42,6 @@ struct FeedTypeToggle: View {
     .buttonStyle(.plain)
     .menuIndicator(.visible)
   }
-
-  @ViewBuilder
-  private var feedMenuButtons: some View {
-    Button {
-      selectedFeedType = .mutual
-    } label: {
-      HStack {
-        Text("Home")
-        if selectedFeedType == .mutual {
-          Image(systemName: "checkmark")
-        }
-      }
-    }
-    Button {
-      selectedFeedType = .following
-    } label: {
-      HStack {
-        Text("Following")
-        if selectedFeedType == .following {
-          Image(systemName: "checkmark")
-        }
-      }
-    }
-    Button {
-      selectedFeedType = .all
-    } label: {
-      HStack {
-        Text("All")
-        if selectedFeedType == .all {
-          Image(systemName: "checkmark")
-        }
-      }
-    }
-  }
 }
 
 #Preview {
