@@ -58,6 +58,7 @@ struct FeedView: View {
         .postHogScreenView()
         .interactiveDismissDisabled()
       }
+      .sensoryFeedback(.selection, trigger: isShowingNewPostView)
       .toolbar {
         ToolbarItem(
           placement: {
