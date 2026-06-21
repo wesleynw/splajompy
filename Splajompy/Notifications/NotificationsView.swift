@@ -54,9 +54,9 @@ struct NotificationsView: View {
     .refreshable {
       await viewModel.refreshNotifications()
     }
-    .onAppear {
+    .task {
       if case .idle = viewModel.state {
-        Task { await viewModel.refreshNotifications() }
+        await viewModel.refreshNotifications()
       }
     }
     #if os(iOS)
@@ -116,6 +116,7 @@ struct NotificationsView: View {
               if notification.notificationId
                 == notifications.last?.notificationId
               {
+                // TODO: need to update logic here
                 Task {
                   await viewModel.loadMoreUnreadNotifications()
                 }

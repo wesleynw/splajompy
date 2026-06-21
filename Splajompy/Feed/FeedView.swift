@@ -59,31 +59,31 @@ struct FeedView: View {
         .interactiveDismissDisabled()
       }
       .toolbar {
-        FeedTypeToggle(selectedFeedType: $selectedFeedType)
+        ToolbarItem(
+          placement: {
+            #if os(iOS)
+              .topBarLeading
+            #else
+              .confirmationAction
+            #endif
+          }()
+        ) {
+          FeedTypeToggle(selectedFeedType: $selectedFeedType)
+        }
 
-        #if os(iOS)
-          ToolbarItem(placement: .navigationBarTrailing) {
-            Button(action: { isShowingNewPostView = true }) {
-              Image(systemName: "plus")
-            }
+        ToolbarItem(
+          placement: {
+            #if os(iOS)
+              .topBarTrailing
+            #else
+              .confirmationAction
+            #endif
+          }()
+        ) {
+          Button(action: { isShowingNewPostView = true }) {
+            Image(systemName: "plus")
           }
-        #else
-          ToolbarItemGroup(placement: .automatic) {
-            Spacer()
-            Button(action: { isShowingNewPostView = true }) {
-              Image(systemName: "plus")
-            }
-            Button {
-              Task {
-                await viewModel.loadPosts(reset: true)
-                PostHogSDK.shared.capture("feed_refreshed")
-              }
-            } label: {
-              Label("Refresh", systemImage: "arrow.clockwise")
-            }
-            .keyboardShortcut("r", modifiers: .command)
-          }
-        #endif
+        }
       }
   }
 

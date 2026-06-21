@@ -85,6 +85,7 @@ extension NotificationsView {
       }
     }
 
+    // TODO: what is this?????
     private func updateLoadingState(newCount: Int, isUnread: Bool) {
       let hasMore = newCount >= limit
       if isUnread {
@@ -138,8 +139,8 @@ extension NotificationsView {
     }
 
     func loadMoreUnreadNotifications() async {
-      guard !isFetchingUnread else { return }
       guard case .loaded(let notifications) = state else { return }
+      guard !isFetchingUnread else { return }
 
       isFetchingUnread = true
       defer { isFetchingUnread = false }

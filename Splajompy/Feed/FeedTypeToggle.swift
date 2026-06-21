@@ -1,67 +1,46 @@
 import SwiftUI
 
-/// Displays app title and opens a menu to toggle the feed type.
-struct FeedTypeToggle: ToolbarContent {
+struct FeedTypeToggle: View {
   @Binding var selectedFeedType: FeedType
 
-  var body: some ToolbarContent {
-    #if os(macOS)
-      if #available(macOS 26, *) {
-        toolbarItem.sharedBackgroundVisibility(.hidden)
-      } else {
-        toolbarItem
-      }
-    #else
-      toolbarItem
-    #endif
-  }
+  var body: some View {
+    Menu {
+      Picker("Feed Type", selection: $selectedFeedType) {
+        Button {
+        } label: {
+          Label("Home", systemImage: "house")
+          Text("Follwing plus a few others")
+        }
+        .tag(FeedType.home)
 
-  private var toolbarItem: some ToolbarContent {
-    ToolbarItem(
-      placement: {
-        #if os(iOS)
-          .topBarLeading
-        #else
-          .navigation
-        #endif
-      }()
-    ) {
-      menuContent
+        Button {
+        } label: {
+          Label("Following", systemImage: "person.3")
+          Text("People that you follow")
+        }
+        .tag(FeedType.following)
+
+        Button {
+        } label: {
+          Label("Everyone", systemImage: "globe")
+          Text("Beware")
+        }
+        .tag(FeedType.all)
+
+      }
+    } label: {
+      HStack {
+        Text("Splajompy")
+          .font(.title2)
+          .fontWeight(.black)
+
+        Image(systemName: "chevron.down")
+          .font(.caption)
+      }
+      .tint(.primary)
     }
-  }
-
-  @ViewBuilder
-  private var menuContent: some View {
-    #if os(iOS)
-      Menu {
-        feedMenuButtons
-      } label: {
-        HStack {
-          Text("Splajompy")
-            .font(.title2)
-            .fontWeight(.black)
-
-          Image(systemName: "chevron.down")
-            .font(.caption)
-        }
-        .tint(.primary)
-      }
-      .buttonStyle(.plain)
-      .menuIndicator(.visible)
-    #else
-      Menu {
-        feedMenuButtons
-      } label: {
-        HStack {
-          Text("Splajompy")
-            .font(.title2)
-            .fontWeight(.black)
-        }
-        .tint(.primary)
-      }
-      .buttonStyle(.plain)
-      .menuIndicator(.visible)
-    #endif
+    .buttonStyle(.plain)
+    .menuIndicator(.visible)
   }
 
   @ViewBuilder
@@ -105,7 +84,9 @@ struct FeedTypeToggle: ToolbarContent {
   NavigationStack {
     Color.clear
       .toolbar {
-        FeedTypeToggle(selectedFeedType: $selectedFeedType)
+        ToolbarItem(placement: .automatic) {
+          FeedTypeToggle(selectedFeedType: $selectedFeedType)
+        }
       }
   }
 }
