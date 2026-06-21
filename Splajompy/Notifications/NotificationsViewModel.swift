@@ -48,10 +48,9 @@ extension NotificationsView {
       }
     }
     private var isFetching: Bool = false
-    private var isFetchingUnread: Bool = false
 
-    private var lastReadNotificationTime: String?
-    private var lastUnreadNotificationTime: String?
+    private var lastReadNotificationTime: Date?
+    private var lastUnreadNotificationTime: Date?
     private let limit = 30
 
     private let service: NotificationServiceProtocol
@@ -60,39 +59,6 @@ extension NotificationsView {
       notificationService: NotificationServiceProtocol = NotificationService()
     ) {
       self.service = notificationService
-    }
-
-    private func sortNotificationsByDate(_ notifications: [Notification])
-      -> [Notification]
-    {
-      return notifications.sorted { notification1, notification2 in
-        return notification1.createdAt > notification2.createdAt
-      }
-    }
-
-    private func updateLastTimestamp(
-      from notifications: [Notification],
-      isUnread: Bool
-    ) {
-      let sorted = sortNotificationsByDate(notifications)
-      if let oldest = sorted.last {
-        let timeString = ISO8601DateFormatter().string(from: oldest.createdAt)
-        if isUnread {
-          lastUnreadNotificationTime = timeString
-        } else {
-          lastReadNotificationTime = timeString
-        }
-      }
-    }
-
-    // TODO: what is this?????
-    private func updateLoadingState(newCount: Int, isUnread: Bool) {
-      let hasMore = newCount >= limit
-      if isUnread {
-        hasMoreUnreadToLoad = hasMore
-      } else {
-        hasMoreToLoad = hasMore
-      }
     }
 
     func refreshNotifications() async {
@@ -119,54 +85,13 @@ extension NotificationsView {
       let (unreadRes, readRes) = await (unreadResult, readResult)
 
       switch (unreadRes, readRes) {
-      case (.success(let unreadNotifications), .success(let readSectionData)):
-        state = .loaded(readSectionData + unreadNotifications)
-
-        updateLoadingState(newCount: unreadNotifications.count, isUnread: true)
-        updateLoadingState(
-          newCount: readSectionData.compactMap { $0 }.count,  // TODO: do i need compact map here?
-          isUnread: false
-        )
-
-        let allReadNotifications = readSectionData.compactMap {
-          $0
-        }
-        updateLastTimestamp(from: allReadNotifications, isUnread: false)
-        updateLastTimestamp(from: unreadNotifications, isUnread: true)
+      case (.success(let unreadNotifications), .success(let readNotifications)):
+        state = .loaded(unreadNotifications + readNotifications)
+        lastUnreadNotificationTime = unreadNotifications.last?.createdAt
+        lastReadNotificationTime = readNotifications.last?.createdAt
+        hasMoreUnreadToLoad = unreadNotifications.count == limit
+        hasMoreToLoad = readNotifications.count == limit
       case (.failure(let error), _), (_, .failure(let error)):
-        state = .failed(error)
-      }
-    }
-
-    func loadMoreUnreadNotifications() async {
-      guard case .loaded(let notifications) = state else { return }
-      guard !isFetchingUnread else { return }
-
-      isFetchingUnread = true
-      defer { isFetchingUnread = false }
-
-      let beforeTime =
-        lastUnreadNotificationTime
-        ?? ISO8601DateFormatter().string(from: Date())
-
-      let result = await service.getUnreadNotificationsWithTimeOffset(
-        beforeTime: beforeTime,
-        limit: limit,
-        notificationType: selectedFilter.apiValue
-      )
-
-      switch result {
-      case .success(let newUnread):
-        let existingIds = Set(notifications.map { $0.notificationId })
-        let unique = newUnread.filter {
-          !existingIds.contains($0.notificationId)
-        }
-        state = .loaded(notifications + unique)
-        updateLoadingState(newCount: unique.count, isUnread: true)
-        if !unique.isEmpty {
-          updateLastTimestamp(from: unique, isUnread: true)
-        }
-      case .failure(let error):
         state = .failed(error)
       }
     }
@@ -181,23 +106,43 @@ extension NotificationsView {
       defer { isFetching = false }
 
       let beforeTime =
-        lastReadNotificationTime ?? ISO8601DateFormatter().string(from: Date())
+        hasMoreUnreadToLoad
+        ? lastUnreadNotificationTime : lastReadNotificationTime
 
-      let result = await service.getReadNotificationWithSectionsWithTimeOffset(
-        beforeTime: beforeTime,
-        limit: limit,
-        notificationType: selectedFilter.apiValue
-      )
+      let result =
+        hasMoreUnreadToLoad
+        ? await service.getUnreadNotificationsWithTimeOffset(
+          beforeTime: beforeTime?.ISO8601Format(),
+          limit: limit,
+          notificationType: selectedFilter.apiValue
+        )
+        : await service.getReadNotificationWithSectionsWithTimeOffset(
+          beforeTime: beforeTime?.ISO8601Format(),
+          limit: limit,
+          notificationType: selectedFilter.apiValue
+        )
 
       switch result {
-      case .success(let newRead):
-        let existingIds = Set(notifications.map { $0.notificationId })
-        let unique = newRead.filter { !existingIds.contains($0.notificationId) }
-        state = .loaded(notifications + unique)
-        updateLoadingState(newCount: unique.count, isUnread: false)
-        if !unique.isEmpty {
-          updateLastTimestamp(from: unique, isUnread: false)
+      case .success(let newNotifications):
+        if hasMoreUnreadToLoad {
+          hasMoreUnreadToLoad = newNotifications.count == limit
+          if let last = newNotifications.last {
+            lastUnreadNotificationTime = last.createdAt
+          }
+        } else {
+          hasMoreToLoad = newNotifications.count == limit
+          if let last = newNotifications.last {
+            lastReadNotificationTime = last.createdAt
+          }
         }
+        
+        // we could have local notifications moved to the read section that are duplicated in the response here
+        let filteredNew = newNotifications.filter { item in
+          !notifications.contains { $0.notificationId == item.notificationId }
+        }
+        print("current have \(notifications.count)")
+        print("adding \(filteredNew.count) notifications")
+        state = .loaded(notifications + filteredNew)
       case .failure(let error):
         state = .failed(error)
       }

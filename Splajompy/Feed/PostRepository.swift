@@ -1,7 +1,6 @@
 import Foundation
 
 enum FeedType: String, CaseIterable, Identifiable {
-  case home
   case all
   case profile
   case mutual
@@ -44,8 +43,6 @@ struct PostService: PostServiceProtocol {
   ) async -> Result<[DetailedPost], Error> {
     let urlBase: String
     switch feedType {
-    case .home:
-      urlBase = "v2/posts/following"
     case .all:
       urlBase = "v2/posts/all"
     case .profile:

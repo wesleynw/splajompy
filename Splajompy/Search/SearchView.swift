@@ -93,9 +93,6 @@ struct SearchView: View {
         viewModel.clearResults()
       }
     }
-    //    .onTapGesture {
-    //      isSearchBarFocused = false
-    //    }
   }
 
   private var emptyState: some View {
@@ -157,4 +154,8 @@ struct SearchView: View {
     .listStyle(.plain)
     .scrollContentBackground(.hidden)
   }
+}
+
+#Preview {
+  SearchView()
 }
