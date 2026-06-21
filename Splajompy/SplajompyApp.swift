@@ -22,7 +22,8 @@ struct SplajompyApp: App {
 
   @State private var authManager: AuthManager = AuthManager.shared
   @State private var postStore = PostStore()
-  @AppStorage("appearance_mode") var appearanceMode: String = "Automatic"
+  @AppStorage("appearoance_mode") var appearanceMode: String = "Automatic"
+  @Environment(\.refresh) private var refresh
 
   init() {
     initializeOtel()

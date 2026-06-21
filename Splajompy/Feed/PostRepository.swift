@@ -1,11 +1,13 @@
 import Foundation
 
-enum FeedType: String, CaseIterable {
+enum FeedType: String, CaseIterable, Identifiable {
   case home
   case all
   case profile
   case mutual
   case following
+
+  var id: String { rawValue }
 }
 
 protocol PostServiceProtocol: Sendable {
@@ -20,7 +22,9 @@ protocol PostServiceProtocol: Sendable {
   func addComment(postId: Int, content: String) async -> Result<Void, Error>
   func deletePost(postId: Int) async -> Result<Void, Error>
   func reportPost(postId: Int) async -> Result<Void, Error>
-  func voteOnPostPoll(postId: Int, optionIndex: Int) async -> Result<Void, Error>
+  func voteOnPostPoll(postId: Int, optionIndex: Int) async -> Result<
+    Void, Error
+  >
   func pinPost(postId: Int) async -> Result<Void, Error>
   func unpinPost() async -> Result<Void, Error>
 }
@@ -115,7 +119,9 @@ struct PostService: PostServiceProtocol {
     )
   }
 
-  func voteOnPostPoll(postId: Int, optionIndex: Int) async -> Result<Void, Error> {
+  func voteOnPostPoll(postId: Int, optionIndex: Int) async -> Result<
+    Void, Error
+  > {
     return await APIService.performRequest(
       endpoint: "post/\(postId)/vote/\(optionIndex)",
       method: "POST"
