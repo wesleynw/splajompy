@@ -3,38 +3,49 @@ import SwiftUI
 struct NotificationRow: View {
   let notification: Notification
 
-  var body: some View {
+  var route: Route? {
     if let postId = notification.postId,
       notification.notificationType == "like",
       notification.hasNotificationActors == true
     {
-      NavigationLink(
-        value: Route.notificationActorsList(
-          notificationId: notification.id,
-          postId: postId
-        )
-      ) {
-        notificationContent
-      }
+      return .notificationActorsList(
+        notificationId: notification.id,
+        postId: postId
+      )
     } else if let postId = notification.postId {
-      NavigationLink(value: Route.post(id: postId)) {
-        notificationContent
-      }
+      return .post(id: postId)
     } else if let userId = notification.targetUserId,
       let username = notification.targetUserUsername
     {
-      NavigationLink(
-        value: Route.profile(id: String(userId), username: username)
-      ) {
-        notificationContent
-      }
+      return .profile(id: String(userId), username: username)
     } else {
+      return nil
+    }
+  }
+
+  var body: some View {
+    let content = VStack {
+      Divider()
       notificationContent
+      Divider()
+    }
+    .contentShape(.rect)
+
+    if let route {
+      NavigationLink(value: route) {
+        content
+      }
+      .buttonStyle(.plain)
+    } else {
+      content
     }
   }
 
   private var notificationContent: some View {
     HStack(alignment: .center, spacing: 10) {
+      Circle().frame(width: 10, height: 20)
+        .foregroundStyle(notification.viewed ? .clear : .accentColor)
+
       NotificationIcon.icon(for: notification.notificationType)
         .frame(width: 28, height: 28)
 
