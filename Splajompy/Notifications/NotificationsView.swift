@@ -107,18 +107,23 @@ struct NotificationsView: View {
   private func notificationsList(
     notifications: [Notification]
   ) -> some View {
-    let unread = notifications.filter({ !$0.viewed })
+    let unread = notifications.filter({ !$0.viewed }).sorted(by: {
+      $0.createdAt > $1.createdAt
+    })
     if !unread.isEmpty {
       Section {
         ForEach(unread, id: \.notificationId) { notification in
           NotificationRow(notification: notification)
+            #if os(macOS)
+              .frame(maxWidth: 600)
+              .frame(maxWidth: .infinity, alignment: .center)
+            #endif
             .onAppear {
               if notification.notificationId
                 == notifications.last?.notificationId
               {
-                // TODO: need to update logic here
                 Task {
-                  await viewModel.loadMoreUnreadNotifications()
+                  await viewModel.loadMoreNotifications()
                 }
               }
             }
@@ -141,16 +146,22 @@ struct NotificationsView: View {
       }
     }
 
+    let read = notifications.filter({ $0.viewed })
+      .sorted(by: { $0.createdAt > $1.createdAt })
     Section {
-      ForEach(notifications.filter({ $0.viewed }), id: \.notificationId) {
+      ForEach(read, id: \.notificationId) {
         notification in
         NotificationRow(notification: notification)
+          #if os(macOS)
+            .frame(maxWidth: 600)
+            .frame(maxWidth: .infinity, alignment: .center)
+          #endif
           .onAppear {
             if notification.notificationId
               == notifications.last?.notificationId
             {
               Task {
-                await viewModel.loadMoreUnreadNotifications()
+                await viewModel.loadMoreNotifications()
               }
             }
           }

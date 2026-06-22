@@ -11,7 +11,7 @@ struct FeedTypeToggle: View {
           Label("Home", systemImage: "house")
           Text("Follwing plus a few others")
         }
-        .tag(FeedType.home)
+        .tag(FeedType.mutual)
 
         Button {
         } label: {
@@ -28,16 +28,18 @@ struct FeedTypeToggle: View {
         .tag(FeedType.all)
 
       }
+      .pickerStyle(.inline)
     } label: {
       HStack {
         Text("Splajompy")
           .font(.title2)
           .fontWeight(.black)
 
-        Image(systemName: "chevron.down")
-          .font(.caption)
+        #if os(iOS)
+          Image(systemName: "chevron.down")
+            .font(.caption)
+        #endif
       }
-      .tint(.primary)
     }
     .buttonStyle(.plain)
     .menuIndicator(.visible)

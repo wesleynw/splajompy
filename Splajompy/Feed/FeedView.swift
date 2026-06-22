@@ -65,19 +65,25 @@ struct FeedView: View {
             #if os(iOS)
               .topBarLeading
             #else
-              .confirmationAction
+              .automatic
             #endif
           }()
         ) {
           FeedTypeToggle(selectedFeedType: $selectedFeedType)
         }
 
+        #if os(macOS)
+          ToolbarItem {
+            Spacer()
+          }
+        #endif
+
         ToolbarItem(
           placement: {
             #if os(iOS)
               .topBarTrailing
             #else
-              .confirmationAction
+              .automatic
             #endif
           }()
         ) {

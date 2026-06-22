@@ -13,7 +13,7 @@ func initializePostHog() {
   #endif
 
   #if DEBUG
-    config.debug = true
+    // config.debug = true
   #endif
 
   PostHogSDK.shared.setup(config)

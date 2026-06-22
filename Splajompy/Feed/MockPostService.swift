@@ -348,8 +348,6 @@ struct MockPostService: PostServiceProtocol {
     let allPosts: [DetailedPost]
 
     switch feedType {
-    case .home:
-      allPosts = store.getAllPosts()
     case .all:
       allPosts = store.getAllPosts()
     case .profile:
