@@ -52,6 +52,7 @@ extension NotificationsView {
     private var lastReadNotificationTime: Date?
     private var lastUnreadNotificationTime: Date?
     private let limit = 30
+    private(set) var lastRefreshTime: Date = Date()
 
     private let service: NotificationServiceProtocol
 
@@ -69,6 +70,7 @@ extension NotificationsView {
 
       lastReadNotificationTime = nil
       lastUnreadNotificationTime = nil
+      lastRefreshTime = Date()
 
       async let unreadResult = service.getUnreadNotificationsWithTimeOffset(
         beforeTime: nil,
