@@ -135,6 +135,7 @@ struct MentionTextEditor: View {
   var isCompact: Bool
   var trailingInset: CGFloat
   var autoFocusOnAppear: Bool
+  var isEditingEnabled: Bool
   @FocusState var isFocused: Bool
 
   @State private var currentMention: String?
@@ -144,6 +145,7 @@ struct MentionTextEditor: View {
     viewModel: MentionViewModel,
     cursorY: Binding<CGFloat>,
     selectedRange: Binding<NSRange>,
+    isEditingEnabled: Bool,
     isCompact: Bool = false,
     trailingInset: CGFloat = 0,
     autoFocusOnAppear: Bool = false
@@ -152,6 +154,7 @@ struct MentionTextEditor: View {
     self.viewModel = viewModel
     self._cursorY = cursorY
     self._selectedRange = selectedRange
+    self.isEditingEnabled = isEditingEnabled
     self.isCompact = isCompact
     self.trailingInset = trailingInset
     self.autoFocusOnAppear = autoFocusOnAppear
@@ -163,6 +166,7 @@ struct MentionTextEditor: View {
       currentMention: $currentMention,
       selectedRange: $selectedRange,
       cursorY: $cursorY,
+      isEditingEnabled: isEditingEnabled,
       isScrollEnabled: isCompact,
       trailingInset: trailingInset,
       placeholder: isCompact ? "Add a comment..." : "What's on your mind?"
@@ -284,6 +288,7 @@ struct MentionTextEditor: View {
     viewModel: MentionTextEditor.MentionViewModel(),
     cursorY: $cursorY,
     selectedRange: $selectedRange,
+    isEditingEnabled: true,
     isCompact: false
   )
   .padding()

@@ -76,6 +76,7 @@ struct CommentInputView: View {
             viewModel: mentionViewModel,
             cursorY: $cursorY,
             selectedRange: $viewModel.selectedRange,
+            isEditingEnabled: !viewModel.isSubmitting,
             isCompact: true,
             trailingInset: submitButtonWidth
           )
