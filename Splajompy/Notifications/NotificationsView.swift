@@ -8,29 +8,28 @@ struct NotificationsView: View {
   }
 
   var body: some View {
-    List {
-      NotificationBreadcrumbFilter(filter: $viewModel.selectedFilter)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .contentMargins(.leading, 10, for: .scrollContent)
-        .listRowInsets(EdgeInsets())
-        .listRowSeparator(.hidden)
+    ScrollView {
+      LazyVStack(spacing: 0) {
+        NotificationBreadcrumbFilter(filter: $viewModel.selectedFilter)
+          .frame(maxWidth: .infinity, alignment: .leading)
+          .contentMargins(.leading, 10, for: .scrollContent)
 
-      if case .loaded(let notifications) = viewModel
-        .state,
-        !notifications.isEmpty
-      {
-        notificationsList(
-          notifications: notifications
-        )
-        .task {
-          do {
-            try await Task.sleep(for: .seconds(2))
-            viewModel.markAllNotificationsAsRead()
-          } catch {}
+        if case .loaded(let notifications) = viewModel
+          .state,
+          !notifications.isEmpty
+        {
+          notificationsList(
+            notifications: notifications
+          )
+          .task {
+            do {
+              try await Task.sleep(for: .seconds(2))
+              viewModel.markAllNotificationsAsRead()
+            } catch {}
+          }
         }
       }
     }
-    .listStyle(.plain)
     .overlay {
       switch viewModel.state {
       case .idle, .loading:
@@ -107,68 +106,33 @@ struct NotificationsView: View {
   private func notificationsList(
     notifications: [Notification]
   ) -> some View {
-    let unread = notifications.filter({ !$0.viewed }).sorted(by: {
-      $0.createdAt > $1.createdAt
-    })
-    if !unread.isEmpty {
-      Section {
-        ForEach(unread, id: \.notificationId) { notification in
-          NotificationRow(notification: notification)
-            #if os(macOS)
-              .frame(maxWidth: 600)
-              .frame(maxWidth: .infinity, alignment: .center)
-            #endif
-            .onAppear {
-              if notification.notificationId
-                == notifications.last?.notificationId
-              {
-                Task {
-                  await viewModel.loadMoreNotifications()
-                }
-              }
-            }
-            .swipeActions(edge: .leading) {
-              Button {
-                Task {
-                  await viewModel.markNotificationAsRead(
-                    notificationId: notification.notificationId
-                  )
-                }
-              } label: {
-                Label("Mark as Read", systemImage: "checkmark.circle")
-              }
-              .tint(.blue)
-            }
-        }
-      } header: {
-        Text("New")
-          .fontWeight(.bold)
-      }
-    }
-
-    let read = notifications.filter({ $0.viewed })
-      .sorted(by: { $0.createdAt > $1.createdAt })
-    Section {
-      ForEach(read, id: \.notificationId) {
-        notification in
-        NotificationRow(notification: notification)
-          #if os(macOS)
-            .frame(maxWidth: 600)
-            .frame(maxWidth: .infinity, alignment: .center)
-          #endif
-          .onAppear {
-            if notification.notificationId
-              == notifications.last?.notificationId
-            {
-              Task {
-                await viewModel.loadMoreNotifications()
-              }
+    ForEach(notifications, id: \.notificationId) { notification in
+      NotificationRow(notification: notification)
+        #if os(macOS)
+          .frame(maxWidth: 600)
+          .frame(maxWidth: .infinity, alignment: .center)
+        #endif
+        .onAppear {
+          if notification.notificationId
+            == notifications.last?.notificationId
+          {
+            Task {
+              await viewModel.loadMoreNotifications()
             }
           }
-      }
-    } header: {
-      Text("Older")
-        .fontWeight(.bold)
+        }
+        .swipeActions(edge: .leading) {
+          Button {
+            Task {
+              await viewModel.markNotificationAsRead(
+                notificationId: notification.notificationId
+              )
+            }
+          } label: {
+            Label("Mark as Read", systemImage: "checkmark.circle")
+          }
+          .tint(.blue)
+        }
     }
 
     if viewModel.hasMoreUnreadToLoad || viewModel.hasMoreToLoad {
