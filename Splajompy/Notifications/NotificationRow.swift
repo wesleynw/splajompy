@@ -26,7 +26,6 @@ struct NotificationRow: View {
   var body: some View {
     let content = VStack {
       notificationContent
-      Divider()
     }
     .contentShape(.rect)
 
@@ -41,14 +40,14 @@ struct NotificationRow: View {
   }
 
   private var notificationContent: some View {
-    HStack(alignment: .center, spacing: 10) {
-      Circle().frame(width: 10, height: 20)
+    HStack(alignment: .center) {
+      Circle().frame(width: 10, height: 10)
         .foregroundStyle(notification.viewed ? .clear : .accentColor)
 
       NotificationIcon.icon(for: notification.notificationType)
         .frame(width: 28, height: 28)
 
-      VStack(alignment: .leading, spacing: 4) {
+      VStack(alignment: .leading) {
         HStack(alignment: .top, spacing: 8) {
           VStack(alignment: .leading, spacing: 4) {
             Text(notification.richContent)
@@ -82,9 +81,9 @@ struct NotificationRow: View {
           MiniNotificationView(text: text)
         }
       }
+      .frame(maxWidth: .infinity, alignment: .leading)
     }
-    .frame(maxWidth: .infinity, alignment: .leading)
-    .padding(.vertical, 12)
+    .padding(.vertical)
   }
 }
 

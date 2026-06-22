@@ -49,7 +49,8 @@ extension NewPostView {
             (
               itemIdentifier: itemId, pickerItem: Optional(item),
               state: .loading(loadTransferable(from: item, itemId: itemId))
-            ))
+            )
+          )
         }
       }
     }
@@ -97,7 +98,10 @@ extension NewPostView {
       withAnimation(.snappy) {
         imageStates.append(
           contentsOf: images.prefix(remaining).map { image in
-            (itemIdentifier: UUID().uuidString, pickerItem: nil, state: .success(image))
+            (
+              itemIdentifier: UUID().uuidString, pickerItem: nil,
+              state: .success(image)
+            )
           }
         )
       }

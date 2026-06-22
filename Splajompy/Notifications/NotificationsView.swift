@@ -13,6 +13,7 @@ struct NotificationsView: View {
         NotificationBreadcrumbFilter(filter: $viewModel.selectedFilter)
           .frame(maxWidth: .infinity, alignment: .leading)
           .contentMargins(.leading, 10, for: .scrollContent)
+          .padding(.bottom, 10)
 
         if case .loaded(let notifications) = viewModel
           .state,
@@ -110,32 +111,38 @@ struct NotificationsView: View {
     notifications: [Notification]
   ) -> some View {
     ForEach(notifications, id: \.notificationId) { notification in
-      NotificationRow(notification: notification)
-        #if os(macOS)
-          .frame(maxWidth: 600)
-          .frame(maxWidth: .infinity, alignment: .center)
-        #endif
-        .onAppear {
-          if notification.notificationId
-            == notifications.last?.notificationId
-          {
-            Task {
-              await viewModel.loadMoreNotifications()
+      VStack {
+        NotificationRow(notification: notification)
+          #if os(macOS)
+            .frame(maxWidth: 600)
+            .frame(maxWidth: .infinity, alignment: .center)
+          #endif
+          .onAppear {
+            if notification.notificationId
+              == notifications.last?.notificationId
+            {
+              Task {
+                await viewModel.loadMoreNotifications()
+              }
             }
           }
-        }
-        .swipeActions(edge: .leading) {
-          Button {
-            Task {
-              await viewModel.markNotificationAsRead(
-                notificationId: notification.notificationId
-              )
+          .swipeActions(edge: .leading) {
+            Button {
+              Task {
+                await viewModel.markNotificationAsRead(
+                  notificationId: notification.notificationId
+                )
+              }
+            } label: {
+              Label("Mark as Read", systemImage: "checkmark.circle")
             }
-          } label: {
-            Label("Mark as Read", systemImage: "checkmark.circle")
+            .tint(.blue)
           }
-          .tint(.blue)
+
+        if notification != notifications.last {
+          Divider()
         }
+      }
     }
 
     if viewModel.hasMoreUnreadToLoad || viewModel.hasMoreToLoad {

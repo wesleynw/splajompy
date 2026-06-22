@@ -6,6 +6,7 @@ struct AttributedTextEditor: UIViewRepresentable {
   @Binding var selectedRange: NSRange
   @Binding var cursorY: CGFloat
 
+  var isEditingEnabled: Bool
   var isScrollEnabled: Bool
   var trailingInset: CGFloat = 0
   var placeholder: String = ""
@@ -42,6 +43,7 @@ struct AttributedTextEditor: UIViewRepresentable {
       for: .horizontal
     )
     textView.backgroundColor = .clear
+    textView.isEditable = isEditingEnabled
 
     let label = UILabel()
     label.text = placeholder
@@ -92,6 +94,7 @@ struct AttributedTextEditor: UIViewRepresentable {
     if uiView.textContainerInset != expectedInset {
       uiView.textContainerInset = expectedInset
     }
+    uiView.isEditable = isEditingEnabled
 
     context.coordinator.placeholderLabel?.isHidden = !text.string.isEmpty
   }

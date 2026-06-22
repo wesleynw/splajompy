@@ -11,6 +11,7 @@ struct AttributedTextEditor: NSViewRepresentable {
   @Binding var selectedRange: NSRange
   @Binding var cursorY: CGFloat
 
+  var isEditingEnabled: Bool
   var isScrollEnabled: Bool
   var trailingInset: CGFloat = 0
   var placeholder: String = ""
@@ -35,6 +36,7 @@ struct AttributedTextEditor: NSViewRepresentable {
       width: CGFloat.greatestFiniteMagnitude,
       height: CGFloat.greatestFiniteMagnitude
     )
+    textView.isEditable = isEditingEnabled
 
     textView.isAutomaticSpellingCorrectionEnabled = true
     textView.typingAttributes = [
@@ -106,6 +108,7 @@ struct AttributedTextEditor: NSViewRepresentable {
       width: 10,
       height: centeredVerticalInset
     )
+    textView.isEditable = isEditingEnabled
 
     context.coordinator.placeholderLabel?.isHidden = !text.string.isEmpty
   }
