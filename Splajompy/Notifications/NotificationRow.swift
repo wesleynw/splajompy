@@ -25,7 +25,6 @@ struct NotificationRow: View {
 
   var body: some View {
     let content = VStack {
-      Divider()
       notificationContent
       Divider()
     }

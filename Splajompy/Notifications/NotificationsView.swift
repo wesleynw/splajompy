@@ -21,11 +21,14 @@ struct NotificationsView: View {
           notificationsList(
             notifications: notifications
           )
+          .padding(.horizontal)
           .task {
-            do {
-              try await Task.sleep(for: .seconds(2))
-              viewModel.markAllNotificationsAsRead()
-            } catch {}
+            if viewModel.lastRefreshTime.addingTimeInterval(5) > Date() {
+              do {
+                try await Task.sleep(for: .seconds(2))
+                viewModel.markAllNotificationsAsRead()
+              } catch {}
+            }
           }
         }
       }
@@ -144,7 +147,6 @@ struct NotificationsView: View {
           #endif
       }
       .frame(maxWidth: .infinity, alignment: .center)
-      .listRowSeparator(.hidden)
     }
   }
 }
