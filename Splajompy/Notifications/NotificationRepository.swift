@@ -21,7 +21,8 @@ struct Notification: Identifiable, Decodable, Equatable {
   var post: Post?
   var comment: Comment?
 
-  var id: Int { notificationId }
+  // TODO: this is kind of a hack. in an ideal world we'd have an observable object for each notification
+  var id: String { "\(notificationId) \(viewed)" }
 
   var richContent: AttributedString {
     let markdown = generateAttributedStringUsingFacets(

@@ -70,7 +70,6 @@ extension NotificationsView {
 
       lastReadNotificationTime = nil
       lastUnreadNotificationTime = nil
-      lastRefreshTime = Date()
 
       async let unreadResult = service.getUnreadNotificationsWithTimeOffset(
         beforeTime: nil,
@@ -93,6 +92,7 @@ extension NotificationsView {
         lastReadNotificationTime = readNotifications.last?.createdAt
         hasMoreUnreadToLoad = unreadNotifications.count == limit
         hasMoreToLoad = readNotifications.count == limit
+        lastRefreshTime = Date()
       case (.failure(let error), _), (_, .failure(let error)):
         state = .failed(error)
       }
@@ -153,7 +153,7 @@ extension NotificationsView {
     func markNotificationAsRead(notificationId: Int) async {
       guard case .loaded(var notifications) = state else { return }
 
-      if let index = notifications.firstIndex(where: { $0.id == notificationId }
+      if let index = notifications.firstIndex(where: { $0.notificationId == notificationId }
       ) {
         notifications[index].viewed = true
       }

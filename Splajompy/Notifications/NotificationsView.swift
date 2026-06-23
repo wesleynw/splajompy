@@ -23,7 +23,7 @@ struct NotificationsView: View {
             notifications: notifications
           )
           .padding(.horizontal)
-          .task {
+          .task(id: viewModel.lastRefreshTime) {
             if viewModel.lastRefreshTime.addingTimeInterval(5) > Date() {
               do {
                 try await Task.sleep(for: .seconds(2))
@@ -82,6 +82,15 @@ struct NotificationsView: View {
         }
       }
     #else
+      .toolbar {
+        ToolbarItem {
+          Button("Refresh", systemImage: "arrow.clockwise") {
+            Task {
+              await viewModel.refreshNotifications()
+            }
+          }
+        }
+      }
       .navigationTitle("Notifications")
     #endif
   }
@@ -110,7 +119,7 @@ struct NotificationsView: View {
   private func notificationsList(
     notifications: [Notification]
   ) -> some View {
-    ForEach(notifications, id: \.notificationId) { notification in
+    ForEach(notifications) { notification in
       VStack {
         NotificationRow(notification: notification)
           #if os(macOS)
