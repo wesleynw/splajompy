@@ -9,7 +9,7 @@ struct NotificationRow: View {
       notification.hasNotificationActors == true
     {
       return .notificationActorsList(
-        notificationId: notification.id,
+        notificationId: notification.notificationId,
         postId: postId
       )
     } else if let postId = notification.postId {
