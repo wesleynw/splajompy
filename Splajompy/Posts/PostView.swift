@@ -35,6 +35,23 @@ struct PostView: View {
   @State private var isPresentingCommentsSheet: Bool = false
 
   var body: some View {
+    Group {
+      if isStandalone {
+        postContent
+      } else {
+        NavigationLink(value: Route.post(id: post.id)) {
+          postContent
+        }
+        .buttonStyle(.plain)
+      }
+    }
+    .sheet(isPresented: $isPresentingCommentsSheet) {
+      CommentsView(postId: post.post.postId, postManager: postManager)
+        .postHogScreenView()
+    }
+  }
+
+  private var postContent: some View {
     VStack {
       Divider()
         .padding(.bottom, 4)
@@ -65,10 +82,6 @@ struct PostView: View {
     .contentShape(Rectangle())
     .animation(.easeInOut(duration: 0.3), value: post.isPinned)
     .safeAreaPadding(.horizontal, 16)
-    .sheet(isPresented: $isPresentingCommentsSheet) {
-      CommentsView(postId: post.post.postId, postManager: postManager)
-        .postHogScreenView()
-    }
   }
 
   private var authorHeader: some View {
