@@ -489,8 +489,8 @@
 			baseConfigurationReferenceAnchor = 184A63CD2D88CBA100860D6B /* Splajompy */;
 			baseConfigurationReferenceRelativePath = Configuration/Debug.xcconfig;
 			buildSettings = {
-				"ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES[sdk=*]" = "pumpkin-icon rainbow-icon exploding-icon snail";
-				ASSETCATALOG_COMPILER_APPICON_NAME = "default-icon";
+				"ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES[sdk=*]" = "pumpkin-icon rainbow-icon exploding-icon snail rainbow_snail original_snail basic_snail original-icon";
+				ASSETCATALOG_COMPILER_APPICON_NAME = basic_snail;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CODE_SIGN_ENTITLEMENTS = Splajompy/SplajompyDebug.entitlements;
@@ -550,7 +550,7 @@
 			baseConfigurationReferenceRelativePath = Configuration/Release.xcconfig;
 			buildSettings = {
 				"ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES[sdk=*]" = "pumpkin-icon rainbow-icon exploding-icon snail";
-				ASSETCATALOG_COMPILER_APPICON_NAME = "default-icon";
+				ASSETCATALOG_COMPILER_APPICON_NAME = basic_snail;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CODE_SIGN_ENTITLEMENTS = Splajompy/Splajompy.entitlements;
