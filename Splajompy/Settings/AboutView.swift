@@ -15,7 +15,7 @@ struct AboutView: View {
       List {
         Section {
           VStack {
-            Image("basic_snail_icon")
+            Image("icon_snail")
               .resizable()
               .aspectRatio(contentMode: .fit)
               .frame(width: 150, height: 150)

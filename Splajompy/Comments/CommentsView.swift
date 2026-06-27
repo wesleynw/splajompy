@@ -194,7 +194,7 @@ struct CommentsView: View {
         .frame(width: 200, height: 200)
 
       Text("No comments")
-        .font(.title2)
+        .font(.title3)
         .fontWeight(.semibold)
         .foregroundStyle(.secondary)
     }

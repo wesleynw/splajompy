@@ -114,7 +114,7 @@ struct FeedView: View {
         errorString: error.localizedDescription,
         source: "FeedView",
         onRetry: {
-          await viewModel.loadPosts(preserveCurrentState: false, reset: true)
+          await viewModel.loadPosts(preserveCurrentState: true, reset: true)
         }
       )
       .frame(maxWidth: .infinity, maxHeight: .infinity)
