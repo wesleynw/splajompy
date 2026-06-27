@@ -97,10 +97,14 @@ struct NotificationsView: View {
 
   private var noNotificationsView: some View {
     VStack {
-      Text("No notifications.")
+      Image("snail-hiding")
+        .resizable()
+        .aspectRatio(contentMode: .fit)
+        .frame(width: 200, height: 200)
+      
+      Text("No notifications")
         .font(.title3)
-        .fontWeight(.bold)
-        .padding(.top, 40)
+        .fontWeight(.semibold)
       Button {
         Task { await viewModel.refreshNotifications() }
       } label: {
@@ -110,7 +114,13 @@ struct NotificationsView: View {
         }
       }
       .padding()
-      .buttonStyle(.bordered)
+      .modify {
+        if #available(iOS 26, macOS 26, *) {
+          $0.buttonStyle(.glass)
+        } else {
+          $0.buttonStyle(.bordered)
+        }
+      }
     }
     .frame(maxWidth: .infinity, alignment: .center)
   }
@@ -172,6 +182,16 @@ struct NotificationsView: View {
     NotificationsView(
       viewModel: NotificationsView.ViewModel(
         notificationService: MockNotificationService()
+      )
+    )
+  }
+}
+
+#Preview("no notifications") {
+  NavigationStack {
+    NotificationsView(
+      viewModel: NotificationsView.ViewModel(
+        notificationService: MockNotificationService_Empty()
       )
     )
   }

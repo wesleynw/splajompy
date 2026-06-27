@@ -136,9 +136,16 @@ struct UserListView: View {
   }
 
   private var noUsersView: some View {
-    Text("There's nobody here")
-      .fontWeight(.bold)
-      .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+    VStack {
+      Image("snail-hiding")
+        .resizable()
+        .aspectRatio(contentMode: .fit)
+        .frame(width: 200, height: 200)
+      
+      Text("There's nobody here")
+        .font(.title2)
+        .fontWeight(.semibold)
+    }
   }
 
   private func userList(

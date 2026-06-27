@@ -96,13 +96,12 @@ struct SearchView: View {
   }
 
   private var emptyState: some View {
-    VStack(spacing: 16) {
-      Image(systemName: "magnifyingglass")
-        .font(.system(size: 48))
-        .foregroundStyle(.gray)
+    VStack {
+      Image("snail-search")
+        .resizable()
+        .aspectRatio(contentMode: .fit)
+        .frame(width: 200, height: 200)
     }
-    .frame(maxWidth: .infinity, maxHeight: .infinity)
-    .contentShape(Rectangle())
   }
 
   private var noResultsState: some View {
@@ -140,7 +139,10 @@ struct SearchView: View {
           .buttonStyle(.plain)
         } else {
           NavigationLink(
-            value: Route.profile(id: String(user.userId), username: user.username)
+            value: Route.profile(
+              id: String(user.userId),
+              username: user.username
+            )
           ) {
             HStack {
               ProfileDisplayNameView(user: user, alignVertically: false)

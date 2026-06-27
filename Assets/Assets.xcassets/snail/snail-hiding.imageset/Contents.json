@@ -1,0 +1,12 @@
+{
+  "images" : [
+    {
+      "filename" : "snail_in_shell.png",
+      "idiom" : "universal"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}
