@@ -12,34 +12,38 @@ struct AppIconPickerView: View {
     ScrollView {
       LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())]) {
         iconCell(
-          image: "basic_snail_icon",
+          previewImage: "icon_snail-basic",
           iconName: nil,
           artist: "@elena"
         )
         iconCell(
-          image: "rainbow_snail_icon",
-          iconName: "rainbow_snail",
+          previewImage: "icon_snail-rainbow",
+          iconName: "snail-rainbow_icon",
           artist: "@elena"
         )
         iconCell(
-          image: "original_snail_icon",
-          iconName: "original_snail",
+          previewImage: "icon_snail",
+          iconName: "snail_icon",
           artist: "@elena"
         )
-        iconCell(image: "icon-png", iconName: "original_icon", artist: nil)
         iconCell(
-          image: "rainbow-icon-png",
-          iconName: "rainbow-icon",
+          previewImage: "icon_og",
+          iconName: "original_icon",
           artist: nil
         )
         iconCell(
-          image: "pumpkin-icon-png",
-          iconName: "pumpkin-icon",
+          previewImage: "icon_rainbow",
+          iconName: "rainbow_icon",
+          artist: nil
+        )
+        iconCell(
+          previewImage: "icon_pumpkin",
+          iconName: "pumpkin_icon",
           artist: "@milesperhour"
         )
         iconCell(
-          image: "exploding-icon-png",
-          iconName: "exploding-icon",
+          previewImage: "icon_exploding",
+          iconName: "exploding_icon",
           artist: "@moldy"
         )
       }
@@ -50,7 +54,11 @@ struct AppIconPickerView: View {
     .navigationBarTitleDisplayMode(.inline)
   }
 
-  private func iconCell(image: String, iconName: String?, artist: String?)
+  private func iconCell(
+    previewImage: String,
+    iconName: String?,
+    artist: String?
+  )
     -> some View
   {
     Color.clear
@@ -59,7 +67,7 @@ struct AppIconPickerView: View {
       .clipShape(RoundedRectangle(cornerRadius: 16))
       .overlay(
         VStack(spacing: 4) {
-          Image(image)
+          Image(previewImage)
             .resizable()
             .frame(width: 100, height: 100)
 

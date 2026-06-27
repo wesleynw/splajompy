@@ -31,24 +31,17 @@ struct FeedTypeToggle: View {
       .pickerStyle(.inline)
     } label: {
       HStack {
-        Image("snail-mini-template")
+        Image("snail-minimal")
           .resizable()
-          .foregroundStyle(.primary)
           .aspectRatio(contentMode: .fit)
           .frame(width: 30, height: 30)
           .padding(.trailing, -5)
         Text("Splajompy")
           .font(.title2)
           .fontWeight(.black)
-
-        #if os(iOS)
-          Image(systemName: "chevron.down")
-            .font(.caption)
-        #endif
       }
     }
     .buttonStyle(.plain)
-    .menuIndicator(.visible)
   }
 }
 
