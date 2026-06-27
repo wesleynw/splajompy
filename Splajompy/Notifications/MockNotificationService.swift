@@ -316,7 +316,9 @@ class MockNotificationService: @unchecked Sendable, NotificationServiceProtocol 
     return notifications
   }
 
-  func getAllNotifications(offset: Int, limit: Int) async -> Result<[Notification], Error> {
+  func getAllNotifications(offset: Int, limit: Int) async -> Result<
+    [Notification], Error
+  > {
     callHistory.append((offset, limit))
 
     switch behavior {
@@ -337,13 +339,17 @@ class MockNotificationService: @unchecked Sendable, NotificationServiceProtocol 
     }
   }
 
-  func getUnreadNotifications(offset: Int, limit: Int) async -> Result<[Notification], Error> {
+  func getUnreadNotifications(offset: Int, limit: Int) async -> Result<
+    [Notification], Error
+  > {
     callHistory.append((offset, limit))
 
     switch behavior {
     case .success(let notifications):
       let unreadNotifications = notifications.filter { !$0.viewed }
-      return .success(Array(unreadNotifications.dropFirst(offset).prefix(limit)))
+      return .success(
+        Array(unreadNotifications.dropFirst(offset).prefix(limit))
+      )
 
     case .failure(let error):
       return .failure(error)
@@ -351,7 +357,9 @@ class MockNotificationService: @unchecked Sendable, NotificationServiceProtocol 
     case .delayed(let notifications, let delay):
       try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
       let unreadNotifications = notifications.filter { !$0.viewed }
-      return .success(Array(unreadNotifications.dropFirst(offset).prefix(limit)))
+      return .success(
+        Array(unreadNotifications.dropFirst(offset).prefix(limit))
+      )
 
     default:
       return .failure(
@@ -360,14 +368,18 @@ class MockNotificationService: @unchecked Sendable, NotificationServiceProtocol 
     }
   }
 
-  func getReadNotifications(offset: Int, limit: Int) async -> Result<[Notification], Error> {
+  func getReadNotifications(offset: Int, limit: Int) async -> Result<
+    [Notification], Error
+  > {
     callHistory.append((offset, limit))
 
     switch behavior {
     case .success(let notifications):
       let readNotifications = notifications.filter { $0.viewed }
       // Apply proper client-side pagination after filtering
-      let paginatedRead = Array(readNotifications.dropFirst(offset).prefix(limit))
+      let paginatedRead = Array(
+        readNotifications.dropFirst(offset).prefix(limit)
+      )
       return .success(paginatedRead)
 
     case .failure(let error):
@@ -376,7 +388,9 @@ class MockNotificationService: @unchecked Sendable, NotificationServiceProtocol 
     case .delayed(let notifications, let delay):
       try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
       let readNotifications = notifications.filter { $0.viewed }
-      let paginatedRead = Array(readNotifications.dropFirst(offset).prefix(limit))
+      let paginatedRead = Array(
+        readNotifications.dropFirst(offset).prefix(limit)
+      )
       return .success(paginatedRead)
 
     default:
@@ -444,7 +458,9 @@ class MockNotificationService: @unchecked Sendable, NotificationServiceProtocol 
   }
 
   func getReadNotificationsWithTimeOffset(
-    beforeTime: String?, limit: Int, notificationType: String?
+    beforeTime: String?,
+    limit: Int,
+    notificationType: String?
   )
     async -> Result<[Notification], Error>
   {
@@ -452,7 +468,9 @@ class MockNotificationService: @unchecked Sendable, NotificationServiceProtocol 
     case .success(let notifications):
       var readNotifications = notifications.filter { $0.viewed }
       if let notificationType = notificationType {
-        readNotifications = readNotifications.filter { $0.notificationType == notificationType }
+        readNotifications = readNotifications.filter {
+          $0.notificationType == notificationType
+        }
       }
       return .success(Array(readNotifications.prefix(limit)))
 
@@ -463,25 +481,33 @@ class MockNotificationService: @unchecked Sendable, NotificationServiceProtocol 
       try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
       var readNotifications = notifications.filter { $0.viewed }
       if let notificationType = notificationType {
-        readNotifications = readNotifications.filter { $0.notificationType == notificationType }
+        readNotifications = readNotifications.filter {
+          $0.notificationType == notificationType
+        }
       }
       return .success(Array(readNotifications.prefix(limit)))
 
     default:
       return .failure(
-        MockError("Unexpected behavior set for getReadNotificationsWithTimeOffset")
+        MockError(
+          "Unexpected behavior set for getReadNotificationsWithTimeOffset"
+        )
       )
     }
   }
 
   func getUnreadNotificationsWithTimeOffset(
-    beforeTime: String?, limit: Int, notificationType: String?
+    beforeTime: String?,
+    limit: Int,
+    notificationType: String?
   ) async -> Result<[Notification], Error> {
     switch behavior {
     case .success(let notifications):
       var unreadNotifications = notifications.filter { !$0.viewed }
       if let notificationType = notificationType {
-        unreadNotifications = unreadNotifications.filter { $0.notificationType == notificationType }
+        unreadNotifications = unreadNotifications.filter {
+          $0.notificationType == notificationType
+        }
       }
       return .success(Array(unreadNotifications.prefix(limit)))
 
@@ -492,24 +518,33 @@ class MockNotificationService: @unchecked Sendable, NotificationServiceProtocol 
       try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
       var unreadNotifications = notifications.filter { !$0.viewed }
       if let notificationType = notificationType {
-        unreadNotifications = unreadNotifications.filter { $0.notificationType == notificationType }
+        unreadNotifications = unreadNotifications.filter {
+          $0.notificationType == notificationType
+        }
       }
       return .success(Array(unreadNotifications.prefix(limit)))
 
     default:
       return .failure(
-        MockError("Unexpected behavior set for getUnreadNotificationsWithTimeOffset")
+        MockError(
+          "Unexpected behavior set for getUnreadNotificationsWithTimeOffset"
+        )
       )
     }
   }
 
   func getReadNotificationWithSectionsWithTimeOffset(
-    beforeTime: String?, limit: Int, notificationType: String?
+    beforeTime: String?,
+    limit: Int,
+    notificationType: String?
   ) async
     -> Result<[Notification], Error>
   {
     let result = await getReadNotificationsWithTimeOffset(
-      beforeTime: beforeTime, limit: limit, notificationType: notificationType)
+      beforeTime: beforeTime,
+      limit: limit,
+      notificationType: notificationType
+    )
 
     return result
   }
@@ -519,5 +554,67 @@ class MockNotificationService: @unchecked Sendable, NotificationServiceProtocol 
     markedAsReadIds = []
     markedAllAsReadCalls = 0
     hasUnreadCalls = 0
+  }
+}
+
+final class MockNotificationService_Empty: NotificationServiceProtocol {
+  func getAllNotifications(offset: Int, limit: Int) async -> Result<
+    [Notification], any Error
+  > {
+    return .success([])
+  }
+
+  func getUnreadNotifications(offset: Int, limit: Int) async -> Result<
+    [Notification], any Error
+  > {
+    return .success([])
+  }
+
+  func getReadNotifications(offset: Int, limit: Int) async -> Result<
+    [Notification], any Error
+  > {
+    return .success([])
+  }
+
+  func markNotificationAsRead(notificationId: Int) async -> Result<
+    Void, any Error
+  > {
+    return .success(())
+  }
+
+  func markAllNotificationsAsRead() async -> Result<Void, any Error> {
+    return .success(())
+  }
+
+  func hasUnreadNotifications() async -> Result<Bool, any Error> {
+    return .success(false)
+  }
+
+  func getUnreadNotificationCount() async -> Result<Int, any Error> {
+    return .success(0)
+  }
+
+  func getReadNotificationsWithTimeOffset(
+    beforeTime: String?,
+    limit: Int,
+    notificationType: String?
+  ) async -> Result<[Notification], any Error> {
+    return .success([])
+  }
+
+  func getUnreadNotificationsWithTimeOffset(
+    beforeTime: String?,
+    limit: Int,
+    notificationType: String?
+  ) async -> Result<[Notification], any Error> {
+    return .success([])
+  }
+
+  func getReadNotificationWithSectionsWithTimeOffset(
+    beforeTime: String?,
+    limit: Int,
+    notificationType: String?
+  ) async -> Result<[Notification], any Error> {
+    return .success([])
   }
 }

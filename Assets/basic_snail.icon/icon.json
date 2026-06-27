@@ -1,8 +1,8 @@
 {
   "fill" : {
     "linear-gradient" : [
-      "display-p3:0.42745,0.61176,0.54902,1.00000",
-      "srgb:0.19216,0.31765,0.30588,1.00000"
+      "display-p3:0.13721,0.32104,0.33716,1.00000",
+      "display-p3:0.49609,0.69727,0.62988,1.00000"
     ],
     "orientation" : {
       "start" : {
@@ -17,29 +17,26 @@
   },
   "groups" : [
     {
-      "blur-material" : null,
-      "hidden" : false,
       "layers" : [
         {
-          "image-name" : "snail-test-1.png",
-          "name" : "snail-test-1",
+          "image-name" : "Untitled_Artwork 10.png",
+          "name" : "Untitled_Artwork 10",
+          "opacity" : 0.9,
           "position" : {
-            "scale" : 0.45,
+            "scale" : 0.43,
             "translation-in-points" : [
-              -9.450000000000045,
-              -13.275000000000091
+              6.680358299341151,
+              -24.64122035984815
             ]
           }
         }
       ],
-      "lighting" : "individual",
       "shadow" : {
         "kind" : "neutral",
         "opacity" : 0.5
       },
-      "specular" : false,
       "translucency" : {
-        "enabled" : false,
+        "enabled" : true,
         "value" : 0.5
       }
     }

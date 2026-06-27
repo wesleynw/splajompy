@@ -9,11 +9,14 @@ struct ErrorScreen: View {
 
   var body: some View {
     VStack {
-      VStack {
-        Text(errorString)
-          .fontWeight(.bold)
-      }
-      .multilineTextAlignment(.center)
+      Image("snail-alert")
+        .resizable()
+        .aspectRatio(contentMode: .fit)
+        .frame(width: 200, height: 200)
+
+      Text(errorString)
+        .fontWeight(.bold)
+        .multilineTextAlignment(.center)
 
       Button {
         Task {

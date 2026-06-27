@@ -31,6 +31,12 @@ struct FeedTypeToggle: View {
       .pickerStyle(.inline)
     } label: {
       HStack {
+        Image("snail-mini-template")
+          .resizable()
+          .foregroundStyle(.primary)
+          .aspectRatio(contentMode: .fit)
+          .frame(width: 30, height: 30)
+          .padding(.trailing, -5)
         Text("Splajompy")
           .font(.title2)
           .fontWeight(.black)

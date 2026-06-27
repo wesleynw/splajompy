@@ -285,8 +285,9 @@ struct MockProfileService: ProfileServiceProtocol {
     PaginatedUserList, Error
   > {
     try? await Task.sleep(nanoseconds: 300_000_000)
-    let users = Array(store.users.values)
-    return .success(PaginatedUserList(users: users, nextCursor: nil))
+    return .success(PaginatedUserList(users: [], nextCursor: nil))
+    //    let users = Array(store.users.values)
+    //    return .success(PaginatedUserList(users: users, nextCursor: nil))
   }
 
   func getMutuals(userId: Int, limit: Int, before: Date?) async -> Result<PaginatedUserList, Error>

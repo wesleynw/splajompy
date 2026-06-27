@@ -14,13 +14,12 @@ struct AboutView: View {
     VStack {
       List {
         Section {
-          VStack(alignment: .center) {
-            Image("Logo")
+          VStack {
+            Image("snail-normal")
               .resizable()
               .aspectRatio(contentMode: .fit)
-              .frame(width: 80, height: 80)
+              .frame(width: 150, height: 150)
           }
-          .padding()
           .frame(maxWidth: .infinity)
         }
 

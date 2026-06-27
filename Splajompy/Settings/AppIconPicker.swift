@@ -11,7 +11,22 @@ struct AppIconPickerView: View {
   var body: some View {
     ScrollView {
       LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())]) {
-        iconCell(image: "icon-png", iconName: nil, artist: nil)
+        iconCell(
+          image: "basic_snail_icon",
+          iconName: nil,
+          artist: "@elena"
+        )
+        iconCell(
+          image: "rainbow_snail_icon",
+          iconName: "rainbow_snail",
+          artist: "@elena"
+        )
+        iconCell(
+          image: "original_snail_icon",
+          iconName: "original_snail",
+          artist: "@elena"
+        )
+        iconCell(image: "icon-png", iconName: "original_icon", artist: nil)
         iconCell(
           image: "rainbow-icon-png",
           iconName: "rainbow-icon",

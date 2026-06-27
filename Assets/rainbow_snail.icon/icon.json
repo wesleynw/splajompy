@@ -1,0 +1,62 @@
+{
+  "fill" : {
+    "solid" : "display-p3:0.99655,1.00000,0.95364,1.00000"
+  },
+  "groups" : [
+    {
+      "layers" : [
+        {
+          "image-name" : "Untitled_Artwork 12.png",
+          "name" : "Untitled_Artwork 12",
+          "opacity" : 0.8,
+          "position" : {
+            "scale" : 0.43,
+            "translation-in-points" : [
+              2.6144476124943594,
+              -31.114202290651065
+            ]
+          }
+        }
+      ],
+      "shadow" : {
+        "kind" : "neutral",
+        "opacity" : 0.5
+      },
+      "translucency" : {
+        "enabled" : true,
+        "value" : 0.5
+      }
+    },
+    {
+      "layers" : [
+        {
+          "glass" : true,
+          "hidden" : false,
+          "image-name" : "Untitled_Artwork 11.png",
+          "name" : "Untitled_Artwork 11",
+          "position" : {
+            "scale" : 0.43,
+            "translation-in-points" : [
+              0,
+              0
+            ]
+          }
+        }
+      ],
+      "shadow" : {
+        "kind" : "neutral",
+        "opacity" : 0.5
+      },
+      "translucency" : {
+        "enabled" : true,
+        "value" : 0.5
+      }
+    }
+  ],
+  "supported-platforms" : {
+    "circles" : [
+      "watchOS"
+    ],
+    "squares" : "shared"
+  }
+}

@@ -110,14 +110,7 @@ struct CommentsView: View {
           .frame(maxWidth: .infinity, maxHeight: .infinity)
       case .loaded(let comments):
         if comments.isEmpty {
-          VStack(spacing: 16) {
-            Spacer()
-            Text("No comments")
-              .font(.title3)
-              .foregroundStyle(.gray)
-            Spacer()
-          }
-          .frame(maxWidth: .infinity, maxHeight: .infinity)
+          noCommentView
         } else {
           let rows = ForEach(comments, id: \.commentId) { comment in
             CommentRow(
@@ -191,6 +184,21 @@ struct CommentsView: View {
       dismiss()
     }
     .presentationDragIndicator(.visible)
+  }
+
+  private var noCommentView: some View {
+    VStack {
+      Image("snail-outline")
+        .resizable()
+        .aspectRatio(contentMode: .fit)
+        .frame(width: 200, height: 200)
+
+      Text("No comments")
+        .font(.title2)
+        .fontWeight(.semibold)
+        .foregroundStyle(.secondary)
+    }
+    .frame(maxWidth: .infinity, maxHeight: .infinity)
   }
 }
 
