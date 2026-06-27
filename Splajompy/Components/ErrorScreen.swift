@@ -13,7 +13,7 @@ struct ErrorScreen: View {
         .resizable()
         .aspectRatio(contentMode: .fit)
         .frame(width: 200, height: 200)
-      
+
       Text(errorString)
         .fontWeight(.bold)
         .multilineTextAlignment(.center)

@@ -1,7 +1,6 @@
 import Foundation
 
-class MockNotificationService: @unchecked Sendable, NotificationServiceProtocol
-{
+class MockNotificationService: @unchecked Sendable, NotificationServiceProtocol {
   func getUnreadNotificationCount() async -> Result<Int, Error> {
     return .success(0)
   }
@@ -401,8 +400,7 @@ class MockNotificationService: @unchecked Sendable, NotificationServiceProtocol
     }
   }
 
-  func markNotificationAsRead(notificationId: Int) async -> Result<Void, Error>
-  {
+  func markNotificationAsRead(notificationId: Int) async -> Result<Void, Error> {
     markedAsReadIds.append(notificationId)
 
     switch behavior {

@@ -101,7 +101,7 @@ struct NotificationsView: View {
         .resizable()
         .aspectRatio(contentMode: .fit)
         .frame(width: 200, height: 200)
-      
+
       Text("No notifications")
         .font(.title3)
         .fontWeight(.semibold)

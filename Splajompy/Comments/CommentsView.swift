@@ -192,7 +192,7 @@ struct CommentsView: View {
         .resizable()
         .aspectRatio(contentMode: .fit)
         .frame(width: 200, height: 200)
-      
+
       Text("No comments")
         .font(.title2)
         .fontWeight(.semibold)

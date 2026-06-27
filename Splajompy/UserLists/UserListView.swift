@@ -141,7 +141,7 @@ struct UserListView: View {
         .resizable()
         .aspectRatio(contentMode: .fit)
         .frame(width: 200, height: 200)
-      
+
       Text("There's nobody here")
         .font(.title2)
         .fontWeight(.semibold)
