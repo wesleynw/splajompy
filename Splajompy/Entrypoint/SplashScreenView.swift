@@ -8,10 +8,10 @@ struct SplashScreenView: View {
 
   var body: some View {
     VStack {
-      Image("Logo")
+      Image("snail-small")
         .resizable()
         .scaledToFit()
-        .frame(height: 130)
+        .frame(height: 160)
         .padding(.top, 150)
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)

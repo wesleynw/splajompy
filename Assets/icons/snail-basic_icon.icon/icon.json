@@ -1,8 +1,8 @@
 {
   "fill" : {
     "linear-gradient" : [
-      "display-p3:0.13721,0.32104,0.33716,1.00000",
-      "display-p3:0.49609,0.69727,0.62988,1.00000"
+      "display-p3:0.12431,0.28991,0.30701,1.00000",
+      "display-p3:0.45198,0.63539,0.57531,1.00000"
     ],
     "orientation" : {
       "start" : {
@@ -19,14 +19,15 @@
     {
       "layers" : [
         {
-          "image-name" : "Untitled_Artwork 10.png",
-          "name" : "Untitled_Artwork 10",
-          "opacity" : 0.9,
+          "hidden" : false,
+          "image-name" : "new_snail.png",
+          "name" : "new_snail",
+          "opacity" : 0.95,
           "position" : {
             "scale" : 0.43,
             "translation-in-points" : [
-              6.680358299341151,
-              -24.64122035984815
+              5.390358299341187,
+              -16.256220359848157
             ]
           }
         }
