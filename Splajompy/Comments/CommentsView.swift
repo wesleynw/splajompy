@@ -149,16 +149,11 @@ struct CommentsView: View {
         )
       }
     }
+    .frame(maxWidth: .infinity, maxHeight: .infinity)
     .modify {
       if showInput {
-        if #available(iOS 26, macOS 26, *) {
-          $0.safeAreaBar(edge: .bottom) {
-            CommentInputView(viewModel: viewModel)
-          }
-        } else {
-          $0.safeAreaInset(edge: .bottom) {
-            CommentInputView(viewModel: viewModel)
-          }
+        $0.overlay(alignment: .bottom) {
+          CommentInputView(viewModel: viewModel)
         }
       }
     }
@@ -188,17 +183,17 @@ struct CommentsView: View {
 
   private var noCommentView: some View {
     VStack {
-      Image("snail-outline")
+      Image("snail-sleeping")
         .resizable()
         .aspectRatio(contentMode: .fit)
-        .frame(width: 200, height: 200)
+        .frame(width: 280, height: 200)
 
       Text("No comments")
         .font(.title3)
         .fontWeight(.semibold)
         .foregroundStyle(.secondary)
     }
-    .frame(maxWidth: .infinity, maxHeight: .infinity)
+    .padding(.bottom, 40)
   }
 }
 

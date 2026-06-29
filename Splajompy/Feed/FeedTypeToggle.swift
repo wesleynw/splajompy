@@ -31,7 +31,7 @@ struct FeedTypeToggle: View {
       .pickerStyle(.inline)
     } label: {
       HStack {
-        Image("snail-minimal")
+        Image("snail-small")
           .resizable()
           .aspectRatio(contentMode: .fit)
           .frame(width: 30, height: 30)

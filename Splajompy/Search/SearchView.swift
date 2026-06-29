@@ -105,11 +105,12 @@ struct SearchView: View {
   }
 
   private var noResultsState: some View {
-    VStack(spacing: 16) {
-      Image(systemName: "person.slash")
-        .font(.system(size: 48))
-        .foregroundStyle(.gray)
-      Text("No Splajompians found")
+    VStack {
+      Image("snail-outline")
+        .resizable()
+        .aspectRatio(contentMode: .fit)
+        .frame(width: 200, height: 200)
+      Text("No one's here")
         .font(.title3)
         .fontWeight(.bold)
     }
