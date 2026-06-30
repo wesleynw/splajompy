@@ -25,6 +25,7 @@ struct NotificationBreadcrumbFilter: View {
               }
             }
           )
+          .geometryGroup()
           .matchedGeometryEffect(
             id: filter == filterOption ? "active" : "",
             in: namespace,
