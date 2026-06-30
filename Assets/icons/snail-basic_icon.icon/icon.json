@@ -1,8 +1,8 @@
 {
   "fill" : {
     "linear-gradient" : [
-      "display-p3:0.12431,0.28991,0.30701,1.00000",
-      "display-p3:0.45198,0.63539,0.57531,1.00000"
+      "display-p3:0.13520,0.31557,0.30919,1.00000",
+      "display-p3:0.48480,0.63539,0.54250,1.00000"
     ],
     "orientation" : {
       "start" : {
@@ -22,12 +22,12 @@
           "hidden" : false,
           "image-name" : "new_snail.png",
           "name" : "new_snail",
-          "opacity" : 0.95,
+          "opacity" : 0.85,
           "position" : {
-            "scale" : 0.43,
+            "scale" : 0.39,
             "translation-in-points" : [
-              5.390358299341187,
-              -16.256220359848157
+              -8.064281137677426,
+              -16.61622035984817
             ]
           }
         }
