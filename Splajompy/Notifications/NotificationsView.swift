@@ -55,7 +55,9 @@ struct NotificationsView: View {
       }
     }
     .refreshable {
-      await viewModel.refreshNotifications()
+      await Task {
+        await viewModel.refreshNotifications()
+      }.value
     }
     .task {
       if case .idle = viewModel.state {

@@ -11,7 +11,7 @@ struct FilterCapsule: View {
     }) {
       Text(title)
         .fontWeight(.semibold)
-        .foregroundStyle(.primary)
+        .foregroundStyle(isActive ? .primary : .secondary)
         .padding(10)
         .background(
           isActive ? Color.blue.opacity(2 / 3) : Color.clear,

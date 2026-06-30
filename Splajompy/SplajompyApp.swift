@@ -22,7 +22,7 @@ struct SplajompyApp: App {
 
   @State private var authManager: AuthManager = AuthManager.shared
   @State private var postStore = PostStore()
-  @AppStorage("appearoance_mode") var appearanceMode: String = "Automatic"
+  @AppStorage("appearance_mode") var appearanceMode: String = "Automatic"
 
   init() {
     initializeOtel()

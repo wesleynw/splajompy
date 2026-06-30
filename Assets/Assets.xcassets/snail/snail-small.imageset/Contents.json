@@ -1,22 +1,16 @@
 {
   "images" : [
     {
-      "filename" : "snail-small_dark.png",
-      "idiom" : "universal"
-    },
-    {
-      "appearances" : [
-        {
-          "appearance" : "luminosity",
-          "value" : "dark"
-        }
-      ],
-      "filename" : "snail-small_light.png",
+      "filename" : "new_snail.svg",
       "idiom" : "universal"
     }
   ],
   "info" : {
     "author" : "xcode",
     "version" : 1
+  },
+  "properties" : {
+    "preserves-vector-representation" : true,
+    "template-rendering-intent" : "template"
   }
 }

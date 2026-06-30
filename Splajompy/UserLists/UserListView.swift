@@ -23,9 +23,10 @@ struct UserListView: View {
     self.postId = postId
   }
 
-  init(viewModel: UserListViewModel, userListVariant: UserListVariantEnum) {
+  init(viewModel: UserListViewModel, userListVariant: UserListVariantEnum, postId: Int? = nil) {
     _viewModel = State(wrappedValue: viewModel)
     self.userListVariant = userListVariant
+    self.postId = postId
   }
 
   var body: some View {
@@ -58,6 +59,7 @@ struct UserListView: View {
       }
     }
     .navigationTitle(userListVariant.title)
+    .frame(maxWidth: .infinity, maxHeight: .infinity)
     #if os(iOS)
       .navigationBarTitleDisplayMode(.inline)
     #endif
@@ -79,18 +81,17 @@ struct UserListView: View {
           }
         #endif
       }
+    }
+    .overlay(alignment: .bottom) {
       if let postId {
-        ToolbarItem(
-          placement: {
-            #if os(iOS)
-              .topBarTrailing
-            #else
-              .primaryAction
-            #endif
-          }()
-        ) {
-          NavigationLink(value: Route.post(id: postId)) {
-            Label("Go to post", systemImage: "arrow.up.right.square")
+        NavigationLink(value: Route.post(id: postId)) {
+          Label("Go to post", systemImage: "arrow.up.right.square")
+        }
+        .modify {
+          if #available(iOS 26, macOS 26, *) {
+            $0.buttonStyle(.glass)
+          } else {
+            $0.buttonStyle(.bordered)
           }
         }
       }
@@ -310,6 +311,6 @@ struct UserRowView: View {
   )
 
   NavigationStack {
-    UserListView(viewModel: viewModel, userListVariant: .friends)
+    UserListView(viewModel: viewModel, userListVariant: .notification, postId: 5)
   }
 }

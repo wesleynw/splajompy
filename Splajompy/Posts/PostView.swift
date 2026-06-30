@@ -160,8 +160,7 @@ struct PostView: View {
       relevantLikes: post.relevantLikes,
       hasOtherLikes: post.hasOtherLikes
     )
-    .animation(.easeInOut(duration: 0.3), value: post.relevantLikes.count)
-    .animation(.easeInOut(duration: 0.3), value: post.hasOtherLikes)
+    .transition(.opacity)
   }
 
   private var postFooter: some View {
