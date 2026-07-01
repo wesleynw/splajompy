@@ -100,7 +100,7 @@ struct CommentsSheetView: View {
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity)
     .modify {
-      if #available(iOS 26, *) {
+      if #available(iOS 26, macOS 26, *) {
         $0.safeAreaBar(edge: .bottom) {
           CommentInputView(viewModel: viewModel)
         }
