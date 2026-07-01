@@ -46,8 +46,7 @@ struct SearchView: View {
         if #available(iOS 26, *) {
           ToolbarItem(placement: .topBarLeading) {
             Text("Search")
-            .font(.title2)
-            .fontWeight(.black)
+            .font(Font.custom("Splajompy-Regular", size: 25, relativeTo: .title2))
             .fixedSize()
           }
           .sharedBackgroundVisibility(.hidden)
