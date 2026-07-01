@@ -102,10 +102,7 @@ struct PushNotificationSettingsView: View {
         PostHogSDK.shared.register(["push_notifications_enabled": false])
       }
     }
-    .navigationTitle("Push Notifications")
-    #if os(iOS)
-      .navigationBarTitleDisplayMode(.inline)
-    #endif
+    .pageTitle("Push Notifications")
   }
 }
 

@@ -1,4 +1,3 @@
-import PostHog
 import SwiftUI
 
 struct StatRow: View {
@@ -46,10 +45,7 @@ struct StatisticsView: View {
         )
       }
     }
-    .navigationTitle("Statistics")
-    #if os(iOS)
-      .navigationBarTitleDisplayMode(.inline)
-    #endif
+    .pageTitle("Statistics")
     .refreshable {
       await viewModel.load(showLoadingState: false)
     }

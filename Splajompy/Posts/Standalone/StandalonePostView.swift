@@ -24,7 +24,7 @@ struct StandalonePostView: View {
   }
 
   var body: some View {
-    let handlePostDeleted: () -> Void = {
+    let handlePostDeleted: () -> Void = {  // TODO: wtf is this?
       Task {
         await postManager.deletePost(id: postId)
         dismiss()
@@ -32,50 +32,51 @@ struct StandalonePostView: View {
     }
 
     ScrollView {
-      Group {
-        switch viewModel.state {
-        case .idle, .loading:
-          ProgressView()
-            #if os(macOS)
-              .controlSize(.small)
-            #endif
-        case .loaded(let post):
-          VStack {
-            PostView(
-              post: post,
-              showAuthor: true,
-              isStandalone: true,
-              postManager: postManager,
-              onLikeButtonTapped: { viewModel.toggleLike() },
-              onPostDeleted: handlePostDeleted
-            )
+      if case .loaded(let post) = viewModel.state {
+        VStack {
+          PostView(
+            post: post,
+            showAuthor: true,
+            isStandalone: true,
+            postManager: postManager,
+            onLikeButtonTapped: { viewModel.toggleLike() },
+            onPostDeleted: handlePostDeleted
+          )
 
-            CommentsView(
-              postId: postId,
-              postManager: postManager,
-              viewModel: commentsViewModel,
-              isInSheet: false,
-              showInput: false
-            )
-          }
-        case .failed(let error):
-          ErrorScreen(
-            errorString: error.localizedDescription,
-            source: "StandalonePostView",
-            onRetry: {
-              async let post: () = viewModel.load()
-              async let comments: () = commentsViewModel.loadComments()
-
-              let _ = await (post, comments)
-            }
+          CommentsView(
+            postId: postId,
+            postManager: postManager,
+            viewModel: commentsViewModel,
           )
         }
+        #if os(macOS)
+          .frame(maxWidth: 600)
+          .frame(maxWidth: .infinity)
+          .padding(.bottom, 200)
+        #endif
       }
-      #if os(macOS)
-        .frame(maxWidth: 600)
-        .frame(maxWidth: .infinity)
-        .padding(.bottom, 200)
-      #endif
+    }
+    .overlay {
+      switch viewModel.state {
+      case .idle, .loading:
+        ProgressView()
+          #if os(macOS)
+            .controlSize(.small)
+          #endif
+      case .loaded:
+        EmptyView()
+      case .failed(let error):
+        ErrorScreen(
+          errorString: error.localizedDescription,
+          source: "StandalonePostView",
+          onRetry: {
+            async let post: () = viewModel.load()
+            async let comments: () = commentsViewModel.loadComments()
+
+            let _ = await (post, comments)
+          }
+        )
+      }
     }
     .scrollDismissesKeyboard(.interactively)
     .refreshable {
@@ -89,10 +90,7 @@ struct StandalonePostView: View {
     .task {
       await viewModel.load()
     }
-    .navigationTitle("Post")
-    #if os(iOS)
-      .navigationBarTitleDisplayMode(.inline)
-    #endif
+    .pageTitle("Post")
     .toolbar {
       ToolbarItem(placement: .primaryAction) {
         let post: ObservablePost? =
@@ -123,9 +121,11 @@ struct StandalonePostView: View {
 }
 
 #Preview {
-  StandalonePostView(
-    postId: 2001,
-    postManager: PostStore(postService: MockPostService())
-  )
-  .environment(AuthManager())
+  NavigationStack {
+    StandalonePostView(
+      postId: 4315,
+      postManager: PostStore(postService: MockPostService())
+    )
+    .environment(AuthManager())
+  }
 }

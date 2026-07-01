@@ -27,16 +27,6 @@ struct AppIconPickerView: View {
           artist: "@elena"
         )
         iconCell(
-          previewImage: "icon_og",
-          iconName: "original_icon",
-          artist: nil
-        )
-        iconCell(
-          previewImage: "icon_rainbow",
-          iconName: "rainbow_icon",
-          artist: nil
-        )
-        iconCell(
           previewImage: "icon_pumpkin",
           iconName: "pumpkin_icon",
           artist: "@milesperhour"
@@ -46,12 +36,21 @@ struct AppIconPickerView: View {
           iconName: "exploding_icon",
           artist: "@moldy"
         )
+        iconCell(
+          previewImage: "icon_og",
+          iconName: "original_icon",
+          artist: nil
+        )
+        iconCell(
+          previewImage: "icon_rainbow",
+          iconName: "rainbow_icon",
+          artist: nil
+        )
       }
       .padding()
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-    .navigationTitle("App Icon")
-    .navigationBarTitleDisplayMode(.inline)
+    .pageTitle("App Icon")
   }
 
   private func iconCell(

@@ -96,10 +96,7 @@ struct AboutView: View {
         .safeAreaPadding(.horizontal, 20)
       #endif
     }
-    .navigationTitle("About")
-    #if os(iOS)
-      .navigationBarTitleDisplayMode(.inline)
-    #endif
+    .pageTitle("About")
     .task {
       updateCacheSize()
     }

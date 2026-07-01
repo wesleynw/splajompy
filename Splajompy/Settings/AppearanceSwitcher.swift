@@ -69,10 +69,7 @@ struct AppearanceSwitcher: View {
         )
       }
     }
-    .navigationTitle("Appearance")
-    #if os(iOS)
-      .navigationBarTitleDisplayMode(.inline)
-    #endif
+    .pageTitle("Appearance")
   }
 }
 

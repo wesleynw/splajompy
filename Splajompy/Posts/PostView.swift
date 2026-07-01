@@ -46,7 +46,7 @@ struct PostView: View {
       }
     }
     .sheet(isPresented: $isPresentingCommentsSheet) {
-      CommentsView(postId: post.post.postId, postManager: postManager)
+      CommentsSheetView(postId: post.post.postId, postManager: postManager)
         .postHogScreenView()
     }
   }

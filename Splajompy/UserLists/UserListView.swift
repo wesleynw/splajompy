@@ -58,11 +58,8 @@ struct UserListView: View {
         )
       }
     }
-    .navigationTitle(userListVariant.title)
+    .pageTitle(userListVariant.title)
     .frame(maxWidth: .infinity, maxHeight: .infinity)
-    #if os(iOS)
-      .navigationBarTitleDisplayMode(.inline)
-    #endif
     .toolbar {
       if userListVariant == .friends {
         #if os(iOS)
@@ -144,8 +141,7 @@ struct UserListView: View {
         .frame(width: 200, height: 200)
 
       Text("There's nobody here")
-        .font(.title3)
-        .fontWeight(.semibold)
+        .font(SJFont.title3)
     }
   }
 

@@ -1,10 +1,7 @@
-import PostHog
 import SwiftUI
 
 struct CommentsView: View {
   var postId: Int
-  var isInSheet: Bool
-  var showInput: Bool
   var postManager: PostStore
 
   @State private var viewModel: ViewModel
@@ -17,97 +14,39 @@ struct CommentsView: View {
   init(
     postId: Int,
     postManager: PostStore,
-    isInSheet: Bool = true,
-    showInput: Bool = true
   ) {
     self.postId = postId
     _viewModel = State(
       wrappedValue: ViewModel(postId: postId, postManager: postManager)
     )
     self.postManager = postManager
-    self.isInSheet = isInSheet
-    self.showInput = showInput
   }
 
   init(
     postId: Int,
     postManager: PostStore,
     viewModel: ViewModel,
-    isInSheet: Bool = true,
-    showInput: Bool = true
   ) {
     self.postId = postId
     _viewModel = State(wrappedValue: viewModel)
-    self.isInSheet = isInSheet
     self.postManager = postManager
-    self.showInput = showInput
   }
 
   var body: some View {
-    if isInSheet {
-      NavigationStack {
-        content
-          .navigationTitle("Comments")
-          #if os(iOS)
-            .navigationBarTitleDisplayMode(.inline)
-          #endif
-          .interactiveDismissDisabled(
-            !viewModel.text.string.trimmingCharacters(
-              in: .whitespacesAndNewlines
-            ).isEmpty || viewModel.imageSelection != nil
-          )
-          .toolbar {
-            #if os(iOS)
-              ToolbarItem(placement: .topBarTrailing) {
-                if #available(iOS 26, *) {
-                  Button(role: .cancel, action: { dismiss() })
-                } else {
-                  Button("Close") {
-                    dismiss()
-                  }
-                  .buttonStyle(.plain)
-                }
-              }
-            #else
-              ToolbarItem(placement: .primaryAction) {
-                if #available(macOS 26, *) {
-                  Button(role: .cancel, action: { dismiss() })
-                } else {
-                  Button {
-                    dismiss()
-                  } label: {
-                    Image(systemName: "xmark.circle.fill")
-                      .opacity(0.75)
-                  }
-                  .buttonStyle(.plain)
-                }
-              }
-            #endif
-          }
-      }
-    } else {
-      content
-    }
-  }
-
-  @ViewBuilder
-  var content: some View {
     VStack {
-      if !isInSheet {
-        Text("Comments")
-          .fontWeight(.bold)
-          .font(.title3)
-          .padding()
-          .frame(maxWidth: .infinity, alignment: .leading)
-      }
+      Text("Comments")
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .font(SJFont.title3)
+        .padding()
 
       switch viewModel.state {
       case .idle, .loading:
         ProgressView()
+          .padding()
+          .frame(maxWidth: .infinity)
           #if os(macOS)
             .controlSize(.small)
           #endif
-          .frame(maxWidth: .infinity, maxHeight: .infinity)
       case .loaded(let comments):
         if comments.isEmpty {
           noCommentView
@@ -115,7 +54,7 @@ struct CommentsView: View {
           let rows = ForEach(comments, id: \.commentId) { comment in
             CommentRow(
               comment: comment,
-              isInSheet: isInSheet,
+              isInSheet: false,
               toggleLike: {
                 viewModel.toggleLike(for: comment)
               },
@@ -129,16 +68,8 @@ struct CommentsView: View {
               }
             )
           }
-          if isInSheet {
-            ScrollView {
-              rows
-            }
-            .animation(.easeInOut(duration: 0.3), value: comments)
-          } else {
-            VStack(spacing: 0) {
-              rows
-            }
-            .animation(.easeInOut(duration: 0.3), value: comments)
+          VStack(spacing: 0) {
+            rows
           }
         }
       case .failed(let error):
@@ -149,14 +80,7 @@ struct CommentsView: View {
         )
       }
     }
-    .frame(maxWidth: .infinity, maxHeight: .infinity)
-    .modify {
-      if showInput {
-        $0.overlay(alignment: .bottom) {
-          CommentInputView(viewModel: viewModel)
-        }
-      }
-    }
+    .frame(maxWidth: .infinity, alignment: .leading)
     .alert(
       "Error submitting comment",
       isPresented: $viewModel.showError,
@@ -171,14 +95,9 @@ struct CommentsView: View {
           ?? "An error occurred while submitting your comment."
       )
     }
-    .animation(.easeInOut, value: true)
     .onOpenURL { url in
-      if !isInSheet {
-        return
-      }
-      dismiss()
+      return
     }
-    .presentationDragIndicator(.visible)
   }
 
   private var noCommentView: some View {
@@ -189,153 +108,10 @@ struct CommentsView: View {
         .frame(width: 280, height: 200)
 
       Text("No comments")
-        .font(.title3)
-        .fontWeight(.semibold)
+        .font(SJFont.title3)
         .foregroundStyle(.secondary)
     }
     .padding(.bottom, 40)
-  }
-}
-
-struct CommentRow: View {
-  let comment: DetailedComment
-  let isInSheet: Bool
-  let toggleLike: () -> Void
-  let deleteComment: () -> Void
-
-  let formatter = RelativeDateTimeFormatter()
-
-  @Environment(AuthManager.self) private var authManager
-  @Environment(\.openURL) private var openURL
-  @State private var showDeleteConfirmation = false
-
-  var body: some View {
-    VStack(alignment: .leading, spacing: 6) {
-      HStack(alignment: .firstTextBaseline, spacing: 2) {
-        if isInSheet {
-          Button {
-            openURL(
-              URL(
-                string:
-                  "splajompy://user?id=\(comment.user.userId)&username=\(comment.user.username)"
-              )!
-            )
-          } label: {
-            ProfileDisplayNameView(user: comment.user, alignVertically: false)
-          }
-          .buttonStyle(.plain)
-        } else {
-          NavigationLink(
-            value: Route.profile(
-              id: String(comment.user.userId),
-              username: comment.user.username
-            )
-          ) {
-            ProfileDisplayNameView(user: comment.user, alignVertically: false)
-          }
-          .buttonStyle(.plain)
-        }
-      }
-
-      if let images = comment.images {
-        ImageGallery(images: images)
-          .frame(maxWidth: .infinity, maxHeight: 300, alignment: .leading)
-      }
-
-      Text(comment.richContent)
-
-      HStack {
-        TimelineView(.periodic(from: .now, by: 5)) { _ in
-          Text(
-            comment.createdAt
-              .formatted(.relative(presentation: .named))
-          )
-          .font(.caption)
-          .foregroundStyle(.gray)
-        }
-
-        Spacer()
-
-        HStack(spacing: 0) {
-          if let currentUser = authManager.currentUser {
-            if currentUser.userId == comment.user.userId {
-              Menu(
-                content: {
-                  Button(
-                    role: .destructive,
-                    action: { showDeleteConfirmation = true }
-                  ) {
-                    Label("Delete", systemImage: "trash")
-                      .foregroundStyle(.red)
-                  }
-                },
-                label: {
-                  Image(systemName: "ellipsis")
-                    .font(.system(size: 16))
-                    .frame(width: 32, height: 32)
-                    .contentShape(.rect)
-                }
-              )
-              .buttonStyle(.plain)
-            }
-          }
-
-          LikeButton(isLiked: comment.isLiked, action: toggleLike)
-            .allowsHitTesting(true)
-        }
-      }
-      .allowsHitTesting(true)
-    }
-    .padding(.vertical, 8)
-    #if os(iOS)
-      .padding(.horizontal, 16)
-    #else
-      .padding(.horizontal, 24)
-    #endif
-    .contentShape(Rectangle())
-    .overlay(
-      Rectangle()
-        .stroke(Color.gray.opacity(0.2), lineWidth: 1)
-        .mask(
-          VStack(spacing: 0) {
-            Spacer()
-            Rectangle().frame(height: 1)
-          }
-        )
-    )
-    .alert(
-      "Are you sure you want to delete this comment?",
-      isPresented: $showDeleteConfirmation,
-    ) {
-      Button("Delete", role: .destructive) {
-        deleteComment()
-      }
-      Button("Cancel", role: .cancel) {}
-    }
-
-  }
-}
-
-struct LikeButton: View {
-  let isLiked: Bool
-  let action: () -> Void
-
-  var body: some View {
-    Button(action: {
-      action()
-    }) {
-      Image(systemName: isLiked ? "heart.fill" : "heart")
-        .font(.system(size: 16))
-        .foregroundStyle(isLiked ? Color.red.gradient : Color.primary.gradient)
-        .padding(6)
-        .scaleEffect(isLiked ? 1.1 : 1)
-        .animation(
-          .spring(response: 0.4, dampingFraction: 0.6, blendDuration: 0),
-          value: isLiked
-        )
-    }
-    .buttonStyle(.plain)
-    .sensoryFeedback(.impact, trigger: isLiked)
   }
 }
 
@@ -348,12 +124,14 @@ struct LikeButton: View {
 
   let postManager = PostStore()
 
-  CommentsView(
-    postId: 1,
-    postManager: postManager,
-    viewModel: mockViewModel
-  )
-  .environment(AuthManager())
+  NavigationStack {
+    CommentsView(
+      postId: 1,
+      postManager: postManager,
+      viewModel: mockViewModel
+    )
+    .environment(AuthManager())
+  }
 }
 
 #Preview("Loading") {
