@@ -37,7 +37,7 @@ struct FeedTypeToggle: View {
           .frame(width: 30, height: 30)
           .padding(.trailing, -5)
         Text("Splajompy")
-          .font(Font.custom("Splajompy-Regular", size: 25, relativeTo: .title2))
+          .font(SJFont.title)
           .fontWeight(.black)
       }
     }

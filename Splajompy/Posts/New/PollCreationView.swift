@@ -15,10 +15,7 @@ struct PollCreationView: View {
   var body: some View {
     NavigationStack {
       formContent
-        .navigationTitle("New Poll")
-        #if os(iOS)
-          .navigationBarTitleDisplayMode(.inline)
-        #endif
+        .pageTitle("New Poll")
         .toolbar {
           ToolbarItem(placement: .cancellationAction) {
             #if os(iOS)

@@ -96,10 +96,15 @@ struct AboutView: View {
         .safeAreaPadding(.horizontal, 20)
       #endif
     }
-    .navigationTitle("About")
     #if os(iOS)
       .navigationBarTitleDisplayMode(.inline)
     #endif
+    .toolbar {
+      ToolbarItem(placement: .principal) {
+        Text("About")
+          .font(SJFont.heading)
+      }
+    }
     .task {
       updateCacheSize()
     }

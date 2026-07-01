@@ -6,14 +6,14 @@
     {
       "layers" : [
         {
-          "image-name" : "Untitled_Artwork 12.png",
-          "name" : "Untitled_Artwork 12",
-          "opacity" : 0.8,
+          "image-name" : "Untitled_Artwork 14.png",
+          "name" : "Untitled_Artwork 14",
+          "opacity" : 0.9,
           "position" : {
-            "scale" : 0.43,
+            "scale" : 0.39,
             "translation-in-points" : [
-              2.6144476124943594,
-              -31.114202290651065
+              -0.02555238750562694,
+              -23.089202290651087
             ]
           }
         }

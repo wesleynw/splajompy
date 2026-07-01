@@ -9,4 +9,8 @@ extension View {
       self
     }
   }
+
+  func pageTitle(_ title: String) -> some View {
+    modifier(PageTitle(title: title))
+  }
 }

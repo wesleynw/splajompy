@@ -50,8 +50,8 @@ struct SettingsView: View {
           }
         }
       }
+      .pageTitle("Settings")
     }
-    .navigationTitle("Settings")
   }
 }
 

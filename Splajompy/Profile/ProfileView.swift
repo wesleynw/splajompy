@@ -115,8 +115,7 @@ struct ProfileView: View {
         }()
       ) {
         Text(computedTitle)
-          .font(isProfileTab ? .title2 : .callout)
-          .fontWeight(.black)
+          .font(isProfileTab ? SJFont.title2 : SJFont.heading)
           .fixedSize()
       }
       .sharedBackgroundVisibility(.hidden)

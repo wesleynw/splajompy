@@ -1,8 +1,8 @@
 {
   "fill" : {
     "linear-gradient" : [
-      "display-p3:0.49444,0.69818,0.63112,1.00000",
-      "display-p3:0.13603,0.31845,0.33777,1.00000"
+      "display-p3:0.46314,0.65957,0.59728,1.00000",
+      "display-p3:0.29468,0.48720,0.49398,1.00000"
     ],
     "orientation" : {
       "start" : {
@@ -17,29 +17,27 @@
   },
   "groups" : [
     {
-      "blur-material" : null,
       "layers" : [
         {
-          "glass" : true,
-          "image-name" : "Untitled_Artwork 8.png",
-          "name" : "Untitled_Artwork 8",
+          "blend-mode" : "normal",
+          "glass" : false,
+          "image-name" : "Untitled_Artwork 13.png",
+          "name" : "Untitled_Artwork 13",
           "position" : {
-            "scale" : 0.43,
+            "scale" : 0.4,
             "translation-in-points" : [
-              14.14076751895118,
-              -26.17410165947922
+              12.160767518951161,
+              -18.059101659479325
             ]
           }
         }
       ],
-      "lighting" : "individual",
       "shadow" : {
         "kind" : "neutral",
         "opacity" : 0.5
       },
-      "specular" : true,
       "translucency" : {
-        "enabled" : false,
+        "enabled" : true,
         "value" : 0.5
       }
     }

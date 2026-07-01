@@ -28,10 +28,7 @@ struct RequestSupportView: View {
 
     }
     .padding()
-    .navigationTitle("Support")
-    #if os(iOS)
-      .navigationBarTitleDisplayMode(.inline)
-    #endif
+    .pageTitle("Support")
     .toolbar {
       ToolbarItem(
         placement: {

@@ -70,10 +70,7 @@ struct AccountSettingsView: View {
         }
       }
     }
-    .navigationTitle("Account")
-    #if os(iOS)
-      .navigationBarTitleDisplayMode(.inline)
-    #endif
+    .pageTitle("Account")
     .sheet(isPresented: $isShowingDeleteAccountSheet) {
       ScrollView {
         VStack(spacing: 24) {
