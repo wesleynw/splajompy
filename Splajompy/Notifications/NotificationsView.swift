@@ -69,8 +69,7 @@ struct NotificationsView: View {
         if #available(iOS 26, *) {
           ToolbarItem(placement: .topBarLeading) {
             Text("Notifications")
-            .fontWeight(.black)
-            .font(.title2)
+            .font(Font.custom("Splajompy-Regular", size: 25, relativeTo: .title2))
             .fixedSize()
           }
           .sharedBackgroundVisibility(.hidden)
