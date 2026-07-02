@@ -86,10 +86,7 @@ struct ProfileEditorView: View {
           displayNameFont = fontChoice
         }
       }
-      .navigationTitle("Edit Profile")
-      #if os(iOS)
-        .navigationBarTitleDisplayMode(.inline)
-      #endif
+      .pageTitle("Edit Profile")
       #if os(macOS)
         .popover(isPresented: $isShowingFontPicker) {
           ProfileDisplayNameFontPicker(

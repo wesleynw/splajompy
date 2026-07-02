@@ -108,6 +108,7 @@ struct NewPostView: View {
       ) {
         Text(viewModel.errorDisplay ?? "There was an error.")
       }
+      .pageTitle("New Jomp")
       .toolbar {
         #if os(iOS)
           ToolbarItem(placement: .topBarLeading) {
@@ -137,11 +138,6 @@ struct NewPostView: View {
             }
           }
         #endif
-
-        ToolbarItem(placement: .principal) {
-          Text("New Jomp")
-            .font(Font.custom("Splajompy-Regular", size: 18))
-        }
 
         #if os(iOS)
           ToolbarItem(placement: .topBarTrailing) {
