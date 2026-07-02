@@ -32,6 +32,7 @@ struct SearchView: View {
         }
       }
     }
+    .pageTitle("Search")
     #if os(macOS)
       .frame(maxWidth: 600)
       .frame(maxWidth: .infinity)
@@ -39,26 +40,6 @@ struct SearchView: View {
     #if os(macOS)
       .contentMargins(.horizontal, 40, for: .scrollContent)
       .safeAreaPadding(.horizontal, 20)
-      .navigationTitle("Search")
-    #endif
-    #if os(iOS)
-      .toolbar {
-        if #available(iOS 26, *) {
-          ToolbarItem(placement: .topBarLeading) {
-            Text("Search")
-            .font(Font.custom("Splajompy-Regular", size: 25, relativeTo: .title2))
-            .fixedSize()
-          }
-          .sharedBackgroundVisibility(.hidden)
-        } else {
-          ToolbarItem(placement: .topBarLeading) {
-            Text("Search")
-            .font(.title2)
-            .fontWeight(.black)
-            .fixedSize()
-          }
-        }
-      }
     #endif
     .searchable(
       text: $searchText,

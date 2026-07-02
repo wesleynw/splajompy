@@ -52,10 +52,7 @@ struct ProfileDisplayNameFontPicker: View {
           .foregroundStyle(.primary)
         }
       }
-      .navigationTitle("Choose Font")
-      #if os(iOS)
-        .navigationBarTitleDisplayMode(.inline)
-      #endif
+      .pageTitle("Choose Font")
       .toolbar {
         ToolbarItem(placement: .confirmationAction) {
           if #available(iOS 26, macOS 26, *) {

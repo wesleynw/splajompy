@@ -64,36 +64,7 @@ struct NotificationsView: View {
         await viewModel.refreshNotifications()
       }
     }
-    #if os(iOS)
-      .toolbar {
-        if #available(iOS 26, *) {
-          ToolbarItem(placement: .topBarLeading) {
-            Text("Notifications")
-            .font(Font.custom("Splajompy-Regular", size: 25, relativeTo: .title2))
-            .fixedSize()
-          }
-          .sharedBackgroundVisibility(.hidden)
-        } else {
-          ToolbarItem(placement: .topBarLeading) {
-            Text("Notifications")
-            .fontWeight(.black)
-            .font(.title2)
-            .fixedSize()
-          }
-        }
-      }
-    #else
-      .toolbar {
-        ToolbarItem {
-          Button("Refresh", systemImage: "arrow.clockwise") {
-            Task {
-              await viewModel.refreshNotifications()
-            }
-          }
-        }
-      }
-      .navigationTitle("Notifications")
-    #endif
+    .pageTitle("Notifications")
   }
 
   private var noNotificationsView: some View {

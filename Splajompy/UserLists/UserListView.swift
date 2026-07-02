@@ -23,7 +23,11 @@ struct UserListView: View {
     self.postId = postId
   }
 
-  init(viewModel: UserListViewModel, userListVariant: UserListVariantEnum, postId: Int? = nil) {
+  init(
+    viewModel: UserListViewModel,
+    userListVariant: UserListVariantEnum,
+    postId: Int? = nil
+  ) {
     _viewModel = State(wrappedValue: viewModel)
     self.userListVariant = userListVariant
     self.postId = postId
@@ -79,16 +83,23 @@ struct UserListView: View {
         #endif
       }
     }
-    .overlay(alignment: .bottom) {
-      if let postId {
-        NavigationLink(value: Route.post(id: postId)) {
-          Label("Go to post", systemImage: "arrow.up.right.square")
+    .modify {
+      if #available(iOS 26, macOS 26, *) {
+        $0.safeAreaBar(edge: .bottom) {
+          if let postId {
+            NavigationLink(value: Route.post(id: postId)) {
+              Label("Go to post", systemImage: "arrow.up.right.square")
+            }
+            .buttonStyle(.glass)
+          }
         }
-        .modify {
-          if #available(iOS 26, macOS 26, *) {
-            $0.buttonStyle(.glass)
-          } else {
-            $0.buttonStyle(.bordered)
+      } else {
+        $0.safeAreaInset(edge: .bottom) {
+          if let postId {
+            NavigationLink(value: Route.post(id: postId)) {
+              Label("Go to post", systemImage: "arrow.up.right.square")
+            }
+            .buttonStyle(.bordered)
           }
         }
       }
@@ -307,6 +318,10 @@ struct UserRowView: View {
   )
 
   NavigationStack {
-    UserListView(viewModel: viewModel, userListVariant: .notification, postId: 5)
+    UserListView(
+      viewModel: viewModel,
+      userListVariant: .notification,
+      postId: 5
+    )
   }
 }
