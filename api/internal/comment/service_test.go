@@ -151,6 +151,30 @@ func TestGetComments_WithImage(t *testing.T) {
 	assert.Len(t, comments[0].Images, 1)
 }
 
+func TestGetComments_ReturnsMutedUserCommentsOnMutedUserPost(t *testing.T) {
+	env := setupCommentTest(t)
+
+	user0 := testutil.CreateTestUser(t, env.userRepository, "user0")
+	user1 := testutil.CreateTestUser(t, env.userRepository, "user1")
+
+	post, err := env.postRepository.InsertPost(t.Context(), user0.UserID, "test post", nil, nil, new(models.VisibilityPublic))
+	require.NoError(t, err)
+
+	_, err = env.svc.AddCommentToPost(t.Context(), user0, post.PostID, "test comment", nil)
+	require.NoError(t, err)
+
+	comments, err := env.svc.GetCommentsByPostId(t.Context(), user1, post.PostID)
+	assert.NoError(t, err)
+	assert.Len(t, comments, 1)
+
+	err = env.userRepository.MuteUser(t.Context(), user1.UserID, user0.UserID)
+	require.NoError(t, err)
+
+	comments, err = env.svc.GetCommentsByPostId(t.Context(), user1, post.PostID)
+	assert.NoError(t, err)
+	assert.Len(t, comments, 1)
+}
+
 func TestGetComments_DoesNotReturnBlockingUserComments(t *testing.T) {
 	env := setupCommentTest(t)
 
