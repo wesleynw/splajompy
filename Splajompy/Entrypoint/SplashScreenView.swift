@@ -21,8 +21,7 @@ struct SplashScreenView: View {
           isLoginViewPresenting = true
         } label: {
           Text("Log In")
-            .fontWeight(.black)
-            .fontDesign(.rounded)
+            .font(SJFont.title3)
             .frame(maxWidth: .infinity)
         }
         .modify {
@@ -40,8 +39,7 @@ struct SplashScreenView: View {
           isRegisterViewPresenting = true
         } label: {
           Text("Sign Up")
-            .fontWeight(.black)
-            .fontDesign(.rounded)
+            .font(SJFont.title3)
             .frame(maxWidth: .infinity)
         }
         .modify {
@@ -56,7 +54,6 @@ struct SplashScreenView: View {
       }
       .padding()
     }
-    .preferredColorScheme(.dark)
     #if os(iOS)
       .fullScreenCover(isPresented: $isLoginViewPresenting) {
         LoginView()

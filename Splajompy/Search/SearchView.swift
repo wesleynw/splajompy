@@ -32,7 +32,7 @@ struct SearchView: View {
         }
       }
     }
-    .pageTitle("Search")
+    .pageTitle("Search", placement: .leading)
     #if os(macOS)
       .frame(maxWidth: 600)
       .frame(maxWidth: .infinity)

@@ -1,8 +1,13 @@
 import SwiftUI
 
+enum PageTitlePlacement {
+  case leading
+  case center
+}
+
 struct PageTitle: ViewModifier {
   let title: String
-  let placement: ToolbarItemPlacement
+  let placement: PageTitlePlacement
   let font: Font
 
   func body(content: Content) -> some View {
@@ -18,7 +23,12 @@ struct PageTitle: ViewModifier {
             #if os(macOS)
               .navigation
             #else
-              placement
+              switch placement {
+              case .leading:
+                .topBarLeading
+              case .center:
+                .principal
+              }
             #endif
           }()
         ) {
