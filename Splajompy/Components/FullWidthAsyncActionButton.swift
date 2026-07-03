@@ -9,14 +9,13 @@ struct AsyncActionButton: View {
   var body: some View {
     Button(action: { Task { await action() } }) {
       Text(title)
-        .font(SJFont.title3)
+        .font(SJFont.body)
         .opacity(isLoading ? 0 : 1)
         .frame(maxWidth: .infinity)
         .overlay {
           if isLoading {
             ProgressView()
-              .tint(.white)
-              .scaleEffect(0.65)
+              .controlSize(.small)
           }
         }
     }

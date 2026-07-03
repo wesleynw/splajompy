@@ -133,6 +133,19 @@ struct LoginView: View {
             .controlSize(.large)
           #endif
         }
+
+        #if os(macOS)
+          ToolbarItem(placement: .confirmationAction) {
+            AsyncActionButton(
+              title: "Continue",
+              isLoading: authManager.isLoading,
+              isDisabled: authManager.isLoading
+                || identifier.isEmpty || (isUsingPassword && password.isEmpty)
+            ) {
+              await handleSubmit()
+            }
+          }
+        #endif
       }
       .navigationDestination(isPresented: $isShowingOtcVerify) {
         OneTimeCodeView(identifier: identifier)
