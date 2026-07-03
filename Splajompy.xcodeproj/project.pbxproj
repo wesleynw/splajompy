@@ -111,7 +111,6 @@
 				fonts/OldLondon.ttf,
 				fonts/OpenGorton.otf,
 				fonts/Sixtyfour.ttf,
-				fonts/Splajompy.ttf,
 			);
 		};
 /* End PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
