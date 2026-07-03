@@ -20,7 +20,7 @@ struct LoginView: View {
 
   var body: some View {
     NavigationStack {
-      VStack {
+      ScrollView {
         VStack(alignment: .leading, spacing: 5) {
           TextField("Username or Email", text: $identifier)
             .padding(12)
@@ -74,7 +74,6 @@ struct LoginView: View {
           }
         }
       }
-      .frame(maxHeight: .infinity, alignment: .topLeading)
       .safeAreaInset(edge: .bottom) {
         VStack {
           Button(action: {
@@ -83,7 +82,7 @@ struct LoginView: View {
             }
           }) {
             Text("Sign in with \(isUsingPassword ? "email code" : "password")")
-              .fontWeight(.bold)
+              .font(SJFont.callout)
               .frame(maxWidth: .infinity)
           }
           .controlSize(.large)

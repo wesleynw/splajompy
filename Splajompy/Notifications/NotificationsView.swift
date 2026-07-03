@@ -64,7 +64,7 @@ struct NotificationsView: View {
         await viewModel.refreshNotifications()
       }
     }
-    .pageTitle("Notifications")
+    .pageTitle("Notifications", placement: .leading)
   }
 
   private var noNotificationsView: some View {
