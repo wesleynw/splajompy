@@ -185,12 +185,14 @@ func TestGetComments_DoesNotReturnBlockingUserComments(t *testing.T) {
 	require.NoError(t, err)
 
 	_, err = env.svc.AddCommentToPost(t.Context(), user1, post.PostID, "test comment", nil)
+	require.NoError(t, err)
 
 	comments, err := env.svc.GetCommentsByPostId(t.Context(), user0, post.PostID)
 	require.NoError(t, err)
 	assert.Len(t, comments, 1)
 
 	err = env.userRepository.BlockUser(t.Context(), user1.UserID, user0.UserID)
+	require.NoError(t, err)
 
 	comments, err = env.svc.GetCommentsByPostId(t.Context(), user0, post.PostID)
 	require.NoError(t, err)
