@@ -78,14 +78,11 @@ struct ProfileView: View {
         }.value
       }
     }
-    .modify {
-      if #available(iOS 18, *) {
-        $0.toolbar(removing: .title)
-      }
-    }
+    .pageTitle(
+      computedTitle,
+      font: isProfileTab ? SJFont.title2 : SJFont.heading
+    )
     .toolbar {
-      titleToolbar()
-
       if !isProfileSelf {
         profileActionsToolbar()
       }
@@ -99,41 +96,6 @@ struct ProfileView: View {
       ProfileEditorView(viewModel: viewModel)
         .postHogScreenView()
         .interactiveDismissDisabled()
-    }
-  }
-
-  @ToolbarContentBuilder
-  private func titleToolbar() -> some ToolbarContent {
-    if #available(iOS 26, macOS 26, *) {
-      ToolbarItem(
-        placement: {
-          #if os(iOS)
-            .topBarLeading
-          #else
-            .navigation
-          #endif
-        }()
-      ) {
-        Text(computedTitle)
-          .font(isProfileTab ? SJFont.title2 : SJFont.heading)
-          .fixedSize()
-      }
-      .sharedBackgroundVisibility(.hidden)
-    } else {
-      ToolbarItem(
-        placement: {
-          #if os(iOS)
-            .topBarLeading
-          #else
-            .navigation
-          #endif
-        }()
-      ) {
-        Text(computedTitle)
-          .font(isProfileTab ? .title2 : .callout)
-          .fontWeight(.black)
-          .fixedSize()
-      }
     }
   }
 

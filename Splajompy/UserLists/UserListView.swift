@@ -34,25 +34,23 @@ struct UserListView: View {
   }
 
   var body: some View {
-    Group {
+    ScrollView {
+      LazyVStack {
+        if case .loaded(let users) = viewModel.state, !users.isEmpty {
+          userList(users: users)
+        }
+      }
+    }
+    .overlay {
       switch viewModel.state {
       case .idle, .loading:
         ProgressView()
-          .task {
-            if case .idle = viewModel.state {
-              await viewModel.loadUsers(reset: true)
-            }
-          }
           #if os(macOS)
             .controlSize(.small)
           #endif
-      case .loaded(let users):
-        if users.isEmpty {
+      case .loaded(let array):
+        if array.isEmpty {
           noUsersView
-        } else {
-          userList(
-            users: users
-          )
         }
       case .failed(let error):
         ErrorScreen(
@@ -60,6 +58,11 @@ struct UserListView: View {
           source: "UserListView",
           onRetry: { await viewModel.loadUsers(reset: true) }
         )
+      }
+    }
+    .task {
+      if case .idle = viewModel.state {
+        await viewModel.loadUsers(reset: true)
       }
     }
     .pageTitle(userListVariant.title)

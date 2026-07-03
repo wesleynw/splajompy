@@ -10,7 +10,11 @@ extension View {
     }
   }
 
-  func pageTitle(_ title: String) -> some View {
-    modifier(PageTitle(title: title))
+  func pageTitle(
+    _ title: String,
+    placement: ToolbarItemPlacement = .principal,
+    font: Font = SJFont.heading
+  ) -> some View {
+    modifier(PageTitle(title: title, placement: placement, font: font))
   }
 }

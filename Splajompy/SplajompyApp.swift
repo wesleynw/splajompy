@@ -56,6 +56,7 @@ struct SplajompyApp: App {
       .environment(authManager)
       .preferredColorScheme(colorScheme)
     }
+    //    .windowToolbarStyle(.unified(showsTitle: false))
     #if os(macOS)
       .defaultSize(width: 1250, height: 800)
     #endif
