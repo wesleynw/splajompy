@@ -80,7 +80,7 @@ struct AppIconPickerView: View {
       .overlay(
         RoundedRectangle(cornerRadius: 16)
           .stroke(
-            selectedIcon == iconName ? Color.blue : Color.clear,
+            selectedIcon == iconName ? Color.accentColor : Color.clear,
             lineWidth: 3
           )
       )

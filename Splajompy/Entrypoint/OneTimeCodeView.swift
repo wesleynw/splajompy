@@ -69,6 +69,27 @@ struct OneTimeCodeView: View {
         dismissButton: .default(Text("OK"))
       )
     }
+    .toolbar {
+      #if os(macOS)
+        ToolbarItem(placement: .confirmationAction) {
+          AsyncActionButton(
+            title: "Continue",
+            isLoading: authManager.isLoading,
+            isDisabled: authManager.isLoading || oneTimeCode.isEmpty
+          ) {
+            Task {
+              let success = await authManager.verifyOneTimeCode(
+                for: identifier,
+                code: oneTimeCode
+              )
+              if !success {
+                showError = true
+              }
+            }
+          }
+        }
+      #endif
+    }
   }
 }
 

@@ -42,14 +42,14 @@ struct RequestSupportView: View {
         Button {
           sendRequestedFeature()
         } label: {
-          if isLoading {
-            ProgressView()
-              #if os(macOS)
-                .controlSize(.small)
-              #endif
-          }
           Text("Send")
             .fontWeight(.bold)
+            .opacity(isLoading ? 0 : 1)
+            .overlay {
+              if isLoading {
+                ProgressView()
+              }
+            }
         }
         .disabled(
           featureText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty

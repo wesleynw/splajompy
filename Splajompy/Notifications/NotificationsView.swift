@@ -64,7 +64,7 @@ struct NotificationsView: View {
         await viewModel.refreshNotifications()
       }
     }
-    .pageTitle("Notifications", placement: .leading)
+    .pageTitle("Notifications", placement: .leading, font: SJFont.title)
   }
 
   private var noNotificationsView: some View {
@@ -116,18 +116,6 @@ struct NotificationsView: View {
                 await viewModel.loadMoreNotifications()
               }
             }
-          }
-          .swipeActions(edge: .leading) {
-            Button {
-              Task {
-                await viewModel.markNotificationAsRead(
-                  notificationId: notification.notificationId
-                )
-              }
-            } label: {
-              Label("Mark as Read", systemImage: "checkmark.circle")
-            }
-            .tint(.blue)
           }
 
         if notification != notifications.last {

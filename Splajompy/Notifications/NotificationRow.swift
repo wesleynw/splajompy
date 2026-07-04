@@ -43,6 +43,7 @@ struct NotificationRow: View {
     HStack(alignment: .center) {
       Circle().frame(width: 10, height: 10)
         .foregroundStyle(notification.viewed ? .clear : .accentColor)
+        .transition(.scale)
 
       NotificationIcon.icon(for: notification.notificationType)
         .frame(width: 28, height: 28)
