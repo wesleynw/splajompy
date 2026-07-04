@@ -14,7 +14,7 @@ struct FilterCapsule: View {
         .foregroundStyle(isActive ? .primary : .secondary)
         .padding(10)
         .background(
-          isActive ? Color.blue.opacity(2 / 3) : Color.clear,
+          isActive ? .accent.opacity(2 / 3) : Color.clear,
           in: .capsule
         )
         .background(.thinMaterial, in: .capsule)

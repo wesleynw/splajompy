@@ -4,6 +4,7 @@ import SwiftUI
 struct FeedView: View {
   @State private var isShowingNewPostView: Bool = false
   @State private var viewModel: FeedViewModel
+  @Namespace var namespace
 
   var postManager: PostStore
 
@@ -31,9 +32,7 @@ struct FeedView: View {
 
   var body: some View {
     mainContent
-      #if os(macOS)
-        .toolbar(removing: .title)
-      #endif
+      .navigationTitle("")
       .onAppear {
         if case .idle = viewModel.state {
           Task {
@@ -55,6 +54,13 @@ struct FeedView: View {
             }
           }
         )
+        #if os(iOS)
+          .modify {
+            if #available(iOS 18, *) {
+              $0.navigationTransition(.zoom(sourceID: "zoom", in: namespace))
+            }
+          }
+        #endif
         .postHogScreenView()
         .interactiveDismissDisabled()
       }
@@ -65,30 +71,30 @@ struct FeedView: View {
             #if os(iOS)
               .topBarLeading
             #else
-              .automatic
+              .navigation
             #endif
           }()
         ) {
           FeedTypeToggle(selectedFeedType: $selectedFeedType)
         }
 
-        #if os(macOS)
-          ToolbarItem {
-            Spacer()
-          }
-        #endif
-
         ToolbarItem(
           placement: {
             #if os(iOS)
               .topBarTrailing
             #else
-              .automatic
+              .primaryAction
             #endif
           }()
         ) {
           Button(action: { isShowingNewPostView = true }) {
             Image(systemName: "plus")
+          }
+          .foregroundStyle(.primary)
+          .modify {
+            if #available(iOS 18, *) {
+              $0.matchedTransitionSource(id: "zoom", in: namespace)
+            }
           }
         }
       }

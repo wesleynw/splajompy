@@ -44,7 +44,7 @@ struct ProfileDisplayNameFontPicker: View {
               Spacer()
               if selectedFont == choice {
                 Image(systemName: "checkmark")
-                  .foregroundStyle(.blue)
+                  .foregroundStyle(.accent)
               }
             }
           }

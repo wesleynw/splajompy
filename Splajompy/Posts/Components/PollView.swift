@@ -95,8 +95,8 @@ struct PollView: View {
               RoundedRectangle(cornerRadius: 12)
                 .fill(
                   isSelected
-                    ? Color.blue.opacity(0.5).gradient
-                    : Color.blue.opacity(0.2).gradient
+                    ? Color.accentColor.opacity(0.5).gradient
+                    : Color.accentColor.opacity(0.2).gradient
                 )
                 .frame(width: geometry.size.width * CGFloat(percentage) / 100.0)
                 .animation(
@@ -109,7 +109,7 @@ struct PollView: View {
         .overlay {
           if isSelected {
             RoundedRectangle(cornerRadius: 12)
-              .stroke(Color.blue.gradient.opacity(0.5), lineWidth: 2)
+              .stroke(Color.accentColor.gradient.opacity(0.5), lineWidth: 2)
           }
         }
       }

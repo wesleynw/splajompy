@@ -31,10 +31,10 @@ struct ImagePreviewView: View {
           VStack {
             Image(systemName: "arrow.clockwise.circle.fill")
               .font(.title)
-              .foregroundStyle(.blue)
+              .foregroundStyle(.accent)
             Text("Retry")
               .font(.caption2)
-              .foregroundStyle(.blue)
+              .foregroundStyle(.accent)
           }
         }
         .buttonStyle(.plain)

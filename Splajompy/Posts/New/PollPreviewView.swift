@@ -9,7 +9,7 @@ struct PollPreviewView: View {
     Group {
       HStack {
         Image(systemName: "chart.bar.fill")
-          .foregroundStyle(.blue)
+          .foregroundStyle(.accent)
           .font(.body)
 
         VStack(alignment: .leading, spacing: 2) {
@@ -37,11 +37,11 @@ struct PollPreviewView: View {
         }
         .font(.callout)
         .fontWeight(.medium)
-        .foregroundStyle(.blue)
+        .foregroundStyle(.accent)
         .padding(.horizontal, 8)
         .padding(.vertical, 4)
         .background(
-          Color.blue.opacity(0.1),
+          Color.accent.opacity(0.1),
           in: RoundedRectangle(cornerRadius: 6)
         )
 

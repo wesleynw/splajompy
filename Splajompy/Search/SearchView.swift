@@ -32,7 +32,7 @@ struct SearchView: View {
         }
       }
     }
-    .pageTitle("Search", placement: .leading)
+    .pageTitle("Search", placement: .leading, font: SJFont.title)
     #if os(macOS)
       .frame(maxWidth: 600)
       .frame(maxWidth: .infinity)

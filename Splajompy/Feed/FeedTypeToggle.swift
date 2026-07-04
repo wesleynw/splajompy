@@ -28,7 +28,6 @@ struct FeedTypeToggle: View {
         .tag(FeedType.all)
 
       }
-      .pickerStyle(.inline)
     } label: {
       HStack {
         Image("snail-small-template")
@@ -38,10 +37,9 @@ struct FeedTypeToggle: View {
           .padding(.trailing, -5)
         Text("Splajompy")
           .font(SJFont.title)
-          .fontWeight(.black)
       }
     }
-    .buttonStyle(.plain)
+    .foregroundStyle(.primary)
   }
 }
 
