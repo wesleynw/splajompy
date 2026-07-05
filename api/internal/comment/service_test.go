@@ -198,3 +198,30 @@ func TestGetComments_DoesNotReturnBlockingUserComments(t *testing.T) {
 	require.NoError(t, err)
 	assert.Empty(t, comments)
 }
+
+func TestGetComments_DoesNotReturnOtherPostComments(t *testing.T) {
+	env := setupCommentTest(t)
+
+	user0 := testutil.CreateTestUser(t, env.userRepository, "user0")
+	user1 := testutil.CreateTestUser(t, env.userRepository, "user1")
+
+	post_0, err := env.postRepository.InsertPost(t.Context(), user0.UserID, "test post", nil, nil, new(models.VisibilityPublic))
+	require.NoError(t, err)
+
+	_, err = env.svc.AddCommentToPost(t.Context(), user1, post_0.PostID, "test comment", nil)
+	require.NoError(t, err)
+
+	post_1, err := env.postRepository.InsertPost(t.Context(), user0.UserID, "test post", nil, nil, new(models.VisibilityPublic))
+	require.NoError(t, err)
+
+	_, err = env.svc.AddCommentToPost(t.Context(), user1, post_1.PostID, "test comment", nil)
+	require.NoError(t, err)
+
+	comments, err := env.svc.GetCommentsByPostId(t.Context(), user0, post_0.PostID)
+	require.NoError(t, err)
+	assert.Len(t, comments, 1)
+
+	comments, err = env.svc.GetCommentsByPostId(t.Context(), user0, post_1.PostID)
+	require.NoError(t, err)
+	assert.Len(t, comments, 1)
+}
