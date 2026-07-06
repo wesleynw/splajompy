@@ -239,7 +239,11 @@ struct UserRowView: View {
       if variant == .friends {
         removeButton
       } else if variant != .notification {
-        followButton
+        FollowButtonView(
+          isLoading: $isLoading,
+          user: user,
+          onFollowToggle: onFollowToggle
+        )
       }
     }
     .padding(.horizontal, 16)
@@ -277,36 +281,6 @@ struct UserRowView: View {
     .padding(.vertical, 6)
     .background(Color.red.opacity(0.15).gradient)
     .foregroundStyle(.red)
-    .clipShape(RoundedRectangle(cornerRadius: 6))
-    .buttonStyle(.plain)
-    .disabled(isLoading)
-  }
-
-  private var followButton: some View {
-    Button(action: {
-      guard !isLoading else { return }
-      Task {
-        isLoading = true
-        await onFollowToggle(user)
-        isLoading = false
-      }
-    }) {
-      if isLoading {
-        ProgressView()
-          .scaleEffect(0.8)
-      } else {
-        Text(user.isFollowing ? "Unfollow" : "Follow")
-          .font(.caption)
-          .fontWeight(.medium)
-      }
-    }
-    .frame(width: 70)
-    .padding(.vertical, 6)
-    .background(
-      user.isFollowing ? Color.gray.opacity(0.2).gradient : Color.accentColor.gradient
-    )
-    .foregroundStyle(user.isFollowing ? .accent : .white)
-    .animation(.spring(duration: 0.15, bounce: 0.3), value: user.isFollowing)
     .clipShape(RoundedRectangle(cornerRadius: 6))
     .buttonStyle(.plain)
     .disabled(isLoading)

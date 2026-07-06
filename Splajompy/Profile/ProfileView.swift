@@ -81,7 +81,7 @@ struct ProfileView: View {
     .pageTitle(
       computedTitle,
       placement: .leading,
-      font: isProfileTab ? SJFont.title2 : SJFont.heading,
+      font: isProfileTab ? SJFont.title : SJFont.heading,
     )
     .toolbar {
       if !isProfileSelf {
