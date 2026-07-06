@@ -9,20 +9,20 @@ SELECT
   comments.comment_id,
   comments.post_id,
   comments.user_id,
-  text,
-  facets,
+  comments.text,
+  comments.facets,
   comments.created_at,
   users.username,
   users.name
 FROM comments
 JOIN users ON comments.user_id = users.user_id
+JOIN posts ON comments.post_id = posts.post_id
 WHERE comments.post_id = $1
 AND NOT EXISTS (
     SELECT 1
     FROM block
     WHERE block.user_id = $2 AND target_user_id = comments.user_id
-)
-AND NOT EXISTS (
+) AND NOT EXISTS (
     SELECT 1
     FROM block
     WHERE block.user_id = comments.user_id AND target_user_id = $2
@@ -31,6 +31,7 @@ AND NOT EXISTS (
     SELECT 1
     FROM mute
     WHERE mute.user_id = $2 AND target_user_id = comments.user_id
+        AND posts.user_id != comments.user_id
 )
 ORDER BY comments.created_at DESC;
 
