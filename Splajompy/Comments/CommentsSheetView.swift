@@ -61,17 +61,6 @@ struct CommentsSheetView: View {
           }
         }
       }
-      .modify {
-        if #available(iOS 26, macOS 26, *) {
-          $0.safeAreaBar(edge: .bottom) {
-            CommentInputView(viewModel: viewModel)
-          }
-        } else {
-          $0.safeAreaInset(edge: .bottom) {
-            CommentInputView(viewModel: viewModel)
-          }
-        }
-      }
       .overlay {
         switch viewModel.state {
         case .idle, .loading:
@@ -86,6 +75,17 @@ struct CommentsSheetView: View {
             source: "CommentsView",
             onRetry: { viewModel.loadComments() }
           )
+        }
+      }
+      .modify {
+        if #available(iOS 26, macOS 26, *) {
+          $0.safeAreaBar(edge: .bottom) {
+            CommentInputView(viewModel: viewModel)
+          }
+        } else {
+          $0.safeAreaInset(edge: .bottom) {
+            CommentInputView(viewModel: viewModel)
+          }
         }
       }
       .pageTitle("Comments")
