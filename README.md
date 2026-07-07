@@ -1,6 +1,6 @@
 <div>
 <picture>
-    <img src="https://github.com/wesleynw/splajompy/blob/main/Assets/Assets.xcassets/icon-png.imageset/icon-ios-default.png" width="128px" alt="logo">
+    <img src="https://github.com/wesleynw/splajompy/blob/b6e86190f1119f2741a293f3917d298707a0cc78/Assets/icons/snail-basic_icon.icon/Assets/new_snail.png" width="128px" alt="logo">
 </picture>
 </div>
 
