@@ -30,11 +30,13 @@ struct FeedTypeToggle: View {
       }
     } label: {
       HStack {
-        Image("snail-small-template")
-          .resizable()
-          .aspectRatio(contentMode: .fit)
-          .frame(width: 30, height: 30)
-          .padding(.trailing, -5)
+        #if os(iOS)
+          Image("snail-small-template")
+            .resizable()
+            .aspectRatio(contentMode: .fit)
+            .frame(width: 30, height: 30)
+            .padding(.trailing, -5)
+        #endif
         Text("Splajompy")
           .font(SJFont.title)
       }

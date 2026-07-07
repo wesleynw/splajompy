@@ -94,6 +94,7 @@ struct UserListView: View {
               Label("Go to post", systemImage: "arrow.up.right.square")
             }
             .buttonStyle(.glass)
+            .padding()
           }
         }
       } else {
@@ -103,6 +104,7 @@ struct UserListView: View {
               Label("Go to post", systemImage: "arrow.up.right.square")
             }
             .buttonStyle(.bordered)
+            .padding()
           }
         }
       }
@@ -192,12 +194,9 @@ struct UserListView: View {
         }
 
         if viewModel.hasMoreToFetch {
-          HStack {
-            Spacer()
-            ProgressView()
-              .padding()
-            Spacer()
-          }
+          ProgressView()
+            .padding()
+            .frame(maxWidth: .infinity, alignment: .center)
         }
       }
       #if os(macOS)
