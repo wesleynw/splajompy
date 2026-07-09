@@ -33,7 +33,7 @@ struct RelevantLikeView: View {
             Text("@\(like.username)")
               .font(.footnote)
               .fontWeight(.bold)
-              .foregroundStyle(.accent)
+              .foregroundStyle(.tint)
               .lineLimit(1)
           }
           .buttonStyle(.plain)
