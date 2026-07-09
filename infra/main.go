@@ -131,7 +131,7 @@ func main() {
 							},
 							&digitalocean.AppSpecServiceEnvArgs{
 								Key:   pulumi.String("OTEL_EXPORTER_OTLP_ENDPOINT"),
-								Value: config.GetSecret("apiOtelExporterOtlpEndpoint"),
+								Value: pulumi.StringPtr(config.Get("apiOtelExporterOtlpEndpoint")),
 							},
 							&digitalocean.AppSpecServiceEnvArgs{
 								Key:   pulumi.String("OTEL_EXPORTER_OTLP_PROTOCOL"),

@@ -1,5 +1,5 @@
 name: splajompy
-description: A minimal DigitalOcean Go Pulumi program
+description: Splajompy IAC
 runtime: go
 config:
   pulumi:tags:
