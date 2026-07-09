@@ -1,2 +1,3 @@
 environment:
   - splajompy-infra/prod
+  - splajompy/prod
