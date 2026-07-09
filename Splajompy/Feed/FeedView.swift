@@ -198,8 +198,7 @@ struct FeedView: View {
   private var emptyMessage: some View {
     VStack {
       Text("No posts yet.")
-        .font(.title3)
-        .fontWeight(.bold)
+        .font(SJFont.callout)
         .padding(.top, 40)
       Text("Here's where you'll see posts from others.")
         .padding()
