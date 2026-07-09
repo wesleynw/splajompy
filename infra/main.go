@@ -82,6 +82,16 @@ func main() {
 								},
 							},
 						},
+						&digitalocean.AppSpecIngressRuleArgs{
+							Component: &digitalocean.AppSpecIngressRuleComponentArgs{
+								Name: pulumi.String("splajompy-api-otel"),
+							},
+							Match: &digitalocean.AppSpecIngressRuleMatchArgs{
+								Path: &digitalocean.AppSpecIngressRuleMatchPathArgs{
+									Prefix: pulumi.String("/otel"),
+								},
+							},
+						},
 					},
 				},
 				Services: digitalocean.AppSpecServiceArray{
