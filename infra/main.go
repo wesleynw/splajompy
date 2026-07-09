@@ -68,6 +68,8 @@ func main() {
 				Domains: pulumi.StringArray{
 					pulumi.Sprintf("api.%s", domain.Name),
 				},
+				Name:   pulumi.String("splajompy-app"),
+				Region: digitalocean.RegionNYC1,
 				Ingress: &digitalocean.AppSpecIngressArgs{
 					Rules: digitalocean.AppSpecIngressRuleArray{
 						&digitalocean.AppSpecIngressRuleArgs{
@@ -80,23 +82,8 @@ func main() {
 								},
 							},
 						},
-						&digitalocean.AppSpecIngressRuleArgs{
-							Component: &digitalocean.AppSpecIngressRuleComponentArgs{
-								Name: pulumi.String("splajompy-api-otel"),
-							},
-							Match: &digitalocean.AppSpecIngressRuleMatchArgs{
-								Authority: &digitalocean.AppSpecIngressRuleMatchAuthorityArgs{
-									Exact: pulumi.String("api.splajompy.com"),
-								},
-								Path: &digitalocean.AppSpecIngressRuleMatchPathArgs{
-									Prefix: pulumi.String("/otel"),
-								},
-							},
-						},
 					},
 				},
-				Name:   pulumi.String("splajompy-api"),
-				Region: pulumi.String("nyc"),
 				Services: digitalocean.AppSpecServiceArray{
 					&digitalocean.AppSpecServiceArgs{
 						DockerfilePath: pulumi.String("api/Dockerfile"),
@@ -131,7 +118,7 @@ func main() {
 							},
 							&digitalocean.AppSpecServiceEnvArgs{
 								Key:   pulumi.String("OTEL_EXPORTER_OTLP_ENDPOINT"),
-								Value: pulumi.StringPtr(config.Get("apiOtelExporterOtlpEndpoint")),
+								Value: pulumi.String("http://splajompy-api-otel.internal:4318"),
 							},
 							&digitalocean.AppSpecServiceEnvArgs{
 								Key:   pulumi.String("OTEL_EXPORTER_OTLP_PROTOCOL"),
@@ -162,12 +149,8 @@ func main() {
 						HttpPort:         pulumi.Int(8080),
 						InstanceCount:    pulumi.Int(1),
 						InstanceSizeSlug: pulumi.String("apps-s-1vcpu-0.5gb"),
-						InternalPorts: pulumi.IntArray{
-							pulumi.Int(4317),
-							pulumi.Int(4318),
-						},
-						Name:      pulumi.String("splajompy-api"),
-						SourceDir: pulumi.String("api"),
+						Name:             pulumi.String("splajompy-api"),
+						SourceDir:        pulumi.String("api"),
 					},
 					&digitalocean.AppSpecServiceArgs{
 						DockerfilePath: pulumi.String("api/internal/utilities/otel/Dockerfile"),
