@@ -72,7 +72,7 @@ func main() {
 					Rules: digitalocean.AppSpecIngressRuleArray{
 						&digitalocean.AppSpecIngressRuleArgs{
 							Component: &digitalocean.AppSpecIngressRuleComponentArgs{
-								Name: pulumi.String("splajompy-native-api"),
+								Name: pulumi.String("splajompy-api"),
 							},
 							Match: &digitalocean.AppSpecIngressRuleMatchArgs{
 								Path: &digitalocean.AppSpecIngressRuleMatchPathArgs{
@@ -82,7 +82,7 @@ func main() {
 						},
 						&digitalocean.AppSpecIngressRuleArgs{
 							Component: &digitalocean.AppSpecIngressRuleComponentArgs{
-								Name: pulumi.String("splajompy-api-internal-utilitie2"),
+								Name: pulumi.String("splajompy-api-otel"),
 							},
 							Match: &digitalocean.AppSpecIngressRuleMatchArgs{
 								Authority: &digitalocean.AppSpecIngressRuleMatchAuthorityArgs{
@@ -166,7 +166,7 @@ func main() {
 							pulumi.Int(4317),
 							pulumi.Int(4318),
 						},
-						Name:      pulumi.String("splajompy-native-api"),
+						Name:      pulumi.String("splajompy-api"),
 						SourceDir: pulumi.String("api"),
 					},
 					&digitalocean.AppSpecServiceArgs{
@@ -196,7 +196,7 @@ func main() {
 						InternalPorts: pulumi.IntArray{
 							pulumi.Int(4317),
 						},
-						Name:      pulumi.String("splajompy-api-internal-utilitie2"),
+						Name:      pulumi.String("splajompy-api-otel"),
 						SourceDir: pulumi.String("api/internal/utilities/otel"),
 					},
 				},
