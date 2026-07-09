@@ -6,8 +6,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/grpc/grpc-swift.git",
       "state" : {
-        "revision" : "6a8927df5a91710b414caba4f8a088dead4633db",
-        "version" : "1.27.5"
+        "revision" : "adc18c3e1c55027d0ce43893897ac448e3f27ebe",
+        "version" : "2.2.3"
       }
     },
     {
@@ -51,8 +51,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/PostHog/posthog-ios.git",
       "state" : {
-        "revision" : "8497f6ea218b14c348a353f2bafbb26069e9da2c",
-        "version" : "3.64.1"
+        "revision" : "0efae9fe38bdb5e58f0f1271452b41c179a383bc",
+        "version" : "3.64.2"
       }
     },
     {
