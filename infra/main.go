@@ -128,7 +128,7 @@ func main() {
 							},
 							&digitalocean.AppSpecServiceEnvArgs{
 								Key:   pulumi.String("OTEL_EXPORTER_OTLP_ENDPOINT"),
-								Value: pulumi.String("http://splajompy-api-otel.internal:4318"),
+								Value: pulumi.String("http://splajompy-api-otel:4318"),
 							},
 							&digitalocean.AppSpecServiceEnvArgs{
 								Key:   pulumi.String("OTEL_EXPORTER_OTLP_PROTOCOL"),
@@ -186,11 +186,8 @@ func main() {
 						HttpPort:         pulumi.Int(4318),
 						InstanceCount:    pulumi.Int(1),
 						InstanceSizeSlug: pulumi.String("apps-s-1vcpu-0.5gb"),
-						InternalPorts: pulumi.IntArray{
-							pulumi.Int(4317),
-						},
-						Name:      pulumi.String("splajompy-api-otel"),
-						SourceDir: pulumi.String("api/internal/utilities/otel"),
+						Name:             pulumi.String("splajompy-api-otel"),
+						SourceDir:        pulumi.String("api/internal/utilities/otel"),
 					},
 				},
 			},
