@@ -68,7 +68,6 @@ func main() {
 				Domains: pulumi.StringArray{
 					pulumi.Sprintf("api.%s", domain.Name),
 				},
-				Name:   pulumi.String("splajompy-api"),
 				Region: digitalocean.RegionNYC1,
 				Ingress: &digitalocean.AppSpecIngressArgs{
 					Rules: digitalocean.AppSpecIngressRuleArray{
