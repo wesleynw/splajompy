@@ -56,7 +56,6 @@ func main() {
 		}
 
 		_, err = digitalocean.NewApp(ctx, "splajompy-app", &digitalocean.AppArgs{
-			ProjectId: pulumi.String("f1c31037-04ff-4580-93f4-ae1d43d83a7f"),
 			Spec: &digitalocean.AppSpecArgs{
 				Alerts: digitalocean.AppSpecAlertArray{
 					&digitalocean.AppSpecAlertArgs{
@@ -67,24 +66,7 @@ func main() {
 					},
 				},
 				Domains: pulumi.StringArray{
-					domain.Name,
-				},
-				Envs: digitalocean.AppSpecEnvArray{
-					&digitalocean.AppSpecEnvArgs{
-						Key:   pulumi.String("GRAFANA_CLOUD_API_KEY"),
-						Value: config.GetSecret("apiGrafanaCloudApiKey"),
-					},
-					&digitalocean.AppSpecEnvArgs{
-						Key:   pulumi.String("GRAFANA_CLOUD_INSTANCE_ID"),
-						Value: config.GetSecret("apiGrafanaCloudInstanceId"),
-					},
-					&digitalocean.AppSpecEnvArgs{
-						Key:   pulumi.String("GRAFANA_CLOUD_OTLP_ENDPOINT"),
-						Value: config.GetSecret("apiGrafanaCloudOtlpEndpoint"),
-					},
-				},
-				Features: pulumi.StringArray{
-					pulumi.String("buildpack-stack=ubuntu-22"),
+					pulumi.Sprintf("api.%s", domain.Name),
 				},
 				Ingress: &digitalocean.AppSpecIngressArgs{
 					Rules: digitalocean.AppSpecIngressRuleArray{
