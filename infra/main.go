@@ -197,7 +197,7 @@ func main() {
 		}
 
 		var allowedIPs []string
-		config.RequireObject("allowedIps", &allowedIPs)
+		config.RequireObject("dbIPAllowlist", &allowedIPs)
 
 		rules := digitalocean.DatabaseFirewallRuleArray{
 			&digitalocean.DatabaseFirewallRuleArgs{
