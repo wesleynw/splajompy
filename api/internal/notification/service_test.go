@@ -350,7 +350,7 @@ func TestAddLikeNotification_MultipleNotificationsCombine(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, notifications, 1, "poster should still have 1 unread notification")
 
-	assert.Equal(t, "@liker1 and @liker0 liked your post.", notifications[0].Message)
+	assert.Equal(t, "@liker1 and @liker0 liked your post", notifications[0].Message)
 	assert.Greater(t, notifications[0].CreatedAt, originalCommentTimestamp)
 
 	expectedFacets, err := utilities.GenerateFacets(t.Context(), env.userRepository, notifications[0].Message)
@@ -365,7 +365,7 @@ func TestAddLikeNotification_MultipleNotificationsCombine(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, notifications, 1, "poster should still have 1 unread notification")
 
-	assert.Equal(t, "@liker2, @liker1, and @liker0 liked your post.", notifications[0].Message)
+	assert.Equal(t, "@liker2, @liker1, and @liker0 liked your post", notifications[0].Message)
 
 	liker3 := testutil.CreateTestUser(t, env.userRepository, "liker3")
 
@@ -376,7 +376,7 @@ func TestAddLikeNotification_MultipleNotificationsCombine(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, notifications, 1, "poster should still have 1 unread notification")
 
-	assert.Equal(t, "@liker3, @liker2, @liker1, and others liked your post.", notifications[0].Message)
+	assert.Equal(t, "@liker3, @liker2, @liker1, and others liked your post", notifications[0].Message)
 
 	// set to incompatible version
 	ctx := context.WithValue(t.Context(), utilities.AppVersionKey, "v1.0.0")
@@ -385,7 +385,7 @@ func TestAddLikeNotification_MultipleNotificationsCombine(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, notifications, 1, "poster should still have 1 unread notification")
 
-	assert.Equal(t, "@liker3, @liker2, @liker1, and others liked your post.", notifications[0].Message)
+	assert.Equal(t, "@liker3, @liker2, @liker1, and others liked your post", notifications[0].Message)
 }
 
 func TestAddLikeNotification_HandlesRemovedLikes(t *testing.T) {
@@ -414,7 +414,7 @@ func TestAddLikeNotification_HandlesRemovedLikes(t *testing.T) {
 	notifications, err := env.svc.GetUnreadNotificationsByUserIdWithTimeOffset(t.Context(), postOwner, time.Now().UTC(), 10, nil)
 	require.NoError(t, err)
 	require.Len(t, notifications, 1)
-	assert.Equal(t, "@liker2, @liker1, and @liker0 liked your post.", notifications[0].Message)
+	assert.Equal(t, "@liker2, @liker1, and @liker0 liked your post", notifications[0].Message)
 
 	err = env.svc.RemoveLikeNotification(t.Context(), liker2.UserID, post.PostID, nil)
 	require.NoError(t, err)
@@ -422,7 +422,7 @@ func TestAddLikeNotification_HandlesRemovedLikes(t *testing.T) {
 	notifications, err = env.svc.GetUnreadNotificationsByUserIdWithTimeOffset(t.Context(), postOwner, time.Now().UTC(), 10, nil)
 	require.NoError(t, err)
 	require.Len(t, notifications, 1)
-	assert.Equal(t, "@liker1 and @liker0 liked your post.", notifications[0].Message)
+	assert.Equal(t, "@liker1 and @liker0 liked your post", notifications[0].Message)
 
 	err = env.svc.RemoveLikeNotification(t.Context(), liker1.UserID, post.PostID, nil)
 	require.NoError(t, err)
@@ -430,7 +430,7 @@ func TestAddLikeNotification_HandlesRemovedLikes(t *testing.T) {
 	notifications, err = env.svc.GetUnreadNotificationsByUserIdWithTimeOffset(t.Context(), postOwner, time.Now().UTC(), 10, nil)
 	require.NoError(t, err)
 	require.Len(t, notifications, 1)
-	assert.Equal(t, "@liker0 liked your post.", notifications[0].Message)
+	assert.Equal(t, "@liker0 liked your post", notifications[0].Message)
 
 	err = env.svc.RemoveLikeNotification(t.Context(), liker0.UserID, post.PostID, nil)
 	require.NoError(t, err)
@@ -461,7 +461,7 @@ func TestRemoveLikeNotification_WithSelfLikes(t *testing.T) {
 	notifications, err = env.svc.GetUnreadNotificationsByUserIdWithTimeOffset(t.Context(), postOwner, time.Now().UTC(), 10, nil)
 	require.NoError(t, err)
 	require.Len(t, notifications, 1)
-	assert.Equal(t, "@liker0 liked your post.", notifications[0].Message)
+	assert.Equal(t, "@liker0 liked your post", notifications[0].Message)
 
 	err = env.svc.RemoveLikeNotification(t.Context(), liker0.UserID, post.PostID, nil)
 	require.NoError(t, err)
@@ -493,7 +493,7 @@ func TestAddLikeNotification_Comment_MultipleNotificationsCombine(t *testing.T) 
 	notifications, err := env.svc.GetUnreadNotificationsByUserIdWithTimeOffset(t.Context(), commenter, time.Now().UTC(), 10, nil)
 	require.NoError(t, err)
 	require.Len(t, notifications, 1, "commenter should have 1 unread notification")
-	assert.Equal(t, "@liker0 liked your comment.", notifications[0].Message)
+	assert.Equal(t, "@liker0 liked your comment", notifications[0].Message)
 
 	liker1 := testutil.CreateTestUser(t, env.userRepository, "liker1")
 	err = env.svc.AddLikeNotification(t.Context(), liker1.UserID, post.PostID, &comment.CommentID)
@@ -502,7 +502,7 @@ func TestAddLikeNotification_Comment_MultipleNotificationsCombine(t *testing.T) 
 	notifications, err = env.svc.GetUnreadNotificationsByUserIdWithTimeOffset(t.Context(), commenter, time.Now().UTC(), 10, nil)
 	require.NoError(t, err)
 	require.Len(t, notifications, 1, "commenter should still have 1 unread notification after second like")
-	assert.Equal(t, "@liker1 and @liker0 liked your comment.", notifications[0].Message)
+	assert.Equal(t, "@liker1 and @liker0 liked your comment", notifications[0].Message)
 
 	liker2 := testutil.CreateTestUser(t, env.userRepository, "liker2")
 	err = env.svc.AddLikeNotification(t.Context(), liker2.UserID, post.PostID, &comment.CommentID)
@@ -511,7 +511,7 @@ func TestAddLikeNotification_Comment_MultipleNotificationsCombine(t *testing.T) 
 	notifications, err = env.svc.GetUnreadNotificationsByUserIdWithTimeOffset(t.Context(), commenter, time.Now().UTC(), 10, nil)
 	require.NoError(t, err)
 	require.Len(t, notifications, 1, "commenter should still have 1 unread notification after third like")
-	assert.Equal(t, "@liker2, @liker1, and @liker0 liked your comment.", notifications[0].Message)
+	assert.Equal(t, "@liker2, @liker1, and @liker0 liked your comment", notifications[0].Message)
 }
 
 func TestAddLikeNotification_Comment_HandlesRemovedLikes(t *testing.T) {
@@ -540,7 +540,7 @@ func TestAddLikeNotification_Comment_HandlesRemovedLikes(t *testing.T) {
 	notifications, err := env.svc.GetUnreadNotificationsByUserIdWithTimeOffset(t.Context(), commenter, time.Now().UTC(), 10, nil)
 	require.NoError(t, err)
 	require.Len(t, notifications, 1)
-	assert.Equal(t, "@liker1 and @liker0 liked your comment.", notifications[0].Message)
+	assert.Equal(t, "@liker1 and @liker0 liked your comment", notifications[0].Message)
 
 	err = env.svc.RemoveLikeNotification(t.Context(), liker1.UserID, post.PostID, &comment.CommentID)
 	require.NoError(t, err)
@@ -548,7 +548,7 @@ func TestAddLikeNotification_Comment_HandlesRemovedLikes(t *testing.T) {
 	notifications, err = env.svc.GetUnreadNotificationsByUserIdWithTimeOffset(t.Context(), commenter, time.Now().UTC(), 10, nil)
 	require.NoError(t, err)
 	require.Len(t, notifications, 1)
-	assert.Equal(t, "@liker0 liked your comment.", notifications[0].Message)
+	assert.Equal(t, "@liker0 liked your comment", notifications[0].Message)
 
 	err = env.svc.RemoveLikeNotification(t.Context(), liker0.UserID, post.PostID, &comment.CommentID)
 	require.NoError(t, err)

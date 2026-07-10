@@ -211,22 +211,6 @@ func (s *Service) AddLikeNotification(ctx context.Context, currentUserId int, po
 		return err
 	}
 
-	recipientVersion, err := s.userRepository.GetUserLatestAppVersion(ctx, recipientId)
-	if err != nil {
-		return err
-	}
-
-	if !utilities.IsStoredVersionAtLeast(recipientVersion, "v1.8.2") {
-		// Recipient is on an old client that can't navigate to the actors list —
-		// send a plain per-liker notification instead of combining.
-		message, err := s.buildLikedMessage(ctx, []int{currentUserId}, commentId != nil)
-		if err != nil {
-			return err
-		}
-		_, err = s.AddNotification(ctx, recipientId, &postId, commentId, *message, models.NotificationTypeLike, nil)
-		return err
-	}
-
 	existingLikeNotification, err := s.notificationRepository.FindLikeNotification(ctx, recipientId, postId, commentId)
 	if err != nil {
 		return err
@@ -436,18 +420,18 @@ func (s *Service) buildLikedMessage(ctx context.Context, userIds []int, isCommen
 	}
 
 	if len(userIds) == 1 {
-		return new(fmt.Sprintf("@%s liked your %s.", users[0].Username, noun)), nil
+		return new(fmt.Sprintf("@%s liked your %s", users[0].Username, noun)), nil
 	}
 
 	if len(userIds) == 2 {
-		return new(fmt.Sprintf("@%s and @%s liked your %s.", users[0].Username, users[1].Username, noun)), nil
+		return new(fmt.Sprintf("@%s and @%s liked your %s", users[0].Username, users[1].Username, noun)), nil
 	}
 
 	if len(userIds) == 3 {
-		return new(fmt.Sprintf("@%s, @%s, and @%s liked your %s.", users[0].Username, users[1].Username, users[2].Username, noun)), nil
+		return new(fmt.Sprintf("@%s, @%s, and @%s liked your %s", users[0].Username, users[1].Username, users[2].Username, noun)), nil
 	}
 
-	return new(fmt.Sprintf("@%s, @%s, @%s, and others liked your %s.", users[0].Username, users[1].Username, users[2].Username, noun)), nil
+	return new(fmt.Sprintf("@%s, @%s, @%s, and others liked your %s", users[0].Username, users[1].Username, users[2].Username, noun)), nil
 }
 
 func (s *Service) RegisterDevice(ctx context.Context, userId int, token string, mentionsEnabled bool, commentsEnabled bool, followsEnabled bool) error {
