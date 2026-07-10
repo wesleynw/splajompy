@@ -8,8 +8,8 @@ on:
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
-    paths:
-      - 'web/*'
+#    paths:
+#      - 'web/*'
 
 jobs:
   build:
