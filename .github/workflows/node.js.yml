@@ -2,6 +2,8 @@
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-nodejs
 
 name: Astro Build
+permissions:
+  contents: read
 
 on:
   push:
@@ -13,8 +15,11 @@ on:
 
 jobs:
   build:
-
+    timeout-minutes: 10
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./web
 
     steps:
     - uses: actions/checkout@v4
