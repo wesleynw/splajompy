@@ -208,7 +208,7 @@ func main() {
 
 		for _, ip := range allowedIPs {
 			rules = append(rules, &digitalocean.DatabaseFirewallRuleArgs{
-				Type:  pulumi.String("ipAddr"),
+				Type:  pulumi.String("ip_addr"),
 				Value: pulumi.String(ip),
 			})
 		}
