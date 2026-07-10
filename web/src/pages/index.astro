@@ -2,17 +2,22 @@
 import Layout from "../layouts/Layout.astro";
 import DownloadButton from "../download_on_the_app_store.svg";
 import { Image } from "astro:assets";
-import Logo from "../icon-ios-default.png";
+import Logo from "../assets/new_snail.png";
 ---
 
 <Layout>
     <div class="flex flex-col items-center justify-center min-h-screen">
         <Image src={Logo} alt="Logo" class="w-3xs" />
-        <h1 class="text-amber-50 text-3xl margin mb-25 mt-5 font-bold">
+        <h1 class="text-amber-50 text-4xl margin mb-25 mt-5 font-bold">
             Splajompy
         </h1>
         <a href="https://apps.apple.com/us/app/splajompy/id6744034321">
             <DownloadButton class="w-3xs" />
         </a>
     </div>
+    <style>
+        h1 {
+            font-family: var(--font-splajompy);
+        }
+    </style>
 </Layout>
