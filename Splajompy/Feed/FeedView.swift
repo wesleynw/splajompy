@@ -7,13 +7,11 @@ struct FeedView: View {
   @Namespace var namespace
 
   var postManager: PostStore
-  @Binding var accent: Color
 
   @AppStorage("selectedFeedType") private var selectedFeedType: FeedType = .all
 
-  init(postManager: PostStore, accent: Binding<Color>) {
+  init(postManager: PostStore) {
     self.postManager = postManager
-    self._accent = accent
 
     let savedFeedType: FeedType
     if let raw = UserDefaults.standard.string(forKey: "selectedFeedType"),
@@ -77,13 +75,7 @@ struct FeedView: View {
             #endif
           }()
         ) {
-          if PostHogSDK.shared.isFeatureEnabled("temp-color-picker") {
-            ColorPicker(selection: $accent) {
-              Label("Accent", systemImage: "eyedropper")
-            }
-          } else {
-            FeedTypeToggle(selectedFeedType: $selectedFeedType)
-          }
+          FeedTypeToggle(selectedFeedType: $selectedFeedType)
         }
 
         ToolbarItem(

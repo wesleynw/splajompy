@@ -23,7 +23,6 @@ struct SplajompyApp: App {
   @State private var authManager: AuthManager = AuthManager.shared
   @State private var postStore = PostStore()
   @AppStorage("appearance_mode") var appearanceMode: String = "Automatic"
-  @State private var accentColor: Color = Color.accentColor
 
   init() {
     initializeOtel()
@@ -42,7 +41,6 @@ struct SplajompyApp: App {
             .postHogScreenView()
         }
       }
-      .tint(accentColor)
       .modifier(
         NavigateOnNotificationModifier(
           pendingRoute: $routingHelper.pendingRoute,
@@ -83,7 +81,7 @@ struct SplajompyApp: App {
   private var authenticatedView: some View {
     TabView(selection: $selection) {
       NavigationStack(path: $navigationPaths[0]) {
-        FeedView(postManager: postStore, accent: $accentColor)
+        FeedView(postManager: postStore)
           .postHogScreenView()
           .navigationDestination(for: Route.self) { route in
             routeDestination(route)
