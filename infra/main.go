@@ -55,7 +55,7 @@ func main() {
 			return err
 		}
 
-		_, err = digitalocean.NewApp(ctx, "splajompy-app", &digitalocean.AppArgs{
+		splajompyApp, err := digitalocean.NewApp(ctx, "splajompy-app", &digitalocean.AppArgs{
 			Spec: &digitalocean.AppSpecArgs{
 				Alerts: digitalocean.AppSpecAlertArray{
 					&digitalocean.AppSpecAlertArgs{
@@ -191,6 +191,31 @@ func main() {
 					},
 				},
 			},
+		}, pulumi.Protect(true))
+		if err != nil {
+			return err
+		}
+
+		var allowedIPs []string
+		config.RequireObject("dbIPAllowlist", &allowedIPs)
+
+		rules := digitalocean.DatabaseFirewallRuleArray{
+			&digitalocean.DatabaseFirewallRuleArgs{
+				Type:  pulumi.String("app"),
+				Value: splajompyApp.ID(),
+			},
+		}
+
+		for _, ip := range allowedIPs {
+			rules = append(rules, &digitalocean.DatabaseFirewallRuleArgs{
+				Type:  pulumi.String("ip_addr"),
+				Value: pulumi.String(ip),
+			})
+		}
+
+		_, err = digitalocean.NewDatabaseFirewall(ctx, "db-firewall", &digitalocean.DatabaseFirewallArgs{
+			ClusterId: splajompyCluster.ID(),
+			Rules:     rules,
 		}, pulumi.Protect(true))
 		if err != nil {
 			return err
