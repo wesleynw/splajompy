@@ -1,5 +1,6 @@
 ---
 import "../styles/global.css";
+import { Font } from "astro:assets";
 ---
 
 <html lang="en">
@@ -7,6 +8,7 @@ import "../styles/global.css";
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <title>Splajompy</title>
+        <Font cssVariable="--font-splajompy" />
     </head>
     <body class="bg-neutral-900">
         <slot />
