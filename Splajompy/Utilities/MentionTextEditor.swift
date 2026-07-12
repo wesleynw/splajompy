@@ -66,9 +66,9 @@ struct MentionUtilities {
     #endif
 
     #if os(iOS)
-      let mentionColor = UIColor.systemBlue
+      let mentionColor = UIColor(.accent)
     #else
-      let mentionColor = NSColor.systemBlue
+      let mentionColor = NSColor(.accent)
     #endif
 
     mutableAttributedText.addAttribute(
@@ -93,7 +93,10 @@ struct MentionUtilities {
     text.matches(of: mentionPattern).compactMap { match in
       let atUsername = match.output.1
       let username = String(atUsername.dropFirst())
-      let fullRange = NSRange(atUsername.startIndex..<atUsername.endIndex, in: text)
+      let fullRange = NSRange(
+        atUsername.startIndex..<atUsername.endIndex,
+        in: text
+      )
       return Mention(username: username, range: fullRange)
     }
   }
