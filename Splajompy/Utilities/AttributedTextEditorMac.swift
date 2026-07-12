@@ -226,7 +226,7 @@ struct AttributedTextEditor: NSViewRepresentable {
         at: position
       )
 
-      let typingColor: NSColor = isInMention ? .systemBlue : .labelColor
+      let typingColor: NSColor = isInMention ? NSColor(.accent) : .labelColor
       textView.typingAttributes = [
         .font: NSFont.preferredFont(forTextStyle: .body),
         .foregroundColor: typingColor,

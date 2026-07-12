@@ -179,7 +179,7 @@ struct AttributedTextEditor: UIViewRepresentable {
 
         textView.typingAttributes = [
           .font: UIFont.preferredFont(forTextStyle: .body),
-          .foregroundColor: isInMention ? UIColor.systemBlue : UIColor.label,
+          .foregroundColor: isInMention ? UIColor(.accent) : UIColor.label,
         ]
       }
     }

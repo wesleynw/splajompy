@@ -96,11 +96,11 @@ extension MentionTextEditor {
       #if os(iOS)
         let bodyFont = UIFont.preferredFont(forTextStyle: .body)
         let labelColor = UIColor.label
-        let mentionColor = UIColor.systemBlue
+        let mentionColor = UIColor(.accent)
       #else
         let bodyFont = NSFont.preferredFont(forTextStyle: .body)
         let labelColor = NSColor.labelColor
-        let mentionColor = NSColor.systemBlue
+        let mentionColor = NSColor(.accent)
       #endif
 
       mutableAttributedText.addAttribute(
