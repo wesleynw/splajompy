@@ -1,33 +1,13 @@
 # Go Backend
 /bin/
 /pkg/
-*.exe
-*.exe~
-*.dll
-*.so
-*.dylib
 *.test
 *.out
-go.work
-
-# Dependency directories
-vendor/
 
 # Swift/iOS Frontend
 ## Build generated
 build/
 DerivedData/
-
-## Various settings
-*.pbxuser
-!default.pbxuser
-*.mode1v3
-!default.mode1v3
-*.mode2v3
-!default.mode2v3
-*.perspectivev3
-!default.perspectivev3
-xcuserdata/
 
 ## Other
 *.moved-aside
@@ -36,36 +16,13 @@ xcuserdata/
 *.xcuserstate
 # *.xcworkspace
 
-## App packaging
-*.ipa
-*.dSYM.zip
-*.dSYM
-
 # Swift Package Manager
 .build/
 .swiftpm/
 
-# CocoaPods
-Pods/
-Podfile.lock
-
-# Carthage
-Carthage/Build/
-
 # Environment variables
 .env*
 *.env
-.envrc
-
-# Python caches
-__pycache__/
-*.py[cod]
-.ruff_cache/
-.uv-cache/
-
-# Virtual environments
-.venv/
-venv/
 
 # Pulumi local workspace
 .pulumi/
@@ -77,28 +34,8 @@ infra/backups/
 
 # OS specific files
 .DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
 
 # Editor directories and files
 .idea/
 .vscode/
-*.swp
-*.swo
-*~
-.project
 .zed
-
-# Logs
-logs/
-*.log
-npm-debug.log*
-
-# Temporary files
-tmp/
-temp/
-*.bak
