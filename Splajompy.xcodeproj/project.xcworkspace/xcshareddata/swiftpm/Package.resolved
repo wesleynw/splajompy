@@ -6,8 +6,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/grpc/grpc-swift.git",
       "state" : {
-        "revision" : "6a8927df5a91710b414caba4f8a088dead4633db",
-        "version" : "1.27.5"
+        "revision" : "adc18c3e1c55027d0ce43893897ac448e3f27ebe",
+        "version" : "2.2.3"
       }
     },
     {
@@ -24,8 +24,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/open-telemetry/opentelemetry-swift",
       "state" : {
-        "revision" : "21374ac2439aee4e206721ef91a7e8bf4c0579d6",
-        "version" : "2.4.1"
+        "revision" : "9a6d6a8aed22c415bb1673206e337824635f818b",
+        "version" : "2.5.0"
       }
     },
     {
@@ -51,8 +51,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/PostHog/posthog-ios.git",
       "state" : {
-        "revision" : "76a3e1db35f3153f3388bdf077a717c7350e5f9e",
-        "version" : "3.64.6"
+        "revision" : "19288ee2f0575606b4669b2abadda2c9db97c529",
+        "version" : "3.66.1"
       }
     },
     {
@@ -114,8 +114,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-crypto.git",
       "state" : {
-        "revision" : "1b6b2e274e85105bfa155183145a1dcfd63331f1",
-        "version" : "4.5.0"
+        "revision" : "47d3869a7291f085c1fb9fb1e6d3b97a793f45c6",
+        "version" : "4.5.1"
       }
     },
     {
@@ -159,8 +159,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-nio.git",
       "state" : {
-        "revision" : "cd3e1152083706d77b223fb29110e590efcc70c0",
-        "version" : "2.101.2"
+        "revision" : "0b18836bd8b0162e7e17a995a3fbee20ed8f3b2b",
+        "version" : "2.101.3"
       }
     },
     {
@@ -186,8 +186,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-nio-ssl.git",
       "state" : {
-        "revision" : "407d82d5b6cc00e1c3fb83a81b1539b70c788c5e",
-        "version" : "2.37.1"
+        "revision" : "d930168b86f46ca51a4bc09c5ca45c1833db8067",
+        "version" : "2.37.2"
       }
     },
     {
