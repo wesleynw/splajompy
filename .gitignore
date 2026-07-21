@@ -1,36 +1,8 @@
 # Go Backend
-/bin/
-/pkg/
-*.test
 *.out
 
-# Swift/iOS Frontend
-## Build generated
-build/
-DerivedData/
-
-## Other
-*.moved-aside
-*.xccheckout
-*.xcscmblueprint
-*.xcuserstate
-# *.xcworkspace
-
-# Swift Package Manager
-.build/
-.swiftpm/
-
 # Environment variables
-.env*
 *.env
-
-# Pulumi local workspace
-.pulumi/
-infra/Pulumi.*.yaml
-!infra/Pulumi.yaml
-!infra/Pulumi.prod.yaml
-infra/esc.*.local.json
-infra/backups/
 
 # OS specific files
 .DS_Store
