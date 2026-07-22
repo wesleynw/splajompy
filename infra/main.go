@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/pulumi/pulumi-aws/sdk/v7/go/aws/s3"
 	"github.com/pulumi/pulumi-digitalocean/sdk/v4/go/digitalocean"
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi/config"
@@ -220,6 +221,10 @@ func main() {
 		if err != nil {
 			return err
 		}
+
+		_, err = s3.NewBucket(ctx, "splajompy-prod-bucket", &s3.BucketArgs{
+			Bucket: pulumi.String("splajompy-prod-bucket"),
+		})
 
 		return nil
 	})
