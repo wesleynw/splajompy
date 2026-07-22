@@ -182,6 +182,7 @@ struct FeedView: View {
       // and show an error screen.
       await Task {
         await viewModel.loadPosts(preserveCurrentState: true, reset: true)
+        NotificationCenter.default.post(name: .userDidRefreshFeed, object: nil)
         PostHogSDK.shared.capture("feed_refreshed")
       }.value
     }
@@ -197,4 +198,8 @@ struct FeedView: View {
     }
     .frame(maxWidth: .infinity, alignment: .center)
   }
+}
+
+extension Foundation.Notification.Name {
+  static let userDidRefreshFeed = Foundation.Notification.Name("userDidRefreshFeed")
 }

@@ -14,9 +14,20 @@ struct ImageCarousel: View {
       let maxWidth = geometry.size.width - 32
 
       ScrollView(.horizontal) {
-        HStack {
-          ForEach(Array(images.enumerated()), id: \.offset) { index, element in
-            carouselCell(index: index, image: element, maxWidth: maxWidth)
+        ScrollViewReader { proxy in
+          HStack {
+            ForEach(Array(images.enumerated()), id: \.offset) {
+              index,
+              element in
+              carouselCell(index: index, image: element, maxWidth: maxWidth)
+            }
+          }
+          .onReceive(
+            NotificationCenter.default.publisher(for: .userDidRefreshFeed)
+          ) { _ in
+            withAnimation {
+              proxy.scrollTo(0)
+            }
           }
         }
       }
