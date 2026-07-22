@@ -76,6 +76,8 @@ struct ProfileView: View {
         await Task {
           await viewModel.loadProfileAndPosts()
         }.value
+
+        NotificationCenter.default.post(name: .userDidRefreshFeed, object: nil)
       }
     }
     .pageTitle(
@@ -161,11 +163,6 @@ struct ProfileView: View {
       .frame(maxWidth: 600)
       .frame(maxWidth: .infinity)
     #endif
-    .refreshable {
-      await Task {
-        await viewModel.loadProfileAndPosts()
-      }.value
-    }
   }
 
   @ViewBuilder

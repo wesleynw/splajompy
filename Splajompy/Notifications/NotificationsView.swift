@@ -1,3 +1,4 @@
+import PostHog
 import SwiftUI
 
 struct NotificationsView: View {
@@ -55,6 +56,7 @@ struct NotificationsView: View {
       }
     }
     .refreshable {
+      PostHogSDK.shared.capture("notifications_refreshed")
       await Task {
         await viewModel.refreshNotifications()
       }.value

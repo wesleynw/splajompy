@@ -86,6 +86,7 @@ struct StandalonePostView: View {
       )
 
       let _ = await (post, comments)
+      NotificationCenter.default.post(name: .userDidRefreshFeed, object: nil)
     }
     .task {
       await viewModel.load()
