@@ -392,7 +392,7 @@ func (s *Service) sendPush(ctx context.Context, notificationId int, recipientId 
 			DeviceToken: device.Token,
 		}
 		err = s.apnsClient.Push(ctx, &n)
-		if errors.Is(err, apns.ErrUnregisteredDevice) {
+		if errors.Is(err, apns.ErrUnregisteredDevice) || errors.Is(err, apns.ErrBadDeviceToken) {
 			err := s.notificationRepository.RemoveDeviceToken(ctx, device.Token)
 			if err != nil {
 				slog.WarnContext(ctx, "unable to remove device token", "error", err)

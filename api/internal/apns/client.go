@@ -33,6 +33,7 @@ var tracer = otel.Tracer("apns-service")
 var meter = otel.Meter("apns-service")
 
 var ErrUnregisteredDevice = errors.New("device is reported unregisted")
+var ErrBadDeviceToken = errors.New("device token is not valid")
 
 type Client struct {
 	httpClient *http.Client
@@ -136,33 +137,21 @@ func (c *Client) Push(ctx context.Context, notification *Notification) error {
 			slog.ErrorContext(ctx, "unable to unmarshall request body", "error", err)
 			return err
 		}
-		slog.WarnContext(ctx, "apns error", "status", res.Status, "reason", body.Reason)
+		slog.ErrorContext(ctx, "apns error", "status", res.Status, "reason", body.Reason)
 		span.RecordError(err)
 		span.SetStatus(codes.Error, body.Reason)
 		if res.StatusCode == http.StatusGone {
 			return ErrUnregisteredDevice
+		} else if res.StatusCode == http.StatusBadRequest && body.Reason == "BadDeviceToken" {
+			slog.WarnContext(ctx, "apns suggest device token is invalid")
+			return ErrBadDeviceToken
 		}
 		return fmt.Errorf("apns error %s: %s", res.Status, body.Reason)
+	} else {
+		notificationId := res.Header.Get("apns-id")
+		span.SetAttributes(attribute.String("notification.id", notificationId))
+		span.SetAttributes(attribute.Int("http.status_code", res.StatusCode))
+
+		return nil
 	}
-
-	notificationId := res.Header.Get("apns-id")
-	span.SetAttributes(attribute.String("notification.id", notificationId))
-	span.SetAttributes(attribute.Int("http.status_code", res.StatusCode))
-
-	body, err = io.ReadAll(res.Body)
-	if err != nil {
-		span.RecordError(err)
-		span.SetStatus(codes.Error, "failed to read response")
-		return err
-	}
-
-	if res.StatusCode != http.StatusOK {
-		err := fmt.Errorf("apns: unexpected status %d: %s", res.StatusCode, body)
-		span.RecordError(err)
-		span.SetStatus(codes.Error, err.Error())
-		slog.ErrorContext(ctx, "apns push failed", "status", res.StatusCode)
-		return err
-	}
-
-	return nil
 }
