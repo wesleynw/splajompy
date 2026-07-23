@@ -40,6 +40,17 @@ struct UserListView: View {
           userList(users: users)
         }
       }
+      #if os(macOS)
+        .frame(maxWidth: 600)
+        .frame(maxWidth: .infinity)
+      #endif
+    }
+    .refreshable {
+      await Task {
+        await viewModel.loadUsers(reset: true)
+      }.value
+
+      NotificationCenter.default.post(name: .userDidRefreshFeed, object: nil)
     }
     .overlay {
       switch viewModel.state {
@@ -161,53 +172,41 @@ struct UserListView: View {
     }
   }
 
+  @ViewBuilder
   private func userList(
     users: [DetailedUser]
   )
     -> some View
   {
-    ScrollView {
-      LazyVStack {
-        ForEach(users) { user in
-          UserRowView(
-            user: user,
-            variant: userListVariant,
-            onFollowToggle: { user in
-              await viewModel.toggleFollow(for: user)
-            },
-            onRemove: { user in
-              await viewModel.removeFriend(user: user)
-            }
-          )
-          .onAppear {
-            if user.userId == users.last?.userId {
-              Task {
-                await viewModel.loadUsers()
-              }
-            }
-          }
-
-          if user.userId != users.last?.userId {
-            Divider()
-              .padding(.leading, 16)
-          }
+    ForEach(users) { user in
+      UserRowView(
+        user: user,
+        variant: userListVariant,
+        onFollowToggle: { user in
+          await viewModel.toggleFollow(for: user)
+        },
+        onRemove: { user in
+          await viewModel.removeFriend(user: user)
         }
-
-        if viewModel.hasMoreToFetch {
-          ProgressView()
-            .padding()
-            .frame(maxWidth: .infinity, alignment: .center)
+      )
+      .onAppear {
+        if user.userId == users.last?.userId {
+          Task {
+            await viewModel.loadUsers()
+          }
         }
       }
-      #if os(macOS)
-        .frame(maxWidth: 600)
-        .frame(maxWidth: .infinity)
-      #endif
+
+      if user.userId != users.last?.userId {
+        Divider()
+          .padding(.leading, 16)
+      }
     }
-    .refreshable {
-      await Task {
-        await viewModel.loadUsers(reset: true)
-      }.value
+
+    if viewModel.hasMoreToFetch {
+      ProgressView()
+        .padding()
+        .frame(maxWidth: .infinity, alignment: .center)
     }
   }
 }
