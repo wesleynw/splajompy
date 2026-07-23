@@ -40,6 +40,10 @@ struct UserListView: View {
           userList(users: users)
         }
       }
+      #if os(macOS)
+        .frame(maxWidth: 600)
+        .frame(maxWidth: .infinity)
+      #endif
     }
     .refreshable {
       await Task {
@@ -204,10 +208,6 @@ struct UserListView: View {
         .padding()
         .frame(maxWidth: .infinity, alignment: .center)
     }
-    #if os(macOS)
-      .frame(maxWidth: 600)
-        .frame(maxWidth: .infinity)
-    #endif
   }
 }
 
