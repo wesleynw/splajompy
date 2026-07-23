@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 
+	"github.com/pulumi/pulumi-aws/sdk/v7/go/aws/cloudfront"
 	"github.com/pulumi/pulumi-aws/sdk/v7/go/aws/iam"
 	"github.com/pulumi/pulumi-aws/sdk/v7/go/aws/s3"
 	"github.com/pulumi/pulumi-digitalocean/sdk/v4/go/digitalocean"
@@ -228,6 +229,9 @@ func main() {
 		splajompyBucket, err := s3.NewBucket(ctx, "splajompy-prod-bucket", &s3.BucketArgs{
 			Bucket: pulumi.String("splajompy-prod-bucket"),
 		})
+		if err != nil {
+			return err
+		}
 
 		user, err := iam.NewUser(ctx, "splajompy-prod-bucket-user", &iam.UserArgs{
 			Name: pulumi.String("splajompy-prod-bucket-user"),
@@ -261,18 +265,106 @@ func main() {
 			Name:   pulumi.String("splajompy-bucket-full-access"),
 			Policy: policyJson,
 		})
+		if err != nil {
+			return err
+		}
 
 		_, err = iam.NewPolicyAttachment(ctx, "s3-all-access", &iam.PolicyAttachmentArgs{
 			Users:     pulumi.Array{user.Name},
 			PolicyArn: splajompyBucketPolicy.Arn,
 		})
+		if err != nil {
+			return err
+		}
 
 		s3AccessKey, err := iam.NewAccessKey(ctx, "s3-splajompy-prod-bucket-access-key", &iam.AccessKeyArgs{
 			User: user.Name,
 		})
+		if err != nil {
+			return err
+		}
 
 		ctx.Export("s3accesskey", s3AccessKey.ID())
 		ctx.Export("s3accesssecret", s3AccessKey.Secret)
+
+		oac, err := cloudfront.NewOriginAccessControl(ctx, "s3access", &cloudfront.OriginAccessControlArgs{
+			Name:                          pulumi.String("splajompy-prod-bucket.s3.us-east-2.amazonaws.com"),
+			OriginAccessControlOriginType: pulumi.String("s3"),
+			SigningBehavior:               pulumi.String("always"),
+			SigningProtocol:               pulumi.String("sigv4"),
+		})
+		if err != nil {
+			return err
+		}
+
+		cloudfrontDist, err := cloudfront.NewDistribution(ctx, "s3-distribution-cd", &cloudfront.DistributionArgs{
+			DefaultCacheBehavior: cloudfront.DistributionDefaultCacheBehaviorArgs{
+				AllowedMethods: pulumi.StringArray{
+					pulumi.String("GET"), pulumi.String("HEAD"),
+				},
+				CachedMethods: pulumi.StringArray{
+					pulumi.String("GET"), pulumi.String("HEAD"),
+				},
+				TargetOriginId:       splajompyBucket.Arn,
+				CachePolicyId:        pulumi.String("658327ea-f89d-4fab-a63d-7e88639e58f6"),
+				ViewerProtocolPolicy: pulumi.String("redirect-to-https"),
+			},
+			Enabled: pulumi.Bool(true),
+			Origins: cloudfront.DistributionOriginArray{
+				cloudfront.DistributionOriginArgs{
+					DomainName:            splajompyBucket.BucketRegionalDomainName,
+					OriginId:              splajompyBucket.Arn,
+					OriginAccessControlId: oac.ID(),
+				},
+			},
+			Restrictions: cloudfront.DistributionRestrictionsArgs{
+				GeoRestriction: cloudfront.DistributionRestrictionsGeoRestrictionArgs{
+					RestrictionType: pulumi.String("none"),
+				},
+			},
+			ViewerCertificate: cloudfront.DistributionViewerCertificateArgs{
+				CloudfrontDefaultCertificate: pulumi.Bool(true),
+			},
+		})
+		if err != nil {
+			return err
+		}
+
+		cfBucketPolicy := pulumi.All(splajompyBucket.Arn, cloudfrontDist.Arn).ApplyT(
+			func(args []interface{}) (string, error) {
+				bucketArn := args[0].(string)
+				distArn := args[1].(string)
+
+				policy, err := json.Marshal(map[string]any{
+					"Version": "2012-10-17",
+					"Statement": []map[string]any{
+						{
+							"Effect": "Allow",
+							"Principal": map[string]string{
+								"Service": "cloudfront.amazonaws.com",
+							},
+							"Action":   "s3:GetObject",
+							"Resource": bucketArn + "/*",
+							"Condition": map[string]any{
+								"StringEquals": map[string]string{
+									"AWS:SourceArn": distArn,
+								},
+							},
+						},
+					},
+				})
+				if err != nil {
+					return "", err
+				}
+
+				return string(policy), nil
+			},
+		).(pulumi.StringOutput)
+
+		_, err = s3.NewBucketPolicy(ctx, "cloudfront-s3-access", &s3.BucketPolicyArgs{
+			Bucket: splajompyBucket.ID(),
+			Policy: cfBucketPolicy,
+		})
 
 		return nil
 	})
