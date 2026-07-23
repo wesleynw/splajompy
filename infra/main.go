@@ -1,6 +1,9 @@
 package main
 
 import (
+	"encoding/json"
+
+	"github.com/pulumi/pulumi-aws/sdk/v7/go/aws/iam"
 	"github.com/pulumi/pulumi-aws/sdk/v7/go/aws/s3"
 	"github.com/pulumi/pulumi-digitalocean/sdk/v4/go/digitalocean"
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
@@ -222,9 +225,54 @@ func main() {
 			return err
 		}
 
-		_, err = s3.NewBucket(ctx, "splajompy-prod-bucket", &s3.BucketArgs{
+		splajompyBucket, err := s3.NewBucket(ctx, "splajompy-prod-bucket", &s3.BucketArgs{
 			Bucket: pulumi.String("splajompy-prod-bucket"),
 		})
+
+		user, err := iam.NewUser(ctx, "splajompy-prod-bucket-user", &iam.UserArgs{
+			Name: pulumi.String("splajompy-prod-bucket-user"),
+		})
+		if err != nil {
+			return err
+		}
+
+		policyJson := splajompyBucket.Arn.ApplyT(func(bucketArn string) (string, error) {
+			json, err := json.Marshal(map[string]any{
+				"Version": "2012-10-17",
+				"Statement": []map[string]any{
+					{
+						"Sid":    "Statement0",
+						"Effect": "Allow",
+						"Action": "s3:*",
+						"Resource": []string{
+							bucketArn,
+							bucketArn + "/*",
+						},
+					},
+				},
+			})
+			if err != nil {
+				return "", err
+			}
+			return string(json), nil
+		})
+
+		splajompyBucketPolicy, err := iam.NewPolicy(ctx, "splajompy-bucket-full-access", &iam.PolicyArgs{
+			Name:   pulumi.String("splajompy-bucket-full-access"),
+			Policy: policyJson,
+		})
+
+		_, err = iam.NewPolicyAttachment(ctx, "s3-all-access", &iam.PolicyAttachmentArgs{
+			Users:     pulumi.Array{user.Name},
+			PolicyArn: splajompyBucketPolicy.Arn,
+		})
+
+		s3AccessKey, err := iam.NewAccessKey(ctx, "s3-splajompy-prod-bucket-access-key", &iam.AccessKeyArgs{
+			User: user.Name,
+		})
+
+		ctx.Export("s3accesskey", s3AccessKey.ID())
+		ctx.Export("s3accesssecret", s3AccessKey.Secret)
 
 		return nil
 	})
