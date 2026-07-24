@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/base64"
 	"encoding/json"
 
 	"github.com/pulumi/pulumi-aws/sdk/v7/go/aws/cloudfront"
@@ -297,6 +298,31 @@ func main() {
 			return err
 		}
 
+		base64Key := config.GetSecret("cloudfrontSigningKey")
+		pemStr := base64Key.ApplyT(func(key string) (string, error) {
+			decoded, err := base64.StdEncoding.DecodeString(key)
+			if err != nil {
+				return "", err
+			}
+
+			return string(decoded), nil
+		}).(pulumi.StringOutput)
+
+		cfPublicKey, err := cloudfront.NewPublicKey(ctx, "cf-pubkey", &cloudfront.PublicKeyArgs{
+			Name:       pulumi.String("cf-pubkey"),
+			EncodedKey: pemStr,
+		})
+		if err != nil {
+			return err
+		}
+
+		cfKeyGroup, err := cloudfront.NewKeyGroup(ctx, "cf-keygrp", &cloudfront.KeyGroupArgs{
+			Name: pulumi.String("cf-keygrp"),
+			Items: pulumi.StringArray{
+				cfPublicKey.ID(),
+			},
+		})
+
 		cloudfrontDist, err := cloudfront.NewDistribution(ctx, "splajompy-cf", &cloudfront.DistributionArgs{
 			DefaultCacheBehavior: cloudfront.DistributionDefaultCacheBehaviorArgs{
 				AllowedMethods: pulumi.StringArray{
@@ -310,6 +336,9 @@ func main() {
 				// https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/using-managed-cache-policies.html#managed-cache-caching-optimized
 				CachePolicyId:        pulumi.String("658327ea-f89d-4fab-a63d-7e88639e58f6"),
 				ViewerProtocolPolicy: pulumi.String("redirect-to-https"),
+				TrustedKeyGroups: pulumi.StringArray{
+					cfKeyGroup.ID(),
+				},
 			},
 			Enabled: pulumi.Bool(true),
 			Origins: cloudfront.DistributionOriginArray{
