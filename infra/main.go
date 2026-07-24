@@ -288,7 +288,7 @@ func main() {
 		ctx.Export("s3accesssecret", s3AccessKey.Secret)
 
 		oac, err := cloudfront.NewOriginAccessControl(ctx, "s3access", &cloudfront.OriginAccessControlArgs{
-			Name:                          pulumi.String("splajompy-prod-bucket.s3.us-east-2.amazonaws.com"),
+			Name:                          pulumi.String("cf-splajompy-bucket-oac"),
 			OriginAccessControlOriginType: pulumi.String("s3"),
 			SigningBehavior:               pulumi.String("always"),
 			SigningProtocol:               pulumi.String("sigv4"),
@@ -297,7 +297,7 @@ func main() {
 			return err
 		}
 
-		cloudfrontDist, err := cloudfront.NewDistribution(ctx, "s3-distribution-cd", &cloudfront.DistributionArgs{
+		cloudfrontDist, err := cloudfront.NewDistribution(ctx, "splajompy-cf", &cloudfront.DistributionArgs{
 			DefaultCacheBehavior: cloudfront.DistributionDefaultCacheBehaviorArgs{
 				AllowedMethods: pulumi.StringArray{
 					pulumi.String("GET"), pulumi.String("HEAD"),
@@ -305,7 +305,9 @@ func main() {
 				CachedMethods: pulumi.StringArray{
 					pulumi.String("GET"), pulumi.String("HEAD"),
 				},
-				TargetOriginId:       splajompyBucket.Arn,
+				TargetOriginId: splajompyBucket.Arn,
+				// ok to hardcode
+				// https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/using-managed-cache-policies.html#managed-cache-caching-optimized
 				CachePolicyId:        pulumi.String("658327ea-f89d-4fab-a63d-7e88639e58f6"),
 				ViewerProtocolPolicy: pulumi.String("redirect-to-https"),
 			},
@@ -331,7 +333,7 @@ func main() {
 		}
 
 		cfBucketPolicy := pulumi.All(splajompyBucket.Arn, cloudfrontDist.Arn).ApplyT(
-			func(args []interface{}) (string, error) {
+			func(args []any) (string, error) {
 				bucketArn := args[0].(string)
 				distArn := args[1].(string)
 
