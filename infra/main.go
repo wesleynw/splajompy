@@ -298,7 +298,7 @@ func main() {
 			return err
 		}
 
-		base64Key := config.GetSecret("cloudfrontSigningKey")
+		base64Key := config.GetSecret("cloudfrontSigningPubkey")
 		pemStr := base64Key.ApplyT(func(key string) (string, error) {
 			decoded, err := base64.StdEncoding.DecodeString(key)
 			if err != nil {
