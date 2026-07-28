@@ -99,7 +99,7 @@ func (s *Service) NewPost(ctx context.Context, currentUser models.PublicUser, te
 	return post, nil
 }
 
-func (s *Service) NewPresignedStagingUrl(ctx context.Context, currentUser models.PublicUser, extension *string, folder *string) (string, string, error) {
+func (s *Service) NewPresignedStagingUrl(ctx context.Context, currentUser models.PublicUser, extension string, folder string) (string, string, error) {
 	return s.bucketRepository.GetPresignedPutObject(ctx, currentUser.UserID, extension, folder)
 }
 
@@ -135,7 +135,7 @@ func (s *Service) GetPostById(ctx context.Context, userId int, postId int) (*mod
 			PostId:       postId,
 			Height:       image.Height,
 			Width:        image.Width,
-			ImageBlobUrl: *url,
+			ImageBlobUrl: url,
 			DisplayOrder: i,
 		})
 	}
@@ -282,7 +282,7 @@ func (s *Service) ReportPost(ctx context.Context, currentUser *models.PublicUser
 			return nil
 		}
 
-		images[i].ImageBlobUrl = *url
+		images[i].ImageBlobUrl = url
 	}
 
 	html, err := templates.GeneratePostReportEmail(currentUser.Username, author.Username, author.UserID, *post, images)

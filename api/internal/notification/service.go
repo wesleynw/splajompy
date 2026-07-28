@@ -132,7 +132,7 @@ func (s *Service) buildDetailedNotifications(ctx context.Context, currentUserId 
 				if err != nil {
 					return nil, errors.New("unable to retrieve image blob")
 				}
-				detailedNotification.ImageBlob = url
+				detailedNotification.ImageBlob = &url
 				detailedNotification.ImageWidth = &images[0].Width
 				detailedNotification.ImageHeight = &images[0].Height
 			}
@@ -154,7 +154,7 @@ func (s *Service) buildDetailedNotifications(ctx context.Context, currentUserId 
 				if err != nil {
 					return nil, errors.New("unable to presign comment image")
 				}
-				detailedNotification.ImageBlob = presignedUrl
+				detailedNotification.ImageBlob = &presignedUrl
 				detailedNotification.ImageWidth = &commentImages[0].Width
 				detailedNotification.ImageHeight = &commentImages[0].Height
 			}

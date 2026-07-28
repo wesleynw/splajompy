@@ -85,7 +85,7 @@ func (h *Handler) GetPresignedUrl(w http.ResponseWriter, r *http.Request) {
 
 	folder := r.URL.Query().Get("folder")
 
-	key, url, err := h.svc.NewPresignedStagingUrl(r.Context(), *currentUser, &extension, &folder)
+	key, url, err := h.svc.NewPresignedStagingUrl(r.Context(), *currentUser, extension, folder)
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
 		return
