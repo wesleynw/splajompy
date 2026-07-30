@@ -1,9 +1,11 @@
 package bucket
 
 import (
+	"crypto/rsa"
 	"crypto/x509"
 	"encoding/base64"
 	"encoding/pem"
+	"errors"
 	"os"
 
 	"github.com/aws/aws-sdk-go-v2/feature/cloudfront/sign"
@@ -19,9 +21,13 @@ func NewCloudfrontSigner() (*sign.URLSigner, error) {
 
 	block, _ := pem.Decode(privateKeyBytes)
 
-	privateKey, err := x509.ParseECPrivateKey(block.Bytes)
+	privateKey, err := x509.ParsePKCS8PrivateKey(block.Bytes)
 	if err != nil {
 		return nil, err
 	}
-	return sign.NewURLSigner(keyPairId, privateKey), nil
+	if key, ok := privateKey.(*rsa.PrivateKey); ok {
+		return sign.NewURLSigner(keyPairId, key), nil
+	} else {
+		return nil, errors.New("unable to find private key")
+	}
 }

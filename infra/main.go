@@ -156,6 +156,9 @@ func main() {
 				cfPublicKey.ID(),
 			},
 		})
+		if err != nil {
+			return err
+		}
 
 		cloudfrontDist, err := cloudfront.NewDistribution(ctx, "splajompy-cf", &cloudfront.DistributionArgs{
 			DefaultCacheBehavior: cloudfront.DistributionDefaultCacheBehaviorArgs{
@@ -252,11 +255,11 @@ func main() {
 							},
 							&digitalocean.AppSpecServiceEnvArgs{
 								Key:   pulumi.String("AWS_ACCESS_KEY_ID"),
-								Value: config.GetSecret("apiAwsAccessKeyId"),
+								Value: s3AccessKey.ID(),
 							},
 							&digitalocean.AppSpecServiceEnvArgs{
 								Key:   pulumi.String("AWS_SECRET_ACCESS_KEY"),
-								Value: config.GetSecret("apiAwsSecretAccessKey"),
+								Value: s3AccessKey.Secret,
 							},
 							&digitalocean.AppSpecServiceEnvArgs{
 								Key:   pulumi.String("DB_CONNECTION_STRING"),
@@ -408,6 +411,9 @@ func main() {
 			Bucket: splajompyBucket.ID(),
 			Policy: cfBucketPolicy,
 		})
+		if err != nil {
+			return err
+		}
 
 		return nil
 	})

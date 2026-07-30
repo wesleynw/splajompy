@@ -121,9 +121,9 @@ func (r *S3BucketRepository) GetPresignedPutObject(ctx context.Context, userID i
 }
 
 func (r *S3BucketRepository) GetPresignedGetObject(ctx context.Context, key string) (string, error) {
-	path := "https://" + r.cdnBaseURL + key
+	path := "https://" + r.cdnBaseURL + "/" + key
 
-	url, err := r.cloudfrontSigner.Sign(path, time.Now().Add(time.Hour))
+	url, err := r.cloudfrontSigner.Sign(path, time.Now().UTC().Add(time.Hour))
 	if err != nil {
 		slog.ErrorContext(ctx, "unable to sign cloudfront url", "error", err)
 		return "", err
