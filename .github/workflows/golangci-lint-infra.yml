@@ -1,0 +1,31 @@
+name: Go Infra Lint
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches: ["main"]
+    paths:
+      - "infra/**"
+
+permissions:
+  contents: read
+  # Optional: allow read access to pull request. Use with `only-new-issues` option.
+  # pull-requests: read
+
+jobs:
+  lint:
+    timeout-minutes: 10
+    name: lint
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: "infra/go.mod"
+          cache-dependency-path: infra/go.sum
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v9
+        with:
+          working-directory: "infra"
