@@ -37,7 +37,7 @@ func NewS3BucketRepository(s3Client *s3.Client, signer *sign.URLSigner) *S3Bucke
 	return &S3BucketRepository{
 		s3Client:         s3Client,
 		cloudfrontSigner: signer,
-		bucketName:       "splajompy-bucket",
+		bucketName:       "splajompy-prod-bucket",
 		cdnBaseURL:       os.Getenv("CLOUDFRONT_BASE_URL"),
 		environment:      os.Getenv("ENVIRONMENT"),
 	}
