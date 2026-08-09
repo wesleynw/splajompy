@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 
 	"github.com/pulumi/pulumi-aws/sdk/v7/go/aws/cloudfront"
+	"github.com/pulumi/pulumi-aws/sdk/v7/go/aws/cloudwatch"
 	"github.com/pulumi/pulumi-aws/sdk/v7/go/aws/iam"
 	"github.com/pulumi/pulumi-aws/sdk/v7/go/aws/s3"
 	"github.com/pulumi/pulumi-digitalocean/sdk/v4/go/digitalocean"
@@ -197,6 +198,12 @@ func main() {
 		if err != nil {
 			return err
 		}
+
+		_, err = cloudwatch.NewInternetMonitor(ctx, "internet-monitor", &cloudwatch.InternetMonitorArgs{
+			MonitorName:                pulumi.String("internet-monitor"),
+			Resources:                  pulumi.StringArray{cloudfrontDist.Arn},
+			TrafficPercentageToMonitor: pulumi.IntPtr(100),
+		})
 
 		splajompyApp, err := digitalocean.NewApp(ctx, "splajompy-app", &digitalocean.AppArgs{
 			Spec: &digitalocean.AppSpecArgs{
