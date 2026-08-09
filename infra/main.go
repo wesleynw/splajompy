@@ -204,6 +204,9 @@ func main() {
 			Resources:                  pulumi.StringArray{cloudfrontDist.Arn},
 			TrafficPercentageToMonitor: pulumi.IntPtr(100),
 		})
+		if err != nil {
+			return err
+		}
 
 		splajompyApp, err := digitalocean.NewApp(ctx, "splajompy-app", &digitalocean.AppArgs{
 			Spec: &digitalocean.AppSpecArgs{
