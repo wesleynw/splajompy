@@ -78,7 +78,11 @@ func main() {
 		log.Fatalf("failed to initialize s3 client: %v", err)
 	}
 
-	bucketRepository := bucket.NewS3BucketRepository(s3Client)
+	cloudfrontSigner, err := bucket.NewCloudfrontSigner()
+	if err != nil {
+		log.Fatalf("failed to initialize cloudfront signer: %v", err)
+	}
+	bucketRepository := bucket.NewS3BucketRepository(s3Client, cloudfrontSigner)
 
 	postRepository := post.NewDBPostRepository(q)
 	userRepository := user.NewUserRepository(q)
