@@ -1,6 +1,6 @@
 module splajompy
 
-go 1.25.11
+go 1.26
 
 require (
 	github.com/pulumi/pulumi-aws/sdk/v7 v7.38.0

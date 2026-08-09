@@ -3,12 +3,13 @@ package bucket
 import (
 	"context"
 	"fmt"
-	"log"
+	"log/slog"
 	"os"
 	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/feature/cloudfront/sign"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"github.com/google/uuid"
@@ -19,24 +20,26 @@ type Repository interface {
 	CopyObject(ctx context.Context, sourceKey, destinationKey string) error
 	DeleteObject(ctx context.Context, key string) error
 	DeleteObjects(ctx context.Context, keys []string) error
-	GetPresignedPutObject(ctx context.Context, userID int, extension, folder *string) (string, string, error)
-	GetPresignedGetObject(ctx context.Context, key string) (*string, error)
+	GetPresignedPutObject(ctx context.Context, userID int, extension, folder string) (string, string, error)
+	GetPresignedGetObject(ctx context.Context, key string) (string, error)
 	PublishStagedImages(ctx context.Context, userId int, blobType string, identifier int, imageKeymap map[int]models.ImageData) (map[int]string, error)
 }
 
 type S3BucketRepository struct {
-	s3Client    *s3.Client
-	bucketName  string
-	cdnBaseURL  string
-	environment string
+	s3Client         *s3.Client
+	cloudfrontSigner *sign.URLSigner
+	bucketName       string
+	cdnBaseURL       string
+	environment      string
 }
 
-func NewS3BucketRepository(s3Client *s3.Client) *S3BucketRepository {
+func NewS3BucketRepository(s3Client *s3.Client, signer *sign.URLSigner) *S3BucketRepository {
 	return &S3BucketRepository{
-		s3Client:    s3Client,
-		bucketName:  "splajompy-bucket",
-		cdnBaseURL:  "https://splajompy-bucket.nyc3.cdn.digitaloceanspaces.com/",
-		environment: os.Getenv("ENVIRONMENT"),
+		s3Client:         s3Client,
+		cloudfrontSigner: signer,
+		bucketName:       "splajompy-prod-bucket",
+		cdnBaseURL:       os.Getenv("CLOUDFRONT_BASE_URL"),
+		environment:      os.Getenv("ENVIRONMENT"),
 	}
 }
 
@@ -96,45 +99,37 @@ func (r *S3BucketRepository) DeleteObjects(ctx context.Context, keys []string) e
 }
 
 // GetPresignedPutObject returns a URL allowing a user to upload a file to a specified location
-func (r *S3BucketRepository) GetPresignedPutObject(ctx context.Context, userID int, extension, folder *string) (string, string, error) {
+func (r *S3BucketRepository) GetPresignedPutObject(ctx context.Context, userID int, extension string, folder string) (string, string, error) {
 	presignClient := s3.NewPresignClient(r.s3Client)
 
-	s3Key := fmt.Sprintf("%s/posts/staging/%d/%s/%s.%s", r.environment, userID, *folder, uuid.New(), *extension)
+	blobPath := fmt.Sprintf("%s/posts/staging/%d/%s/%s.%s", r.environment, userID, folder, uuid.New(), extension)
 
 	req, err := presignClient.PresignPutObject(ctx, &s3.PutObjectInput{
 		Bucket:      aws.String(r.bucketName),
-		Key:         aws.String(s3Key),
-		ContentType: extension,
+		Key:         aws.String(blobPath),
+		ContentType: &extension,
 	}, func(opts *s3.PresignOptions) {
 		opts.Expires = time.Minute * 5
 	})
 
 	if err != nil {
-		log.Printf("unable to generate a presigned url: %v\n", err)
+		slog.ErrorContext(ctx, "unable to generate a signed url", "error", err)
 		return "", "", err
 	}
 
-	return s3Key, req.URL, nil
+	return blobPath, req.URL, nil
 }
 
-func (r *S3BucketRepository) GetPresignedGetObject(ctx context.Context, key string) (*string, error) {
-	presignClient := s3.NewPresignClient(r.s3Client)
+func (r *S3BucketRepository) GetPresignedGetObject(ctx context.Context, key string) (string, error) {
+	path := "https://" + r.cdnBaseURL + "/" + key
 
-	req, err := presignClient.PresignGetObject(ctx, &s3.GetObjectInput{
-		Bucket: aws.String(r.bucketName),
-		Key:    aws.String(key),
-	}, func(po *s3.PresignOptions) {
-		po.Expires = time.Hour * 24
-	})
+	url, err := r.cloudfrontSigner.Sign(path, time.Now().UTC().Add(time.Hour))
 	if err != nil {
-		return nil, err
+		slog.ErrorContext(ctx, "unable to sign cloudfront url", "error", err)
+		return "", err
 	}
 
-	// because of some digitalocean trickery, we're just able to replace the url w/ the CDN here:
-	// https://docs.digitalocean.com/products/spaces/how-to/enable-cdn/
-	url := strings.Replace(req.URL, "splajompy-bucket.nyc3.digitaloceanspaces.com", "splajompy-bucket.nyc3.cdn.digitaloceanspaces.com", 1)
-
-	return &url, nil
+	return url, nil
 }
 
 // GetDestinationKey returns a permenant blob URI given the current URI of a staged blob.

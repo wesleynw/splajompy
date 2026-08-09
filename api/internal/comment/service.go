@@ -80,7 +80,7 @@ func (s *Service) AddCommentToPost(ctx context.Context, currentUser models.Publi
 			PostId:       postId,
 			Height:       image.Height,
 			Width:        image.Width,
-			ImageBlobUrl: *presignedUrl,
+			ImageBlobUrl: presignedUrl,
 			DisplayOrder: 0,
 		})
 	}
@@ -168,7 +168,7 @@ func (s *Service) GetCommentsByPostId(ctx context.Context, currentUser models.Pu
 				PostId:       postID,
 				Height:       image.Height,
 				Width:        image.Width,
-				ImageBlobUrl: *blobUrl,
+				ImageBlobUrl: blobUrl,
 				DisplayOrder: 0,
 			}
 

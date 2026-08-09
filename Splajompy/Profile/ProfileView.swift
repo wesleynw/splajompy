@@ -202,6 +202,10 @@ struct ProfileView: View {
 
     if viewModel.canLoadMorePosts {
       ProgressView()
+        #if os(macOS)
+          .controlSize(.small)
+        #endif
+        .padding()
         .frame(maxWidth: .infinity, alignment: .center)
     }
   }
