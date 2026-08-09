@@ -299,7 +299,7 @@ func main() {
 							},
 							&digitalocean.AppSpecServiceEnvArgs{
 								Key:   pulumi.String("CLOUDFRONT_PRIVATE_KEY"),
-								Value: config.GetSecret("base64CloudfrontKey"),
+								Value: config.GetSecret("cloudfrontSigningPrivkey"),
 							},
 							&digitalocean.AppSpecServiceEnvArgs{
 								Key:   pulumi.String("CLOUDFRONT_BASE_URL"),
