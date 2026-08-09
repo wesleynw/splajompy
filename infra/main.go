@@ -295,7 +295,7 @@ func main() {
 							},
 							&digitalocean.AppSpecServiceEnvArgs{
 								Key:   pulumi.String("CLOUDFRONT_KEYPAIR_ID"),
-								Value: cfKeyGroup.ID(),
+								Value: cfPublicKey.ID(),
 							},
 							&digitalocean.AppSpecServiceEnvArgs{
 								Key:   pulumi.String("CLOUDFRONT_PRIVATE_KEY"),
