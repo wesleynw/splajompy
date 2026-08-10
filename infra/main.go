@@ -17,6 +17,12 @@ func main() {
 	pulumi.Run(func(ctx *pulumi.Context) error {
 		config := config.New(ctx, "")
 
+		awsTags := pulumi.StringMap{
+			"Project":     pulumi.String("splajompy"),
+			"Environment": pulumi.String("production"),
+			"ManagedBy":   pulumi.String("pulumi"),
+		}
+
 		domain, err := digitalocean.NewDomain(ctx, "domain", &digitalocean.DomainArgs{
 			Name: pulumi.String("splajompy.com"),
 		}, pulumi.Protect(true))
@@ -64,6 +70,7 @@ func main() {
 
 		user, err := iam.NewUser(ctx, "splajompy-prod-bucket-user", &iam.UserArgs{
 			Name: pulumi.String("splajompy-prod-bucket-user"),
+			Tags: awsTags,
 		})
 		if err != nil {
 			return err
@@ -71,6 +78,7 @@ func main() {
 
 		splajompyBucket, err := s3.NewBucket(ctx, "splajompy-prod-bucket", &s3.BucketArgs{
 			Bucket: pulumi.String("splajompy-prod-bucket"),
+			Tags:   awsTags,
 		})
 		if err != nil {
 			return err
@@ -84,7 +92,9 @@ func main() {
 			return err
 		}
 
-		cloudwatchBucketLogGroup, err := cloudwatch.NewLogGroup(ctx, "s3-log-group", &cloudwatch.LogGroupArgs{})
+		cloudwatchBucketLogGroup, err := cloudwatch.NewLogGroup(ctx, "s3-log-group", &cloudwatch.LogGroupArgs{
+			Tags: awsTags,
+		})
 		if err != nil {
 			return err
 		}
@@ -225,6 +235,7 @@ func main() {
 			ViewerCertificate: cloudfront.DistributionViewerCertificateArgs{
 				CloudfrontDefaultCertificate: pulumi.Bool(true),
 			},
+			Tags: awsTags,
 		})
 		if err != nil {
 			return err
@@ -241,6 +252,7 @@ func main() {
 
 		cloudwatchCloudfrontLogGroup, err := cloudwatch.NewLogGroup(ctx, "cloudfront-log-group", &cloudwatch.LogGroupArgs{
 			Region: pulumi.String("us-east-1"),
+			Tags:   awsTags,
 		})
 		if err != nil {
 			return err
