@@ -84,6 +84,11 @@ func main() {
 			return err
 		}
 
+		_, err = s3.NewBucketMetric(ctx, "splajompy-entire-bucket", &s3.BucketMetricArgs{
+			Name:   pulumi.String("EntireBucket"),
+			Bucket: splajompyBucket.ID(),
+		})
+
 		bucketLogSource, err := cloudwatch.NewLogDeliverySource(ctx, "bucket-log-source", &cloudwatch.LogDeliverySourceArgs{
 			ResourceArn: splajompyBucket.Arn,
 			LogType:     pulumi.String("S3_SERVER_ACCESS_LOGS"),
