@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 
 	"github.com/pulumi/pulumi-aws/sdk/v7/go/aws/cloudfront"
+	"github.com/pulumi/pulumi-aws/sdk/v7/go/aws/cloudwatch"
 	"github.com/pulumi/pulumi-aws/sdk/v7/go/aws/iam"
 	"github.com/pulumi/pulumi-aws/sdk/v7/go/aws/s3"
 	"github.com/pulumi/pulumi-digitalocean/sdk/v4/go/digitalocean"
@@ -70,6 +71,37 @@ func main() {
 
 		splajompyBucket, err := s3.NewBucket(ctx, "splajompy-prod-bucket", &s3.BucketArgs{
 			Bucket: pulumi.String("splajompy-prod-bucket"),
+		})
+		if err != nil {
+			return err
+		}
+
+		bucketLogSource, err := cloudwatch.NewLogDeliverySource(ctx, "bucket-log-source", &cloudwatch.LogDeliverySourceArgs{
+			ResourceArn: splajompyBucket.Arn,
+			LogType:     pulumi.String("S3_SERVER_ACCESS_LOGS"),
+		})
+		if err != nil {
+			return err
+		}
+
+		cloudwatchBucketLogGroup, err := cloudwatch.NewLogGroup(ctx, "s3-log-group", &cloudwatch.LogGroupArgs{})
+		if err != nil {
+			return err
+		}
+
+		cloudwatchBucketLogDestination, err := cloudwatch.NewLogDeliveryDestination(ctx, "bucket-log-dest", &cloudwatch.LogDeliveryDestinationArgs{
+			DeliveryDestinationType: pulumi.String("CWL"),
+			DeliveryDestinationConfiguration: cloudwatch.LogDeliveryDestinationDeliveryDestinationConfigurationArgs{
+				DestinationResourceArn: cloudwatchBucketLogGroup.Arn,
+			},
+		})
+		if err != nil {
+			return err
+		}
+
+		_, err = cloudwatch.NewLogDelivery(ctx, "bucket-log-delivery", &cloudwatch.LogDeliveryArgs{
+			DeliverySourceName:     bucketLogSource.Name,
+			DeliveryDestinationArn: cloudwatchBucketLogDestination.Arn,
 		})
 		if err != nil {
 			return err
@@ -193,6 +225,42 @@ func main() {
 			ViewerCertificate: cloudfront.DistributionViewerCertificateArgs{
 				CloudfrontDefaultCertificate: pulumi.Bool(true),
 			},
+		})
+		if err != nil {
+			return err
+		}
+
+		cloudfrontLogSource, err := cloudwatch.NewLogDeliverySource(ctx, "cloudfront-log-source", &cloudwatch.LogDeliverySourceArgs{
+			ResourceArn: cloudfrontDist.Arn,
+			LogType:     pulumi.String("ACCESS_LOGS"),
+			Region:      pulumi.String("us-east-1"),
+		})
+		if err != nil {
+			return err
+		}
+
+		cloudwatchCloudfrontLogGroup, err := cloudwatch.NewLogGroup(ctx, "cloudfront-log-group", &cloudwatch.LogGroupArgs{
+			Region: pulumi.String("us-east-1"),
+		})
+		if err != nil {
+			return err
+		}
+
+		cloudwatchCloudfrontLogDestination, err := cloudwatch.NewLogDeliveryDestination(ctx, "cloudfront-log-dest", &cloudwatch.LogDeliveryDestinationArgs{
+			DeliveryDestinationType: pulumi.String("CWL"),
+			DeliveryDestinationConfiguration: cloudwatch.LogDeliveryDestinationDeliveryDestinationConfigurationArgs{
+				DestinationResourceArn: cloudwatchCloudfrontLogGroup.Arn,
+			},
+			Region: pulumi.String("us-east-1"),
+		})
+		if err != nil {
+			return err
+		}
+
+		_, err = cloudwatch.NewLogDelivery(ctx, "cloudfront-log-delivery", &cloudwatch.LogDeliveryArgs{
+			DeliverySourceName:     cloudfrontLogSource.Name,
+			DeliveryDestinationArn: cloudwatchCloudfrontLogDestination.Arn,
+			Region:                 pulumi.String("us-east-1"),
 		})
 		if err != nil {
 			return err
