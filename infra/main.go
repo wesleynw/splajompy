@@ -88,6 +88,9 @@ func main() {
 			Name:   pulumi.String("EntireBucket"),
 			Bucket: splajompyBucket.ID(),
 		})
+		if err != nil {
+			return err
+		}
 
 		bucketLogSource, err := cloudwatch.NewLogDeliverySource(ctx, "bucket-log-source", &cloudwatch.LogDeliverySourceArgs{
 			ResourceArn: splajompyBucket.Arn,
