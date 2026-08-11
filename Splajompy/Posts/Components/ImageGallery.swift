@@ -165,32 +165,29 @@ struct ImageGallery: View {
               bottomTrailing: 0,
               topTrailing: 0
             )
-            Button {
-              selectedImageIndex = 3
-            } label: {
-              ZStack {
-                imageCell(
-                  index: 3,
-                  width: (geometry.size.width - 4) / 2,
-                  height: (geometry.size.height - 4) / 2,
-                  topLeading: 0,
-                  bottomLeading: 0,
-                  topTrailing: 0
-                )
-                if images.count > 4 {
-                  Color.black.opacity(0.6)
-                    .clipShape(
-                      .rect(
-                        bottomTrailingRadius: 6
-                      )
+            ZStack {
+              imageCell(
+                index: 3,
+                width: (geometry.size.width - 4) / 2,
+                height: (geometry.size.height - 4) / 2,
+                topLeading: 0,
+                bottomLeading: 0,
+                topTrailing: 0
+              )
+              if images.count > 4 {
+                Color.black.opacity(0.6)
+                  .clipShape(
+                    .rect(
+                      bottomTrailingRadius: 6
                     )
-                  Text("+\(images.count - 4)")
-                    .font(.system(size: 22, weight: .bold))
-                    .foregroundStyle(.white)
-                }
+                  )
+                  .allowsHitTesting(false)
+                Text("+\(images.count - 4)")
+                  .font(.system(size: 22, weight: .bold))
+                  .foregroundStyle(.white)
+                  .allowsHitTesting(false)
               }
             }
-            .buttonStyle(.plain)
           }
         }
       }
@@ -208,48 +205,83 @@ struct ImageGallery: View {
     topTrailing: CGFloat = 14
   ) -> some View {
     Group {
-      if index < images.count, let url = URL(string: images[index].imageBlobUrl) {
-        Button {
-          selectedImageIndex = index
-        } label: {
-          LazyImage(url: url) {
-            state in
-            if let image = state.image {
-              image.resizable()
-            } else if state.error != nil {
-              Color.clear
-                .background(.thinMaterial)
-                .overlay {
-                  Image(systemName: "arrow.clockwise")
-                    .foregroundStyle(.secondary)
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-            } else {
-              ProgressView()
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                #if os(macOS)
-                  .controlSize(.small)
-                #endif
-            }
-          }
-          .processors([.resize(width: width)])
-          .aspectRatio(contentMode: .fill)
-          .frame(width: width, height: height)
-          .clipShape(
-            .rect(
-              topLeadingRadius: topLeading,
-              bottomLeadingRadius: bottomLeading,
-              bottomTrailingRadius: bottomTrailing,
-              topTrailingRadius: topTrailing
-            )
-          )
-          .contentShape(.rect)
-          .modifier(
-            TransitionSourceModifier(id: "image-\(index)", namespace: animation)
-          )
-        }
-        .buttonStyle(.plain)
+      if index < images.count {
+        GalleryImageCell(
+          index: index,
+          image: images[index],
+          width: width,
+          height: height,
+          topLeading: topLeading,
+          bottomLeading: bottomLeading,
+          bottomTrailing: bottomTrailing,
+          topTrailing: topTrailing,
+          animation: animation,
+          onSelect: { selectedImageIndex = index }
+        )
       }
+    }
+  }
+}
+
+private struct GalleryImageCell: View {
+  let index: Int
+  let image: ImageDTO
+  let width: CGFloat
+  let height: CGFloat
+  let topLeading: CGFloat
+  let bottomLeading: CGFloat
+  let bottomTrailing: CGFloat
+  let topTrailing: CGFloat
+  let animation: Namespace.ID
+  let onSelect: () -> Void
+
+  @State private var retryID = UUID()
+
+  var body: some View {
+    if let url = URL(string: image.imageBlobUrl) {
+      LazyImage(url: url) { state in
+        if let loadedImage = state.image {
+          Button(action: onSelect) {
+            loadedImage.resizable()
+          }
+          .buttonStyle(.plain)
+        } else if state.error != nil {
+          Button {
+            retryID = UUID()
+          } label: {
+            Color.clear
+              .background(.thinMaterial)
+              .overlay {
+                Image(systemName: "arrow.clockwise")
+                  .foregroundStyle(.secondary)
+              }
+              .frame(maxWidth: .infinity, maxHeight: .infinity)
+          }
+          .buttonStyle(.plain)
+        } else {
+          ProgressView()
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            #if os(macOS)
+              .controlSize(.small)
+            #endif
+        }
+      }
+      .processors([.resize(width: width)])
+      .id(retryID)
+      .aspectRatio(contentMode: .fill)
+      .frame(width: width, height: height)
+      .clipShape(
+        .rect(
+          topLeadingRadius: topLeading,
+          bottomLeadingRadius: bottomLeading,
+          bottomTrailingRadius: bottomTrailing,
+          topTrailingRadius: topTrailing
+        )
+      )
+      .contentShape(.rect)
+      .modifier(
+        TransitionSourceModifier(id: "image-\(index)", namespace: animation)
+      )
     }
   }
 }

@@ -28,7 +28,8 @@ func uploadImages(images: [PlatformImage]) async throws -> [Int: ImageData] {
         print("[uploadImages] Invalid presigned URL string: \(urlResponse.url)")
         throw PostCreationService.PostCreationError.invalidPresignedUrl(urlResponse.url)
       }
-      guard let compressedImage = image.jpegData(compressionQuality: 1) else {
+      let resizedImage = image.resized(toWidth: 2048)
+      guard let compressedImage = resizedImage.jpegData(compressionQuality: 0.85) else {
         print("[uploadImages] Failed to compress image at index \(index) to JPEG")
         throw PostCreationService.PostCreationError.imageCompressionFailed
       }
