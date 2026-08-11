@@ -3,6 +3,19 @@ import SwiftUI
 #if os(iOS)
   import UIKit
   typealias PlatformImage = UIImage
+
+  extension UIImage {
+    func resized(toWidth maxWidth: CGFloat) -> UIImage {
+      guard size.width > maxWidth else { return self }
+      let newSize = CGSize(width: maxWidth, height: size.height * (maxWidth / size.width))
+
+      let format = UIGraphicsImageRendererFormat.default()
+      format.scale = 1.0
+      return UIGraphicsImageRenderer(size: newSize, format: format).image { _ in
+        self.draw(in: CGRect(origin: .zero, size: newSize))
+      }
+    }
+  }
 #elseif os(macOS)
   import AppKit
   typealias PlatformImage = NSImage
@@ -21,6 +34,17 @@ import SwiftUI
     var pixelSize: CGSize {
       guard let rep = representations.first else { return size }
       return CGSize(width: rep.pixelsWide, height: rep.pixelsHigh)
+    }
+
+    func resized(toWidth maxWidth: CGFloat) -> NSImage {
+      guard pixelSize.width > maxWidth else { return self }
+      let newSize = CGSize(width: maxWidth, height: pixelSize.height * (maxWidth / pixelSize.width))
+
+      let newImage = NSImage(size: newSize)
+      newImage.lockFocus()
+      draw(in: NSRect(origin: .zero, size: newSize), from: .zero, operation: .copy, fraction: 1.0)
+      newImage.unlockFocus()
+      return newImage
     }
   }
 #endif

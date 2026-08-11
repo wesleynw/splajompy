@@ -19,7 +19,23 @@ struct ImageCarousel: View {
             ForEach(Array(images.enumerated()), id: \.offset) {
               index,
               element in
-              carouselCell(index: index, image: element, maxWidth: maxWidth)
+              let aspectRatio = Double(element.width) / Double(element.height)
+              let clampedAspectRatio = min(max(aspectRatio, (2 / 3)), (4 / 3))
+              let width = min(maxWidth, maxHeight * clampedAspectRatio)
+
+              CarouselImageCell(
+                index: index,
+                image: element,
+                width: width,
+                maxHeight: maxHeight,
+                animation: animation,
+                onSelect: {
+                  selectedImage = ImageItem(
+                    id: index,
+                    url: URL(string: element.imageBlobUrl)!
+                  )
+                }
+              )
             }
           }
           .onReceive(
@@ -44,45 +60,51 @@ struct ImageCarousel: View {
     }
     .frame(height: maxHeight)
   }
+}
 
-  private func carouselCell(index: Int, image: ImageDTO, maxWidth: CGFloat)
-    -> some View
-  {
-    let aspectRatio = Double(image.width) / Double(image.height)
-    let clampedAspectRatio = min(max(aspectRatio, (2 / 3)), (4 / 3))
-    let width = min(maxWidth, maxHeight * clampedAspectRatio)
+private struct CarouselImageCell: View {
+  let index: Int
+  let image: ImageDTO
+  let width: CGFloat
+  let maxHeight: CGFloat
+  let animation: Namespace.ID
+  let onSelect: () -> Void
 
-    return Button {
-      selectedImage = ImageItem(
-        id: index,
-        url: URL(string: image.imageBlobUrl)!
-      )
-    } label: {
-      LazyImage(url: URL(string: image.imageBlobUrl)) { state in
-        if let image = state.image {
-          image.resizable()
-        } else if state.error != nil {
+  @State private var retryID = UUID()
+
+  var body: some View {
+    LazyImage(url: URL(string: image.imageBlobUrl)) { state in
+      if let loadedImage = state.image {
+        Button(action: onSelect) {
+          loadedImage.resizable()
+        }
+        .buttonStyle(.plain)
+      } else if state.error != nil {
+        Button {
+          retryID = UUID()
+        } label: {
           Image(systemName: "arrow.clockwise")
             .foregroundStyle(.secondary)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(.thinMaterial)
-        } else {
-          ProgressView()
-            .foregroundStyle(.secondary)
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(.thinMaterial)
         }
+        .buttonStyle(.plain)
+      } else {
+        ProgressView()
+          .foregroundStyle(.secondary)
+          .frame(maxWidth: .infinity, maxHeight: .infinity)
+          .background(.thinMaterial)
       }
-      .processors([.resize(height: maxHeight)])
-      .aspectRatio(contentMode: .fill)
-      .frame(width: width, height: maxHeight)
-      .clipShape(RoundedRectangle(cornerRadius: 15))
-      .contentShape(.rect)
-      .modifier(
-        TransitionSourceModifier(id: "image-\(index)", namespace: animation)
-      )
     }
-    .buttonStyle(.plain)
+    .processors([.resize(height: maxHeight)])
+    .id(retryID)
+    .aspectRatio(contentMode: .fill)
+    .frame(width: width, height: maxHeight)
+    .clipShape(RoundedRectangle(cornerRadius: 15))
+    .contentShape(.rect)
+    .modifier(
+      TransitionSourceModifier(id: "image-\(index)", namespace: animation)
+    )
   }
 }
 
