@@ -29,7 +29,6 @@ struct NewPostView: View {
               viewModel: mentionViewModel,
               cursorY: $cursorY,
               selectedRange: $viewModel.selectedRange,
-              isEditingEnabled: !viewModel.isLoading,
               isCompact: false,
               autoFocusOnAppear: true
             )

@@ -55,7 +55,7 @@ struct AppearanceSwitcher: View {
       Section {
         Picker("Onion Style", selection: $onionStyle) {
           Text("Grilled").tag(0)
-          Text("Normal")
+          Text("Normal").tag(1)
         }
 
         Toggle(isOn: $picklesIncluded) {

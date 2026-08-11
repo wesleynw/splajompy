@@ -16,8 +16,6 @@ struct SplajompyApp: App {
     NavigationPath(),
     NavigationPath(),
     NavigationPath(),
-    NavigationPath(),
-    NavigationPath(),
   ]
 
   @State private var authManager: AuthManager = AuthManager.shared
@@ -63,17 +61,11 @@ struct SplajompyApp: App {
 
     #if os(macOS)
       Settings {
-        NavigationStack(path: $navigationPaths[4]) {
-          SettingsView()
-            .postHogScreenView()
-            .preferredColorScheme(colorScheme)
-            // TODO: consolidate settingsroutes and normal routes
-            .navigationDestination(for: SettingsRoute.self) { route in
-              settingsRouteDestination(route)
-            }
-        }
+        MacSettingsView()
+          .postHogScreenView()
+          .preferredColorScheme(colorScheme)
+          .environment(authManager)
       }
-      .environment(authManager)
     #endif
   }
 
@@ -132,9 +124,11 @@ struct SplajompyApp: App {
       .tag(3)
     }
     .modify {
-      if #available(iOS 18, *) {
-        $0.tabViewStyle(.sidebarAdaptable)
-      }
+      #if os(iOS)
+        if #available(iOS 18, *) {
+          $0.tabViewStyle(.sidebarAdaptable)
+        }
+      #endif
     }
     .onOpenURL { url in
       handleDeepLink(url)
@@ -230,7 +224,6 @@ struct SplajompyApp: App {
 
   private func handleUserSignOut() {
     navigationPaths = [
-      NavigationPath(),
       NavigationPath(),
       NavigationPath(),
       NavigationPath(),
