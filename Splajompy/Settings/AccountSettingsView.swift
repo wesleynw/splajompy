@@ -10,67 +10,15 @@ struct AccountSettingsView: View {
   @State var deleteAccountError: String = ""
 
   var body: some View {
-    List {
-      Section {
-        if let user = authManager.currentUser {
-          HStack {
-            Text("Email")
-              .foregroundStyle(.secondary)
-            Spacer()
-            Text(user.email)
-              .fontWeight(.medium)
-          }
-
-          HStack {
-            Text("Joined")
-              .foregroundStyle(.secondary)
-            Spacer()
-            Text(formatDate(user.createdAt))
-              .fontWeight(.medium)
-          }
-        }
-      }
-
-      Section {
-        Button(action: { isShowingSignoutConfirm = true }) {
-          Label("Sign Out", systemImage: "rectangle.portrait.and.arrow.right")
-        }
-        .listStyle(.plain)
-        .confirmationDialog(
-          "Are you sure you'd like to sign out?",
-          isPresented: $isShowingSignoutConfirm
-        ) {
-          Button("Sign Out", role: .destructive) {
-            authManager.signOut()
-            PostHogSDK.shared.reset()
-          }
-          Button("Cancel", role: .cancel) {}
-        }
-      }
-
-      Section {
-        Button(action: { isShowingDeleteAccountConfirm = true }) {
-          Label("Delete Account", systemImage: "trash")
-            .foregroundStyle(.red)
-        }
-        .confirmationDialog(
-          "Are you sure you want to delete your account?",
-          isPresented: $isShowingDeleteAccountConfirm
-        ) {
-          Button("Delete Account", role: .destructive) {
-            deleteAccountPassword = ""
-            deleteAccountError = ""
-            isShowingDeleteAccountSheet = true
-          }
-          Button("Cancel", role: .cancel) {}
-        } message: {
-          Text(
-            "This action cannot be undone. All your posts, comments, and data will be permanently deleted."
-          )
-        }
-      }
+    Form {
+      accountSections
     }
-    .pageTitle("Account")
+    .formStyle(.grouped)
+    .modify {
+      #if os(iOS)
+        $0.pageTitle("Account")
+      #endif
+    }
     .sheet(isPresented: $isShowingDeleteAccountSheet) {
       ScrollView {
         VStack(spacing: 24) {
@@ -153,6 +101,67 @@ struct AccountSettingsView: View {
           }
         }
         .padding(24)
+      }
+    }
+  }
+
+  @ViewBuilder
+  private var accountSections: some View {
+    Section {
+      if let user = authManager.currentUser {
+        HStack {
+          Text("Email")
+            .foregroundStyle(.secondary)
+          Spacer()
+          Text(user.email)
+            .fontWeight(.medium)
+        }
+
+        HStack {
+          Text("Joined")
+            .foregroundStyle(.secondary)
+          Spacer()
+          Text(formatDate(user.createdAt))
+            .fontWeight(.medium)
+        }
+      }
+    }
+
+    Section {
+      Button(action: { isShowingSignoutConfirm = true }) {
+        Label("Sign Out", systemImage: "rectangle.portrait.and.arrow.right")
+      }
+      .confirmationDialog(
+        "Are you sure you'd like to sign out?",
+        isPresented: $isShowingSignoutConfirm
+      ) {
+        Button("Sign Out", role: .destructive) {
+          authManager.signOut()
+          PostHogSDK.shared.reset()
+        }
+        Button("Cancel", role: .cancel) {}
+      }
+    }
+
+    Section {
+      Button(action: { isShowingDeleteAccountConfirm = true }) {
+        Label("Delete Account", systemImage: "trash")
+          .foregroundStyle(.red)
+      }
+      .confirmationDialog(
+        "Are you sure you want to delete your account?",
+        isPresented: $isShowingDeleteAccountConfirm
+      ) {
+        Button("Delete Account", role: .destructive) {
+          deleteAccountPassword = ""
+          deleteAccountError = ""
+          isShowingDeleteAccountSheet = true
+        }
+        Button("Cancel", role: .cancel) {}
+      } message: {
+        Text(
+          "This action cannot be undone. All your posts, comments, and data will be permanently deleted."
+        )
       }
     }
   }

@@ -26,37 +26,27 @@ struct RequestSupportView: View {
 
       Spacer()
 
+      #if os(macOS)
+        HStack {
+          Spacer()
+          sendButton
+            .buttonStyle(.borderedProminent)
+        }
+      #endif
     }
     .padding()
-    .pageTitle("Support")
-    .toolbar {
-      ToolbarItem(
-        placement: {
-          #if os(iOS)
-            .topBarTrailing
-          #else
-            .automatic
-          #endif
-        }()
-      ) {
-        Button {
-          sendRequestedFeature()
-        } label: {
-          Text("Send")
-            .fontWeight(.bold)
-            .opacity(isLoading ? 0 : 1)
-            .overlay {
-              if isLoading {
-                ProgressView()
-              }
-            }
-        }
-        .disabled(
-          featureText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-            || isLoading
-        )
-      }
+    .modify {
+      #if os(iOS)
+        $0.pageTitle("Support")
+      #endif
     }
+    #if os(iOS)
+      .toolbar {
+        ToolbarItem(placement: .topBarTrailing) {
+          sendButton
+        }
+      }
+    #endif
     .alert(hadSuccess ? "Thanks!" : "Error", isPresented: $showAlert) {
       Button("OK", role: .cancel) {
         showAlert.toggle()
@@ -73,6 +63,25 @@ struct RequestSupportView: View {
     .onAppear {
       isFocused = true
     }
+  }
+
+  private var sendButton: some View {
+    Button {
+      sendRequestedFeature()
+    } label: {
+      Text("Send")
+        .fontWeight(.bold)
+        .opacity(isLoading ? 0 : 1)
+        .overlay {
+          if isLoading {
+            ProgressView()
+          }
+        }
+    }
+    .disabled(
+      featureText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        || isLoading
+    )
   }
 
   private func sendRequestedFeature() {

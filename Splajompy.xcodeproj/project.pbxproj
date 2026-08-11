@@ -76,6 +76,7 @@
 				Posts/Components/ImagePager_macos.swift = (macos, );
 				Posts/Components/ZoomableAsyncImage.swift = (ios, );
 				Settings/AppIconPicker.swift = (ios, );
+				Settings/SignedOutSettingsView.swift = (macos, );
 				Utilities/AttributedTextEditor.swift = (ios, );
 				Utilities/AttributedTextEditorMac.swift = (macos, );
 			};

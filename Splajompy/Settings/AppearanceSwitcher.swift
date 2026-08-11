@@ -15,61 +15,61 @@ struct AppearanceSwitcher: View {
   let options = ["Automatic", "Light", "Dark"]
 
   var body: some View {
-    List {
-      Section {
-        ForEach(options, id: \.self) { (option: String) in
-          Button {
-            appearanceMode = option
-          } label: {
-            HStack {
-              Text(option)
-              Spacer()
-              if option == appearanceMode {
-                Image(systemName: "checkmark")
-                  .foregroundStyle(Color.accentColor)
-              }
-            }
-          }
-          .foregroundStyle(.primary)
-        }
-      }
-
-      Section {
-        Picker("Comment Sort", selection: $commentSortOrder) {
-          Text("Newest First").tag("Newest First")
-          Text("Oldest First").tag("Oldest First")
-        }
-      }
-
+    Form {
+      appearanceSections
+    }
+    .formStyle(.grouped)
+    .modify {
       #if os(iOS)
-        if imageLayoutPreference != .undecided {
-          Section {
-            Picker("Image Layout", selection: $imageLayoutPreference) {
-              Text("Carousel").tag(ImageLayoutPreference.carousel)
-              Text("Grid").tag(ImageLayoutPreference.grid)
-            }
-          }
-        }
+        $0.pageTitle("Appearance")
       #endif
+    }
+  }
 
-      Section {
-        Picker("Onion Style", selection: $onionStyle) {
-          Text("Grilled").tag(0)
-          Text("Normal")
+  @ViewBuilder
+  private var appearanceSections: some View {
+    Section {
+      Picker("Appearance", selection: $appearanceMode) {
+        ForEach(options, id: \.self) { option in
+          Text(option).tag(option)
         }
-
-        Toggle(isOn: $picklesIncluded) {
-          Text("Pickles")
-        }
-
-        Stepper(
-          "Splajompy Sauce: \(sauceAmount)",
-          onIncrement: { sauceAmount += 1 },
-          onDecrement: { if sauceAmount > 0 { sauceAmount -= 1 } },
-        )
       }
     }
-    .pageTitle("Appearance")
+
+    Section {
+      Picker("Comment Sort", selection: $commentSortOrder) {
+        Text("Newest First").tag("Newest First")
+        Text("Oldest First").tag("Oldest First")
+      }
+    }
+
+    #if os(iOS)
+      if imageLayoutPreference != .undecided {
+        Section {
+          Picker("Image Layout", selection: $imageLayoutPreference) {
+            Text("Carousel").tag(ImageLayoutPreference.carousel)
+            Text("Grid").tag(ImageLayoutPreference.grid)
+          }
+        }
+      }
+    #endif
+
+    Section {
+      Picker("Onion Style", selection: $onionStyle) {
+        Text("Grilled").tag(0)
+        Text("Normal").tag(1)
+      }
+
+      Toggle(isOn: $picklesIncluded) {
+        Text("Pickles")
+      }
+
+      Stepper(
+        "Splajompy Sauce: \(sauceAmount)",
+        onIncrement: { sauceAmount += 1 },
+        onDecrement: { if sauceAmount > 0 { sauceAmount -= 1 } },
+      )
+    }
   }
 }
 

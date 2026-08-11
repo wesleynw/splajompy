@@ -23,49 +23,14 @@ struct PushNotificationSettingsView: View {
   }
 
   var body: some View {
-    List {
-      if notificationAuthorizationStatus == .denied {
-        VStack {
-          Text("Turn on Push Notifications in Settings")
-
-          #if os(iOS)
-            Button("Open Settings") {
-              Task {
-                if let url = URL(
-                  string:
-                    UIApplication.openNotificationSettingsURLString
-                ) {
-                  await UIApplication.shared.open(url)
-                }
-              }
-            }
-            .buttonStyle(.borderedProminent)
-          #endif
-        }
-        .frame(maxWidth: .infinity)
-        .multilineTextAlignment(.center)
-      } else {
-        Toggle("Push Notifications", isOn: $isPushNotificationsEnabled)
-
-        if isPushNotificationsEnabled
-          && notificationAuthorizationStatus == .authorized
-        {
-          Section {
-            Toggle("Mentions", isOn: $mentions)
-              .onChange(of: mentions) {
-                RemoteNotificationUtilities.registerForRemoteNotifications()
-              }
-            Toggle("Comments", isOn: $comments)
-              .onChange(of: comments) {
-                RemoteNotificationUtilities.registerForRemoteNotifications()
-              }
-            Toggle("Follows", isOn: $follows)
-              .onChange(of: follows) {
-                RemoteNotificationUtilities.registerForRemoteNotifications()
-              }
-          }
-        }
-      }
+    Form {
+      notificationSections
+    }
+    .formStyle(.grouped)
+    .modify {
+      #if os(iOS)
+        $0.pageTitle("Push Notifications")
+      #endif
     }
     .task {
       hasCompletedPushNotificationOnboarding = true
@@ -102,7 +67,54 @@ struct PushNotificationSettingsView: View {
         PostHogSDK.shared.register(["push_notifications_enabled": false])
       }
     }
-    .pageTitle("Push Notifications")
+  }
+
+  @ViewBuilder
+  private var notificationSections: some View {
+    if notificationAuthorizationStatus == .denied {
+      VStack {
+        #if os(iOS)
+          Text("Turn on Push Notifications in Settings")
+
+          Button("Open Settings") {
+            Task {
+              if let url = URL(
+                string:
+                  UIApplication.openNotificationSettingsURLString
+              ) {
+                await UIApplication.shared.open(url)
+              }
+            }
+          }
+          .buttonStyle(.borderedProminent)
+        #else
+          Text("Turn on Push Notifications in System Settings")
+        #endif
+      }
+      .frame(maxWidth: .infinity)
+      .multilineTextAlignment(.center)
+    } else {
+      Toggle("Push Notifications", isOn: $isPushNotificationsEnabled)
+
+      if isPushNotificationsEnabled
+        && notificationAuthorizationStatus == .authorized
+      {
+        Section {
+          Toggle("Mentions", isOn: $mentions)
+            .onChange(of: mentions) {
+              RemoteNotificationUtilities.registerForRemoteNotifications()
+            }
+          Toggle("Comments", isOn: $comments)
+            .onChange(of: comments) {
+              RemoteNotificationUtilities.registerForRemoteNotifications()
+            }
+          Toggle("Follows", isOn: $follows)
+            .onChange(of: follows) {
+              RemoteNotificationUtilities.registerForRemoteNotifications()
+            }
+        }
+      }
+    }
   }
 }
 

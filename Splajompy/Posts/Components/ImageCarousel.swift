@@ -11,11 +11,11 @@ struct ImageCarousel: View {
 
   var body: some View {
     GeometryReader { geometry in
-      let maxWidth = geometry.size.width - 32
+      let maxWidth = geometry.size.width - 64
 
       ScrollView(.horizontal) {
         ScrollViewReader { proxy in
-          HStack {
+          HStack(spacing: 12) {
             ForEach(Array(images.enumerated()), id: \.offset) {
               index,
               element in
