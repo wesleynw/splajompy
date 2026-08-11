@@ -29,7 +29,7 @@ struct SplajompyApp: App {
   }
 
   var body: some Scene {
-    WindowGroup {
+    WindowGroup(id: "main") {
       Group {
         if authManager.isAuthenticated {
           authenticatedView
@@ -61,10 +61,16 @@ struct SplajompyApp: App {
 
     #if os(macOS)
       Settings {
-        MacSettingsView()
-          .postHogScreenView()
-          .preferredColorScheme(colorScheme)
-          .environment(authManager)
+        Group {
+          if authManager.isAuthenticated {
+            MacSettingsView()
+          } else {
+            SignedOutSettingsView()
+          }
+        }
+        .postHogScreenView()
+        .preferredColorScheme(colorScheme)
+        .environment(authManager)
       }
     #endif
   }

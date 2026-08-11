@@ -24,28 +24,35 @@ struct StatisticsView: View {
   }
 
   var body: some View {
-    Group {
+    List {
+      if case .loaded(let stats) = viewModel.state {
+        StatRow(label: "Posts", value: stats.totalPosts)
+        StatRow(label: "Comments", value: stats.totalComments)
+        StatRow(label: "Likes", value: stats.totalLikes)
+        StatRow(label: "Follows", value: stats.totalFollows)
+        StatRow(label: "Users", value: stats.totalUsers)
+        StatRow(label: "Notifications", value: stats.totalNotifications)
+      }
+    }
+    .overlay {
       switch viewModel.state {
       case .idle, .loading:
         ProgressView()
-      case .loaded(let stats):
-        List {
-          StatRow(label: "Posts", value: stats.totalPosts)
-          StatRow(label: "Comments", value: stats.totalComments)
-          StatRow(label: "Likes", value: stats.totalLikes)
-          StatRow(label: "Follows", value: stats.totalFollows)
-          StatRow(label: "Users", value: stats.totalUsers)
-          StatRow(label: "Notifications", value: stats.totalNotifications)
-        }
       case .failed(let error):
         ErrorScreen(
           errorString: error.localizedDescription,
           source: "StatisticsView",
           onRetry: { await viewModel.load() }
         )
+      case .loaded:
+        EmptyView()
       }
     }
-    .pageTitle("Statistics")
+    .modify {
+      #if os(iOS)
+        $0.pageTitle("Statistics")
+      #endif
+    }
     .refreshable {
       await viewModel.load(showLoadingState: false)
     }
