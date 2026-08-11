@@ -87,9 +87,7 @@ extension NotificationsView {
 
       switch (unreadRes, readRes) {
       case (.success(let unreadNotifications), .success(let readNotifications)):
-        withAnimation(.easeInOut(duration: 0.3)) {
-          state = .loaded(unreadNotifications + readNotifications)
-        }
+        state = .loaded(unreadNotifications + readNotifications)
         lastUnreadNotificationTime = unreadNotifications.last?.createdAt
         lastReadNotificationTime = readNotifications.last?.createdAt
         hasMoreUnreadToLoad = unreadNotifications.count == limit
