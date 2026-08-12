@@ -2,6 +2,7 @@ package post_test
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"testing"
@@ -57,6 +58,16 @@ func TestGetPostById(t *testing.T) {
 	assert.Equal(t, "post 1", post_returned.Post.Text)
 	assert.Equal(t, user.UserID, post_returned.User.UserID)
 	assert.Equal(t, user.Username, post_returned.User.Username)
+}
+
+func TestGetPostById_NonexistentPostReturnsErrPostNotFound(t *testing.T) {
+	env := setupPostTest(t)
+
+	user := testutil.CreateTestUser(t, env.userRepository, "user1")
+
+	_, err := env.svc.GetPostById(t.Context(), user.UserID, 999999)
+	require.Error(t, err)
+	assert.True(t, errors.Is(err, post.ErrPostNotFound), "expected ErrPostNotFound, got %v", err)
 }
 
 func TestDeletePost(t *testing.T) {

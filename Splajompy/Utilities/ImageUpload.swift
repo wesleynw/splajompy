@@ -55,7 +55,7 @@ func uploadImages(images: [PlatformImage]) async throws -> [Int: ImageData] {
           throw PostCreationService.PostCreationError.s3UploadFailed(statusCode: statusCode)
         }
 
-        let imageSize = image.uploadSize
+        let imageSize = resizedImage.uploadSize
 
         imageKeymap[index] = ImageData(
           s3Key: urlResponse.key,

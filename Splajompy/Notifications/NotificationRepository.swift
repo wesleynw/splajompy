@@ -39,6 +39,7 @@ struct Notification: Identifiable, Decodable, Equatable {
   static func == (lhs: Notification, rhs: Notification) -> Bool {
     return lhs.notificationId == rhs.notificationId
       && lhs.message == rhs.message
+      && lhs.viewed == rhs.viewed
   }
 }
 
