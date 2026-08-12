@@ -45,6 +45,9 @@ func (r Store) GetPostById(ctx context.Context, postId int, currentUserId int) (
 		TargetUserID: currentUserId,
 	})
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, ErrPostNotFound
+		}
 		return nil, err
 	}
 	return &models.Post{

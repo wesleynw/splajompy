@@ -106,17 +106,17 @@ func (c *Client) Push(ctx context.Context, notification *Notification) error {
 	}
 
 	res, err := c.httpClient.Do(req)
-	defer func() {
-		if err := res.Body.Close(); err != nil {
-			slog.WarnContext(ctx, "failed to close response body", "error", err)
-		}
-	}()
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(codes.Error, err.Error())
 		slog.ErrorContext(ctx, "apns request failed", "error", err)
 		return err
 	}
+	defer func() {
+		if err := res.Body.Close(); err != nil {
+			slog.WarnContext(ctx, "failed to close response body", "error", err)
+		}
+	}()
 	pushCounter.Add(ctx, 1, metric.WithAttributes(semconv.HTTPResponseStatusCode(res.StatusCode)))
 
 	if res.StatusCode != http.StatusOK {
