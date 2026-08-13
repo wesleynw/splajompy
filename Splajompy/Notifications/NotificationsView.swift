@@ -124,6 +124,7 @@ struct NotificationsView: View {
           Divider()
         }
       }
+      .geometryGroup()
     }
 
     if viewModel.hasMoreUnreadToLoad || viewModel.hasMoreToLoad {
