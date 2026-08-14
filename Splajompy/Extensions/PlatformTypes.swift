@@ -5,9 +5,11 @@ import SwiftUI
   typealias PlatformImage = UIImage
 
   extension UIImage {
-    func resized(toWidth maxWidth: CGFloat) -> UIImage {
-      guard size.width > maxWidth else { return self }
-      let newSize = CGSize(width: maxWidth, height: size.height * (maxWidth / size.width))
+    func resized(longEdge maxLength: CGFloat) -> UIImage {
+      let longestEdge = max(size.width, size.height)
+      guard longestEdge > maxLength else { return self }
+      let scale = maxLength / longestEdge
+      let newSize = CGSize(width: size.width * scale, height: size.height * scale)
 
       let format = UIGraphicsImageRendererFormat.default()
       format.scale = 1.0
@@ -36,9 +38,11 @@ import SwiftUI
       return CGSize(width: rep.pixelsWide, height: rep.pixelsHigh)
     }
 
-    func resized(toWidth maxWidth: CGFloat) -> NSImage {
-      guard pixelSize.width > maxWidth else { return self }
-      let newSize = CGSize(width: maxWidth, height: pixelSize.height * (maxWidth / pixelSize.width))
+    func resized(longEdge maxLength: CGFloat) -> NSImage {
+      let longestEdge = max(pixelSize.width, pixelSize.height)
+      guard longestEdge > maxLength else { return self }
+      let scale = maxLength / longestEdge
+      let newSize = CGSize(width: pixelSize.width * scale, height: pixelSize.height * scale)
 
       let newImage = NSImage(size: newSize)
       newImage.lockFocus()
