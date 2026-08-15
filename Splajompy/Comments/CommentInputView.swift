@@ -51,6 +51,7 @@ struct CommentInputView: View {
             HStack {
               ImagePreviewView(
                 state: viewModel.imageState,
+                uploadState: viewModel.uploadState,
                 onRetry: {
                   viewModel.retryImage()
                 },
@@ -61,6 +62,9 @@ struct CommentInputView: View {
                   if case .success(let photo) = viewModel.imageState {
                     presentingImage = SelectedImage(id: 0, image: photo)
                   }
+                },
+                onRetryUpload: {
+                  viewModel.retryUpload()
                 }
               )
               .modify {
@@ -82,12 +86,7 @@ struct CommentInputView: View {
               .padding(5)
           }
           .buttonStyle(.plain)
-          .disabled(
-            {
-              if case .empty = viewModel.imageState { return false }
-              return true
-            }()
-          )
+          .disabled(viewModel.imageState != .empty)
 
           MentionTextEditor(
             text: $viewModel.text,
@@ -119,22 +118,7 @@ struct CommentInputView: View {
                   .frame(width: 32, height: 32)
               }
             }
-            .disabled(
-              {
-                let hasImage: Bool
-                if case .success = viewModel.imageState {
-                  hasImage = true
-                } else {
-                  hasImage = false
-                }
-                return
-                  (viewModel.text.string.trimmingCharacters(
-                    in: .whitespacesAndNewlines
-                  ).isEmpty
-                  && !hasImage)
-                  || viewModel.isSubmitting
-              }()
-            )
+            .disabled(isSubmitButtonDisabled)
             #if os(macOS)
               .buttonStyle(.plain)
             #endif
@@ -182,6 +166,26 @@ struct CommentInputView: View {
     #if os(macOS)
       .frame(maxWidth: 600)
     #endif
+  }
+
+  private var isSubmitButtonDisabled: Bool {
+    let hasImage: Bool
+    if case .success = viewModel.imageState {
+      hasImage = true
+    } else {
+      hasImage = false
+    }
+    let imageReady: Bool
+    if case .uploaded = viewModel.uploadState {
+      imageReady = true
+    } else {
+      imageReady = false
+    }
+    let textEmpty = viewModel.text.string.trimmingCharacters(
+      in: .whitespacesAndNewlines
+    ).isEmpty
+
+    return (textEmpty && !hasImage) || (hasImage && !imageReady) || viewModel.isSubmitting
   }
 }
 

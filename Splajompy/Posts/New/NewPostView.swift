@@ -249,6 +249,7 @@ struct NewPostView: View {
         ForEach(viewModel.imageStates, id: \.itemIdentifier) { item in
           ImagePreviewView(
             state: item.state,
+            uploadState: item.uploadState,
             onRetry: {
               viewModel.retryImage(itemIdentifier: item.itemIdentifier)
             },
@@ -271,6 +272,9 @@ struct NewPostView: View {
                   index: index
                 )
               }
+            },
+            onRetryUpload: {
+              viewModel.retryUpload(itemIdentifier: item.itemIdentifier)
             }
           )
           .modify {
@@ -333,15 +337,15 @@ struct NewPostView: View {
       !trimmedText.isEmpty || viewModel.imageStates.count > 0
       || viewModel.poll != nil
 
-    let allImagesLoaded = viewModel.imageStates.allSatisfy { item in
-      if case .success = item.state {
+    let allImagesReady = viewModel.imageStates.allSatisfy { item in
+      if case .success = item.state, case .uploaded = item.uploadState {
         return true
       }
       return false
     }
 
     return !hasContent || trimmedText.count > 2500 || viewModel.isLoading
-      || !allImagesLoaded
+      || !allImagesReady
   }
 
   private func submitPostAction() {

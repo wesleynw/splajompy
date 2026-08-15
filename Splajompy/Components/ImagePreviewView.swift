@@ -3,9 +3,11 @@ import SwiftUI
 
 struct ImagePreviewView: View {
   var state: PhotoState
+  var uploadState: UploadState = .pending
   var onRetry: () -> Void
   var onRemove: () -> Void
   var onTap: () -> Void
+  var onRetryUpload: () -> Void = {}
 
   var body: some View {
     ZStack {
@@ -28,6 +30,9 @@ struct ImagePreviewView: View {
             .clipShape(RoundedRectangle(cornerRadius: 12))
         }
         .buttonStyle(.plain)
+        .overlay {
+          uploadStateOverlay
+        }
       case .failure:
         Button {
           onRetry()
@@ -72,11 +77,29 @@ struct ImagePreviewView: View {
       }
       .offset(x: 8, y: -8)
     }
-
     .buttonStyle(.plain)
     .padding(6)
     .padding(4)
     .transition(.scale)
+  }
+
+  @ViewBuilder
+  private var uploadStateOverlay: some View {
+    switch uploadState {
+    case .failed:
+      Button(action: onRetryUpload) {
+        ZStack {
+          RoundedRectangle(cornerRadius: 12)
+            .fill(Color.black.opacity(0.45))
+          Image(systemName: "arrow.clockwise.circle.fill")
+            .font(.title2)
+            .foregroundStyle(.white)
+        }
+      }
+      .buttonStyle(.plain)
+    case .pending, .uploaded:
+      EmptyView()
+    }
   }
 }
 

@@ -35,7 +35,7 @@ class MockCommentService: CommentServiceProtocol, @unchecked Sendable {
     )
   }
 
-  func addComment(postId: Int, text: String, image: PlatformImage?) async -> Result<
+  func addComment(postId: Int, text: String, imageData: ImageData?) async -> Result<
     DetailedComment, Error
   > {
     let newCommentId = commentIdCounter
@@ -183,7 +183,7 @@ class MockCommentService_Empty: CommentServiceProtocol, @unchecked Sendable {
     return .success(())
   }
 
-  func addComment(postId: Int, text: String, image: PlatformImage?) async -> Result<
+  func addComment(postId: Int, text: String, imageData: ImageData?) async -> Result<
     DetailedComment, Error
   > {
     let currentDate = Date()
@@ -234,11 +234,11 @@ class MockCommentService_Loading: CommentServiceProtocol, @unchecked Sendable {
     return await mockService.toggleLike(postId: postId, commentId: commentId, isLiked: isLiked)
   }
 
-  func addComment(postId: Int, text: String, image: PlatformImage?) async -> Result<
+  func addComment(postId: Int, text: String, imageData: ImageData?) async -> Result<
     DetailedComment, Error
   > {
     try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000_000))
-    return await mockService.addComment(postId: postId, text: text, image: nil)
+    return await mockService.addComment(postId: postId, text: text, imageData: nil)
   }
 
   func deleteComment(commentId: Int) async -> Result<Void, Error> {
@@ -262,7 +262,7 @@ class MockCommentService_Error: CommentServiceProtocol, @unchecked Sendable {
         userInfo: [NSLocalizedDescriptionKey: "Failed to toggle like"]))
   }
 
-  func addComment(postId: Int, text: String, image: PlatformImage?) async -> Result<
+  func addComment(postId: Int, text: String, imageData: ImageData?) async -> Result<
     DetailedComment, Error
   > {
     return .failure(

@@ -37,6 +37,9 @@ extension CommentsView {
 
     var imageSelection: PhotosPickerItem? = nil {
       didSet {
+        uploadTask?.cancel()
+        uploadTask = nil
+        uploadState = .pending
         if let imageSelection {
           let progress = loadTransferable(from: imageSelection)
           imageState = .loading(progress)
@@ -46,8 +49,12 @@ extension CommentsView {
       }
     }
     var imageState: PhotoState = .empty
+    var uploadState: UploadState = .pending
 
     var selectedRange: NSRange = NSRange(location: 0, length: 0)
+
+    private let stagingFolder = UUID()
+    private var uploadTask: Task<Void, Never>?
 
     init(
       postId: Int,
@@ -148,17 +155,18 @@ extension CommentsView {
       if case .success = imageState { hasImage = true } else { hasImage = false }
       guard !text.isEmpty || hasImage else { return false }
 
+      let imageData: ImageData?
+      if case .uploaded(let data) = uploadState {
+        imageData = data
+      } else {
+        imageData = nil
+      }
+      guard !hasImage || imageData != nil else { return false }
+
       isSubmitting = true
       defer { isSubmitting = false }
 
-      let image: PlatformImage? =
-        if case .success(let platformImage) = imageState {
-          platformImage
-        } else {
-          nil
-        }
-
-      let result = await service.addComment(postId: postId, text: text, image: image)
+      let result = await service.addComment(postId: postId, text: text, imageData: imageData)
 
       switch result {
       case .success(let newComment):
@@ -209,8 +217,28 @@ extension CommentsView {
 
     func retryImage() {
       if let imageSelection {
+        uploadTask?.cancel()
+        uploadTask = nil
+        uploadState = .pending
         let progress = loadTransferable(from: imageSelection)
         self.imageState = .loading(progress)
+      }
+    }
+
+    func retryUpload() {
+      guard case .success(let image) = imageState else { return }
+      startUpload(image: image)
+    }
+
+    private func startUpload(image: PlatformImage) {
+      uploadState = .pending
+
+      let folder = stagingFolder
+      uploadTask = Task {
+        let result = await uploadImageState(image, folder: folder)
+        guard !Task.isCancelled else { return }
+        self.uploadState = result
+        self.uploadTask = nil
       }
     }
 
@@ -227,6 +255,7 @@ extension CommentsView {
           case .success(let imageData?):
             if let image = PlatformImage(data: imageData) {
               self.imageState = .success(image)
+              self.startUpload(image: image)
             } else {
               self.imageState = .failure
             }
