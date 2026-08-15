@@ -2,8 +2,7 @@ import PhotosUI
 import SwiftUI
 
 struct ImagePreviewView: View {
-  var state: PhotoState
-  var uploadState: UploadState = .pending
+  var state: ImageUploadState
   var onRetry: () -> Void
   var onRemove: () -> Void
   var onTap: () -> Void
@@ -16,12 +15,12 @@ struct ImagePreviewView: View {
         .frame(width: 100, height: 100)
 
       switch state {
-      case .loading:
+      case .loadingPhoto:
         ProgressView()
           #if os(macOS)
             .controlSize(.small)
           #endif
-      case .success(let image):
+      case .uploading(let image), .uploaded(let image, _), .uploadFailed(let image):
         Button(action: onTap) {
           Image(platformImage: image)
             .resizable()
@@ -33,7 +32,7 @@ struct ImagePreviewView: View {
         .overlay {
           uploadStateOverlay
         }
-      case .failure:
+      case .photoFailed:
         Button {
           onRetry()
         } label: {
@@ -85,8 +84,8 @@ struct ImagePreviewView: View {
 
   @ViewBuilder
   private var uploadStateOverlay: some View {
-    switch uploadState {
-    case .failed:
+    switch state {
+    case .uploadFailed:
       Button(action: onRetryUpload) {
         ZStack {
           RoundedRectangle(cornerRadius: 12)
@@ -97,7 +96,7 @@ struct ImagePreviewView: View {
         }
       }
       .buttonStyle(.plain)
-    case .pending, .uploaded:
+    default:
       EmptyView()
     }
   }
@@ -116,7 +115,7 @@ struct ImagePreviewView: View {
   }()
 
   ImagePreviewView(
-    state: .success(image),
+    state: .uploading(image),
     onRetry: {},
     onRemove: {},
     onTap: {}

@@ -235,46 +235,34 @@ struct NewPostView: View {
   }
 
   private var loadedImages: [PlatformImage] {
-    viewModel.imageStates.compactMap { item in
-      if case .success(let image) = item.state {
-        return image
-      }
-      return nil
-    }
+    viewModel.imageStates.compactMap { $0.state.image }
   }
 
   var imagePreviewsView: some View {
     ScrollView(.horizontal) {
       HStack(spacing: 12) {
-        ForEach(viewModel.imageStates, id: \.itemIdentifier) { item in
+        ForEach(viewModel.imageStates) { item in
           ImagePreviewView(
             state: item.state,
-            uploadState: item.uploadState,
             onRetry: {
-              viewModel.retryImage(itemIdentifier: item.itemIdentifier)
+              viewModel.retryImage(item)
             },
             onRemove: {
-              viewModel.removeImage(itemIdentifier: item.itemIdentifier)
+              viewModel.removeImage(item)
             },
             onTap: {
               if let index = viewModel.imageStates
-                .compactMap({
-                  if case .success = $0.state {
-                    return $0.itemIdentifier
-                  } else {
-                    return nil
-                  }
-                })
-                .firstIndex(of: item.itemIdentifier)
+                .compactMap({ $0.state.hasPhoto ? $0.id : nil })
+                .firstIndex(of: item.id)
               {
                 selectedImage = SelectedImage(
-                  id: item.itemIdentifier,
+                  id: item.id,
                   index: index
                 )
               }
             },
             onRetryUpload: {
-              viewModel.retryUpload(itemIdentifier: item.itemIdentifier)
+              viewModel.retryUpload(item)
             }
           )
           .modify {
@@ -337,15 +325,10 @@ struct NewPostView: View {
       !trimmedText.isEmpty || viewModel.imageStates.count > 0
       || viewModel.poll != nil
 
-    let allImagesReady = viewModel.imageStates.allSatisfy { item in
-      if case .success = item.state, case .uploaded = item.uploadState {
-        return true
-      }
-      return false
-    }
+    let hasFailedImage = viewModel.imageStates.contains { $0.state.isFailed }
 
     return !hasContent || trimmedText.count > 2500 || viewModel.isLoading
-      || !allImagesReady
+      || hasFailedImage
   }
 
   private func submitPostAction() {

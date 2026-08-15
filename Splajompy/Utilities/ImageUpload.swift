@@ -1,16 +1,35 @@
 import Foundation
 
-enum PhotoState: Equatable {
-  case loading(Progress)
-  case success(PlatformImage)
-  case failure
+enum ImageUploadState: Equatable {
   case empty
-}
+  case loadingPhoto
+  case photoFailed
+  case uploading(PlatformImage)
+  case uploaded(PlatformImage, ImageData)
+  case uploadFailed(PlatformImage)
 
-enum UploadState: Equatable {
-  case pending
-  case uploaded(ImageData)
-  case failed
+  var image: PlatformImage? {
+    switch self {
+    case .uploading(let image), .uploaded(let image, _), .uploadFailed(let image):
+      return image
+    case .empty, .loadingPhoto, .photoFailed:
+      return nil
+    }
+  }
+
+  var hasPhoto: Bool { image != nil }
+
+  var isUploaded: Bool {
+    if case .uploaded = self { return true }
+    return false
+  }
+
+  var isFailed: Bool {
+    switch self {
+    case .photoFailed, .uploadFailed: return true
+    case .empty, .loadingPhoto, .uploading, .uploaded: return false
+    }
+  }
 }
 
 func uploadImage(
@@ -85,11 +104,6 @@ func uploadImage(
   }
 }
 
-func uploadImageState(_ image: PlatformImage, folder: UUID) async -> UploadState {
-  do {
-    let imageData = try await uploadImage(image, folder: folder)
-    return .uploaded(imageData)
-  } catch {
-    return .failed
-  }
+func uploadImageData(_ image: PlatformImage, folder: UUID) async -> ImageData? {
+  try? await uploadImage(image, folder: folder)
 }

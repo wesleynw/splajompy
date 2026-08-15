@@ -51,7 +51,6 @@ struct CommentInputView: View {
             HStack {
               ImagePreviewView(
                 state: viewModel.imageState,
-                uploadState: viewModel.uploadState,
                 onRetry: {
                   viewModel.retryImage()
                 },
@@ -59,7 +58,7 @@ struct CommentInputView: View {
                   viewModel.imageSelection = nil
                 },
                 onTap: {
-                  if case .success(let photo) = viewModel.imageState {
+                  if let photo = viewModel.imageState.image {
                     presentingImage = SelectedImage(id: 0, image: photo)
                   }
                 },
@@ -100,10 +99,7 @@ struct CommentInputView: View {
             Button(action: {
               mentionViewModel.clearMentionState()
               Task {
-                let result = await viewModel.submitComment(
-                  text: viewModel.text.string
-                )
-                return result
+                await viewModel.submitComment()
               }
             }) {
               if viewModel.isSubmitting {
@@ -169,23 +165,13 @@ struct CommentInputView: View {
   }
 
   private var isSubmitButtonDisabled: Bool {
-    let hasImage: Bool
-    if case .success = viewModel.imageState {
-      hasImage = true
-    } else {
-      hasImage = false
-    }
-    let imageReady: Bool
-    if case .uploaded = viewModel.uploadState {
-      imageReady = true
-    } else {
-      imageReady = false
-    }
+    let hasImage = viewModel.imageState.hasPhoto
     let textEmpty = viewModel.text.string.trimmingCharacters(
       in: .whitespacesAndNewlines
     ).isEmpty
 
-    return (textEmpty && !hasImage) || (hasImage && !imageReady) || viewModel.isSubmitting
+    return (textEmpty && !hasImage) || viewModel.imageState.isFailed
+      || viewModel.isSubmitting
   }
 }
 
