@@ -171,11 +171,13 @@ struct CommentInputView: View {
         initialIndex: 0,
         onDismiss: { presentingImage = nil }
       )
-      .modify {
-        if #available(iOS 18, *) {
-          $0.navigationTransition(.zoom(sourceID: "zoom", in: namespace))
+      #if os(iOS)
+        .modify {
+          if #available(iOS 18, *) {
+            $0.navigationTransition(.zoom(sourceID: "zoom", in: namespace))
+          }
         }
-      }
+      #endif
     }
     #if os(macOS)
       .frame(maxWidth: 600)
