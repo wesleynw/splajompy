@@ -118,7 +118,6 @@ extension NewPostView {
       tasks[entry.id]?.cancel()
       entry.state = .loadingPhoto
 
-      let folder = stagingFolder
       tasks[entry.id] = Task {
         let data: Data?
         do {
@@ -136,10 +135,7 @@ extension NewPostView {
           return
         }
         entry.state = .uploading(image)
-        let imageData = await uploadImageData(image, folder: folder)
-        guard !Task.isCancelled else { return }
-        entry.state = if let imageData { .uploaded(image, imageData) } else { .uploadFailed(image) }
-        self.tasks[entry.id] = nil
+        await self.upload(entry: entry, image: image)
       }
     }
 
@@ -147,13 +143,16 @@ extension NewPostView {
       tasks[entry.id]?.cancel()
       entry.state = .uploading(image)
 
-      let folder = stagingFolder
       tasks[entry.id] = Task {
-        let imageData = await uploadImageData(image, folder: folder)
-        guard !Task.isCancelled else { return }
-        entry.state = if let imageData { .uploaded(image, imageData) } else { .uploadFailed(image) }
-        self.tasks[entry.id] = nil
+        await upload(entry: entry, image: image)
       }
+    }
+
+    private func upload(entry: ImageEntry, image: PlatformImage) async {
+      let imageData = await uploadImageData(image, folder: stagingFolder)
+      guard !Task.isCancelled else { return }
+      entry.state = if let imageData { .uploaded(image, imageData) } else { .uploadFailed(image) }
+      tasks[entry.id] = nil
     }
 
     func submitPost(
