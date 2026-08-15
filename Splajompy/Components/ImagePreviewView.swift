@@ -2,10 +2,11 @@ import PhotosUI
 import SwiftUI
 
 struct ImagePreviewView: View {
-  var state: PhotoState
+  var state: ImageUploadState
   var onRetry: () -> Void
   var onRemove: () -> Void
   var onTap: () -> Void
+  var onRetryUpload: () -> Void = {}
 
   var body: some View {
     ZStack {
@@ -14,12 +15,12 @@ struct ImagePreviewView: View {
         .frame(width: 100, height: 100)
 
       switch state {
-      case .loading:
+      case .loadingPhoto:
         ProgressView()
           #if os(macOS)
             .controlSize(.small)
           #endif
-      case .success(let image):
+      case .uploading(let image), .uploaded(let image, _), .uploadFailed(let image):
         Button(action: onTap) {
           Image(platformImage: image)
             .resizable()
@@ -28,7 +29,10 @@ struct ImagePreviewView: View {
             .clipShape(RoundedRectangle(cornerRadius: 12))
         }
         .buttonStyle(.plain)
-      case .failure:
+        .overlay {
+          uploadStateOverlay
+        }
+      case .photoFailed:
         Button {
           onRetry()
         } label: {
@@ -72,11 +76,29 @@ struct ImagePreviewView: View {
       }
       .offset(x: 8, y: -8)
     }
-
     .buttonStyle(.plain)
     .padding(6)
     .padding(4)
     .transition(.scale)
+  }
+
+  @ViewBuilder
+  private var uploadStateOverlay: some View {
+    switch state {
+    case .uploadFailed:
+      Button(action: onRetryUpload) {
+        ZStack {
+          RoundedRectangle(cornerRadius: 12)
+            .fill(Color.black.opacity(0.45))
+          Image(systemName: "arrow.clockwise.circle.fill")
+            .font(.title2)
+            .foregroundStyle(.white)
+        }
+      }
+      .buttonStyle(.plain)
+    default:
+      EmptyView()
+    }
   }
 }
 
@@ -93,7 +115,7 @@ struct ImagePreviewView: View {
   }()
 
   ImagePreviewView(
-    state: .success(image),
+    state: .uploading(image),
     onRetry: {},
     onRemove: {},
     onTap: {}

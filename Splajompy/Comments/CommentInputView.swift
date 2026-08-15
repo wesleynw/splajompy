@@ -58,9 +58,12 @@ struct CommentInputView: View {
                   viewModel.imageSelection = nil
                 },
                 onTap: {
-                  if case .success(let photo) = viewModel.imageState {
+                  if let photo = viewModel.imageState.image {
                     presentingImage = SelectedImage(id: 0, image: photo)
                   }
+                },
+                onRetryUpload: {
+                  viewModel.retryUpload()
                 }
               )
               .modify {
@@ -82,12 +85,7 @@ struct CommentInputView: View {
               .padding(5)
           }
           .buttonStyle(.plain)
-          .disabled(
-            {
-              if case .empty = viewModel.imageState { return false }
-              return true
-            }()
-          )
+          .disabled(viewModel.imageState != .empty)
 
           MentionTextEditor(
             text: $viewModel.text,
@@ -101,10 +99,7 @@ struct CommentInputView: View {
             Button(action: {
               mentionViewModel.clearMentionState()
               Task {
-                let result = await viewModel.submitComment(
-                  text: viewModel.text.string
-                )
-                return result
+                await viewModel.submitComment()
               }
             }) {
               if viewModel.isSubmitting {
@@ -119,22 +114,7 @@ struct CommentInputView: View {
                   .frame(width: 32, height: 32)
               }
             }
-            .disabled(
-              {
-                let hasImage: Bool
-                if case .success = viewModel.imageState {
-                  hasImage = true
-                } else {
-                  hasImage = false
-                }
-                return
-                  (viewModel.text.string.trimmingCharacters(
-                    in: .whitespacesAndNewlines
-                  ).isEmpty
-                  && !hasImage)
-                  || viewModel.isSubmitting
-              }()
-            )
+            .disabled(isSubmitButtonDisabled)
             #if os(macOS)
               .buttonStyle(.plain)
             #endif
@@ -182,6 +162,16 @@ struct CommentInputView: View {
     #if os(macOS)
       .frame(maxWidth: 600)
     #endif
+  }
+
+  private var isSubmitButtonDisabled: Bool {
+    let hasImage = viewModel.imageState.hasPhoto
+    let textEmpty = viewModel.text.string.trimmingCharacters(
+      in: .whitespacesAndNewlines
+    ).isEmpty
+
+    return (textEmpty && !hasImage) || viewModel.imageState.isFailed
+      || viewModel.isSubmitting
   }
 }
 

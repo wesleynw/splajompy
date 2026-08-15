@@ -2,7 +2,7 @@ import Foundation
 import PhotosUI
 import SwiftUI
 
-struct ImageData: Encodable {
+struct ImageData: Encodable, Equatable {
   let s3Key: String
   let width: Int
   let height: Int
@@ -46,13 +46,11 @@ struct PostCreationService {
 
   static func createPost(
     text: String,
-    images: [PlatformImage],
+    imageKeymap: [Int: ImageData],
     visibility: VisibilityType,
     poll: PollCreationRequest? = nil
   ) async -> Result<Void, Error> {
     do {
-      let imageKeymap = try await uploadImages(images: images)
-
       let createPostRequest = CreatePostRequest(
         text: text,
         imageKeymap: imageKeymap,

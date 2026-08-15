@@ -157,11 +157,6 @@ func (s *S3BucketRepository) PublishStagedImages(ctx context.Context, userId int
 			return nil, err
 		}
 
-		err = s.DeleteObject(ctx, imageData.S3Key)
-		if err != nil {
-			return nil, err
-		}
-
 		destinationKeys[key] = destinationKey
 	}
 

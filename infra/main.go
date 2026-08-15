@@ -79,7 +79,7 @@ func main() {
 		splajompyBucket, err := s3.NewBucket(ctx, "splajompy-prod-bucket", &s3.BucketArgs{
 			Bucket: pulumi.String("splajompy-prod-bucket"),
 			Tags:   awsTags,
-		})
+		}, pulumi.Protect(true))
 		if err != nil {
 			return err
 		}
@@ -92,26 +92,26 @@ func main() {
 			return err
 		}
 
-		_, err = s3.NewBucketLifecycleConfigurationV2(ctx, "splajompy-staging-cleanup", &s3.BucketLifecycleConfigurationV2Args{
+		_, err = s3.NewBucketLifecycleConfiguration(ctx, "splajompy-staging-cleanup", &s3.BucketLifecycleConfigurationArgs{
 			Bucket: splajompyBucket.ID(),
-			Rules: s3.BucketLifecycleConfigurationV2RuleArray{
-				&s3.BucketLifecycleConfigurationV2RuleArgs{
+			Rules: s3.BucketLifecycleConfigurationRuleArray{
+				&s3.BucketLifecycleConfigurationRuleArgs{
 					Id:     pulumi.String("expire-staged-post-images-prod"),
 					Status: pulumi.String("Enabled"),
-					Filter: &s3.BucketLifecycleConfigurationV2RuleFilterArgs{
+					Filter: &s3.BucketLifecycleConfigurationRuleFilterArgs{
 						Prefix: pulumi.String("production/posts/staging/"),
 					},
-					Expiration: &s3.BucketLifecycleConfigurationV2RuleExpirationArgs{
+					Expiration: &s3.BucketLifecycleConfigurationRuleExpirationArgs{
 						Days: pulumi.Int(2),
 					},
 				},
-				&s3.BucketLifecycleConfigurationV2RuleArgs{
+				&s3.BucketLifecycleConfigurationRuleArgs{
 					Id:     pulumi.String("expire-staged-post-images-dev"),
 					Status: pulumi.String("Enabled"),
-					Filter: &s3.BucketLifecycleConfigurationV2RuleFilterArgs{
+					Filter: &s3.BucketLifecycleConfigurationRuleFilterArgs{
 						Prefix: pulumi.String("development/posts/staging/"),
 					},
-					Expiration: &s3.BucketLifecycleConfigurationV2RuleExpirationArgs{
+					Expiration: &s3.BucketLifecycleConfigurationRuleExpirationArgs{
 						Days: pulumi.Int(2),
 					},
 				},
@@ -273,7 +273,7 @@ func main() {
 				CloudfrontDefaultCertificate: pulumi.Bool(true),
 			},
 			Tags: awsTags,
-		})
+		}, pulumi.Protect(true))
 		if err != nil {
 			return err
 		}
