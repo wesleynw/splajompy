@@ -215,7 +215,7 @@ struct NewPostView: View {
         )
         .modify {
           if #available(iOS 18, *) {
-            $0.navigationTransition(.zoom(sourceID: "zoom", in: namespace))
+            $0.navigationTransition(.zoom(sourceID: selected.id, in: namespace))
           }
         }
       }
@@ -267,7 +267,7 @@ struct NewPostView: View {
           )
           .modify {
             if #available(iOS 18, *) {
-              $0.matchedTransitionSource(id: "zoom", in: namespace)
+              $0.matchedTransitionSource(id: item.id, in: namespace)
             }
           }
         }
