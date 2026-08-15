@@ -1,6 +1,11 @@
 import PhotosUI
 import SwiftUI
 
+private struct SelectedImage: Identifiable {
+  var id: Int
+  var image: PlatformImage
+}
+
 struct CommentInputView: View {
   @Bindable var viewModel: CommentsView.ViewModel
 
@@ -8,6 +13,7 @@ struct CommentInputView: View {
     MentionTextEditor.MentionViewModel()
   @State private var cursorY: CGFloat = 0
   @State private var submitButtonWidth: CGFloat = 0
+  @State private var presentingImage: SelectedImage? = nil
 
   var body: some View {
     VStack {
@@ -49,6 +55,11 @@ struct CommentInputView: View {
                 },
                 onRemove: {
                   viewModel.imageSelection = nil
+                },
+                onTap: {
+                  if case .success(let photo) = viewModel.imageState {
+                    presentingImage = SelectedImage(id: 0, image: photo)
+                  }
                 }
               )
               .disabled(viewModel.isSubmitting)
@@ -58,7 +69,8 @@ struct CommentInputView: View {
         }
 
         HStack(alignment: .bottom, spacing: 0) {
-          PhotosPicker(selection: $viewModel.imageSelection, matching: .images) {
+          PhotosPicker(selection: $viewModel.imageSelection, matching: .images)
+          {
             Image(systemName: "plus.circle.fill")
               .resizable()
               .frame(width: 32, height: 32)
@@ -69,7 +81,8 @@ struct CommentInputView: View {
             {
               if case .empty = viewModel.imageState { return false }
               return true
-            }())
+            }()
+          )
 
           MentionTextEditor(
             text: $viewModel.text,
@@ -110,7 +123,9 @@ struct CommentInputView: View {
                   hasImage = false
                 }
                 return
-                  (viewModel.text.string.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                  (viewModel.text.string.trimmingCharacters(
+                    in: .whitespacesAndNewlines
+                  ).isEmpty
                   && !hasImage)
                   || viewModel.isSubmitting
               }()
@@ -144,6 +159,13 @@ struct CommentInputView: View {
             }
         }
       }
+    }
+    .sheet(item: $presentingImage) { selected in
+      LocalImagePager(
+        images: [selected.image],
+        initialIndex: 0,
+        onDismiss: { presentingImage = nil }
+      )
     }
     #if os(macOS)
       .frame(maxWidth: 600)

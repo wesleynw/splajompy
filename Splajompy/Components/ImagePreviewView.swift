@@ -5,7 +5,7 @@ struct ImagePreviewView: View {
   var state: PhotoState
   var onRetry: () -> Void
   var onRemove: () -> Void
-  var onTap: () -> Void = {}
+  var onTap: () -> Void
 
   var body: some View {
     ZStack {
@@ -95,6 +95,7 @@ struct ImagePreviewView: View {
   ImagePreviewView(
     state: .success(image),
     onRetry: {},
-    onRemove: {}
+    onRemove: {},
+    onTap: {}
   )
 }
