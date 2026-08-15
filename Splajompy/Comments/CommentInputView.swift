@@ -14,6 +14,7 @@ struct CommentInputView: View {
   @State private var cursorY: CGFloat = 0
   @State private var submitButtonWidth: CGFloat = 0
   @State private var presentingImage: SelectedImage? = nil
+  @Namespace var namespace
 
   var body: some View {
     VStack {
@@ -62,6 +63,11 @@ struct CommentInputView: View {
                   }
                 }
               )
+              .modify {
+                if #available(iOS 18, *) {
+                  $0.matchedTransitionSource(id: "zoom", in: namespace)
+                }
+              }
               .disabled(viewModel.isSubmitting)
             }
           }
@@ -165,6 +171,13 @@ struct CommentInputView: View {
         initialIndex: 0,
         onDismiss: { presentingImage = nil }
       )
+      #if os(iOS)
+        .modify {
+          if #available(iOS 18, *) {
+            $0.navigationTransition(.zoom(sourceID: "zoom", in: namespace))
+          }
+        }
+      #endif
     }
     #if os(macOS)
       .frame(maxWidth: 600)
