@@ -5,6 +5,7 @@ struct ImagePreviewView: View {
   var state: PhotoState
   var onRetry: () -> Void
   var onRemove: () -> Void
+  var onTap: () -> Void = {}
 
   var body: some View {
     ZStack {
@@ -19,11 +20,14 @@ struct ImagePreviewView: View {
             .controlSize(.small)
           #endif
       case .success(let image):
-        Image(platformImage: image)
-          .resizable()
-          .scaledToFill()
-          .frame(width: 100, height: 100)
-          .clipShape(RoundedRectangle(cornerRadius: 12))
+        Button(action: onTap) {
+          Image(platformImage: image)
+            .resizable()
+            .scaledToFill()
+            .frame(width: 100, height: 100)
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+        }
+        .buttonStyle(.plain)
       case .failure:
         Button {
           onRetry()

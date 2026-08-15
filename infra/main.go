@@ -92,6 +92,35 @@ func main() {
 			return err
 		}
 
+		_, err = s3.NewBucketLifecycleConfigurationV2(ctx, "splajompy-staging-cleanup", &s3.BucketLifecycleConfigurationV2Args{
+			Bucket: splajompyBucket.ID(),
+			Rules: s3.BucketLifecycleConfigurationV2RuleArray{
+				&s3.BucketLifecycleConfigurationV2RuleArgs{
+					Id:     pulumi.String("expire-staged-post-images-prod"),
+					Status: pulumi.String("Enabled"),
+					Filter: &s3.BucketLifecycleConfigurationV2RuleFilterArgs{
+						Prefix: pulumi.String("production/posts/staging/"),
+					},
+					Expiration: &s3.BucketLifecycleConfigurationV2RuleExpirationArgs{
+						Days: pulumi.Int(2),
+					},
+				},
+				&s3.BucketLifecycleConfigurationV2RuleArgs{
+					Id:     pulumi.String("expire-staged-post-images-dev"),
+					Status: pulumi.String("Enabled"),
+					Filter: &s3.BucketLifecycleConfigurationV2RuleFilterArgs{
+						Prefix: pulumi.String("development/posts/staging/"),
+					},
+					Expiration: &s3.BucketLifecycleConfigurationV2RuleExpirationArgs{
+						Days: pulumi.Int(2),
+					},
+				},
+			},
+		})
+		if err != nil {
+			return err
+		}
+
 		bucketLogSource, err := cloudwatch.NewLogDeliverySource(ctx, "bucket-log-source", &cloudwatch.LogDeliverySourceArgs{
 			ResourceArn: splajompyBucket.Arn,
 			LogType:     pulumi.String("S3_SERVER_ACCESS_LOGS"),

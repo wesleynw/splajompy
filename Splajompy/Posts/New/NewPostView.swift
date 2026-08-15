@@ -199,6 +199,24 @@ struct NewPostView: View {
       PollCreationView(poll: $viewModel.poll)
         .postHogScreenView()
     }
+    #if os(iOS)
+      .fullScreenCover(item: $selectedImage) { selected in
+        LocalImagePager(
+          images: loadedImages,
+          initialIndex: selected.index,
+          onDismiss: { selectedImage = nil }
+        )
+      }
+    #else
+      .sheet(item: $selectedImage) { selected in
+        LocalImagePager(
+          images: loadedImages,
+          initialIndex: selected.index,
+          onDismiss: { selectedImage = nil }
+        )
+        .presentationSizing(.page)
+      }
+    #endif
     #if os(macOS)
       .frame(width: 500, height: 450)
     #endif
