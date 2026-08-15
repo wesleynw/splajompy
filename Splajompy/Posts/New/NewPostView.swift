@@ -12,6 +12,7 @@ struct NewPostView: View {
   @State private var showingPollCreation: Bool = false
   @State private var isDragTargeted: Bool = false
   @State private var selectedImage: SelectedImage? = nil
+  @Namespace var namespace
 
   @State private var viewModel: ViewModel
   @State private var mentionViewModel =
@@ -212,6 +213,11 @@ struct NewPostView: View {
           initialIndex: selected.index,
           onDismiss: { selectedImage = nil }
         )
+        .modify {
+          if #available(iOS 18, *) {
+            $0.navigationTransition(.zoom(sourceID: "zoom", in: namespace))
+          }
+        }
       }
     #else
       .sheet(item: $selectedImage) { selected in
@@ -267,6 +273,11 @@ struct NewPostView: View {
               }
             }
           )
+          .modify {
+            if #available(iOS 18, *) {
+              $0.matchedTransitionSource(id: "zoom", in: namespace)
+            }
+          }
         }
       }
       .padding(.horizontal)
