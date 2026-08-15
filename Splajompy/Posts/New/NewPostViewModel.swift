@@ -20,6 +20,7 @@ struct DroppedImage: Transferable {
   let id: String
   var pickerItem: PhotosPickerItem?
   var state: ImageUploadState
+  @ObservationIgnored var task: Task<Void, Never>?
 
   init(id: String, pickerItem: PhotosPickerItem? = nil, state: ImageUploadState) {
     self.id = id
@@ -46,8 +47,8 @@ extension NewPostView {
           return !imageSelection.contains(pickerItem)
         }
         for entry in removedEntries {
-          tasks[entry.id]?.cancel()
-          tasks[entry.id] = nil
+          entry.task?.cancel()
+          entry.task = nil
         }
         imageStates = imageStates.filter { entry in
           guard let pickerItem = entry.pickerItem else { return true }
@@ -58,22 +59,21 @@ extension NewPostView {
           let itemId = item.itemIdentifier ?? UUID().uuidString
           let entry = ImageEntry(id: itemId, pickerItem: item, state: .empty)
           imageStates.append(entry)
-          loadAndUpload(entry: entry, item: item)
+          beginProcessing(entry: entry, source: .pickerItem(item))
         }
       }
     }
 
     private let onPostCreated: () -> Void
     private let stagingFolder = UUID()
-    private var tasks: [String: Task<Void, Never>] = [:]
 
     init(onPostCreated: @escaping () -> Void) {
       self.onPostCreated = onPostCreated
     }
 
     func removeImage(_ entry: ImageEntry) {
-      tasks[entry.id]?.cancel()
-      tasks[entry.id] = nil
+      entry.task?.cancel()
+      entry.task = nil
 
       guard
         let pickerItem = entry.pickerItem,
@@ -91,12 +91,12 @@ extension NewPostView {
 
     func retryImage(_ entry: ImageEntry) {
       guard let pickerItem = entry.pickerItem else { return }
-      loadAndUpload(entry: entry, item: pickerItem)
+      beginProcessing(entry: entry, source: .pickerItem(pickerItem))
     }
 
     func retryUpload(_ entry: ImageEntry) {
       guard case .uploadFailed(let image) = entry.state else { return }
-      startUpload(entry: entry, image: image)
+      beginProcessing(entry: entry, source: .image(image))
     }
 
     func addDroppedImages(_ images: [PlatformImage]) {
@@ -110,49 +110,55 @@ extension NewPostView {
         imageStates.append(contentsOf: newEntries)
       }
       for (entry, image) in zip(newEntries, newImages) {
-        startUpload(entry: entry, image: image)
+        beginProcessing(entry: entry, source: .image(image))
       }
     }
 
-    private func loadAndUpload(entry: ImageEntry, item: PhotosPickerItem) {
-      tasks[entry.id]?.cancel()
-      entry.state = .loadingPhoto
+    private enum ImageSource {
+      case pickerItem(PhotosPickerItem)
+      case image(PlatformImage)
+    }
 
-      tasks[entry.id] = Task {
-        let data: Data?
-        do {
-          data = try await item.loadTransferable(type: Data.self)
-        } catch {
-          guard !Task.isCancelled else { return }
-          entry.state = .photoFailed
-          self.tasks[entry.id] = nil
-          return
+    private func beginProcessing(entry: ImageEntry, source: ImageSource) {
+      entry.task?.cancel()
+      switch source {
+      case .pickerItem: entry.state = .loadingPhoto
+      case .image(let image): entry.state = .uploading(image)
+      }
+
+      entry.task = Task {
+        let image: PlatformImage
+        switch source {
+        case .image(let sourceImage):
+          image = sourceImage
+        case .pickerItem(let item):
+          guard let loaded = await self.loadImage(from: item, entry: entry) else { return }
+          image = loaded
+          entry.state = .uploading(image)
         }
+
         guard !Task.isCancelled else { return }
-        guard let data, let image = PlatformImage(data: data) else {
-          entry.state = data == nil ? .empty : .photoFailed
-          self.tasks[entry.id] = nil
-          return
-        }
-        entry.state = .uploading(image)
-        await self.upload(entry: entry, image: image)
+        let imageData = await uploadImageData(image, folder: self.stagingFolder)
+        guard !Task.isCancelled else { return }
+        entry.state = if let imageData { .uploaded(image, imageData) } else { .uploadFailed(image) }
       }
     }
 
-    private func startUpload(entry: ImageEntry, image: PlatformImage) {
-      tasks[entry.id]?.cancel()
-      entry.state = .uploading(image)
-
-      tasks[entry.id] = Task {
-        await upload(entry: entry, image: image)
+    private func loadImage(from item: PhotosPickerItem, entry: ImageEntry) async -> PlatformImage? {
+      let data: Data?
+      do {
+        data = try await item.loadTransferable(type: Data.self)
+      } catch {
+        guard !Task.isCancelled else { return nil }
+        entry.state = .photoFailed
+        return nil
       }
-    }
-
-    private func upload(entry: ImageEntry, image: PlatformImage) async {
-      let imageData = await uploadImageData(image, folder: stagingFolder)
-      guard !Task.isCancelled else { return }
-      entry.state = if let imageData { .uploaded(image, imageData) } else { .uploadFailed(image) }
-      tasks[entry.id] = nil
+      guard !Task.isCancelled else { return nil }
+      guard let data, let image = PlatformImage(data: data) else {
+        entry.state = data == nil ? .empty : .photoFailed
+        return nil
+      }
+      return image
     }
 
     func submitPost(
@@ -170,7 +176,7 @@ extension NewPostView {
         isLoading = true
 
         for entry in imageStates {
-          await tasks[entry.id]?.value
+          await entry.task?.value
         }
 
         guard imageStates.allSatisfy({ $0.state.isUploaded }) else {
