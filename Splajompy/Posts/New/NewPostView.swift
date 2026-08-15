@@ -248,6 +248,23 @@ struct NewPostView: View {
             },
             onRemove: {
               viewModel.removeImage(itemIdentifier: item.itemIdentifier)
+            },
+            onTap: {
+              let loadedIdentifiers = viewModel.imageStates.compactMap {
+                entry -> String? in
+                if case .success = entry.state {
+                  return entry.itemIdentifier
+                }
+                return nil
+              }
+              if let index = loadedIdentifiers.firstIndex(
+                of: item.itemIdentifier
+              ) {
+                selectedImage = SelectedImage(
+                  id: item.itemIdentifier,
+                  index: index
+                )
+              }
             }
           )
         }
