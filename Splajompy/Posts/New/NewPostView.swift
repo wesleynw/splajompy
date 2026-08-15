@@ -2,10 +2,16 @@ import PhotosUI
 import PostHog
 import SwiftUI
 
+private struct SelectedImage: Identifiable {
+  let id: String
+  let index: Int
+}
+
 struct NewPostView: View {
   @State private var cursorY: CGFloat = 0
   @State private var showingPollCreation: Bool = false
   @State private var isDragTargeted: Bool = false
+  @State private var selectedImage: SelectedImage? = nil
 
   @State private var viewModel: ViewModel
   @State private var mentionViewModel =
@@ -199,9 +205,36 @@ struct NewPostView: View {
       PollCreationView(poll: $viewModel.poll)
         .postHogScreenView()
     }
+    #if os(iOS)
+      .fullScreenCover(item: $selectedImage) { selected in
+        LocalImagePager(
+          images: loadedImages,
+          initialIndex: selected.index,
+          onDismiss: { selectedImage = nil }
+        )
+      }
+    #else
+      .sheet(item: $selectedImage) { selected in
+        LocalImagePager(
+          images: loadedImages,
+          initialIndex: selected.index,
+          onDismiss: { selectedImage = nil }
+        )
+        .presentationSizing(.page)
+      }
+    #endif
     #if os(macOS)
       .frame(width: 500, height: 450)
     #endif
+  }
+
+  private var loadedImages: [PlatformImage] {
+    viewModel.imageStates.compactMap { item in
+      if case .success(let image) = item.state {
+        return image
+      }
+      return nil
+    }
   }
 
   var imagePreviewsView: some View {
@@ -215,6 +248,23 @@ struct NewPostView: View {
             },
             onRemove: {
               viewModel.removeImage(itemIdentifier: item.itemIdentifier)
+            },
+            onTap: {
+              if let index = viewModel.imageStates
+                .compactMap({
+                  if case .success = $0.state {
+                    return $0.itemIdentifier
+                  } else {
+                    return nil
+                  }
+                })
+                .firstIndex(of: item.itemIdentifier)
+              {
+                selectedImage = SelectedImage(
+                  id: item.itemIdentifier,
+                  index: index
+                )
+              }
             }
           )
         }
