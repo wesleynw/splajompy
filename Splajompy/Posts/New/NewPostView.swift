@@ -2,10 +2,16 @@ import PhotosUI
 import PostHog
 import SwiftUI
 
+private struct SelectedImage: Identifiable {
+  let id: String
+  let index: Int
+}
+
 struct NewPostView: View {
   @State private var cursorY: CGFloat = 0
   @State private var showingPollCreation: Bool = false
   @State private var isDragTargeted: Bool = false
+  @State private var selectedImage: SelectedImage? = nil
 
   @State private var viewModel: ViewModel
   @State private var mentionViewModel =
@@ -220,6 +226,15 @@ struct NewPostView: View {
     #if os(macOS)
       .frame(width: 500, height: 450)
     #endif
+  }
+
+  private var loadedImages: [PlatformImage] {
+    viewModel.imageStates.compactMap { item in
+      if case .success(let image) = item.state {
+        return image
+      }
+      return nil
+    }
   }
 
   var imagePreviewsView: some View {
