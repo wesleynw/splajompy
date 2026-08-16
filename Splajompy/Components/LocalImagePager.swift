@@ -4,19 +4,9 @@ import SwiftUI
 /// e.g. images staged in the new post composer.
 struct LocalImagePager: View {
   let images: [PlatformImage]
-  @State private var currentIndex: Int
+  @Binding var currentIndex: Int
 
   let onDismiss: () -> Void
-
-  init(
-    images: [PlatformImage],
-    initialIndex: Int,
-    onDismiss: @escaping () -> Void
-  ) {
-    self.images = images
-    self._currentIndex = State(initialValue: initialIndex)
-    self.onDismiss = onDismiss
-  }
 
   var body: some View {
     #if os(iOS)
@@ -154,5 +144,5 @@ struct LocalImagePager: View {
     #endif
   }()
 
-  LocalImagePager(images: images, initialIndex: 0, onDismiss: {})
+  LocalImagePager(images: images, currentIndex: .constant(0), onDismiss: {})
 }

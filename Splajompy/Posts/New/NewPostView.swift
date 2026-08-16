@@ -2,16 +2,12 @@ import PhotosUI
 import PostHog
 import SwiftUI
 
-private struct SelectedImage: Identifiable {
-  let id: String
-  let index: Int
-}
-
 struct NewPostView: View {
   @State private var cursorY: CGFloat = 0
   @State private var showingPollCreation: Bool = false
   @State private var isDragTargeted: Bool = false
-  @State private var selectedImage: SelectedImage? = nil
+  @State private var isShowingImagePager: Bool = false
+  @State private var pagerIndex: Int = 0
   @Namespace var namespace
 
   @State private var viewModel: ViewModel
@@ -207,24 +203,24 @@ struct NewPostView: View {
         .postHogScreenView()
     }
     #if os(iOS)
-      .fullScreenCover(item: $selectedImage) { selected in
+      .fullScreenCover(isPresented: $isShowingImagePager) {
         LocalImagePager(
           images: loadedImages,
-          initialIndex: selected.index,
-          onDismiss: { selectedImage = nil }
+          currentIndex: $pagerIndex,
+          onDismiss: { isShowingImagePager = false }
         )
         .modify {
           if #available(iOS 18, *) {
-            $0.navigationTransition(.zoom(sourceID: selected.id, in: namespace))
+            $0.navigationTransition(.zoom(sourceID: pagerIndex, in: namespace))
           }
         }
       }
     #else
-      .sheet(item: $selectedImage) { selected in
+      .sheet(isPresented: $isShowingImagePager) {
         LocalImagePager(
           images: loadedImages,
-          initialIndex: selected.index,
-          onDismiss: { selectedImage = nil }
+          currentIndex: $pagerIndex,
+          onDismiss: { isShowingImagePager = false }
         )
         .presentationSizing(.page)
       }
@@ -236,6 +232,10 @@ struct NewPostView: View {
 
   private var loadedImages: [PlatformImage] {
     viewModel.imageStates.compactMap { $0.state.image }
+  }
+
+  private var photoImageIds: [String] {
+    viewModel.imageStates.compactMap { $0.state.hasPhoto ? $0.id : nil }
   }
 
   var imagePreviewsView: some View {
@@ -251,14 +251,9 @@ struct NewPostView: View {
               viewModel.removeImage(item)
             },
             onTap: {
-              if let index = viewModel.imageStates
-                .compactMap({ $0.state.hasPhoto ? $0.id : nil })
-                .firstIndex(of: item.id)
-              {
-                selectedImage = SelectedImage(
-                  id: item.id,
-                  index: index
-                )
+              if let index = photoImageIds.firstIndex(of: item.id) {
+                pagerIndex = index
+                isShowingImagePager = true
               }
             },
             onRetryUpload: {
@@ -266,8 +261,10 @@ struct NewPostView: View {
             }
           )
           .modify {
-            if #available(iOS 18, *) {
-              $0.matchedTransitionSource(id: item.id, in: namespace)
+            if #available(iOS 18, *),
+              let photoIndex = photoImageIds.firstIndex(of: item.id)
+            {
+              $0.matchedTransitionSource(id: photoIndex, in: namespace)
             }
           }
         }

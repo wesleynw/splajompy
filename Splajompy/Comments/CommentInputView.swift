@@ -148,7 +148,7 @@ struct CommentInputView: View {
     .sheet(item: $presentingImage) { selected in
       LocalImagePager(
         images: [selected.image],
-        initialIndex: 0,
+        currentIndex: .constant(0),
         onDismiss: { presentingImage = nil }
       )
       #if os(iOS)
