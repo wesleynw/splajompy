@@ -58,7 +58,6 @@ func (s *Service) GetUserById(ctx context.Context, currentUserId int, userID int
 
 	return &models.DetailedUser{
 		UserID:            dbUser.UserID,
-		Email:             dbUser.Email,
 		Username:          dbUser.Username,
 		CreatedAt:         dbUser.CreatedAt,
 		Name:              dbUser.Name,

@@ -19,7 +19,6 @@ func MapUserToPublicUser(user queries.User) models.PublicUser {
 	publicUser := models.PublicUser{
 		UserID:     user.UserID,
 		Username:   user.Username,
-		Email:      user.Email,
 		Name:       user.Name.String,
 		CreatedAt:  user.CreatedAt.Time,
 		IsVerified: false,
