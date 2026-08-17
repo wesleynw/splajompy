@@ -2,9 +2,11 @@ package comment
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 
 	"splajompy.com/api/v2/internal/models"
+	"splajompy.com/api/v2/internal/post"
 	"splajompy.com/api/v2/internal/utilities"
 )
 
@@ -62,6 +64,10 @@ func (h *Handler) AddCommentToPostById(w http.ResponseWriter, r *http.Request) {
 	}
 
 	comment, err := h.svc.AddCommentToPost(r.Context(), *currentUser, postId, requestBody.Text, requestBody.ImageKeyMap)
+	if errors.Is(err, post.ErrPostNotFound) {
+		utilities.HandleError(w, http.StatusNotFound, "This post doesn't exist")
+		return
+	}
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
 		return

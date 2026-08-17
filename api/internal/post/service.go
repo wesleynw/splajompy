@@ -106,9 +106,6 @@ func (s *Service) NewPresignedStagingUrl(ctx context.Context, currentUser models
 // GetPostById fetches a post by its id.
 func (s *Service) GetPostById(ctx context.Context, userId int, postId int) (*models.DetailedPost, error) {
 	post, err := s.postRepository.GetPostById(ctx, postId, userId)
-	if errors.Is(err, ErrPostNotFound) {
-		return nil, ErrPostNotFound
-	}
 	if err != nil {
 		return nil, err
 	}

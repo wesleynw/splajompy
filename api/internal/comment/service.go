@@ -43,8 +43,11 @@ func NewService(
 
 // AddCommentToPost adds a comment to a post and creates a notification
 func (s *Service) AddCommentToPost(ctx context.Context, currentUser models.PublicUser, postId int, content string, imageKeyMap map[int]models.ImageData) (*models.DetailedComment, error) {
-	post, err := s.postRepository.GetPostById(ctx, postId, currentUser.UserID)
+	targetPost, err := s.postRepository.GetPostById(ctx, postId, currentUser.UserID)
 	if err != nil {
+		if errors.Is(err, post.ErrPostNotFound) {
+			return nil, post.ErrPostNotFound
+		}
 		return nil, errors.New("unable to find post")
 	}
 
@@ -87,9 +90,9 @@ func (s *Service) AddCommentToPost(ctx context.Context, currentUser models.Publi
 
 	commentId := comment.CommentID
 
-	if currentUser.UserID != post.UserID {
+	if currentUser.UserID != targetPost.UserID {
 		text := fmt.Sprintf("@%s commented", currentUser.Username)
-		_, err = s.notificationService.AddNotification(ctx, post.UserID, &postId, &commentId, text, models.NotificationTypeComment, &comment.Text)
+		_, err = s.notificationService.AddNotification(ctx, targetPost.UserID, &postId, &commentId, text, models.NotificationTypeComment, &comment.Text)
 		if err != nil {
 			return nil, err
 		}
@@ -98,7 +101,7 @@ func (s *Service) AddCommentToPost(ctx context.Context, currentUser models.Publi
 	// also send notifications to mentioned users
 	usersToNotify := map[int]bool{}
 	for _, facet := range commentFacets {
-		if facet.UserId != post.UserID && facet.UserId != currentUser.UserID {
+		if facet.UserId != targetPost.UserID && facet.UserId != currentUser.UserID {
 			usersToNotify[facet.UserId] = true
 		}
 	}
