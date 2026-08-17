@@ -240,7 +240,7 @@ struct NewPostView: View {
 
   var imagePreviewsView: some View {
     ScrollView(.horizontal) {
-      HStack(spacing: 12) {
+      HStack(spacing: 4) {
         ForEach(viewModel.imageStates) { item in
           ImagePreviewView(
             state: item.state,

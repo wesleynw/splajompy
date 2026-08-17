@@ -90,10 +90,10 @@ struct PollCreationView: View {
   }
 
   private var isValidPoll: Bool {
-    title.count <= 100
+    title.count <= 200
       && options.filter {
         !$0.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-      }.count >= 2 && options.allSatisfy({ $0.text.count <= 25 })
+      }.count >= 2 && options.allSatisfy({ $0.text.count <= 50 })
   }
 
   private var addOptionButton: some View {
@@ -158,9 +158,9 @@ private struct PollFormContent<AddButton: View>: View {
         #endif
         HStack {
           Spacer()
-          Text("\(title.count)/100")
+          Text("\(title.count)/200")
             .font(.caption2)
-            .foregroundStyle(title.count > 100 ? .orange : .secondary)
+            .foregroundStyle(title.count > 200 ? .orange : .secondary)
         }
       }
     } header: {
@@ -195,11 +195,11 @@ private struct PollFormContent<AddButton: View>: View {
             .focused($focusedField, equals: index)
           #endif
 
-          if focusedField == index || options[index].text.count > 25 {
-            Text("\(options[index].text.count)/25")
+          if focusedField == index || options[index].text.count > 50 {
+            Text("\(options[index].text.count)/50")
               .font(.caption2)
               .foregroundStyle(
-                options[index].text.count > 25 ? .orange : .secondary
+                options[index].text.count > 50 ? .orange : .secondary
               )
           }
         }
