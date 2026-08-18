@@ -33,16 +33,6 @@ func (r Store) GetCommentsByPostId(ctx context.Context, postId int, userId int) 
 	})
 }
 
-// IsCommentLikedByUser checks if a comment is liked by a specific user
-func (r Store) IsCommentLikedByUser(ctx context.Context, userId int, postId int, commentId int) (bool, error) {
-	return r.querier.GetIsLikedByUser(ctx, queries.GetIsLikedByUserParams{
-		UserID:    userId,
-		PostID:    postId,
-		CommentID: &commentId,
-		Column4:   false,
-	})
-}
-
 // DeleteComment deletes a comment by ID
 func (r Store) DeleteComment(ctx context.Context, commentId int) error {
 	return r.querier.DeleteComment(ctx, commentId)

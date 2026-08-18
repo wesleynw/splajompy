@@ -105,24 +105,6 @@ class PostStore {
     cacheAccessOrder.removeAll()
   }
 
-  func loadPost(id: Int) async {
-    let isLoading = self.isLoading(postId: id)
-    guard !isLoading else { return }
-
-    setLoading(postId: id, loading: true)
-
-    let result = await postService.getPostById(postId: id)
-
-    switch result {
-    case .success(let post):
-      cachePost(post)
-    case .failure(_):
-      break
-    }
-
-    setLoading(postId: id, loading: false)
-  }
-
   func loadSingleCachedPost(postId: Int) async -> PostState {
     if let cachedPost = getPost(id: postId) {
       return .loaded(cachedPost)
@@ -224,12 +206,6 @@ class PostStore {
         "PostManager: Failed to delete post \(id): \(error.localizedDescription)"
       )
     }
-  }
-
-  func loadSinglePost(postId: Int) async -> Result<DetailedPost, Error> {
-    let result = await postService.getPostById(postId: postId)
-
-    return result
   }
 
   func loadFeed(

@@ -336,34 +336,6 @@ func (r Store) RemoveUserRelationship(ctx context.Context, userId int, targetUse
 	})
 }
 
-func (r Store) GetRelationshipByUserId(ctx context.Context, userId int, limit int, before *time.Time) ([]models.PublicUser, error) {
-	users, err := r.querier.ListUserRelationships(ctx, queries.ListUserRelationshipsParams{
-		UserID: userId,
-		Limit:  limit,
-		Before: before,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	publicUsers := make([]models.PublicUser, len(users))
-	for i, row := range users {
-		publicUsers[i] = utilities.MapUserToPublicUser(queries.User{
-			UserID:                row.UserID,
-			Email:                 row.Email,
-			Password:              row.Password,
-			Username:              row.Username,
-			CreatedAt:             row.CreatedAt,
-			Name:                  row.Name,
-			PinnedPostID:          row.PinnedPostID,
-			UserDisplayProperties: row.UserDisplayProperties,
-			ReferralCode:          row.ReferralCode,
-		})
-	}
-
-	return publicUsers, nil
-}
-
 func (r Store) GetRelationshipUserIds(ctx context.Context, userId int, limit int, before *time.Time) ([]int, *time.Time, error) {
 	rows, err := r.querier.ListUserRelationships(ctx, queries.ListUserRelationshipsParams{
 		UserID: userId,

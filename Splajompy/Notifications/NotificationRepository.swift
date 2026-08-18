@@ -44,18 +44,6 @@ struct Notification: Identifiable, Decodable, Equatable {
 }
 
 protocol NotificationServiceProtocol: Sendable {
-  func getAllNotifications(offset: Int, limit: Int) async -> Result<
-    [Notification], Error
-  >
-
-  func getUnreadNotifications(offset: Int, limit: Int) async -> Result<
-    [Notification], Error
-  >
-
-  func getReadNotifications(offset: Int, limit: Int) async -> Result<
-    [Notification], Error
-  >
-
   func markNotificationAsRead(notificationId: Int) async -> Result<Void, Error>
 
   func markAllNotificationsAsRead() async -> Result<Void, Error>
@@ -88,20 +76,6 @@ protocol NotificationServiceProtocol: Sendable {
 }
 
 struct NotificationService: NotificationServiceProtocol {
-  func getAllNotifications(offset: Int, limit: Int) async -> Result<
-    [Notification], Error
-  > {
-    let queryItems = [
-      URLQueryItem(name: "offset", value: "\(offset)"),
-      URLQueryItem(name: "limit", value: "\(limit)"),
-    ]
-
-    return await APIService.performRequest(
-      endpoint: "notifications",
-      queryItems: queryItems
-    )
-  }
-
   func markNotificationAsRead(notificationId: Int) async -> Result<Void, Error> {
     return await APIService.performRequest(
       endpoint: "notifications/\(notificationId)/markRead",
@@ -124,34 +98,6 @@ struct NotificationService: NotificationServiceProtocol {
     return await APIService.performRequest(
       endpoint: "notifications/unreadCount"
     )
-  }
-
-  func getUnreadNotifications(offset: Int, limit: Int) async -> Result<
-    [Notification], Error
-  > {
-    let queryItems = [
-      URLQueryItem(name: "offset", value: "\(offset)"),
-      URLQueryItem(name: "limit", value: "\(limit)"),
-    ]
-
-    return await APIService.performRequest(
-      endpoint: "notifications/unread",
-      queryItems: queryItems
-    )
-  }
-
-  func getReadNotifications(offset: Int, limit: Int) async -> Result<
-    [Notification], Error
-  > {
-    let result = await getAllNotifications(offset: offset, limit: limit)
-
-    switch result {
-    case .success(let notifications):
-      let readNotifications = notifications.filter { $0.viewed }
-      return .success(readNotifications)
-    case .failure(let error):
-      return .failure(error)
-    }
   }
 
   func getReadNotificationsWithTimeOffset(
@@ -211,25 +157,10 @@ struct NotificationService: NotificationServiceProtocol {
   ) async
     -> Result<[Notification], Error>
   {
-    let result = await getReadNotificationsWithTimeOffset(
+    return await getReadNotificationsWithTimeOffset(
       beforeTime: beforeTime,
       limit: limit,
       notificationType: notificationType
     )
-
-    return result
-
-    //    switch result {
-    //    case .success(let notifications):
-    //      return .success(notifications)
-    // TODO: cleanup
-    //      let sectionedNotifications = Dictionary(grouping: notifications) {
-    //        notification in
-    //        return notification.createdAt.notificationSection()
-    //      }
-    //      return .success(NotificationSectionData(sections: sectionedNotifications))
-    //    case .failure(let error):
-    //      return .failure(error)
-    //    }
   }
 }

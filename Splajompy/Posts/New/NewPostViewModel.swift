@@ -216,11 +216,5 @@ extension NewPostView {
         }
       }
     }
-
-    func resetInputState() {
-      text = NSAttributedString(string: "")
-      selectedRange = NSRange(location: 0, length: 0)
-      poll = nil
-    }
   }
 }

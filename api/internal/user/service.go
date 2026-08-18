@@ -176,10 +176,6 @@ func (s *Service) UnmuteUser(ctx context.Context, currentUser models.PublicUser,
 	return s.store.UnmuteUser(ctx, currentUser.UserID, userId)
 }
 
-func (s *Service) IsMutingUser(ctx context.Context, userId int, targetUserId int) (bool, error) {
-	return s.store.IsUserMutingUser(ctx, userId, targetUserId)
-}
-
 func (s *Service) RequestFeature(ctx context.Context, user models.PublicUser, text string) error {
 	requestingUser, err := s.store.GetUserById(ctx, user.UserID)
 	if err != nil {
