@@ -105,7 +105,6 @@ class PostStore {
     cacheAccessOrder.removeAll()
   }
 
-
   func loadSingleCachedPost(postId: Int) async -> PostState {
     if let cachedPost = getPost(id: postId) {
       return .loaded(cachedPost)
