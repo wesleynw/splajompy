@@ -16,7 +16,7 @@ struct NewPostView: View {
 
   @Environment(\.dismiss) private var dismiss
 
-  init(onPostCreated: @escaping () -> Void = {}) {
+  init(onPostCreated: @escaping () async -> Void = {}) {
     _viewModel = State(
       wrappedValue: ViewModel(onPostCreated: onPostCreated)
     )

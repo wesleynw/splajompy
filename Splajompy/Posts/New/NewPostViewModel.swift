@@ -64,10 +64,10 @@ extension NewPostView {
       }
     }
 
-    private let onPostCreated: () -> Void
+    private let onPostCreated: () async -> Void
     private let stagingFolder = UUID()
 
-    init(onPostCreated: @escaping () -> Void) {
+    init(onPostCreated: @escaping () async -> Void) {
       self.onPostCreated = onPostCreated
     }
 
@@ -202,9 +202,9 @@ extension NewPostView {
 
         switch result {
         case .success:
-          isLoading = false
           PostHogSDK.shared.capture("post_created")
-          onPostCreated()
+          await onPostCreated()
+          isLoading = false
           dismiss()
         case .failure(let error):
           errorDisplay = error.localizedDescription
