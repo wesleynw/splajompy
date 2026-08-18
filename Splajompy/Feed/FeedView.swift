@@ -46,24 +46,32 @@ struct FeedView: View {
           await viewModel.loadPosts(reset: true)
         }
       }
-      .sheet(isPresented: $isShowingNewPostView) {
-        NewPostView(
-          onPostCreated: {
-            Task {
+      #if os(iOS)
+        .fullScreenCover(isPresented: $isShowingNewPostView) {
+          NewPostView(
+            onPostCreated: {
               await viewModel.loadPosts(reset: true)
             }
-          }
-        )
-        #if os(iOS)
+          )
           .modify {
             if #available(iOS 18, *) {
               $0.navigationTransition(.zoom(sourceID: "zoom", in: namespace))
             }
           }
-        #endif
-        .postHogScreenView()
-        .interactiveDismissDisabled()
-      }
+          .postHogScreenView()
+          .interactiveDismissDisabled()
+        }
+      #else
+        .sheet(isPresented: $isShowingNewPostView) {
+          NewPostView(
+            onPostCreated: {
+              await viewModel.loadPosts(reset: true)
+            }
+          )
+          .postHogScreenView()
+          .interactiveDismissDisabled()
+        }
+      #endif
       .sensoryFeedback(.selection, trigger: isShowingNewPostView)
       .toolbar {
         ToolbarItem(
