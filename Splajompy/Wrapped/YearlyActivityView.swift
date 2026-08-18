@@ -21,14 +21,6 @@ struct YearlyActivityView: View {
     allDates.last
   }
 
-  private func formattedDate(_ dateString: String) -> String {
-    let formatter = DateFormatter()
-    formatter.dateFormat = "yyyy-MM-dd"
-    guard let date = formatter.date(from: dateString) else { return "" }
-    formatter.dateFormat = "MMM d"
-    return formatter.string(from: date)
-  }
-
   var body: some View {
     if showIntroText {
       VStack {

@@ -254,33 +254,6 @@ struct MockProfileService: ProfileServiceProtocol {
     return .success(())
   }
 
-  func getFollowers(userId: Int, limit: Int, before: Date?) async
-    -> Result<[DetailedUser], Error>
-  {
-    try? await Task.sleep(nanoseconds: 300_000_000)
-    let allUsers = Array(store.users.values)
-
-    let paginatedUsers = Array(allUsers).map { profile in
-      DetailedUser(
-        userId: profile.userId,
-        username: profile.username,
-        createdAt: profile.createdAt,
-        name: profile.name,
-        bio: profile.bio,
-        isFollower: profile.isFollower,
-        isFollowing: profile.isFollowing,
-        isBlocking: profile.isBlocking,
-        isMuting: profile.isMuting,
-        isFriend: profile.isFriend,
-        mutuals: profile.mutuals,
-        mutualCount: profile.mutuals.count,
-        isVerified: profile.isVerified,
-        displayProperties: profile.displayProperties
-      )
-    }
-    return .success(paginatedUsers)
-  }
-
   func getFollowing(userId: Int, limit: Int, before: Date?) async -> Result<
     PaginatedUserList, Error
   > {

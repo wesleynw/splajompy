@@ -28,16 +28,13 @@ func (h *Handler) RegisterRoutes(_, withAuth func(string, func(http.ResponseWrit
 
 	// users
 	withAuth("GET /user/{id}", h.GetUserById)
-	withAuth("GET /v2/user/{id}/following", h.GetFollowingByUserId)
 	withAuth("GET /v3/user/{id}/following", h.GetFollowingByUserId)
-	withAuth("GET /v2/user/{id}/mutuals", h.GetMutualsByUserId)
 	withAuth("GET /v3/user/{id}/mutuals", h.GetMutualsByUserIdV3)
 	withAuth("GET /users/notification/{id}", h.ListNotificationActors)
 	withAuth("GET /users/search", h.SearchUsers)
 
 	withAuth("POST /user/{id}/friend", h.AddUserToCloseFriendsList)
 	withAuth("DELETE /user/{id}/friend", h.RemoveUserFromCloseFriendsList)
-	withAuth("GET /user/friends", h.ListUserCloseFriends)
 	withAuth("GET /v2/user/friends", h.ListUserCloseFriendsV2)
 
 	withAuth("POST /request-feature", h.RequestFeature)
@@ -256,30 +253,6 @@ func (h *Handler) GetFollowingByUserId(w http.ResponseWriter, r *http.Request) {
 	utilities.HandleSuccess(w, result)
 }
 
-func (h *Handler) GetMutualsByUserId(w http.ResponseWriter, r *http.Request) {
-	user := utilities.GetAuthenticatedUser(r)
-
-	targetUserId, err := utilities.GetIntPathParam(r, "id")
-	if err != nil {
-		utilities.HandleError(w, http.StatusBadRequest, "Missing user ID parameter")
-		return
-	}
-
-	limit, before, err := utilities.ParseTimeBasedPagination(r)
-	if err != nil {
-		utilities.HandleError(w, http.StatusBadRequest, "Unable to parse pagination parameters ('limit' and 'before'")
-		return
-	}
-
-	result, err := h.svc.GetMutualsByUserId(r.Context(), *user, targetUserId, limit, before)
-	if err != nil {
-		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
-		return
-	}
-
-	utilities.HandleSuccess(w, result.Users)
-}
-
 func (h *Handler) GetMutualsByUserIdV3(w http.ResponseWriter, r *http.Request) {
 	user := utilities.GetAuthenticatedUser(r)
 
@@ -365,24 +338,6 @@ func (h Handler) RemoveUserFromCloseFriendsList(w http.ResponseWriter, r *http.R
 	}
 
 	utilities.HandleEmptySuccess(w)
-}
-
-func (h Handler) ListUserCloseFriends(w http.ResponseWriter, r *http.Request) {
-	limit, before, err := utilities.ParseTimeBasedPagination(r)
-	if err != nil {
-		utilities.HandleError(w, http.StatusBadRequest, "Unable to parse pagination parameters ('limit' and 'before'")
-		return
-	}
-
-	user := utilities.GetAuthenticatedUser(r)
-
-	result, err := h.svc.GetCloseFriendsByUserId(r.Context(), *user, limit, before)
-	if err != nil {
-		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
-		return
-	}
-
-	utilities.HandleSuccess(w, result.Users)
 }
 
 func (h *Handler) ListNotificationActors(w http.ResponseWriter, r *http.Request) {

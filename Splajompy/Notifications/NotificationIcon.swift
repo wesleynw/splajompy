@@ -23,8 +23,4 @@ struct NotificationIcon {
   static func icon(for notificationType: String) -> some View {
     Image(systemName: iconName(for: notificationType))
   }
-
-  static func defaultIcon() -> some View {
-    Image(systemName: "bell.fill")
-  }
 }

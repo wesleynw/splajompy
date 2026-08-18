@@ -114,10 +114,6 @@ func MapToken(token queries.DeviceToken) models.Device {
 	}
 }
 
-type ErrorResponse struct {
-	Message string `json:"message"`
-}
-
 func HandleError(w http.ResponseWriter, statusCode int, message string) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(statusCode)
