@@ -110,28 +110,30 @@ struct FeedView: View {
 
   @ViewBuilder
   private var mainContent: some View {
-    switch viewModel.state {
-    case .idle, .loading:
-      ProgressView()
-        #if os(macOS)
-          .controlSize(.small)
-        #endif
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-    case .loaded(let posts):
-      if posts.isEmpty {
-        emptyMessage
-      } else {
-        postList(posts: posts)
-      }
-    case .failed(let error):
-      ErrorScreen(
-        errorString: error.localizedDescription,
-        source: "FeedView",
-        onRetry: {
-          await viewModel.loadPosts(preserveCurrentState: true, reset: true)
+    VStack {
+      switch viewModel.state {
+      case .idle, .loading:
+        ProgressView()
+          #if os(macOS)
+            .controlSize(.small)
+          #endif
+          .frame(maxWidth: .infinity, maxHeight: .infinity)
+      case .loaded(let posts):
+        if posts.isEmpty {
+          emptyMessage
+        } else {
+          postList(posts: posts)
         }
-      )
-      .frame(maxWidth: .infinity, maxHeight: .infinity)
+      case .failed(let error):
+        ErrorScreen(
+          errorString: error.localizedDescription,
+          source: "FeedView",
+          onRetry: {
+            await viewModel.loadPosts(preserveCurrentState: true, reset: true)
+          }
+        )
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+      }
     }
   }
 
