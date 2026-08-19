@@ -50,7 +50,7 @@ struct FeedView: View {
         .fullScreenCover(isPresented: $isShowingNewPostView) {
           NewPostView(
             onPostCreated: {
-              await viewModel.loadPosts(reset: true)
+              await viewModel.loadPosts(preserveCurrentState: true, reset: true)
             }
           )
           .modify {
@@ -65,7 +65,7 @@ struct FeedView: View {
         .sheet(isPresented: $isShowingNewPostView) {
           NewPostView(
             onPostCreated: {
-              await viewModel.loadPosts(reset: true)
+              await viewModel.loadPosts(preserveCurrentState: true, reset: true)
             }
           )
           .postHogScreenView()
