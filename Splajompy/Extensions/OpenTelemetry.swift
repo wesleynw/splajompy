@@ -32,6 +32,7 @@ func initializeOtel() {
     ),
     "service.namespace": AttributeValue.string("splajompy"),
     "deployment.environment": AttributeValue.string(environment),
+    "grafana.host.id": AttributeValue.string("ios"),
   ])
 
   OpenTelemetry.registerTracerProvider(

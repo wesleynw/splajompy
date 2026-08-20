@@ -6,57 +6,56 @@ struct PollPreviewView: View {
   let onEdit: () -> Void
 
   var body: some View {
-    Group {
+    Button(action: onEdit) {
       HStack {
         Image(systemName: "chart.bar.fill")
           .foregroundStyle(.accent)
           .font(.body)
 
-        VStack(alignment: .leading, spacing: 2) {
-          if !poll.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            Text(poll.title)
-              .font(.body)
-              .fontWeight(.semibold)
-              .multilineTextAlignment(.leading)
-          } else {
-            Text("Poll")
-              .font(.body)
-              .fontWeight(.semibold)
-              .foregroundStyle(.secondary)
-          }
-
-          Text("\(poll.options.count) options")
-            .font(.caption)
+        if !poll.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+          Text(poll.title)
+            .font(.body)
+            .fontWeight(.semibold)
+            .lineLimit(1)
+            .truncationMode(.tail)
+        } else {
+          Text("Poll")
+            .font(.body)
+            .fontWeight(.semibold)
             .foregroundStyle(.secondary)
         }
 
-        Spacer()
-
-        Button("Edit") {
-          onEdit()
-        }
-        .font(.callout)
-        .fontWeight(.medium)
-        .foregroundStyle(.accent)
-        .padding(.horizontal, 8)
-        .padding(.vertical, 4)
-        .background(
-          Color.accent.opacity(0.1),
-          in: RoundedRectangle(cornerRadius: 6)
-        )
-
-        Button {
-          onRemove()
-        } label: {
-          Image(systemName: "xmark.circle.fill")
-            .foregroundStyle(.red)
-            .font(.title3)
-        }
-        .padding(.leading, 4)
+        Spacer(minLength: 0)
       }
       .padding()
+      .frame(maxWidth: .infinity, alignment: .leading)
+      .contentShape(Rectangle())
     }
+    .buttonStyle(.plain)
     .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12))
+    .overlay(alignment: .topTrailing) {
+      Button {
+        onRemove()
+      } label: {
+        ZStack {
+          Circle()
+            .fill(.regularMaterial)
+            .frame(width: 22, height: 22)
+            .shadow(
+              color: Color.black.opacity(0.2),
+              radius: 2,
+              x: 0,
+              y: 1
+            )
+
+          Image(systemName: "xmark")
+            .font(.system(size: 10, weight: .bold))
+            .foregroundStyle(.gray)
+        }
+      }
+      .buttonStyle(.plain)
+      .offset(x: 8, y: -8)
+    }
     .padding()
   }
 }

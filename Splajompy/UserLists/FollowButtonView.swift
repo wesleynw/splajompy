@@ -23,8 +23,7 @@ struct FollowButtonView: View {
           .fontWeight(.medium)
       }
     }
-    .frame(width: 70)
-    .padding(.vertical, 6)
+    .frame(width: 70, height: 30)
     .background(
       user.isFollowing
         ? Color.gray.opacity(0.2).gradient : Color.accentColor.gradient

@@ -130,7 +130,8 @@ struct LikeButton: View {
       Image(systemName: isLiked ? "heart.fill" : "heart")
         .font(.system(size: 16))
         .foregroundStyle(isLiked ? Color.red.gradient : Color.primary.gradient)
-        .padding(6)
+        .frame(width: 32, height: 32)
+        .contentShape(.rect)
         .scaleEffect(isLiked ? 1.1 : 1)
         .animation(
           .spring(response: 0.4, dampingFraction: 0.6, blendDuration: 0),

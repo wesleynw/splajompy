@@ -109,7 +109,7 @@ struct PollView: View {
         .overlay {
           if isSelected {
             RoundedRectangle(cornerRadius: 12)
-              .stroke(Color.accentColor.gradient.opacity(0.5), lineWidth: 2)
+              .stroke(Color.accentColor, lineWidth: 2)
           }
         }
       }
