@@ -194,7 +194,7 @@ struct PostView: View {
         ) {
           Image(systemName: "ellipsis")
             .font(.system(size: 22))
-            .frame(width: 48)
+            .frame(width: 48, height: 40)
             .contentShape(.rect)
         }
         .buttonStyle(.plain)

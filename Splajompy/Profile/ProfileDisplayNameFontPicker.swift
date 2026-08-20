@@ -47,6 +47,7 @@ struct ProfileDisplayNameFontPicker: View {
                   .foregroundStyle(.accent)
               }
             }
+            .contentShape(Rectangle())
           }
           .buttonStyle(.plain)
           .foregroundStyle(.primary)

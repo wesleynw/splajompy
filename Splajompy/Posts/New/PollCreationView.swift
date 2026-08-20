@@ -12,6 +12,10 @@ struct PollCreationView: View {
   ]
   @FocusState private var focusedField: Int?
 
+  #if os(iOS)
+    @State private var editMode: EditMode = .inactive
+  #endif
+
   var body: some View {
     NavigationStack {
       formContent
@@ -39,21 +43,29 @@ struct PollCreationView: View {
 
           #if os(iOS)
             ToolbarItem(placement: .topBarTrailing) {
-              EditButton()
+              Button {
+                withAnimation {
+                  editMode = editMode.isEditing ? .inactive : .active
+                }
+              } label: {
+                Text(editMode.isEditing ? "Done" : "Edit")
+              }
             }
           #endif
 
           ToolbarItem(placement: .confirmationAction) {
             #if os(iOS)
-              if #available(iOS 26, *) {
-                Button(role: .confirm, action: savePoll)
+              if !editMode.isEditing {
+                if #available(iOS 26, *) {
+                  Button(role: .confirm, action: savePoll)
+                    .disabled(!isValidPoll)
+                } else {
+                  Button(action: savePoll) {
+                    Image(systemName: "checkmark.circle.fill")
+                      .opacity(0.8)
+                  }
                   .disabled(!isValidPoll)
-              } else {
-                Button(action: savePoll) {
-                  Image(systemName: "checkmark.circle.fill")
-                    .opacity(0.8)
                 }
-                .disabled(!isValidPoll)
               }
             #else
               Button("Save") {
@@ -87,13 +99,16 @@ struct PollCreationView: View {
         addOptionButton: addOptionButton
       )
     }
+    #if os(iOS)
+      .environment(\.editMode, $editMode)
+    #endif
   }
 
   private var isValidPoll: Bool {
-    title.count <= 100
+    title.count <= 200
       && options.filter {
         !$0.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-      }.count >= 2 && options.allSatisfy({ $0.text.count <= 25 })
+      }.count >= 2 && options.allSatisfy({ $0.text.count <= 50 })
   }
 
   private var addOptionButton: some View {
@@ -158,9 +173,9 @@ private struct PollFormContent<AddButton: View>: View {
         #endif
         HStack {
           Spacer()
-          Text("\(title.count)/100")
+          Text("\(title.count)/200")
             .font(.caption2)
-            .foregroundStyle(title.count > 100 ? .orange : .secondary)
+            .foregroundStyle(title.count > 200 ? .orange : .secondary)
         }
       }
     } header: {
@@ -195,11 +210,11 @@ private struct PollFormContent<AddButton: View>: View {
             .focused($focusedField, equals: index)
           #endif
 
-          if focusedField == index || options[index].text.count > 25 {
-            Text("\(options[index].text.count)/25")
+          if focusedField == index || options[index].text.count > 50 {
+            Text("\(options[index].text.count)/50")
               .font(.caption2)
               .foregroundStyle(
-                options[index].text.count > 25 ? .orange : .secondary
+                options[index].text.count > 50 ? .orange : .secondary
               )
           }
         }
