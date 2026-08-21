@@ -137,10 +137,37 @@ struct FeedView: View {
     }
   }
 
+  @ViewBuilder
   private func postList(posts: [ObservablePost]) -> some View {
+    // TODO: remove `|| true` once this is ready to gate on the real flag value
+    let isCaughtUpFeedEnabled =
+      PostHogSDK.shared.isFeatureEnabled("caught-up-feed") || true
+    let recentPosts = posts.prefix { $0.post.createdAt > viewModel.caughtUpCutoffDate }
+    let hasOlderPosts = isCaughtUpFeedEnabled && recentPosts.count < posts.count
+    let visiblePosts =
+      (viewModel.showOlderPosts || !isCaughtUpFeedEnabled) ? posts : Array(recentPosts)
+
+    if visiblePosts.isEmpty && !viewModel.showOlderPosts && hasOlderPosts {
+      CaughtUpView(onShowOlderPosts: { viewModel.revealOlderPosts() })
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+        .onAppear {
+          viewModel.markCaughtUp()
+        }
+    } else {
+      scrollablePostList(
+        visiblePosts: visiblePosts,
+        hasOlderPosts: hasOlderPosts
+      )
+    }
+  }
+
+  private func scrollablePostList(
+    visiblePosts: [ObservablePost],
+    hasOlderPosts: Bool
+  ) -> some View {
     ScrollView(.vertical) {
       LazyVStack(spacing: 0) {
-        ForEach(Array(posts.enumerated()), id: \.element.id) {
+        ForEach(Array(visiblePosts.enumerated()), id: \.element.id) {
           index,
           post in
 
@@ -161,7 +188,13 @@ struct FeedView: View {
           #endif
         }
 
-        if viewModel.canLoadMore {
+        if !viewModel.showOlderPosts && hasOlderPosts {
+          Divider()
+          CaughtUpView(onShowOlderPosts: { viewModel.revealOlderPosts() })
+            .onAppear {
+              viewModel.markCaughtUp()
+            }
+        } else if viewModel.canLoadMore {
           ProgressView()
             #if os(macOS)
               .controlSize(.small)
