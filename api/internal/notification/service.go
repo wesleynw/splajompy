@@ -222,7 +222,7 @@ func (s *Service) AddLikeNotification(ctx context.Context, currentUserId int, po
 		if err != nil {
 			return err
 		}
-		notification, err := s.AddNotification(ctx, recipientId, &postId, commentId, *message, models.NotificationTypeLike, nil)
+		notification, err := s.AddNotification(ctx, recipientId, &postId, commentId, nil, *message, models.NotificationTypeLike, nil)
 		if err != nil {
 			return err
 		}
@@ -313,13 +313,22 @@ func (s *Service) RemoveLikeNotification(ctx context.Context, currentUserId int,
 }
 
 // AddNotification will enrich the notification message with facets, then store.
-func (s *Service) AddNotification(ctx context.Context, targetUserId int, postId *int, commentId *int, message string, notificationType models.NotificationType, notificationBody *string) (*models.Notification, error) {
+func (s *Service) AddNotification(ctx context.Context, userId int, postId *int, commentId *int, targetUserId *int, message string, notificationType models.NotificationType, notificationBody *string) (*models.Notification, error) {
 	facets, err := utilities.GenerateFacets(ctx, s.userRepository, message)
 	if err != nil {
 		return nil, err
 	}
 
-	notification, err := s.notificationRepository.InsertNotification(ctx, targetUserId, postId, commentId, &facets, message, notificationType, nil)
+	var targetUsername *string
+	if targetUserId != nil {
+		user, err := s.userRepository.GetUserById(ctx, *targetUserId)
+		if err != nil {
+			return nil, err
+		}
+		targetUsername = &user.Username
+	}
+
+	notification, err := s.notificationRepository.InsertNotification(ctx, userId, postId, commentId, &facets, message, notificationType, targetUserId)
 	if err != nil {
 		return nil, err
 	}
@@ -333,19 +342,15 @@ func (s *Service) AddNotification(ctx context.Context, targetUserId int, postId 
 		}
 		identifier = postId
 	case models.NotificationTypeFollowers:
-		identifier = &targetUserId
-		user, err := s.userRepository.GetUserById(ctx, targetUserId)
-		if err != nil {
-			return nil, err
-		}
-		username = &user.Username
+		identifier = targetUserId
+		username = targetUsername
 	default:
 		identifier = nil
 	}
 
 	// execute in background ctx to avoid cancellation, but still use current span as parent
 	traceCtx := trace.ContextWithSpan(context.Background(), trace.SpanFromContext(ctx))
-	go s.sendPush(traceCtx, notification.NotificationID, targetUserId, message, notificationBody, notificationType, identifier, username)
+	go s.sendPush(traceCtx, notification.NotificationID, userId, message, notificationBody, notificationType, identifier, username)
 
 	return notification, nil
 }

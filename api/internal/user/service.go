@@ -102,7 +102,7 @@ func (s *Service) FollowUser(ctx context.Context, currentUser models.PublicUser,
 
 	text := fmt.Sprintf("@%s followed you", currentUser.Username)
 	body := "Tap to view their profile"
-	_, err = s.notificationService.AddNotification(ctx, user.UserID, nil, nil, text, models.NotificationTypeFollowers, &body)
+	_, err = s.notificationService.AddNotification(ctx, user.UserID, nil, nil, &currentUser.UserID, text, models.NotificationTypeFollowers, &body)
 	if err != nil {
 		return err
 	}
