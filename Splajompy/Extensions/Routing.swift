@@ -2,7 +2,7 @@ import SwiftUI
 
 enum Route: Hashable {
   // TODO: id should be int
-  case profile(id: String, username: String?)
+  case profile(id: String, username: String)
   case post(id: Int)
   case followingList(userId: Int)
   case mutualsList(userId: Int)

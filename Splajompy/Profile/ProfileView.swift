@@ -2,7 +2,7 @@ import PostHog
 import SwiftUI
 
 struct ProfileView: View {
-  let username: String?
+  let username: String
   let userId: Int
   let isProfileTab: Bool
 
@@ -15,22 +15,9 @@ struct ProfileView: View {
     authManager.currentUser?.userId == self.userId
   }
 
-  private var computedTitle: String {
-    if let username = username {
-      return "@" + username
-    }
-
-    switch viewModel.profileState {
-    case .loaded(let user, _):
-      return "@" + user.username
-    default:
-      return ""
-    }
-  }
-
   init(
     userId: Int,
-    username: String?,
+    username: String,
     postManager: PostStore,
     isProfileTab: Bool = false,
     viewModel: ViewModel? = nil
@@ -81,7 +68,7 @@ struct ProfileView: View {
       }
     }
     .pageTitle(
-      computedTitle,
+      "@" + self.username,
       placement: .leading,
       font: isProfileTab ? SJFont.title : SJFont.heading,
     )
