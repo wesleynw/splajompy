@@ -325,8 +325,12 @@ func main() {
 						Rule: pulumi.String("DOMAIN_FAILED"),
 					},
 				},
-				Domains: pulumi.StringArray{
-					pulumi.Sprintf("api.%s", domain.Name),
+				DomainNames: digitalocean.AppSpecDomainNameArray{
+					digitalocean.AppSpecDomainNameArgs{
+						Name: pulumi.Sprintf("api.%s", domain.Name),
+						Type: pulumi.String("PRIMARY"),
+						Zone: domain.Name,
+					},
 				},
 				Name:   pulumi.String("splajompy-app"),
 				Region: pulumi.String("nyc"),
