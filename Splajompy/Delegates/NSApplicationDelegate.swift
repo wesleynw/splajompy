@@ -45,7 +45,7 @@ class AppDelegate: NSObject, NSApplicationDelegate,
       @escaping () -> Void
   ) {
     defer { completionHandler() }
-    
+
     if let route = routeUNNotificationRequest(response.notification.request) {
       RoutingHelper.shared.pendingRoute = route
     }
