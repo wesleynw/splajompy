@@ -44,53 +44,10 @@ class AppDelegate: NSObject, NSApplicationDelegate,
     withCompletionHandler completionHandler:
       @escaping () -> Void
   ) {
-    guard
-      let notificationType = response.notification.request.content.userInfo[
-        "type"
-      ] as? String
-    else {
-      print("unknown notification type")
-      return
-    }
-
-    guard
-      let identifier = response.notification.request.content.userInfo[
-        "identifier"
-      ] as? Int
-    else {
-      print("unknown notification type")
-      return
-    }
-
-    let route: Route? =
-      switch notificationType {
-      case "follow":
-        .profile(id: String(identifier), username: nil)
-      case "comment", "mention":
-        .post(id: identifier)
-      default:
-        nil
-      }
-
-    guard
-      let notificationId = response.notification.request.content.userInfo[
-        "notificationId"
-      ] as? Int
-    else {
-      print("unknown notification id")
-      return
-    }
-
-    Task {
-      await NotificationService().markNotificationAsRead(
-        notificationId: notificationId
-      )
-    }
-
-    if let route {
+    defer { completionHandler() }
+    
+    if let route = routeUNNotificationRequest(response.notification.request) {
       RoutingHelper.shared.pendingRoute = route
     }
-
-    completionHandler()
   }
 }
