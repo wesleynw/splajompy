@@ -325,6 +325,7 @@ func (s *Service) AddNotification(ctx context.Context, targetUserId int, postId 
 	}
 
 	var identifier *int
+	var username *string
 	switch notificationType {
 	case models.NotificationTypeComment, models.NotificationTypeMention:
 		if postId == nil {
@@ -333,19 +334,24 @@ func (s *Service) AddNotification(ctx context.Context, targetUserId int, postId 
 		identifier = postId
 	case models.NotificationTypeFollowers:
 		identifier = &targetUserId
+		user, err := s.userRepository.GetUserById(ctx, targetUserId)
+		if err != nil {
+			return nil, err
+		}
+		username = &user.Username
 	default:
 		identifier = nil
 	}
 
 	// execute in background ctx to avoid cancellation, but still use current span as parent
 	traceCtx := trace.ContextWithSpan(context.Background(), trace.SpanFromContext(ctx))
-	go s.sendPush(traceCtx, notification.NotificationID, targetUserId, message, notificationBody, notificationType, identifier)
+	go s.sendPush(traceCtx, notification.NotificationID, targetUserId, message, notificationBody, notificationType, identifier, username)
 
 	return notification, nil
 }
 
 // sendPush checks the recipient's push preferences and sends to all their devices if enabled.
-func (s *Service) sendPush(ctx context.Context, notificationId int, recipientId int, title string, body *string, notificationType models.NotificationType, identifier *int) {
+func (s *Service) sendPush(ctx context.Context, notificationId int, recipientId int, title string, body *string, notificationType models.NotificationType, identifier *int, username *string) {
 	devices, err := s.notificationRepository.GetDeviceTokensForUser(ctx, recipientId)
 	if err != nil || len(devices) == 0 {
 		return
@@ -385,6 +391,9 @@ func (s *Service) sendPush(ctx context.Context, notificationId int, recipientId 
 
 		if identifier != nil {
 			payload.Identifier = *identifier
+		}
+		if username != nil {
+			payload.Username = username
 		}
 
 		n := apns.Notification{
