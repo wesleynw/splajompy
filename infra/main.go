@@ -61,13 +61,6 @@ func main() {
 			return err
 		}
 
-		_, err = digitalocean.NewSpacesBucket(ctx, "splajompy-bucket", &digitalocean.SpacesBucketArgs{
-			Name: pulumi.String("splajompy-bucket"),
-		}, pulumi.Protect(true))
-		if err != nil {
-			return err
-		}
-
 		user, err := iam.NewUser(ctx, "splajompy-prod-bucket-user", &iam.UserArgs{
 			Name: pulumi.String("splajompy-prod-bucket-user"),
 			Tags: awsTags,
