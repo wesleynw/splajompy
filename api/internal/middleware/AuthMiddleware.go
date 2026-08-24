@@ -53,8 +53,7 @@ func AuthMiddleware(q *queries.Queries) func(http.Handler) http.Handler {
 			}
 			// want to be careful here: if it's a server error, don't want to be logging
 			// people out automatically
-			var connectError *pgconn.ConnectError
-			if errors.As(err, &connectError) {
+			if _, ok := errors.AsType[*pgconn.ConnectError](err); ok {
 				slog.ErrorContext(ctx, "auth: db connection error looking up session", "error", err)
 				http.Error(w, "something went wrong", http.StatusInternalServerError)
 				return
