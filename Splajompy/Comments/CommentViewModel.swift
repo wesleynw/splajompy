@@ -33,6 +33,8 @@ extension CommentsView {
     var errorMessage: String?
     var postManager: PostStore
 
+    var pendingScrollCommentId: Int?
+
     var text: NSAttributedString = NSAttributedString(string: "")
 
     var imageSelection: PhotosPickerItem? = nil {
@@ -140,24 +142,26 @@ extension CommentsView {
         currentComments.insert(comment, at: 0)
       }
 
-      state = .loaded(currentComments)
+      withAnimation {
+        state = .loaded(currentComments)
+      }
+      pendingScrollCommentId = comment.commentId
     }
 
-    /// Submits the current comment draft and returns the new comment's id on success.
-    func submitComment() async -> Int? {
+    func submitComment() async -> Bool {
       let text = text.string.trimmingCharacters(
         in: .whitespacesAndNewlines
       )
       await uploadTask?.value
 
       let hasImage = imageState.hasPhoto
-      guard !text.isEmpty || hasImage else { return nil }
+      guard !text.isEmpty || hasImage else { return false }
 
       let imageData: ImageData? = if case .uploaded(_, let data) = imageState { data } else { nil }
       guard !hasImage || imageData != nil else {
         errorMessage = "Image upload failed. Please retry or remove the image."
         showError = true
-        return nil
+        return false
       }
 
       isSubmitting = true
@@ -175,12 +179,12 @@ extension CommentsView {
           post.commentCount += 1
         }
 
-        return newComment.commentId
+        return true
       case .failure(let error):
         print("Error adding comment: \(error.localizedDescription)")
         errorMessage = error.localizedDescription
         showError = true
-        return nil
+        return false
       }
     }
 
