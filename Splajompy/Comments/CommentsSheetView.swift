@@ -38,53 +38,67 @@ struct CommentsSheetView: View {
 
   var body: some View {
     NavigationStack {
-      ScrollView {
-        if case .loaded(let comments) = viewModel.state {
-          if !comments.isEmpty {
-            ForEach(comments, id: \.commentId) { comment in
-              CommentRow(
-                comment: comment,
-                isInSheet: true,
-                toggleLike: {
-                  viewModel.toggleLike(for: comment)
-                },
-                deleteComment: {
-                  Task {
-                    await viewModel.deleteComment(comment)
-                    postManager.updatePost(id: postId) { post in
-                      post.commentCount -= 1
-                    }
-                  }
-                }
+      ScrollViewReader { proxy in
+        let scrollToNewComment: (Int) -> Void = { newCommentId in
+          DispatchQueue.main.async {
+            withAnimation {
+              proxy.scrollTo(
+                newCommentId,
+                anchor: viewModel.commentSortOrder == "Oldest First" ? .bottom : .top
               )
             }
           }
         }
-      }
-      .overlay {
-        switch viewModel.state {
-        case .idle, .loading:
-          ProgressView()
-        case .loaded(let comments):
-          if comments.isEmpty {
-            noCommentsView
+
+        ScrollView {
+          if case .loaded(let comments) = viewModel.state {
+            if !comments.isEmpty {
+              ForEach(comments, id: \.commentId) { comment in
+                CommentRow(
+                  comment: comment,
+                  isInSheet: true,
+                  toggleLike: {
+                    viewModel.toggleLike(for: comment)
+                  },
+                  deleteComment: {
+                    Task {
+                      await viewModel.deleteComment(comment)
+                      postManager.updatePost(id: postId) { post in
+                        post.commentCount -= 1
+                      }
+                    }
+                  }
+                )
+                .id(comment.commentId)
+              }
+            }
           }
-        case .failed(let error):
-          ErrorScreen(
-            errorString: error.localizedDescription,
-            source: "CommentsView",
-            onRetry: { viewModel.loadComments() }
-          )
         }
-      }
-      .modify {
-        if #available(iOS 26, macOS 26, *) {
-          $0.safeAreaBar(edge: .bottom) {
-            CommentInputView(viewModel: viewModel)
+        .overlay {
+          switch viewModel.state {
+          case .idle, .loading:
+            ProgressView()
+          case .loaded(let comments):
+            if comments.isEmpty {
+              noCommentsView
+            }
+          case .failed(let error):
+            ErrorScreen(
+              errorString: error.localizedDescription,
+              source: "CommentsView",
+              onRetry: { viewModel.loadComments() }
+            )
           }
-        } else {
-          $0.safeAreaInset(edge: .bottom) {
-            CommentInputView(viewModel: viewModel)
+        }
+        .modify {
+          if #available(iOS 26, macOS 26, *) {
+            $0.safeAreaBar(edge: .bottom) {
+              CommentInputView(viewModel: viewModel, onCommentAdded: scrollToNewComment)
+            }
+          } else {
+            $0.safeAreaInset(edge: .bottom) {
+              CommentInputView(viewModel: viewModel, onCommentAdded: scrollToNewComment)
+            }
           }
         }
       }

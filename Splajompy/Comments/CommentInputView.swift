@@ -8,6 +8,7 @@ private struct SelectedImage: Identifiable {
 
 struct CommentInputView: View {
   @Bindable var viewModel: CommentsView.ViewModel
+  var onCommentAdded: (Int) -> Void = { _ in }
 
   @State private var mentionViewModel =
     MentionTextEditor.MentionViewModel()
@@ -99,7 +100,9 @@ struct CommentInputView: View {
             Button(action: {
               mentionViewModel.clearMentionState()
               Task {
-                await viewModel.submitComment()
+                if let newCommentId = await viewModel.submitComment() {
+                  onCommentAdded(newCommentId)
+                }
               }
             }) {
               if viewModel.isSubmitting {
