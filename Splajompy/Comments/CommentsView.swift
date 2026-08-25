@@ -6,11 +6,6 @@ struct CommentsView: View {
   var scrollProxy: ScrollViewProxy?
 
   @State private var viewModel: ViewModel
-  @Environment(\.dismiss) private var dismiss
-
-  @State private var cursorY: CGFloat = 0
-  @State private var mentionViewModel =
-    MentionTextEditor.MentionViewModel()
 
   init(
     postId: Int,

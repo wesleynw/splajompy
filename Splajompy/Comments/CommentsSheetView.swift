@@ -7,14 +7,9 @@ struct CommentsSheetView: View {
   @State private var viewModel: CommentsView.ViewModel
   @Environment(\.dismiss) private var dismiss
 
-  @State private var cursorY: CGFloat = 0
-  @State private var mentionViewModel =
-    MentionTextEditor.MentionViewModel()
-
   init(
     postId: Int,
     postManager: PostStore,
-    isInSheet: Bool = true,
   ) {
     self.postId = postId
     _viewModel = State(
