@@ -33,8 +33,6 @@ extension CommentsView {
     var errorMessage: String?
     var postManager: PostStore
 
-    /// Id of a comment that was just added and still needs to be scrolled to.
-    /// The view clears this once it has scrolled the corresponding row into view.
     var pendingScrollCommentId: Int?
 
     var text: NSAttributedString = NSAttributedString(string: "")
