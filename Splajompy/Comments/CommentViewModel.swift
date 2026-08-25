@@ -143,20 +143,21 @@ extension CommentsView {
       state = .loaded(currentComments)
     }
 
-    func submitComment() async -> Bool {
+    /// Submits the current comment draft and returns the new comment's id on success.
+    func submitComment() async -> Int? {
       let text = text.string.trimmingCharacters(
         in: .whitespacesAndNewlines
       )
       await uploadTask?.value
 
       let hasImage = imageState.hasPhoto
-      guard !text.isEmpty || hasImage else { return false }
+      guard !text.isEmpty || hasImage else { return nil }
 
       let imageData: ImageData? = if case .uploaded(_, let data) = imageState { data } else { nil }
       guard !hasImage || imageData != nil else {
         errorMessage = "Image upload failed. Please retry or remove the image."
         showError = true
-        return false
+        return nil
       }
 
       isSubmitting = true
@@ -174,12 +175,12 @@ extension CommentsView {
           post.commentCount += 1
         }
 
-        return true
+        return newComment.commentId
       case .failure(let error):
         print("Error adding comment: \(error.localizedDescription)")
         errorMessage = error.localizedDescription
         showError = true
-        return false
+        return nil
       }
     }
 
