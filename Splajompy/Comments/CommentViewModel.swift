@@ -279,24 +279,3 @@ extension CommentsView {
     }
   }
 }
-
-extension View {
-  /// Scrolls to `commentId` the first time its row appears, if it's the comment
-  /// that was just added. No-ops for every other row.
-  func scrollToCommentWhenAdded(
-    _ commentId: Int,
-    viewModel: CommentsView.ViewModel,
-    proxy: ScrollViewProxy?
-  ) -> some View {
-    onAppear {
-      guard viewModel.pendingScrollCommentId == commentId else { return }
-      viewModel.pendingScrollCommentId = nil
-      withAnimation {
-        proxy?.scrollTo(
-          commentId,
-          anchor: viewModel.commentSortOrder == "Oldest First" ? .bottom : .top
-        )
-      }
-    }
-  }
-}
