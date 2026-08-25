@@ -8,12 +8,11 @@ struct MiniNotificationView: View {
     let nonEmptyLines = lines.filter { !$0.trimmingCharacters(in: .whitespaces).isEmpty }
     let cleanedText = nonEmptyLines.joined(separator: "\n")
     let markdown = generateAttributedStringUsingFacets(cleanedText, facets: [])
-    return try! AttributedString(
-      markdown: markdown,
-      options: AttributedString.MarkdownParsingOptions(
-        interpretedSyntax: .inlineOnlyPreservingWhitespace
-      )
+    let options = AttributedString.MarkdownParsingOptions(
+      interpretedSyntax: .inlineOnlyPreservingWhitespace
     )
+    return (try? AttributedString(markdown: markdown, options: options))
+      ?? AttributedString(cleanedText)
   }
 
   var body: some View {

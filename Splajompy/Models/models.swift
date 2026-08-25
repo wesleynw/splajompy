@@ -207,11 +207,9 @@ struct DetailedComment: Identifiable, Decodable, Equatable {
       facets: facets ?? []
     )
 
-    return try! AttributedString(
-      markdown: markdown,
-      options: AttributedString.MarkdownParsingOptions(
-        interpretedSyntax: .inlineOnlyPreservingWhitespace
-      )
+    let options = AttributedString.MarkdownParsingOptions(
+      interpretedSyntax: .inlineOnlyPreservingWhitespace
     )
+    return (try? AttributedString(markdown: markdown, options: options)) ?? AttributedString(text)
   }
 }

@@ -2,9 +2,9 @@ import NukeUI
 import SwiftUI
 
 struct SingleImageCellView: View {
-  @Binding var selectedImageIndex: Int?
   var animation: Namespace.ID
   let image: ImageDTO
+  let onSelect: (URL) -> Void
 
   var body: some View {
     if let url = URL(string: image.imageBlobUrl) {
@@ -12,7 +12,7 @@ struct SingleImageCellView: View {
       let clampedAspectRatio = min(max(rawAspectRatio, 0.4), 2.5)
 
       Button {
-        selectedImageIndex = 0
+        onSelect(url)
       } label: {
         LazyImage(url: url) { state in
           if let img = state.image {
@@ -57,9 +57,9 @@ struct SingleImageCellView: View {
   )
 
   SingleImageCellView(
-    selectedImageIndex: .constant(nil),
     animation: Namespace().wrappedValue,
-    image: image
+    image: image,
+    onSelect: { _ in }
   )
   .padding()
 }

@@ -114,7 +114,9 @@ struct ProfileService: ProfileServiceProtocol {
     }
 
     let container = Container(text: text)
-    let jsonData = try! JSONEncoder().encode(container)
+    guard let jsonData = try? JSONEncoder().encode(container) else {
+      return .failure(APIErrorMessage(message: "Failed to encode request."))
+    }
 
     return await APIService.performRequest(
       endpoint: "request-feature",

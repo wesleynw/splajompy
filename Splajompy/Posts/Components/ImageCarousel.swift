@@ -30,10 +30,8 @@ struct ImageCarousel: View {
                 maxHeight: maxHeight,
                 animation: animation,
                 onSelect: {
-                  selectedImage = ImageItem(
-                    id: index,
-                    url: URL(string: element.imageBlobUrl)!
-                  )
+                  guard let url = URL(string: element.imageBlobUrl) else { return }
+                  selectedImage = ImageItem(id: index, url: url)
                 }
               )
             }
