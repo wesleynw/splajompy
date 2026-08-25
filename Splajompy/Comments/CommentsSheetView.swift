@@ -39,17 +39,6 @@ struct CommentsSheetView: View {
   var body: some View {
     NavigationStack {
       ScrollViewReader { proxy in
-        let scrollToNewComment: (Int) -> Void = { newCommentId in
-          DispatchQueue.main.async {
-            withAnimation {
-              proxy.scrollTo(
-                newCommentId,
-                anchor: viewModel.commentSortOrder == "Oldest First" ? .bottom : .top
-              )
-            }
-          }
-        }
-
         ScrollView {
           if case .loaded(let comments) = viewModel.state {
             if !comments.isEmpty {
@@ -70,6 +59,8 @@ struct CommentsSheetView: View {
                   }
                 )
                 .id(comment.commentId)
+                .transition(.opacity.combined(with: .scale(scale: 0.95)))
+                .scrollToCommentWhenAdded(comment.commentId, viewModel: viewModel, proxy: proxy)
               }
             }
           }
@@ -93,11 +84,11 @@ struct CommentsSheetView: View {
         .modify {
           if #available(iOS 26, macOS 26, *) {
             $0.safeAreaBar(edge: .bottom) {
-              CommentInputView(viewModel: viewModel, onCommentAdded: scrollToNewComment)
+              CommentInputView(viewModel: viewModel)
             }
           } else {
             $0.safeAreaInset(edge: .bottom) {
-              CommentInputView(viewModel: viewModel, onCommentAdded: scrollToNewComment)
+              CommentInputView(viewModel: viewModel)
             }
           }
         }
