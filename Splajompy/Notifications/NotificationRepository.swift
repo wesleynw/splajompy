@@ -28,12 +28,11 @@ struct Notification: Identifiable, Decodable, Equatable {
       self.message,
       facets: facets ?? []
     )
-    return try! AttributedString(
-      markdown: markdown,
-      options: AttributedString.MarkdownParsingOptions(
-        interpretedSyntax: .inlineOnlyPreservingWhitespace
-      )
+    let options = AttributedString.MarkdownParsingOptions(
+      interpretedSyntax: .inlineOnlyPreservingWhitespace
     )
+    return (try? AttributedString(markdown: markdown, options: options))
+      ?? AttributedString(self.message)
   }
 
   static func == (lhs: Notification, rhs: Notification) -> Bool {

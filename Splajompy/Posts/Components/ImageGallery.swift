@@ -10,7 +10,7 @@ enum ImageLayoutPreference: String {
 struct ImageGallery: View {
   let images: [ImageDTO]
 
-  @State private var selectedImageIndex: Int? = nil
+  @State private var selectedImage: ImageItem? = nil
   @Namespace var animation
   @AppStorage("image_layout_preference") private var imageLayoutPreference: ImageLayoutPreference =
     .undecided
@@ -21,9 +21,9 @@ struct ImageGallery: View {
         EmptyView()
       } else if images.count == 1, let firstImage = images.first {
         SingleImageCellView(
-          selectedImageIndex: $selectedImageIndex,
           animation: animation,
-          image: firstImage
+          image: firstImage,
+          onSelect: { url in selectedImage = ImageItem(id: 0, url: url) }
         )
       } else {
         #if os(iOS)
@@ -39,46 +39,20 @@ struct ImageGallery: View {
       }
     }
     #if os(iOS)
-      .fullScreenCover(
-        item: Binding<ImageItem?>(
-          get: {
-            guard let index = selectedImageIndex, index < images.count else {
-              return nil
-            }
-            return ImageItem(
-              id: index,
-              url: URL(string: images[index].imageBlobUrl)!
-            )
-          },
-          set: { selectedImageIndex = $0?.id }
-        )
-      ) { imageItem in
+      .fullScreenCover(item: $selectedImage) { imageItem in
         ImagePager(
           imageUrls: images.map { $0.imageBlobUrl },
           initialIndex: imageItem.id,
-          onDismiss: { selectedImageIndex = nil },
+          onDismiss: { selectedImage = nil },
           namespace: animation
         )
       }
     #else
-      .sheet(
-        item: Binding<ImageItem?>(
-          get: {
-            guard let index = selectedImageIndex, index < images.count else {
-              return nil
-            }
-            return ImageItem(
-              id: index,
-              url: URL(string: images[index].imageBlobUrl)!
-            )
-          },
-          set: { selectedImageIndex = $0?.id }
-        )
-      ) { imageItem in
+      .sheet(item: $selectedImage) { imageItem in
         ImagePager(
           imageUrls: images.map { $0.imageBlobUrl },
           initialIndex: imageItem.id,
-          onDismiss: { selectedImageIndex = nil },
+          onDismiss: { selectedImage = nil },
           namespace: animation
         )
         .presentationSizing(.page)
@@ -216,7 +190,10 @@ struct ImageGallery: View {
           bottomTrailing: bottomTrailing,
           topTrailing: topTrailing,
           animation: animation,
-          onSelect: { selectedImageIndex = index }
+          onSelect: {
+            guard let url = URL(string: images[index].imageBlobUrl) else { return }
+            selectedImage = ImageItem(id: index, url: url)
+          }
         )
       }
     }
