@@ -12,6 +12,7 @@ type NotificationPayload struct {
 	Type           models.NotificationType `json:"type"`
 	Identifier     int                     `json:"identifier"`
 	NotificationId int                     `json:"notificationId"`
+	Username       *string                 `json:"username"`
 }
 
 type NotificationResponse struct {

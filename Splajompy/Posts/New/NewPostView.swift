@@ -59,6 +59,7 @@ struct NewPostView: View {
               }
             }
             .padding()
+            .zIndex(1000)
 
             imagePreviewsView
 

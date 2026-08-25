@@ -49,40 +49,7 @@ class AppDelegate: NSObject, UIApplicationDelegate,
   ) {
     defer { completionHandler() }
 
-    guard
-      let notificationType = response.notification.request.content.userInfo[
-        "type"
-      ] as? String
-    else {
-      print("unknown notification type")
-      return
-    }
-
-    guard
-      let identifier = response.notification.request.content.userInfo[
-        "identifier"
-      ] as? Int
-    else {
-      print("unknown notification type")
-      return
-    }
-
-    PostHogSDK.shared.capture(
-      "push_notification_click",
-      properties: ["type": notificationType]
-    )
-
-    let route: Route? =
-      switch notificationType {
-      case "followers":
-        .profile(id: String(identifier), username: nil)
-      case "comment", "mention":
-        .post(id: identifier)
-      default:
-        nil
-      }
-
-    if let route {
+    if let route = routeUNNotificationRequest(response.notification.request) {
       RoutingHelper.shared.pendingRoute = route
     }
   }

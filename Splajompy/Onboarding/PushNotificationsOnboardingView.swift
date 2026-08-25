@@ -49,6 +49,9 @@ struct PushNotificationsOnboardingView: View {
                   PostHogSDK.shared.capture(
                     "push_notifications_failed_registration"
                   )
+                  PostHogSDK.shared.register([
+                    "push_notifications_enabled": false
+                  ])
                   Task { @MainActor in
                     onComplete()
                   }
@@ -92,6 +95,9 @@ struct PushNotificationsOnboardingView: View {
     }
     .safeAreaInset(edge: .bottom) {
       Button {
+        PostHogSDK.shared.register([
+          "push_notifications_enabled": isPushNotificationsEnabled
+        ])
         onComplete()
       } label: {
         Text("Save")
