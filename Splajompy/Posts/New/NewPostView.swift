@@ -117,6 +117,7 @@ struct NewPostView: View {
           ToolbarItem(placement: .topBarLeading) {
             if #available(iOS 26.0, *) {
               Button(role: .close, action: { dismiss() })
+                .disabled(viewModel.isLoading)
             } else {
               Button {
                 dismiss()
@@ -125,12 +126,14 @@ struct NewPostView: View {
                   .opacity(0.8)
               }
               .buttonStyle(.plain)
+              .disabled(viewModel.isLoading)
             }
           }
         #else
           ToolbarItem(placement: .cancellationAction) {
             if #available(macOS 26.0, *) {
               Button(role: .cancel, action: { dismiss() })
+                .disabled(viewModel.isLoading)
             } else {
               Button {
                 dismiss()
@@ -138,6 +141,7 @@ struct NewPostView: View {
                 Label("Cancel", systemImage: "xmark.circle.fill")
               }
               .buttonStyle(.plain)
+              .disabled(viewModel.isLoading)
             }
           }
         #endif

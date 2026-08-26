@@ -3,33 +3,33 @@ import SwiftUI
 struct CommentsView: View {
   var postId: Int
   var postManager: PostStore
+  var scrollProxy: ScrollViewProxy?
 
   @State private var viewModel: ViewModel
-  @Environment(\.dismiss) private var dismiss
-
-  @State private var cursorY: CGFloat = 0
-  @State private var mentionViewModel =
-    MentionTextEditor.MentionViewModel()
 
   init(
     postId: Int,
     postManager: PostStore,
+    scrollProxy: ScrollViewProxy? = nil,
   ) {
     self.postId = postId
     _viewModel = State(
       wrappedValue: ViewModel(postId: postId, postManager: postManager)
     )
     self.postManager = postManager
+    self.scrollProxy = scrollProxy
   }
 
   init(
     postId: Int,
     postManager: PostStore,
+    scrollProxy: ScrollViewProxy? = nil,
     viewModel: ViewModel,
   ) {
     self.postId = postId
     _viewModel = State(wrappedValue: viewModel)
     self.postManager = postManager
+    self.scrollProxy = scrollProxy
   }
 
   var body: some View {
@@ -67,6 +67,10 @@ struct CommentsView: View {
                 }
               }
             )
+            .id(comment.commentId)
+            .geometryGroup()
+            .transition(.opacity.combined(with: .scale(scale: 0.95)))
+            .scrollToCommentWhenAdded(comment.commentId, viewModel: viewModel, proxy: scrollProxy)
           }
           VStack(spacing: 0) {
             rows

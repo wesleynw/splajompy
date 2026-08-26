@@ -1,4 +1,3 @@
-import PostHog
 import SwiftUI
 
 struct AboutView: View {
@@ -71,11 +70,9 @@ struct AboutView: View {
     }
 
     #if os(iOS)
-      if PostHogSDK.shared.isFeatureEnabled("statistics-page") {
-        Section {
-          NavigationLink(destination: StatisticsView()) {
-            Label("Statistics", systemImage: "chart.xyaxis.line")
-          }
+      Section {
+        NavigationLink(destination: StatisticsView()) {
+          Label("Statistics", systemImage: "chart.xyaxis.line")
         }
       }
     #endif

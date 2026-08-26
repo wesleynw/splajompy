@@ -7,14 +7,9 @@ struct CommentsSheetView: View {
   @State private var viewModel: CommentsView.ViewModel
   @Environment(\.dismiss) private var dismiss
 
-  @State private var cursorY: CGFloat = 0
-  @State private var mentionViewModel =
-    MentionTextEditor.MentionViewModel()
-
   init(
     postId: Int,
     postManager: PostStore,
-    isInSheet: Bool = true,
   ) {
     self.postId = postId
     _viewModel = State(
@@ -38,53 +33,59 @@ struct CommentsSheetView: View {
 
   var body: some View {
     NavigationStack {
-      ScrollView {
-        if case .loaded(let comments) = viewModel.state {
-          if !comments.isEmpty {
-            ForEach(comments, id: \.commentId) { comment in
-              CommentRow(
-                comment: comment,
-                isInSheet: true,
-                toggleLike: {
-                  viewModel.toggleLike(for: comment)
-                },
-                deleteComment: {
-                  Task {
-                    await viewModel.deleteComment(comment)
-                    postManager.updatePost(id: postId) { post in
-                      post.commentCount -= 1
+      ScrollViewReader { proxy in
+        ScrollView {
+          if case .loaded(let comments) = viewModel.state {
+            if !comments.isEmpty {
+              ForEach(comments, id: \.commentId) { comment in
+                CommentRow(
+                  comment: comment,
+                  isInSheet: true,
+                  toggleLike: {
+                    viewModel.toggleLike(for: comment)
+                  },
+                  deleteComment: {
+                    Task {
+                      await viewModel.deleteComment(comment)
+                      postManager.updatePost(id: postId) { post in
+                        post.commentCount -= 1
+                      }
                     }
                   }
-                }
-              )
+                )
+                .id(comment.commentId)
+                .geometryGroup()
+                .transition(.opacity.combined(with: .scale(scale: 0.95)))
+                .scrollToCommentWhenAdded(comment.commentId, viewModel: viewModel, proxy: proxy)
+              }
             }
           }
         }
-      }
-      .overlay {
-        switch viewModel.state {
-        case .idle, .loading:
-          ProgressView()
-        case .loaded(let comments):
-          if comments.isEmpty {
-            noCommentsView
+        .overlay {
+          switch viewModel.state {
+          case .idle, .loading:
+            ProgressView()
+          case .loaded(let comments):
+            if comments.isEmpty {
+              noCommentsView
+            }
+          case .failed(let error):
+            ErrorScreen(
+              errorString: error.localizedDescription,
+              source: "CommentsView",
+              onRetry: { viewModel.loadComments() }
+            )
           }
-        case .failed(let error):
-          ErrorScreen(
-            errorString: error.localizedDescription,
-            source: "CommentsView",
-            onRetry: { viewModel.loadComments() }
-          )
         }
-      }
-      .modify {
-        if #available(iOS 26, macOS 26, *) {
-          $0.safeAreaBar(edge: .bottom) {
-            CommentInputView(viewModel: viewModel)
-          }
-        } else {
-          $0.safeAreaInset(edge: .bottom) {
-            CommentInputView(viewModel: viewModel)
+        .modify {
+          if #available(iOS 26, macOS 26, *) {
+            $0.safeAreaBar(edge: .bottom) {
+              CommentInputView(viewModel: viewModel)
+            }
+          } else {
+            $0.safeAreaInset(edge: .bottom) {
+              CommentInputView(viewModel: viewModel)
+            }
           }
         }
       }
