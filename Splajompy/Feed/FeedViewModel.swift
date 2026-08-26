@@ -72,7 +72,9 @@ enum FeedState {
 
   func deletePost(on post: ObservablePost) {
     guard case .loaded(let posts) = state else { return }
-    state = .loaded(posts.filter { $0.id != post.id })
+    withAnimation {
+      state = .loaded(posts.filter { $0.id != post.id })
+    }
     PostHogSDK.shared.capture("post_deleted")
     Task {
       await postManager.deletePost(id: post.id)
