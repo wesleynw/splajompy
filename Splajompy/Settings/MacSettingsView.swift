@@ -1,5 +1,4 @@
 #if os(macOS)
-  import PostHog
   import SwiftUI
 
   struct MacSettingsView: View {
@@ -21,14 +20,12 @@
             .labelStyle(.titleAndIcon)
         }
 
-        if PostHogSDK.shared.isFeatureEnabled("push-notifications") {
-          NavigationStack {
-            PushNotificationSettingsView()
-          }
-          .tabItem {
-            Label("Notifications", systemImage: "bell.badge")
-              .labelStyle(.titleAndIcon)
-          }
+        NavigationStack {
+          PushNotificationSettingsView()
+        }
+        .tabItem {
+          Label("Notifications", systemImage: "bell.badge")
+            .labelStyle(.titleAndIcon)
         }
 
         NavigationStack {
@@ -47,14 +44,12 @@
             .labelStyle(.titleAndIcon)
         }
 
-        if PostHogSDK.shared.isFeatureEnabled("statistics-page") {
-          NavigationStack {
-            StatisticsView()
-          }
-          .tabItem {
-            Label("Statistics", systemImage: "chart.xyaxis.line")
-              .labelStyle(.titleAndIcon)
-          }
+        NavigationStack {
+          StatisticsView()
+        }
+        .tabItem {
+          Label("Statistics", systemImage: "chart.xyaxis.line")
+            .labelStyle(.titleAndIcon)
         }
       }
     }
