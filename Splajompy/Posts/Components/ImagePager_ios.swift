@@ -1,4 +1,3 @@
-import PostHog
 import SwiftUI
 
 struct ImagePager: View {
@@ -124,41 +123,39 @@ private struct ImagePagerNavigationBar: View {
 
       Spacer()
 
-      if PostHogSDK.shared.isFeatureEnabled("image-downloads") {
-        Button(action: onSave) {
-          ZStack {
-            if downloadState == .downloading {
-              ProgressView()
-                .controlSize(.small)
-            } else {
-              Image(systemName: downloadState.iconName)
-                .contentTransition(.symbolEffect(.replace.downUp))
-                .frame(width: 20, height: 20)
-            }
-          }
-          .frame(width: 20, height: 20)
-        }
-        .disabled(downloadState == .downloading)
-        .buttonBorderShape(.circle)
-        .controlSize(.large)
-        .fontWeight(.semibold)
-        .modify {
-          if #available(iOS 26, *) {
-            $0.buttonStyle(.glass)
+      Button(action: onSave) {
+        ZStack {
+          if downloadState == .downloading {
+            ProgressView()
+              .controlSize(.small)
           } else {
-            $0.buttonStyle(.bordered)
-              .background(.thinMaterial, in: .circle)
+            Image(systemName: downloadState.iconName)
+              .contentTransition(.symbolEffect(.replace.downUp))
+              .frame(width: 20, height: 20)
           }
         }
-        .sensoryFeedback(trigger: downloadState) {
-          switch downloadState {
-          case .done:
-            .success
-          case .error:
-            .error
-          default:
-            nil
-          }
+        .frame(width: 20, height: 20)
+      }
+      .disabled(downloadState == .downloading)
+      .buttonBorderShape(.circle)
+      .controlSize(.large)
+      .fontWeight(.semibold)
+      .modify {
+        if #available(iOS 26, *) {
+          $0.buttonStyle(.glass)
+        } else {
+          $0.buttonStyle(.bordered)
+            .background(.thinMaterial, in: .circle)
+        }
+      }
+      .sensoryFeedback(trigger: downloadState) {
+        switch downloadState {
+        case .done:
+          .success
+        case .error:
+          .error
+        default:
+          nil
         }
       }
       Button(action: onDismiss) {
