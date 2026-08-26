@@ -156,6 +156,8 @@ struct FeedView: View {
           .onAppear {
             viewModel.handlePostAppear(at: index)
           }
+          .geometryGroup()
+          .transition(.opacity.combined(with: .scale(scale: 0.95)))
           #if os(macOS)
             .frame(maxWidth: 600)
           #endif

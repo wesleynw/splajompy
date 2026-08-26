@@ -117,7 +117,9 @@ extension ProfileView {
       else { return }
 
       let updated = currentPosts.filter { $0.id != post.id }
-      profileState = .loaded(user, .loaded(updated))
+      withAnimation {
+        profileState = .loaded(user, .loaded(updated))
+      }
 
       PostHogSDK.shared.capture("post_deleted")
       Task {  // TODO: optimistic update?

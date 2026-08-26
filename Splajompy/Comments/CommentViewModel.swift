@@ -204,7 +204,9 @@ extension CommentsView {
       else { return }
 
       currentComments.remove(at: index)
-      state = .loaded(currentComments)
+      withAnimation {
+        state = .loaded(currentComments)
+      }
 
       let result = await service.deleteComment(commentId: comment.commentId)
 
@@ -212,7 +214,9 @@ extension CommentsView {
         print("Error deleting comment: \(error.localizedDescription)")
         guard case .loaded(var revertComments) = state else { return }
         revertComments.insert(comment, at: index)
-        state = .loaded(revertComments)
+        withAnimation {
+          state = .loaded(revertComments)
+        }
       }
     }
 

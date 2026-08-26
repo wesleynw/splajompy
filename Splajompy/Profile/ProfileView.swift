@@ -182,6 +182,7 @@ struct ProfileView: View {
       )
       .id(post.id)
       .geometryGroup()
+      .transition(.opacity.combined(with: .scale(scale: 0.95)))
       .onAppear {
         viewModel.handlePostAppear(at: index, totalCount: posts.count)
       }
