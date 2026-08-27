@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/base64"
 	"encoding/json"
+	"splajompy/internal/ecr"
 
 	"github.com/pulumi/pulumi-aws/sdk/v7/go/aws/cloudfront"
 	"github.com/pulumi/pulumi-aws/sdk/v7/go/aws/cloudwatch"
@@ -304,6 +305,11 @@ func main() {
 			DeliveryDestinationArn: cloudwatchCloudfrontLogDestination.Arn,
 			Region:                 pulumi.String("us-east-1"),
 		})
+		if err != nil {
+			return err
+		}
+
+		_, err = ecr.CreateImageRepository(ctx)
 		if err != nil {
 			return err
 		}
