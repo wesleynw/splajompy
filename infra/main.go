@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/base64"
 	"encoding/json"
+	"splajompy/internal/codebuild"
 	"splajompy/internal/ecr"
 
 	"github.com/pulumi/pulumi-aws/sdk/v7/go/aws/cloudfront"
@@ -309,7 +310,12 @@ func main() {
 			return err
 		}
 
-		_, err = ecr.CreateImageRepository(ctx)
+		imageRepository, err := ecr.CreateImageRepository(ctx)
+		if err != nil {
+			return err
+		}
+
+		err = codebuild.CreateImageBuildProject(ctx, imageRepository.Url, imageRepository.Repository.Arn())
 		if err != nil {
 			return err
 		}
