@@ -158,31 +158,33 @@ func CreateImageBuildProject(ctx *pulumi.Context, repositoryUrl pulumi.StringOut
 		return err
 	}
 
-	_, err = codebuild.NewWebhook(ctx, "splajompy-api-image-build-webhook", &codebuild.WebhookArgs{
-		ProjectName: project.Name,
-		BuildType:   pulumi.String("BUILD"),
-		FilterGroups: codebuild.WebhookFilterGroupArray{
-			&codebuild.WebhookFilterGroupArgs{
-				Filters: codebuild.WebhookFilterGroupFilterArray{
-					&codebuild.WebhookFilterGroupFilterArgs{
-						Type:    pulumi.String("EVENT"),
-						Pattern: pulumi.String("PUSH"),
-					},
-					&codebuild.WebhookFilterGroupFilterArgs{
-						Type:    pulumi.String("HEAD_REF"),
-						Pattern: pulumi.String("^refs/heads/main$"),
-					},
-					&codebuild.WebhookFilterGroupFilterArgs{
-						Type:    pulumi.String("FILE_PATH"),
-						Pattern: pulumi.String("^api/.*"),
-					},
-				},
-			},
-		},
-	})
-	if err != nil {
-		return err
-	}
+	ctx.Export("asdf", project.Name)
+
+	// _, err = codebuild.NewWebhook(ctx, "splajompy-api-image-build-webhook", &codebuild.WebhookArgs{
+	// 	ProjectName: project.Name,
+	// 	BuildType:   pulumi.String("BUILD"),
+	// 	FilterGroups: codebuild.WebhookFilterGroupArray{
+	// 		&codebuild.WebhookFilterGroupArgs{
+	// 			Filters: codebuild.WebhookFilterGroupFilterArray{
+	// 				&codebuild.WebhookFilterGroupFilterArgs{
+	// 					Type:    pulumi.String("EVENT"),
+	// 					Pattern: pulumi.String("PUSH"),
+	// 				},
+	// 				&codebuild.WebhookFilterGroupFilterArgs{
+	// 					Type:    pulumi.String("HEAD_REF"),
+	// 					Pattern: pulumi.String("^refs/heads/main$"),
+	// 				},
+	// 				&codebuild.WebhookFilterGroupFilterArgs{
+	// 					Type:    pulumi.String("FILE_PATH"),
+	// 					Pattern: pulumi.String("^api/.*"),
+	// 				},
+	// 			},
+	// 		},
+	// 	},
+	// })
+	// if err != nil {
+	// 	return err
+	// }
 
 	return nil
 }
