@@ -67,6 +67,7 @@ struct CommentsView: View {
             )
             .id(comment.commentId)
             .geometryGroup()
+            .transition(.opacity.combined(with: .scale(scale: 0.95)))
             .scrollToCommentWhenAdded(comment.commentId, viewModel: viewModel, proxy: scrollProxy)
           }
         }
