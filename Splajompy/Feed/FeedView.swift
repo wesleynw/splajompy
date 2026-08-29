@@ -50,7 +50,7 @@ struct FeedView: View {
         .fullScreenCover(isPresented: $isShowingNewPostView) {
           NewPostView(
             onPostCreated: {
-              await viewModel.loadPosts(preserveCurrentState: true, reset: true)
+              await viewModel.loadPosts(preserveCurrentState: false, reset: true)
             }
           )
           .modify {

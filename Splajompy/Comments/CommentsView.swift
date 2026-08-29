@@ -48,10 +48,8 @@ struct CommentsView: View {
             .controlSize(.small)
           #endif
       case .loaded(let comments):
-        if comments.isEmpty {
-          noCommentView
-        } else {
-          let rows = ForEach(comments, id: \.commentId) { comment in
+        VStack(spacing: 0) {
+          ForEach(comments, id: \.commentId) { comment in
             CommentRow(
               comment: comment,
               isInSheet: false,
@@ -71,8 +69,11 @@ struct CommentsView: View {
             .geometryGroup()
             .scrollToCommentWhenAdded(comment.commentId, viewModel: viewModel, proxy: scrollProxy)
           }
-          VStack(spacing: 0) {
-            rows
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .overlay(alignment: .top) {
+          if comments.isEmpty {
+            noCommentView
           }
         }
       case .failed(let error):

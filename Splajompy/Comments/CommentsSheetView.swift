@@ -36,7 +36,7 @@ struct CommentsSheetView: View {
       ScrollViewReader { proxy in
         ScrollView {
           if case .loaded(let comments) = viewModel.state {
-            if !comments.isEmpty {
+            VStack(spacing: 0) {
               ForEach(comments, id: \.commentId) { comment in
                 CommentRow(
                   comment: comment,
@@ -58,6 +58,7 @@ struct CommentsSheetView: View {
                 .scrollToCommentWhenAdded(comment.commentId, viewModel: viewModel, proxy: proxy)
               }
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
           }
         }
         .overlay {
