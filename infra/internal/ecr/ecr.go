@@ -7,21 +7,20 @@ import (
 
 func CreateImageRepository(ctx *pulumi.Context) (*ecr.Repository, error) {
 	repository, err := ecr.NewRepository(ctx, "splajompy-ecr", &ecr.RepositoryArgs{
+		LifecyclePolicy: &ecr.LifecyclePolicyArgs{
+			Rules: ecr.LifecyclePolicyRuleArray{
+				&ecr.LifecyclePolicyRuleArgs{
+					Description:           pulumi.String("Keep only the 10 most recently pushed images"),
+					TagStatus:             ecr.LifecycleTagStatusAny,
+					MaximumNumberOfImages: pulumi.Float64(10),
+				},
+			},
+		},
 		Tags: pulumi.StringMap{
 			"Project":     pulumi.String("splajompy"),
 			"Environment": pulumi.String("production"),
 			"ManagedBy":   pulumi.String("pulumi"),
 		},
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	_, err = ecr.NewImage(ctx, "splajompy-api", &ecr.ImageArgs{
-		RepositoryUrl: repository.Url,
-		Context:       pulumi.String("../api"),
-		ImageName:     pulumi.String("splajompy-api-img"),
-		ImageTag:      pulumi.String("latest"),
 	})
 	if err != nil {
 		return nil, err

@@ -3,12 +3,15 @@ package main
 import (
 	"encoding/base64"
 	"encoding/json"
+	"splajompy/internal/codebuild"
 	"splajompy/internal/ecr"
 
 	"github.com/pulumi/pulumi-aws/sdk/v7/go/aws/cloudfront"
 	"github.com/pulumi/pulumi-aws/sdk/v7/go/aws/cloudwatch"
 	"github.com/pulumi/pulumi-aws/sdk/v7/go/aws/iam"
+	"github.com/pulumi/pulumi-aws/sdk/v7/go/aws/rds"
 	"github.com/pulumi/pulumi-aws/sdk/v7/go/aws/s3"
+	"github.com/pulumi/pulumi-awsx/sdk/v3/go/awsx/ec2"
 	"github.com/pulumi/pulumi-digitalocean/sdk/v4/go/digitalocean"
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi/config"
@@ -23,6 +26,50 @@ func main() {
 			"Environment": pulumi.String("production"),
 			"ManagedBy":   pulumi.String("pulumi"),
 		}
+
+		vpc, err := ec2.NewVpc(ctx, "splajompy-vpc", &ec2.VpcArgs{
+			NatGateways: &ec2.NatGatewayConfigurationArgs{
+				Strategy: ec2.NatGatewayStrategyNone,
+			},
+		})
+		if err != nil {
+			return err
+		}
+
+		dbSubnetGroup, err := rds.NewSubnetGroup(ctx, "splajompy-db-subnet-group", &rds.SubnetGroupArgs{
+			SubnetIds: vpc.PrivateSubnetIds,
+		})
+		if err != nil {
+			return err
+		}
+
+		_default, err := rds.GetEngineVersion(ctx, &rds.GetEngineVersionArgs{
+			Engine: "postgres",
+		})
+		if err != nil {
+			return err
+		}
+
+		ctx.Export("db default", pulumi.String(_default.Version))
+
+		db, err := rds.NewInstance(ctx, "splajompy-db", &rds.InstanceArgs{
+			AllocatedStorage:         pulumi.IntPtr(20),
+			AutoMinorVersionUpgrade:  pulumi.Bool(true),
+			InstanceClass:            pulumi.String("db.t4g.micro"),
+			DbName:                   pulumi.String("splajompydb"),
+			DbSubnetGroupName:        dbSubnetGroup.Name,
+			Engine:                   pulumi.String("postgres"),
+			EngineVersion:            pulumi.String(_default.Version),
+			ManageMasterUserPassword: pulumi.Bool(true),
+			MultiAz:                  pulumi.Bool(false),
+			Tags:                     awsTags,
+			Username:                 pulumi.String("splajompydbawsuser"),
+		}, pulumi.Protect(true))
+		if err != nil {
+			return err
+		}
+
+		ctx.Export("db name", db.DbName)
 
 		domain, err := digitalocean.NewDomain(ctx, "domain", &digitalocean.DomainArgs{
 			Name: pulumi.String("splajompy.com"),
@@ -309,7 +356,12 @@ func main() {
 			return err
 		}
 
-		_, err = ecr.CreateImageRepository(ctx)
+		imageRepository, err := ecr.CreateImageRepository(ctx)
+		if err != nil {
+			return err
+		}
+
+		err = codebuild.CreateImageBuildProject(ctx, imageRepository.Url, imageRepository.Repository.Arn())
 		if err != nil {
 			return err
 		}
