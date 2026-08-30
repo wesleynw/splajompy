@@ -345,7 +345,7 @@ func (s *Service) DeleteAccount(ctx context.Context, currentUser models.PublicUs
 		}
 	}
 
-	s.sendAccountDeletionNotification(currentUser)
+	go s.sendAccountDeletionNotification(currentUser)
 
 	return nil
 }
