@@ -43,6 +43,8 @@ func main() {
 			return err
 		}
 
+		ctx.Export("dbsubnet", dbSubnetGroup.Name)
+
 		_default, err := rds.GetEngineVersion(ctx, &rds.GetEngineVersionArgs{
 			Engine: "postgres",
 		})
@@ -69,7 +71,7 @@ func main() {
 		// 	return err
 		// }
 
-		ctx.Export("db name", db.DbName)
+		// ctx.Export("db name", db.DbName)
 
 		domain, err := digitalocean.NewDomain(ctx, "domain", &digitalocean.DomainArgs{
 			Name: pulumi.String("splajompy.com"),
