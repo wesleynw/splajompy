@@ -43,6 +43,8 @@ func main() {
 			return err
 		}
 
+		ctx.Export("dbsubnet", dbSubnetGroup.Name)
+
 		_default, err := rds.GetEngineVersion(ctx, &rds.GetEngineVersionArgs{
 			Engine: "postgres",
 		})
@@ -52,24 +54,25 @@ func main() {
 
 		ctx.Export("db default", pulumi.String(_default.Version))
 
-		db, err := rds.NewInstance(ctx, "splajompy-db", &rds.InstanceArgs{
-			AllocatedStorage:         pulumi.IntPtr(20),
-			AutoMinorVersionUpgrade:  pulumi.Bool(true),
-			InstanceClass:            pulumi.String("db.t4g.micro"),
-			DbName:                   pulumi.String("splajompydb"),
-			DbSubnetGroupName:        dbSubnetGroup.Name,
-			Engine:                   pulumi.String("postgres"),
-			EngineVersion:            pulumi.String(_default.Version),
-			ManageMasterUserPassword: pulumi.Bool(true),
-			MultiAz:                  pulumi.Bool(false),
-			Tags:                     awsTags,
-			Username:                 pulumi.String("splajompydbawsuser"),
-		}, pulumi.Protect(true))
-		if err != nil {
-			return err
-		}
+		// db, err := rds.NewInstance(ctx, "splajompy-db", &rds.InstanceArgs{
+		// 	AllocatedStorage:         pulumi.IntPtr(20),
+		// 	AutoMinorVersionUpgrade:  pulumi.Bool(true),
+		// 	InstanceClass:            pulumi.String("db.t4g.micro"),
+		// 	DbName:                   pulumi.String("splajompydb"),
+		// 	DbSubnetGroupName:        dbSubnetGroup.Name,
+		// 	Engine:                   pulumi.String("postgres"),
+		// 	EngineVersion:            pulumi.String(_default.Version),
+		// 	ManageMasterUserPassword: pulumi.Bool(true),
+		// 	MultiAz:                  pulumi.Bool(false),
+		// 	Tags:                     awsTags,
+		// 	Username:                 pulumi.String("splajompydbawsuser"),
+		// 	SkipFinalSnapshot:        pulumi.Bool(true),
+		// })
+		// if err != nil {
+		// 	return err
+		// }
 
-		ctx.Export("db name", db.DbName)
+		// ctx.Export("db name", db.DbName)
 
 		domain, err := digitalocean.NewDomain(ctx, "domain", &digitalocean.DomainArgs{
 			Name: pulumi.String("splajompy.com"),
