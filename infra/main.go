@@ -66,7 +66,8 @@ func main() {
 		// 	MultiAz:                  pulumi.Bool(false),
 		// 	Tags:                     awsTags,
 		// 	Username:                 pulumi.String("splajompydbawsuser"),
-		// }, pulumi.Protect(true))
+		// 	SkipFinalSnapshot:        pulumi.Bool(true),
+		// })
 		// if err != nil {
 		// 	return err
 		// }
