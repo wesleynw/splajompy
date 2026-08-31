@@ -345,5 +345,19 @@ func (s *Service) DeleteAccount(ctx context.Context, currentUser models.PublicUs
 		}
 	}
 
+	go s.sendAccountDeletionNotification(currentUser)
+
 	return nil
+}
+
+// sendAccountDeletionNotification notifies the site admin whenever a user deletes their account.
+func (s *Service) sendAccountDeletionNotification(deletedUser models.PublicUser) {
+	params := &resend.SendEmailRequest{
+		From:    "Splajompy <no-reply@splajompy.com>",
+		To:      []string{"wesleynw@pm.me"},
+		Subject: "A user deleted their Splajompy account",
+		Text:    fmt.Sprintf("User %s (ID: %d) deleted their account.", deletedUser.Username, deletedUser.UserID),
+	}
+
+	_, _ = s.resendClient.Emails.Send(params)
 }
