@@ -43,7 +43,7 @@ class AuthManager: Sendable {
       properties: ["has_token": hasToken, "has_user_data": hasValidUserData]
     )
 
-    isAuthenticated = hasToken && hasValidUserData
+    isAuthenticated = hasValidUserData
 
     if hasToken && !hasValidUserData {
       signOut(reason: "missing_user_data_on_init")
