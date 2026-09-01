@@ -57,7 +57,7 @@ struct RequestSupportView: View {
       }
     } message: {
       hadSuccess
-        ? Text("Your request will be send to the developer.")
+        ? Text("Your request will be sent to the developer.")
         : Text("Try again.")
     }
     .onAppear {

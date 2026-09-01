@@ -132,7 +132,7 @@ func (r *S3BucketRepository) GetPresignedGetObject(ctx context.Context, key stri
 	return url, nil
 }
 
-// GetDestinationKey returns a permenant blob URI given the current URI of a staged blob.
+// GetDestinationKey returns a permanent blob URI given the current URI of a staged blob.
 // An example blob URI might be production/{userId}/comment/{comment_id}/{fileName}.jpg
 func GetDestinationKey(userId int, blobType string, identifier int, stagedBlobUrl string) string {
 	environment := os.Getenv("ENVIRONMENT")

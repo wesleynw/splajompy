@@ -1,6 +1,6 @@
 import SwiftUI
 
-// TODO: I think it would make sense to have a utility funtion for optimistic updates, takes in an update, reversion, and server action?
+// TODO: I think it would make sense to have a utility function for optimistic updates, takes in an update, reversion, and server action?
 // TODO: this is also just super broken. i don't even think i'm checking access order, or reusing cached entries in many cases...
 // TODO: i hate this
 

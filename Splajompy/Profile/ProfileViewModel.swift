@@ -266,7 +266,7 @@ extension ProfileView {
         case .loaded(var currentPosts) = feedState
       else { return }
 
-      // if the top post is being unpinned, move it to it's chronological placement
+      // if the top post is being unpinned, move it to its chronological placement
       if let previousPinnedPost = currentPosts.first,
         previousPinnedPost.isPinned
       {
