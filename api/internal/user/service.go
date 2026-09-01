@@ -238,7 +238,7 @@ func (s Service) RemoveUserFromCloseFriendsList(ctx context.Context, currentUser
 	return s.store.RemoveUserRelationship(ctx, currentUser.UserID, userId)
 }
 
-// GetCloseFriendsByUserId returns a list of users on the current users close friends list, using the creation date of the relationsthip as a cursor.
+// GetCloseFriendsByUserId returns a list of users on the current user's close friends list, using the creation date of the relationship as a cursor.
 func (s Service) GetCloseFriendsByUserId(ctx context.Context, currentUser models.PublicUser, limit int, before *time.Time) (*models.PaginatedUserList, error) {
 	userIDs, cursor, err := s.store.GetRelationshipUserIds(ctx, currentUser.UserID, limit, before)
 	if err != nil {

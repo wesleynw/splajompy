@@ -9,7 +9,7 @@ struct FeedTypeToggle: View {
         Button {
         } label: {
           Label("Home", systemImage: "house")
-          Text("Follwing plus a few others")
+          Text("Following plus a few others")
         }
         .tag(FeedType.mutual)
 

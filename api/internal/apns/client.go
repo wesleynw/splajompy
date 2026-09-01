@@ -32,7 +32,7 @@ const (
 var tracer = otel.Tracer("apns-service")
 var meter = otel.Meter("apns-service")
 
-var ErrUnregisteredDevice = errors.New("device is reported unregisted")
+var ErrUnregisteredDevice = errors.New("device is reported unregistered")
 var ErrBadDeviceToken = errors.New("device token is not valid")
 
 type Client struct {
@@ -126,7 +126,7 @@ func (c *Client) Push(ctx context.Context, notification *Notification) error {
 		if err != nil {
 			span.RecordError(err)
 			span.SetStatus(codes.Error, err.Error())
-			slog.ErrorContext(ctx, "unable to react request body", "error", err)
+			slog.ErrorContext(ctx, "unable to read request body", "error", err)
 			return err
 		}
 		var body NotificationResponse

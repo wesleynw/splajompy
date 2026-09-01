@@ -21,7 +21,7 @@ Free from:
 - Short-form video content
 - *The Algorithm*
 
-Originally a full-stack Typescript application, Splajompy is now a native SwitfUI app with an API written in Go.
+Originally a full-stack Typescript application, Splajompy is now a native SwiftUI app with an API written in Go.
 
 [iOS and macOS app download](https://apps.apple.com/us/app/splajompy/id6744034321)
 
