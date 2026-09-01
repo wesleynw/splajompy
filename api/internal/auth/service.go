@@ -9,13 +9,13 @@ import (
 	"math/big"
 	"strings"
 	"time"
+	"uuid"
 
 	"splajompy.com/api/v2/internal/bucket"
 	"splajompy.com/api/v2/internal/post"
 	"splajompy.com/api/v2/internal/user"
 	"splajompy.com/api/v2/internal/utilities"
 
-	"github.com/google/uuid"
 	"github.com/resend/resend-go/v3"
 	"golang.org/x/crypto/bcrypt"
 	"splajompy.com/api/v2/internal/models"
