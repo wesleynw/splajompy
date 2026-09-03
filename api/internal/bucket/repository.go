@@ -107,7 +107,7 @@ func (r *S3BucketRepository) GetPresignedPutObject(ctx context.Context, userID i
 	req, err := presignClient.PresignPutObject(ctx, &s3.PutObjectInput{
 		Bucket:      aws.String(r.bucketName),
 		Key:         aws.String(blobPath),
-		ContentType: &extension,
+		ContentType: aws.String("application/octet-stream"),
 	}, func(opts *s3.PresignOptions) {
 		opts.Expires = time.Minute * 5
 	})
