@@ -20,6 +20,8 @@ struct SplajompyApp: App {
 
   @State private var authManager: AuthManager = AuthManager.shared
   @State private var postStore = PostStore()
+  @State private var notificationBadgeStore = NotificationBadgeStore.shared
+  @Environment(\.scenePhase) private var scenePhase
   @AppStorage("appearance_mode") var appearanceMode: String = "Automatic"
 
   init() {
@@ -37,6 +39,7 @@ struct SplajompyApp: App {
         case .authenticated:
           authenticatedView
             .environment(postStore)
+            .environment(notificationBadgeStore)
         case .unauthenticated:
           SplashScreenView()
             .postHogScreenView()
@@ -56,6 +59,16 @@ struct SplajompyApp: App {
       .modifier(SupportedVersionViewModifier())
       .environment(authManager)
       .preferredColorScheme(colorScheme)
+      .task(id: authManager.authState) {
+        if case .authenticated = authManager.authState {
+          await notificationBadgeStore.refresh()
+        }
+      }
+      .onChange(of: scenePhase) { _, newPhase in
+        guard newPhase == .active, case .authenticated = authManager.authState
+        else { return }
+        Task { await notificationBadgeStore.refresh() }
+      }
     }
     //    .windowToolbarStyle(.unified(showsTitle: false))
     #if os(macOS)
@@ -106,6 +119,7 @@ struct SplajompyApp: App {
       .tabItem {
         Label("Notifications", systemImage: "bell")
       }
+      .badge(notificationBadgeStore.unreadCount)
       .tag(1)
 
       NavigationStack(path: $navigationPaths[2]) {
