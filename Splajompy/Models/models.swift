@@ -4,7 +4,7 @@ struct UserDisplayProperties: Codable {
   let fontChoiceId: Int?
 }
 
-struct CurrentUserModel: Decodable {
+struct CurrentUserModel: Codable {
   let userId: Int
   let email: String
   let username: String

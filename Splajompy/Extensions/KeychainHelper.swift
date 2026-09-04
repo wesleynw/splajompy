@@ -6,7 +6,8 @@ final class KeychainHelper: @unchecked Sendable {
   static let standard = KeychainHelper()
   private init() {}
 
-  func save(_ data: Data, service: String, account: String) {
+  @discardableResult
+  func save(_ data: Data, service: String, account: String) -> Bool {
     let query =
       [
         kSecValueData: data,
@@ -40,16 +41,20 @@ final class KeychainHelper: @unchecked Sendable {
           "keychain_write_failed",
           properties: ["op": "update", "service": service, "status": updateStatus]
         )
+        return false
       }
     } else if status != errSecSuccess {
       PostHogSDK.shared.capture(
         "keychain_write_failed",
         properties: ["op": "add", "service": service, "status": status]
       )
+      return false
     }
+
+    return true
   }
 
-  func readWithStatus(service: String, account: String) -> (data: Data?, status: OSStatus) {
+  func read(service: String, account: String) -> Data? {
     let query =
       [
         kSecAttrService: service,
@@ -60,9 +65,9 @@ final class KeychainHelper: @unchecked Sendable {
       ] as CFDictionary
 
     var result: AnyObject?
-    let status = SecItemCopyMatching(query, &result)
+    SecItemCopyMatching(query, &result)
 
-    return (result as? Data, status)
+    return result as? Data
   }
 
   func delete(service: String, account: String) {
