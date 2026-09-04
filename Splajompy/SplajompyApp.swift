@@ -120,6 +120,7 @@ struct SplajompyApp: App {
         Label("Notifications", systemImage: "bell")
       }
       .badge(notificationBadgeStore.unreadCount)
+      .tint(.accentColor)
       .tag(1)
 
       NavigationStack(path: $navigationPaths[2]) {
