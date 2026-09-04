@@ -6,8 +6,6 @@ struct AccountSettingsView: View {
   @State var isShowingSignoutConfirm: Bool = false
   @State var isShowingDeleteAccountConfirm: Bool = false
   @State var isShowingDeleteAccountSheet: Bool = false
-  @State var deleteAccountPassword: String = ""
-  @State var deleteAccountError: String = ""
 
   var body: some View {
     Form {
@@ -20,88 +18,8 @@ struct AccountSettingsView: View {
       #endif
     }
     .sheet(isPresented: $isShowingDeleteAccountSheet) {
-      ScrollView {
-        VStack(spacing: 24) {
-          VStack(spacing: 16) {
-            Image(systemName: "exclamationmark.triangle.fill")
-              .font(.system(size: 50))
-              .foregroundStyle(.red)
-
-            Text("Delete Account")
-              .font(.title2)
-              .fontWeight(.bold)
-
-            Text(
-              "Enter your password to confirm account deletion. This action cannot be undone."
-            )
-            .font(.body)
-            .multilineTextAlignment(.center)
-            .foregroundStyle(.secondary)
-          }
-
-          VStack(alignment: .leading, spacing: 8) {
-            SecureField("Password", text: $deleteAccountPassword)
-              .padding(12)
-              .background(
-                RoundedRectangle(cornerRadius: 8)
-                  .stroke(Color.gray.opacity(0.75), lineWidth: 1)
-              )
-              .textContentType(.password)
-              #if os(iOS)
-                .autocapitalization(.none)
-              #endif
-              .autocorrectionDisabled()
-
-            if !deleteAccountError.isEmpty {
-              Text(deleteAccountError)
-                .font(.caption)
-                .foregroundStyle(.red)
-            }
-          }
-
-          Spacer(minLength: 24)
-
-          VStack(spacing: 12) {
-            Button(action: {
-              Task {
-                let (success, error) = await authManager.deleteAccount(
-                  password: deleteAccountPassword
-                )
-                if !success {
-                  deleteAccountError = error
-                } else {
-                  isShowingDeleteAccountSheet = false
-                }
-              }
-            }) {
-              HStack {
-                if authManager.isLoading {
-                  ProgressView()
-                    .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                }
-                Text("Delete Account")
-                  .fontWeight(.semibold)
-              }
-              .frame(maxWidth: .infinity)
-              .padding()
-              .background(Color.red)
-              .foregroundStyle(.white)
-              .containerShape(RoundedRectangle(cornerRadius: 10))
-            }
-            .disabled(deleteAccountPassword.isEmpty || authManager.isLoading)
-
-            Button("Cancel") {
-              isShowingDeleteAccountSheet = false
-              deleteAccountPassword = ""
-              deleteAccountError = ""
-            }
-            .frame(maxWidth: .infinity)
-            .padding()
-            .containerShape(RoundedRectangle(cornerRadius: 10))
-          }
-        }
-        .padding(24)
-      }
+      DeleteAccountView(dismiss: { isShowingDeleteAccountSheet = false })
+        .postHogScreenView()
     }
   }
 
@@ -153,8 +71,6 @@ struct AccountSettingsView: View {
         isPresented: $isShowingDeleteAccountConfirm
       ) {
         Button("Delete Account", role: .destructive) {
-          deleteAccountPassword = ""
-          deleteAccountError = ""
           isShowingDeleteAccountSheet = true
         }
         Button("Cancel", role: .cancel) {}

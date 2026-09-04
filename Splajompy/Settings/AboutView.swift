@@ -1,3 +1,4 @@
+import PostHog
 import SwiftUI
 
 struct AboutView: View {
@@ -71,7 +72,7 @@ struct AboutView: View {
 
     #if os(iOS)
       Section {
-        NavigationLink(destination: StatisticsView()) {
+        NavigationLink(value: SettingsRoute.statistics) {
           Label("Statistics", systemImage: "chart.xyaxis.line")
         }
       }

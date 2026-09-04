@@ -14,10 +14,10 @@ enum SettingsRoute: Hashable {
   case account
   case appearance
   case appIcon
-  case secretPage
   case support
   case about
   case notifications
+  case statistics
 }
 
 func parseDeepLink(_ url: URL) -> Route? {
