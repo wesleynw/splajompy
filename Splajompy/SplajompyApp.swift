@@ -227,9 +227,6 @@ struct SplajompyApp: App {
       #else
         EmptyView()
       #endif
-    case .secretPage:
-      SecretPageView()
-        .postHogScreenView()
     case .support:
       RequestSupportView()
         .postHogScreenView()
@@ -238,6 +235,9 @@ struct SplajompyApp: App {
         .postHogScreenView()
     case .notifications:
       PushNotificationSettingsView()
+        .postHogScreenView()
+    case .statistics:
+      StatisticsView()
         .postHogScreenView()
     }
   }

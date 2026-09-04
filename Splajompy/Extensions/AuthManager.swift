@@ -47,16 +47,26 @@ private actor SessionStore {
     let encoder = JSONEncoder()
     encoder.dateEncodingStrategy = .iso8601
     guard let data = try? encoder.encode(session) else { return false }
-    return KeychainHelper.standard.save(data, service: Self.sessionKeychainService, account: "self")
+    return KeychainHelper.standard.save(
+      data,
+      service: Self.sessionKeychainService,
+      account: "self"
+    )
   }
 
   func clearSession() {
-    KeychainHelper.standard.delete(service: Self.sessionKeychainService, account: "self")
+    KeychainHelper.standard.delete(
+      service: Self.sessionKeychainService,
+      account: "self"
+    )
     clearLegacyStorage()
   }
 
   private func clearLegacyStorage() {
-    KeychainHelper.standard.delete(service: Self.legacyTokenKeychainService, account: "self")
+    KeychainHelper.standard.delete(
+      service: Self.legacyTokenKeychainService,
+      account: "self"
+    )
     for key in Self.legacyUserDefaultsKeys {
       UserDefaults.standard.removeObject(forKey: key)
     }
@@ -64,7 +74,10 @@ private actor SessionStore {
 
   private func readPersistedSession() -> AuthSession? {
     guard
-      let data = KeychainHelper.standard.read(service: Self.sessionKeychainService, account: "self")
+      let data = KeychainHelper.standard.read(
+        service: Self.sessionKeychainService,
+        account: "self"
+      )
     else { return nil }
 
     let decoder = JSONDecoder()
@@ -83,7 +96,10 @@ private actor SessionStore {
     }
 
     guard var tokenString = String(data: tokenData, encoding: .utf8) else {
-      KeychainHelper.standard.delete(service: Self.legacyTokenKeychainService, account: "self")
+      KeychainHelper.standard.delete(
+        service: Self.legacyTokenKeychainService,
+        account: "self"
+      )
       return nil
     }
 
@@ -183,7 +199,9 @@ class AuthManager: Sendable {
     UserDefaults.standard.removeObject(forKey: "push_pref_mentions")
     UserDefaults.standard.removeObject(forKey: "push_pref_follows")
     UserDefaults.standard.removeObject(forKey: "image_layout_preference")
-    UserDefaults.standard.removeObject(forKey: "hasCompletedPushNotificationOnboarding")
+    UserDefaults.standard.removeObject(
+      forKey: "hasCompletedPushNotificationOnboarding"
+    )
 
     ImageCache.shared.removeAll()
     ImagePipeline.shared.cache.removeAll()
@@ -196,7 +214,9 @@ class AuthManager: Sendable {
   }
 
   private func saveUserData(_ user: CurrentUserModel, token: String) async {
-    await SessionStore.shared.persistSession(AuthSession(token: token, user: user))
+    await SessionStore.shared.persistSession(
+      AuthSession(token: token, user: user)
+    )
 
     authState = .authenticated
     currentUser = user
@@ -448,6 +468,7 @@ class AuthManager: Sendable {
 
     switch result {
     case .success:
+      PostHogSDK.shared.capture("account_deleted")
       signOut(reason: "account_deleted")
       return (true, "")
     case .failure(let error):

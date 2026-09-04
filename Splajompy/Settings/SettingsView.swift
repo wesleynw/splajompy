@@ -1,4 +1,3 @@
-import PostHog
 import SwiftUI
 
 struct SettingsView: View {
@@ -24,12 +23,6 @@ struct SettingsView: View {
 
         NavigationLink(value: SettingsRoute.notifications) {
           Label("Notifications", systemImage: "bell.badge")
-        }
-
-        if PostHogSDK.shared.isFeatureEnabled("secret-tab") {
-          NavigationLink(value: SettingsRoute.secretPage) {
-            Label("Secret Page", systemImage: "fossil.shell")
-          }
         }
 
         Section {
