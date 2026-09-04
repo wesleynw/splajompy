@@ -153,14 +153,22 @@ extension NotificationsView {
     func markNotificationAsRead(notificationId: Int) async {
       guard case .loaded(var notifications) = state else { return }
 
+      var wasUnread = false
       if let index = notifications.firstIndex(where: { $0.notificationId == notificationId }
       ) {
+        wasUnread = !notifications[index].viewed
         notifications[index].viewed = true
       }
 
       await MainActor.run {
         withAnimation(.easeInOut(duration: 0.3)) {
           state = .loaded(notifications)
+        }
+        if wasUnread {
+          NotificationBadgeStore.shared.unreadCount = max(
+            0,
+            NotificationBadgeStore.shared.unreadCount - 1
+          )
         }
       }
 
@@ -184,6 +192,7 @@ extension NotificationsView {
           withAnimation(.easeInOut(duration: 0.3)) {
             state = .loaded(notifications)
           }
+          NotificationBadgeStore.shared.reset()
         }
 
         let _ = await service.markAllNotificationsAsRead()
