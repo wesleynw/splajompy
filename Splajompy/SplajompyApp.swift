@@ -31,10 +31,13 @@ struct SplajompyApp: App {
   var body: some Scene {
     WindowGroup(id: "main") {
       Group {
-        if authManager.isAuthenticated {
+        switch authManager.authState {
+        case .unknown:
+          ProgressView()
+        case .authenticated:
           authenticatedView
             .environment(postStore)
-        } else {
+        case .unauthenticated:
           SplashScreenView()
             .postHogScreenView()
         }
@@ -62,9 +65,12 @@ struct SplajompyApp: App {
     #if os(macOS)
       Settings {
         Group {
-          if authManager.isAuthenticated {
+          switch authManager.authState {
+          case .unknown:
+            ProgressView()
+          case .authenticated:
             MacSettingsView()
-          } else {
+          case .unauthenticated:
             SignedOutSettingsView()
           }
         }

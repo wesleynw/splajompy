@@ -8,113 +8,114 @@ struct AuthResponse: Decodable {
   let user: CurrentUserModel
 }
 
-enum AuthError {
-  case none
-  case invalidURL
-  case serializationError
-  case networkError
-  case invalidResponse
-  case decodingError
-  case incorrectPassword
-  case accountNonexistent
-  case generalFailure
-  case noToken
+struct AuthSession: Codable {
+  let token: String
+  let user: CurrentUserModel
 }
 
-@MainActor @Observable
-class AuthManager: Sendable {
-  var isAuthenticated: Bool = false
-  var isLoading: Bool = false
-  private(set) var currentUser: CurrentUserModel?
+enum AuthState: Equatable {
+  case unknown
+  case authenticated
+  case unauthenticated
+}
 
-  static let shared = AuthManager()
+private actor SessionStore {
+  static let shared = SessionStore()
 
-  init() {
-    checkAuthenticationState()
+  private static let sessionKeychainService = "auth-session"
+  private static let legacyTokenKeychainService = "session-token"
+  private static let legacyUserDefaultsKey = "CurrentUserData"
+  private static let legacyUserDefaultsKeys = [
+    legacyUserDefaultsKey,
+    "CurrentUserID",
+    "CurrentUserUsername",
+    "CurrentUserEmail",
+    "CurrentUserCreatedAt",
+    "CurrentUserName",
+  ]
+
+  func loadSession() -> AuthSession? {
+    if let session = readPersistedSession() {
+      return session
+    }
+
+    return migrateLegacySession()
   }
 
-  func checkAuthenticationState() {
-    let hasToken = getAuthToken() != nil
-    currentUser = getCurrentUser()
-    let hasValidUserData = currentUser != nil
+  @discardableResult
+  func persistSession(_ session: AuthSession) -> Bool {
+    let encoder = JSONEncoder()
+    encoder.dateEncodingStrategy = .iso8601
+    guard let data = try? encoder.encode(session) else { return false }
+    return KeychainHelper.standard.save(data, service: Self.sessionKeychainService, account: "self")
+  }
 
-    PostHogSDK.shared.capture(
-      "auth_state_check",
-      properties: ["has_token": hasToken, "has_user_data": hasValidUserData]
-    )
+  func clearSession() {
+    KeychainHelper.standard.delete(service: Self.sessionKeychainService, account: "self")
+    clearLegacyStorage()
+  }
 
-    isAuthenticated = hasToken && hasValidUserData
-
-    if hasToken && !hasValidUserData {
-      signOut(reason: "missing_user_data_on_init")
+  private func clearLegacyStorage() {
+    KeychainHelper.standard.delete(service: Self.legacyTokenKeychainService, account: "self")
+    for key in Self.legacyUserDefaultsKeys {
+      UserDefaults.standard.removeObject(forKey: key)
     }
   }
 
-  nonisolated func getAuthToken() -> String? {
-    let (tokenData, status) = KeychainHelper.standard.readWithStatus(
-      service: "session-token",
-      account: "self"
-    )
+  private func readPersistedSession() -> AuthSession? {
+    guard
+      let data = KeychainHelper.standard.read(service: Self.sessionKeychainService, account: "self")
+    else { return nil }
 
-    guard let tokenData else {
-      if status != errSecSuccess {
-        PostHogSDK.shared.capture(
-          "keychain_read_failed",
-          properties: ["status": status.description, "item": "session-token"]
-        )
-      }
+    let decoder = JSONDecoder()
+    decoder.dateDecodingStrategy = .iso8601
+    return try? decoder.decode(AuthSession.self, from: data)
+  }
+
+  private func migrateLegacySession() -> AuthSession? {
+    guard
+      let tokenData = KeychainHelper.standard.read(
+        service: Self.legacyTokenKeychainService,
+        account: "self"
+      )
+    else {
       return nil
     }
 
     guard var tokenString = String(data: tokenData, encoding: .utf8) else {
+      KeychainHelper.standard.delete(service: Self.legacyTokenKeychainService, account: "self")
       return nil
     }
 
-    // migrate tokens saved in old JSON-encoded format (surrounded by quotes).
+    // older builds stored the token JSON-encoded (surrounded by quotes).
     if tokenString.hasPrefix("\"") && tokenString.hasSuffix("\"") {
       tokenString = String(tokenString.dropFirst().dropLast())
-      if let migrated = tokenString.data(using: .utf8) {
-        KeychainHelper.standard.save(
-          migrated,
-          service: "session-token",
-          account: "self"
-        )
-      }
     }
 
-    return tokenString
+    guard let user = legacyCurrentUser() else {
+      clearLegacyStorage()
+      return nil
+    }
+
+    let session = AuthSession(token: tokenString, user: user)
+
+    guard persistSession(session) else {
+      return session
+    }
+
+    clearLegacyStorage()
+
+    return session
   }
 
-  func signOut(reason: String = "manual") {
-    PostHogSDK.shared.capture("user_signout", properties: ["reason": reason])
-    KeychainHelper.standard.delete(service: "session-token", account: "self")
-
-    // todo: put these in a map so can iterate over them and keep track of them everywhere???
-    UserDefaults.standard.removeObject(forKey: "CurrentUserID")
-    UserDefaults.standard.removeObject(forKey: "CurrentUserUsername")
-    UserDefaults.standard.removeObject(forKey: "CurrentUserEmail")
-    UserDefaults.standard.removeObject(forKey: "CurrentUserCreatedAt")
-    UserDefaults.standard.removeObject(forKey: "CurrentUserName")
-    UserDefaults.standard.removeObject(forKey: "selectedFeedType")
-    UserDefaults.standard.removeObject(forKey: "push_notifications_enabled")
-    UserDefaults.standard.removeObject(forKey: "push_pref_comments")
-    UserDefaults.standard.removeObject(forKey: "push_pref_mentions")
-    UserDefaults.standard.removeObject(forKey: "push_pref_follows")
-    UserDefaults.standard.removeObject(forKey: "image_layout_preference")
-    UserDefaults.standard.removeObject(forKey: "hasCompletedPushNotificationOnboarding")
-
-    ImageCache.shared.removeAll()
-    ImagePipeline.shared.cache.removeAll()
-
-    NotificationCenter.default.post(name: .userDidSignOut, object: nil)
-    RemoteNotificationUtilities.unregisterForRemoteNotifications()
-
-    isAuthenticated = false
-    currentUser = nil
-  }
-
-  private func getCurrentUser() -> CurrentUserModel? {
+  private func legacyCurrentUser() -> CurrentUserModel? {
     let defaults = UserDefaults.standard
+
+    if let data = defaults.data(forKey: Self.legacyUserDefaultsKey) {
+      let decoder = JSONDecoder()
+      decoder.dateDecodingStrategy = .iso8601
+      return try? decoder.decode(CurrentUserModel.self, from: data)
+    }
 
     guard let userId = defaults.object(forKey: "CurrentUserID") as? Int,
       let username = defaults.string(forKey: "CurrentUserUsername"),
@@ -136,30 +137,81 @@ class AuthManager: Sendable {
       name: name,
     )
   }
+}
 
-  private func saveUserData(_ user: CurrentUserModel, token: String) {
-    if let tokenData = token.data(using: .utf8) {
-      KeychainHelper.standard.save(
-        tokenData,
-        service: "session-token",
-        account: "self"
-      )
+@MainActor @Observable
+class AuthManager: Sendable {
+  var authState: AuthState = .unknown
+  var isLoading: Bool = false
+  private(set) var currentUser: CurrentUserModel?
+
+  var isAuthenticated: Bool {
+    authState == .authenticated
+  }
+
+  static let shared = AuthManager()
+
+  init() {
+    Task {
+      await resolveInitialSession()
+    }
+  }
+
+  private func resolveInitialSession() async {
+    guard let session = await SessionStore.shared.loadSession() else {
+      authState = .unauthenticated
+      return
     }
 
-    let defaults = UserDefaults.standard
-    defaults.set(user.userId, forKey: "CurrentUserID")
-    defaults.set(user.username, forKey: "CurrentUserUsername")
-    defaults.set(user.email, forKey: "CurrentUserEmail")
+    currentUser = session.user
+    authState = .authenticated
+  }
 
-    let createdAtString = user.createdAt.ISO8601Format()
-    defaults.set(createdAtString, forKey: "CurrentUserCreatedAt")
+  nonisolated func getAuthToken() async -> String? {
+    await SessionStore.shared.loadSession()?.token
+  }
 
-    if let name = user.name {
-      defaults.set(name, forKey: "CurrentUserName")
+  func signOut(reason: String = "manual") {
+    PostHogSDK.shared.capture("user_signout", properties: ["reason": reason])
+    Task {
+      await SessionStore.shared.clearSession()
     }
 
-    isAuthenticated = true
+    UserDefaults.standard.removeObject(forKey: "selectedFeedType")
+    UserDefaults.standard.removeObject(forKey: "push_notifications_enabled")
+    UserDefaults.standard.removeObject(forKey: "push_pref_comments")
+    UserDefaults.standard.removeObject(forKey: "push_pref_mentions")
+    UserDefaults.standard.removeObject(forKey: "push_pref_follows")
+    UserDefaults.standard.removeObject(forKey: "image_layout_preference")
+    UserDefaults.standard.removeObject(forKey: "hasCompletedPushNotificationOnboarding")
+
+    ImageCache.shared.removeAll()
+    ImagePipeline.shared.cache.removeAll()
+
+    NotificationCenter.default.post(name: .userDidSignOut, object: nil)
+    RemoteNotificationUtilities.unregisterForRemoteNotifications()
+
+    authState = .unauthenticated
+    currentUser = nil
+  }
+
+  private func saveUserData(_ user: CurrentUserModel, token: String) async {
+    await SessionStore.shared.persistSession(AuthSession(token: token, user: user))
+
+    authState = .authenticated
     currentUser = user
+  }
+
+  private func completeSignIn(_ authResponse: AuthResponse, event: String) async {
+    await saveUserData(authResponse.user, token: authResponse.token)
+    PostHogSDK.shared.identify(
+      String(authResponse.user.userId),
+      userProperties: [
+        "email": authResponse.user.email,
+        "username": authResponse.user.username,
+      ]
+    )
+    PostHogSDK.shared.capture(event)
   }
 
   /// Request a one time code be sent to the email of the user given by the identifier.
@@ -220,15 +272,7 @@ class AuthManager: Sendable {
 
     switch result {
     case .success(let authResponse):
-      saveUserData(authResponse.user, token: authResponse.token)
-      PostHogSDK.shared.identify(
-        String(authResponse.user.userId),
-        userProperties: [
-          "email": authResponse.user.email,
-          "username": authResponse.user.username,
-        ]
-      )
-      PostHogSDK.shared.capture("user_signin_otc")
+      await completeSignIn(authResponse, event: "user_signin_otc")
       return true
     case .failure:
       return false
@@ -264,15 +308,7 @@ class AuthManager: Sendable {
 
     switch result {
     case .success(let authResponse):
-      saveUserData(authResponse.user, token: authResponse.token)
-      PostHogSDK.shared.identify(
-        String(authResponse.user.userId),
-        userProperties: [
-          "email": authResponse.user.email,
-          "username": authResponse.user.username,
-        ]
-      )
-      PostHogSDK.shared.capture("user_signin")
+      await completeSignIn(authResponse, event: "user_signin")
       return (true, "")
     case .failure(let error):
       return (false, error.localizedDescription)
@@ -312,15 +348,7 @@ class AuthManager: Sendable {
 
     switch result {
     case .success(let authResponse):
-      saveUserData(authResponse.user, token: authResponse.token)
-      PostHogSDK.shared.identify(
-        String(authResponse.user.userId),
-        userProperties: [
-          "email": authResponse.user.email,
-          "username": authResponse.user.username,
-        ]
-      )
-      PostHogSDK.shared.capture("user_register")
+      await completeSignIn(authResponse, event: "user_register")
       return (true, "")
     case .failure(let error):
       return (false, error.localizedDescription)
