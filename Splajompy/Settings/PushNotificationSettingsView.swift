@@ -7,6 +7,8 @@ struct PushNotificationSettingsView: View {
 
   @AppStorage("push_notifications_enabled") private
     var isPushNotificationsEnabled: Bool = false
+  @AppStorage("notification_badge_enabled") private
+    var isNotificationBadgeEnabled: Bool = true
   @AppStorage("push_pref_comments") private var comments: Bool = true
   @AppStorage("push_pref_mentions") private var mentions: Bool = true
   @AppStorage("push_pref_follows") private var follows: Bool = true
@@ -71,6 +73,12 @@ struct PushNotificationSettingsView: View {
 
   @ViewBuilder
   private var notificationSections: some View {
+    Section {
+      Toggle("Notifications Badge", isOn: $isNotificationBadgeEnabled)
+    } footer: {
+      Text("Show a badge with your unread count on the Notifications tab.")
+    }
+
     if notificationAuthorizationStatus == .denied {
       VStack {
         #if os(iOS)
