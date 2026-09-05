@@ -23,6 +23,8 @@ struct SplajompyApp: App {
   @State private var notificationBadgeStore = NotificationBadgeStore.shared
   @Environment(\.scenePhase) private var scenePhase
   @AppStorage("appearance_mode") var appearanceMode: String = "Automatic"
+  @AppStorage("notification_badge_enabled") private
+    var isNotificationBadgeEnabled: Bool = true
 
   init() {
     initializeOtel()
@@ -60,12 +62,17 @@ struct SplajompyApp: App {
       .environment(authManager)
       .preferredColorScheme(colorScheme)
       .task(id: authManager.authState) {
-        if case .authenticated = authManager.authState {
-          await notificationBadgeStore.refresh()
-        }
+        guard isNotificationBadgeEnabled, case .authenticated = authManager.authState
+        else { return }
+        await notificationBadgeStore.refresh()
+      }
+      .onChange(of: isNotificationBadgeEnabled) { _, isEnabled in
+        guard isEnabled, case .authenticated = authManager.authState else { return }
+        Task { await notificationBadgeStore.refresh() }
       }
       .onChange(of: scenePhase) { _, newPhase in
-        guard newPhase == .active, case .authenticated = authManager.authState
+        guard isNotificationBadgeEnabled, newPhase == .active,
+          case .authenticated = authManager.authState
         else { return }
         Task { await notificationBadgeStore.refresh() }
       }
@@ -119,8 +126,7 @@ struct SplajompyApp: App {
       .tabItem {
         Label("Notifications", systemImage: "bell")
       }
-      .badge(notificationBadgeStore.unreadCount)
-      .tint(.accentColor)
+      .badge(isNotificationBadgeEnabled ? notificationBadgeStore.unreadCount : 0)
       .tag(1)
 
       NavigationStack(path: $navigationPaths[2]) {
@@ -259,6 +265,7 @@ struct SplajompyApp: App {
 
     selection = 0
     postStore.clearCache()
+    notificationBadgeStore.reset()
     PostHogSDK.shared.reset()
   }
 }

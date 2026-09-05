@@ -4,7 +4,7 @@ import Foundation
 class NotificationBadgeStore {
   static let shared = NotificationBadgeStore()
 
-  var unreadCount: Int = 0
+  var unreadCount: Int = 7
 
   private let service: NotificationServiceProtocol
 
