@@ -8,15 +8,10 @@ struct PartyInviteView: View {
     NavigationStack {
       ScrollView {
         VStack {
-          Text("IN NYC? GET SLIMY")
+          Text("WE CORDIALLY INVITE YOU TO JOIN US AT THE SPLAJOMPARTY")
             .fontWeight(.semibold)
             .font(SJFont.title)
             .padding(.bottom, 5)
-
-          Text("WITH US AT THE SPLAJOMPARTY")
-            .fontWeight(.semibold)
-            .font(SJFont.heading)
-            .padding()
 
           Image("party-invite")
             .resizable()
@@ -25,7 +20,6 @@ struct PartyInviteView: View {
         .padding()
         .multilineTextAlignment(.center)
       }
-      .pageTitle("SPLAJOMPARTY")
       .padding()
       .safeAreaInset(edge: .bottom) {
         Button {

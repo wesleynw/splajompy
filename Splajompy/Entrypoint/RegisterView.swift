@@ -3,6 +3,7 @@ import SwiftUI
 
 struct RegisterView: View {
   @Environment(\.dismiss) var dismiss
+  @Environment(AuthManager.self) private var authManager
 
   @State private var email: String = ""
   @State private var username: String = ""
@@ -12,65 +13,50 @@ struct RegisterView: View {
   @State private var emailError: String = ""
   @State private var passwordError: String = ""
 
+  @State var errorMessage: String = ""
+
   @FocusState private var isUsernameFieldFocused: Bool
   @FocusState private var isEmailFieldFocused: Bool
   @FocusState private var isPasswordFieldFocused: Bool
 
-  @State var errorMessage: String = ""
-
-  @Environment(AuthManager.self) private var authManager
-
   var body: some View {
     NavigationStack {
       ScrollView {
-        VStack {
-          VStack(alignment: .leading, spacing: 5) {
-            usernameField
-            usernameErrorView
-            emailField
-            emailErrorView
-            passwordField
-            passwordErrorView
-            generalErrorView
-          }
-          .padding(.bottom, 10)
-
-          Spacer(minLength: 24)
-
+        VStack(alignment: .leading, spacing: 15) {
+          usernameField
+          usernameErrorView
+          emailField
+          emailErrorView
+          passwordField
+          passwordErrorView
+          generalErrorView
         }
-        .safeAreaInset(edge: .bottom) {
-          VStack {
-            termsText
-
-            #if os(iOS)
-              AsyncActionButton(
-                title: "Continue",
-                isLoading: authManager.isLoading,
-                isDisabled: isContinueButtonDisabled
-              ) {
-                handleContinue()
-
-              }
-            #endif
-          }
-        }
-        .padding(.horizontal, 24)
-        .padding(.vertical, 32)
+        .padding()
       }
-      .pageTitle("Register")
-      .navigationBarBackButtonHidden()
-      .toolbar {
-        ToolbarItem(
-          placement: {
-            #if os(iOS)
-              return .destructiveAction
-            #else
-              return .destructiveAction
-            #endif
-          }()
-        ) {
-          #if os(iOS)
-            if #available(iOS 26.0, *) {
+      .safeAreaInset(edge: .bottom) {
+        VStack {
+          termsText
+
+          AsyncActionButton(
+            title: "Continue",
+            isLoading: authManager.isLoading,
+            isDisabled: isContinueButtonDisabled
+          ) {
+            handleContinue()
+          }
+          .padding()
+        }
+        .toolbar {
+          ToolbarItem(
+            placement: {
+              #if os(iOS)
+                return .cancellationAction
+              #else
+                return .destructiveAction
+              #endif
+            }()
+          ) {
+            if #available(iOS 26.0, macOS 26, *) {
               Button(role: .close, action: { dismiss() })
             } else {
               Button {
@@ -81,28 +67,13 @@ struct RegisterView: View {
               }
               .buttonStyle(.plain)
             }
-          #else
-            Button("Cancel") {
-              dismiss()
-            }
-            .fontWeight(.bold)
-            .controlSize(.large)
-          #endif
-        }
-
-        #if os(macOS)
-          ToolbarItem(placement: .confirmationAction) {
-            AsyncActionButton(
-              title: "Continue",
-              isLoading: authManager.isLoading,
-              isDisabled: isContinueButtonDisabled
-            ) {
-              handleContinue()
-
-            }
           }
-        #endif
+        }
       }
+      .onAppear {
+        isUsernameFieldFocused = true
+      }
+      .pageTitle("Register")
       .animation(.easeInOut(duration: 0.25), value: usernameError.isEmpty)
       .animation(.easeInOut(duration: 0.25), value: emailError.isEmpty)
       .animation(.easeInOut(duration: 0.25), value: passwordError.isEmpty)
@@ -111,27 +82,19 @@ struct RegisterView: View {
 
   private var usernameField: some View {
     TextField("Username", text: $username)
-      .padding(12)
-      .background(
-        RoundedRectangle(cornerRadius: 8)
-          .stroke(
-            fieldBorderColor(focused: isUsernameFieldFocused),
-            lineWidth: 2
-          )
-      )
-      .cornerRadius(8)
       .textContentType(.username)
+      .padding()
+      .background {
+        RoundedRectangle(cornerRadius: 10)
+          .stroke(isUsernameFieldFocused ? .primary : .secondary)
+      }
       #if os(iOS)
         .autocapitalization(.none)
         .autocorrectionDisabled()
       #else
         .textFieldStyle(.plain)
       #endif
-      .padding(.bottom, usernameError.isEmpty ? 10 : 4)
       .focused($isUsernameFieldFocused)
-      .onAppear {
-        isUsernameFieldFocused = true
-      }
       .onSubmit {
         usernameError = authManager.validateUsername(username) ?? ""
       }
@@ -146,12 +109,11 @@ struct RegisterView: View {
 
   private var emailField: some View {
     TextField("Email", text: $email)
-      .padding(12)
-      .background(
-        RoundedRectangle(cornerRadius: 8)
-          .stroke(fieldBorderColor(focused: isEmailFieldFocused), lineWidth: 2)
-      )
-      .cornerRadius(8)
+      .padding()
+      .background {
+        RoundedRectangle(cornerRadius: 10)
+          .stroke(isUsernameFieldFocused ? .primary : .secondary)
+      }
       .textContentType(.emailAddress)
       #if os(iOS)
         .autocapitalization(.none)
@@ -159,7 +121,6 @@ struct RegisterView: View {
       #else
         .textFieldStyle(.plain)
       #endif
-      .padding(.bottom, emailError.isEmpty ? 10 : 4)
       .focused($isEmailFieldFocused)
       .onSubmit {
         emailError = authManager.validateEmail(email) ?? ""
@@ -175,15 +136,11 @@ struct RegisterView: View {
 
   private var passwordField: some View {
     SecureField("Password", text: $password)
-      .padding(12)
-      .background(
-        RoundedRectangle(cornerRadius: 8)
-          .stroke(
-            fieldBorderColor(focused: isPasswordFieldFocused),
-            lineWidth: 2
-          )
-      )
-      .cornerRadius(8)
+      .padding()
+      .background {
+        RoundedRectangle(cornerRadius: 10)
+          .stroke(isUsernameFieldFocused ? .primary : .secondary)
+      }
       .textContentType(.newPassword)
       #if os(iOS)
         .autocapitalization(.none)
@@ -192,7 +149,6 @@ struct RegisterView: View {
         .textFieldStyle(.plain)
       #endif
       .focused($isPasswordFieldFocused)
-      .padding(.bottom, passwordError.isEmpty ? 0 : 4)
       .onSubmit {
         passwordError = authManager.validatePassword(password) ?? ""
       }
@@ -233,10 +189,9 @@ struct RegisterView: View {
     Text(
       "By continuing, you agree to our [Terms of Service](https://splajompy.com/tos) and [Privacy Policy](https://splajompy.com/privacy)."
     )
-    .font(.caption)
+    .font(SJFont.body)
     .foregroundStyle(.secondary)
     .multilineTextAlignment(.center)
-    .fixedSize(horizontal: false, vertical: true)
     .environment(
       \.openURL,
       OpenURLAction { url in
@@ -248,7 +203,6 @@ struct RegisterView: View {
         return .handled
       }
     )
-    .padding(.bottom, 16)
   }
 
   private func errorMessageView(_ message: String) -> some View {

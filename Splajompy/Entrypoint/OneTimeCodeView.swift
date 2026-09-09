@@ -2,93 +2,65 @@ import PostHog
 import SwiftUI
 
 struct OneTimeCodeView: View {
-  var identifier: String
   @Environment(\.dismiss) var dismiss
-  @FocusState private var isFocused: Bool
-  @State private var showError: Bool = false
-
-  @State private var oneTimeCode: String = ""
   @Environment(AuthManager.self) private var authManager
 
+  @FocusState private var isFocused: Bool
+
+  var identifier: String
+
+  @State private var showError: Bool = false
+  @State private var oneTimeCode: String = ""
+
   var body: some View {
-    VStack(alignment: .leading) {
-      Text("You should receive a verification email momentarily.")
-        .font(.body)
-        .fontWeight(.bold)
-        .foregroundStyle(.secondary)
-        .padding(.bottom, 20)
+    ScrollView {
+      VStack(alignment: .leading, spacing: 15) {
+        Text("You should receive a verification email momentarily.")
+          .font(SJFont.callout)
 
-      TextField("Code", text: $oneTimeCode)
-        .padding(12)
-        .background(
-          RoundedRectangle(cornerRadius: 8)
-            .stroke(
-              isFocused ? Color.primary : Color.gray.opacity(0.75),
-              lineWidth: 2
-            )
-        )
-        .cornerRadius(8)
-        .textContentType(.username)
-        .autocorrectionDisabled()
-        .focused($isFocused)
-        .textContentType(.oneTimeCode)
-        #if os(iOS)
-          .keyboardType(.numberPad)
-        #else
-          .textFieldStyle(.plain)
-        #endif
-        .onAppear { isFocused = true }
-
+        TextField("Code", text: $oneTimeCode)
+          .textContentType(.oneTimeCode)
+          .padding()
+          .background {
+            RoundedRectangle(cornerRadius: 10)
+              .stroke(isFocused ? .primary : .secondary)
+          }
+          .autocorrectionDisabled()
+          .focused($isFocused)
+          #if os(iOS)
+            .keyboardType(.numberPad)
+          #else
+            .textFieldStyle(.plain)
+          #endif
+      }
+      .padding()
     }
-    .frame(maxHeight: .infinity, alignment: .topLeading)
-    #if os(iOS)
-      .safeAreaInset(edge: .bottom) {
-        AsyncActionButton(
-          title: "Continue",
-          isLoading: authManager.isLoading,
-          isDisabled: authManager.isLoading || oneTimeCode.isEmpty
-        ) {
-          Task {
-            let success = await authManager.verifyOneTimeCode(
-              for: identifier,
-              code: oneTimeCode
-            )
-            if !success {
-              showError = true
-            }
+    .onAppear { isFocused = true }
+    .safeAreaInset(edge: .bottom) {
+      AsyncActionButton(
+        title: "Continue",
+        isLoading: authManager.isLoading,
+        isDisabled: authManager.isLoading || oneTimeCode.isEmpty
+      ) {
+        Task {
+          let success = await authManager.verifyOneTimeCode(
+            for: identifier,
+            code: oneTimeCode
+          )
+          if !success {
+            showError = true
           }
         }
       }
-    #endif
-    .pageTitle("Check your email")
-    .padding()
+      .padding()
+    }
+    .pageTitle("Login")
     .alert(isPresented: $showError) {
       Alert(
         title: Text("Sign In Failed"),
         message: Text("Incorrect code."),
         dismissButton: .default(Text("OK"))
       )
-    }
-    .toolbar {
-      #if os(macOS)
-        ToolbarItem(placement: .confirmationAction) {
-          AsyncActionButton(
-            title: "Continue",
-            isLoading: authManager.isLoading,
-            isDisabled: authManager.isLoading || oneTimeCode.isEmpty
-          ) {
-            Task {
-              let success = await authManager.verifyOneTimeCode(
-                for: identifier,
-                code: oneTimeCode
-              )
-              if !success {
-                showError = true
-              }
-            }
-          }
-        }
-      #endif
     }
   }
 }

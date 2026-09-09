@@ -49,15 +49,16 @@ struct AccountSettingsView: View {
       Button(action: { isShowingSignoutConfirm = true }) {
         Label("Sign Out", systemImage: "rectangle.portrait.and.arrow.right")
       }
-      .confirmationDialog(
+      .alert(
         "Are you sure you'd like to sign out?",
         isPresented: $isShowingSignoutConfirm
       ) {
+        Button("Cancel", role: .cancel) {}
+
         Button("Sign Out", role: .destructive) {
           authManager.signOut()
           PostHogSDK.shared.reset()
         }
-        Button("Cancel", role: .cancel) {}
       }
     }
 
