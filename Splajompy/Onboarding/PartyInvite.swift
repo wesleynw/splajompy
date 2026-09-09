@@ -1,14 +1,14 @@
 import SwiftUI
 
 struct PartyInviteView: View {
-  var onDismiss: () -> Void
   @Environment(\.openURL) var openURL
+  @Environment(\.dismiss) var dismiss
 
   var body: some View {
     NavigationStack {
       ScrollView {
         VStack {
-          Text("GET SLIMY")
+          Text("IN NYC? GET SLIMY")
             .fontWeight(.semibold)
             .font(SJFont.title)
             .padding(.bottom, 5)
@@ -25,6 +25,7 @@ struct PartyInviteView: View {
         .padding()
         .multilineTextAlignment(.center)
       }
+      .pageTitle("SPLAJOMPARTY")
       .padding()
       .safeAreaInset(edge: .bottom) {
         Button {
@@ -45,23 +46,22 @@ struct PartyInviteView: View {
         ToolbarItem(placement: .topBarTrailing) {
           if #available(iOS 26, macOS 26, *) {
             Button(role: .close) {
-              onDismiss()
+              dismiss()
             }
           } else {
             Button("No thanks") {
-              onDismiss()
+              dismiss()
             }
           }
         }
       }
     }
-    .interactiveDismissDisabled()
   }
 }
 
 #Preview {
   Text("")
     .sheet(isPresented: .constant(true)) {
-      PartyInviteView(onDismiss: {})
+      PartyInviteView()
     }
 }
