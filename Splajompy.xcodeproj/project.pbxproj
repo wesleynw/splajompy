@@ -70,6 +70,7 @@
 				Extensions/PhotoLibrary.swift = (ios, );
 				Onboarding/ImageOnboardingView.swift = (ios, );
 				Onboarding/OnboardingSheetViewModifier.swift = (ios, );
+				Onboarding/PartyInvite.swift = (ios, );
 				Onboarding/PushNotificationsOnboardingView.swift = (ios, );
 				Posts/Components/ImageCarousel.swift = (ios, );
 				Posts/Components/ImagePager_ios.swift = (ios, );
