@@ -32,7 +32,12 @@ struct OnboardingSheetViewModifier: ViewModifier {
 
   func body(content: Content) -> some View {
     content
-      .sheet(isPresented: .constant(shouldShowSplajomparty)) {
+      .sheet(
+        isPresented: .constant(
+          shouldShowSplajomparty
+            && !(shouldShowImageOnboarding || shouldShowNotificationsOnboarding)
+        )
+      ) {
         PartyInviteView(onDismiss: { hasViewedSplajompartyInvite = true })
       }
       .sheet(

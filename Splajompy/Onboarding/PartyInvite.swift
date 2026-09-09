@@ -55,6 +55,7 @@ struct PartyInviteView: View {
         }
       }
     }
+    .interactiveDismissDisabled()
   }
 }
 
