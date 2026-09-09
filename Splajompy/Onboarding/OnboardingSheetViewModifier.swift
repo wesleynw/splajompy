@@ -36,9 +36,13 @@ struct OnboardingSheetViewModifier: ViewModifier {
         isPresented: .constant(
           shouldShowSplajomparty
             && !(shouldShowImageOnboarding || shouldShowNotificationsOnboarding)
-        )
+        ),
+        onDismiss: {
+          hasViewedSplajompartyInvite = true
+        }
       ) {
-        PartyInviteView(onDismiss: { hasViewedSplajompartyInvite = true })
+        PartyInviteView()
+          .postHogScreenView()
       }
       .sheet(
         isPresented: .constant(
