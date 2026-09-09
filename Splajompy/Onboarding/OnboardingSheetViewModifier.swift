@@ -2,12 +2,17 @@ import PostHog
 import SwiftUI
 
 struct OnboardingSheetViewModifier: ViewModifier {
-  @AppStorage("image_layout_preference") private var imageLayoutPreference: ImageLayoutPreference =
+  @AppStorage("image_layout_preference") private var imageLayoutPreference:
+    ImageLayoutPreference =
+      .undecided
+  @State private var stagedImageLayoutPreference: ImageLayoutPreference =
     .undecided
-  @State private var stagedImageLayoutPreference: ImageLayoutPreference = .undecided
 
   @AppStorage("hasCompletedPushNotificationOnboarding") private
     var hasCompletedPushNotificationOnboarding: Bool = false
+
+  @AppStorage("hasViewedSplajompartyInvite09252026") private
+    var hasViewedSplajompartyInvite: Bool = false
 
   @State private var isNavigationToPushNotificationOnboarding: Bool = false
 
@@ -21,8 +26,16 @@ struct OnboardingSheetViewModifier: ViewModifier {
       )
   }
 
+  var shouldShowSplajomparty: Bool {
+    !hasViewedSplajompartyInvite
+      && PostHogSDK.shared.isFeatureEnabled("splajomparty-invite-09252026")
+  }
+
   func body(content: Content) -> some View {
     content
+      .sheet(isPresented: .constant(shouldShowSplajomparty)) {
+        PartyInviteView(onDismiss: { hasViewedSplajompartyInvite = true })
+      }
       .sheet(
         isPresented: .constant(
           shouldShowImageOnboarding || shouldShowNotificationsOnboarding
