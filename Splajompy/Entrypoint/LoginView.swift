@@ -3,6 +3,7 @@ import SwiftUI
 
 struct LoginView: View {
   @Environment(\.dismiss) var dismiss
+  @Environment(AuthManager.self) private var authManager
 
   @State private var identifier: String = ""
   @State private var isUsingPassword: Bool = true
@@ -10,60 +11,38 @@ struct LoginView: View {
   @State private var password = ""
   @State private var hasRequestedCode: Bool = false
 
-  @State var showError: Bool = false
-  @State var errorMessage: String = ""
+  @State private var showError: Bool = false
+  @State private var errorMessage: String = ""
 
   @FocusState private var isIdentifierFieldFocused: Bool
   @FocusState private var isPasswordFieldFocused: Bool
 
-  @Environment(AuthManager.self) private var authManager
-
   var body: some View {
     NavigationStack {
       ScrollView {
-        VStack(alignment: .leading, spacing: 5) {
+        VStack(spacing: 15) {
           TextField("Username or Email", text: $identifier)
-            .padding(12)
-            .background(
-              RoundedRectangle(cornerRadius: 8)
-                .stroke(
-                  isIdentifierFieldFocused
-                    ? Color.primary : Color.gray.opacity(0.75),
-                  lineWidth: 2
-                )
-            )
-            .cornerRadius(8)
-            .textContentType(.username)
+            .textContentType(.emailAddress)
+            .padding()
+            .background {
+              RoundedRectangle(cornerRadius: 10)
+                .stroke(isIdentifierFieldFocused ? .primary : .secondary)
+            }
             #if os(iOS)
               .autocorrectionDisabled()
             #else
               .textFieldStyle(.plain)
             #endif
             .focused($isIdentifierFieldFocused)
-            .onAppear {
-              if identifier.isEmpty {
-                isIdentifierFieldFocused = true
-              } else {
-                isPasswordFieldFocused = true
-              }
-            }
-        }
-        .padding(.bottom, 10)
 
-        if isUsingPassword {
-          VStack(alignment: .leading) {
+          if isUsingPassword {
             SecureField("Password", text: $password)
-              .padding(12)
-              .background(
-                RoundedRectangle(cornerRadius: 8)
-                  .stroke(
-                    isPasswordFieldFocused
-                      ? Color.primary : Color.gray.opacity(0.75),
-                    lineWidth: 2
-                  )
-              )
-              .cornerRadius(8)
               .textContentType(.password)
+              .padding()
+              .background {
+                RoundedRectangle(cornerRadius: 10)
+                  .stroke(isIdentifierFieldFocused ? .primary : .secondary)
+              }
               #if os(iOS)
                 .autocapitalization(.none)
               #else
@@ -72,6 +51,14 @@ struct LoginView: View {
               .autocorrectionDisabled()
               .focused($isPasswordFieldFocused)
           }
+        }
+        .padding()
+      }
+      .onAppear {
+        if identifier.isEmpty {
+          isIdentifierFieldFocused = true
+        } else {
+          isPasswordFieldFocused = true
         }
       }
       .safeAreaInset(edge: .bottom) {
@@ -89,63 +76,40 @@ struct LoginView: View {
           .disabled(authManager.isLoading)
           .padding()
 
-          #if os(iOS)
-            AsyncActionButton(
-              title: "Continue",
-              isLoading: authManager.isLoading,
-              isDisabled: authManager.isLoading
-                || identifier.isEmpty || (isUsingPassword && password.isEmpty)
-            ) {
-              await handleSubmit()
-            }
-          #endif
+          AsyncActionButton(
+            title: "Continue",
+            isLoading: authManager.isLoading,
+            isDisabled: authManager.isLoading
+              || identifier.isEmpty || (isUsingPassword && password.isEmpty)
+          ) {
+            await handleSubmit()
+          }
         }
+        .padding()
       }
-      .padding()
       .pageTitle("Sign In")
       .toolbar {
         ToolbarItem(
           placement: {
             #if os(iOS)
-              .topBarTrailing
+              .cancellationAction
             #else
               .destructiveAction
             #endif
           }()
         ) {
-          #if os(iOS)
-            if #available(iOS 26.0, *) {
-              Button(role: .close, action: { dismiss() })
-            } else {
-              Button {
-                dismiss()
-              } label: {
-                Image(systemName: "xmark.circle.fill")
-                  .opacity(0.8)
-              }
-              .buttonStyle(.plain)
-            }
-          #else
-            Button("Cancel") {
+          if #available(iOS 26, macOS 26, *) {
+            Button(role: .cancel, action: { dismiss() })
+          } else {
+            Button {
               dismiss()
+            } label: {
+              Image(systemName: "xmark.circle.fill")
+                .opacity(0.8)
             }
-            .fontWeight(.bold)
-            .controlSize(.large)
-          #endif
-        }
-
-        #if os(macOS)
-          ToolbarItem(placement: .confirmationAction) {
-            AsyncActionButton(
-              title: "Continue",
-              isLoading: authManager.isLoading,
-              isDisabled: authManager.isLoading
-                || identifier.isEmpty || (isUsingPassword && password.isEmpty)
-            ) {
-              await handleSubmit()
-            }
+            .buttonStyle(.plain)
           }
-        #endif
+        }
       }
       .navigationDestination(isPresented: $isShowingOtcVerify) {
         OneTimeCodeView(identifier: identifier)

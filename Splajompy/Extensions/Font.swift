@@ -7,4 +7,5 @@ struct SJFont {
   static let heading = Font.custom("Splajompy-Regular", size: 18, relativeTo: .headline)
   static let callout = Font.custom("Splajompy-Regular", size: 17, relativeTo: .headline)
   static let body = Font.custom("Splajompy-Regular", size: 15, relativeTo: .body)
+  static let footnote = Font.custom("Splajompy-Regular", size: 10, relativeTo: .footnote)
 }
