@@ -8,7 +8,7 @@ struct PushNotificationSettingsView: View {
   @AppStorage("push_notifications_enabled") private
     var isPushNotificationsEnabled: Bool = false
   @AppStorage("notification_badge_enabled") private
-    var isNotificationBadgeEnabled: Bool = true
+    var isNotificationBadgeEnabled: Bool = false
   @AppStorage("push_pref_comments") private var comments: Bool = true
   @AppStorage("push_pref_mentions") private var mentions: Bool = true
   @AppStorage("push_pref_follows") private var follows: Bool = true
