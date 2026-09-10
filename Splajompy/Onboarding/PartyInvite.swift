@@ -2,7 +2,7 @@ import SwiftUI
 
 struct PartyInviteView: View {
   @Environment(\.openURL) var openURL
-  @Environment(\.dismiss) var dismiss
+  var onDismiss: () -> Void = {}
 
   var body: some View {
     NavigationStack {
@@ -40,11 +40,11 @@ struct PartyInviteView: View {
         ToolbarItem(placement: .topBarTrailing) {
           if #available(iOS 26, macOS 26, *) {
             Button(role: .close) {
-              dismiss()
+              onDismiss()
             }
           } else {
             Button("No thanks") {
-              dismiss()
+              onDismiss()
             }
           }
         }

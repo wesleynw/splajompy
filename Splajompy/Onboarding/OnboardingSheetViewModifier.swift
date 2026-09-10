@@ -14,7 +14,6 @@ struct OnboardingSheetViewModifier: ViewModifier {
     var hasViewedSplajompartyInvite: Bool = false
 
   @State private var isNavigationToPushNotificationOnboarding: Bool = false
-  @State private var isPresentingSplajomparty: Bool = false
 
   var shouldShowImageOnboarding: Bool {
     imageLayoutPreference == .undecided
@@ -33,19 +32,16 @@ struct OnboardingSheetViewModifier: ViewModifier {
 
   func body(content: Content) -> some View {
     content
-      .onAppear {
-        isPresentingSplajomparty =
-          shouldShowSplajomparty
-          && !(shouldShowImageOnboarding || shouldShowNotificationsOnboarding)
-      }
       .sheet(
-        isPresented: $isPresentingSplajomparty,
-        onDismiss: {
+        isPresented: .constant(
+          shouldShowSplajomparty
+            && !(shouldShowImageOnboarding || shouldShowNotificationsOnboarding)
+        )
+      ) {
+        PartyInviteView {
           hasViewedSplajompartyInvite = true
         }
-      ) {
-        PartyInviteView()
-          .postHogScreenView()
+        .postHogScreenView()
       }
       .sheet(
         isPresented: .constant(
