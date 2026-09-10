@@ -1,0 +1,27 @@
+info:
+  name: Get User's Posts
+  type: http
+  seq: 6
+
+http:
+  method: GET
+  url: "{{apiUrl}}/v2/user/:userId/posts?limit=10"
+  headers:
+    - name: X-App-Version
+      value: 1.4.0
+      disabled: true
+  params:
+    - name: limit
+      value: "10"
+      type: query
+    - name: userId
+      value: "6"
+      type: path
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false
