@@ -24,7 +24,7 @@ struct SplajompyApp: App {
   @Environment(\.scenePhase) private var scenePhase
   @AppStorage("appearance_mode") var appearanceMode: String = "Automatic"
   @AppStorage("notification_badge_enabled") private
-    var isNotificationBadgeEnabled: Bool = true
+    var isNotificationBadgeEnabled: Bool = false
 
   init() {
     initializeOtel()
