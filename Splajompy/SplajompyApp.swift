@@ -33,53 +33,16 @@ struct SplajompyApp: App {
   }
 
   var body: some Scene {
-    WindowGroup(id: "main") {
-      Group {
-        switch authManager.authState {
-        case .unknown:
-          ProgressView()
-        case .authenticated:
-          authenticatedView
-            .environment(postStore)
-            .environment(notificationBadgeStore)
-        case .unauthenticated:
-          SplashScreenView()
-            .postHogScreenView()
-        }
+    #if os(iOS)
+      WindowGroup {
+        mainContent
       }
-      .modifier(
-        NavigateOnNotificationModifier(
-          pendingRoute: $routingHelper.pendingRoute,
-          selection: $selection,
-          navigationPaths: $navigationPaths
-        )
-      )
-      .onReceive(NotificationCenter.default.publisher(for: .userDidSignOut)) {
-        _ in
-        handleUserSignOut()
+    #else
+      Window("Splajompy", id: "main") {
+        mainContent
       }
-      .modifier(SupportedVersionViewModifier())
-      .environment(authManager)
-      .preferredColorScheme(colorScheme)
-      .task(id: authManager.authState) {
-        guard isNotificationBadgeEnabled, case .authenticated = authManager.authState
-        else { return }
-        await notificationBadgeStore.refresh()
-      }
-      .onChange(of: isNotificationBadgeEnabled) { _, isEnabled in
-        guard isEnabled, case .authenticated = authManager.authState else { return }
-        Task { await notificationBadgeStore.refresh() }
-      }
-      .onChange(of: scenePhase) { _, newPhase in
-        guard isNotificationBadgeEnabled, newPhase == .active,
-          case .authenticated = authManager.authState
-        else { return }
-        Task { await notificationBadgeStore.refresh() }
-      }
-    }
-    //    .windowToolbarStyle(.unified(showsTitle: false))
-    #if os(macOS)
       .defaultSize(width: 1250, height: 800)
+      .windowResizability(.contentMinSize)
     #endif
 
     #if os(macOS)
@@ -99,6 +62,55 @@ struct SplajompyApp: App {
         .environment(authManager)
       }
     #endif
+  }
+
+  @ViewBuilder
+  private var mainContent: some View {
+    Group {
+      switch authManager.authState {
+      case .unknown:
+        ProgressView()
+      case .authenticated:
+        authenticatedView
+          .environment(postStore)
+          .environment(notificationBadgeStore)
+      case .unauthenticated:
+        SplashScreenView()
+          .postHogScreenView()
+      }
+    }
+    .modifier(
+      NavigateOnNotificationModifier(
+        pendingRoute: $routingHelper.pendingRoute,
+        selection: $selection,
+        navigationPaths: $navigationPaths
+      )
+    )
+    .onReceive(NotificationCenter.default.publisher(for: .userDidSignOut)) {
+      _ in
+      handleUserSignOut()
+    }
+    .modifier(SupportedVersionViewModifier())
+    .environment(authManager)
+    .preferredColorScheme(colorScheme)
+    .task(id: authManager.authState) {
+      guard isNotificationBadgeEnabled,
+        case .authenticated = authManager.authState
+      else { return }
+      await notificationBadgeStore.refresh()
+    }
+    .onChange(of: isNotificationBadgeEnabled) { _, isEnabled in
+      guard isEnabled, case .authenticated = authManager.authState else {
+        return
+      }
+      Task { await notificationBadgeStore.refresh() }
+    }
+    .onChange(of: scenePhase) { _, newPhase in
+      guard isNotificationBadgeEnabled, newPhase == .active,
+        case .authenticated = authManager.authState
+      else { return }
+      Task { await notificationBadgeStore.refresh() }
+    }
   }
 
   @ViewBuilder
@@ -126,7 +138,9 @@ struct SplajompyApp: App {
       .tabItem {
         Label("Notifications", systemImage: "bell")
       }
-      .badge(isNotificationBadgeEnabled ? notificationBadgeStore.unreadCount : 0)
+      .badge(
+        isNotificationBadgeEnabled ? notificationBadgeStore.unreadCount : 0
+      )
       .tag(1)
 
       NavigationStack(path: $navigationPaths[2]) {
