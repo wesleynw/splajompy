@@ -51,6 +51,7 @@ struct SplajompyApp: App {
           switch authManager.authState {
           case .unknown:
             ProgressView()
+              .controlSize(.small)
           case .authenticated:
             MacSettingsView()
           case .unauthenticated:
@@ -70,8 +71,22 @@ struct SplajompyApp: App {
       switch authManager.authState {
       case .unknown:
         ProgressView()
+          #if os(macOS)
+            .controlSize(.small)
+          #endif
       case .authenticated:
         authenticatedView
+          .onOpenURL { url in
+            handleDeepLink(url)
+          }
+          #if os(iOS)
+            .modifier(OnboardingSheetViewModifier())
+          #endif
+          .modify {
+            if #available(iOS 18, *) {
+              $0.tabViewStyle(.sidebarAdaptable)
+            }
+          }
           .environment(postStore)
           .environment(notificationBadgeStore)
       case .unauthenticated:
@@ -113,8 +128,60 @@ struct SplajompyApp: App {
     }
   }
 
+  @available(iOS 18, *)
   @ViewBuilder
-  private var authenticatedView: some View {
+  private var modernTabView: some View {
+    TabView(selection: $selection) {
+      Tab("Home", systemImage: "house", value: 0) {
+        NavigationStack(path: $navigationPaths[0]) {
+          FeedView(postManager: postStore)
+            .postHogScreenView()
+            .navigationDestination(for: Route.self) { route in
+              routeDestination(route)
+            }
+        }
+      }
+
+      Tab("Notifications", systemImage: "bell", value: 1) {
+        NavigationStack(path: $navigationPaths[1]) {
+          NotificationsView()
+            .postHogScreenView()
+            .navigationDestination(for: Route.self) { route in
+              routeDestination(route)
+            }
+        }
+      }
+      .badge(
+        isNotificationBadgeEnabled ? notificationBadgeStore.unreadCount : 0
+      )
+
+      Tab("Search", systemImage: "magnifyingglass", value: 2) {
+        NavigationStack(path: $navigationPaths[2]) {
+          SearchView()
+            .postHogScreenView()
+            .navigationDestination(for: Route.self) { route in
+              routeDestination(route)
+            }
+        }
+      }
+
+      Tab("Profile", systemImage: "person.circle", value: 3) {
+        NavigationStack(path: $navigationPaths[3]) {
+          CurrentProfileView(postManager: postStore)
+            .postHogScreenView()
+            .navigationDestination(for: Route.self) { route in
+              routeDestination(route)
+            }
+            .navigationDestination(for: SettingsRoute.self) { route in
+              settingsRouteDestination(route)
+            }
+        }
+      }
+    }
+  }
+
+  @ViewBuilder
+  private var legacyTabView: some View {
     TabView(selection: $selection) {
       NavigationStack(path: $navigationPaths[0]) {
         FeedView(postManager: postStore)
@@ -138,10 +205,10 @@ struct SplajompyApp: App {
       .tabItem {
         Label("Notifications", systemImage: "bell")
       }
+      .tag(1)
       .badge(
         isNotificationBadgeEnabled ? notificationBadgeStore.unreadCount : 0
       )
-      .tag(1)
 
       NavigationStack(path: $navigationPaths[2]) {
         SearchView()
@@ -170,19 +237,15 @@ struct SplajompyApp: App {
       }
       .tag(3)
     }
-    .modify {
-      #if os(iOS)
-        if #available(iOS 18, *) {
-          $0.tabViewStyle(.sidebarAdaptable)
-        }
-      #endif
+  }
+
+  @ViewBuilder
+  private var authenticatedView: some View {
+    if #available(iOS 18, *) {
+      modernTabView
+    } else {
+      legacyTabView
     }
-    .onOpenURL { url in
-      handleDeepLink(url)
-    }
-    #if os(iOS)
-      .modifier(OnboardingSheetViewModifier())
-    #endif
   }
 
   private var colorScheme: ColorScheme? {
