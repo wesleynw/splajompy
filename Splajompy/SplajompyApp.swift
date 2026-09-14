@@ -82,7 +82,11 @@ struct SplajompyApp: App {
           #if os(iOS)
             .modifier(OnboardingSheetViewModifier())
           #endif
-          .tabViewStyle(.sidebarAdaptable)
+          .modify {
+            if #available(iOS 18, *) {
+              $0.tabViewStyle(.sidebarAdaptable)
+            }
+          }
           .environment(postStore)
           .environment(notificationBadgeStore)
       case .unauthenticated:
