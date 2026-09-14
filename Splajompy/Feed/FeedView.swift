@@ -50,7 +50,10 @@ struct FeedView: View {
         .fullScreenCover(isPresented: $isShowingNewPostView) {
           NewPostView(
             onPostCreated: {
-              await viewModel.loadPosts(preserveCurrentState: false, reset: true)
+              await viewModel.loadPosts(
+                preserveCurrentState: false,
+                reset: true
+              )
             }
           )
           .modify {
@@ -213,5 +216,7 @@ struct FeedView: View {
 }
 
 extension Foundation.Notification.Name {
-  static let userDidRefreshFeed = Foundation.Notification.Name("userDidRefreshFeed")
+  static let userDidRefreshFeed = Foundation.Notification.Name(
+    "userDidRefreshFeed"
+  )
 }

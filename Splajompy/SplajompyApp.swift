@@ -51,6 +51,7 @@ struct SplajompyApp: App {
           switch authManager.authState {
           case .unknown:
             ProgressView()
+              .controlSize(.small)
           case .authenticated:
             MacSettingsView()
           case .unauthenticated:
@@ -70,6 +71,9 @@ struct SplajompyApp: App {
       switch authManager.authState {
       case .unknown:
         ProgressView()
+          #if os(macOS)
+            .controlSize(.small)
+          #endif
       case .authenticated:
         authenticatedView
           .onOpenURL { url in
@@ -78,6 +82,7 @@ struct SplajompyApp: App {
           #if os(iOS)
             .modifier(OnboardingSheetViewModifier())
           #endif
+          .tabViewStyle(.sidebarAdaptable)
           .environment(postStore)
           .environment(notificationBadgeStore)
       case .unauthenticated:
