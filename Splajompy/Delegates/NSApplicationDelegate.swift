@@ -36,6 +36,10 @@ class AppDelegate: NSObject, NSApplicationDelegate,
       properties: ["error": error.localizedDescription]
     )
   }
+  
+  func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
+    return true
+  }
 
   @MainActor
   func userNotificationCenter(
