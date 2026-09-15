@@ -140,13 +140,11 @@ struct SearchView: View {
     }
     .listStyle(.plain)
     .scrollContentBackground(.hidden)
-    #if os(macOS)
-      .modify {
-        if #available(macOS 26, *) {
-          $0.scrollEdgeEffectStyle(.hard, for: .top)
-        }
+    .modify {
+      if #available(iOS 26, macOS 26, *) {
+        $0.scrollEdgeEffectStyle(.hard, for: .top)
       }
-    #endif
+    }
   }
 }
 

@@ -75,6 +75,7 @@ struct LoginView: View {
           .controlSize(.large)
           .disabled(authManager.isLoading)
           .padding()
+          .contentShape(.rect)
 
           #if os(iOS)
             AsyncActionButton(

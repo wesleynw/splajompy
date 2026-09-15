@@ -41,7 +41,9 @@ struct FeedTypeToggle: View {
           .font(SJFont.title)
       }
     }
-    .pickerStyle(.inline)
+    #if os(macOS)
+      .pickerStyle(.inline)
+    #endif
     .foregroundStyle(.primary)
   }
 }

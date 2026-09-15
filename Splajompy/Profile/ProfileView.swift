@@ -39,13 +39,11 @@ struct ProfileView: View {
           profile(user: user, feedState: feedState, proxy: proxy)
         }
       }
-      #if os(macOS)
-        .modify {
-          if #available(macOS 26, *) {
-            $0.scrollEdgeEffectStyle(.hard, for: .top)
-          }
+      .modify {
+        if #available(iOS 26, macOS 26, *) {
+          $0.scrollEdgeEffectStyle(.hard, for: .top)
         }
-      #endif
+      }
       .frame(maxWidth: .infinity, maxHeight: .infinity)
       .overlay {
         switch viewModel.profileState {
