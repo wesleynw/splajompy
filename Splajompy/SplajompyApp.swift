@@ -92,6 +92,8 @@ struct SplajompyApp: App {
       case .unauthenticated:
         SplashScreenView()
           .postHogScreenView()
+          .toolbar(removing: .title)
+          .toolbarBackgroundVisibility(.hidden, for: .windowToolbar)
       }
     }
     .modifier(

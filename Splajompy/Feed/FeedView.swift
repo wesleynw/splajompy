@@ -77,16 +77,31 @@ struct FeedView: View {
       #endif
       .sensoryFeedback(.selection, trigger: isShowingNewPostView)
       .toolbar {
-        ToolbarItem(
-          placement: {
-            #if os(iOS)
-              .topBarLeading
-            #else
-              .navigation
-            #endif
-          }()
-        ) {
-          FeedTypeToggle(selectedFeedType: $selectedFeedType)
+        if #available(iOS 27, macOS 27, *) {
+          ToolbarItem(
+            placement: {
+              #if os(iOS)
+                .topBarLeading
+              #else
+                .navigation
+              #endif
+            }()
+          ) {
+            FeedTypeToggle(selectedFeedType: $selectedFeedType)
+          }
+          .sharedBackgroundVisibility(.hidden)
+        } else {
+          ToolbarItem(
+            placement: {
+              #if os(iOS)
+                .topBarLeading
+              #else
+                .navigation
+              #endif
+            }()
+          ) {
+            FeedTypeToggle(selectedFeedType: $selectedFeedType)
+          }
         }
 
         ToolbarItem(
@@ -98,7 +113,9 @@ struct FeedView: View {
             #endif
           }()
         ) {
-          Button(action: { isShowingNewPostView = true }) {
+          Button {
+            isShowingNewPostView = true
+          } label: {
             Image(systemName: "plus")
           }
           .foregroundStyle(.primary)
