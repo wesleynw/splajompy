@@ -45,6 +45,11 @@ struct FeedView: View {
           await viewModel.loadPosts(reset: true)
         }
       }
+      .onReceive(NotificationCenter.default.publisher(for: .userDidRefreshFeed)) { _ in
+        Task {
+          await viewModel.loadPosts(reset: true)
+        }
+      }
       #if os(iOS)
         .fullScreenCover(isPresented: $isShowingNewPostView) {
           NewPostView(
@@ -102,11 +107,26 @@ struct FeedView: View {
             FeedTypeToggle(selectedFeedType: $selectedFeedType)
           }
         }
-        
-        // this is dumb
-        ToolbarItem {
-          Spacer()
-        }
+
+        #if os(macOS)
+          ToolbarItem {
+            Spacer()
+          }
+
+          ToolbarItemGroup(placement: .automatic) {
+            Button {
+              Task {
+                await viewModel.loadPosts(reset: true)
+              }
+            } label: {
+              Image(systemName: "arrow.clockwise")
+            }
+          }
+
+          if #available(macOS 26, *) {
+            ToolbarSpacer(.fixed)
+          }
+        #endif
 
         ToolbarItem(
           placement: {
@@ -212,11 +232,13 @@ struct FeedView: View {
         }
       }
     }
-    .modify {
-      if #available(macOS 26, *) {
-        $0.scrollEdgeEffectStyle(.hard, for: .top)
+    #if os(macOS)
+      .modify {
+        if #available(macOS 26, *) {
+          $0.scrollEdgeEffectStyle(.hard, for: .top)
+        }
       }
-    }
+    #endif
     .refreshable {
       // I don't particularly understand why, but this needs to be wrapped in an unstructured task to avoid task cancellation
       // in some contexts. Previously, if you opened the app switcher while this was loading, it would cancel the task immediately

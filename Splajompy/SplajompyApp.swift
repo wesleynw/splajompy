@@ -42,6 +42,17 @@ struct SplajompyApp: App {
         mainContent
           .toolbar(removing: .title)
       }
+      .commands {
+        CommandMenu("Feed") {
+          Button("Refresh", systemImage: "arrow.clockwise") {
+            NotificationCenter.default.post(
+              name: .userDidRefreshFeed,
+              object: nil
+            )
+          }
+          .keyboardShortcut("r")
+        }
+      }
       .defaultSize(width: 1250, height: 800)
       .windowResizability(.contentMinSize)
     #endif
@@ -93,7 +104,10 @@ struct SplajompyApp: App {
       case .unauthenticated:
         SplashScreenView()
           .postHogScreenView()
-          .toolbarBackgroundVisibility(.hidden, for: .windowToolbar)
+          #if os(macOS)
+            .toolbar(removing: .title)
+            .toolbarBackgroundVisibility(.hidden, for: .windowToolbar)
+          #endif
       }
     }
     .modifier(

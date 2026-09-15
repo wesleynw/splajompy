@@ -95,7 +95,11 @@ struct StandalonePostView: View {
       }
       .pageTitle("Post")
       .toolbar {
-        ToolbarItem(placement: .primaryAction) {
+        ToolbarItem {
+          Spacer()
+        }
+
+        ToolbarItem {
           let post: ObservablePost? =
             if case .loaded(let p) = viewModel.state { p } else { nil }
           PostActionMenu(

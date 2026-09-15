@@ -92,23 +92,23 @@ struct LoginView: View {
       .pageTitle("Sign In")
       .toolbar {
         ToolbarItem(
-          placement: {
-            #if os(iOS)
-              .cancellationAction
-            #else
-              .destructiveAction
-            #endif
-          }()
+          placement: .cancellationAction
         ) {
           if #available(iOS 26, macOS 26, *) {
-            Button {
-              dismiss()
-            } label: {
-              Text("Cancel")
-                .font(SJFont.body)
-            }
-            .controlSize(.large)
-            .buttonStyle(.glass)
+            #if os(iOS)
+              Button(role: .close) {
+                dismiss()
+              }
+            #else
+              Button {
+                dismiss()
+              } label: {
+                Text("Cancel")
+                  .font(SJFont.body)
+              }
+              .controlSize(.large)
+              .buttonStyle(.glass)
+            #endif
           } else {
             Button {
               dismiss()

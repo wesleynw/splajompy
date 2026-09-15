@@ -40,6 +40,11 @@ struct SearchView: View {
     #if os(macOS)
       .contentMargins(.horizontal, 40, for: .scrollContent)
       .safeAreaPadding(.horizontal, 20)
+      .toolbar {
+        ToolbarItem {
+          Spacer()
+        }
+      }
     #endif
     .searchable(
       text: $searchText,
@@ -47,7 +52,7 @@ struct SearchView: View {
         #if os(iOS)
           .navigationBarDrawer(displayMode: .always)
         #else
-          .toolbar
+          .automatic
         #endif
       }()
     )
@@ -135,6 +140,13 @@ struct SearchView: View {
     }
     .listStyle(.plain)
     .scrollContentBackground(.hidden)
+    #if os(macOS)
+      .modify {
+        if #available(macOS 26, *) {
+          $0.scrollEdgeEffectStyle(.hard, for: .top)
+        }
+      }
+    #endif
   }
 }
 

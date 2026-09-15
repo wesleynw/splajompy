@@ -9,7 +9,15 @@ struct AsyncActionButton: View {
   var body: some View {
     Button(action: { Task { await action() } }) {
       Text(title)
-        .font(SJFont.body)
+        .font(
+          {
+            #if os(iOS)
+              SJFont.heading
+            #else
+              SJFont.body
+            #endif
+          }()
+        )
         .opacity(isLoading ? 0 : 1)
         .frame(maxWidth: .infinity)
         .overlay {

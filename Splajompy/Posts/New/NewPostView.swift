@@ -113,90 +113,57 @@ struct NewPostView: View {
       }
       .pageTitle("New Jomp")
       .toolbar {
-        #if os(iOS)
-          ToolbarItem(placement: .topBarLeading) {
-            if #available(iOS 26.0, *) {
-              Button(role: .close, action: { dismiss() })
-                .disabled(viewModel.isLoading)
-            } else {
-              Button {
+        ToolbarItem(placement: .cancellationAction) {
+          if #available(iOS 26, macOS 26, *) {
+            #if os(iOS)
+              Button(role: .close) {
                 dismiss()
-              } label: {
-                Image(systemName: "xmark.circle.fill")
+              }
+            #else
+              Button("Cancel") {
+                dismiss()
+              }
+              .controlSize(.large)
+              .font(SJFont.body)
+              .disabled(viewModel.isLoading)
+            #endif
+          } else {
+            Button {
+              dismiss()
+            } label: {
+              Image(systemName: "xmark.circle.fill")
+                .opacity(0.8)
+            }
+            .buttonStyle(.plain)
+            .disabled(viewModel.isLoading)
+          }
+        }
+
+        ToolbarItem(placement: .confirmationAction) {
+          if #available(iOS 26, macOS 26, *) {
+            Button(action: submitPostAction) {
+              if viewModel.isLoading {
+                ProgressView()
+              } else {
+                Label("Post", systemImage: "arrow.up")
+                  .font(SJFont.body)
+              }
+            }
+            .buttonStyle(.glassProminent)
+            .disabled(isPostButtonDisabled)
+            .controlSize(.large)
+          } else {
+            if viewModel.isLoading {
+              ProgressView()
+            } else {
+              Button(action: submitPostAction) {
+                Image(systemName: "arrow.up.circle.fill")
                   .opacity(0.8)
               }
-              .buttonStyle(.plain)
-              .disabled(viewModel.isLoading)
-            }
-          }
-        #else
-          ToolbarItem(placement: .cancellationAction) {
-            if #available(macOS 26.0, *) {
-              Button(role: .cancel, action: { dismiss() })
-                .disabled(viewModel.isLoading)
-            } else {
-              Button {
-                dismiss()
-              } label: {
-                Label("Cancel", systemImage: "xmark.circle.fill")
-              }
-              .buttonStyle(.plain)
-              .disabled(viewModel.isLoading)
-            }
-          }
-        #endif
-
-        #if os(iOS)
-          ToolbarItem(placement: .topBarTrailing) {
-            if #available(iOS 26, *) {
-              Button(action: submitPostAction) {
-                if viewModel.isLoading {
-                  ProgressView()
-                } else {
-                  Label("Post", systemImage: "arrow.up")
-                }
-              }
-              .buttonStyle(.borderedProminent)
               .disabled(isPostButtonDisabled)
-            } else {
-              if viewModel.isLoading {
-                ProgressView()
-              } else {
-                Button(action: submitPostAction) {
-                  Image(systemName: "arrow.up.circle.fill")
-                    .opacity(0.8)
-                }
-                .disabled(isPostButtonDisabled)
-              }
             }
           }
-        #else
-          ToolbarItem(placement: .confirmationAction) {
-            if #available(macOS 26, *) {
-              Button(action: submitPostAction) {
-                if viewModel.isLoading {
-                  ProgressView()
-                    .controlSize(.small)
-                } else {
-                  Label("Post", systemImage: "arrow.up")
-                }
-              }
-              .buttonStyle(.borderedProminent)
-              .disabled(isPostButtonDisabled)
-            } else {
-              if viewModel.isLoading {
-                ProgressView()
-                  .controlSize(.small)
-              } else {
-                Button(action: submitPostAction) {
-                  Image(systemName: "arrow.up.circle.fill")
-                    .opacity(0.8)
-                }
-                .disabled(isPostButtonDisabled)
-              }
-            }
-          }
-        #endif
+        }
       }
     }
     .sensoryFeedback(.error, trigger: viewModel.errorDisplay) {
