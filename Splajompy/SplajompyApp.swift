@@ -44,11 +44,14 @@ struct SplajompyApp: App {
       }
       .commands {
         CommandMenu("Feed") {
-          Button("Refresh", systemImage: "arrow.clockwise") {
+          Button {
             NotificationCenter.default.post(
               name: .userDidRefreshFeed,
               object: nil
             )
+          } label: {
+            Label("Refresh", systemImage: "arrow.clockwise")
+              .labelStyle(.titleAndIcon)
           }
           .keyboardShortcut("r")
         }

@@ -120,11 +120,14 @@ struct NewPostView: View {
                 dismiss()
               }
             #else
-              Button("Cancel") {
+              Button {
                 dismiss()
+              } label: {
+                Text("Cancel")
+                  .font(SJFont.body)
               }
               .controlSize(.large)
-              .font(SJFont.body)
+              .buttonStyle(.glass)
               .disabled(viewModel.isLoading)
             #endif
           } else {
