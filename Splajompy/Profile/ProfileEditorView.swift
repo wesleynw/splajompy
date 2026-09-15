@@ -56,6 +56,16 @@ struct ProfileEditorView: View {
             $0.buttonStyle(.bordered)
           }
         }
+        #if os(macOS)
+          .popover(isPresented: $isShowingFontPicker) {
+            ProfileDisplayNameFontPicker(
+              displayName: name,
+              displayNameFont: displayNameFont,
+              onChange: { newFont in displayNameFont = newFont }
+            )
+            .frame(width: 320, height: 420)
+          }
+        #endif
         .frame(maxWidth: .infinity, alignment: .leading)
         .disabled(name.isEmpty)
 
@@ -87,16 +97,7 @@ struct ProfileEditorView: View {
         }
       }
       .pageTitle("Edit Profile")
-      #if os(macOS)
-        .popover(isPresented: $isShowingFontPicker) {
-          ProfileDisplayNameFontPicker(
-            displayName: name,
-            displayNameFont: displayNameFont,
-            onChange: { newFont in displayNameFont = newFont }
-          )
-          .frame(width: 320, height: 420)
-        }
-      #else
+      #if os(iOS)
         .sheet(isPresented: $isShowingFontPicker) {
           ProfileDisplayNameFontPicker(
             displayName: name,
@@ -108,7 +109,20 @@ struct ProfileEditorView: View {
       .toolbar {
         ToolbarItem(placement: .cancellationAction) {
           if #available(iOS 26.0, macOS 26, *) {
-            Button(role: .cancel, action: { dismiss() })
+            #if os(iOS)
+              Button(role: .close) {
+                dismiss()
+              }
+            #else
+              Button {
+                dismiss()
+              } label: {
+                Text("Cancel")
+                  .font(SJFont.body)
+              }
+              .controlSize(.large)
+              .buttonStyle(.glass)
+            #endif
           } else {
             Button("Cancel") {
               dismiss()
@@ -129,11 +143,18 @@ struct ProfileEditorView: View {
                 )
               }
               dismiss()
+            } label: {
+              Label("Save", systemImage: "checkmark")
+                .font(SJFont.body)
+                #if os(iOS)
+                  .labelStyle(.iconOnly)
+                #else
+                  .labelStyle(.titleOnly)
+                #endif
             }
+            .buttonStyle(.glassProminent)
+            .controlSize(.large)
             .disabled(name.count > 25 || bio.count > 400)
-            #if os(macOS)
-              .keyboardShortcut(.return, modifiers: .command)
-            #endif
           } else {
             Button("Done") {
               Task {
@@ -148,9 +169,6 @@ struct ProfileEditorView: View {
               dismiss()
             }
             .disabled(name.count > 25 || bio.count > 400)
-            #if os(macOS)
-              .keyboardShortcut(.return, modifiers: .command)
-            #endif
           }
         }
       }

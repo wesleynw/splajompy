@@ -41,7 +41,7 @@ struct LoginView: View {
               .padding()
               .background {
                 RoundedRectangle(cornerRadius: 10)
-                  .stroke(isIdentifierFieldFocused ? .primary : .secondary)
+                  .stroke(isPasswordFieldFocused ? .primary : .secondary)
               }
               #if os(iOS)
                 .autocapitalization(.none)
@@ -69,37 +69,47 @@ struct LoginView: View {
             }
           }) {
             Text("Sign in with \(isUsingPassword ? "email code" : "password")")
-              .font(SJFont.callout)
+              .font(SJFont.body)
               .frame(maxWidth: .infinity)
           }
           .controlSize(.large)
           .disabled(authManager.isLoading)
           .padding()
+          .contentShape(.rect)
 
-          AsyncActionButton(
-            title: "Continue",
-            isLoading: authManager.isLoading,
-            isDisabled: authManager.isLoading
-              || identifier.isEmpty || (isUsingPassword && password.isEmpty)
-          ) {
-            await handleSubmit()
-          }
+          #if os(iOS)
+            AsyncActionButton(
+              title: "Continue",
+              isLoading: authManager.isLoading,
+              isDisabled: authManager.isLoading
+                || identifier.isEmpty || (isUsingPassword && password.isEmpty)
+            ) {
+              await handleSubmit()
+            }
+          #endif
         }
         .padding()
       }
       .pageTitle("Sign In")
       .toolbar {
         ToolbarItem(
-          placement: {
-            #if os(iOS)
-              .cancellationAction
-            #else
-              .destructiveAction
-            #endif
-          }()
+          placement: .cancellationAction
         ) {
           if #available(iOS 26, macOS 26, *) {
-            Button(role: .cancel, action: { dismiss() })
+            #if os(iOS)
+              Button(role: .close) {
+                dismiss()
+              }
+            #else
+              Button {
+                dismiss()
+              } label: {
+                Text("Cancel")
+                  .font(SJFont.body)
+              }
+              .controlSize(.large)
+              .buttonStyle(.glass)
+            #endif
           } else {
             Button {
               dismiss()
@@ -110,6 +120,19 @@ struct LoginView: View {
             .buttonStyle(.plain)
           }
         }
+
+        #if os(macOS)
+          ToolbarItem(placement: .confirmationAction) {
+            AsyncActionButton(
+              title: "Continue",
+              isLoading: authManager.isLoading,
+              isDisabled: authManager.isLoading
+                || identifier.isEmpty || (isUsingPassword && password.isEmpty)
+            ) {
+              await handleSubmit()
+            }
+          }
+        #endif
       }
       .navigationDestination(isPresented: $isShowingOtcVerify) {
         OneTimeCodeView(identifier: identifier)

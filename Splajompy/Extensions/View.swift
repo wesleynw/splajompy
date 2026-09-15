@@ -13,7 +13,13 @@ extension View {
   func pageTitle(
     _ title: String,
     placement: PageTitlePlacement = .center,
-    font: Font = SJFont.heading
+    font: Font = {
+      #if os(iOS)
+        SJFont.heading
+      #else
+        SJFont.body
+      #endif
+    }()
   ) -> some View {
     modifier(PageTitle(title: title, placement: placement, font: font))
   }

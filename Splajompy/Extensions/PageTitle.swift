@@ -14,8 +14,6 @@ struct PageTitle: ViewModifier {
     content
       #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
-      #else
-        .navigationTitle("")
       #endif
       .toolbar {
         ToolbarItem(

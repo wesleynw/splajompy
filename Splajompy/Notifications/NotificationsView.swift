@@ -35,6 +35,11 @@ struct NotificationsView: View {
         }
       }
     }
+    .modify {
+      if #available(iOS 26, macOS 26, *) {
+        $0.scrollEdgeEffectStyle(.hard, for: .top)
+      }
+    }
     .overlay {
       switch viewModel.state {
       case .idle, .loading:

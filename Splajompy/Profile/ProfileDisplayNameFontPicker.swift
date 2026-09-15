@@ -53,34 +53,36 @@ struct ProfileDisplayNameFontPicker: View {
           .foregroundStyle(.primary)
         }
       }
-      .pageTitle("Choose Font")
-      .toolbar {
-        ToolbarItem(placement: .confirmationAction) {
-          if #available(iOS 26, macOS 26, *) {
-            Button("Done", systemImage: "checkmark", role: .confirm) {
-              onChange(selectedFont)
-              dismiss()
-            }
-          } else {
-            Button("Done") {
-              onChange(selectedFont)
-              dismiss()
+      #if os(iOS)
+        .pageTitle("Choose Font")
+        .toolbar {
+          ToolbarItem(placement: .confirmationAction) {
+            if #available(iOS 26, macOS 26, *) {
+              Button("Done", systemImage: "checkmark", role: .confirm) {
+                onChange(selectedFont)
+                dismiss()
+              }
+            } else {
+              Button("Done") {
+                onChange(selectedFont)
+                dismiss()
+              }
             }
           }
-        }
 
-        ToolbarItem(placement: .cancellationAction) {
-          if #available(iOS 26, macOS 26, *) {
-            Button(role: .cancel) {
-              dismiss()
-            }
-          } else {
-            Button("Cancel") {
-              dismiss()
+          ToolbarItem(placement: .cancellationAction) {
+            if #available(iOS 26, macOS 26, *) {
+              Button(role: .cancel) {
+                dismiss()
+              }
+            } else {
+              Button("Cancel") {
+                dismiss()
+              }
             }
           }
         }
-      }
+      #endif
     }
   }
 }

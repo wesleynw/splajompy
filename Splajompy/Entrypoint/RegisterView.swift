@@ -37,27 +37,36 @@ struct RegisterView: View {
         VStack {
           termsText
 
-          AsyncActionButton(
-            title: "Continue",
-            isLoading: authManager.isLoading,
-            isDisabled: isContinueButtonDisabled
-          ) {
-            handleContinue()
-          }
-          .padding()
+          #if os(iOS)
+            AsyncActionButton(
+              title: "Continue",
+              isLoading: authManager.isLoading,
+              isDisabled: isContinueButtonDisabled
+            ) {
+              handleContinue()
+            }
+            .padding()
+          #endif
         }
         .toolbar {
           ToolbarItem(
-            placement: {
-              #if os(iOS)
-                return .cancellationAction
-              #else
-                return .destructiveAction
-              #endif
-            }()
+            placement: .cancellationAction
           ) {
             if #available(iOS 26.0, macOS 26, *) {
-              Button(role: .close, action: { dismiss() })
+              #if os(iOS)
+                Button(role: .close) {
+                  dismiss()
+                }
+              #else
+                Button {
+                  dismiss()
+                } label: {
+                  Text("Cancel")
+                    .font(SJFont.body)
+                }
+                .controlSize(.large)
+                .buttonStyle(.glass)
+              #endif
             } else {
               Button {
                 dismiss()
@@ -68,6 +77,18 @@ struct RegisterView: View {
               .buttonStyle(.plain)
             }
           }
+
+          #if os(macOS)
+            ToolbarItem(placement: .confirmationAction) {
+              AsyncActionButton(
+                title: "Continue",
+                isLoading: authManager.isLoading,
+                isDisabled: isContinueButtonDisabled
+              ) {
+                handleContinue()
+              }
+            }
+          #endif
         }
       }
       .onAppear {
@@ -112,7 +133,7 @@ struct RegisterView: View {
       .padding()
       .background {
         RoundedRectangle(cornerRadius: 10)
-          .stroke(isUsernameFieldFocused ? .primary : .secondary)
+          .stroke(isEmailFieldFocused ? .primary : .secondary)
       }
       .textContentType(.emailAddress)
       #if os(iOS)
@@ -139,7 +160,7 @@ struct RegisterView: View {
       .padding()
       .background {
         RoundedRectangle(cornerRadius: 10)
-          .stroke(isUsernameFieldFocused ? .primary : .secondary)
+          .stroke(isPasswordFieldFocused ? .primary : .secondary)
       }
       .textContentType(.newPassword)
       #if os(iOS)
@@ -203,6 +224,7 @@ struct RegisterView: View {
         return .handled
       }
     )
+    .padding()
   }
 
   private func errorMessageView(_ message: String) -> some View {

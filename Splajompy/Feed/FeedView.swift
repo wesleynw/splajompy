@@ -32,7 +32,6 @@ struct FeedView: View {
 
   var body: some View {
     mainContent
-      .navigationTitle("")
       .onAppear {
         if case .idle = viewModel.state {
           Task {
@@ -43,6 +42,11 @@ struct FeedView: View {
       .onChange(of: selectedFeedType) { _, newFeedType in
         Task {
           viewModel.feedType = newFeedType
+          await viewModel.loadPosts(reset: true)
+        }
+      }
+      .onReceive(NotificationCenter.default.publisher(for: .userDidRefreshFeed)) { _ in
+        Task {
           await viewModel.loadPosts(reset: true)
         }
       }
@@ -77,17 +81,52 @@ struct FeedView: View {
       #endif
       .sensoryFeedback(.selection, trigger: isShowingNewPostView)
       .toolbar {
-        ToolbarItem(
-          placement: {
-            #if os(iOS)
-              .topBarLeading
-            #else
-              .navigation
-            #endif
-          }()
-        ) {
-          FeedTypeToggle(selectedFeedType: $selectedFeedType)
+        if #available(iOS 26, macOS 26, *) {
+          ToolbarItem(
+            placement: {
+              #if os(iOS)
+                .topBarLeading
+              #else
+                .navigation
+              #endif
+            }()
+          ) {
+            FeedTypeToggle(selectedFeedType: $selectedFeedType)
+          }
+          .sharedBackgroundVisibility(.hidden)
+        } else {
+          ToolbarItem(
+            placement: {
+              #if os(iOS)
+                .topBarLeading
+              #else
+                .principal
+              #endif
+            }()
+          ) {
+            FeedTypeToggle(selectedFeedType: $selectedFeedType)
+          }
         }
+
+        #if os(macOS)
+          ToolbarItem {
+            Spacer()
+          }
+
+          ToolbarItemGroup(placement: .automatic) {
+            Button {
+              Task {
+                await viewModel.loadPosts(reset: true)
+              }
+            } label: {
+              Image(systemName: "arrow.clockwise")
+            }
+          }
+
+          if #available(macOS 26, *) {
+            ToolbarSpacer(.fixed)
+          }
+        #endif
 
         ToolbarItem(
           placement: {
@@ -98,7 +137,9 @@ struct FeedView: View {
             #endif
           }()
         ) {
-          Button(action: { isShowingNewPostView = true }) {
+          Button {
+            isShowingNewPostView = true
+          } label: {
             Image(systemName: "plus")
           }
           .foregroundStyle(.primary)
@@ -189,6 +230,11 @@ struct FeedView: View {
           .multilineTextAlignment(.center)
           .padding()
         }
+      }
+    }
+    .modify {
+      if #available(iOS 26, macOS 26, *) {
+        $0.scrollEdgeEffectStyle(.hard, for: .top)
       }
     }
     .refreshable {

@@ -40,6 +40,21 @@ struct SplajompyApp: App {
     #else
       Window("Splajompy", id: "main") {
         mainContent
+          .toolbar(removing: .title)
+      }
+      .commands {
+        CommandMenu("Feed") {
+          Button {
+            NotificationCenter.default.post(
+              name: .userDidRefreshFeed,
+              object: nil
+            )
+          } label: {
+            Label("Refresh", systemImage: "arrow.clockwise")
+              .labelStyle(.titleAndIcon)
+          }
+          .keyboardShortcut("r")
+        }
       }
       .defaultSize(width: 1250, height: 800)
       .windowResizability(.contentMinSize)
@@ -92,6 +107,10 @@ struct SplajompyApp: App {
       case .unauthenticated:
         SplashScreenView()
           .postHogScreenView()
+          #if os(macOS)
+            .toolbar(removing: .title)
+            .toolbarBackgroundVisibility(.hidden, for: .windowToolbar)
+          #endif
       }
     }
     .modifier(
