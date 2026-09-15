@@ -40,6 +40,7 @@ struct SplajompyApp: App {
     #else
       Window("Splajompy", id: "main") {
         mainContent
+          .toolbar(removing: .title)
       }
       .defaultSize(width: 1250, height: 800)
       .windowResizability(.contentMinSize)
@@ -92,7 +93,6 @@ struct SplajompyApp: App {
       case .unauthenticated:
         SplashScreenView()
           .postHogScreenView()
-          .toolbar(removing: .title)
           .toolbarBackgroundVisibility(.hidden, for: .windowToolbar)
       }
     }

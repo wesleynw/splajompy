@@ -45,6 +45,11 @@ struct UserListView: View {
         .frame(maxWidth: .infinity)
       #endif
     }
+    .modify {
+      if #available(macOS 26, *) {
+        $0.scrollEdgeEffectStyle(.hard, for: .top)
+      }
+    }
     .refreshable {
       await Task {
         await viewModel.loadUsers(reset: true)

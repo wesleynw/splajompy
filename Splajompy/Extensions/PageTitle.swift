@@ -14,25 +14,27 @@ struct PageTitle: ViewModifier {
     content
       #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-          ToolbarItem(
-            placement: {
+      #endif
+      .toolbar {
+        ToolbarItem(
+          placement: {
+            #if os(macOS)
+              .navigation
+            #else
               switch placement {
               case .leading:
                 .topBarLeading
               case .center:
                 .principal
               }
-            }()
-          ) {
-            Text(title)
+            #endif
+          }()
+        ) {
+          Text(title)
             .font(font)
             .fixedSize()
-          }
-          .hideSharedBackgroundIfAvailable()
         }
-      #else
-        .navigationTitle(title)
-      #endif
+        .hideSharedBackgroundIfAvailable()
+      }
   }
 }

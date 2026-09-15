@@ -32,7 +32,6 @@ struct FeedView: View {
 
   var body: some View {
     mainContent
-      .navigationTitle("")
       .onAppear {
         if case .idle = viewModel.state {
           Task {
@@ -96,12 +95,17 @@ struct FeedView: View {
               #if os(iOS)
                 .topBarLeading
               #else
-                .navigation
+                .principal
               #endif
             }()
           ) {
             FeedTypeToggle(selectedFeedType: $selectedFeedType)
           }
+        }
+        
+        // this is dumb
+        ToolbarItem {
+          Spacer()
         }
 
         ToolbarItem(
@@ -206,6 +210,11 @@ struct FeedView: View {
           .multilineTextAlignment(.center)
           .padding()
         }
+      }
+    }
+    .modify {
+      if #available(macOS 26, *) {
+        $0.scrollEdgeEffectStyle(.hard, for: .top)
       }
     }
     .refreshable {
