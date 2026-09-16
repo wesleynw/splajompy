@@ -3,17 +3,21 @@ import Layout from "../layouts/Layout.astro";
 import DownloadButton from "../download_on_the_app_store.svg";
 import { Image } from "astro:assets";
 import Logo from "../assets/new_snail.png";
+import Footer from "../components/footer.astro";
 ---
 
 <Layout>
-    <div class="flex flex-col items-center justify-center min-h-screen">
-        <Image src={Logo} alt="Logo" class="w-3xs" />
-        <h1 class="text-amber-50 text-4xl margin mb-25 mt-5 font-bold">
-            Splajompy
-        </h1>
-        <a href="https://apps.apple.com/us/app/splajompy/id6744034321">
-            <DownloadButton class="w-3xs" />
-        </a>
+    <div class="flex flex-col h-screen">
+        <div class="flex flex-col items-center justify-center flex-1">
+            <Image src={Logo} alt="Logo" class="w-3xs" loading="eager" />
+            <h1 class="text-amber-50 text-4xl margin mb-25 mt-5 font-bold">
+                Splajompy
+            </h1>
+            <a href="https://apps.apple.com/us/app/splajompy/id6744034321">
+                <DownloadButton class="w-3xs" />
+            </a>
+        </div>
+        <Footer />
     </div>
     <style>
         h1 {
