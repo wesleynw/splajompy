@@ -5,7 +5,9 @@ struct MiniNotificationView: View {
 
   private var processedText: AttributedString {
     let lines = text.components(separatedBy: .newlines)
-    let nonEmptyLines = lines.filter { !$0.trimmingCharacters(in: .whitespaces).isEmpty }
+    let nonEmptyLines = lines.filter {
+      !$0.trimmingCharacters(in: .whitespaces).isEmpty
+    }
     let cleanedText = nonEmptyLines.joined(separator: "\n")
     let markdown = generateAttributedStringUsingFacets(cleanedText, facets: [])
     let options = AttributedString.MarkdownParsingOptions(
@@ -18,6 +20,13 @@ struct MiniNotificationView: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 4) {
       Text(processedText)
+        // do not handle inline links, this is a preview
+        .environment(
+          \.openURL,
+          OpenURLAction(handler: { _ in
+            return .handled
+          })
+        )
         .font(.callout)
         .lineLimit(3)
         .foregroundStyle(.secondary)

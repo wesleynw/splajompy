@@ -46,7 +46,7 @@ struct SplajompyApp: App {
         CommandMenu("Feed") {
           Button {
             NotificationCenter.default.post(
-              name: .userDidRefreshFeed,
+              name: .userRefreshingFeed,
               object: nil
             )
           } label: {

@@ -52,6 +52,7 @@ struct NotificationRow: View {
         HStack(alignment: .top, spacing: 8) {
           VStack(alignment: .leading, spacing: 4) {
             Text(notification.richContent)
+              .tint(.accent)  // needed for mentions/links on macos
 
             TimelineView(.periodic(from: .now, by: 5)) { _ in
               Text(
