@@ -158,6 +158,8 @@ struct SplajompyApp: App {
             .navigationDestination(for: Route.self) { route in
               routeDestination(route)
             }
+            .background(Color("Background"))
+            .foregroundStyle(Color("Foreground"))
         }
       }
 
