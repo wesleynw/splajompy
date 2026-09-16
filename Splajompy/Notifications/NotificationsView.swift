@@ -4,6 +4,8 @@ import SwiftUI
 struct NotificationsView: View {
   @State private var viewModel: ViewModel
 
+  @Environment(\.scenePhase) private var scenePhase
+
   init(viewModel: ViewModel = ViewModel()) {
     self._viewModel = State(wrappedValue: viewModel)
   }
@@ -66,6 +68,16 @@ struct NotificationsView: View {
         await viewModel.refreshNotifications()
       }.value
     }
+    .onChange(
+      of: scenePhase,
+      { _, newValue in
+        if newValue == .active {
+          Task {
+            await viewModel.refreshNotifications()
+          }
+        }
+      }
+    )
     .task {
       if case .idle = viewModel.state {
         await viewModel.refreshNotifications()

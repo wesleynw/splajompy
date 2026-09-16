@@ -84,6 +84,7 @@ extension NotificationsView {
         )
 
       let (unreadRes, readRes) = await (unreadResult, readResult)
+      await NotificationBadgeStore.shared.refresh()
 
       switch (unreadRes, readRes) {
       case (.success(let unreadNotifications), .success(let readNotifications)):
@@ -154,7 +155,9 @@ extension NotificationsView {
       guard case .loaded(var notifications) = state else { return }
 
       var wasUnread = false
-      if let index = notifications.firstIndex(where: { $0.notificationId == notificationId }
+      if let index = notifications.firstIndex(where: {
+        $0.notificationId == notificationId
+      }
       ) {
         wasUnread = !notifications[index].viewed
         notifications[index].viewed = true
@@ -165,10 +168,7 @@ extension NotificationsView {
           state = .loaded(notifications)
         }
         if wasUnread {
-          NotificationBadgeStore.shared.unreadCount = max(
-            0,
-            NotificationBadgeStore.shared.unreadCount - 1
-          )
+          NotificationBadgeStore.shared.decrement()
         }
       }
 
@@ -192,7 +192,7 @@ extension NotificationsView {
           withAnimation(.easeInOut(duration: 0.3)) {
             state = .loaded(notifications)
           }
-          NotificationBadgeStore.shared.reset()
+          NotificationBadgeStore.shared.clear()
         }
 
         let _ = await service.markAllNotificationsAsRead()
