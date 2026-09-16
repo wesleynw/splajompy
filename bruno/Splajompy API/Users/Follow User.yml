@@ -1,0 +1,20 @@
+info:
+  name: Follow User
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: "{{apiUrl}}/follow/:userId"
+  params:
+    - name: userId
+      value: "1"
+      type: path
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

@@ -1,0 +1,26 @@
+info:
+  name: Add Comment
+  type: http
+  seq: 7
+
+http:
+  method: POST
+  url: "{{apiUrl}}/post/:postId/comment"
+  params:
+    - name: postId
+      value: "640"
+      type: path
+  body:
+    type: json
+    data: |-
+      {
+          "Text": "new comment"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false
