@@ -4,7 +4,7 @@ import Foundation
 class NotificationBadgeStore {
   static let shared = NotificationBadgeStore()
 
-  var unreadCount: Int = 7
+  private(set) var unreadCount: Int = 0
 
   private let service: NotificationServiceProtocol
 
@@ -19,7 +19,11 @@ class NotificationBadgeStore {
     }
   }
 
-  func reset() {
+  func clear() {
     unreadCount = 0
+  }
+
+  func decrement() {
+    unreadCount = max(0, unreadCount - 1)
   }
 }

@@ -45,7 +45,7 @@ struct FeedView: View {
           await viewModel.loadPosts(reset: true)
         }
       }
-      .onReceive(NotificationCenter.default.publisher(for: .userDidRefreshFeed)) { _ in
+      .onReceive(NotificationCenter.default.publisher(for: .userRefreshingFeed)) { _ in
         Task {
           await viewModel.loadPosts(reset: true)
         }
@@ -243,6 +243,7 @@ struct FeedView: View {
       // and show an error screen.
       await Task {
         await viewModel.loadPosts(preserveCurrentState: true, reset: true)
+        NotificationCenter.default.post(name: .userDidRefreshFeed, object: nil)
         PostHogSDK.shared.capture("feed_refreshed")
       }.value
     }
@@ -263,5 +264,9 @@ struct FeedView: View {
 extension Foundation.Notification.Name {
   static let userDidRefreshFeed = Foundation.Notification.Name(
     "userDidRefreshFeed"
+  )
+
+  static let userRefreshingFeed = Foundation.Notification.Name(
+    "userRefreshingFeed"
   )
 }

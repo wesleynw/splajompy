@@ -361,7 +361,7 @@ struct SplajompyApp: App {
 
     selection = 0
     postStore.clearCache()
-    notificationBadgeStore.reset()
+    notificationBadgeStore.clear()
     PostHogSDK.shared.reset()
   }
 }
