@@ -143,6 +143,7 @@ struct FeedView: View {
             Image(systemName: "plus")
           }
           .foregroundStyle(.primary)
+          .keyboardShortcut("n")
           .modify {
             if #available(iOS 18, *) {
               $0.matchedTransitionSource(id: "zoom", in: namespace)
