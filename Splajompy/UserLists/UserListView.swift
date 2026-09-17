@@ -251,7 +251,8 @@ struct UserRowView: View {
     }
     .padding(.horizontal, 16)
     .padding(.vertical, 12)
-    .background(  // TODO: this is bad, doesn't allow tapping actual text. why did i even do this in the first place?
+    // TODO: this is bad, doesn't allow tapping actual text. why did i even do this in the first place?
+    .background(
       NavigationLink(
         value: Route.profile(id: String(user.userId), username: user.username)
       ) {
