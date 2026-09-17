@@ -5,7 +5,7 @@
 	<key>API_URL</key>
 	<string>$(API_URL)</string>
 	<key>ATSApplicationFontsPath</key>
-	<string>fonts</string>
+	<string>.</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
