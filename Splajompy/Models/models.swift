@@ -198,7 +198,9 @@ struct DetailedComment: Identifiable, Decodable, Equatable {
   var id: Int { commentId }
 
   static func == (lhs: DetailedComment, rhs: DetailedComment) -> Bool {
+    // TODO: the isLiked part is a hack, this should really be an observed object
     return lhs.commentId == rhs.commentId
+      && lhs.isLiked == rhs.isLiked
   }
 
   var richContent: AttributedString {
@@ -210,6 +212,7 @@ struct DetailedComment: Identifiable, Decodable, Equatable {
     let options = AttributedString.MarkdownParsingOptions(
       interpretedSyntax: .inlineOnlyPreservingWhitespace
     )
-    return (try? AttributedString(markdown: markdown, options: options)) ?? AttributedString(text)
+    return (try? AttributedString(markdown: markdown, options: options))
+      ?? AttributedString(text)
   }
 }

@@ -228,9 +228,13 @@ struct ProfileView: View {
                   .frame(maxWidth: .infinity)
               } else {
                 Text("Unfollow")
+                  .font(SJFont.body)
                   .frame(maxWidth: .infinity)
               }
             }
+            #if os(macOS)
+              .controlSize(.large)
+            #endif
             .modify {
               if #available(iOS 26, macOS 26, *) {
                 $0.buttonStyle(.glass)
@@ -245,9 +249,13 @@ struct ProfileView: View {
                   .frame(maxWidth: .infinity)
               } else {
                 Text("Follow")
+                  .font(SJFont.body)
                   .frame(maxWidth: .infinity)
               }
             }
+            #if os(macOS)
+              .controlSize(.large)
+            #endif
             .modify {
               if #available(iOS 26, macOS 26, *) {
                 $0.buttonStyle(.glassProminent)
@@ -259,17 +267,25 @@ struct ProfileView: View {
         } else {
           Button(action: { viewModel.toggleBlocking() }) {
             Text("Unblock")
+              .font(SJFont.body)
               .frame(maxWidth: .infinity)
               .foregroundStyle(.red.opacity(0.7))
           }
+          #if os(macOS)
+            .controlSize(.large)
+          #endif
           .buttonStyle(.bordered)
         }
       } else if isProfileTab && isProfileSelf {
         HStack(spacing: 12) {
           Button(action: { isPresentingProfileEditor = true }) {
             Text("Edit Profile")
+              .font(SJFont.body)
               .frame(maxWidth: .infinity)
           }
+          #if os(macOS)
+            .controlSize(.large)
+          #endif
           .modify {
             if #available(iOS 26, macOS 26, *) {
               $0.buttonStyle(.glass)
@@ -280,8 +296,12 @@ struct ProfileView: View {
 
           NavigationLink(value: Route.followingList(userId: userId)) {
             Text("Following")
+              .font(SJFont.body)
               .frame(maxWidth: .infinity)
           }
+          #if os(macOS)
+            .controlSize(.large)
+          #endif
           .modify {
             if #available(iOS 26, macOS 26, *) {
               $0.buttonStyle(.glass)

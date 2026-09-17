@@ -121,6 +121,7 @@ struct FeedView: View {
             } label: {
               Image(systemName: "arrow.clockwise")
             }
+            .symbolEffect(.rotate, options: .nonRepeating.speed(2), value: viewModel.refreshTrigger)
           }
 
           if #available(macOS 26, *) {

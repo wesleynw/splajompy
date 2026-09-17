@@ -13,6 +13,7 @@ enum FeedState {
   var userId: Int?
   var canLoadMore: Bool = true
   var state: FeedState = .idle
+  var refreshTrigger: Bool = false
   private var isLoadingMore: Bool = false
 
   private var lastPostTimestamp: Date?
@@ -25,6 +26,14 @@ enum FeedState {
     self.postManager = postManager
   }
 
+  var isLoading: Bool {
+    if case .loading = state {
+      return true
+    }
+
+    return false
+  }
+
   func loadPosts(preserveCurrentState: Bool = false, reset: Bool = false) async {
     guard !isLoadingMore else { return }
     isLoadingMore = true
@@ -34,6 +43,7 @@ enum FeedState {
 
     if reset {
       lastPostTimestamp = nil
+      refreshTrigger.toggle()
     }
     if !preserveCurrentState {
       state = .loading

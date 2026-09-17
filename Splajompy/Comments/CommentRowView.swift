@@ -46,6 +46,7 @@ struct CommentRow: View {
       }
 
       Text(comment.richContent)
+        .tint(.accentColor)
 
       HStack {
         TimelineView(.periodic(from: .now, by: 5)) { _ in

@@ -87,6 +87,8 @@ struct SplajompyApp: App {
         ProgressView()
           #if os(macOS)
             .controlSize(.small)
+            .toolbar(removing: .title)
+            .toolbarBackgroundVisibility(.hidden, for: .windowToolbar)
           #endif
       case .authenticated:
         authenticatedView

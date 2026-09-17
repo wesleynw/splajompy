@@ -95,9 +95,11 @@ struct StandalonePostView: View {
       }
       .pageTitle("Post")
       .toolbar {
-        ToolbarItem {
-          Spacer()
-        }
+        #if os(macOS)
+          ToolbarItem {
+            Spacer()
+          }
+        #endif
 
         ToolbarItem {
           let post: ObservablePost? =
