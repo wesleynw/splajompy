@@ -96,15 +96,13 @@ struct ProfileView: View {
 
   @ToolbarContentBuilder
   private func profileActionsToolbar() -> some ToolbarContent {
-    ToolbarItem(
-      placement: {
-        #if os(iOS)
-          .automatic
-        #else
-          .primaryAction
-        #endif
-      }()
-    ) {
+    #if os(macOS)
+      ToolbarItem {
+        Spacer()
+      }
+    #endif
+
+    ToolbarItem {
       if case .loaded(let user, _) = viewModel.profileState {
         ProfileActionsMenu(
           isBlocking: user.isBlocking,

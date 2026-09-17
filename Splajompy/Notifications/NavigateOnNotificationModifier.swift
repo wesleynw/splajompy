@@ -8,21 +8,21 @@ import SwiftUI
 // the same happens when using notificationcenter.push
 struct NavigateOnNotificationModifier: ViewModifier {
   @Binding var pendingRoute: Route?
-  @Binding var selection: Int
-  @Binding var navigationPaths: [NavigationPath]
+
+  var onRoute: (Route) -> Void
 
   func body(content: Content) -> some View {
     content
       .onAppear {
         if let route = pendingRoute {
           pendingRoute = nil
-          navigationPaths[selection].append(route)
+          onRoute(route)
         }
       }
       .onChange(of: pendingRoute) { _, newValue in
         if let route = newValue {
           pendingRoute = nil
-          navigationPaths[selection].append(route)
+          onRoute(route)
         }
       }
   }
