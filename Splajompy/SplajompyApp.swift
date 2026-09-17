@@ -11,12 +11,11 @@ struct SplajompyApp: App {
 
   @State private var routingHelper = RoutingHelper.shared
   @State private var selection: Int = 0
-  @State private var navigationPaths = [
-    NavigationPath(),
-    NavigationPath(),
-    NavigationPath(),
-    NavigationPath(),
-  ]
+
+  @State private var tab0Path = NavigationPath()
+  @State private var tab1Path = NavigationPath()
+  @State private var tab2Path = NavigationPath()
+  @State private var tab3Path = NavigationPath()
 
   @State private var authManager: AuthManager = AuthManager.shared
   @State private var postStore = PostStore()
@@ -116,8 +115,7 @@ struct SplajompyApp: App {
     .modifier(
       NavigateOnNotificationModifier(
         pendingRoute: $routingHelper.pendingRoute,
-        selection: $selection,
-        navigationPaths: $navigationPaths
+        onRoute: handleRoute
       )
     )
     .onReceive(NotificationCenter.default.publisher(for: .userDidSignOut)) {
@@ -152,7 +150,7 @@ struct SplajompyApp: App {
   private var modernTabView: some View {
     TabView(selection: $selection) {
       Tab("Home", systemImage: "house", value: 0) {
-        NavigationStack(path: $navigationPaths[0]) {
+        NavigationStack(path: $tab0Path) {
           FeedView(postManager: postStore)
             .postHogScreenView()
             .navigationDestination(for: Route.self) { route in
@@ -162,7 +160,7 @@ struct SplajompyApp: App {
       }
 
       Tab("Notifications", systemImage: "bell", value: 1) {
-        NavigationStack(path: $navigationPaths[1]) {
+        NavigationStack(path: $tab1Path) {
           NotificationsView()
             .postHogScreenView()
             .navigationDestination(for: Route.self) { route in
@@ -175,7 +173,7 @@ struct SplajompyApp: App {
       )
 
       Tab("Search", systemImage: "magnifyingglass", value: 2) {
-        NavigationStack(path: $navigationPaths[2]) {
+        NavigationStack(path: $tab2Path) {
           SearchView()
             .postHogScreenView()
             .navigationDestination(for: Route.self) { route in
@@ -185,7 +183,7 @@ struct SplajompyApp: App {
       }
 
       Tab("Profile", systemImage: "person.circle", value: 3) {
-        NavigationStack(path: $navigationPaths[3]) {
+        NavigationStack(path: $tab3Path) {
           CurrentProfileView(postManager: postStore)
             .postHogScreenView()
             .navigationDestination(for: Route.self) { route in
@@ -202,7 +200,7 @@ struct SplajompyApp: App {
   @ViewBuilder
   private var legacyTabView: some View {
     TabView(selection: $selection) {
-      NavigationStack(path: $navigationPaths[0]) {
+      NavigationStack(path: $tab0Path) {
         FeedView(postManager: postStore)
           .postHogScreenView()
           .navigationDestination(for: Route.self) { route in
@@ -214,7 +212,7 @@ struct SplajompyApp: App {
       }
       .tag(0)
 
-      NavigationStack(path: $navigationPaths[1]) {
+      NavigationStack(path: $tab1Path) {
         NotificationsView()
           .postHogScreenView()
           .navigationDestination(for: Route.self) { route in
@@ -229,7 +227,7 @@ struct SplajompyApp: App {
         isNotificationBadgeEnabled ? notificationBadgeStore.unreadCount : 0
       )
 
-      NavigationStack(path: $navigationPaths[2]) {
+      NavigationStack(path: $tab2Path) {
         SearchView()
           .postHogScreenView()
           .navigationDestination(for: Route.self) { route in
@@ -241,7 +239,7 @@ struct SplajompyApp: App {
       }
       .tag(2)
 
-      NavigationStack(path: $navigationPaths[3]) {
+      NavigationStack(path: $tab3Path) {
         CurrentProfileView(postManager: postStore)
           .postHogScreenView()
           .navigationDestination(for: Route.self) { route in
@@ -347,17 +345,30 @@ struct SplajompyApp: App {
 
   private func handleDeepLink(_ url: URL) {
     if let route = parseDeepLink(url) {
-      navigationPaths[selection].append(route)
+      handleRoute(to: route)
+    }
+  }
+
+  private func handleRoute(to route: Route) {
+    switch selection {
+    case 0:
+      tab0Path.append(route)
+    case 1:
+      tab1Path.append(route)
+    case 2:
+      tab2Path.append(route)
+    case 3:
+      tab3Path.append(route)
+    default:  // huh
+      tab0Path.append(route)
     }
   }
 
   private func handleUserSignOut() {
-    navigationPaths = [
-      NavigationPath(),
-      NavigationPath(),
-      NavigationPath(),
-      NavigationPath(),
-    ]
+    tab0Path = NavigationPath()
+    tab1Path = NavigationPath()
+    tab2Path = NavigationPath()
+    tab3Path = NavigationPath()
 
     selection = 0
     postStore.clearCache()
