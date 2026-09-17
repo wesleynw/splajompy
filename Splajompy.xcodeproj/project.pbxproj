@@ -36,17 +36,6 @@
 		};
 /* End PBXContainerItemProxy section */
 
-/* Begin PBXCopyFilesBuildPhase section */
-		18BE05ED2F0B14F50095A915 /* Copy Files */ = {
-			isa = PBXCopyFilesBuildPhase;
-			dstPath = fonts;
-			dstSubfolder = Resources;
-			files = (
-			);
-			name = "Copy Files";
-		};
-/* End PBXCopyFilesBuildPhase section */
-
 /* Begin PBXFileReference section */
 		184A63CB2D88CBA100860D6B /* Splajompy.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Splajompy.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		184A63DB2D88CBA200860D6B /* SplajompyTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SplajompyTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -99,24 +88,6 @@
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
-/* Begin PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
-		18BE05F72F0B15030095A915 /* Exceptions for "Assets" folder in "Copy Files" phase from "Splajompy" target */ = {
-			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
-			buildPhase = 18BE05ED2F0B14F50095A915 /* Copy Files */;
-			membershipExceptions = (
-				fonts/AlienMushrooms.ttf,
-				"fonts/Allura-Regular.ttf",
-				"fonts/Chewy-Regular.ttf",
-				"fonts/CooperBlack-Std.otf",
-				"fonts/FontdinerSwanky-Regular.ttf",
-				fonts/Neuton.ttf,
-				fonts/OldLondon.ttf,
-				fonts/OpenGorton.otf,
-				fonts/Sixtyfour.ttf,
-			);
-		};
-/* End PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
-
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		184A63CD2D88CBA100860D6B /* Splajompy */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
@@ -131,7 +102,6 @@
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
 				18A5873F2E204DD700436724 /* Exceptions for "Assets" folder in "Splajompy" target */,
-				18BE05F72F0B15030095A915 /* Exceptions for "Assets" folder in "Copy Files" phase from "Splajompy" target */,
 			);
 			path = Assets;
 			sourceTree = "<group>";
@@ -204,7 +174,6 @@
 				184A63C72D88CBA000860D6B /* Sources */,
 				184A63C82D88CBA000860D6B /* Frameworks */,
 				184A63C92D88CBA000860D6B /* Resources */,
-				18BE05ED2F0B14F50095A915 /* Copy Files */,
 			);
 			buildRules = (
 			);
