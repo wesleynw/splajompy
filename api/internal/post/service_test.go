@@ -358,3 +358,29 @@ func TestGetPost_RelevantLikesDoesNotCountCommentLikes(t *testing.T) {
 	require.NoError(t, err)
 	assert.Empty(t, full_post.RelevantLikes)
 }
+
+func TestDeletePinnedPost_DoesNotBreakProfileFeed(t *testing.T) {
+	env := setupPostTest(t)
+
+	user0 := testutil.CreateTestUser(t, env.userRepository, "user0")
+
+	pinningPost, err := env.svc.NewPost(t.Context(), user0, "test post", nil, nil, nil)
+	require.NoError(t, err)
+
+	_, err = env.svc.NewPost(t.Context(), user0, "test post 2", nil, nil, nil)
+	require.NoError(t, err)
+
+	err = env.svc.PinPost(t.Context(), user0, pinningPost.PostID)
+	require.NoError(t, err)
+
+	postId, err := env.svc.GetPinnedPostId(t.Context(), user0.UserID)
+	assert.NoError(t, err)
+	assert.Equal(t, pinningPost.PostID, *postId)
+
+	err = env.svc.DeletePost(t.Context(), user0, pinningPost.PostID)
+	require.NoError(t, err)
+
+	posts, err := env.svc.GetPosts(t.Context(), user0, post.FeedTypeProfile, &user0.UserID, 10, nil)
+	assert.NoError(t, err)
+	assert.Len(t, posts, 1)
+}
