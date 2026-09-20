@@ -1,0 +1,22 @@
+info:
+  name: Generate One Time Code
+  type: http
+  seq: 3
+
+http:
+  method: POST
+  url: "{{apiUrl}}/otc/generate"
+  body:
+    type: json
+    data: |-
+      {
+          "identifier": "testa"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

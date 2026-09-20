@@ -1,0 +1,13 @@
+name: production
+variables:
+  - name: apiUrl
+    value: https://api.splajompy.com
+  - secret: true
+    name: login_username
+    description: ""
+  - secret: true
+    name: login_password
+    description: ""
+  - secret: true
+    name: authToken
+    description: ""
