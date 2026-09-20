@@ -375,7 +375,7 @@ func TestDeletePinnedPost_DoesNotBreakProfileFeed(t *testing.T) {
 
 	postId, err := env.svc.GetPinnedPostId(t.Context(), user0.UserID)
 	assert.NoError(t, err)
-	assert.Equal(t, pinningPost.PostID, postId)
+	assert.Equal(t, pinningPost.PostID, *postId)
 
 	err = env.svc.DeletePost(t.Context(), user0, pinningPost.PostID)
 	require.NoError(t, err)
