@@ -3,10 +3,10 @@ module splajompy
 go 1.27
 
 require (
-	github.com/pulumi/pulumi-aws/sdk/v7 v7.46.0
+	github.com/pulumi/pulumi-aws/sdk/v7 v7.47.0
 	github.com/pulumi/pulumi-awsx/sdk/v3 v3.9.0
-	github.com/pulumi/pulumi-digitalocean/sdk/v4 v4.79.0
-	github.com/pulumi/pulumi/sdk/v3 v3.262.0
+	github.com/pulumi/pulumi-digitalocean/sdk/v4 v4.80.1
+	github.com/pulumi/pulumi/sdk/v3 v3.263.0
 )
 
 require (
