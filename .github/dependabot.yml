@@ -23,14 +23,14 @@ updates:
         patterns:
           - "*"
 
-  - package-ecosystem: "swift"
-    directory: "/"
-    schedule:
-      interval: "weekly"
-    groups:
-      swift-dependencies:
-        patterns:
-          - "*"
+  # - package-ecosystem: "swift"
+  #   directory: "/"
+  #   schedule:
+  #     interval: "weekly"
+  #   groups:
+  #     swift-dependencies:
+  #       patterns:
+  #         - "*"
 
   - package-ecosystem: "docker"
     directory: "/api"
