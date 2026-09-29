@@ -1,0 +1,20 @@
+info:
+  name: Unblock User
+  type: http
+  seq: 2
+
+http:
+  method: DELETE
+  url: "{{apiUrl}}/user/:userId/block"
+  params:
+    - name: userId
+      value: "5"
+      type: path
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

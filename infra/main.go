@@ -120,6 +120,16 @@ func main() {
 			return err
 		}
 
+		_, err = s3.NewAccountPublicAccessBlock(ctx, "accountPublicAccessBlockResource", &s3.AccountPublicAccessBlockArgs{
+			BlockPublicAcls:       pulumi.Bool(true),
+			BlockPublicPolicy:     pulumi.Bool(true),
+			IgnorePublicAcls:      pulumi.Bool(true),
+			RestrictPublicBuckets: pulumi.Bool(true),
+		})
+		if err != nil {
+			return err
+		}
+
 		splajompyBucket, err := s3.NewBucket(ctx, "splajompy-prod-bucket", &s3.BucketArgs{
 			Bucket: pulumi.String("splajompy-prod-bucket"),
 			Tags:   awsTags,

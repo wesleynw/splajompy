@@ -1,0 +1,28 @@
+info:
+  name: New Post
+  type: http
+  seq: 6
+
+http:
+  method: POST
+  url: "{{apiUrl}}/v2/post/new"
+  body:
+    type: json
+    data: |-
+      {
+          "text": "test post again for polls",
+          "poll": {
+              "title": "is the poll feature working?",
+              "options": [
+                  "yes", "no"
+              ]
+          }
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

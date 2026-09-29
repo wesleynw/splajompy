@@ -1,0 +1,20 @@
+info:
+  name: Report Post
+  type: http
+  seq: 5
+
+http:
+  method: POST
+  url: "{{apiUrl}}/post/:postId/report"
+  params:
+    - name: postId
+      value: "617"
+      type: path
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false
