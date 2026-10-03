@@ -154,7 +154,6 @@ struct NewPostView: View {
             }
             .buttonStyle(.glassProminent)
             .disabled(isPostButtonDisabled)
-            .controlSize(.large)
           } else {
             if viewModel.isLoading {
               ProgressView()
