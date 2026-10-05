@@ -12,7 +12,7 @@ struct AppearanceSwitcher: View {
     .undecided
 
   @AppStorage("caught_up_enabled") private var isCaughtUpFeedEnabled: Bool =
-    true
+    false
 
   let options = ["Automatic", "Light", "Dark"]
 
