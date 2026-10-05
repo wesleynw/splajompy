@@ -4,9 +4,12 @@ import SwiftUI
 enum FeedState {
   case idle
   case loading
+  case caughtUp
   case loaded([ObservablePost])
   case failed(Error)
 }
+
+let caughtUpCursorKey: String = "caught_up_cursor"
 
 @MainActor @Observable class FeedViewModel {
   var feedType: FeedType
@@ -16,14 +19,35 @@ enum FeedState {
   var refreshTrigger: Bool = false
   private var isLoadingMore: Bool = false
 
-  private var lastPostTimestamp: Date?
+  private var cursor: Date?
   private let fetchLimit = 10
   private var postManager: PostStore
+
+  private var latestLoadTimestamp: Date = Date()
+  private var caughtUpCursor: Date?
+  private(set) var isShowingCaughtUpFooter: Bool = false
+  private(set) var isCaughtUpFooterDismissed: Bool = false
 
   init(feedType: FeedType, userId: Int? = nil, postManager: PostStore) {
     self.feedType = feedType
     self.userId = userId
     self.postManager = postManager
+
+    initializeCaughtUpCursor()
+  }
+
+  func initializeCaughtUpCursor() {
+    var storedCaughtUpCursor =
+      UserDefaults.standard.value(forKey: caughtUpCursorKey) as? Date
+    if let twoWeeksAgo = Calendar.current.date(
+      byAdding: .weekOfMonth,
+      value: -2,
+      to: Date()
+    ), let stored = storedCaughtUpCursor, twoWeeksAgo > stored {
+      storedCaughtUpCursor = nil
+    }
+
+    caughtUpCursor = storedCaughtUpCursor
   }
 
   var isLoading: Bool {
@@ -42,7 +66,10 @@ enum FeedState {
     }
 
     if reset {
-      lastPostTimestamp = nil
+      cursor = nil
+      initializeCaughtUpCursor()
+      isCaughtUpFooterDismissed = false
+      latestLoadTimestamp = Date()
       refreshTrigger.toggle()
     }
     if !preserveCurrentState {
@@ -52,21 +79,44 @@ enum FeedState {
     let result = await postManager.loadFeed(
       feedType: feedType,
       userId: userId,
-      beforeTimestamp: lastPostTimestamp,
+      beforeTimestamp: cursor,
       limit: fetchLimit
     )
 
     switch result {
-    case .success(let newPosts):
-      let existingPosts: [ObservablePost]
-      if case .loaded(let posts) = state, !reset {
-        existingPosts = posts
-      } else {
-        existingPosts = []
+    case .success(var newPosts):
+      // are we all caught up?
+      let isCaughtUpFeatureEnabled: Bool = UserDefaults.standard.bool(
+        forKey: "caught_up_enabled"
+      )
+
+      if let caughtUpCursor,
+        let newestPostTimestamp = newPosts.first?.post.createdAt,
+        newestPostTimestamp < caughtUpCursor, !isCaughtUpFooterDismissed,
+        isCaughtUpFeatureEnabled
+      {
+        state = .caughtUp
+        return
       }
-      lastPostTimestamp = newPosts.last?.post.createdAt ?? lastPostTimestamp
-      canLoadMore = newPosts.count >= fetchLimit
-      state = .loaded(existingPosts + newPosts)
+
+      // will we catch up?
+      if let caughtUpCursor,
+        newPosts.contains(where: { $0.post.createdAt < caughtUpCursor }),
+        !isCaughtUpFooterDismissed, isCaughtUpFeatureEnabled
+      {
+        newPosts = newPosts.filter({ $0.post.createdAt > caughtUpCursor })
+        isShowingCaughtUpFooter = true
+      }
+
+      cursor = newPosts.last?.post.createdAt ?? cursor
+      canLoadMore = newPosts.count >= fetchLimit  // this is dumb, need a flag from API
+
+      // append to feed
+      if case .loaded(let currentPosts) = state {
+        state = .loaded(currentPosts + newPosts)
+      } else {
+        state = .loaded(newPosts)
+      }
     case .failure(let error):
       state = .failed(error)
     }
@@ -88,6 +138,33 @@ enum FeedState {
     PostHogSDK.shared.capture("post_deleted")
     Task {
       await postManager.deletePost(id: post.id)
+    }
+  }
+
+  func setHasReachedEndOfFeed() {
+    UserDefaults.standard.set(
+      latestLoadTimestamp,
+      forKey: caughtUpCursorKey
+    )
+  }
+
+  func setContinuePastCaughtUp() async {
+    if case .caughtUp = state {
+      state = .loading
+    }
+
+    canLoadMore = true
+
+    isCaughtUpFooterDismissed = true
+    await loadPosts(preserveCurrentState: true)
+  }
+
+  // TODO: combine with handlepostappear
+  func markPostAsSeen(for post: ObservablePost) {
+    if post.post.createdAt < (caughtUpCursor ?? .distantFuture),
+      !isCaughtUpFooterDismissed, feedType != .profile
+    {
+      UserDefaults.standard.set(post.post.createdAt, forKey: caughtUpCursorKey)
     }
   }
 

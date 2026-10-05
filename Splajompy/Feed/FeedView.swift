@@ -164,6 +164,16 @@ struct FeedView: View {
             .controlSize(.small)
           #endif
           .frame(maxWidth: .infinity, maxHeight: .infinity)
+      case .caughtUp:
+        VStack {
+          Text("all caught up lolz")
+
+          Button("continue?") {
+            Task {
+              await viewModel.setContinuePastCaughtUp()
+            }
+          }
+        }
       case .loaded(let posts):
         if posts.isEmpty {
           emptyMessage
@@ -201,6 +211,7 @@ struct FeedView: View {
           )
           .onAppear {
             viewModel.handlePostAppear(at: index)
+            viewModel.markPostAsSeen(for: post)
           }
           .geometryGroup()
           .transition(.opacity.combined(with: .scale(scale: 0.95)))
@@ -209,7 +220,19 @@ struct FeedView: View {
           #endif
         }
 
-        if viewModel.canLoadMore {
+        if viewModel.isShowingCaughtUpFooter {
+          VStack {
+            Text("yep, this is where you're caught up")
+            Button("continue?") {
+              Task {
+                await viewModel.setContinuePastCaughtUp()
+              }
+            }
+          }
+          .onAppear {
+            viewModel.setHasReachedEndOfFeed()
+          }
+        } else if viewModel.canLoadMore {
           ProgressView()
             #if os(macOS)
               .controlSize(.small)

@@ -1,4 +1,3 @@
-import PostHog
 import SwiftUI
 
 struct AppearanceSwitcher: View {
@@ -11,6 +10,9 @@ struct AppearanceSwitcher: View {
     "Newest First"
   @AppStorage("image_layout_preference") private var imageLayoutPreference: ImageLayoutPreference =
     .undecided
+
+  @AppStorage("caught_up_enabled") private var isCaughtUpFeedEnabled: Bool =
+    true
 
   let options = ["Automatic", "Light", "Dark"]
 
@@ -41,6 +43,16 @@ struct AppearanceSwitcher: View {
         Text("Newest First").tag("Newest First")
         Text("Oldest First").tag("Oldest First")
       }
+    }
+
+    Section {
+      Toggle(
+        "Show \"Caught Up\" for viewed posts",
+        isOn: $isCaughtUpFeedEnabled
+      )
+    }
+    .onChange(of: isCaughtUpFeedEnabled) { _, _ in
+      NotificationCenter.default.post(name: .userRefreshingFeed, object: nil)
     }
 
     #if os(iOS)

@@ -6,8 +6,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/grpc/grpc-swift.git",
       "state" : {
-        "revision" : "65d0084f6d7db34b0dfcb1c956b8dd8da8ef9d23",
-        "version" : "1.27.6"
+        "revision" : "6a8927df5a91710b414caba4f8a088dead4633db",
+        "version" : "1.27.5"
       }
     },
     {
@@ -24,8 +24,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/open-telemetry/opentelemetry-swift",
       "state" : {
-        "revision" : "9f350e65e1ae4555da5a0c215b2f1883dbffd2ef",
-        "version" : "2.6.0"
+        "revision" : "128e44d044f7bc64eba941f2b93f48b52ac75484",
+        "version" : "2.5.2"
       }
     },
     {
@@ -33,8 +33,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/open-telemetry/opentelemetry-swift-core.git",
       "state" : {
-        "revision" : "c6fcee77cfc21ba400366f12475217c7b6e1d605",
-        "version" : "2.6.0"
+        "revision" : "06f8a460a66f813758d22f09025d85df45450a63",
+        "version" : "2.5.1"
       }
     },
     {
