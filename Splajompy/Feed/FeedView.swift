@@ -6,6 +6,8 @@ struct FeedView: View {
   @State private var viewModel: FeedViewModel
   @Namespace var namespace
 
+  @Environment(\.scenePhase) private var scenePhase
+
   var postManager: PostStore
 
   @AppStorage("selectedFeedType") private var selectedFeedType: FeedType = .all
@@ -171,6 +173,13 @@ struct FeedView: View {
           Button("continue?") {
             Task {
               await viewModel.setContinuePastCaughtUp()
+            }
+          }
+        }
+        .onChange(of: scenePhase) { _, newValue in
+          if newValue == .active {
+            Task {
+              await viewModel.loadPosts(reset: true)
             }
           }
         }
