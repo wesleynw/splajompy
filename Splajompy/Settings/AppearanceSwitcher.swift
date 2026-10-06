@@ -47,7 +47,7 @@ struct AppearanceSwitcher: View {
 
     Section {
       Toggle(
-        "Show \"Caught Up\" for viewed posts",
+        "Stop scrolling posts when caught up",
         isOn: $isCaughtUpFeedEnabled
       )
     }

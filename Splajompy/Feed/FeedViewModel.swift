@@ -168,7 +168,7 @@ let caughtUpCursorKey: String = "caught_up_cursor"
       to: Date()
     ), twoWeeksAgo > post.post.createdAt,
       post.post.createdAt > caughtUpCursor ?? .distantPast,
-      isCaughtUpFooterDismissed
+      !isCaughtUpFooterDismissed
     {
       UserDefaults.standard.set(latestLoadTimestamp, forKey: caughtUpCursorKey)
     }
