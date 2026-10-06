@@ -123,7 +123,11 @@ struct FeedView: View {
             } label: {
               Image(systemName: "arrow.clockwise")
             }
-            .symbolEffect(.rotate, options: .nonRepeating.speed(2), value: viewModel.refreshTrigger)
+            .symbolEffect(
+              .rotate,
+              options: .nonRepeating.speed(2),
+              value: viewModel.refreshTrigger
+            )
           }
 
           if #available(macOS 26, *) {
@@ -167,15 +171,11 @@ struct FeedView: View {
           #endif
           .frame(maxWidth: .infinity, maxHeight: .infinity)
       case .caughtUp:
-        VStack {
-          Text("all caught up lolz")
-
-          Button("continue?") {
-            Task {
-              await viewModel.setContinuePastCaughtUp()
-            }
+        CaughtUpView(onContinue: {
+          Task {
+            await viewModel.setContinuePastCaughtUp()
           }
-        }
+        })
         .onChange(of: scenePhase) { _, newValue in
           if newValue == .active {
             Task {
@@ -229,15 +229,14 @@ struct FeedView: View {
           #endif
         }
 
-        if viewModel.isShowingCaughtUpFooter {
-          VStack {
-            Text("yep, this is where you're caught up")
-            Button("continue?") {
-              Task {
-                await viewModel.setContinuePastCaughtUp()
-              }
+        if viewModel.isShowingCaughtUpFooter
+          && !viewModel.isCaughtUpFooterDismissed
+        {
+          CaughtUpView(onContinue: {
+            Task {
+              await viewModel.setContinuePastCaughtUp()
             }
-          }
+          })
           .onAppear {
             viewModel.setHasReachedEndOfFeed()
           }
