@@ -161,10 +161,16 @@ let caughtUpCursorKey: String = "caught_up_cursor"
 
   // TODO: combine with handlepostappear
   func markPostAsSeen(for post: ObservablePost) {
-    if post.post.createdAt < (caughtUpCursor ?? .distantFuture),
-      !isCaughtUpFooterDismissed, feedType != .profile
+    // the feed is 'caught up' if this post is older than 2 weeks old
+    if let twoWeeksAgo = Calendar.current.date(
+      byAdding: .weekOfYear,
+      value: -2,
+      to: Date()
+    ), twoWeeksAgo > post.post.createdAt,
+      post.post.createdAt > caughtUpCursor ?? .distantPast,
+      isCaughtUpFooterDismissed
     {
-      UserDefaults.standard.set(post.post.createdAt, forKey: caughtUpCursorKey)
+      UserDefaults.standard.set(latestLoadTimestamp, forKey: caughtUpCursorKey)
     }
   }
 
