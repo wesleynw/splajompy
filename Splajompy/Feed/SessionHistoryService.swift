@@ -13,7 +13,7 @@ struct SessionHistoryService {
       to: Date()
     ),
       let match = sessions.first(where: {
-        $0[0] > twoWeeksAgo && $0[1] < twoWeeksAgo
+        $0.count > 1 && $0[0] > twoWeeksAgo && $0[1] < twoWeeksAgo
       })
     {
       return match[0]
@@ -27,6 +27,18 @@ struct SessionHistoryService {
     var currentSessions = fetchSessionHistoryFromStorage()
 
     currentSessions.append([sessionStart, sessionEnd])
+
+    // delete sessions older than threshold
+    if let twoWeeksAgo = Calendar.current.date(
+      byAdding: .day,
+      value: -2,
+      to: Date()
+    ) {
+      currentSessions = currentSessions.filter({
+        $0.count > 1
+          && $0[0] < twoWeeksAgo
+      })
+    }
 
     persistSessionHistoryToStorage(
       sessions: deduplicateSessionHistory(sessions: currentSessions)

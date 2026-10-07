@@ -181,7 +181,7 @@ struct FeedView: View {
             Task {
               await viewModel.loadPosts(reset: true)
             }
-          } else if newValue == .background {
+          } else {
             viewModel.persistSession()
           }
         }
