@@ -219,8 +219,7 @@ struct FeedView: View {
             onPostDeleted: { viewModel.deletePost(on: post) }
           )
           .onAppear {
-            viewModel.handlePostAppear(at: index)
-            viewModel.markPostAsSeen(for: post)
+            viewModel.handlePostAppear(for: post, at: index)
           }
           .geometryGroup()
           .transition(.opacity.combined(with: .scale(scale: 0.95)))

@@ -159,8 +159,12 @@ let caughtUpCursorKey: String = "caught_up_cursor"
     await loadPosts(preserveCurrentState: true)
   }
 
-  // TODO: combine with handlepostappear
-  func markPostAsSeen(for post: ObservablePost) {
+  func handlePostAppear(for post: ObservablePost, at index: Int) {
+    markPostAsSeen(for: post)
+    loadMorePostsIfNeeded(at: index)
+  }
+
+  private func markPostAsSeen(for post: ObservablePost) {
     // the feed is 'caught up' if this post is older than 2 weeks old
     if let twoWeeksAgo = Calendar.current.date(
       byAdding: .weekOfYear,
@@ -174,7 +178,7 @@ let caughtUpCursorKey: String = "caught_up_cursor"
     }
   }
 
-  func handlePostAppear(at index: Int) {
+  private func loadMorePostsIfNeeded(at index: Int) {
     guard case .loaded(let currentPostIds) = state,
       index >= currentPostIds.count - 3,
       canLoadMore,
