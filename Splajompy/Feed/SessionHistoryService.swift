@@ -1,0 +1,63 @@
+import Foundation
+
+struct SessionHistoryService {
+  static let sessionStorageKey: String = "sessionHistoryMaps"
+
+  /// Returns a timestamp after which the session is considered 'caught up'.
+  static func getCatchUpThreshold() -> Date? {
+    let sessions = fetchSessionHistoryFromStorage()
+
+    if let twoWeeksAgo = Calendar.current.date(
+      byAdding: .day,
+      value: -2,
+      to: Date()
+    ),
+      let match = sessions.first(where: {
+        $0[0] > twoWeeksAgo && $0[1] < twoWeeksAgo
+      })
+    {
+      return match[0]
+    }
+
+    return nil
+  }
+
+  /// Persists the current session
+  static func saveSessionHistory(sessionStart: Date, sessionEnd: Date) {
+    var currentSessions = fetchSessionHistoryFromStorage()
+
+    currentSessions.append([sessionStart, sessionEnd])
+
+    persistSessionHistoryToStorage(
+      sessions: deduplicateSessionHistory(sessions: currentSessions)
+    )
+  }
+
+  static private func deduplicateSessionHistory(sessions: [[Date]]) -> [[Date]] {
+    let sortedSessions = sessions.sorted { $0[0] < $1[0] }
+    var output: [[Date]] = [sortedSessions[0]]
+
+    for session in sortedSessions {
+      let start = session[0]
+      let end = session[1]
+      let priorEnd = output.last![1]
+
+      if start <= priorEnd {
+        output[output.count - 1][1] = max(priorEnd, end)
+      } else {
+        output.append([start, end])
+      }
+    }
+
+    return output
+  }
+
+  static private func fetchSessionHistoryFromStorage() -> [[Date]] {
+    return UserDefaults.standard.object(forKey: sessionStorageKey)
+      as? [[Date]] ?? [[]]
+  }
+
+  static private func persistSessionHistoryToStorage(sessions: [[Date]]) {
+    UserDefaults.standard.set(sessions, forKey: sessionStorageKey)
+  }
+}

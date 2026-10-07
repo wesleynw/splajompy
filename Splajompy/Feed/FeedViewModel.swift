@@ -23,8 +23,8 @@ let caughtUpCursorKey: String = "caught_up_cursor"
   private let fetchLimit = 10
   private var postManager: PostStore
 
-  private var latestLoadTimestamp: Date = Date()
-  private var caughtUpCursor: Date?
+  private var sessionStartTimestamp: Date = Date()
+  private var sessionEndTimestamp: Date = Date()
   private(set) var isShowingCaughtUpFooter: Bool = false
   private(set) var isCaughtUpFooterDismissed: Bool = false
 
@@ -32,22 +32,6 @@ let caughtUpCursorKey: String = "caught_up_cursor"
     self.feedType = feedType
     self.userId = userId
     self.postManager = postManager
-
-    initializeCaughtUpCursor()
-  }
-
-  func initializeCaughtUpCursor() {
-    var storedCaughtUpCursor =
-      UserDefaults.standard.value(forKey: caughtUpCursorKey) as? Date
-    if let twoWeeksAgo = Calendar.current.date(
-      byAdding: .weekOfMonth,
-      value: -2,
-      to: Date()
-    ), let stored = storedCaughtUpCursor, twoWeeksAgo > stored {
-      storedCaughtUpCursor = nil
-    }
-
-    caughtUpCursor = storedCaughtUpCursor
   }
 
   var isLoading: Bool {
@@ -67,9 +51,7 @@ let caughtUpCursorKey: String = "caught_up_cursor"
 
     if reset {
       cursor = nil
-      initializeCaughtUpCursor()
       isCaughtUpFooterDismissed = false
-      latestLoadTimestamp = Date()
       refreshTrigger.toggle()
     }
     if !preserveCurrentState {
@@ -90,9 +72,10 @@ let caughtUpCursorKey: String = "caught_up_cursor"
         forKey: "caught_up_enabled"
       )
 
+      let caughtUpCursor = SessionHistoryService.getCatchUpThreshold()
       if let caughtUpCursor,
-        let newestPostTimestamp = newPosts.first?.post.createdAt,
-        newestPostTimestamp < caughtUpCursor, !isCaughtUpFooterDismissed,
+        let mostRecentPostTimestamp = newPosts.first?.post.createdAt,
+        caughtUpCursor > mostRecentPostTimestamp,
         isCaughtUpFeatureEnabled
       {
         state = .caughtUp
@@ -141,13 +124,6 @@ let caughtUpCursorKey: String = "caught_up_cursor"
     }
   }
 
-  func setHasReachedEndOfFeed() {
-    UserDefaults.standard.set(
-      latestLoadTimestamp,
-      forKey: caughtUpCursorKey
-    )
-  }
-
   func setContinuePastCaughtUp() async {
     if case .caughtUp = state {
       state = .loading
@@ -165,17 +141,7 @@ let caughtUpCursorKey: String = "caught_up_cursor"
   }
 
   private func markPostAsSeen(for post: ObservablePost) {
-    // the feed is 'caught up' if this post is older than 2 weeks old
-    if let twoWeeksAgo = Calendar.current.date(
-      byAdding: .weekOfYear,
-      value: -2,
-      to: Date()
-    ), twoWeeksAgo > post.post.createdAt,
-      post.post.createdAt > caughtUpCursor ?? .distantPast,
-      !isCaughtUpFooterDismissed
-    {
-      UserDefaults.standard.set(latestLoadTimestamp, forKey: caughtUpCursorKey)
-    }
+    sessionEndTimestamp = max(sessionEndTimestamp, post.post.createdAt)
   }
 
   private func loadMorePostsIfNeeded(at index: Int) {
@@ -188,5 +154,12 @@ let caughtUpCursorKey: String = "caught_up_cursor"
     Task {
       await loadPosts(preserveCurrentState: true)
     }
+  }
+
+  func persistSession() {
+    SessionHistoryService.saveSessionHistory(
+      sessionStart: sessionStartTimestamp,
+      sessionEnd: sessionEndTimestamp
+    )
   }
 }

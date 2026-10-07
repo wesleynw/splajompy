@@ -181,6 +181,8 @@ struct FeedView: View {
             Task {
               await viewModel.loadPosts(reset: true)
             }
+          } else if newValue == .background {
+            viewModel.persistSession()
           }
         }
       case .loaded(let posts):
@@ -236,9 +238,6 @@ struct FeedView: View {
               await viewModel.setContinuePastCaughtUp()
             }
           })
-          .onAppear {
-            viewModel.setHasReachedEndOfFeed()
-          }
         } else if viewModel.canLoadMore {
           ProgressView()
             #if os(macOS)
