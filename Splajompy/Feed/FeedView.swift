@@ -181,8 +181,6 @@ struct FeedView: View {
             Task {
               await viewModel.loadPosts(reset: true)
             }
-          } else {
-            viewModel.persistSession()
           }
         }
       case .loaded(let posts):
@@ -261,6 +259,13 @@ struct FeedView: View {
           .multilineTextAlignment(.center)
           .padding()
         }
+      }
+    }
+    .onChange(of: scenePhase) { _, newValue in
+      print("aaa")
+      if newValue != .active {
+        print("bbb")
+        viewModel.persistSession()
       }
     }
     .modify {

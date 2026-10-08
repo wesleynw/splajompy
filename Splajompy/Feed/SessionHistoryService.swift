@@ -16,9 +16,11 @@ struct SessionHistoryService {
         $0.count > 1 && $0[0] > twoWeeksAgo && $0[1] < twoWeeksAgo
       })
     {
+      print("found caught up threshold, \(match[0])")
       return match[0]
     }
 
+    print("no caught up threshold")
     return nil
   }
 
@@ -29,14 +31,14 @@ struct SessionHistoryService {
     currentSessions.append([sessionStart, sessionEnd])
 
     // delete sessions older than threshold
-    if let twoWeeksAgo = Calendar.current.date(
+    if let twoDaysAgo = Calendar.current.date(
       byAdding: .day,
       value: -2,
       to: Date()
     ) {
       currentSessions = currentSessions.filter({
         $0.count > 1
-          && $0[0] < twoWeeksAgo
+          && $0[0] > twoDaysAgo
       })
     }
 
@@ -54,8 +56,8 @@ struct SessionHistoryService {
       let end = session[1]
       let priorEnd = output.last![1]
 
-      if start <= priorEnd {
-        output[output.count - 1][1] = max(priorEnd, end)
+      if start >= priorEnd {
+        output[output.count - 1][1] = min(priorEnd, end)
       } else {
         output.append([start, end])
       }
@@ -64,12 +66,15 @@ struct SessionHistoryService {
     return output
   }
 
-  static private func fetchSessionHistoryFromStorage() -> [[Date]] {
+  // TODO: set back to private
+  static func fetchSessionHistoryFromStorage() -> [[Date]] {
     return UserDefaults.standard.object(forKey: sessionStorageKey)
-      as? [[Date]] ?? [[]]
+      as? [[Date]] ?? []
   }
 
   static private func persistSessionHistoryToStorage(sessions: [[Date]]) {
+    print("saving sessions: \(sessions)")
+
     UserDefaults.standard.set(sessions, forKey: sessionStorageKey)
   }
 }

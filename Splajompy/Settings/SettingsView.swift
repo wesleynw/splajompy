@@ -40,6 +40,14 @@ struct SettingsView: View {
             Label("About", systemImage: "info.circle")
           }
         }
+
+        Section {
+          VStack {
+            Text("Debug")
+            Text(SessionHistoryService.getCatchUpThreshold()?.ISO8601Format() ?? "no catch up")
+            Text(SessionHistoryService.fetchSessionHistoryFromStorage().debugDescription)
+          }
+        }
       }
       .pageTitle("Settings")
     }

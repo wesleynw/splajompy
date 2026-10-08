@@ -141,7 +141,8 @@ let caughtUpCursorKey: String = "caught_up_cursor"
   }
 
   private func markPostAsSeen(for post: ObservablePost) {
-    sessionEndTimestamp = max(sessionEndTimestamp, post.post.createdAt)
+    print("marking post as seen @ \(post.post.createdAt)")
+    sessionEndTimestamp = min(sessionEndTimestamp, post.post.createdAt)
   }
 
   private func loadMorePostsIfNeeded(at index: Int) {
