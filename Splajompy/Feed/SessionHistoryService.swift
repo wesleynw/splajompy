@@ -47,19 +47,17 @@ struct SessionHistoryService {
     )
   }
 
-  static private func deduplicateSessionHistory(sessions: [[Date]]) -> [[Date]] {
+  static func deduplicateSessionHistory(sessions: [[Date]]) -> [[Date]] {
     let sortedSessions = sessions.sorted { $0[0] < $1[0] }
     var output: [[Date]] = [sortedSessions[0]]
 
     for session in sortedSessions {
       let start = session[0]
       let end = session[1]
-      let priorStart = output.last![0]
       let priorEnd = output.last![1]
 
-      if start > priorStart || end < priorEnd {
-        output[output.count - 1][0] = max(start, priorStart)
-        output[output.count - 1][1] = min(end, priorEnd)
+      if start <= priorEnd {
+        output[output.count - 1][1] = max(end, priorEnd)
       } else {
         output.append([start, end])
       }

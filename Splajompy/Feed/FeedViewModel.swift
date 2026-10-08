@@ -52,6 +52,7 @@ let caughtUpCursorKey: String = "caught_up_cursor"
     if reset {
       cursor = nil
       isCaughtUpFooterDismissed = false
+      sessionEndTimestamp = Date()
       refreshTrigger.toggle()
     }
     if !preserveCurrentState {
@@ -126,7 +127,7 @@ let caughtUpCursorKey: String = "caught_up_cursor"
 
   func setHasReachedCaughtUp() {
     if let caughtUp = SessionHistoryService.getCatchUpThreshold() {
-      sessionEndTimestamp = min(sessionEndTimestamp, caughtUp)
+      sessionStartTimestamp = min(sessionEndTimestamp, caughtUp)
       persistSession()
     }
   }
@@ -149,7 +150,7 @@ let caughtUpCursorKey: String = "caught_up_cursor"
 
   private func markPostAsSeen(for post: ObservablePost) {
     print("marking post as seen @ \(post.post.createdAt)")
-    sessionEndTimestamp = min(sessionEndTimestamp, post.post.createdAt)
+    sessionStartTimestamp = min(sessionStartTimestamp, post.post.createdAt)
   }
 
   private func loadMorePostsIfNeeded(at index: Int) {
