@@ -236,6 +236,9 @@ struct FeedView: View {
               await viewModel.setContinuePastCaughtUp()
             }
           })
+          .onAppear {
+            viewModel.setHasReachedCaughtUp()
+          }
         } else if viewModel.canLoadMore {
           ProgressView()
             #if os(macOS)

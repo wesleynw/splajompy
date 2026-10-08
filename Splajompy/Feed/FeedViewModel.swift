@@ -124,6 +124,12 @@ let caughtUpCursorKey: String = "caught_up_cursor"
     }
   }
 
+  func setHasReachedCaughtUp() {
+    if let caughtUp = SessionHistoryService.getCatchUpThreshold() {
+      sessionEndTimestamp = min(sessionEndTimestamp, caughtUp)
+    }
+  }
+
   func setContinuePastCaughtUp() async {
     if case .caughtUp = state {
       state = .loading
