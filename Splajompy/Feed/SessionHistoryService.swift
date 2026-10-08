@@ -54,10 +54,12 @@ struct SessionHistoryService {
     for session in sortedSessions {
       let start = session[0]
       let end = session[1]
-      let priorStart = output.last![0]
+      let priorEnd = output.last![1]
 
-      if end <= priorStart {
-        output[output.count - 1][0] = max(priorStart, start)
+      // if the current session started before the end of the previous session,
+      // we 'extend' the previous session to end at the current session's end
+      if start <= priorEnd {
+        output[output.count - 1][1] = max(priorEnd, end)
       } else {
         output.append([start, end])
       }
