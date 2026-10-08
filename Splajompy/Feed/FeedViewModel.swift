@@ -95,7 +95,7 @@ let caughtUpCursorKey: String = "caught_up_cursor"
       canLoadMore = newPosts.count >= fetchLimit  // this is dumb, need a flag from API
 
       // append to feed
-      if case .loaded(let currentPosts) = state {
+      if case .loaded(let currentPosts) = state, !reset {
         state = .loaded(currentPosts + newPosts)
       } else {
         state = .loaded(newPosts)
