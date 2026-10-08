@@ -55,11 +55,11 @@ struct SessionHistoryService {
       let start = session[0]
       let end = session[1]
       let priorStart = output.last![0]
+      let priorEnd = output.last![1]
 
-      // if the current session ended before the start of the previous session,
-      // we 'extend' the previous session to start at the current session's start
-      if end <= priorStart {
-        output[output.count - 1][0] = max(priorStart, start)
+      if start > priorStart || end < priorEnd {
+        output[output.count - 1][0] = max(start, priorStart)
+        output[output.count - 1][1] = min(end, priorEnd)
       } else {
         output.append([start, end])
       }
