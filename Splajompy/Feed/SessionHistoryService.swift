@@ -1,5 +1,10 @@
 import Foundation
 
+struct Session: Codable {
+  var oldestTimestamp: Date
+  var newestTimestamp: Date
+}
+
 struct SessionHistoryService {
   static let sessionStorageKey: String = "sessionHistoryMaps"
 
@@ -13,11 +18,11 @@ struct SessionHistoryService {
       to: Date()
     ),
       let match = sessions.first(where: {
-        $0.count > 1 && $0[0] > twoWeeksAgo && $0[1] < twoWeeksAgo
+        $0.oldestTimestamp < twoWeeksAgo && $0.newestTimestamp > twoWeeksAgo
       })
     {
-      print("found caught up threshold, \(match[0])")
-      return match[0]
+      print("found caught up threshold, \(match.newestTimestamp)")
+      return match.newestTimestamp
     }
 
     print("no caught up threshold")
@@ -26,40 +31,51 @@ struct SessionHistoryService {
 
   /// Persists the current session
   static func saveSessionHistory(sessionStart: Date, sessionEnd: Date) {
+    print("saving new session starting: \(sessionStart), ending: \(sessionEnd)")
     var currentSessions = fetchSessionHistoryFromStorage()
 
-    currentSessions.append([sessionStart, sessionEnd])
+    currentSessions.append(
+      Session(oldestTimestamp: sessionStart, newestTimestamp: sessionEnd)
+    )
 
-    // delete sessions older than threshold
+    // filter out sessions ending before threshold
     if let twoDaysAgo = Calendar.current.date(
       byAdding: .day,
       value: -2,
       to: Date()
     ) {
       currentSessions = currentSessions.filter({
-        $0.count > 1
-          && $0[0] > twoDaysAgo
+        $0.newestTimestamp > twoDaysAgo
       })
     }
+
+    print("about to save sessions: \(currentSessions.debugDescription)")
 
     persistSessionHistoryToStorage(
       sessions: deduplicateSessionHistory(sessions: currentSessions)
     )
   }
 
-  static func deduplicateSessionHistory(sessions: [[Date]]) -> [[Date]] {
-    let sortedSessions = sessions.sorted { $0[0] < $1[0] }
-    var output: [[Date]] = [sortedSessions[0]]
+  static func deduplicateSessionHistory(sessions: [Session]) -> [Session] {
+    if sessions.count < 1 {
+      return []
+    }
+
+    let sortedSessions = sessions.sorted {
+      $0.oldestTimestamp < $1.oldestTimestamp
+    }
+    var output: [Session] = [sortedSessions[0]]
 
     for session in sortedSessions {
-      let start = session[0]
-      let end = session[1]
-      let priorEnd = output.last![1]
+      let priorEnd = output.last!.newestTimestamp
 
-      if start <= priorEnd {
-        output[output.count - 1][1] = max(end, priorEnd)
+      if session.oldestTimestamp <= priorEnd {
+        output[output.count - 1].newestTimestamp = max(
+          session.newestTimestamp,
+          priorEnd
+        )
       } else {
-        output.append([start, end])
+        output.append(session)
       }
     }
 
@@ -67,14 +83,23 @@ struct SessionHistoryService {
   }
 
   // TODO: set back to private
-  static func fetchSessionHistoryFromStorage() -> [[Date]] {
+  static func fetchSessionHistoryFromStorage() -> [Session] {
+    if let data = UserDefaults.standard.object(forKey: sessionStorageKey)
+      as? Data,
+      let sessions = try? JSONDecoder().decode([Session].self, from: data)
+    {
+      return sessions
+    }
+
     return UserDefaults.standard.object(forKey: sessionStorageKey)
-      as? [[Date]] ?? []
+      as? [Session] ?? []
   }
 
-  static private func persistSessionHistoryToStorage(sessions: [[Date]]) {
+  static private func persistSessionHistoryToStorage(sessions: [Session]) {
     print("saving sessions: \(sessions)")
 
-    UserDefaults.standard.set(sessions, forKey: sessionStorageKey)
+    if let jsonSessions = try? JSONEncoder().encode(sessions) {
+      UserDefaults.standard.set(jsonSessions, forKey: sessionStorageKey)
+    }
   }
 }
