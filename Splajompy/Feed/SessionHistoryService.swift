@@ -8,30 +8,29 @@ struct Session: Codable {
 struct SessionHistoryService {
   static let sessionStorageKey: String = "sessionHistoryMaps"
 
+  static let thresholdDays: Int = -7
+
   /// Returns a timestamp after which the session is considered 'caught up'.
   static func getCatchUpThreshold() -> Date? {
     let sessions = fetchSessionHistoryFromStorage()
 
     if let twoWeeksAgo = Calendar.current.date(
       byAdding: .day,
-      value: -2,
+      value: thresholdDays,
       to: Date()
     ),
       let match = sessions.first(where: {
         $0.oldestTimestamp < twoWeeksAgo && $0.newestTimestamp > twoWeeksAgo
       })
     {
-      print("found caught up threshold, \(match.newestTimestamp)")
       return match.newestTimestamp
     }
 
-    print("no caught up threshold")
     return nil
   }
 
   /// Persists the current session
   static func saveSessionHistory(sessionStart: Date, sessionEnd: Date) {
-    print("saving new session starting: \(sessionStart), ending: \(sessionEnd)")
     var currentSessions = fetchSessionHistoryFromStorage()
 
     currentSessions.append(
@@ -39,13 +38,13 @@ struct SessionHistoryService {
     )
 
     // filter out sessions ending before threshold
-    if let twoDaysAgo = Calendar.current.date(
+    if let thresholdDate = Calendar.current.date(
       byAdding: .day,
-      value: -2,
+      value: thresholdDays,
       to: Date()
     ) {
       currentSessions = currentSessions.filter({
-        $0.newestTimestamp > twoDaysAgo
+        $0.newestTimestamp > thresholdDate
       })
     }
 
