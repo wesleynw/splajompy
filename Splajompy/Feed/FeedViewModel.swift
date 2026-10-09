@@ -77,6 +77,7 @@ let caughtUpCursorKey: String = "caught_up_cursor"
       if let caughtUpCursor,
         let mostRecentPostTimestamp = newPosts.first?.post.createdAt,
         caughtUpCursor > mostRecentPostTimestamp,
+        !isCaughtUpFooterDismissed,
         isCaughtUpFeatureEnabled
       {
         state = .caughtUp
