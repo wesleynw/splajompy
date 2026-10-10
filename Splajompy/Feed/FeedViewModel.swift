@@ -51,7 +51,6 @@ let caughtUpCursorKey: String = "caught_up_cursor"
 
     if reset {
       cursor = nil
-      isCaughtUpFooterDismissed = false
       sessionEndTimestamp = Date()
       refreshTrigger.toggle()
     }
