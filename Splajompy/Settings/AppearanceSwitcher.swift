@@ -47,9 +47,11 @@ struct AppearanceSwitcher: View {
 
     Section {
       Toggle(
-        "Stop scrolling posts when caught up",
+        "\"You're all caught up\"",
         isOn: $isCaughtUpFeedEnabled
       )
+    } footer: {
+      Text("Shows a banner while scrolling when you've seen all new posts in the last week")
     }
     .onChange(of: isCaughtUpFeedEnabled) { _, _ in
       NotificationCenter.default.post(name: .userRefreshingFeed, object: nil)

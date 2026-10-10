@@ -11,7 +11,8 @@ struct CaughtUpView: View {
       Image(systemName: "checkmark.circle")
         .resizable()
         .frame(width: 50, height: 50)
-      Text("You're all caught up")
+      Text("You're all caught up\n(from this week)")
+        .multilineTextAlignment(.center)
         .font(SJFont.title3)
         .padding()
 
@@ -19,7 +20,7 @@ struct CaughtUpView: View {
         PostHogSDK.shared.capture("caught_up_continue")
         onContinue()
       } label: {
-        Text("See older posts?")
+        Text("See older posts")
           .font(SJFont.body)
           .modify {
             if #available(iOS 26, macOS 26, *) {
