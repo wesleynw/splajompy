@@ -1,4 +1,3 @@
-import PostHog
 import SwiftUI
 
 struct AppearanceSwitcher: View {
@@ -11,6 +10,9 @@ struct AppearanceSwitcher: View {
     "Newest First"
   @AppStorage("image_layout_preference") private var imageLayoutPreference: ImageLayoutPreference =
     .undecided
+
+  @AppStorage("caught_up_enabled") private var isCaughtUpFeedEnabled: Bool =
+    false
 
   let options = ["Automatic", "Light", "Dark"]
 
@@ -41,6 +43,18 @@ struct AppearanceSwitcher: View {
         Text("Newest First").tag("Newest First")
         Text("Oldest First").tag("Oldest First")
       }
+    }
+
+    Section {
+      Toggle(
+        "\"You're all caught up\"",
+        isOn: $isCaughtUpFeedEnabled
+      )
+    } footer: {
+      Text("Shows a banner while scrolling when you've seen all new posts in the last week")
+    }
+    .onChange(of: isCaughtUpFeedEnabled) { _, _ in
+      NotificationCenter.default.post(name: .userRefreshingFeed, object: nil)
     }
 
     #if os(iOS)

@@ -202,6 +202,8 @@ class AuthManager: Sendable {
     UserDefaults.standard.removeObject(
       forKey: "hasCompletedPushNotificationOnboarding"
     )
+    UserDefaults.standard.removeObject(forKey: "caught_up_cursor")
+    UserDefaults.standard.removeObject(forKey: "caught_up_enabled")
 
     ImageCache.shared.removeAll()
     ImagePipeline.shared.cache.removeAll()

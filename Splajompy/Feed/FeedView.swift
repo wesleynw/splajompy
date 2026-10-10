@@ -6,6 +6,8 @@ struct FeedView: View {
   @State private var viewModel: FeedViewModel
   @Namespace var namespace
 
+  @Environment(\.scenePhase) private var scenePhase
+
   var postManager: PostStore
 
   @AppStorage("selectedFeedType") private var selectedFeedType: FeedType = .all
@@ -121,7 +123,11 @@ struct FeedView: View {
             } label: {
               Image(systemName: "arrow.clockwise")
             }
-            .symbolEffect(.rotate, options: .nonRepeating.speed(2), value: viewModel.refreshTrigger)
+            .symbolEffect(
+              .rotate,
+              options: .nonRepeating.speed(2),
+              value: viewModel.refreshTrigger
+            )
           }
 
           if #available(macOS 26, *) {
@@ -164,6 +170,19 @@ struct FeedView: View {
             .controlSize(.small)
           #endif
           .frame(maxWidth: .infinity, maxHeight: .infinity)
+      case .caughtUp:
+        CaughtUpView(onContinue: {
+          Task {
+            await viewModel.setContinuePastCaughtUp()
+          }
+        })
+        .onChange(of: scenePhase) { _, newValue in
+          if newValue == .active {
+            Task {
+              await viewModel.loadPosts(reset: true)
+            }
+          }
+        }
       case .loaded(let posts):
         if posts.isEmpty {
           emptyMessage
@@ -200,7 +219,7 @@ struct FeedView: View {
             onPostDeleted: { viewModel.deletePost(on: post) }
           )
           .onAppear {
-            viewModel.handlePostAppear(at: index)
+            viewModel.handlePostAppear(for: post, at: index)
           }
           .geometryGroup()
           .transition(.opacity.combined(with: .scale(scale: 0.95)))
@@ -209,7 +228,18 @@ struct FeedView: View {
           #endif
         }
 
-        if viewModel.canLoadMore {
+        if viewModel.isShowingCaughtUpFooter
+          && !viewModel.isCaughtUpFooterDismissed
+        {
+          CaughtUpView(onContinue: {
+            Task {
+              await viewModel.setContinuePastCaughtUp()
+            }
+          })
+          .onAppear {
+            viewModel.setHasReachedCaughtUp()
+          }
+        } else if viewModel.canLoadMore {
           ProgressView()
             #if os(macOS)
               .controlSize(.small)
@@ -232,6 +262,13 @@ struct FeedView: View {
           .multilineTextAlignment(.center)
           .padding()
         }
+      }
+    }
+    .onChange(of: scenePhase) { _, newValue in
+      print("aaa")
+      if newValue != .active {
+        print("bbb")
+        viewModel.persistSession()
       }
     }
     .modify {
