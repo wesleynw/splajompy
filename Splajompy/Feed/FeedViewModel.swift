@@ -9,6 +9,16 @@ enum FeedState {
   case failed(Error)
 }
 
+extension Foundation.Notification.Name {
+  static let userDidRefreshFeed = Foundation.Notification.Name(
+    "userDidRefreshFeed"
+  )
+
+  static let userRefreshingFeed = Foundation.Notification.Name(
+    "userRefreshingFeed"
+  )
+}
+
 let caughtUpCursorKey: String = "caught_up_cursor"
 
 @MainActor @Observable class FeedViewModel {
@@ -27,6 +37,8 @@ let caughtUpCursorKey: String = "caught_up_cursor"
   private var sessionEndTimestamp: Date = Date()
   private(set) var isShowingCaughtUpFooter: Bool = false
   private(set) var isCaughtUpFooterDismissed: Bool = false
+
+  private var postIdsSeen: Set<Int> = Set()
 
   init(feedType: FeedType, userId: Int? = nil, postManager: PostStore) {
     self.feedType = feedType
@@ -53,6 +65,7 @@ let caughtUpCursorKey: String = "caught_up_cursor"
       cursor = nil
       sessionEndTimestamp = Date()
       refreshTrigger.toggle()
+      postIdsSeen.removeAll()
     }
     if !preserveCurrentState {
       state = .loading
@@ -126,6 +139,11 @@ let caughtUpCursorKey: String = "caught_up_cursor"
   }
 
   func setHasReachedCaughtUp() {
+    PostHogSDK.shared.capture(
+      "feed_caught_up",
+      properties: ["post_count": postIdsSeen.count]
+    )
+
     if let caughtUp = SessionHistoryService.getCatchUpThreshold() {
       sessionStartTimestamp = min(sessionEndTimestamp, caughtUp)
       persistSession()
@@ -146,10 +164,10 @@ let caughtUpCursorKey: String = "caught_up_cursor"
   func handlePostAppear(for post: ObservablePost, at index: Int) {
     markPostAsSeen(for: post)
     loadMorePostsIfNeeded(at: index)
+    postIdsSeen.insert(post.id)
   }
 
   private func markPostAsSeen(for post: ObservablePost) {
-    print("marking post as seen @ \(post.post.createdAt)")
     sessionStartTimestamp = min(sessionStartTimestamp, post.post.createdAt)
   }
 
@@ -169,6 +187,11 @@ let caughtUpCursorKey: String = "caught_up_cursor"
     SessionHistoryService.saveSessionHistory(
       sessionStart: sessionStartTimestamp,
       sessionEnd: sessionEndTimestamp
+    )
+
+    PostHogSDK.shared.capture(
+      "feed_sesssion_over",
+      properties: ["post_count": postIdsSeen.count]
     )
   }
 }

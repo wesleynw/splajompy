@@ -162,7 +162,71 @@ struct FeedView: View {
 
   @ViewBuilder
   private var mainContent: some View {
-    VStack {
+    ScrollView(.vertical) {
+      LazyVStack {
+        if case .loaded(let posts) = viewModel.state, !posts.isEmpty {
+          postList(posts: posts)
+        }
+
+        if viewModel.isShowingCaughtUpFooter
+          && !viewModel.isCaughtUpFooterDismissed
+        {
+          CaughtUpView(onContinue: {
+            Task {
+              await viewModel.setContinuePastCaughtUp()
+            }
+          })
+          .postHogScreenView()
+          .onAppear {
+            viewModel.setHasReachedCaughtUp()
+          }
+        } else if viewModel.canLoadMore {
+          ProgressView()
+            .padding(.bottom, 50)
+            #if os(macOS)
+              .controlSize(.small)
+            #endif
+            .padding()
+            .frame(maxWidth: .infinity, alignment: .center)
+        } else {
+          Divider()
+          VStack(spacing: 8) {
+            Text("Is that the very first post?")
+            Text("What came before that?")
+            Text("Nothing at all?")
+            HStack(spacing: 4) {
+              Text("It always just")
+              Text("Splajompy")
+                .fontWeight(.black)
+            }
+          }
+          .font(.title3)
+          .multilineTextAlignment(.center)
+          .padding()
+        }
+      }
+    }
+    .modify {
+      if #available(iOS 26, macOS 26, *) {
+        $0.scrollEdgeEffectStyle(.hard, for: .top)
+      }
+    }
+    .refreshable {
+      // I don't particularly understand why, but this needs to be wrapped in an unstructured task to avoid task cancellation
+      // in some contexts. Previously, if you opened the app switcher while this was loading, it would cancel the task immediately
+      // and show an error screen.
+      await Task {
+        await viewModel.loadPosts(preserveCurrentState: true, reset: true)
+        NotificationCenter.default.post(name: .userDidRefreshFeed, object: nil)
+        PostHogSDK.shared.capture("feed_refreshed")
+      }.value
+    }
+    .onChange(of: scenePhase) { _, newValue in
+      if newValue != .active {
+        viewModel.persistSession()
+      }
+    }
+    .overlay {
       switch viewModel.state {
       case .idle, .loading:
         ProgressView()
@@ -202,89 +266,29 @@ struct FeedView: View {
     }
   }
 
+  @ContentBuilder
   private func postList(posts: [ObservablePost]) -> some View {
-    ScrollView(.vertical) {
-      LazyVStack(spacing: 0) {
-        ForEach(Array(posts.enumerated()), id: \.element.id) {
-          index,
-          post in
+    ForEach(Array(posts.enumerated()), id: \.element.id) {
+      index,
+      post in
 
-          PostView(
-            post: post,
-            showAuthor: true,
-            postManager: postManager,
-            onLikeButtonTapped: {
-              Task { await viewModel.toggleLike(on: post) }
-            },
-            onPostDeleted: { viewModel.deletePost(on: post) }
-          )
-          .onAppear {
-            viewModel.handlePostAppear(for: post, at: index)
-          }
-          .geometryGroup()
-          .transition(.opacity.combined(with: .scale(scale: 0.95)))
-          #if os(macOS)
-            .frame(maxWidth: 600)
-          #endif
-        }
-
-        if viewModel.isShowingCaughtUpFooter
-          && !viewModel.isCaughtUpFooterDismissed
-        {
-          CaughtUpView(onContinue: {
-            Task {
-              await viewModel.setContinuePastCaughtUp()
-            }
-          })
-          .onAppear {
-            viewModel.setHasReachedCaughtUp()
-          }
-        } else if viewModel.canLoadMore {
-          ProgressView()
-            #if os(macOS)
-              .controlSize(.small)
-            #endif
-            .padding()
-            .frame(maxWidth: .infinity, alignment: .center)
-        } else {
-          Divider()
-          VStack(spacing: 8) {
-            Text("Is that the very first post?")
-            Text("What came before that?")
-            Text("Nothing at all?")
-            HStack(spacing: 4) {
-              Text("It always just")
-              Text("Splajompy")
-                .fontWeight(.black)
-            }
-          }
-          .font(.title3)
-          .multilineTextAlignment(.center)
-          .padding()
-        }
+      PostView(
+        post: post,
+        showAuthor: true,
+        postManager: postManager,
+        onLikeButtonTapped: {
+          Task { await viewModel.toggleLike(on: post) }
+        },
+        onPostDeleted: { viewModel.deletePost(on: post) }
+      )
+      .onAppear {
+        viewModel.handlePostAppear(for: post, at: index)
       }
-    }
-    .onChange(of: scenePhase) { _, newValue in
-      print("aaa")
-      if newValue != .active {
-        print("bbb")
-        viewModel.persistSession()
-      }
-    }
-    .modify {
-      if #available(iOS 26, macOS 26, *) {
-        $0.scrollEdgeEffectStyle(.hard, for: .top)
-      }
-    }
-    .refreshable {
-      // I don't particularly understand why, but this needs to be wrapped in an unstructured task to avoid task cancellation
-      // in some contexts. Previously, if you opened the app switcher while this was loading, it would cancel the task immediately
-      // and show an error screen.
-      await Task {
-        await viewModel.loadPosts(preserveCurrentState: true, reset: true)
-        NotificationCenter.default.post(name: .userDidRefreshFeed, object: nil)
-        PostHogSDK.shared.capture("feed_refreshed")
-      }.value
+      .geometryGroup()
+      .transition(.opacity.combined(with: .scale(scale: 0.95)))
+      #if os(macOS)
+        .frame(maxWidth: 600)
+      #endif
     }
   }
 
@@ -293,19 +297,7 @@ struct FeedView: View {
       Text("No posts yet.")
         .font(SJFont.callout)
         .padding(.top, 40)
-      Text("Here's where you'll see posts from others.")
-        .padding()
     }
     .frame(maxWidth: .infinity, alignment: .center)
   }
-}
-
-extension Foundation.Notification.Name {
-  static let userDidRefreshFeed = Foundation.Notification.Name(
-    "userDidRefreshFeed"
-  )
-
-  static let userRefreshingFeed = Foundation.Notification.Name(
-    "userRefreshingFeed"
-  )
 }
