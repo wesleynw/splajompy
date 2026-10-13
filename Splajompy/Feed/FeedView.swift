@@ -163,46 +163,46 @@ struct FeedView: View {
   @ViewBuilder
   private var mainContent: some View {
     ScrollView(.vertical) {
-      LazyVStack {
+      LazyVStack(spacing: 0) {
         if case .loaded(let posts) = viewModel.state, !posts.isEmpty {
           postList(posts: posts)
-        }
 
-        if viewModel.isShowingCaughtUpFooter
-          && !viewModel.isCaughtUpFooterDismissed
-        {
-          CaughtUpView(onContinue: {
-            Task {
-              await viewModel.setContinuePastCaughtUp()
+          if viewModel.isShowingCaughtUpFooter
+            && !viewModel.isCaughtUpFooterDismissed
+          {
+            CaughtUpView(onContinue: {
+              Task {
+                await viewModel.setContinuePastCaughtUp()
+              }
+            })
+            .postHogScreenView()
+            .onAppear {
+              viewModel.setHasReachedCaughtUp()
             }
-          })
-          .postHogScreenView()
-          .onAppear {
-            viewModel.setHasReachedCaughtUp()
-          }
-        } else if viewModel.canLoadMore {
-          ProgressView()
-            .padding(.bottom, 50)
-            #if os(macOS)
-              .controlSize(.small)
-            #endif
+          } else if viewModel.canLoadMore {
+            ProgressView()
+              .padding(.bottom, 50)
+              #if os(macOS)
+                .controlSize(.small)
+              #endif
+              .padding()
+              .frame(maxWidth: .infinity, alignment: .center)
+          } else {
+            Divider()
+            VStack(spacing: 8) {
+              Text("Is that the very first post?")
+              Text("What came before that?")
+              Text("Nothing at all?")
+              HStack(spacing: 4) {
+                Text("It always just")
+                Text("Splajompy")
+                  .fontWeight(.black)
+              }
+            }
+            .font(.title3)
+            .multilineTextAlignment(.center)
             .padding()
-            .frame(maxWidth: .infinity, alignment: .center)
-        } else {
-          Divider()
-          VStack(spacing: 8) {
-            Text("Is that the very first post?")
-            Text("What came before that?")
-            Text("Nothing at all?")
-            HStack(spacing: 4) {
-              Text("It always just")
-              Text("Splajompy")
-                .fontWeight(.black)
-            }
           }
-          .font(.title3)
-          .multilineTextAlignment(.center)
-          .padding()
         }
       }
     }
@@ -250,8 +250,6 @@ struct FeedView: View {
       case .loaded(let posts):
         if posts.isEmpty {
           emptyMessage
-        } else {
-          postList(posts: posts)
         }
       case .failed(let error):
         ErrorScreen(
