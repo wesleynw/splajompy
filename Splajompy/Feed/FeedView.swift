@@ -175,13 +175,14 @@ struct FeedView: View {
                 await viewModel.setContinuePastCaughtUp()
               }
             })
+            .padding(.bottom, 20)
             .postHogScreenView()
             .onAppear {
               viewModel.setHasReachedCaughtUp()
             }
           } else if viewModel.canLoadMore {
             ProgressView()
-              .padding(.bottom, 50)
+              .padding(.bottom, 70)
               #if os(macOS)
                 .controlSize(.small)
               #endif
