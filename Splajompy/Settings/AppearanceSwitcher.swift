@@ -60,7 +60,7 @@ struct AppearanceSwitcher: View {
       NotificationCenter.default.post(name: .userRefreshingFeed, object: nil)
       PostHogSDK.shared.capture(
         "caught_up_feature",
-        ["enabled": isCaughtUpFeedEnabled]
+        properties: ["enabled": isCaughtUpFeedEnabled]
       )
     }
 
