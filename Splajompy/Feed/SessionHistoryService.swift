@@ -11,8 +11,8 @@ struct SessionHistoryService {
   static let thresholdDays: Int = -7
 
   /// Returns a timestamp after which the session is considered 'caught up'.
-  static func getCatchUpThreshold() -> Date? {
-    let sessions = fetchSessionHistoryFromStorage()
+  static func getCatchUpThreshold(feedType: FeedType) -> Date? {
+    let sessions = fetchSessionHistoryFromStorage(feedType: feedType)
 
     if let twoWeeksAgo = Calendar.current.date(
       byAdding: .day,
@@ -30,8 +30,12 @@ struct SessionHistoryService {
   }
 
   /// Persists the current session
-  static func saveSessionHistory(sessionStart: Date, sessionEnd: Date) {
-    var currentSessions = fetchSessionHistoryFromStorage()
+  static func saveSessionHistory(
+    feedType: FeedType,
+    sessionStart: Date,
+    sessionEnd: Date
+  ) {
+    var currentSessions = fetchSessionHistoryFromStorage(feedType: feedType)
 
     currentSessions.append(
       Session(oldestTimestamp: sessionStart, newestTimestamp: sessionEnd)
@@ -48,9 +52,8 @@ struct SessionHistoryService {
       })
     }
 
-    print("about to save sessions: \(currentSessions.debugDescription)")
-
     persistSessionHistoryToStorage(
+      feedType: feedType,
       sessions: deduplicateSessionHistory(sessions: currentSessions)
     )
   }
@@ -81,9 +84,18 @@ struct SessionHistoryService {
     return output
   }
 
-  // TODO: set back to private
-  static func fetchSessionHistoryFromStorage() -> [Session] {
-    if let data = UserDefaults.standard.object(forKey: sessionStorageKey)
+  static func clearSessionHistory() {
+    for feedType in FeedType.allCases {
+      persistSessionHistoryToStorage(feedType: feedType, sessions: [])
+    }
+  }
+
+  static private func fetchSessionHistoryFromStorage(feedType: FeedType)
+    -> [Session]
+  {
+    if let data = UserDefaults.standard.object(
+      forKey: feedType.rawValue + sessionStorageKey
+    )
       as? Data,
       let sessions = try? JSONDecoder().decode([Session].self, from: data)
     {
@@ -94,11 +106,15 @@ struct SessionHistoryService {
       as? [Session] ?? []
   }
 
-  static private func persistSessionHistoryToStorage(sessions: [Session]) {
-    print("saving sessions: \(sessions)")
-
+  static private func persistSessionHistoryToStorage(
+    feedType: FeedType,
+    sessions: [Session]
+  ) {
     if let jsonSessions = try? JSONEncoder().encode(sessions) {
-      UserDefaults.standard.set(jsonSessions, forKey: sessionStorageKey)
+      UserDefaults.standard.set(
+        jsonSessions,
+        forKey: feedType.rawValue + sessionStorageKey
+      )
     }
   }
 }

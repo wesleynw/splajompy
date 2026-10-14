@@ -186,7 +186,6 @@ struct FeedView: View {
               #if os(macOS)
                 .controlSize(.small)
               #endif
-              .padding()
               .frame(maxWidth: .infinity, alignment: .center)
           } else {
             Divider()

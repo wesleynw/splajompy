@@ -19,8 +19,6 @@ extension Foundation.Notification.Name {
   )
 }
 
-let caughtUpCursorKey: String = "caught_up_cursor"
-
 @MainActor @Observable class FeedViewModel {
   var feedType: FeedType
   var userId: Int?
@@ -85,7 +83,7 @@ let caughtUpCursorKey: String = "caught_up_cursor"
         forKey: "caught_up_enabled"
       )
 
-      let caughtUpCursor = SessionHistoryService.getCatchUpThreshold()
+      let caughtUpCursor = SessionHistoryService.getCatchUpThreshold(feedType: feedType)
       if let caughtUpCursor,
         let mostRecentPostTimestamp = newPosts.first?.post.createdAt,
         caughtUpCursor > mostRecentPostTimestamp,
@@ -144,7 +142,7 @@ let caughtUpCursorKey: String = "caught_up_cursor"
       properties: ["post_count": postIdsSeen.count]
     )
 
-    if let caughtUp = SessionHistoryService.getCatchUpThreshold() {
+    if let caughtUp = SessionHistoryService.getCatchUpThreshold(feedType: feedType) {
       sessionStartTimestamp = min(sessionEndTimestamp, caughtUp)
       persistSession()
     }
@@ -185,12 +183,13 @@ let caughtUpCursorKey: String = "caught_up_cursor"
 
   func persistSession() {
     SessionHistoryService.saveSessionHistory(
+      feedType: feedType,
       sessionStart: sessionStartTimestamp,
       sessionEnd: sessionEndTimestamp
     )
 
     PostHogSDK.shared.capture(
-      "feed_sesssion_over",
+      "feed_session_over",
       properties: ["post_count": postIdsSeen.count]
     )
   }
