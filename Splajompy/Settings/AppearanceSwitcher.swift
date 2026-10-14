@@ -1,3 +1,4 @@
+import PostHog
 import SwiftUI
 
 struct AppearanceSwitcher: View {
@@ -51,10 +52,16 @@ struct AppearanceSwitcher: View {
         isOn: $isCaughtUpFeedEnabled
       )
     } footer: {
-      Text("Shows a banner while scrolling when you've seen all new posts in the last week")
+      Text(
+        "Shows a banner while scrolling when you've seen all new posts in the last week"
+      )
     }
     .onChange(of: isCaughtUpFeedEnabled) { _, _ in
       NotificationCenter.default.post(name: .userRefreshingFeed, object: nil)
+      PostHogSDK.shared.capture(
+        "caught_up_feature",
+        ["enabled": isCaughtUpFeedEnabled]
+      )
     }
 
     #if os(iOS)
