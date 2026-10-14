@@ -29,7 +29,7 @@ struct NotificationsView: View {
           .task(id: viewModel.lastRefreshTime) {
             if viewModel.lastRefreshTime.addingTimeInterval(5) > Date() {
               do {
-                try await Task.sleep(for: .seconds(2))
+                try await Task.sleep(for: .seconds(0.5))
                 viewModel.markAllNotificationsAsRead()
               } catch {}
             }

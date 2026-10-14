@@ -4,8 +4,19 @@ import SwiftUI
 enum FeedState {
   case idle
   case loading
+  case caughtUp
   case loaded([ObservablePost])
   case failed(Error)
+}
+
+extension Foundation.Notification.Name {
+  static let userDidRefreshFeed = Foundation.Notification.Name(
+    "userDidRefreshFeed"
+  )
+
+  static let userRefreshingFeed = Foundation.Notification.Name(
+    "userRefreshingFeed"
+  )
 }
 
 @MainActor @Observable class FeedViewModel {
@@ -16,9 +27,16 @@ enum FeedState {
   var refreshTrigger: Bool = false
   private var isLoadingMore: Bool = false
 
-  private var lastPostTimestamp: Date?
+  private var cursor: Date?
   private let fetchLimit = 10
   private var postManager: PostStore
+
+  private var sessionStartTimestamp: Date = Date()
+  private var sessionEndTimestamp: Date = Date()
+  private(set) var isShowingCaughtUpFooter: Bool = false
+  private(set) var isCaughtUpFooterDismissed: Bool = false
+
+  private var postIdsSeen: Set<Int> = Set()
 
   init(feedType: FeedType, userId: Int? = nil, postManager: PostStore) {
     self.feedType = feedType
@@ -42,8 +60,10 @@ enum FeedState {
     }
 
     if reset {
-      lastPostTimestamp = nil
+      cursor = nil
+      sessionEndTimestamp = Date()
       refreshTrigger.toggle()
+      postIdsSeen.removeAll()
     }
     if !preserveCurrentState {
       state = .loading
@@ -52,21 +72,46 @@ enum FeedState {
     let result = await postManager.loadFeed(
       feedType: feedType,
       userId: userId,
-      beforeTimestamp: lastPostTimestamp,
+      beforeTimestamp: cursor,
       limit: fetchLimit
     )
 
     switch result {
-    case .success(let newPosts):
-      let existingPosts: [ObservablePost]
-      if case .loaded(let posts) = state, !reset {
-        existingPosts = posts
-      } else {
-        existingPosts = []
+    case .success(var newPosts):
+      // are we all caught up?
+      let isCaughtUpFeatureEnabled: Bool = UserDefaults.standard.bool(
+        forKey: "caught_up_enabled"
+      )
+
+      let caughtUpCursor = SessionHistoryService.getCatchUpThreshold(feedType: feedType)
+      if let caughtUpCursor,
+        let mostRecentPostTimestamp = newPosts.first?.post.createdAt,
+        caughtUpCursor > mostRecentPostTimestamp,
+        !isCaughtUpFooterDismissed,
+        isCaughtUpFeatureEnabled
+      {
+        state = .caughtUp
+        return
       }
-      lastPostTimestamp = newPosts.last?.post.createdAt ?? lastPostTimestamp
-      canLoadMore = newPosts.count >= fetchLimit
-      state = .loaded(existingPosts + newPosts)
+
+      // will we catch up?
+      if let caughtUpCursor,
+        newPosts.contains(where: { $0.post.createdAt < caughtUpCursor }),
+        !isCaughtUpFooterDismissed, isCaughtUpFeatureEnabled
+      {
+        newPosts = newPosts.filter({ $0.post.createdAt > caughtUpCursor })
+        isShowingCaughtUpFooter = true
+      }
+
+      cursor = newPosts.last?.post.createdAt ?? cursor
+      canLoadMore = newPosts.count >= fetchLimit  // this is dumb, need a flag from API
+
+      // append to feed
+      if case .loaded(let currentPosts) = state, !reset {
+        state = .loaded(currentPosts + newPosts)
+      } else {
+        state = .loaded(newPosts)
+      }
     case .failure(let error):
       state = .failed(error)
     }
@@ -91,7 +136,40 @@ enum FeedState {
     }
   }
 
-  func handlePostAppear(at index: Int) {
+  func setHasReachedCaughtUp() {
+    PostHogSDK.shared.capture(
+      "feed_caught_up",
+      properties: ["post_count": postIdsSeen.count]
+    )
+
+    if let caughtUp = SessionHistoryService.getCatchUpThreshold(feedType: feedType) {
+      sessionStartTimestamp = min(sessionEndTimestamp, caughtUp)
+      persistSession()
+    }
+  }
+
+  func setContinuePastCaughtUp() async {
+    if case .caughtUp = state {
+      state = .loading
+    }
+
+    canLoadMore = true
+
+    isCaughtUpFooterDismissed = true
+    await loadPosts(preserveCurrentState: true)
+  }
+
+  func handlePostAppear(for post: ObservablePost, at index: Int) {
+    markPostAsSeen(for: post)
+    loadMorePostsIfNeeded(at: index)
+    postIdsSeen.insert(post.id)
+  }
+
+  private func markPostAsSeen(for post: ObservablePost) {
+    sessionStartTimestamp = min(sessionStartTimestamp, post.post.createdAt)
+  }
+
+  private func loadMorePostsIfNeeded(at index: Int) {
     guard case .loaded(let currentPostIds) = state,
       index >= currentPostIds.count - 3,
       canLoadMore,
@@ -101,5 +179,18 @@ enum FeedState {
     Task {
       await loadPosts(preserveCurrentState: true)
     }
+  }
+
+  func persistSession() {
+    SessionHistoryService.saveSessionHistory(
+      feedType: feedType,
+      sessionStart: sessionStartTimestamp,
+      sessionEnd: sessionEndTimestamp
+    )
+
+    PostHogSDK.shared.capture(
+      "feed_session_over",
+      properties: ["post_count": postIdsSeen.count]
+    )
   }
 }

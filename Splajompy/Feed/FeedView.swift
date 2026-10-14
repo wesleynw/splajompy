@@ -6,6 +6,8 @@ struct FeedView: View {
   @State private var viewModel: FeedViewModel
   @Namespace var namespace
 
+  @Environment(\.scenePhase) private var scenePhase
+
   var postManager: PostStore
 
   @AppStorage("selectedFeedType") private var selectedFeedType: FeedType = .all
@@ -121,7 +123,11 @@ struct FeedView: View {
             } label: {
               Image(systemName: "arrow.clockwise")
             }
-            .symbolEffect(.rotate, options: .nonRepeating.speed(2), value: viewModel.refreshTrigger)
+            .symbolEffect(
+              .rotate,
+              options: .nonRepeating.speed(2),
+              value: viewModel.refreshTrigger
+            )
           }
 
           if #available(macOS 26, *) {
@@ -156,81 +162,47 @@ struct FeedView: View {
 
   @ViewBuilder
   private var mainContent: some View {
-    VStack {
-      switch viewModel.state {
-      case .idle, .loading:
-        ProgressView()
-          #if os(macOS)
-            .controlSize(.small)
-          #endif
-          .frame(maxWidth: .infinity, maxHeight: .infinity)
-      case .loaded(let posts):
-        if posts.isEmpty {
-          emptyMessage
-        } else {
-          postList(posts: posts)
-        }
-      case .failed(let error):
-        ErrorScreen(
-          errorString: error.localizedDescription,
-          source: "FeedView",
-          onRetry: {
-            await viewModel.loadPosts(preserveCurrentState: true, reset: true)
-          }
-        )
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-      }
-    }
-  }
-
-  private func postList(posts: [ObservablePost]) -> some View {
     ScrollView(.vertical) {
       LazyVStack(spacing: 0) {
-        ForEach(Array(posts.enumerated()), id: \.element.id) {
-          index,
-          post in
+        if case .loaded(let posts) = viewModel.state, !posts.isEmpty {
+          postList(posts: posts)
 
-          PostView(
-            post: post,
-            showAuthor: true,
-            postManager: postManager,
-            onLikeButtonTapped: {
-              Task { await viewModel.toggleLike(on: post) }
-            },
-            onPostDeleted: { viewModel.deletePost(on: post) }
-          )
-          .onAppear {
-            viewModel.handlePostAppear(at: index)
-          }
-          .geometryGroup()
-          .transition(.opacity.combined(with: .scale(scale: 0.95)))
-          #if os(macOS)
-            .frame(maxWidth: 600)
-          #endif
-        }
-
-        if viewModel.canLoadMore {
-          ProgressView()
-            #if os(macOS)
-              .controlSize(.small)
-            #endif
-            .padding()
-            .frame(maxWidth: .infinity, alignment: .center)
-        } else {
-          Divider()
-          VStack(spacing: 8) {
-            Text("Is that the very first post?")
-            Text("What came before that?")
-            Text("Nothing at all?")
-            HStack(spacing: 4) {
-              Text("It always just")
-              Text("Splajompy")
-                .fontWeight(.black)
+          if viewModel.isShowingCaughtUpFooter
+            && !viewModel.isCaughtUpFooterDismissed
+          {
+            CaughtUpView(onContinue: {
+              Task {
+                await viewModel.setContinuePastCaughtUp()
+              }
+            })
+            .padding(.bottom, 20)
+            .postHogScreenView()
+            .onAppear {
+              viewModel.setHasReachedCaughtUp()
             }
+          } else if viewModel.canLoadMore {
+            ProgressView()
+              .padding(.bottom, 70)
+              #if os(macOS)
+                .controlSize(.small)
+              #endif
+              .frame(maxWidth: .infinity, alignment: .center)
+          } else {
+            Divider()
+            VStack(spacing: 8) {
+              Text("Is that the very first post?")
+              Text("What came before that?")
+              Text("Nothing at all?")
+              HStack(spacing: 4) {
+                Text("It always just")
+                Text("Splajompy")
+                  .fontWeight(.black)
+              }
+            }
+            .font(.title3)
+            .multilineTextAlignment(.center)
+            .padding()
           }
-          .font(.title3)
-          .multilineTextAlignment(.center)
-          .padding()
         }
       }
     }
@@ -249,6 +221,73 @@ struct FeedView: View {
         PostHogSDK.shared.capture("feed_refreshed")
       }.value
     }
+    .onChange(of: scenePhase) { _, newValue in
+      if newValue != .active {
+        viewModel.persistSession()
+      }
+    }
+    .overlay {
+      switch viewModel.state {
+      case .idle, .loading:
+        ProgressView()
+          #if os(macOS)
+            .controlSize(.small)
+          #endif
+          .frame(maxWidth: .infinity, maxHeight: .infinity)
+      case .caughtUp:
+        CaughtUpView(onContinue: {
+          Task {
+            await viewModel.setContinuePastCaughtUp()
+          }
+        })
+        .onChange(of: scenePhase) { _, newValue in
+          if newValue == .active {
+            Task {
+              await viewModel.loadPosts(reset: true)
+            }
+          }
+        }
+      case .loaded(let posts):
+        if posts.isEmpty {
+          emptyMessage
+        }
+      case .failed(let error):
+        ErrorScreen(
+          errorString: error.localizedDescription,
+          source: "FeedView",
+          onRetry: {
+            await viewModel.loadPosts(preserveCurrentState: true, reset: true)
+          }
+        )
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+      }
+    }
+  }
+
+  @ContentBuilder
+  private func postList(posts: [ObservablePost]) -> some View {
+    ForEach(Array(posts.enumerated()), id: \.element.id) {
+      index,
+      post in
+
+      PostView(
+        post: post,
+        showAuthor: true,
+        postManager: postManager,
+        onLikeButtonTapped: {
+          Task { await viewModel.toggleLike(on: post) }
+        },
+        onPostDeleted: { viewModel.deletePost(on: post) }
+      )
+      .onAppear {
+        viewModel.handlePostAppear(for: post, at: index)
+      }
+      .geometryGroup()
+      .transition(.opacity.combined(with: .scale(scale: 0.95)))
+      #if os(macOS)
+        .frame(maxWidth: 600)
+      #endif
+    }
   }
 
   private var emptyMessage: some View {
@@ -256,19 +295,7 @@ struct FeedView: View {
       Text("No posts yet.")
         .font(SJFont.callout)
         .padding(.top, 40)
-      Text("Here's where you'll see posts from others.")
-        .padding()
     }
     .frame(maxWidth: .infinity, alignment: .center)
   }
-}
-
-extension Foundation.Notification.Name {
-  static let userDidRefreshFeed = Foundation.Notification.Name(
-    "userDidRefreshFeed"
-  )
-
-  static let userRefreshingFeed = Foundation.Notification.Name(
-    "userRefreshingFeed"
-  )
 }

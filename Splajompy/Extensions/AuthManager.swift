@@ -36,6 +36,13 @@ private actor SessionStore {
 
   func loadSession() -> AuthSession? {
     if let session = readPersistedSession() {
+      PostHogSDK.shared.identify(
+        String(session.user.userId),
+        userProperties: [
+          "email": session.user.email,
+          "username": session.user.username,
+        ]
+      )
       return session
     }
 
@@ -201,6 +208,11 @@ class AuthManager: Sendable {
     UserDefaults.standard.removeObject(forKey: "image_layout_preference")
     UserDefaults.standard.removeObject(
       forKey: "hasCompletedPushNotificationOnboarding"
+    )
+
+    UserDefaults.standard.removeObject(forKey: "caught_up_enabled")
+    UserDefaults.standard.removeObject(
+      forKey: SessionHistoryService.sessionStorageKey
     )
 
     ImageCache.shared.removeAll()

@@ -12,6 +12,9 @@ struct AppearanceSwitcher: View {
   @AppStorage("image_layout_preference") private var imageLayoutPreference: ImageLayoutPreference =
     .undecided
 
+  @AppStorage("caught_up_enabled") private var isCaughtUpFeedEnabled: Bool =
+    false
+
   let options = ["Automatic", "Light", "Dark"]
 
   var body: some View {
@@ -41,6 +44,24 @@ struct AppearanceSwitcher: View {
         Text("Newest First").tag("Newest First")
         Text("Oldest First").tag("Oldest First")
       }
+    }
+
+    Section {
+      Toggle(
+        "\"You're all caught up\"",
+        isOn: $isCaughtUpFeedEnabled
+      )
+    } footer: {
+      Text(
+        "Shows a banner while scrolling when you've seen all new posts in the last week"
+      )
+    }
+    .onChange(of: isCaughtUpFeedEnabled) { _, _ in
+      NotificationCenter.default.post(name: .userRefreshingFeed, object: nil)
+      PostHogSDK.shared.capture(
+        "caught_up_feature",
+        properties: ["enabled": isCaughtUpFeedEnabled]
+      )
     }
 
     #if os(iOS)

@@ -133,7 +133,7 @@ struct ProfileView: View {
       profileHeader(user: user)
 
       switch feedState {
-      case .idle, .loading:
+      case .idle, .loading, .caughtUp:
         ProgressView()
       case .loaded(let posts):
         if posts.isEmpty {
