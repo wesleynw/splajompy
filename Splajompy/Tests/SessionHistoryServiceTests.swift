@@ -4,16 +4,20 @@ import Testing
 @testable import Splajompy
 
 struct SessionHistoryServiceTests {
-  @Test func DeduplicateSessionHistory_NonOverlapping() async throws {
+  @Test func deduplicateSessionHistory_NonOverlapping() async throws {
     let sessions = [
-      [
-        Date.init(timeIntervalSinceNow: -60),
-        Date.init(timeIntervalSinceNow: -50),
-      ],
-      [
-        Date.init(timeIntervalSinceNow: -40),
-        Date.init(timeIntervalSinceNow: -30),
-      ],
+      Session(
+        oldestTimestamp:
+          Date.init(timeIntervalSinceNow: -60),
+        newestTimestamp:
+          Date.init(timeIntervalSinceNow: -50)
+      ),
+      Session(
+        oldestTimestamp:
+          Date.init(timeIntervalSinceNow: -40),
+        newestTimestamp:
+          Date.init(timeIntervalSinceNow: -30)
+      ),
     ]
 
     let deduped = SessionHistoryService.deduplicateSessionHistory(
@@ -23,7 +27,7 @@ struct SessionHistoryServiceTests {
     #expect(deduped.count == 2)
   }
 
-  @Test func DeduplicateSessionHistory_NewerSessionOverlapsPartially()
+  @Test func deduplicateSessionHistory_NewerSessionOverlapsPartially()
     async throws
   {
     let date0 = Date.init(timeIntervalSinceNow: 0)
@@ -32,12 +36,18 @@ struct SessionHistoryServiceTests {
     let date3 = Date.init(timeIntervalSinceNow: 30)
 
     let sessions = [
-      [
-        date1, date3,
-      ],
-      [
-        date0, date2,
-      ],
+      Session(
+        oldestTimestamp:
+          date1,
+        newestTimestamp:
+          date3
+      ),
+      Session(
+        oldestTimestamp:
+          date0,
+        newestTimestamp:
+          date2
+      ),
     ]
 
     let deduped = SessionHistoryService.deduplicateSessionHistory(
@@ -45,12 +55,11 @@ struct SessionHistoryServiceTests {
     )
 
     #expect(deduped.count == 1)
-    #expect(deduped[0].count == 2)
-    #expect(deduped[0][0] == date0)
-    #expect(deduped[0][1] == date3)
+    #expect(deduped[0].oldestTimestamp == date0)
+    #expect(deduped[0].newestTimestamp == date3)
   }
 
-  @Test func DeduplicateSessionHistory_SessionContainsSession()
+  @Test func deduplicateSessionHistory_SessionContainsSession()
     async throws
   {
     let date0 = Date.init(timeIntervalSinceNow: 0)
@@ -59,12 +68,18 @@ struct SessionHistoryServiceTests {
     let date3 = Date.init(timeIntervalSinceNow: 30)
 
     let sessions = [
-      [
-        date0, date3,
-      ],
-      [
-        date1, date2,
-      ],
+      Session(
+        oldestTimestamp:
+          date0,
+        newestTimestamp:
+          date3
+      ),
+      Session(
+        oldestTimestamp:
+          date1,
+        newestTimestamp:
+          date2
+      ),
     ]
 
     let deduped = SessionHistoryService.deduplicateSessionHistory(
@@ -72,8 +87,7 @@ struct SessionHistoryServiceTests {
     )
 
     #expect(deduped.count == 1)
-    #expect(deduped[0].count == 2)
-    #expect(deduped[0][0] == date0)
-    #expect(deduped[0][1] == date3)
+    #expect(deduped[0].oldestTimestamp == date0)
+    #expect(deduped[0].newestTimestamp == date3)
   }
 }
