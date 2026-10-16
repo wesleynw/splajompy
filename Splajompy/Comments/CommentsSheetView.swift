@@ -51,12 +51,19 @@ struct CommentsSheetView: View {
                         post.commentCount -= 1
                       }
                     }
+                  },
+                  handleCommentReply: {
+                    viewModel.stageCommentReply(to: comment)
                   }
                 )
                 .id(comment.commentId)
                 .geometryGroup()
                 .transition(.opacity.combined(with: .scale(scale: 0.95)))
-                .scrollToCommentWhenAdded(comment.commentId, viewModel: viewModel, proxy: proxy)
+                .scrollToCommentWhenAdded(
+                  comment.commentId,
+                  viewModel: viewModel,
+                  proxy: proxy
+                )
               }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -79,13 +86,32 @@ struct CommentsSheetView: View {
           }
         }
         .modify {
+          if #available(anyAppleOS 27, *) {
+            $0.swipeActionsContainer()
+          }
+        }
+        .modify {
           if #available(iOS 26, macOS 26, *) {
             $0.safeAreaBar(edge: .bottom) {
-              CommentInputView(viewModel: viewModel)
+              CommentInputView(
+                onCommentReplyTap: {
+                  if let replyingToComment = viewModel.respondingToComment {
+                    proxy.scrollTo(replyingToComment.commentId)
+                  }
+                },
+                viewModel: viewModel
+              )
             }
           } else {
             $0.safeAreaInset(edge: .bottom) {
-              CommentInputView(viewModel: viewModel)
+              CommentInputView(
+                onCommentReplyTap: {
+                  if let replyingToComment = viewModel.respondingToComment {
+                    proxy.scrollTo(replyingToComment.commentId)
+                  }
+                },
+                viewModel: viewModel
+              )
             }
           }
         }

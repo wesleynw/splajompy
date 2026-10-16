@@ -63,12 +63,26 @@ struct CommentsView: View {
                     post.commentCount -= 1
                   }
                 }
+              },
+              handleCommentReply: {
+                viewModel.stageCommentReply(to: comment)
               }
             )
             .id(comment.commentId)
             .geometryGroup()
             .transition(.opacity.combined(with: .scale(scale: 0.95)))
-            .scrollToCommentWhenAdded(comment.commentId, viewModel: viewModel, proxy: scrollProxy)
+            .scrollToCommentWhenAdded(
+              comment.commentId,
+              viewModel: viewModel,
+              proxy: scrollProxy
+            )
+            .swipeActions(edge: .leading) {
+              Button {
+                viewModel.stageCommentReply(to: comment)
+              } label: {
+                Label("Reply", systemImage: "arrowshape.turn.up.left.fill")
+              }
+            }
           }
         }
         .frame(maxWidth: .infinity, alignment: .leading)

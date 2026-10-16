@@ -5,6 +5,7 @@ struct CommentRow: View {
   let isInSheet: Bool
   let toggleLike: () -> Void
   let deleteComment: () -> Void
+  let handleCommentReply: () -> Void
 
   let formatter = RelativeDateTimeFormatter()
 
@@ -60,7 +61,15 @@ struct CommentRow: View {
 
         Spacer()
 
-        HStack(spacing: 0) {
+        Button {
+          handleCommentReply()
+        } label: {
+          Text("Reply")
+            .font(SJFont.body)
+        }
+        .buttonStyle(.plain)
+
+        HStack {
           if let currentUser = authManager.currentUser {
             if currentUser.userId == comment.user.userId {
               Menu(

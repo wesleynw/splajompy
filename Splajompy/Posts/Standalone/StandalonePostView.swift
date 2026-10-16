@@ -58,6 +58,11 @@ struct StandalonePostView: View {
           #endif
         }
       }
+      .modify {
+        if #available(anyAppleOS 27, *) {
+          $0.swipeActionsContainer()
+        }
+      }
       .overlay {
         switch viewModel.state {
         case .idle, .loading:
@@ -118,11 +123,27 @@ struct StandalonePostView: View {
       .modify {
         if #available(iOS 26, macOS 26, *) {
           $0.safeAreaBar(edge: .bottom) {
-            CommentInputView(viewModel: commentsViewModel)
+            CommentInputView(
+              onCommentReplyTap: {
+                if let replyingToComment = commentsViewModel.respondingToComment
+                {
+                  proxy.scrollTo(replyingToComment.commentId)
+                }
+              },
+              viewModel: commentsViewModel
+            )
           }
         } else {
           $0.safeAreaInset(edge: .bottom) {
-            CommentInputView(viewModel: commentsViewModel)
+            CommentInputView(
+              onCommentReplyTap: {
+                if let replyingToComment = commentsViewModel.respondingToComment
+                {
+                  proxy.scrollTo(replyingToComment.commentId)
+                }
+              },
+              viewModel: commentsViewModel
+            )
           }
         }
       }

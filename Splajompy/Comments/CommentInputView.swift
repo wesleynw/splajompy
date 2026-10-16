@@ -7,6 +7,7 @@ private struct SelectedImage: Identifiable {
 }
 
 struct CommentInputView: View {
+  let onCommentReplyTap: () -> Void
   @Bindable var viewModel: CommentsView.ViewModel
 
   @State private var mentionViewModel =
@@ -45,6 +46,34 @@ struct CommentInputView: View {
       }
 
       VStack {
+        if let replyingComment = viewModel.respondingToComment {
+          HStack {
+            Image(systemName: "arrowshape.turn.up.left.fill")
+              .font(.body)
+
+            Text("Replying to ")
+              + Text("@\(replyingComment.user.username)").fontWeight(.semibold)
+              .foregroundStyle(.accent)
+
+            Spacer()
+
+            Button {
+              viewModel.unstageCommentReply()
+            } label: {
+              Image(systemName: "xmark.circle.fill")
+                .font(.body)
+            }
+            .buttonStyle(.plain)
+          }
+          .fontWeight(.semibold)
+          .padding(12)
+          .frame(maxWidth: .infinity, alignment: .leading)
+          .transition(.push(from: .leading))
+          .onTapGesture {
+            onCommentReplyTap()
+          }
+        }
+
         if viewModel.imageState != .empty {
 
           ScrollView(.horizontal) {
@@ -78,7 +107,8 @@ struct CommentInputView: View {
         }
 
         HStack(alignment: .bottom, spacing: 0) {
-          PhotosPicker(selection: $viewModel.imageSelection, matching: .images) {
+          PhotosPicker(selection: $viewModel.imageSelection, matching: .images)
+          {
             Image(systemName: "plus.circle.fill")
               .resizable()
               .frame(width: 32, height: 32)
@@ -145,6 +175,7 @@ struct CommentInputView: View {
         }
       }
     }
+    .animation(.default, value: viewModel.respondingToComment)
     .sheet(item: $presentingImage) { selected in
       LocalImagePager(
         images: [selected.image],
@@ -177,6 +208,17 @@ struct CommentInputView: View {
 
 #Preview {
   CommentInputView(
+    onCommentReplyTap: {},
     viewModel: CommentsView.ViewModel(postId: 1, postManager: PostStore())
+  )
+}
+
+#Preview("responding to comment") {
+  let viewModel = CommentsView.ViewModel(postId: 1, postManager: PostStore())
+  viewModel.stageCommentReply(to: Mocks.comment1)
+
+  return CommentInputView(
+    onCommentReplyTap: {},
+    viewModel: viewModel
   )
 }

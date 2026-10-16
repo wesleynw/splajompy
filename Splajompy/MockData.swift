@@ -103,6 +103,18 @@ struct Mocks {
     isPinned: false
   )
 
+  static let comment1 = DetailedComment(
+    commentId: 1,
+    postId: 1,
+    userId: 1,
+    text: "test comment",
+    createdAt: Date(),
+    user: testPublicUser1,
+    facets: nil,
+    images: nil,
+    isLiked: false
+  )
+
   static let wrappedData = WrappedData(
     activityData: ActivityOverviewData(
       activityCountCeiling: 1,
