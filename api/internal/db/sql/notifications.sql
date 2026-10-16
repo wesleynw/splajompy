@@ -61,12 +61,10 @@ WHERE notifications.user_id = $1 AND notifications.viewed = $4 AND notifications
             AND block.target_user_id = notifications.target_user_id
     ) AND NOT EXISTS ( -- no notifications referencing posts from blocked users
         SELECT 1 FROM block
-        JOIN posts ON posts.post_id = notifications.post_id
         WHERE block.user_id = $1
             AND posts.user_id = block.target_user_id
     ) AND NOT EXISTS ( -- no notifications refering posts from users that have blocked this user
         SELECT 1 FROM block
-        JOIN posts ON posts.post_id = notifications.post_id
         WHERE block.user_id = posts.user_id
             AND block.target_user_id = $1
     ) AND (
