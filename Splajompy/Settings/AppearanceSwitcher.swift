@@ -53,7 +53,7 @@ struct AppearanceSwitcher: View {
       )
     } footer: {
       Text(
-        "Shows a banner while scrolling when you've seen all new posts in the last week"
+        "Shows a banner while scrolling when you've seen all new posts in the last week."
       )
     }
     .onChange(of: isCaughtUpFeedEnabled) { _, _ in
