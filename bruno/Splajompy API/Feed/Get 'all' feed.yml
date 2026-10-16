@@ -1,0 +1,16 @@
+info:
+  name: Get 'all' feed
+  type: http
+  seq: 1
+
+http:
+  method: GET
+  url: "{{apiUrl}}/v2/posts/all"
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false
