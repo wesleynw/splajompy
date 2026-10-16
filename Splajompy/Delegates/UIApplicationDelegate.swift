@@ -18,6 +18,7 @@ class AppDelegate: NSObject, UIApplicationDelegate,
       "push_pref_comments": true,
       "push_pref_mentions": true,
       "push_pref_follows": true,
+      "caught_up_enabled": true,
     ])
 
     return true
