@@ -174,7 +174,7 @@ SELECT post_id, user_id, text, created_at, facets, attributes, visibilitytype
 FROM posts
 WHERE user_id = $1
   AND EXTRACT(YEAR FROM created_at) = 2025
-  AND ($3::timestamp IS NULL OR created_at < $3::timestamp)
+  AND ($3::timestamp IS NULL OR created_at < $3)
 ORDER BY created_at DESC
 LIMIT $2
 `

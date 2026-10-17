@@ -8,7 +8,11 @@ import (
 	"strings"
 	"time"
 
+<<<<<<< HEAD
 	"github.com/jackc/pgx/v5"
+=======
+	"github.com/jackc/pgx/v5/pgconn"
+>>>>>>> 136670c (lots of refactoring)
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
@@ -64,7 +68,11 @@ func AuthMiddleware(q *queries.Queries) func(http.Handler) http.Handler {
 			}
 
 			if time.Now().Unix() >= session.ExpiresAt.Unix() {
+<<<<<<< HEAD
 				slog.InfoContext(ctx, "auth: session expired", "user_id", session.UserID, "expired_at", session.ExpiresAt)
+=======
+				slog.InfoContext(ctx, "auth: session expired", "session_id", session.ID, "expired_at", session.ExpiresAt)
+>>>>>>> 136670c (lots of refactoring)
 				err = q.DeleteSession(ctx, session.ID)
 				if err != nil {
 					slog.ErrorContext(ctx, "auth: failed to delete expired session", "user_id", session.UserID, "error", err)

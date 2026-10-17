@@ -44,8 +44,8 @@ func NewService(
 	}
 }
 
-// AddCommentToPost adds a comment to a post and creates a notification
-func (s *Service) AddCommentToPost(ctx context.Context, currentUser models.PublicUser, postId int, content string, imageKeyMap map[int]models.ImageData) (*models.DetailedComment, error) {
+// AddComment adds a comment to a post or comment and creates a notification
+func (s *Service) AddComment(ctx context.Context, currentUser models.PublicUser, postId int, commentId *int, content string, imageKeyMap map[int]models.ImageData) (*models.DetailedComment, error) {
 	post, err := s.postRepository.GetPostById(ctx, postId, currentUser.UserID)
 	if err != nil {
 		return nil, errors.New("unable to find post")
@@ -55,7 +55,7 @@ func (s *Service) AddCommentToPost(ctx context.Context, currentUser models.Publi
 	if err != nil {
 		return nil, errors.New("unable to generate facets")
 	}
-	comment, err := s.commentRepository.AddCommentToPost(ctx, currentUser.UserID, postId, content, commentFacets)
+	comment, err := s.commentRepository.AddCommentToPost(ctx, currentUser.UserID, postId, content, commentFacets, commentId)
 	if err != nil {
 		return nil, errors.New("unable to create new comment")
 	}
@@ -88,11 +88,11 @@ func (s *Service) AddCommentToPost(ctx context.Context, currentUser models.Publi
 		})
 	}
 
-	commentId := comment.CommentID
+	newCommentId := comment.CommentID
 
 	if currentUser.UserID != post.UserID {
 		text := fmt.Sprintf("@%s commented", currentUser.Username)
-		_, err = s.notificationService.AddNotification(ctx, post.UserID, &postId, &commentId, nil, text, models.NotificationTypeComment, &comment.Text)
+		_, err = s.notificationService.AddNotification(ctx, post.UserID, &postId, &newCommentId, nil, text, models.NotificationTypeComment, &comment.Text)
 		if err != nil {
 			return nil, err
 		}
@@ -108,7 +108,7 @@ func (s *Service) AddCommentToPost(ctx context.Context, currentUser models.Publi
 
 	for userId := range usersToNotify {
 		text := fmt.Sprintf("@%s mentioned you", currentUser.Username)
-		_, err = s.notificationService.AddNotification(ctx, userId, &postId, &commentId, nil, text, models.NotificationTypeMention, &comment.Text)
+		_, err = s.notificationService.AddNotification(ctx, userId, &postId, &newCommentId, nil, text, models.NotificationTypeMention, &comment.Text)
 		if err != nil {
 			return nil, errors.New("unable to create a new comment notification")
 		}
@@ -139,7 +139,6 @@ func (s *Service) GetCommentsByPostId(ctx context.Context, currentUser models.Pu
 
 	comments := make([]models.DetailedComment, 0, len(dbComments))
 	for _, dbComment := range dbComments {
-
 		user, err := s.userRepository.GetUserById(ctx, dbComment.UserID)
 		if err != nil {
 			return nil, errors.New("unable to retrieve user associated with comment")
@@ -272,6 +271,6 @@ func (s *Service) DeleteComment(ctx context.Context, currentUser models.PublicUs
 	return nil
 }
 
-func (s *Service) ReplyToComment(ctx context.Context, user models.PublicUser, postId int, commentId int, content string, imageKeyMap map[int]models.ImageData) (*models.DetailedComment, error) {
-	return nil, nil
+func (s *Service) hydrateComment() {
+
 }

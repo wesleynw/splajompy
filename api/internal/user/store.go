@@ -383,7 +383,7 @@ func (r *Store) GetNotificationActorUserIds(ctx context.Context, notificationId 
 	var cursor *time.Time
 	if len(rows) > 0 {
 		t := rows[len(rows)-1].CreatedAt
-		cursor = t
+		cursor = &t.Time
 	}
 
 	return userIds, cursor, nil

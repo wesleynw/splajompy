@@ -188,7 +188,7 @@ func TestFindLikeNotification_CommentNotification(t *testing.T) {
 	post, err := env.postRepository.InsertPost(t.Context(), user.UserID, new("test post"), nil, nil, &visibility)
 	require.NoError(t, err)
 
-	comment, err := env.commentRepository.AddCommentToPost(t.Context(), user.UserID, post.PostID, "test comment", nil)
+	comment, err := env.commentRepository.AddCommentToPost(t.Context(), user.UserID, post.PostID, "test comment", nil, nil)
 	require.NoError(t, err)
 
 	_, err = env.notificationRepository.InsertNotification(t.Context(), user.UserID, &post.PostID, &comment.CommentID, nil, "@user liked your comment.", models.NotificationTypeLike, nil)
@@ -257,7 +257,7 @@ func TestCommentNotification_ImagePopulatedFromComment(t *testing.T) {
 	imageKeyMap := map[int]models.ImageData{
 		0: {S3Key: imageKey, Width: 640, Height: 480},
 	}
-	_, err = env.commentSvc.AddCommentToPost(t.Context(), commenter, post.PostID, "test comment with image", imageKeyMap)
+	_, err = env.commentSvc.AddComment(t.Context(), commenter, post.PostID, nil, "test comment with image", imageKeyMap)
 	require.NoError(t, err)
 
 	notifications, err := env.svc.GetUnreadNotificationsByUserIdWithTimeOffset(t.Context(), postOwner, time.Now().UTC(), 10, nil)
@@ -483,7 +483,7 @@ func TestAddLikeNotification_Comment_MultipleNotificationsCombine(t *testing.T) 
 	post, err := env.postRepository.InsertPost(t.Context(), postOwner.UserID, new("test post"), nil, nil, new(models.VisibilityPublic))
 	require.NoError(t, err)
 
-	comment, err := env.commentRepository.AddCommentToPost(t.Context(), commenter.UserID, post.PostID, "test comment", nil)
+	comment, err := env.commentRepository.AddCommentToPost(t.Context(), commenter.UserID, post.PostID, "test comment", nil, nil)
 	require.NoError(t, err)
 
 	liker0 := testutil.CreateTestUser(t, env.userRepository, "liker0")
@@ -526,7 +526,7 @@ func TestAddLikeNotification_Comment_HandlesRemovedLikes(t *testing.T) {
 	post, err := env.postRepository.InsertPost(t.Context(), postOwner.UserID, new("test post"), nil, nil, new(models.VisibilityPublic))
 	require.NoError(t, err)
 
-	comment, err := env.commentRepository.AddCommentToPost(t.Context(), commenter.UserID, post.PostID, "test comment", nil)
+	comment, err := env.commentRepository.AddCommentToPost(t.Context(), commenter.UserID, post.PostID, "test comment", nil, nil)
 	require.NoError(t, err)
 
 	liker0 := testutil.CreateTestUser(t, env.userRepository, "liker0")
@@ -566,7 +566,7 @@ func TestAddLikeNotification_Comment_SelfLikeIgnored(t *testing.T) {
 	post, err := env.postRepository.InsertPost(t.Context(), postOwner.UserID, new("test post"), nil, nil, new(models.VisibilityPublic))
 	require.NoError(t, err)
 
-	comment, err := env.commentRepository.AddCommentToPost(t.Context(), commenter.UserID, post.PostID, "test comment", nil)
+	comment, err := env.commentRepository.AddCommentToPost(t.Context(), commenter.UserID, post.PostID, "test comment", nil, nil)
 	require.NoError(t, err)
 
 	err = env.svc.AddLikeNotification(t.Context(), commenter.UserID, post.PostID, &comment.CommentID)

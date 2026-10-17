@@ -98,9 +98,15 @@ func (r Store) GetReadNotificationsForUserIdWithTimeOffset(ctx context.Context, 
 	params := queries.GetNotificationsForUserIdWithTimeOffsetParams{
 		UserID:           userId,
 		CreatedAt:        beforeTime,
+<<<<<<< HEAD
 		Limit:            limit,
 		Viewed:           true,
 		NotificationType: notificationType,
+=======
+		NotificationType: notificationType,
+		Limit:            limit,
+		Viewed:           true,
+>>>>>>> 136670c (lots of refactoring)
 	}
 
 	notifications, err := r.querier.GetNotificationsForUserIdWithTimeOffset(ctx, params)
@@ -121,9 +127,15 @@ func (r Store) GetUnreadNotificationsForUserIdWithTimeOffset(ctx context.Context
 	params := queries.GetNotificationsForUserIdWithTimeOffsetParams{
 		UserID:           userId,
 		CreatedAt:        beforeTime,
+<<<<<<< HEAD
 		Limit:            limit,
 		Viewed:           false,
 		NotificationType: notificationType,
+=======
+		NotificationType: notificationType,
+		Limit:            limit,
+		Viewed:           false,
+>>>>>>> 136670c (lots of refactoring)
 	}
 
 	notifications, err := r.querier.GetNotificationsForUserIdWithTimeOffset(ctx, params)

@@ -20,7 +20,11 @@ type Store struct {
 func (r Store) InsertPost(ctx context.Context, userId int, content *string, facets db.Facets, attributes *db.Attributes, visibilityType *models.VisibilityTypeEnum) (*models.Post, error) {
 	var post, err = r.querier.InsertPost(ctx, queries.InsertPostParams{
 		UserID:         userId,
+<<<<<<< HEAD
 		Text:           content,
+=======
+		Text:           &content,
+>>>>>>> 136670c (lots of refactoring)
 		Facets:         facets,
 		Attributes:     attributes,
 		Visibilitytype: int(*visibilityType),
@@ -141,16 +145,26 @@ func (r Store) GetAllPostIdsCursor(ctx context.Context, limit int, beforeTimesta
 	return r.querier.GetAllPostIdsCursor(ctx, queries.GetAllPostIdsCursorParams{
 		UserID: currentUserId,
 		Limit:  limit,
+<<<<<<< HEAD
 		Before: beforeTimestamp,
+=======
+		Before: *beforeTimestamp,
+>>>>>>> 136670c (lots of refactoring)
 	})
 }
 
 // GetPostIdsForFollowingCursor retrieves post IDs from users a specified user follows using cursor-based pagination
 func (r Store) GetPostIdsForFollowingCursor(ctx context.Context, userId int, limit int, beforeTimestamp *time.Time) ([]int, error) {
 	return r.querier.GetPostIdsByFollowingCursor(ctx, queries.GetPostIdsByFollowingCursorParams{
+<<<<<<< HEAD
 		UserID: userId,
 		Limit:  limit,
 		Before: beforeTimestamp,
+=======
+		UserID:  userId,
+		Limit:   limit,
+		Column3: *beforeTimestamp,
+>>>>>>> 136670c (lots of refactoring)
 	})
 }
 
@@ -159,7 +173,11 @@ func (r Store) GetPostIdsForMutualFeedCursor(ctx context.Context, userId int, li
 	return r.querier.GetPostIdsForMutualFeedCursor(ctx, queries.GetPostIdsForMutualFeedCursorParams{
 		FollowerID: userId,
 		Limit:      limit,
+<<<<<<< HEAD
 		Before:     beforeTimestamp,
+=======
+		Column3:    *beforeTimestamp,
+>>>>>>> 136670c (lots of refactoring)
 	})
 }
 
@@ -167,7 +185,11 @@ func (r Store) GetPostIdsForMutualFeedCursor(ctx context.Context, userId int, li
 func (r Store) GetPostIdsByUserIdCursor(ctx context.Context, userId int, targetUserId int, limit int, beforeTimestamp *time.Time) ([]int, error) {
 	return r.querier.GetPostIdsByUserIdCursor(ctx, queries.GetPostIdsByUserIdCursorParams{
 		UserID:       userId,
+<<<<<<< HEAD
 		Before:       beforeTimestamp,
+=======
+		Before:       *beforeTimestamp,
+>>>>>>> 136670c (lots of refactoring)
 		TargetUserID: targetUserId,
 		Limit:        limit,
 	})

@@ -12,12 +12,13 @@ type Store struct {
 }
 
 // AddCommentToPost adds a new comment to a post
-func (r Store) AddCommentToPost(ctx context.Context, userId int, postId int, content string, facets db.Facets) (queries.Comment, error) {
+func (r Store) AddCommentToPost(ctx context.Context, userId int, postId int, content string, facets db.Facets, parentCommentId *int) (queries.Comment, error) {
 	return r.querier.AddCommentToPost(ctx, queries.AddCommentToPostParams{
-		PostID: postId,
-		UserID: userId,
-		Text:   content,
-		Facets: facets,
+		PostID:          postId,
+		UserID:          userId,
+		Text:            content,
+		Facets:          facets,
+		ParentCommentID: parentCommentId,
 	})
 }
 
@@ -26,10 +27,17 @@ func (r Store) GetCommentById(ctx context.Context, commentId int) (queries.Comme
 }
 
 // GetCommentsByPostId retrieves all comments for a specific post, excluding comments from users blocked by userId
-func (r Store) GetCommentsByPostId(ctx context.Context, postId int, userId int) ([]queries.GetCommentsByPostIdRow, error) {
+func (r Store) GetCommentsByPostId(ctx context.Context, postId int, userId int) ([]queries.Comment, error) {
 	return r.querier.GetCommentsByPostId(ctx, queries.GetCommentsByPostIdParams{
 		PostID: postId,
 		UserID: userId,
+	})
+}
+
+func (r Store) GetCommentsByParentCommentId(ctx context.Context, commentId int, userId int) ([]queries.Comment, error) {
+	return r.querier.GetCommentsByParentCommentId(ctx, queries.GetCommentsByParentCommentIdParams{
+		ParentCommentID: &commentId,
+		UserID:          userId,
 	})
 }
 

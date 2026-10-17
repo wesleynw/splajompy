@@ -6,14 +6,7 @@ LIMIT 1;
 
 -- name: GetCommentsByPostId :many
 SELECT
-  comments.comment_id,
-  comments.post_id,
-  comments.user_id,
-  comments.text,
-  comments.facets,
-  comments.created_at,
-  users.username,
-  users.name
+  comments.*
 FROM comments
 JOIN users ON comments.user_id = users.user_id
 JOIN posts ON comments.post_id = posts.post_id
@@ -35,9 +28,33 @@ AND NOT EXISTS (
 )
 ORDER BY comments.created_at DESC;
 
+-- name: GetCommentsByParentCommentId :many
+SELECT
+  comments.*
+FROM comments
+JOIN users ON comments.user_id = users.user_id
+JOIN posts ON comments.post_id = posts.post_id
+WHERE comments.parent_comment_id = $1
+AND NOT EXISTS (
+    SELECT 1
+    FROM block
+    WHERE block.user_id = $2 AND target_user_id = comments.user_id
+) AND NOT EXISTS (
+    SELECT 1
+    FROM block
+    WHERE block.user_id = comments.user_id AND target_user_id = $2
+)
+AND NOT EXISTS (
+    SELECT 1
+    FROM mute
+    WHERE mute.user_id = $2 AND target_user_id = comments.user_id
+        AND posts.user_id != comments.user_id
+)
+ORDER BY comments.created_at DESC;
+
 -- name: AddCommentToPost :one
-INSERT INTO comments (post_id, user_id, text, facets)
-VALUES ($1, $2, $3, $4)
+INSERT INTO comments (post_id, user_id, text, facets, parent_comment_id)
+VALUES ($1, $2, $3, $4, $5)
 RETURNING *;
 
 -- name: DeleteComment :exec

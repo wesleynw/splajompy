@@ -3,7 +3,7 @@ SELECT *
 FROM posts
 WHERE user_id = $1
   AND EXTRACT(YEAR FROM created_at) = 2025
-  AND (@cursor::timestamp IS NULL OR created_at < @cursor::timestamp)
+  AND (@cursor::timestamp IS NULL OR created_at < @cursor)
 ORDER BY created_at DESC
 LIMIT $2;
 
