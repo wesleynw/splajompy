@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"splajompy.com/api/v2/internal/bucket"
+	"splajompy.com/api/v2/internal/db/queries"
 	"splajompy.com/api/v2/internal/like"
 	"splajompy.com/api/v2/internal/models"
 	"splajompy.com/api/v2/internal/notification"
@@ -46,9 +47,9 @@ func NewService(
 
 // AddComment adds a comment to a post or comment and creates a notification
 func (s *Service) AddComment(ctx context.Context, currentUser models.PublicUser, postId int, commentId *int, content string, imageKeyMap map[int]models.ImageData) (*models.DetailedComment, error) {
-	post, err := s.postRepository.GetPostById(ctx, postId, currentUser.UserID)
+	targetPost, err := s.postRepository.GetPostById(ctx, postId, currentUser.UserID)
 	if err != nil {
-		return nil, errors.New("unable to find post")
+		return nil, post.ErrPostNotFound
 	}
 
 	commentFacets, err := utilities.GenerateFacets(ctx, s.userRepository, content)
@@ -90,9 +91,9 @@ func (s *Service) AddComment(ctx context.Context, currentUser models.PublicUser,
 
 	newCommentId := comment.CommentID
 
-	if currentUser.UserID != post.UserID {
+	if currentUser.UserID != targetPost.UserID {
 		text := fmt.Sprintf("@%s commented", currentUser.Username)
-		_, err = s.notificationService.AddNotification(ctx, post.UserID, &postId, &newCommentId, nil, text, models.NotificationTypeComment, &comment.Text)
+		_, err = s.notificationService.AddNotification(ctx, targetPost.UserID, &postId, &newCommentId, nil, text, models.NotificationTypeComment, &comment.Text)
 		if err != nil {
 			return nil, err
 		}
@@ -101,7 +102,7 @@ func (s *Service) AddComment(ctx context.Context, currentUser models.PublicUser,
 	// also send notifications to mentioned users
 	usersToNotify := map[int]bool{}
 	for _, facet := range commentFacets {
-		if facet.UserId != post.UserID && facet.UserId != currentUser.UserID {
+		if facet.UserId != targetPost.UserID && facet.UserId != currentUser.UserID {
 			usersToNotify[facet.UserId] = true
 		}
 	}
@@ -139,67 +140,12 @@ func (s *Service) GetCommentsByPostId(ctx context.Context, currentUser models.Pu
 
 	comments := make([]models.DetailedComment, 0, len(dbComments))
 	for _, dbComment := range dbComments {
-		user, err := s.userRepository.GetUserById(ctx, dbComment.UserID)
+		comment, err := s.hydrateComment(ctx, postID, currentUser, dbComment, 0)
 		if err != nil {
 			return nil, errors.New("unable to retrieve user associated with comment")
 		}
 
-		isLiked, err := s.likeRepository.IsLiked(
-			ctx,
-			currentUser.UserID,
-			dbComment.PostID,
-			&dbComment.CommentID,
-		)
-		if err != nil {
-			return nil, errors.New("unable to retrieve comment liked information")
-		}
-
-		dbImages, err := s.commentRepository.GetImagesByCommentId(ctx, dbComment.CommentID)
-		if err != nil {
-			return nil, err
-		}
-		images := []models.DetailedImage{}
-		for _, image := range dbImages {
-			blobUrl, err := s.bucketRepository.GetPresignedGetObject(ctx, image.ImageBlobUrl)
-			if err != nil {
-				return nil, err
-			}
-
-			currentImage := models.DetailedImage{
-				ImageID:      image.ImageID,
-				PostId:       postID,
-				Height:       image.Height,
-				Width:        image.Width,
-				ImageBlobUrl: blobUrl,
-				DisplayOrder: 0,
-			}
-
-			images = append(images, currentImage)
-		}
-
-		if len(dbImages) > 0 {
-			if !utilities.IsAppUpdatedToVersion(ctx, "v1.8.0") {
-				prefix := ""
-				if dbComment.Text != "" {
-					prefix = "\n\n"
-				}
-				dbComment.Text = dbComment.Text + prefix + "→ [Update Splajompy](https://apps.apple.com/us/app/splajompy/id6744034321) to view the image in this comment."
-			}
-		}
-
-		detailedComment := models.DetailedComment{
-			CommentID: dbComment.CommentID,
-			PostID:    dbComment.PostID,
-			UserID:    dbComment.UserID,
-			Text:      dbComment.Text,
-			Facets:    dbComment.Facets,
-			Images:    images,
-			CreatedAt: dbComment.CreatedAt,
-			User:      user,
-			IsLiked:   isLiked,
-		}
-
-		comments = append(comments, detailedComment)
+		comments = append(comments, *comment)
 	}
 
 	return comments, nil
@@ -271,6 +217,85 @@ func (s *Service) DeleteComment(ctx context.Context, currentUser models.PublicUs
 	return nil
 }
 
-func (s *Service) hydrateComment() {
+func (s *Service) hydrateComment(ctx context.Context, postId int, currentUser models.PublicUser, comment queries.Comment, threadDepth int) (*models.DetailedComment, error) {
+	if threadDepth > 1 {
+		return nil, ErrCommentReplyNotAllowed
+	}
 
+	user, err := s.userRepository.GetUserById(ctx, comment.UserID)
+	if err != nil {
+		return nil, errors.New("unable to retrieve user associated with comment")
+	}
+
+	isLiked, err := s.likeRepository.IsLiked(
+		ctx,
+		currentUser.UserID,
+		comment.PostID,
+		&comment.CommentID,
+	)
+	if err != nil {
+		return nil, errors.New("unable to retrieve comment liked information")
+	}
+
+	dbImages, err := s.commentRepository.GetImagesByCommentId(ctx, comment.CommentID)
+	if err != nil {
+		return nil, err
+	}
+	images := []models.DetailedImage{}
+	for _, image := range dbImages {
+		blobUrl, err := s.bucketRepository.GetPresignedGetObject(ctx, image.ImageBlobUrl)
+		if err != nil {
+			return nil, err
+		}
+
+		currentImage := models.DetailedImage{
+			ImageID:      image.ImageID,
+			PostId:       postId,
+			Height:       image.Height,
+			Width:        image.Width,
+			ImageBlobUrl: blobUrl,
+			DisplayOrder: 0,
+		}
+
+		images = append(images, currentImage)
+	}
+
+	if len(dbImages) > 0 {
+		if !utilities.IsAppUpdatedToVersion(ctx, "v1.8.0") {
+			prefix := ""
+			if comment.Text != "" {
+				prefix = "\n\n"
+			}
+			comment.Text = comment.Text + prefix + "→ [Update Splajompy](https://apps.apple.com/us/app/splajompy/id6744034321) to view the image in this comment."
+		}
+	}
+
+	children, err := s.commentRepository.GetCommentsByParentCommentId(ctx, comment.CommentID, currentUser.UserID)
+	if err != nil {
+		return nil, err
+	}
+
+	var hydratedChildren []models.DetailedComment
+	for _, child := range children {
+		hydratedChild, err := s.hydrateComment(ctx, postId, currentUser, child, 1)
+		if err != nil {
+			return nil, err
+		}
+		hydratedChildren = append(hydratedChildren, *hydratedChild)
+	}
+
+	detailedComment := models.DetailedComment{
+		CommentID: comment.CommentID,
+		PostID:    comment.PostID,
+		UserID:    comment.UserID,
+		Text:      comment.Text,
+		Facets:    comment.Facets,
+		Images:    images,
+		CreatedAt: comment.CreatedAt,
+		User:      user,
+		IsLiked:   isLiked,
+		Children:  hydratedChildren,
+	}
+
+	return &detailedComment, nil
 }

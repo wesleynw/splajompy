@@ -389,4 +389,24 @@ func TestReplyToComment_DepthMaximum(t *testing.T) {
 	assert.ErrorIs(t, err, comment.ErrCommentReplyNotAllowed)
 }
 
-// need test for deleting post and parent deletes comment reply
+func TestReplyToComment_DeletesChild(t *testing.T) {
+	env := setupCommentTest(t)
+
+	user0 := testutil.CreateTestUser(t, env.userRepository, "user0")
+
+	post, err := env.postRepository.InsertPost(t.Context(), user0.UserID, "test post", nil, nil, new(models.VisibilityPublic))
+	require.NoError(t, err)
+
+	newComment, err := env.svc.AddComment(t.Context(), user0, post.PostID, nil, "test comment", nil)
+	require.NoError(t, err)
+
+	_, err = env.svc.AddComment(t.Context(), user0, post.PostID, new(newComment.CommentID), "test comment reply", nil)
+	assert.NoError(t, err)
+
+	err = env.svc.DeleteComment(t.Context(), user0, newComment.CommentID)
+	require.NoError(t, err)
+
+	result, err := env.svc.GetCommentsByPostId(t.Context(), user0, post.PostID)
+	require.NoError(t, err)
+	assert.Len(t, result, 0)
+}

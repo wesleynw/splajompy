@@ -157,7 +157,7 @@ SELECT
 FROM comments
 JOIN users ON comments.user_id = users.user_id
 JOIN posts ON comments.post_id = posts.post_id
-WHERE comments.post_id = $1
+WHERE comments.post_id = $1 AND parent_comment_id IS NULL
 AND NOT EXISTS (
     SELECT 1
     FROM block
