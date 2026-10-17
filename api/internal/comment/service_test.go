@@ -6,6 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"splajompy.com/api/v2/internal/apns"
+	"splajompy.com/api/v2/internal/auth"
 	"splajompy.com/api/v2/internal/comment"
 	"splajompy.com/api/v2/internal/models"
 	"splajompy.com/api/v2/internal/notification"
@@ -224,4 +225,166 @@ func TestGetComments_DoesNotReturnOtherPostComments(t *testing.T) {
 	comments, err = env.svc.GetCommentsByPostId(t.Context(), user0, post_1.PostID)
 	require.NoError(t, err)
 	assert.Len(t, comments, 1)
+}
+
+func TestReplyToComment_ErrorsOnNonexistentPost(t *testing.T) {
+	env := setupCommentTest(t)
+
+	user0 := testutil.CreateTestUser(t, env.userRepository, "user0")
+
+	_, err := env.svc.ReplyToComment(t.Context(), user0, 100, 100, "test comment", nil)
+	assert.ErrorIs(t, err, post.ErrPostNotFound)
+}
+
+func TestReplyToComment_ErrorsOnNonexistentComment(t *testing.T) {
+	env := setupCommentTest(t)
+
+	user0 := testutil.CreateTestUser(t, env.userRepository, "user0")
+
+	post, err := env.postRepository.InsertPost(t.Context(), user0.UserID, "test post", nil, nil, new(models.VisibilityPublic))
+	require.NoError(t, err)
+
+	_, err = env.svc.ReplyToComment(t.Context(), user0, post.PostID, 100, "test comment", nil)
+	assert.ErrorIs(t, err, comment.ErrCommentNotFound)
+}
+
+func TestReplyToComment_Succeeds(t *testing.T) {
+	env := setupCommentTest(t)
+
+	user0 := testutil.CreateTestUser(t, env.userRepository, "user0")
+
+	post, err := env.postRepository.InsertPost(t.Context(), user0.UserID, "test post", nil, nil, new(models.VisibilityPublic))
+	require.NoError(t, err)
+
+	comment, err := env.svc.AddCommentToPost(t.Context(), user0, post.PostID, "test comment", nil)
+	require.NoError(t, err)
+
+	_, err = env.svc.ReplyToComment(t.Context(), user0, post.PostID, comment.CommentID, "test comment reply", nil)
+	assert.NoError(t, err)
+
+	comments, err := env.svc.GetCommentsByPostId(t.Context(), user0, post.PostID)
+	assert.NoError(t, err)
+	require.Len(t, comments, 1)
+
+	require.NotNil(t, comments[0].Children)
+	require.Len(t, comments[0].Children, 1)
+	assert.Equal(t, "test comment reply", comments[0].Children[0].Text)
+	assert.Nil(t, comments[0].Children[0].Children)
+}
+
+func TestReplyToComment_DoesNotReturnBlockedNestedComments(t *testing.T) {
+	env := setupCommentTest(t)
+
+	user0 := testutil.CreateTestUser(t, env.userRepository, "user0")
+	user1 := testutil.CreateTestUser(t, env.userRepository, "user1")
+
+	post, err := env.postRepository.InsertPost(t.Context(), user0.UserID, "test post", nil, nil, new(models.VisibilityPublic))
+	require.NoError(t, err)
+
+	comment, err := env.svc.AddCommentToPost(t.Context(), user0, post.PostID, "test comment", nil)
+	require.NoError(t, err)
+
+	_, err = env.svc.ReplyToComment(t.Context(), user1, post.PostID, comment.CommentID, "test comment reply", nil)
+	assert.NoError(t, err)
+
+	comments, err := env.svc.GetCommentsByPostId(t.Context(), user0, post.PostID)
+	require.Len(t, comments, 1)
+	require.NotNil(t, comments[0].Children)
+	require.Len(t, comments[0].Children, 1)
+	assert.Equal(t, "test comment reply", comments[0].Children[0].Text)
+
+	err = env.userRepository.BlockUser(t.Context(), user0.UserID, user1.UserID)
+	require.NoError(t, err)
+
+	comments, err = env.svc.GetCommentsByPostId(t.Context(), user0, post.PostID)
+	assert.NoError(t, err)
+	assert.Len(t, comments, 1)
+	assert.Len(t, comments[0].Children, 0)
+}
+
+func TestReplyToComment_DoesNotReturnBlockingNestedComments(t *testing.T) {
+	env := setupCommentTest(t)
+
+	user0 := testutil.CreateTestUser(t, env.userRepository, "user0")
+	user1 := testutil.CreateTestUser(t, env.userRepository, "user1")
+
+	post, err := env.postRepository.InsertPost(t.Context(), user0.UserID, "test post", nil, nil, new(models.VisibilityPublic))
+	require.NoError(t, err)
+
+	comment, err := env.svc.AddCommentToPost(t.Context(), user0, post.PostID, "test comment", nil)
+	require.NoError(t, err)
+
+	_, err = env.svc.ReplyToComment(t.Context(), user1, post.PostID, comment.CommentID, "test comment reply", nil)
+	assert.NoError(t, err)
+
+	comments, err := env.svc.GetCommentsByPostId(t.Context(), user0, post.PostID)
+	require.Len(t, comments, 1)
+	require.NotNil(t, comments[0].Children)
+	require.Len(t, comments[0].Children, 1)
+	assert.Equal(t, "test comment reply", comments[0].Children[0].Text)
+
+	err = env.userRepository.BlockUser(t.Context(), user1.UserID, user0.UserID)
+	require.NoError(t, err)
+
+	comments, err = env.svc.GetCommentsByPostId(t.Context(), user0, post.PostID)
+	assert.NoError(t, err)
+	assert.Len(t, comments, 1)
+	assert.Len(t, comments[0].Children, 0)
+}
+
+func TestReplyToComment_CannotReplyToBlockingUserPost(t *testing.T) {
+	env := setupCommentTest(t)
+
+	user0 := testutil.CreateTestUser(t, env.userRepository, "user0")
+	user1 := testutil.CreateTestUser(t, env.userRepository, "user1")
+
+	post, err := env.postRepository.InsertPost(t.Context(), user0.UserID, "test post", nil, nil, new(models.VisibilityPublic))
+	require.NoError(t, err)
+
+	comment, err := env.svc.AddCommentToPost(t.Context(), user1, post.PostID, "test comment", nil)
+	require.NoError(t, err)
+
+	err = env.userRepository.BlockUser(t.Context(), user0.UserID, user1.UserID)
+	require.NoError(t, err)
+
+	_, err = env.svc.ReplyToComment(t.Context(), user1, post.PostID, comment.CommentID, "test comment reply", nil)
+	assert.ErrorIs(t, err, auth.ErrForbidden)
+}
+
+func TestReplyToComment_CannotReplyToBlockingUserComment(t *testing.T) {
+	env := setupCommentTest(t)
+
+	user0 := testutil.CreateTestUser(t, env.userRepository, "user0")
+	user1 := testutil.CreateTestUser(t, env.userRepository, "user1")
+	user2 := testutil.CreateTestUser(t, env.userRepository, "user2")
+
+	post, err := env.postRepository.InsertPost(t.Context(), user0.UserID, "test post", nil, nil, new(models.VisibilityPublic))
+	require.NoError(t, err)
+
+	comment, err := env.svc.AddCommentToPost(t.Context(), user1, post.PostID, "test comment", nil)
+	require.NoError(t, err)
+
+	err = env.userRepository.BlockUser(t.Context(), user1.UserID, user2.UserID)
+	require.NoError(t, err)
+
+	_, err = env.svc.ReplyToComment(t.Context(), user2, post.PostID, comment.CommentID, "test comment reply", nil)
+	assert.ErrorIs(t, err, auth.ErrForbidden)
+}
+
+func TestReplyToComment_DepthMaximum(t *testing.T) {
+	env := setupCommentTest(t)
+
+	user0 := testutil.CreateTestUser(t, env.userRepository, "user0")
+
+	post, err := env.postRepository.InsertPost(t.Context(), user0.UserID, "test post", nil, nil, new(models.VisibilityPublic))
+	require.NoError(t, err)
+
+	newComment, err := env.svc.AddCommentToPost(t.Context(), user0, post.PostID, "test comment", nil)
+	require.NoError(t, err)
+
+	reply, err := env.svc.ReplyToComment(t.Context(), user0, post.PostID, newComment.CommentID, "test comment reply", nil)
+	assert.NoError(t, err)
+
+	_, err = env.svc.ReplyToComment(t.Context(), user0, post.PostID, reply.CommentID, "test comment reply", nil)
+	assert.ErrorIs(t, err, comment.ErrCommentReplyNotAllowed)
 }

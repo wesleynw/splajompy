@@ -89,7 +89,7 @@ struct CommentsView: View {
                 HStack {
                   Capsule()
                     .foregroundStyle(.tertiary)
-                    .frame(width: 5)
+                    .frame(width: 4)
                     .frame(maxHeight: .infinity)
                     .padding(.vertical, 3)
                     .padding(.leading)

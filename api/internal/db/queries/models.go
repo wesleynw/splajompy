@@ -7,6 +7,7 @@ package queries
 import (
 	"time"
 
+	"github.com/jackc/pgx/v5/pgtype"
 	db "splajompy.com/api/v2/internal/db"
 )
 
@@ -24,12 +25,13 @@ type Block struct {
 }
 
 type Comment struct {
-	CommentID int       `json:"commentId"`
-	PostID    int       `json:"postId"`
-	UserID    int       `json:"userId"`
-	Text      string    `json:"text"`
-	Facets    db.Facets `json:"facets"`
-	CreatedAt time.Time `json:"createdAt"`
+	CommentID       int         `json:"commentId"`
+	PostID          int         `json:"postId"`
+	UserID          int         `json:"userId"`
+	Text            string      `json:"text"`
+	Facets          db.Facets   `json:"facets"`
+	CreatedAt       time.Time   `json:"createdAt"`
+	ParentCommentID pgtype.Int4 `json:"parentCommentId"`
 }
 
 type CommentImage struct {

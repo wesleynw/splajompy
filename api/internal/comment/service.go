@@ -14,6 +14,9 @@ import (
 	"splajompy.com/api/v2/internal/utilities"
 )
 
+var ErrCommentNotFound = errors.New("this comment does not exist")
+var ErrCommentReplyNotAllowed = errors.New("now allowed to reply to this comment")
+
 type Service struct {
 	commentRepository   *Store
 	postRepository      post.Store
@@ -267,4 +270,8 @@ func (s *Service) DeleteComment(ctx context.Context, currentUser models.PublicUs
 	}
 
 	return nil
+}
+
+func (s *Service) ReplyToComment(ctx context.Context, user models.PublicUser, postId int, commentId int, content string, imageKeyMap map[int]models.ImageData) (*models.DetailedComment, error) {
+	return nil, nil
 }

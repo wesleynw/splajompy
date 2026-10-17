@@ -15,7 +15,7 @@ import (
 const addCommentToPost = `-- name: AddCommentToPost :one
 INSERT INTO comments (post_id, user_id, text, facets)
 VALUES ($1, $2, $3, $4)
-RETURNING comment_id, post_id, user_id, text, facets, created_at
+RETURNING comment_id, post_id, user_id, text, facets, created_at, parent_comment_id
 `
 
 type AddCommentToPostParams struct {
@@ -40,6 +40,7 @@ func (q *Queries) AddCommentToPost(ctx context.Context, arg AddCommentToPostPara
 		&i.Text,
 		&i.Facets,
 		&i.CreatedAt,
+		&i.ParentCommentID,
 	)
 	return i, err
 }
@@ -70,7 +71,7 @@ func (q *Queries) DeleteComment(ctx context.Context, commentID int) error {
 }
 
 const getCommentById = `-- name: GetCommentById :one
-SELECT comment_id, post_id, user_id, text, facets, created_at
+SELECT comment_id, post_id, user_id, text, facets, created_at, parent_comment_id
 FROM comments
 WHERE comment_id = $1
 LIMIT 1
@@ -86,6 +87,7 @@ func (q *Queries) GetCommentById(ctx context.Context, commentID int) (Comment, e
 		&i.Text,
 		&i.Facets,
 		&i.CreatedAt,
+		&i.ParentCommentID,
 	)
 	return i, err
 }

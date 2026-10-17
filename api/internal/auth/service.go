@@ -49,6 +49,7 @@ var (
 	ErrUsernameTooLong       = errors.New("username must be 25 characters or less")
 	ErrPasswordTooShort      = errors.New("password must be at least 8 characters")
 	ErrInvalidEmail          = errors.New("please enter a valid email address")
+	ErrForbidden             = errors.New("this action is forbidden")
 )
 
 // Register performs all the necessary actions to set up a user in the system.
