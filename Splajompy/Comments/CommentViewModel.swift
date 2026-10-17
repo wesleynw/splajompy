@@ -13,7 +13,7 @@ extension CommentsView {
   @MainActor @Observable class ViewModel {
     private let postId: Int
     private var service: CommentServiceProtocol
-    
+
     private(set) var respondingToComment: DetailedComment?
 
     var commentSortOrder: String {
@@ -233,15 +233,15 @@ extension CommentsView {
       guard case .uploadFailed(let image) = imageState else { return }
       startUpload(image: image)
     }
-    
+
     func stageCommentReply(to comment: DetailedComment) {
       respondingToComment = comment
     }
-    
+
     func unstageCommentReply() {
       respondingToComment = nil
     }
-    
+
     private func cancelUpload() {
       uploadTask?.cancel()
       uploadTask = nil

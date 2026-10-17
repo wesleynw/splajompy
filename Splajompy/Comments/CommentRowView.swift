@@ -5,7 +5,7 @@ struct CommentRow: View {
   let isInSheet: Bool
   let toggleLike: () -> Void
   let deleteComment: () -> Void
-  let handleCommentReply: () -> Void
+  var handleCommentReply: (() -> Void)? = nil
 
   let formatter = RelativeDateTimeFormatter()
 
@@ -61,13 +61,15 @@ struct CommentRow: View {
 
         Spacer()
 
-        Button {
-          handleCommentReply()
-        } label: {
-          Text("Reply")
-            .font(SJFont.body)
+        if let commentReplyCallback = handleCommentReply {
+          Button {
+            commentReplyCallback()
+          } label: {
+            Text("Reply")
+              .font(SJFont.body)
+          }
+          .buttonStyle(.plain)
         }
-        .buttonStyle(.plain)
 
         HStack {
           if let currentUser = authManager.currentUser {
@@ -150,5 +152,17 @@ struct LikeButton: View {
     }
     .buttonStyle(.plain)
     .sensoryFeedback(.impact, trigger: isLiked)
+  }
+}
+
+#Preview {
+  NavigationStack {
+    CommentRow(
+      comment: Mocks.comment1,
+      isInSheet: false,
+      toggleLike: {},
+      deleteComment: {},
+    )
+    .environment(AuthManager())
   }
 }

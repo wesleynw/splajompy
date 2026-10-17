@@ -50,37 +50,79 @@ struct CommentsView: View {
       case .loaded(let comments):
         VStack(spacing: 0) {
           ForEach(comments, id: \.commentId) { comment in
-            CommentRow(
-              comment: comment,
-              isInSheet: false,
-              toggleLike: {
-                viewModel.toggleLike(for: comment)
-              },
-              deleteComment: {
-                Task {
-                  await viewModel.deleteComment(comment)
-                  postManager.updatePost(id: postId) { post in
-                    post.commentCount -= 1
+            VStack {
+              CommentRow(
+                comment: comment,
+                isInSheet: false,
+                toggleLike: {
+                  viewModel.toggleLike(for: comment)
+                },
+                deleteComment: {
+                  Task {
+                    await viewModel.deleteComment(comment)
+                    postManager.updatePost(id: postId) { post in
+                      post.commentCount -= 1
+                    }
+                  }
+                },
+                handleCommentReply: {
+                  viewModel.stageCommentReply(to: comment)
+                }
+              )
+              .id(comment.commentId)
+              .geometryGroup()
+              .transition(.opacity.combined(with: .scale(scale: 0.95)))
+              .scrollToCommentWhenAdded(
+                comment.commentId,
+                viewModel: viewModel,
+                proxy: scrollProxy
+              )
+              .swipeActions(edge: .leading) {
+                Button {
+                  viewModel.stageCommentReply(to: comment)
+                } label: {
+                  Label("Reply", systemImage: "arrowshape.turn.up.left.fill")
+                }
+              }
+
+              if let children = comment.children, children.count > 0 {
+                HStack {
+                  Capsule()
+                    .foregroundStyle(.tertiary)
+                    .frame(width: 5)
+                    .frame(maxHeight: .infinity)
+                    .padding(.vertical, 3)
+                    .padding(.leading)
+
+                  VStack {
+                    ForEach(children) { child in
+                      CommentRow(
+                        comment: comment,
+                        isInSheet: false,
+                        toggleLike: {
+                          viewModel.toggleLike(for: comment)
+                        },
+                        deleteComment: {
+                          Task {
+                            await viewModel.deleteComment(comment)
+                            postManager.updatePost(id: postId) { post in
+                              post.commentCount -= 1
+                            }
+                          }
+                        }
+                      )
+                      .id(comment.commentId)
+                      .geometryGroup()
+                      .transition(.opacity.combined(with: .scale(scale: 0.95)))
+                      .scrollToCommentWhenAdded(
+                        comment.commentId,
+                        viewModel: viewModel,
+                        proxy: scrollProxy
+                      )
+                    }
                   }
                 }
-              },
-              handleCommentReply: {
-                viewModel.stageCommentReply(to: comment)
-              }
-            )
-            .id(comment.commentId)
-            .geometryGroup()
-            .transition(.opacity.combined(with: .scale(scale: 0.95)))
-            .scrollToCommentWhenAdded(
-              comment.commentId,
-              viewModel: viewModel,
-              proxy: scrollProxy
-            )
-            .swipeActions(edge: .leading) {
-              Button {
-                viewModel.stageCommentReply(to: comment)
-              } label: {
-                Label("Reply", systemImage: "arrowshape.turn.up.left.fill")
+                .fixedSize(horizontal: false, vertical: true)
               }
             }
           }
@@ -202,4 +244,23 @@ struct CommentsView: View {
     viewModel: mockViewModel
   )
   .environment(AuthManager())
+}
+
+#Preview("nested comments") {
+  let mockViewModel = CommentsView.ViewModel(
+    postId: 3,
+    service: MockCommentService(),
+    postManager: PostStore()
+  )
+
+  let postManager = PostStore()
+
+  NavigationStack {
+    CommentsView(
+      postId: 3,
+      postManager: postManager,
+      viewModel: mockViewModel
+    )
+    .environment(AuthManager())
+  }
 }

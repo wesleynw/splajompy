@@ -125,8 +125,7 @@ struct StandalonePostView: View {
           $0.safeAreaBar(edge: .bottom) {
             CommentInputView(
               onCommentReplyTap: {
-                if let replyingToComment = commentsViewModel.respondingToComment
-                {
+                if let replyingToComment = commentsViewModel.respondingToComment {
                   proxy.scrollTo(replyingToComment.commentId)
                 }
               },
@@ -137,8 +136,7 @@ struct StandalonePostView: View {
           $0.safeAreaInset(edge: .bottom) {
             CommentInputView(
               onCommentReplyTap: {
-                if let replyingToComment = commentsViewModel.respondingToComment
-                {
+                if let replyingToComment = commentsViewModel.respondingToComment {
                   proxy.scrollTo(replyingToComment.commentId)
                 }
               },

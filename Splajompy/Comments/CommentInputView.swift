@@ -107,8 +107,7 @@ struct CommentInputView: View {
         }
 
         HStack(alignment: .bottom, spacing: 0) {
-          PhotosPicker(selection: $viewModel.imageSelection, matching: .images)
-          {
+          PhotosPicker(selection: $viewModel.imageSelection, matching: .images) {
             Image(systemName: "plus.circle.fill")
               .resizable()
               .frame(width: 32, height: 32)
