@@ -26,6 +26,15 @@ func (r Store) GetUserById(ctx context.Context, userId int) (models.PublicUser, 
 	return utilities.MapUserToPublicUser(user), nil
 }
 
+func (r *Store) GetFullUserById(ctx context.Context, userId int) (models.FullUser, error) {
+	user, err := r.querier.GetUserById(ctx, userId)
+	if err != nil {
+		return models.FullUser{}, err
+	}
+
+	return utilities.MapUserToCurrentUserDTO(user), nil
+}
+
 // GetUserLatestAppVersion retrieves the stored latest app version for a user.
 func (r Store) GetUserLatestAppVersion(ctx context.Context, userId int) (*string, error) {
 	user, err := r.querier.GetUserById(ctx, userId)

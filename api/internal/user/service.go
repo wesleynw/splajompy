@@ -178,7 +178,7 @@ func (s *Service) UnmuteUser(ctx context.Context, currentUser models.PublicUser,
 }
 
 func (s *Service) RequestFeature(ctx context.Context, user models.PublicUser, text string) error {
-	requestingUser, err := s.store.GetUserById(ctx, user.UserID)
+	requestingUser, err := s.store.GetFullUserById(ctx, user.UserID)
 	if err != nil {
 		return err
 	}
@@ -191,6 +191,7 @@ func (s *Service) RequestFeature(ctx context.Context, user models.PublicUser, te
 	params := &resend.SendEmailRequest{
 		From:    "Splajompy <no-reply@splajompy.com>",
 		To:      []string{"wesleynw@pm.me"},
+		ReplyTo: requestingUser.Email,
 		Subject: fmt.Sprintf("Support request from @%s", requestingUser.Username),
 		Text:    body,
 	}
