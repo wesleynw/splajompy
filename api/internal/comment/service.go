@@ -286,16 +286,17 @@ func (s *Service) hydrateComment(ctx context.Context, postId int, currentUser mo
 	}
 
 	detailedComment := models.DetailedComment{
-		CommentID: comment.CommentID,
-		PostID:    comment.PostID,
-		UserID:    comment.UserID,
-		Text:      comment.Text,
-		Facets:    comment.Facets,
-		Images:    images,
-		CreatedAt: comment.CreatedAt,
-		User:      user,
-		IsLiked:   isLiked,
-		Children:  hydratedChildren,
+		CommentID:       comment.CommentID,
+		PostID:          comment.PostID,
+		UserID:          comment.UserID,
+		Text:            comment.Text,
+		Facets:          comment.Facets,
+		Images:          images,
+		CreatedAt:       comment.CreatedAt,
+		User:            user,
+		IsLiked:         isLiked,
+		Children:        hydratedChildren,
+		ParentCommentId: comment.ParentCommentID,
 	}
 
 	return &detailedComment, nil

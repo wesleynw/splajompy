@@ -268,7 +268,7 @@ func TestReplyToComment_Succeeds(t *testing.T) {
 
 	require.NotNil(t, comments[0].Children)
 	require.Len(t, comments[0].Children, 1)
-	assert.Same(t, comment.CommentID, comments[0].ParentCommentId)
+	assert.Equal(t, comment.CommentID, *comments[0].Children[0].ParentCommentId)
 	assert.Equal(t, "test comment reply", comments[0].Children[0].Text)
 	assert.Nil(t, comments[0].Children[0].Children)
 }
