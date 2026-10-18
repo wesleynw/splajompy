@@ -40,16 +40,25 @@ The root handler in `internal/handler` holds a slice of `RouteRegistrar`s and re
 `Store`s are currently a thin layer over the database, but exist as a natural place to add caching per domain in the future.
 
 ## Starting the API
-Install Docker and the [Pulumi CLI](https://www.pulumi.com/docs/install/). Get access to `splajompy-org/splajompy/dev` and add your public IP to the database allowlist.
+Install the [Pulumi CLI](https://www.pulumi.com/docs/install/) and run `pulumi login`. Get access to `splajompy-org/splajompy/dev` and add your public IP to the database allowlist.
 
-Run from the repository root. This uses the shared `splajompy-dev` database.
+Run either option from the repository root. Both use the shared `splajompy-dev` database. Press `Ctrl+C` to stop the API.
+
+### Docker
+Install Docker, then run:
 
 ```bash
-pulumi login
 make dev
 ```
 
-In Bruno, set `apiUrl` to `http://localhost:8080`. Press `Ctrl+C` to stop the API. Run `make dev` again after code changes.
+Run `make dev` again after code changes.
+
+### Native Go
+Install Go, then run:
+
+```bash
+pulumi env run splajompy-org/splajompy/dev -- go -C api run ./cmd/api
+```
 
 ## SQLC
 The API uses [SQLC](https://docs.sqlc.dev/en/stable/tutorials/getting-started-postgresql.html) to generate typed functions from database calls. Given a raw SQL query, you can have SQLC generate a function that can be called from a `querier` interface.
