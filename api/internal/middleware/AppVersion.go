@@ -26,6 +26,7 @@ func AppVersion(next http.Handler, errorWriter ErrorWriter) http.Handler {
 		ctx := context.WithValue(r.Context(), utilities.AppVersionKey, version)
 
 		if !utilities.IsAppUpdatedToVersion(ctx, MinimumAppVersion) {
+			w.Header().Set("X-Minimum-App-Version", MinimumAppVersion)
 			errorWriter.Write(w, r, http.StatusUpgradeRequired, "You are using an unsupported version of Splajompy. Please visit the App Store to update.")
 			return
 		}
