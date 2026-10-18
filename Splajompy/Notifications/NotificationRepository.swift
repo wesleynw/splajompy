@@ -75,6 +75,15 @@ protocol NotificationServiceProtocol: Sendable {
 }
 
 struct NotificationService: NotificationServiceProtocol {
+  private let client: Splajompy_V1_NotificationServiceClientInterface
+
+  init(
+    client: Splajompy_V1_NotificationServiceClientInterface =
+      Splajompy_V1_NotificationServiceClient(client: APIService.connectClient)
+  ) {
+    self.client = client
+  }
+
   func markNotificationAsRead(notificationId: Int) async -> Result<Void, Error> {
     return await APIService.performRequest(
       endpoint: "notifications/\(notificationId)/markRead",
@@ -94,9 +103,8 @@ struct NotificationService: NotificationServiceProtocol {
   }
 
   func getUnreadNotificationCount() async -> Result<Int, Error> {
-    return await APIService.performRequest(
-      endpoint: "notifications/unreadCount"
-    )
+    let response = await client.getUnreadNotificationCount(request: .init(), headers: [:])
+    return response.result.map { Int($0.unreadCount) }.mapError { $0 as Error }
   }
 
   func getReadNotificationsWithTimeOffset(
