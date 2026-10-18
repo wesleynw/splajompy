@@ -1,0 +1,11 @@
+version: v2
+plugins:
+  - remote: buf.build/apple/swift:v1.39.0
+    out: Generated
+  - remote: buf.build/connectrpc/swift:v1.2.3
+    out: Generated
+    opt:
+      - GenerateAsyncMethods=true
+      - GenerateCallbackMethods=false
+inputs:
+  - directory: ../proto

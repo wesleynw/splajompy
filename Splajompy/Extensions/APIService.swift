@@ -1,3 +1,4 @@
+import Connect
 import Foundation
 import OpenTelemetryApi
 
@@ -25,6 +26,16 @@ public struct APIService {
   static let baseUrl: String =
     Bundle.main.object(forInfoDictionaryKey: "API_URL") as? String
     ?? "http://api.splajompy.com"
+
+  static let connectClient = ProtocolClient(
+    httpClient: URLSessionHTTPClient(),
+    config: ProtocolClientConfig(
+      host: baseUrl,
+      networkProtocol: .connect,
+      codec: ProtoCodec(),
+      interceptors: [.init { _ in ConnectAPIInterceptor() }]
+    )
+  )
 
   private static func createRequest(
     for url: URL,
@@ -259,6 +270,77 @@ public struct APIService {
       }
     case .failure(let failure):
       return .failure(failure)
+    }
+  }
+}
+
+final class ConnectAPIInterceptor: UnaryInterceptor {
+  private let tokenProvider: @Sendable () async -> String?
+  private let appVersion: String?
+  private let onUnauthenticated: @MainActor @Sendable () -> Void
+  private let onUpgradeRequired: @MainActor @Sendable () -> Void
+
+  init(
+    tokenProvider: @escaping @Sendable () async -> String? = {
+      await AuthManager.shared.getAuthToken()
+    },
+    appVersion: String? = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String,
+    onUnauthenticated: @escaping @MainActor @Sendable () -> Void = {
+      AuthManager.shared.signOut(reason: "401_rpc")
+    },
+    onUpgradeRequired: @escaping @MainActor @Sendable () -> Void = {
+      NotificationCenter.default.post(name: .userNeedsAppUpgrade, object: nil)
+    }
+  ) {
+    self.tokenProvider = tokenProvider
+    self.appVersion = appVersion
+    self.onUnauthenticated = onUnauthenticated
+    self.onUpgradeRequired = onUpgradeRequired
+  }
+
+  func handleUnaryRequest<Message: ProtobufMessage>(
+    _ request: HTTPRequest<Message>,
+    proceed: @escaping @Sendable (Result<HTTPRequest<Message>, ConnectError>) -> Void
+  ) {
+    Task {
+      guard let token = await tokenProvider() else {
+        proceed(.failure(ConnectError(code: .unauthenticated, message: "Not authenticated")))
+        return
+      }
+      var headers = request.headers
+      headers["Authorization"] = ["Bearer \(token)"]
+      headers["X-App-Version"] = appVersion.map { [$0] }
+      proceed(
+        .success(
+          HTTPRequest(
+            url: request.url,
+            headers: headers,
+            message: request.message,
+            method: request.method,
+            trailers: request.trailers,
+            idempotencyLevel: request.idempotencyLevel
+          )))
+    }
+  }
+
+  func handleUnaryResponse<Message: ProtobufMessage>(
+    _ response: ResponseMessage<Message>,
+    proceed: @escaping @Sendable (ResponseMessage<Message>) -> Void
+  ) {
+    let handleError: @MainActor @Sendable () -> Void
+    switch response.error?.code {
+    case .unauthenticated:
+      handleError = onUnauthenticated
+    case .failedPrecondition
+    where response.error?.metadata["x-minimum-app-version"]?.first != nil:
+      handleError = onUpgradeRequired
+    default:
+      proceed(response)
+      return
+    }
+    Task { @MainActor in
+      handleError()
+      proceed(response)
     }
   }
 }
