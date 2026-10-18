@@ -7,8 +7,8 @@ package queries
 
 import (
 	"context"
+	"time"
 
-	"github.com/jackc/pgx/v5/pgtype"
 	db "splajompy.com/api/v2/internal/db"
 )
 
@@ -289,11 +289,11 @@ LIMIT $3
 `
 
 type GetNotificationsForUserIdWithTimeOffsetParams struct {
-	UserID           int              `json:"userId"`
-	CreatedAt        pgtype.Timestamp `json:"createdAt"`
-	Limit            int              `json:"limit"`
-	Viewed           bool             `json:"viewed"`
-	NotificationType *string          `json:"notificationType"`
+	UserID           int       `json:"userId"`
+	CreatedAt        time.Time `json:"createdAt"`
+	Limit            int       `json:"limit"`
+	Viewed           bool      `json:"viewed"`
+	NotificationType *string   `json:"notificationType"`
 }
 
 func (q *Queries) GetNotificationsForUserIdWithTimeOffset(ctx context.Context, arg GetNotificationsForUserIdWithTimeOffsetParams) ([]Notification, error) {

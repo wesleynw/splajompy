@@ -5,7 +5,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/stretchr/testify/assert"
 	"splajompy.com/api/v2/internal/db"
 	"splajompy.com/api/v2/internal/db/queries"
@@ -24,7 +23,7 @@ func TestMapNotification_WithValidPostIDAndCommentID(t *testing.T) {
 		Link:           new("https://example.com"),
 		Viewed:         true,
 		Facets:         db.Facets{},
-		CreatedAt:      pgtype.Timestamp{Time: time.Now(), Valid: true},
+		CreatedAt:      time.Now(),
 	}
 
 	result := utilities.MapNotification(notification)

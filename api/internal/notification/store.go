@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgtype"
 	"splajompy.com/api/v2/internal/db"
 	"splajompy.com/api/v2/internal/db/queries"
 	"splajompy.com/api/v2/internal/models"
@@ -98,7 +97,7 @@ func (r Store) GetUserUnreadNotificationCount(ctx context.Context, userId int) (
 func (r Store) GetReadNotificationsForUserIdWithTimeOffset(ctx context.Context, userId int, beforeTime time.Time, limit int, notificationType *string) ([]*models.Notification, error) {
 	params := queries.GetNotificationsForUserIdWithTimeOffsetParams{
 		UserID:           userId,
-		CreatedAt:        pgtype.Timestamp{Time: beforeTime, Valid: true},
+		CreatedAt:        beforeTime,
 		Limit:            limit,
 		Viewed:           true,
 		NotificationType: notificationType,
@@ -121,7 +120,7 @@ func (r Store) GetReadNotificationsForUserIdWithTimeOffset(ctx context.Context, 
 func (r Store) GetUnreadNotificationsForUserIdWithTimeOffset(ctx context.Context, userId int, beforeTime time.Time, limit int, notificationType *string) ([]*models.Notification, error) {
 	params := queries.GetNotificationsForUserIdWithTimeOffsetParams{
 		UserID:           userId,
-		CreatedAt:        pgtype.Timestamp{Time: beforeTime, Valid: true},
+		CreatedAt:        beforeTime,
 		Limit:            limit,
 		Viewed:           false,
 		NotificationType: notificationType,

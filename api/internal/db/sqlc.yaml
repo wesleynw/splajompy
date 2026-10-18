@@ -13,11 +13,21 @@ sql:
         emit_pointers_for_null_types: true
         json_tags_case_style: "camel"
         overrides:
-          - db_type: "timestamptz"
+          - db_type: "pg_catalog.timestamptz"
             go_type:
               import: "time"
               type: "Time"
-          - db_type: "timestamptz"
+          - db_type: "pg_catalog.timestamptz"
+            go_type:
+              import: "time"
+              type: "Time"
+              pointer: true
+            nullable: true
+          - db_type: "pg_catalog.timestamp"
+            go_type:
+              import: "time"
+              type: "Time"
+          - db_type: "pg_catalog.timestamp"
             go_type:
               import: "time"
               type: "Time"

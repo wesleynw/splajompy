@@ -201,7 +201,7 @@ func (s *Service) VerifyOTCCode(ctx context.Context, identifier string, code str
 		return nil, err
 	}
 
-	if dbCode.ExpiresAt.Time.Before(time.Now().UTC()) {
+	if dbCode.ExpiresAt.Before(time.Now().UTC()) {
 		return nil, errors.New("code expired")
 	}
 

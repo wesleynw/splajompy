@@ -12,7 +12,7 @@ SELECT *
 FROM comments
 WHERE user_id = $1
   AND EXTRACT(YEAR FROM created_at) = 2025
-  AND (@cursor::timestamp IS NULL OR created_at < @cursor)
+  AND (sqlc.narg(cursor)::timestamp IS NULL OR created_at < sqlc.narg(cursor))
 ORDER BY created_at DESC
 LIMIT $2;
 
@@ -20,7 +20,7 @@ LIMIT $2;
 SELECT *
 FROM likes
 WHERE user_id = $1 AND EXTRACT(YEAR FROM created_at) = 2025
-    AND (@cursor::timestamptz IS NULL OR created_at < @cursor::timestamptz)
+    AND (sqlc.narg(cursor)::timestamp IS NULL OR created_at < sqlc.narg(cursor))
 ORDER BY created_at DESC
 LIMIT $2;
 

@@ -23,7 +23,7 @@ WHERE NOT EXISTS (
             AND target_user_id = @user_id::int
             AND user_relationship.created_at < posts.created_at
     )
-) AND (@before::timestamp IS NULL OR posts.created_at < @before::timestamp)
+) AND (sqlc.narg(before)::timestamp IS NULL OR posts.created_at < sqlc.narg(before)::timestamp)
 ORDER BY posts.created_at DESC
 LIMIT sqlc.arg('limit')::int;
 
@@ -56,7 +56,7 @@ WHERE (posts.user_id = $1 OR EXISTS (
             AND target_user_id = $1
             AND user_relationship.created_at < posts.created_at
     )
-) AND ($3::timestamp IS NULL OR posts.created_at < $3::timestamp)
+) AND (sqlc.narg(before)::timestamp IS NULL OR posts.created_at < sqlc.narg(before)::timestamp)
 ORDER BY posts.created_at DESC
 LIMIT $2;
 
@@ -88,7 +88,7 @@ WITH user_relationships AS (
                 AND user_relationship.created_at < posts.created_at
         )
     )
-    AND ($3::timestamp IS NULL OR posts.created_at < $3::timestamp)
+    AND (sqlc.narg(before)::timestamp IS NULL OR posts.created_at < sqlc.narg(before)::timestamp)
 )
 SELECT post_id, user_id, relationship_type,
   CASE WHEN relationship_type = 'mutual' THEN
@@ -128,7 +128,7 @@ SELECT posts.post_id
 FROM posts
 JOIN users ON users.user_id = @target_user_id::int
 WHERE posts.user_id = @target_user_id::int
-AND (@before::timestamp IS NULL OR posts.created_at < @before::timestamp)
+AND (sqlc.narg(before)::timestamp IS NULL OR posts.created_at < sqlc.narg(before)::timestamp)
 AND (users.pinned_post_id IS NULL OR posts.post_id != users.pinned_post_id)
 AND NOT EXISTS (
     SELECT 1 FROM block WHERE block.user_id = posts.user_id AND block.target_user_id = @user_id

@@ -196,7 +196,7 @@ SELECT users.*, user_relationship.created_at AS relationship_created_at
 FROM users
 JOIN user_relationship ON user_relationship.user_id = @user_id::int
 WHERE users.user_id = user_relationship.target_user_id
-    AND (sqlc.narg('before')::timestamptz IS NULL OR user_relationship.created_at < sqlc.narg('before'))
+    AND (sqlc.narg('before')::timestamp IS NULL OR user_relationship.created_at < sqlc.narg('before')::timestamp)
 ORDER BY user_relationship.created_at DESC
 LIMIT sqlc.arg('limit')::int;
 
@@ -210,6 +210,6 @@ SELECT EXISTS (
 -- name: GetNotificationActorUserIds :many
 SELECT user_id, created_at
 FROM notification_actor
-WHERE notification_id = $1 AND (sqlc.narg('before')::timestamptz IS NULL OR created_at < sqlc.narg('before'))
+WHERE notification_id = $1 AND (sqlc.narg('before')::timestamp IS NULL OR created_at < sqlc.narg('before'))
 ORDER BY created_at DESC
 LIMIT $2;
