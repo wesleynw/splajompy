@@ -9,7 +9,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/jackc/pgx/v5/pgtype"
 	db "splajompy.com/api/v2/internal/db"
 )
 
@@ -267,8 +266,8 @@ type GetNotificationActorUserIdsParams struct {
 }
 
 type GetNotificationActorUserIdsRow struct {
-	UserID    int                `json:"userId"`
-	CreatedAt pgtype.Timestamptz `json:"createdAt"`
+	UserID    int        `json:"userId"`
+	CreatedAt *time.Time `json:"createdAt"`
 }
 
 func (q *Queries) GetNotificationActorUserIds(ctx context.Context, arg GetNotificationActorUserIdsParams) ([]GetNotificationActorUserIdsRow, error) {

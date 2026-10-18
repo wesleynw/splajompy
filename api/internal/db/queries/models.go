@@ -7,7 +7,6 @@ package queries
 import (
 	"time"
 
-	"github.com/jackc/pgx/v5/pgtype"
 	db "splajompy.com/api/v2/internal/db"
 )
 
@@ -39,13 +38,13 @@ type CommentImage struct {
 }
 
 type DeviceToken struct {
-	ID                int                `json:"id"`
-	UserID            int                `json:"userId"`
-	Token             string             `json:"token"`
-	IsEnabledMentions bool               `json:"isEnabledMentions"`
-	IsEnabledComments bool               `json:"isEnabledComments"`
-	IsEnabledFollows  bool               `json:"isEnabledFollows"`
-	CreatedAt         pgtype.Timestamptz `json:"createdAt"`
+	ID                int        `json:"id"`
+	UserID            int        `json:"userId"`
+	Token             string     `json:"token"`
+	IsEnabledMentions bool       `json:"isEnabledMentions"`
+	IsEnabledComments bool       `json:"isEnabledComments"`
+	IsEnabledFollows  bool       `json:"isEnabledFollows"`
+	CreatedAt         *time.Time `json:"createdAt"`
 }
 
 type Follow struct {
@@ -90,10 +89,10 @@ type Notification struct {
 }
 
 type NotificationActor struct {
-	ID             int                `json:"id"`
-	NotificationID int                `json:"notificationId"`
-	UserID         int                `json:"userId"`
-	CreatedAt      pgtype.Timestamptz `json:"createdAt"`
+	ID             int        `json:"id"`
+	NotificationID int        `json:"notificationId"`
+	UserID         int        `json:"userId"`
+	CreatedAt      *time.Time `json:"createdAt"`
 }
 
 type PollVote struct {
