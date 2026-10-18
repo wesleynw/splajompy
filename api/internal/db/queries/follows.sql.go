@@ -47,7 +47,7 @@ type GetFollowersByUserIdRow struct {
 	Email     string           `json:"email"`
 	Username  string           `json:"username"`
 	CreatedAt pgtype.Timestamp `json:"createdAt"`
-	Name      pgtype.Text      `json:"name"`
+	Name      *string          `json:"name"`
 }
 
 func (q *Queries) GetFollowersByUserId(ctx context.Context, arg GetFollowersByUserIdParams) ([]GetFollowersByUserIdRow, error) {
@@ -96,7 +96,7 @@ type GetFollowingByUserIdRow struct {
 	Email     string           `json:"email"`
 	Username  string           `json:"username"`
 	CreatedAt pgtype.Timestamp `json:"createdAt"`
-	Name      pgtype.Text      `json:"name"`
+	Name      *string          `json:"name"`
 }
 
 func (q *Queries) GetFollowingByUserId(ctx context.Context, arg GetFollowingByUserIdParams) ([]GetFollowingByUserIdRow, error) {
@@ -240,7 +240,7 @@ type GetMutualsByUserIdRow struct {
 	Email     string           `json:"email"`
 	Username  string           `json:"username"`
 	CreatedAt pgtype.Timestamp `json:"createdAt"`
-	Name      pgtype.Text      `json:"name"`
+	Name      *string          `json:"name"`
 }
 
 func (q *Queries) GetMutualsByUserId(ctx context.Context, arg GetMutualsByUserIdParams) ([]GetMutualsByUserIdRow, error) {

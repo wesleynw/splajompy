@@ -592,7 +592,7 @@ func (s *Service) getWordCountData(ctx context.Context, userId int) (*int, error
 		}
 
 		for _, post := range posts {
-			postTextBreakdown := strings.Fields(post.Text.String)
+			postTextBreakdown := strings.Fields(*post.Text) // TODO: fix null ref
 			totalWordCount += len(postTextBreakdown)
 		}
 

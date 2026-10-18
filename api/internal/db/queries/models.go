@@ -82,7 +82,7 @@ type Notification struct {
 	CommentID        *int             `json:"commentId"`
 	TargetUserID     *int             `json:"targetUserId"`
 	Message          string           `json:"message"`
-	Link             pgtype.Text      `json:"link"`
+	Link             *string          `json:"link"`
 	Viewed           bool             `json:"viewed"`
 	Facets           db.Facets        `json:"facets"`
 	NotificationType string           `json:"notificationType"`
@@ -107,7 +107,7 @@ type PollVote struct {
 type Post struct {
 	PostID         int              `json:"postId"`
 	UserID         int              `json:"userId"`
-	Text           pgtype.Text      `json:"text"`
+	Text           *string          `json:"text"`
 	CreatedAt      pgtype.Timestamp `json:"createdAt"`
 	Facets         db.Facets        `json:"facets"`
 	Attributes     *db.Attributes   `json:"attributes"`
@@ -132,7 +132,7 @@ type User struct {
 	Password              string                    `json:"password"`
 	Username              string                    `json:"username"`
 	CreatedAt             pgtype.Timestamp          `json:"createdAt"`
-	Name                  pgtype.Text               `json:"name"`
+	Name                  *string                   `json:"name"`
 	PinnedPostID          *int                      `json:"pinnedPostId"`
 	UserDisplayProperties *db.UserDisplayProperties `json:"userDisplayProperties"`
 	ReferralCode          string                    `json:"referralCode"`

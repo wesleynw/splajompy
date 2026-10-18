@@ -61,10 +61,13 @@ func GeneratePostReportEmail(reporterUsername string, authorUsername string, aut
 		AuthorUsername:   authorUsername,
 		AuthorUserID:     authorUserID,
 		PostID:           post.PostID,
-		PostText:         post.Text,
 		PostCreatedAt:    post.CreatedAt.UTC(),
 		ReportedAt:       time.Now().UTC(),
 		Images:           images,
+	}
+
+	if post.Text != nil {
+		data.PostText = *post.Text
 	}
 
 	var buf bytes.Buffer

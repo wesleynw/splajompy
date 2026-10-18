@@ -133,7 +133,7 @@ func (r Store) SearchUsername(ctx context.Context, prefix string, limit int, cur
 func (r Store) UpdateUserName(ctx context.Context, userId int, newName string) error {
 	return r.querier.UpdateUserName(ctx, queries.UpdateUserNameParams{
 		UserID: userId,
-		Name:   pgtype.Text{String: newName, Valid: true},
+		Name:   &newName,
 	})
 }
 

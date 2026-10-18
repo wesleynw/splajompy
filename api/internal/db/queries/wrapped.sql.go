@@ -341,7 +341,7 @@ WHERE attributes->'poll' IS NOT NULL AND poll_vote.user_id = $1
 type WrappedGetPollsThatUserVotedInRow struct {
 	PostID         int              `json:"postId"`
 	UserID         int              `json:"userId"`
-	Text           pgtype.Text      `json:"text"`
+	Text           *string          `json:"text"`
 	CreatedAt      pgtype.Timestamp `json:"createdAt"`
 	Facets         db.Facets        `json:"facets"`
 	Attributes     *db.Attributes   `json:"attributes"`

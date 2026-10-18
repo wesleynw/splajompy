@@ -446,7 +446,7 @@ type ListUserRelationshipsRow struct {
 	Password              string                    `json:"password"`
 	Username              string                    `json:"username"`
 	CreatedAt             pgtype.Timestamp          `json:"createdAt"`
-	Name                  pgtype.Text               `json:"name"`
+	Name                  *string                   `json:"name"`
 	PinnedPostID          *int                      `json:"pinnedPostId"`
 	UserDisplayProperties *db.UserDisplayProperties `json:"userDisplayProperties"`
 	ReferralCode          string                    `json:"referralCode"`
@@ -601,8 +601,8 @@ WHERE user_id = $1
 `
 
 type UpdateUserNameParams struct {
-	UserID int         `json:"userId"`
-	Name   pgtype.Text `json:"name"`
+	UserID int     `json:"userId"`
+	Name   *string `json:"name"`
 }
 
 func (q *Queries) UpdateUserName(ctx context.Context, arg UpdateUserNameParams) error {
@@ -665,11 +665,11 @@ type UserSearchWithHeuristicsParams struct {
 }
 
 type UserSearchWithHeuristicsRow struct {
-	UserID   int         `json:"userId"`
-	Username string      `json:"username"`
-	Name     pgtype.Text `json:"name"`
-	Tier     int32       `json:"tier"`
-	Score    float64     `json:"score"`
+	UserID   int     `json:"userId"`
+	Username string  `json:"username"`
+	Name     *string `json:"name"`
+	Tier     int32   `json:"tier"`
+	Score    float64 `json:"score"`
 }
 
 func (q *Queries) UserSearchWithHeuristics(ctx context.Context, arg UserSearchWithHeuristicsParams) ([]UserSearchWithHeuristicsRow, error) {

@@ -293,7 +293,7 @@ type GetNotificationsForUserIdWithTimeOffsetParams struct {
 	CreatedAt        pgtype.Timestamp `json:"createdAt"`
 	Limit            int              `json:"limit"`
 	Viewed           bool             `json:"viewed"`
-	NotificationType pgtype.Text      `json:"notificationType"`
+	NotificationType *string          `json:"notificationType"`
 }
 
 func (q *Queries) GetNotificationsForUserIdWithTimeOffset(ctx context.Context, arg GetNotificationsForUserIdWithTimeOffsetParams) ([]Notification, error) {
@@ -429,14 +429,14 @@ RETURNING notification_id, user_id, post_id, comment_id, target_user_id, message
 `
 
 type InsertNotificationParams struct {
-	UserID           int         `json:"userId"`
-	PostID           *int        `json:"postId"`
-	CommentID        *int        `json:"commentId"`
-	Message          string      `json:"message"`
-	Facets           db.Facets   `json:"facets"`
-	Link             pgtype.Text `json:"link"`
-	NotificationType string      `json:"notificationType"`
-	TargetUserID     *int        `json:"targetUserId"`
+	UserID           int       `json:"userId"`
+	PostID           *int      `json:"postId"`
+	CommentID        *int      `json:"commentId"`
+	Message          string    `json:"message"`
+	Facets           db.Facets `json:"facets"`
+	Link             *string   `json:"link"`
+	NotificationType string    `json:"notificationType"`
+	TargetUserID     *int      `json:"targetUserId"`
 }
 
 func (q *Queries) InsertNotification(ctx context.Context, arg InsertNotificationParams) (Notification, error) {

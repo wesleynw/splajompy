@@ -18,10 +18,10 @@ type Store struct {
 }
 
 // InsertPost creates a new post
-func (r Store) InsertPost(ctx context.Context, userId int, content string, facets db.Facets, attributes *db.Attributes, visibilityType *models.VisibilityTypeEnum) (*models.Post, error) {
+func (r Store) InsertPost(ctx context.Context, userId int, content *string, facets db.Facets, attributes *db.Attributes, visibilityType *models.VisibilityTypeEnum) (*models.Post, error) {
 	var post, err = r.querier.InsertPost(ctx, queries.InsertPostParams{
 		UserID:         userId,
-		Text:           pgtype.Text{String: content, Valid: true},
+		Text:           content,
 		Facets:         facets,
 		Attributes:     attributes,
 		Visibilitytype: int(*visibilityType),
@@ -53,7 +53,7 @@ func (r Store) GetPostById(ctx context.Context, postId int, currentUserId int) (
 	return &models.Post{
 		PostID:     dbPost.PostID,
 		UserID:     dbPost.UserID,
-		Text:       dbPost.Text.String,
+		Text:       dbPost.Text,
 		CreatedAt:  dbPost.CreatedAt.Time.UTC(),
 		Facets:     dbPost.Facets,
 		Attributes: dbPost.Attributes,

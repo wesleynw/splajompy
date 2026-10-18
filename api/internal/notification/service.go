@@ -11,6 +11,7 @@ import (
 	"go.opentelemetry.io/otel/trace"
 	"splajompy.com/api/v2/internal/apns"
 	"splajompy.com/api/v2/internal/bucket"
+	"splajompy.com/api/v2/internal/db"
 	"splajompy.com/api/v2/internal/db/queries"
 	"splajompy.com/api/v2/internal/utilities"
 
@@ -244,9 +245,12 @@ func (s *Service) AddLikeNotification(ctx context.Context, currentUserId int, po
 		return err
 	}
 
-	facets, err := utilities.GenerateFacets(ctx, s.userRepository, *message)
-	if err != nil {
-		return err
+	var facets db.Facets
+	if message != nil {
+		facets, err = utilities.GenerateFacets(ctx, s.userRepository, *message)
+		if err != nil {
+			return err
+		}
 	}
 
 	return s.notificationRepository.UpdateNotificationMessage(ctx, existingLikeNotification.NotificationID, *message, facets)
@@ -304,9 +308,12 @@ func (s *Service) RemoveLikeNotification(ctx context.Context, currentUserId int,
 		return err
 	}
 
-	facets, err := utilities.GenerateFacets(ctx, s.userRepository, *message)
-	if err != nil {
-		return err
+	var facets db.Facets
+	if message != nil {
+		facets, err = utilities.GenerateFacets(ctx, s.userRepository, *message)
+		if err != nil {
+			return err
+		}
 	}
 
 	return s.notificationRepository.UpdateNotificationMessageOnly(ctx, existingLikeNotification.NotificationID, *message, facets)

@@ -19,7 +19,7 @@ func MapUserToPublicUser(user queries.User) models.PublicUser {
 	publicUser := models.PublicUser{
 		UserID:     user.UserID,
 		Username:   user.Username,
-		Name:       user.Name.String,
+		Name:       user.Name,
 		CreatedAt:  user.CreatedAt.Time,
 		IsVerified: false,
 	}
@@ -38,7 +38,7 @@ func MapUserToCurrentUserDTO(user queries.User) models.FullUser {
 		UserID:    user.UserID,
 		Email:     user.Email,
 		Username:  user.Username,
-		Name:      user.Name.String,
+		Name:      user.Name,
 		CreatedAt: user.CreatedAt.Time,
 	}
 
@@ -56,7 +56,7 @@ func MapPost(post queries.Post) models.Post {
 	return models.Post{
 		PostID:     post.PostID,
 		UserID:     post.UserID,
-		Text:       post.Text.String,
+		Text:       post.Text,
 		CreatedAt:  post.CreatedAt.Time.UTC(),
 		Facets:     post.Facets,
 		Visibility: (*models.VisibilityTypeEnum)(&post.Visibilitytype),
@@ -81,7 +81,7 @@ func MapNotification(notification queries.Notification) models.Notification {
 		CommentID:        commentId,
 		TargetUserId:     notification.TargetUserID,
 		Message:          notification.Message,
-		Link:             notification.Link.String,
+		Link:             notification.Link,
 		Viewed:           notification.Viewed,
 		Facets:           notification.Facets,
 		NotificationType: models.NotificationType(notification.NotificationType),

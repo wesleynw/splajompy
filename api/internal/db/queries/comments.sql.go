@@ -135,7 +135,7 @@ type GetCommentsByPostIdRow struct {
 	Facets    db.Facets        `json:"facets"`
 	CreatedAt pgtype.Timestamp `json:"createdAt"`
 	Username  string           `json:"username"`
-	Name      pgtype.Text      `json:"name"`
+	Name      *string          `json:"name"`
 }
 
 func (q *Queries) GetCommentsByPostId(ctx context.Context, arg GetCommentsByPostIdParams) ([]GetCommentsByPostIdRow, error) {

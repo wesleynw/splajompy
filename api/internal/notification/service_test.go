@@ -168,7 +168,7 @@ func TestFindLikeNotification_PostNotification(t *testing.T) {
 	user := testutil.CreateTestUser(t, env.userRepository, "testUser")
 
 	visibility := models.VisibilityPublic
-	post, err := env.postRepository.InsertPost(t.Context(), user.UserID, "test post", nil, nil, &visibility)
+	post, err := env.postRepository.InsertPost(t.Context(), user.UserID, new("test post"), nil, nil, &visibility)
 	require.NoError(t, err)
 
 	_, err = env.notificationRepository.InsertNotification(t.Context(), user.UserID, &post.PostID, nil, nil, "@user liked your post.", models.NotificationTypeLike, nil)
@@ -185,7 +185,7 @@ func TestFindLikeNotification_CommentNotification(t *testing.T) {
 	user := testutil.CreateTestUser(t, env.userRepository, "testUser")
 
 	visibility := models.VisibilityPublic
-	post, err := env.postRepository.InsertPost(t.Context(), user.UserID, "test post", nil, nil, &visibility)
+	post, err := env.postRepository.InsertPost(t.Context(), user.UserID, new("test post"), nil, nil, &visibility)
 	require.NoError(t, err)
 
 	comment, err := env.commentRepository.AddCommentToPost(t.Context(), user.UserID, post.PostID, "test comment", nil)
@@ -250,7 +250,7 @@ func TestCommentNotification_ImagePopulatedFromComment(t *testing.T) {
 	commenter := testutil.CreateTestUser(t, env.userRepository, "commenter")
 
 	visibility := models.VisibilityPublic
-	post, err := env.postRepository.InsertPost(t.Context(), postOwner.UserID, "test post", nil, nil, &visibility)
+	post, err := env.postRepository.InsertPost(t.Context(), postOwner.UserID, new("test post"), nil, nil, &visibility)
 	require.NoError(t, err)
 
 	imageKey := "images/test-image.jpg"
@@ -289,7 +289,7 @@ func TestGetNotifications_MentionUserInUnreachablePost(t *testing.T) {
 	user0 := testutil.CreateTestUser(t, env.userRepository, "user0")
 	user1 := testutil.CreateTestUser(t, env.userRepository, "user1")
 
-	_, err := env.postSvc.NewPost(t.Context(), user0, "hello @user1", nil, nil, new(int(models.VisibilityCloseFriends)))
+	_, err := env.postSvc.NewPost(t.Context(), user0, new("hello @user1"), nil, nil, new(int(models.VisibilityCloseFriends)))
 	require.NoError(t, err)
 
 	notifications, err := env.svc.GetUnreadNotificationsByUserIdWithTimeOffset(t.Context(), user1, time.Now().UTC(), 10, nil)
@@ -306,7 +306,7 @@ func TestGetNotifications_MentionUserInNewlyUnreachablePost(t *testing.T) {
 	err := env.userRepository.AddUserRelationship(t.Context(), user0.UserID, user1.UserID)
 	require.NoError(t, err)
 
-	_, err = env.postSvc.NewPost(t.Context(), user0, "hello @user1", nil, nil, new(int(models.VisibilityCloseFriends)))
+	_, err = env.postSvc.NewPost(t.Context(), user0, new("hello @user1"), nil, nil, new(int(models.VisibilityCloseFriends)))
 	require.NoError(t, err)
 
 	notifications, err := env.svc.GetUnreadNotificationsByUserIdWithTimeOffset(t.Context(), user1, time.Now().UTC(), 10, nil)
@@ -329,7 +329,7 @@ func TestAddLikeNotification_MultipleNotificationsCombine(t *testing.T) {
 	err := env.userRepository.UpdateUserDisplayProperties(t.Context(), postOwner.UserID, &db.UserDisplayProperties{LatestAppVersion: &appVersion})
 	require.NoError(t, err)
 
-	post, err := env.postRepository.InsertPost(t.Context(), postOwner.UserID, "test post", nil, nil, new(models.VisibilityPublic))
+	post, err := env.postRepository.InsertPost(t.Context(), postOwner.UserID, new("test post"), nil, nil, new(models.VisibilityPublic))
 	require.NoError(t, err)
 
 	liker0 := testutil.CreateTestUser(t, env.userRepository, "liker0")
@@ -396,7 +396,7 @@ func TestAddLikeNotification_HandlesRemovedLikes(t *testing.T) {
 	err := env.userRepository.UpdateUserDisplayProperties(t.Context(), postOwner.UserID, &db.UserDisplayProperties{LatestAppVersion: &appVersion})
 	require.NoError(t, err)
 
-	post, err := env.postRepository.InsertPost(t.Context(), postOwner.UserID, "test post", nil, nil, new(models.VisibilityPublic))
+	post, err := env.postRepository.InsertPost(t.Context(), postOwner.UserID, new("test post"), nil, nil, new(models.VisibilityPublic))
 	require.NoError(t, err)
 
 	liker0 := testutil.CreateTestUser(t, env.userRepository, "liker0")
@@ -444,7 +444,7 @@ func TestRemoveLikeNotification_WithSelfLikes(t *testing.T) {
 	env := setupNotificationService(t)
 
 	postOwner := testutil.CreateTestUser(t, env.userRepository, "user0")
-	post, err := env.postRepository.InsertPost(t.Context(), postOwner.UserID, "test post", nil, nil, new(models.VisibilityPublic))
+	post, err := env.postRepository.InsertPost(t.Context(), postOwner.UserID, new("test post"), nil, nil, new(models.VisibilityPublic))
 	require.NoError(t, err)
 
 	err = env.svc.AddLikeNotification(t.Context(), postOwner.UserID, post.PostID, nil)
@@ -480,7 +480,7 @@ func TestAddLikeNotification_Comment_MultipleNotificationsCombine(t *testing.T) 
 	require.NoError(t, err)
 
 	postOwner := testutil.CreateTestUser(t, env.userRepository, "postOwner")
-	post, err := env.postRepository.InsertPost(t.Context(), postOwner.UserID, "test post", nil, nil, new(models.VisibilityPublic))
+	post, err := env.postRepository.InsertPost(t.Context(), postOwner.UserID, new("test post"), nil, nil, new(models.VisibilityPublic))
 	require.NoError(t, err)
 
 	comment, err := env.commentRepository.AddCommentToPost(t.Context(), commenter.UserID, post.PostID, "test comment", nil)
@@ -523,7 +523,7 @@ func TestAddLikeNotification_Comment_HandlesRemovedLikes(t *testing.T) {
 	require.NoError(t, err)
 
 	postOwner := testutil.CreateTestUser(t, env.userRepository, "postOwner")
-	post, err := env.postRepository.InsertPost(t.Context(), postOwner.UserID, "test post", nil, nil, new(models.VisibilityPublic))
+	post, err := env.postRepository.InsertPost(t.Context(), postOwner.UserID, new("test post"), nil, nil, new(models.VisibilityPublic))
 	require.NoError(t, err)
 
 	comment, err := env.commentRepository.AddCommentToPost(t.Context(), commenter.UserID, post.PostID, "test comment", nil)
@@ -563,7 +563,7 @@ func TestAddLikeNotification_Comment_SelfLikeIgnored(t *testing.T) {
 
 	commenter := testutil.CreateTestUser(t, env.userRepository, "commenter")
 	postOwner := testutil.CreateTestUser(t, env.userRepository, "postOwner")
-	post, err := env.postRepository.InsertPost(t.Context(), postOwner.UserID, "test post", nil, nil, new(models.VisibilityPublic))
+	post, err := env.postRepository.InsertPost(t.Context(), postOwner.UserID, new("test post"), nil, nil, new(models.VisibilityPublic))
 	require.NoError(t, err)
 
 	comment, err := env.commentRepository.AddCommentToPost(t.Context(), commenter.UserID, post.PostID, "test comment", nil)
