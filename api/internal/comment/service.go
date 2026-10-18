@@ -116,15 +116,16 @@ func (s *Service) AddComment(ctx context.Context, currentUser models.PublicUser,
 	}
 
 	detailedComment := models.DetailedComment{
-		CommentID: comment.CommentID,
-		PostID:    comment.PostID,
-		UserID:    comment.UserID,
-		Text:      comment.Text,
-		Facets:    comment.Facets,
-		CreatedAt: comment.CreatedAt,
-		User:      currentUser,
-		IsLiked:   false,
-		Images:    commentImages,
+		CommentID:       comment.CommentID,
+		PostID:          comment.PostID,
+		UserID:          comment.UserID,
+		Text:            comment.Text,
+		Facets:          comment.Facets,
+		CreatedAt:       comment.CreatedAt,
+		User:            currentUser,
+		IsLiked:         false,
+		Images:          commentImages,
+		ParentCommentId: commentId,
 	}
 
 	return &detailedComment, nil

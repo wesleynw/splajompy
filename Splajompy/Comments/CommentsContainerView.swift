@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct CommentsView: View {
+struct CommentsContainerView: View {
   var postId: Int
   var postManager: PostStore
   var scrollProxy: ScrollViewProxy?
@@ -49,82 +49,28 @@ struct CommentsView: View {
           #endif
       case .loaded(let comments):
         VStack(spacing: 0) {
-          ForEach(comments, id: \.commentId) { comment in
-            VStack {
-              CommentRow(
-                comment: comment,
-                isInSheet: false,
-                toggleLike: {
-                  viewModel.toggleLike(for: comment)
-                },
-                deleteComment: {
-                  Task {
-                    await viewModel.deleteComment(comment)
-                    postManager.updatePost(id: postId) { post in
-                      post.commentCount -= 1
-                    }
-                  }
-                },
-                handleCommentReply: {
-                  viewModel.stageCommentReply(to: comment)
+          ForEach(comments) { comment in
+            CommentView(
+              comment: comment,
+              onToggleLike: { comment in viewModel.toggleLike(for: comment)
+              },
+              onDelete: { commentId in
+                Task { await viewModel.deleteComment(comment) }
+              },
+              onAppear: { comment in
+                guard viewModel.pendingScrollCommentId == comment.commentId
+                else { return }
+                viewModel.pendingScrollCommentId = nil
+                withAnimation {
+                  scrollProxy?.scrollTo(
+                    comment.commentId,
+                    anchor: viewModel.commentSortOrder == "Oldest First"
+                      ? .bottom : .top
+                  )
                 }
-              )
-              .id(comment.commentId)
-              .geometryGroup()
-              .transition(.opacity.combined(with: .scale(scale: 0.95)))
-              .scrollToCommentWhenAdded(
-                comment.commentId,
-                viewModel: viewModel,
-                proxy: scrollProxy
-              )
-              .swipeActions(edge: .leading) {
-                Button {
-                  viewModel.stageCommentReply(to: comment)
-                } label: {
-                  Label("Reply", systemImage: "arrowshape.turn.up.left.fill")
-                }
-              }
-
-              if let children = comment.children, children.count > 0 {
-                HStack {
-                  Capsule()
-                    .foregroundStyle(.tertiary)
-                    .frame(width: 4)
-                    .frame(maxHeight: .infinity)
-                    .padding(.vertical, 3)
-                    .padding(.leading)
-
-                  VStack {
-                    ForEach(children) { child in
-                      CommentRow(
-                        comment: comment,
-                        isInSheet: false,
-                        toggleLike: {
-                          viewModel.toggleLike(for: comment)
-                        },
-                        deleteComment: {
-                          Task {
-                            await viewModel.deleteComment(comment)
-                            postManager.updatePost(id: postId) { post in
-                              post.commentCount -= 1
-                            }
-                          }
-                        }
-                      )
-                      .id(comment.commentId)
-                      .geometryGroup()
-                      .transition(.opacity.combined(with: .scale(scale: 0.95)))
-                      .scrollToCommentWhenAdded(
-                        comment.commentId,
-                        viewModel: viewModel,
-                        proxy: scrollProxy
-                      )
-                    }
-                  }
-                }
-                .fixedSize(horizontal: false, vertical: true)
-              }
-            }
+              },
+              onCommentReply: { viewModel.stageCommentReply(to: comment) }
+            )
           }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -177,7 +123,7 @@ struct CommentsView: View {
 }
 
 #Preview {
-  let mockViewModel = CommentsView.ViewModel(
+  let mockViewModel = CommentsContainerView.ViewModel(
     postId: 1,
     service: MockCommentService(),
     postManager: PostStore()
@@ -186,7 +132,7 @@ struct CommentsView: View {
   let postManager = PostStore()
 
   NavigationStack {
-    CommentsView(
+    CommentsContainerView(
       postId: 1,
       postManager: postManager,
       viewModel: mockViewModel
@@ -196,7 +142,7 @@ struct CommentsView: View {
 }
 
 #Preview("Loading") {
-  let mockViewModel = CommentsView.ViewModel(
+  let mockViewModel = CommentsContainerView.ViewModel(
     postId: 1,
     service: MockCommentService_Loading(),
     postManager: PostStore()
@@ -204,7 +150,7 @@ struct CommentsView: View {
 
   let postManager = PostStore()
 
-  CommentsView(
+  CommentsContainerView(
     postId: 1,
     postManager: postManager,
     viewModel: mockViewModel
@@ -213,7 +159,7 @@ struct CommentsView: View {
 }
 
 #Preview("No Comments") {
-  let mockViewModel = CommentsView.ViewModel(
+  let mockViewModel = CommentsContainerView.ViewModel(
     postId: 1,
     service: MockCommentService_Empty(),
     postManager: PostStore()
@@ -221,7 +167,7 @@ struct CommentsView: View {
 
   let postManager = PostStore()
 
-  CommentsView(
+  CommentsContainerView(
     postId: 1,
     postManager: postManager,
     viewModel: mockViewModel
@@ -230,7 +176,7 @@ struct CommentsView: View {
 }
 
 #Preview("Error") {
-  let mockViewModel = CommentsView.ViewModel(
+  let mockViewModel = CommentsContainerView.ViewModel(
     postId: 1,
     service: MockCommentService_Error(),
     postManager: PostStore()
@@ -238,7 +184,7 @@ struct CommentsView: View {
 
   let postManager = PostStore()
 
-  CommentsView(
+  CommentsContainerView(
     postId: 1,
     postManager: postManager,
     viewModel: mockViewModel
@@ -247,7 +193,7 @@ struct CommentsView: View {
 }
 
 #Preview("nested comments") {
-  let mockViewModel = CommentsView.ViewModel(
+  let mockViewModel = CommentsContainerView.ViewModel(
     postId: 3,
     service: MockCommentService(),
     postManager: PostStore()
@@ -256,7 +202,7 @@ struct CommentsView: View {
   let postManager = PostStore()
 
   NavigationStack {
-    CommentsView(
+    CommentsContainerView(
       postId: 3,
       postManager: postManager,
       viewModel: mockViewModel

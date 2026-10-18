@@ -8,7 +8,7 @@ private struct SelectedImage: Identifiable {
 
 struct CommentInputView: View {
   let onCommentReplyTap: () -> Void
-  @Bindable var viewModel: CommentsView.ViewModel
+  @Bindable var viewModel: CommentsContainerView.ViewModel
 
   @State private var mentionViewModel =
     MentionTextEditor.MentionViewModel()
@@ -66,9 +66,9 @@ struct CommentInputView: View {
             .buttonStyle(.plain)
           }
           .fontWeight(.semibold)
-          .padding(12)
+          .padding(10)
           .frame(maxWidth: .infinity, alignment: .leading)
-          .transition(.push(from: .leading))
+          .transition(.blurReplace)
           .onTapGesture {
             onCommentReplyTap()
           }
@@ -208,12 +208,12 @@ struct CommentInputView: View {
 #Preview {
   CommentInputView(
     onCommentReplyTap: {},
-    viewModel: CommentsView.ViewModel(postId: 1, postManager: PostStore())
+    viewModel: CommentsContainerView.ViewModel(postId: 1, postManager: PostStore())
   )
 }
 
 #Preview("responding to comment") {
-  let viewModel = CommentsView.ViewModel(postId: 1, postManager: PostStore())
+  let viewModel = CommentsContainerView.ViewModel(postId: 1, postManager: PostStore())
   viewModel.stageCommentReply(to: Mocks.comment1)
 
   return CommentInputView(

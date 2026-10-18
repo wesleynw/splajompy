@@ -35,7 +35,12 @@ class MockCommentService: CommentServiceProtocol, @unchecked Sendable {
     )
   }
 
-  func addComment(postId: Int, text: String, imageData: ImageData?) async
+  func addComment(
+    postId: Int,
+    commentId: Int?,
+    text: String,
+    imageData: ImageData?
+  ) async
     -> Result<
       DetailedComment, Error
     >
@@ -201,7 +206,12 @@ class MockCommentService_Empty: CommentServiceProtocol, @unchecked Sendable {
     return .success(())
   }
 
-  func addComment(postId: Int, text: String, imageData: ImageData?) async
+  func addComment(
+    postId: Int,
+    commentId: Int?,
+    text: String,
+    imageData: ImageData?
+  ) async
     -> Result<
       DetailedComment, Error
     >
@@ -260,7 +270,12 @@ class MockCommentService_Loading: CommentServiceProtocol, @unchecked Sendable {
     )
   }
 
-  func addComment(postId: Int, text: String, imageData: ImageData?) async
+  func addComment(
+    postId: Int,
+    commentId: Int?,
+    text: String,
+    imageData: ImageData?
+  ) async
     -> Result<
       DetailedComment, Error
     >
@@ -268,6 +283,7 @@ class MockCommentService_Loading: CommentServiceProtocol, @unchecked Sendable {
     try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000_000))
     return await mockService.addComment(
       postId: postId,
+      commentId: commentId,
       text: text,
       imageData: nil
     )
@@ -302,7 +318,12 @@ class MockCommentService_Error: CommentServiceProtocol, @unchecked Sendable {
     )
   }
 
-  func addComment(postId: Int, text: String, imageData: ImageData?) async
+  func addComment(
+    postId: Int,
+    commentId: Int?,
+    text: String,
+    imageData: ImageData?
+  ) async
     -> Result<
       DetailedComment, Error
     >

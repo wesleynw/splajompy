@@ -6,7 +6,7 @@ struct StandalonePostView: View {
   var postManager: PostStore
 
   @State private var viewModel: ViewModel
-  @State private var commentsViewModel: CommentsView.ViewModel
+  @State private var commentsViewModel: CommentsContainerView.ViewModel
   @Environment(\.dismiss) private var dismiss
 
   init(postId: Int, postManager: PostStore) {
@@ -16,7 +16,7 @@ struct StandalonePostView: View {
       wrappedValue: ViewModel(postId: postId, postManager: postManager)
     )
     _commentsViewModel = State(
-      wrappedValue: CommentsView.ViewModel(
+      wrappedValue: CommentsContainerView.ViewModel(
         postId: postId,
         postManager: postManager
       )
@@ -44,7 +44,7 @@ struct StandalonePostView: View {
               onPostDeleted: handlePostDeleted
             )
 
-            CommentsView(
+            CommentsContainerView(
               postId: postId,
               postManager: postManager,
               scrollProxy: proxy,
@@ -126,7 +126,9 @@ struct StandalonePostView: View {
             CommentInputView(
               onCommentReplyTap: {
                 if let replyingToComment = commentsViewModel.respondingToComment {
-                  proxy.scrollTo(replyingToComment.commentId)
+                  withAnimation {
+                    proxy.scrollTo(replyingToComment.commentId)
+                  }
                 }
               },
               viewModel: commentsViewModel
@@ -137,7 +139,9 @@ struct StandalonePostView: View {
             CommentInputView(
               onCommentReplyTap: {
                 if let replyingToComment = commentsViewModel.respondingToComment {
-                  proxy.scrollTo(replyingToComment.commentId)
+                  withAnimation {
+                    proxy.scrollTo(replyingToComment.commentId)
+                  }
                 }
               },
               viewModel: commentsViewModel
