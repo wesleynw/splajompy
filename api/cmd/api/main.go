@@ -135,9 +135,16 @@ func main() {
 	wrappedHandler = middleware.AppVersion(wrappedHandler)
 
 	httpHandler := otelhttp.NewHandler(wrappedHandler, "/")
+	server := &http.Server{
+		Addr:      ":8080",
+		Handler:   httpHandler,
+		Protocols: new(http.Protocols),
+	}
+	server.Protocols.SetHTTP1(true)
+	server.Protocols.SetUnencryptedHTTP2(true)
 
 	log.Printf("Server starting on port %d\n", 8080)
-	if err := http.ListenAndServe(":8080", httpHandler); err != nil {
+	if err := server.ListenAndServe(); err != nil {
 		log.Fatalf("server failed to start: %v", err)
 	}
 }
