@@ -17,7 +17,7 @@ func NewHandler(svc *Service) *Handler {
 	return &Handler{svc: svc}
 }
 
-func (h *Handler) RegisterRoutes(_, withAuth func(string, func(http.ResponseWriter, *http.Request))) {
+func (h *Handler) RegisterRESTRoutes(_, withAuth func(string, func(http.ResponseWriter, *http.Request))) {
 	// blocking
 	withAuth("POST /user/{user_id}/block", h.BlockUser)
 	withAuth("DELETE /user/{user_id}/block", h.UnblockUser)

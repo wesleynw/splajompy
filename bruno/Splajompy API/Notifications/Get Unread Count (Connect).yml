@@ -1,0 +1,12 @@
+info:
+  name: Get Unread Count (Connect)
+  type: http
+  seq: 5
+
+http:
+  method: POST
+  url: "{{apiUrl}}/splajompy.v1.NotificationService/GetUnreadNotificationCount"
+  body:
+    type: json
+    data: "{}"
+  auth: inherit

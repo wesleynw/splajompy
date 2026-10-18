@@ -28,14 +28,14 @@ Originally a full-stack Typescript application, Splajompy is now a native SwiftU
 ## Architecture
 The API follows a domain-scoped architecture. Each domain (e.g. `post`, `user`, `auth`) lives in its own package under `internal/` and implements its own store, service, and handler.
 
-Each domain handler implements the `RouteRegistrar` interface:
+Each REST handler implements the `RESTRegistrar` interface:
 ```go
-type RouteRegistrar interface {
-    RegisterRoutes(public, withAuth func(string, func(http.ResponseWriter, *http.Request)))
+type RESTRegistrar interface {
+    RegisterRESTRoutes(public, withAuth func(string, func(http.ResponseWriter, *http.Request)))
 }
 ```
 
-The root handler in `internal/handler` holds a slice of `RouteRegistrar`s and registers routes for each domain.
+The root handler in `internal/handler` registers REST handlers from `handler.go` and Connect handlers from `connect_handler.go`. Connect procedures require authentication unless their registrar explicitly returns their exact paths for public access.
 
 `Store`s are currently a thin layer over the database, but exist as a natural place to add caching per domain in the future.
 
@@ -67,6 +67,10 @@ To do this, install SQLC locally, and run:
 ```bash
 sqlc generate -f api/internal/db/sqlc.yaml
 ```
+
+## Connect RPC
+
+Install [Buf](https://buf.build/docs/cli/installation/), then run `go generate ./...` from `api/` to generate Go code from `proto/`. Generator versions are managed in `api/go.mod`.
 
 ## DB Migrations
 Migrations are handled with `golang-migrate`. To make changes to the DB, follow the linked guide below. This usually involves writing up and down migrations, which you can first push to the development DB, and then to production when new API code is merged.
