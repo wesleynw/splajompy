@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
@@ -33,18 +33,19 @@ func AuthMiddleware(q *queries.Queries) func(http.Handler) http.Handler {
 
 			if header == "" {
 				slog.WarnContext(ctx, "auth: missing authorization header")
-				http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+				utilities.HandleError(w, http.StatusUnauthorized, http.StatusText(http.StatusUnauthorized))
 				return
 			}
 
-			parts := strings.Split(header, "Bearer ")
-			if len(parts) != 2 {
+			scheme, token, ok := strings.Cut(header, " ")
+			token = strings.TrimSpace(token)
+			if !ok || !strings.EqualFold(scheme, "Bearer") || token == "" {
 				slog.WarnContext(ctx, "auth: malformed authorization header")
-				http.Error(w, "Missing authorization header", http.StatusBadRequest)
+				utilities.HandleError(w, http.StatusBadRequest, "Invalid authorization header")
 				return
 			}
 
-			token := strings.ReplaceAll(strings.TrimSpace(parts[1]), `\/`, `/`)
+			token = strings.ReplaceAll(token, `\/`, `/`)
 
 			session, err := q.GetSessionById(ctx, token)
 			if err != nil {
@@ -53,25 +54,25 @@ func AuthMiddleware(q *queries.Queries) func(http.Handler) http.Handler {
 			}
 			// want to be careful here: if it's a server error, don't want to be logging
 			// people out automatically
-			if _, ok := errors.AsType[*pgconn.ConnectError](err); ok {
-				slog.ErrorContext(ctx, "auth: db connection error looking up session", "error", err)
-				http.Error(w, "something went wrong", http.StatusInternalServerError)
+			if err != nil && !errors.Is(err, pgx.ErrNoRows) {
+				slog.ErrorContext(ctx, "auth: failed to fetch session", "error", err)
+				utilities.HandleError(w, http.StatusInternalServerError, "something went wrong")
 				return
 			} else if err != nil {
 				slog.WarnContext(ctx, "auth: session not found", "error", err)
-				http.Error(w, "no session found", http.StatusUnauthorized)
+				utilities.HandleError(w, http.StatusUnauthorized, "no session found")
 				return
 			}
 
 			if time.Now().Unix() >= session.ExpiresAt.Time.Unix() {
-				slog.InfoContext(ctx, "auth: session expired", "session_id", session.ID, "expired_at", session.ExpiresAt.Time)
+				slog.InfoContext(ctx, "auth: session expired", "user_id", session.UserID, "expired_at", session.ExpiresAt.Time)
 				err = q.DeleteSession(ctx, session.ID)
 				if err != nil {
-					slog.ErrorContext(ctx, "auth: failed to delete expired session", "session_id", session.ID, "error", err)
-					http.Error(w, "failed to delete expired session", http.StatusInternalServerError)
+					slog.ErrorContext(ctx, "auth: failed to delete expired session", "user_id", session.UserID, "error", err)
+					utilities.HandleError(w, http.StatusInternalServerError, "failed to delete expired session")
 					return
 				}
-				http.Error(w, "session expired", http.StatusUnauthorized)
+				utilities.HandleError(w, http.StatusUnauthorized, "session expired")
 				return
 			}
 
@@ -87,14 +88,18 @@ func AuthMiddleware(q *queries.Queries) func(http.Handler) http.Handler {
 					},
 				})
 				if err != nil {
-					slog.WarnContext(ctx, "auth: failed to extend session", "session_id", session.ID, "error", err)
+					slog.WarnContext(ctx, "auth: failed to extend session", "user_id", session.UserID, "error", err)
 				}
 			}
 
 			dbUser, err := q.GetUserById(ctx, session.UserID)
 			if err != nil {
 				slog.ErrorContext(ctx, "auth: failed to fetch user", "user_id", session.UserID, "error", err)
-				utilities.HandleError(w, http.StatusBadRequest, err.Error())
+				status, message := http.StatusInternalServerError, "something went wrong"
+				if errors.Is(err, pgx.ErrNoRows) {
+					status, message = http.StatusUnauthorized, "no user found"
+				}
+				utilities.HandleError(w, status, message)
 				return
 			}
 
@@ -105,8 +110,10 @@ func AuthMiddleware(q *queries.Queries) func(http.Handler) http.Handler {
 			if userDisplayProperties == nil {
 				userDisplayProperties = &db.UserDisplayProperties{}
 			}
+			propertiesChanged := false
 			if ok && (userDisplayProperties.LatestAppVersion == nil || semver.Compare(version, *userDisplayProperties.LatestAppVersion) > 0) {
 				userDisplayProperties.LatestAppVersion = &version
+				propertiesChanged = true
 			}
 
 			now := time.Now().UTC()
@@ -115,16 +122,19 @@ func AuthMiddleware(q *queries.Queries) func(http.Handler) http.Handler {
 					Before(now.Truncate(24*time.Hour)) {
 
 				userDisplayProperties.LastLoginDate = &now
+				propertiesChanged = true
 			}
 
-			err = q.UpdateUserDisplayProperties(ctx, queries.UpdateUserDisplayPropertiesParams{
-				UserID:                dbUser.UserID,
-				UserDisplayProperties: userDisplayProperties,
-			})
+			if propertiesChanged {
+				err = q.UpdateUserDisplayProperties(ctx, queries.UpdateUserDisplayPropertiesParams{
+					UserID:                dbUser.UserID,
+					UserDisplayProperties: userDisplayProperties,
+				})
 
-			if err != nil {
-				span.SetStatus(codes.Error, "unable to record latest app version")
-				span.RecordError(err)
+				if err != nil {
+					span.SetStatus(codes.Error, "unable to record latest app version")
+					span.RecordError(err)
+				}
 			}
 
 			publicUser := utilities.MapUserToPublicUser(dbUser)
