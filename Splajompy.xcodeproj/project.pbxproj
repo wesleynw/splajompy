@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		A37C721F65974382A0B11A01 /* Connect in Frameworks */ = {isa = PBXBuildFile; productRef = A37C721F65974382A0B11A02 /* Connect */; };
+		A37C721F65974382A0B11A03 /* SwiftProtobuf in Frameworks */ = {isa = PBXBuildFile; productRef = A37C721F65974382A0B11A04 /* SwiftProtobuf */; };
 		180DEE602E39AE0F00A4D29D /* Nuke in Frameworks */ = {isa = PBXBuildFile; productRef = 180DEE5F2E39AE0F00A4D29D /* Nuke */; };
 		180DEE622E39AE0F00A4D29D /* NukeExtensions in Frameworks */ = {isa = PBXBuildFile; productRef = 180DEE612E39AE0F00A4D29D /* NukeExtensions */; };
 		180DEE642E39AE0F00A4D29D /* NukeUI in Frameworks */ = {isa = PBXBuildFile; productRef = 180DEE632E39AE0F00A4D29D /* NukeUI */; };
@@ -46,6 +48,7 @@
 		181F41AC2D9B32AB00FCF763 /* Exceptions for "Splajompy" folder in "Splajompy" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				buf.gen.yaml,
 				Configuration/Debug.xcconfig,
 				Configuration/Release.xcconfig,
 				Info.plist,
@@ -114,6 +117,8 @@
 		184A63C82D88CBA000860D6B /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			files = (
+				A37C721F65974382A0B11A01 /* Connect in Frameworks */,
+				A37C721F65974382A0B11A03 /* SwiftProtobuf in Frameworks */,
 				180DEE642E39AE0F00A4D29D /* NukeUI in Frameworks */,
 				180DEE662E39AE0F00A4D29D /* NukeVideo in Frameworks */,
 				180DEE602E39AE0F00A4D29D /* Nuke in Frameworks */,
@@ -185,6 +190,8 @@
 			);
 			name = Splajompy;
 			packageProductDependencies = (
+				A37C721F65974382A0B11A02 /* Connect */,
+				A37C721F65974382A0B11A04 /* SwiftProtobuf */,
 				180DEE5F2E39AE0F00A4D29D /* Nuke */,
 				180DEE612E39AE0F00A4D29D /* NukeExtensions */,
 				180DEE632E39AE0F00A4D29D /* NukeUI */,
@@ -269,6 +276,8 @@
 			mainGroup = 184A63C22D88CBA000860D6B;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
+				A37C721F65974382A0B11A05 /* XCRemoteSwiftPackageReference "connect-swift" */,
+				A37C721F65974382A0B11A06 /* XCRemoteSwiftPackageReference "swift-protobuf" */,
 				180DEE5E2E39AD6400A4D29D /* XCRemoteSwiftPackageReference "Nuke" */,
 				1868AF362F0C726C001E15E9 /* XCRemoteSwiftPackageReference "opentelemetry-swift-core" */,
 				1868AF372F0C728E001E15E9 /* XCRemoteSwiftPackageReference "opentelemetry-swift" */,
@@ -697,6 +706,22 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		A37C721F65974382A0B11A05 /* XCRemoteSwiftPackageReference "connect-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/connectrpc/connect-swift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.2.3;
+			};
+		};
+		A37C721F65974382A0B11A06 /* XCRemoteSwiftPackageReference "swift-protobuf" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/apple/swift-protobuf.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.39.0;
+			};
+		};
 		180DEE5E2E39AD6400A4D29D /* XCRemoteSwiftPackageReference "Nuke" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/kean/Nuke";
@@ -732,6 +757,16 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		A37C721F65974382A0B11A02 /* Connect */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A37C721F65974382A0B11A05 /* XCRemoteSwiftPackageReference "connect-swift" */;
+			productName = Connect;
+		};
+		A37C721F65974382A0B11A04 /* SwiftProtobuf */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A37C721F65974382A0B11A06 /* XCRemoteSwiftPackageReference "swift-protobuf" */;
+			productName = SwiftProtobuf;
+		};
 		180DEE5F2E39AE0F00A4D29D /* Nuke */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 180DEE5E2E39AD6400A4D29D /* XCRemoteSwiftPackageReference "Nuke" */;
