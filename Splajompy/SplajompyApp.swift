@@ -127,24 +127,24 @@ struct SplajompyApp: App {
     .modifier(SupportedVersionViewModifier())
     .environment(authManager)
     .preferredColorScheme(colorScheme)
-    .task(id: authManager.authState) {
-      guard isNotificationBadgeEnabled,
-        case .authenticated = authManager.authState
-      else { return }
-      await notificationBadgeStore.refresh()
-    }
-    .onChange(of: isNotificationBadgeEnabled) { _, isEnabled in
-      guard isEnabled, case .authenticated = authManager.authState else {
-        return
+    .task(id: notificationPollingUserId) {
+      guard notificationPollingUserId != nil else { return }
+      while !Task.isCancelled {
+        await notificationBadgeStore.refresh()
+        do {
+          try await Task.sleep(for: .seconds(30))
+        } catch {
+          return
+        }
       }
-      Task { await notificationBadgeStore.refresh() }
     }
-    .onChange(of: scenePhase) { _, newPhase in
-      guard isNotificationBadgeEnabled, newPhase == .active,
-        case .authenticated = authManager.authState
-      else { return }
-      Task { await notificationBadgeStore.refresh() }
-    }
+  }
+
+  private var notificationPollingUserId: Int? {
+    guard isNotificationBadgeEnabled, scenePhase == .active,
+      authManager.isAuthenticated
+    else { return nil }
+    return authManager.currentUser?.userId
   }
 
   @available(iOS 18, *)
