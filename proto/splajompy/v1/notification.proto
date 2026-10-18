@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package splajompy.v1;
+
+option go_package = "splajompy.com/api/v2/gen/splajompy/v1;splajompyv1";
+
+service NotificationService {
+  rpc GetUnreadNotificationCount(GetUnreadNotificationCountRequest) returns (GetUnreadNotificationCountResponse);
+}
+
+message GetUnreadNotificationCountRequest {}
+
+message GetUnreadNotificationCountResponse {
+  int64 unread_count = 1;
+}
