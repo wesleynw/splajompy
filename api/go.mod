@@ -3,6 +3,7 @@ module splajompy.com/api/v2
 go 1.27
 
 require (
+	connectrpc.com/connect/v2 v2.0.0
 	github.com/aws/aws-sdk-go-v2 v1.47.3
 	github.com/aws/aws-sdk-go-v2/config v1.33.9
 	github.com/aws/aws-sdk-go-v2/feature/cloudfront/sign v1.12.6
@@ -32,6 +33,7 @@ require (
 	golang.org/x/crypto v0.58.0
 	golang.org/x/mod v0.42.0
 	golang.org/x/sync v0.24.0
+	google.golang.org/protobuf v1.36.12
 )
 
 require (
@@ -106,5 +108,9 @@ require (
 	google.golang.org/genproto/googleapis/api v0.0.0-20260928230214-8a89bd6388cc // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260928230214-8a89bd6388cc // indirect
 	google.golang.org/grpc v1.83.2 // indirect
-	google.golang.org/protobuf v1.36.12 // indirect
+)
+
+tool (
+	connectrpc.com/connect/v2/cmd/protoc-gen-connect-go
+	google.golang.org/protobuf/cmd/protoc-gen-go
 )

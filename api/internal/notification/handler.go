@@ -19,7 +19,7 @@ func NewHandler(svc *Service) *Handler {
 	return &Handler{svc: svc}
 }
 
-func (h *Handler) RegisterRoutes(_, withAuth func(string, func(http.ResponseWriter, *http.Request))) {
+func (h *Handler) RegisterRESTRoutes(_, withAuth func(string, func(http.ResponseWriter, *http.Request))) {
 	withAuth("POST /notifications/markRead", h.MarkAllNotificationsAsRead)
 	withAuth("POST /notifications/{id}/markRead", h.MarkNotificationAsReadById)
 	withAuth("GET /notifications/hasUnread", h.HasUnreadNotifications)

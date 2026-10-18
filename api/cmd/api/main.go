@@ -105,17 +105,21 @@ func main() {
 	userService := user.NewUserService(userRepository, *notificationService, resendClient)
 	userHandler := user.NewHandler(userService)
 	notificationHandler := notification.NewHandler(notificationService)
+	notificationConnectHandler := notification.NewConnectHandler(notificationService)
 	authService := auth.NewService(userRepository, postRepository, bucketRepository, resendClient)
 	authHandler := auth.NewHandler(authService)
 	statsService := stats.NewService(statsRepository)
 	statsHandler := stats.NewHandler(statsService)
 
-	h := handler.NewHandler(postHandler, commentHandler, userHandler, notificationHandler, authHandler, statsHandler)
+	h := handler.NewHandler(
+		[]handler.RESTRegistrar{postHandler, commentHandler, userHandler, notificationHandler, authHandler, statsHandler},
+		[]handler.ConnectRegistrar{notificationConnectHandler},
+	)
 
 	mux := http.NewServeMux()
 
-	authMiddleware := middleware.AuthMiddleware(q)
-	h.RegisterRoutes(mux.HandleFunc, authMiddleware)
+	h.RegisterRESTRoutes(mux, q)
+	h.RegisterConnectRoutes(mux, q)
 
 	routedMux := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		mux.ServeHTTP(w, r)
@@ -132,7 +136,6 @@ func main() {
 	})
 
 	wrappedHandler := middleware.Logger(routedMux)
-	wrappedHandler = middleware.AppVersion(wrappedHandler)
 
 	httpHandler := otelhttp.NewHandler(wrappedHandler, "/")
 	server := &http.Server{

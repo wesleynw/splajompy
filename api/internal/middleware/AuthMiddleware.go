@@ -20,7 +20,7 @@ import (
 
 var tracer = otel.Tracer("splajompy.com/api/v2/internal/middleware")
 
-func AuthMiddleware(q *queries.Queries) func(http.Handler) http.Handler {
+func AuthMiddleware(q *queries.Queries, errorWriter ErrorWriter) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ctx := r.Context()
@@ -32,7 +32,7 @@ func AuthMiddleware(q *queries.Queries) func(http.Handler) http.Handler {
 
 			if header == "" {
 				slog.WarnContext(ctx, "auth: missing authorization header")
-				utilities.HandleError(w, http.StatusUnauthorized, http.StatusText(http.StatusUnauthorized))
+				errorWriter.Write(w, r, http.StatusUnauthorized, http.StatusText(http.StatusUnauthorized))
 				return
 			}
 
@@ -40,7 +40,7 @@ func AuthMiddleware(q *queries.Queries) func(http.Handler) http.Handler {
 			token = strings.TrimSpace(token)
 			if !ok || !strings.EqualFold(scheme, "Bearer") || token == "" {
 				slog.WarnContext(ctx, "auth: malformed authorization header")
-				utilities.HandleError(w, http.StatusBadRequest, "Invalid authorization header")
+				errorWriter.Write(w, r, http.StatusBadRequest, "Invalid authorization header")
 				return
 			}
 
@@ -55,11 +55,11 @@ func AuthMiddleware(q *queries.Queries) func(http.Handler) http.Handler {
 			// people out automatically
 			if errors.Is(err, pgx.ErrNoRows) {
 				slog.WarnContext(ctx, "auth: session not found", "error", err)
-				utilities.HandleError(w, http.StatusUnauthorized, "no session found")
+				errorWriter.Write(w, r, http.StatusUnauthorized, "no session found")
 				return
 			} else if err != nil {
 				slog.ErrorContext(ctx, "auth: failed to fetch session", "error", err)
-				utilities.HandleError(w, http.StatusInternalServerError, "something went wrong")
+				errorWriter.Write(w, r, http.StatusInternalServerError, "something went wrong")
 				return
 			}
 
@@ -68,10 +68,10 @@ func AuthMiddleware(q *queries.Queries) func(http.Handler) http.Handler {
 				err = q.DeleteSession(ctx, session.ID)
 				if err != nil {
 					slog.ErrorContext(ctx, "auth: failed to delete expired session", "user_id", session.UserID, "error", err)
-					utilities.HandleError(w, http.StatusInternalServerError, "failed to delete expired session")
+					errorWriter.Write(w, r, http.StatusInternalServerError, "failed to delete expired session")
 					return
 				}
-				utilities.HandleError(w, http.StatusUnauthorized, "session expired")
+				errorWriter.Write(w, r, http.StatusUnauthorized, "session expired")
 				return
 			}
 
@@ -95,7 +95,7 @@ func AuthMiddleware(q *queries.Queries) func(http.Handler) http.Handler {
 				if errors.Is(err, pgx.ErrNoRows) {
 					status, message = http.StatusUnauthorized, "no user found"
 				}
-				utilities.HandleError(w, status, message)
+				errorWriter.Write(w, r, status, message)
 				return
 			}
 
