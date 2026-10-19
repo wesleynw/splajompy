@@ -18,6 +18,8 @@ import (
 	"splajompy.com/api/v2/internal/models"
 )
 
+var errUnreadCountUnavailable = errors.New("unread notification count unavailable")
+
 type Service struct {
 	notificationRepository Store
 	postRepository         postReader
@@ -81,6 +83,53 @@ func (s *Service) UserHasUnreadNotifications(ctx context.Context, user models.Pu
 
 func (s *Service) GetUserUnreadNotificationCount(ctx context.Context, user models.PublicUser) (int, error) {
 	return s.notificationRepository.GetUserUnreadNotificationCount(ctx, user.UserID)
+}
+
+func (s *Service) WatchUnreadNotificationCount(ctx context.Context, user models.PublicUser, send func(int) error) error {
+	updates, unsubscribe, err := s.notificationRepository.unreadCounts.subscribe(ctx, user.UserID)
+	if err != nil {
+		return fmt.Errorf("%w: %w", errUnreadCountUnavailable, err)
+	}
+	defer unsubscribe()
+
+	// Subscribe before reading the snapshot so concurrent writes cannot be missed.
+	count, err := s.GetUserUnreadNotificationCount(ctx, user)
+	if err != nil {
+		return fmt.Errorf("%w: %w", errUnreadCountUnavailable, err)
+	}
+	if err := send(count); err != nil {
+		return err
+	}
+	heartbeat := time.NewTicker(30 * time.Second)
+	defer heartbeat.Stop()
+	lifetime := time.NewTimer(5 * time.Minute)
+	defer lifetime.Stop()
+	for {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-lifetime.C:
+			return nil
+		case <-heartbeat.C:
+			if err := send(count); err != nil {
+				return err
+			}
+		case _, ok := <-updates:
+			if !ok {
+				return errUnreadCountUnavailable
+			}
+			current, err := s.GetUserUnreadNotificationCount(ctx, user)
+			if err != nil {
+				return fmt.Errorf("%w: %w", errUnreadCountUnavailable, err)
+			}
+			if current != count {
+				if err := send(current); err != nil {
+					return err
+				}
+				count = current
+			}
+		}
+	}
 }
 
 func (s *Service) GetReadNotificationsByUserIdWithTimeOffset(ctx context.Context, user models.PublicUser, beforeTime time.Time, limit int, notificationType *string) ([]models.DetailedNotification, error) {
