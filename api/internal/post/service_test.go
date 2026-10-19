@@ -47,7 +47,7 @@ func TestGetPostById(t *testing.T) {
 
 	user := testutil.CreateTestUser(t, env.userRepository, "user1")
 
-	post, err := env.svc.NewPost(t.Context(), user, "post 1", nil, nil, nil)
+	post, err := env.svc.NewPost(t.Context(), user, new("post 1"), nil, nil, nil)
 	require.NoError(t, err)
 
 	post_returned, err := env.svc.GetPostById(t.Context(), user.UserID, post.PostID)
@@ -55,7 +55,7 @@ func TestGetPostById(t *testing.T) {
 	assert.NotNil(t, post_returned)
 
 	assert.Equal(t, post.PostID, post_returned.Post.PostID)
-	assert.Equal(t, "post 1", post_returned.Post.Text)
+	assert.Equal(t, "post 1", *post_returned.Post.Text)
 	assert.Equal(t, user.UserID, post_returned.User.UserID)
 	assert.Equal(t, user.Username, post_returned.User.Username)
 }
@@ -75,7 +75,7 @@ func TestDeletePost(t *testing.T) {
 
 	user := testutil.CreateTestUser(t, env.userRepository, "user0")
 
-	post, err := env.svc.NewPost(t.Context(), user, "post 0", nil, nil, nil)
+	post, err := env.svc.NewPost(t.Context(), user, new("post 0"), nil, nil, nil)
 	require.NoError(t, err)
 
 	err = env.svc.DeletePost(t.Context(), user, post.PostID)
@@ -96,7 +96,7 @@ func TestCreatePostWithImages_ReturnsImages(t *testing.T) {
 		3: {S3Key: "images/photo3.jpg", Width: 400, Height: 400},
 	}
 
-	post_initial, err := env.svc.NewPost(t.Context(), user0, "test post with images", images, nil, nil)
+	post_initial, err := env.svc.NewPost(t.Context(), user0, new("test post with images"), images, nil, nil)
 	require.NoError(t, err)
 
 	post, err := env.svc.GetPostById(t.Context(), user0.UserID, post_initial.PostID)
@@ -112,7 +112,7 @@ func TestGetPosts_DoesNotReturnPrivatePosts(t *testing.T) {
 	user0 := testutil.CreateTestUser(t, env.userRepository, "user0")
 	user1 := testutil.CreateTestUser(t, env.userRepository, "user1")
 
-	new_post, err := env.svc.NewPost(t.Context(), user0, "test post please ignore", nil, nil, new(int(models.VisibilityCloseFriends)))
+	new_post, err := env.svc.NewPost(t.Context(), user0, new("test post please ignore"), nil, nil, new(int(models.VisibilityCloseFriends)))
 	assert.NoError(t, err)
 
 	// user1 should not be able to see the private post
@@ -143,7 +143,7 @@ func TestGetPostById_HiddenWhenPosterBlockedViewer(t *testing.T) {
 	poster := testutil.CreateTestUser(t, env.userRepository, "user0")
 	viewer := testutil.CreateTestUser(t, env.userRepository, "user1")
 
-	post, err := env.svc.NewPost(t.Context(), poster, "post0", nil, nil, nil)
+	post, err := env.svc.NewPost(t.Context(), poster, new("post0"), nil, nil, nil)
 	require.NoError(t, err)
 
 	returned_post, err := env.svc.GetPostById(t.Context(), viewer.UserID, post.PostID)
@@ -164,7 +164,7 @@ func TestGetPosts_HiddenWhenPosterBlockedViewer(t *testing.T) {
 	poster := testutil.CreateTestUser(t, env.userRepository, "user0")
 	viewer := testutil.CreateTestUser(t, env.userRepository, "user1")
 
-	_, err := env.svc.NewPost(t.Context(), poster, "post0", nil, nil, nil)
+	_, err := env.svc.NewPost(t.Context(), poster, new("post0"), nil, nil, nil)
 	require.NoError(t, err)
 
 	err = env.userRepository.BlockUser(t.Context(), poster.UserID, viewer.UserID)
@@ -204,7 +204,7 @@ func TestGetPosts_ProfilePinnedPostDoesNotReduceSubsequentPageSize(t *testing.T)
 
 	created := make([]*models.Post, 3*limit)
 	for i := range created {
-		p, err := env.svc.NewPost(ctx, user, fmt.Sprintf("post %d", i), nil, nil, nil)
+		p, err := env.svc.NewPost(ctx, user, new(fmt.Sprintf("post %d", i)), nil, nil, nil)
 		require.NoError(t, err)
 		created[i] = p
 	}
@@ -231,7 +231,7 @@ func TestGetPost_RelevantLikes(t *testing.T) {
 
 	user0 := testutil.CreateTestUser(t, env.userRepository, "user0")
 
-	post, err := env.svc.NewPost(t.Context(), user0, "test post", nil, nil, nil)
+	post, err := env.svc.NewPost(t.Context(), user0, new("test post"), nil, nil, nil)
 	require.NoError(t, err)
 
 	full_post, err := env.svc.GetPostById(t.Context(), user0.UserID, post.PostID)
@@ -273,7 +273,7 @@ func TestGetPost_DoesNotReturnRelevantLikesForBlockingUser(t *testing.T) {
 	user0 := testutil.CreateTestUser(t, env.userRepository, "user0")
 	user1 := testutil.CreateTestUser(t, env.userRepository, "user1")
 
-	post, err := env.svc.NewPost(t.Context(), user0, "test post", nil, nil, nil)
+	post, err := env.svc.NewPost(t.Context(), user0, new("test post"), nil, nil, nil)
 	require.NoError(t, err)
 
 	err = env.svc.AddLikeToPost(t.Context(), user1, post.PostID)
@@ -301,7 +301,7 @@ func TestGetPost_DoesNotReturnRelevantLikesForBlockedUser(t *testing.T) {
 	user0 := testutil.CreateTestUser(t, env.userRepository, "user0")
 	user1 := testutil.CreateTestUser(t, env.userRepository, "user1")
 
-	post, err := env.svc.NewPost(t.Context(), user0, "test post", nil, nil, nil)
+	post, err := env.svc.NewPost(t.Context(), user0, new("test post"), nil, nil, nil)
 	require.NoError(t, err)
 
 	err = env.svc.AddLikeToPost(t.Context(), user1, post.PostID)
@@ -328,7 +328,7 @@ func TestGetPost_DoesNotReturnRelevantLikesCurrentUser(t *testing.T) {
 
 	user0 := testutil.CreateTestUser(t, env.userRepository, "user0")
 
-	post, err := env.svc.NewPost(t.Context(), user0, "test post", nil, nil, nil)
+	post, err := env.svc.NewPost(t.Context(), user0, new("test post"), nil, nil, nil)
 	require.NoError(t, err)
 
 	err = env.svc.AddLikeToPost(t.Context(), user0, post.PostID)
@@ -345,7 +345,7 @@ func TestGetPost_RelevantLikesDoesNotCountCommentLikes(t *testing.T) {
 	user0 := testutil.CreateTestUser(t, env.userRepository, "user0")
 	user1 := testutil.CreateTestUser(t, env.userRepository, "user1")
 
-	post, err := env.svc.NewPost(t.Context(), user0, "test post", nil, nil, nil)
+	post, err := env.svc.NewPost(t.Context(), user0, new("test post"), nil, nil, nil)
 	require.NoError(t, err)
 
 	comment, err := env.commentSvc.AddCommentToPost(t.Context(), user0, post.PostID, "test comment", nil)
@@ -364,10 +364,10 @@ func TestDeletePinnedPost_DoesNotBreakProfileFeed(t *testing.T) {
 
 	user0 := testutil.CreateTestUser(t, env.userRepository, "user0")
 
-	pinningPost, err := env.svc.NewPost(t.Context(), user0, "test post", nil, nil, nil)
+	pinningPost, err := env.svc.NewPost(t.Context(), user0, new("test post"), nil, nil, nil)
 	require.NoError(t, err)
 
-	_, err = env.svc.NewPost(t.Context(), user0, "test post 2", nil, nil, nil)
+	_, err = env.svc.NewPost(t.Context(), user0, new("test post 2"), nil, nil, nil)
 	require.NoError(t, err)
 
 	err = env.svc.PinPost(t.Context(), user0, pinningPost.PostID)

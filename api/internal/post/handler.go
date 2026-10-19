@@ -49,7 +49,7 @@ func (h *Handler) CreateNewPostV2(w http.ResponseWriter, r *http.Request) {
 	currentUser := utilities.GetAuthenticatedUser(r)
 
 	var requestBody struct {
-		Text        string                   `json:"text"`
+		Text        *string                  `json:"text"`
 		ImageKeymap map[int]models.ImageData `json:"imageKeymap"`
 		Visibility  *int                     `json:"visibility"`
 		Poll        *db.Poll                 `json:"poll"`
@@ -60,7 +60,7 @@ func (h *Handler) CreateNewPostV2(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if len(requestBody.Text) > 2500 {
+	if requestBody.Text != nil && len(*requestBody.Text) > 2500 {
 		utilities.HandleError(w, http.StatusBadRequest, "Post text exceeds maximum length of 2500 characters")
 		return
 	}

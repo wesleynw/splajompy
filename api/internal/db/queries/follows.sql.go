@@ -8,8 +8,6 @@ package queries
 import (
 	"context"
 	"time"
-
-	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const deleteFollow = `-- name: DeleteFollow :exec
@@ -43,11 +41,11 @@ type GetFollowersByUserIdParams struct {
 }
 
 type GetFollowersByUserIdRow struct {
-	UserID    int              `json:"userId"`
-	Email     string           `json:"email"`
-	Username  string           `json:"username"`
-	CreatedAt pgtype.Timestamp `json:"createdAt"`
-	Name      pgtype.Text      `json:"name"`
+	UserID    int       `json:"userId"`
+	Email     string    `json:"email"`
+	Username  string    `json:"username"`
+	CreatedAt time.Time `json:"createdAt"`
+	Name      *string   `json:"name"`
 }
 
 func (q *Queries) GetFollowersByUserId(ctx context.Context, arg GetFollowersByUserIdParams) ([]GetFollowersByUserIdRow, error) {
@@ -92,11 +90,11 @@ type GetFollowingByUserIdParams struct {
 }
 
 type GetFollowingByUserIdRow struct {
-	UserID    int              `json:"userId"`
-	Email     string           `json:"email"`
-	Username  string           `json:"username"`
-	CreatedAt pgtype.Timestamp `json:"createdAt"`
-	Name      pgtype.Text      `json:"name"`
+	UserID    int       `json:"userId"`
+	Email     string    `json:"email"`
+	Username  string    `json:"username"`
+	CreatedAt time.Time `json:"createdAt"`
+	Name      *string   `json:"name"`
 }
 
 func (q *Queries) GetFollowingByUserId(ctx context.Context, arg GetFollowingByUserIdParams) ([]GetFollowingByUserIdRow, error) {
@@ -130,7 +128,7 @@ SELECT users.user_id, follows.created_at
 FROM users
 INNER JOIN follows ON users.user_id = follows.following_id
 WHERE follows.follower_id = $1::int
-    AND ($2::timestamptz IS NULL OR follows.created_at < $2)
+    AND ($2::timestamp IS NULL OR follows.created_at < $2::timestamp)
 ORDER BY follows.created_at DESC
 LIMIT $3::int
 `
@@ -142,8 +140,8 @@ type GetFollowingUserIdsParams struct {
 }
 
 type GetFollowingUserIdsRow struct {
-	UserID    int              `json:"userId"`
-	CreatedAt pgtype.Timestamp `json:"createdAt"`
+	UserID    int       `json:"userId"`
+	CreatedAt time.Time `json:"createdAt"`
 }
 
 func (q *Queries) GetFollowingUserIds(ctx context.Context, arg GetFollowingUserIdsParams) ([]GetFollowingUserIdsRow, error) {
@@ -236,11 +234,11 @@ type GetMutualsByUserIdParams struct {
 }
 
 type GetMutualsByUserIdRow struct {
-	UserID    int              `json:"userId"`
-	Email     string           `json:"email"`
-	Username  string           `json:"username"`
-	CreatedAt pgtype.Timestamp `json:"createdAt"`
-	Name      pgtype.Text      `json:"name"`
+	UserID    int       `json:"userId"`
+	Email     string    `json:"email"`
+	Username  string    `json:"username"`
+	CreatedAt time.Time `json:"createdAt"`
+	Name      *string   `json:"name"`
 }
 
 func (q *Queries) GetMutualsByUserId(ctx context.Context, arg GetMutualsByUserIdParams) ([]GetMutualsByUserIdRow, error) {
@@ -279,7 +277,7 @@ SELECT u.user_id, f1.created_at
 FROM users u
 INNER JOIN follows f1 ON f1.following_id = u.user_id AND f1.follower_id = $1::int
 INNER JOIN follows f2 ON f2.following_id = u.user_id AND f2.follower_id = $2::int
-WHERE $3::timestamptz IS NULL OR f1.created_at < $3
+WHERE $3::timestamp IS NULL OR f1.created_at < $3::timestamp
 ORDER BY f1.created_at DESC
 LIMIT $4::int
 `
@@ -292,8 +290,8 @@ type GetMutualsByUserIdV2Params struct {
 }
 
 type GetMutualsByUserIdV2Row struct {
-	UserID    int              `json:"userId"`
-	CreatedAt pgtype.Timestamp `json:"createdAt"`
+	UserID    int       `json:"userId"`
+	CreatedAt time.Time `json:"createdAt"`
 }
 
 func (q *Queries) GetMutualsByUserIdV2(ctx context.Context, arg GetMutualsByUserIdV2Params) ([]GetMutualsByUserIdV2Row, error) {

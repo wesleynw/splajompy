@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgtype"
 	"splajompy.com/api/v2/internal/db"
 	"splajompy.com/api/v2/internal/db/queries"
 	"splajompy.com/api/v2/internal/models"
@@ -18,10 +17,10 @@ type Store struct {
 }
 
 // InsertPost creates a new post
-func (r Store) InsertPost(ctx context.Context, userId int, content string, facets db.Facets, attributes *db.Attributes, visibilityType *models.VisibilityTypeEnum) (*models.Post, error) {
+func (r Store) InsertPost(ctx context.Context, userId int, content *string, facets db.Facets, attributes *db.Attributes, visibilityType *models.VisibilityTypeEnum) (*models.Post, error) {
 	var post, err = r.querier.InsertPost(ctx, queries.InsertPostParams{
 		UserID:         userId,
-		Text:           pgtype.Text{String: content, Valid: true},
+		Text:           content,
 		Facets:         facets,
 		Attributes:     attributes,
 		Visibilitytype: int(*visibilityType),
@@ -53,8 +52,8 @@ func (r Store) GetPostById(ctx context.Context, postId int, currentUserId int) (
 	return &models.Post{
 		PostID:     dbPost.PostID,
 		UserID:     dbPost.UserID,
-		Text:       dbPost.Text.String,
-		CreatedAt:  dbPost.CreatedAt.Time.UTC(),
+		Text:       dbPost.Text,
+		CreatedAt:  dbPost.CreatedAt.UTC(),
 		Facets:     dbPost.Facets,
 		Attributes: dbPost.Attributes,
 		Visibility: (*models.VisibilityTypeEnum)(&dbPost.Visibilitytype),
@@ -139,56 +138,36 @@ func (r Store) InsertVote(ctx context.Context, postId int, userId int, optionInd
 
 // GetAllPostIdsCursor retrieves IDs of all posts using cursor-based pagination
 func (r Store) GetAllPostIdsCursor(ctx context.Context, limit int, beforeTimestamp *time.Time, currentUserId int) ([]int, error) {
-	var timestamp pgtype.Timestamp
-	if beforeTimestamp != nil {
-		timestamp = pgtype.Timestamp{Time: *beforeTimestamp, Valid: true}
-	}
-
 	return r.querier.GetAllPostIdsCursor(ctx, queries.GetAllPostIdsCursorParams{
 		UserID: currentUserId,
 		Limit:  limit,
-		Before: timestamp,
+		Before: beforeTimestamp,
 	})
 }
 
 // GetPostIdsForFollowingCursor retrieves post IDs from users a specified user follows using cursor-based pagination
 func (r Store) GetPostIdsForFollowingCursor(ctx context.Context, userId int, limit int, beforeTimestamp *time.Time) ([]int, error) {
-	var timestamp pgtype.Timestamp
-	if beforeTimestamp != nil {
-		timestamp = pgtype.Timestamp{Time: *beforeTimestamp, Valid: true}
-	}
-
 	return r.querier.GetPostIdsByFollowingCursor(ctx, queries.GetPostIdsByFollowingCursorParams{
-		UserID:  userId,
-		Limit:   limit,
-		Column3: timestamp,
+		UserID: userId,
+		Limit:  limit,
+		Before: beforeTimestamp,
 	})
 }
 
 // GetPostIdsForMutualFeedCursor retrieves post IDs for mutual feed
 func (r Store) GetPostIdsForMutualFeedCursor(ctx context.Context, userId int, limit int, beforeTimestamp *time.Time) ([]queries.GetPostIdsForMutualFeedCursorRow, error) {
-	var timestamp pgtype.Timestamp
-	if beforeTimestamp != nil {
-		timestamp = pgtype.Timestamp{Time: *beforeTimestamp, Valid: true}
-	}
-
 	return r.querier.GetPostIdsForMutualFeedCursor(ctx, queries.GetPostIdsForMutualFeedCursorParams{
 		FollowerID: userId,
 		Limit:      limit,
-		Column3:    timestamp,
+		Before:     beforeTimestamp,
 	})
 }
 
 // GetPostIdsByUserIdCursor retrieves post IDs for a specific user
 func (r Store) GetPostIdsByUserIdCursor(ctx context.Context, userId int, targetUserId int, limit int, beforeTimestamp *time.Time) ([]int, error) {
-	var timestamp pgtype.Timestamp
-	if beforeTimestamp != nil {
-		timestamp = pgtype.Timestamp{Time: *beforeTimestamp, Valid: true}
-	}
-
 	return r.querier.GetPostIdsByUserIdCursor(ctx, queries.GetPostIdsByUserIdCursorParams{
 		UserID:       userId,
-		Before:       timestamp,
+		Before:       beforeTimestamp,
 		TargetUserID: targetUserId,
 		Limit:        limit,
 	})

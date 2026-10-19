@@ -9,7 +9,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/jackc/pgx/v5/pgtype"
 	db "splajompy.com/api/v2/internal/db"
 )
 
@@ -50,9 +49,9 @@ VALUES ($1, $2, $3)
 `
 
 type CreateSessionParams struct {
-	ID        string           `json:"id"`
-	UserID    int              `json:"userId"`
-	ExpiresAt pgtype.Timestamp `json:"expiresAt"`
+	ID        string    `json:"id"`
+	UserID    int       `json:"userId"`
+	ExpiresAt time.Time `json:"expiresAt"`
 }
 
 func (q *Queries) CreateSession(ctx context.Context, arg CreateSessionParams) error {
@@ -103,9 +102,9 @@ SET code = $1, expires_at = $3
 `
 
 type CreateVerificationCodeParams struct {
-	Code      string           `json:"code"`
-	UserID    int              `json:"userId"`
-	ExpiresAt pgtype.Timestamp `json:"expiresAt"`
+	Code      string    `json:"code"`
+	UserID    int       `json:"userId"`
+	ExpiresAt time.Time `json:"expiresAt"`
 }
 
 func (q *Queries) CreateVerificationCode(ctx context.Context, arg CreateVerificationCodeParams) error {
@@ -255,7 +254,7 @@ func (q *Queries) GetIsUsernameInUse(ctx context.Context, username string) (bool
 const getNotificationActorUserIds = `-- name: GetNotificationActorUserIds :many
 SELECT user_id, created_at
 FROM notification_actor
-WHERE notification_id = $1 AND ($3::timestamptz IS NULL OR created_at < $3)
+WHERE notification_id = $1 AND ($3::timestamp IS NULL OR created_at < $3)
 ORDER BY created_at DESC
 LIMIT $2
 `
@@ -429,7 +428,7 @@ SELECT users.user_id, users.email, users.password, users.username, users.created
 FROM users
 JOIN user_relationship ON user_relationship.user_id = $1::int
 WHERE users.user_id = user_relationship.target_user_id
-    AND ($2::timestamptz IS NULL OR user_relationship.created_at < $2)
+    AND ($2::timestamp IS NULL OR user_relationship.created_at < $2::timestamp)
 ORDER BY user_relationship.created_at DESC
 LIMIT $3::int
 `
@@ -445,12 +444,12 @@ type ListUserRelationshipsRow struct {
 	Email                 string                    `json:"email"`
 	Password              string                    `json:"password"`
 	Username              string                    `json:"username"`
-	CreatedAt             pgtype.Timestamp          `json:"createdAt"`
-	Name                  pgtype.Text               `json:"name"`
+	CreatedAt             time.Time                 `json:"createdAt"`
+	Name                  *string                   `json:"name"`
 	PinnedPostID          *int                      `json:"pinnedPostId"`
 	UserDisplayProperties *db.UserDisplayProperties `json:"userDisplayProperties"`
 	ReferralCode          string                    `json:"referralCode"`
-	RelationshipCreatedAt pgtype.Timestamp          `json:"relationshipCreatedAt"`
+	RelationshipCreatedAt time.Time                 `json:"relationshipCreatedAt"`
 }
 
 func (q *Queries) ListUserRelationships(ctx context.Context, arg ListUserRelationshipsParams) ([]ListUserRelationshipsRow, error) {
@@ -552,8 +551,8 @@ WHERE id = $1
 `
 
 type UpdateSessionExpiryParams struct {
-	ID        string           `json:"id"`
-	ExpiresAt pgtype.Timestamp `json:"expiresAt"`
+	ID        string    `json:"id"`
+	ExpiresAt time.Time `json:"expiresAt"`
 }
 
 func (q *Queries) UpdateSessionExpiry(ctx context.Context, arg UpdateSessionExpiryParams) error {
@@ -601,8 +600,8 @@ WHERE user_id = $1
 `
 
 type UpdateUserNameParams struct {
-	UserID int         `json:"userId"`
-	Name   pgtype.Text `json:"name"`
+	UserID int     `json:"userId"`
+	Name   *string `json:"name"`
 }
 
 func (q *Queries) UpdateUserName(ctx context.Context, arg UpdateUserNameParams) error {
@@ -665,11 +664,11 @@ type UserSearchWithHeuristicsParams struct {
 }
 
 type UserSearchWithHeuristicsRow struct {
-	UserID   int         `json:"userId"`
-	Username string      `json:"username"`
-	Name     pgtype.Text `json:"name"`
-	Tier     int32       `json:"tier"`
-	Score    float64     `json:"score"`
+	UserID   int     `json:"userId"`
+	Username string  `json:"username"`
+	Name     *string `json:"name"`
+	Tier     int32   `json:"tier"`
+	Score    float64 `json:"score"`
 }
 
 func (q *Queries) UserSearchWithHeuristics(ctx context.Context, arg UserSearchWithHeuristicsParams) ([]UserSearchWithHeuristicsRow, error) {

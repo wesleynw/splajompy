@@ -7,8 +7,7 @@ package queries
 
 import (
 	"context"
-
-	"github.com/jackc/pgx/v5/pgtype"
+	"time"
 )
 
 const getAllPostIdsCursor = `-- name: GetAllPostIdsCursor :many
@@ -42,9 +41,9 @@ LIMIT $3::int
 `
 
 type GetAllPostIdsCursorParams struct {
-	UserID int              `json:"userId"`
-	Before pgtype.Timestamp `json:"before"`
-	Limit  int              `json:"limit"`
+	UserID int        `json:"userId"`
+	Before *time.Time `json:"before"`
+	Limit  int        `json:"limit"`
 }
 
 func (q *Queries) GetAllPostIdsCursor(ctx context.Context, arg GetAllPostIdsCursorParams) ([]int, error) {
@@ -145,13 +144,13 @@ LIMIT $2
 `
 
 type GetPostIdsByFollowingCursorParams struct {
-	UserID  int              `json:"userId"`
-	Limit   int              `json:"limit"`
-	Column3 pgtype.Timestamp `json:"column3"`
+	UserID int        `json:"userId"`
+	Limit  int        `json:"limit"`
+	Before *time.Time `json:"before"`
 }
 
 func (q *Queries) GetPostIdsByFollowingCursor(ctx context.Context, arg GetPostIdsByFollowingCursorParams) ([]int, error) {
-	rows, err := q.db.Query(ctx, getPostIdsByFollowingCursor, arg.UserID, arg.Limit, arg.Column3)
+	rows, err := q.db.Query(ctx, getPostIdsByFollowingCursor, arg.UserID, arg.Limit, arg.Before)
 	if err != nil {
 		return nil, err
 	}
@@ -199,10 +198,10 @@ LIMIT $4::int
 `
 
 type GetPostIdsByUserIdCursorParams struct {
-	TargetUserID int              `json:"targetUserId"`
-	Before       pgtype.Timestamp `json:"before"`
-	UserID       int              `json:"userId"`
-	Limit        int              `json:"limit"`
+	TargetUserID int        `json:"targetUserId"`
+	Before       *time.Time `json:"before"`
+	UserID       int        `json:"userId"`
+	Limit        int        `json:"limit"`
 }
 
 func (q *Queries) GetPostIdsByUserIdCursor(ctx context.Context, arg GetPostIdsByUserIdCursorParams) ([]int, error) {
@@ -273,9 +272,9 @@ LIMIT $2
 `
 
 type GetPostIdsForMutualFeedCursorParams struct {
-	FollowerID int              `json:"followerId"`
-	Limit      int              `json:"limit"`
-	Column3    pgtype.Timestamp `json:"column3"`
+	FollowerID int        `json:"followerId"`
+	Limit      int        `json:"limit"`
+	Before     *time.Time `json:"before"`
 }
 
 type GetPostIdsForMutualFeedCursorRow struct {
@@ -286,7 +285,7 @@ type GetPostIdsForMutualFeedCursorRow struct {
 }
 
 func (q *Queries) GetPostIdsForMutualFeedCursor(ctx context.Context, arg GetPostIdsForMutualFeedCursorParams) ([]GetPostIdsForMutualFeedCursorRow, error) {
-	rows, err := q.db.Query(ctx, getPostIdsForMutualFeedCursor, arg.FollowerID, arg.Limit, arg.Column3)
+	rows, err := q.db.Query(ctx, getPostIdsForMutualFeedCursor, arg.FollowerID, arg.Limit, arg.Before)
 	if err != nil {
 		return nil, err
 	}

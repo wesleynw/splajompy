@@ -47,7 +47,7 @@ type Notification struct {
 	CommentID             *int             `json:"commentId"`
 	TargetUserId          *int             `json:"targetUserId"`
 	Message               string           `json:"message"`
-	Link                  string           `json:"link"`
+	Link                  *string          `json:"link"`
 	Viewed                bool             `json:"viewed"`
 	Facets                db.Facets        `json:"facets"`
 	NotificationType      NotificationType `json:"notificationType"`
@@ -58,7 +58,7 @@ type Notification struct {
 type Post struct {
 	PostID     int                 `json:"postId"`
 	UserID     int                 `json:"userId"`
-	Text       string              `json:"text"`
+	Text       *string             `json:"text"`
 	CreatedAt  time.Time           `json:"createdAt"`
 	Facets     db.Facets           `json:"facets"`
 	Attributes *db.Attributes      `json:"attributes"`
@@ -125,7 +125,7 @@ type FullUser struct {
 	Email             string                      `json:"email"`
 	Username          string                      `json:"username"`
 	CreatedAt         time.Time                   `json:"createdAt"`
-	Name              string                      `json:"name"`
+	Name              *string                     `json:"name"`
 	DisplayProperties PublicUserDisplayProperties `json:"displayProperties"`
 }
 
@@ -133,7 +133,7 @@ type PublicUser struct {
 	UserID            int                         `json:"userId"`
 	Username          string                      `json:"username"`
 	CreatedAt         time.Time                   `json:"createdAt"`
-	Name              string                      `json:"name"`
+	Name              *string                     `json:"name"`
 	IsVerified        bool                        `json:"isVerified"`
 	DisplayProperties PublicUserDisplayProperties `json:"displayProperties"`
 	IsFriend          *bool                       `json:"isFriend,omitempty"`
@@ -143,7 +143,7 @@ type DetailedUser struct {
 	UserID            int                         `json:"userId"`
 	Username          string                      `json:"username"`
 	CreatedAt         time.Time                   `json:"createdAt"`
-	Name              string                      `json:"name"`
+	Name              *string                     `json:"name"`
 	Bio               string                      `json:"bio"`
 	IsFollower        bool                        `json:"isFollower"`
 	IsFollowing       bool                        `json:"isFollowing"`

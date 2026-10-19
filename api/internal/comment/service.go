@@ -117,7 +117,7 @@ func (s *Service) AddCommentToPost(ctx context.Context, currentUser models.Publi
 		UserID:    comment.UserID,
 		Text:      comment.Text,
 		Facets:    comment.Facets,
-		CreatedAt: comment.CreatedAt.Time,
+		CreatedAt: comment.CreatedAt,
 		User:      currentUser,
 		IsLiked:   false,
 		Images:    commentImages,
@@ -192,7 +192,7 @@ func (s *Service) GetCommentsByPostId(ctx context.Context, currentUser models.Pu
 			Text:      dbComment.Text,
 			Facets:    dbComment.Facets,
 			Images:    images,
-			CreatedAt: dbComment.CreatedAt.Time,
+			CreatedAt: dbComment.CreatedAt,
 			User:      user,
 			IsLiked:   isLiked,
 		}

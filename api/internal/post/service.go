@@ -44,10 +44,14 @@ func NewService(postRepository Store, userRepository user.Store, likeRepository 
 }
 
 // NewPost preprocesses a new post and stores it in the database.
-func (s *Service) NewPost(ctx context.Context, currentUser models.PublicUser, text string, imageKeymap map[int]models.ImageData, poll *db.Poll, visibilityEnum *int) (*models.Post, error) {
-	facets, err := utilities.GenerateFacets(ctx, s.userRepository, text)
-	if err != nil {
-		return nil, err
+func (s *Service) NewPost(ctx context.Context, currentUser models.PublicUser, text *string, imageKeymap map[int]models.ImageData, poll *db.Poll, visibilityEnum *int) (*models.Post, error) {
+	var facets db.Facets
+	if text != nil {
+		fetchedFacets, err := utilities.GenerateFacets(ctx, s.userRepository, *text)
+		if err != nil {
+			return nil, err
+		}
+		facets = fetchedFacets
 	}
 
 	var attributes *db.Attributes
@@ -90,7 +94,7 @@ func (s *Service) NewPost(ctx context.Context, currentUser models.PublicUser, te
 
 	for userId := range usersToNotify {
 		text := fmt.Sprintf("@%s mentioned you", currentUser.Username)
-		_, err = s.notificationService.AddNotification(ctx, userId, &postId, nil, nil, text, models.NotificationTypeMention, &post.Text)
+		_, err = s.notificationService.AddNotification(ctx, userId, &postId, nil, nil, text, models.NotificationTypeMention, post.Text)
 		if err != nil {
 			return nil, err
 		}
@@ -153,13 +157,6 @@ func (s *Service) GetPostById(ctx context.Context, userId int, postId int) (*mod
 
 	pinnedPostId, _ := s.postRepository.GetPinnedPostId(ctx, post.UserID)
 	isPinned := pinnedPostId != nil && *pinnedPostId == postId
-
-	if pollDetails != nil && !utilities.IsAppUpdatedToVersion(ctx, "v1.3.0") {
-		if post.Text != "" {
-			post.Text += "\n\n"
-		}
-		post.Text += "This post contains a poll. Please update your app to view it."
-	}
 
 	return &models.DetailedPost{
 		Post:          *post,

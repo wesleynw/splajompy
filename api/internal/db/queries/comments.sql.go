@@ -7,8 +7,8 @@ package queries
 
 import (
 	"context"
+	"time"
 
-	"github.com/jackc/pgx/v5/pgtype"
 	db "splajompy.com/api/v2/internal/db"
 )
 
@@ -128,14 +128,14 @@ type GetCommentsByPostIdParams struct {
 }
 
 type GetCommentsByPostIdRow struct {
-	CommentID int              `json:"commentId"`
-	PostID    int              `json:"postId"`
-	UserID    int              `json:"userId"`
-	Text      string           `json:"text"`
-	Facets    db.Facets        `json:"facets"`
-	CreatedAt pgtype.Timestamp `json:"createdAt"`
-	Username  string           `json:"username"`
-	Name      pgtype.Text      `json:"name"`
+	CommentID int       `json:"commentId"`
+	PostID    int       `json:"postId"`
+	UserID    int       `json:"userId"`
+	Text      string    `json:"text"`
+	Facets    db.Facets `json:"facets"`
+	CreatedAt time.Time `json:"createdAt"`
+	Username  string    `json:"username"`
+	Name      *string   `json:"name"`
 }
 
 func (q *Queries) GetCommentsByPostId(ctx context.Context, arg GetCommentsByPostIdParams) ([]GetCommentsByPostIdRow, error) {

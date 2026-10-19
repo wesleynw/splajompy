@@ -8,7 +8,6 @@ package queries
 import (
 	"context"
 
-	"github.com/jackc/pgx/v5/pgtype"
 	db "splajompy.com/api/v2/internal/db"
 )
 
@@ -196,7 +195,7 @@ RETURNING post_id, user_id, text, created_at, facets, attributes, visibilitytype
 
 type InsertPostParams struct {
 	UserID         int            `json:"userId"`
-	Text           pgtype.Text    `json:"text"`
+	Text           *string        `json:"text"`
 	Facets         db.Facets      `json:"facets"`
 	Attributes     *db.Attributes `json:"attributes"`
 	Visibilitytype int            `json:"visibilitytype"`

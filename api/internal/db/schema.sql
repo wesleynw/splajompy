@@ -5,7 +5,7 @@ CREATE TABLE users (
     email character varying(255) NOT NULL UNIQUE,
     password character varying(255) NOT NULL,
     username character varying(100) NOT NULL UNIQUE,
-    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
     name text,
     pinned_post_id integer,
     user_display_properties jsonb NULL,
@@ -30,7 +30,7 @@ CREATE TABLE posts (
     post_id SERIAL PRIMARY KEY NOT NULL,
     user_id INTEGER NOT NULL,
     text TEXT,
-    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
     facets JSON,
     attributes JSON,
     visibilityType INT NOT NULL DEFAULT 0,
@@ -43,7 +43,7 @@ CREATE TABLE comments (
     user_id INT NOT NULL,
     text TEXT NOT NULL,
     facets JSON,
-    created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
     FOREIGN KEY (post_id) REFERENCES posts(post_id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
@@ -51,14 +51,14 @@ CREATE TABLE comments (
 CREATE TABLE sessions (
     id TEXT PRIMARY KEY NOT NULL,
     user_id INTEGER UNIQUE NOT NULL,
-    expires_at TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+    expires_at TIMESTAMP NOT NULL,
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
 
 CREATE TABLE follows (
     follower_id INTEGER NOT NULL,
     following_id INTEGER NOT NULL,
-    created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
     FOREIGN KEY (follower_id) REFERENCES users(user_id) ON DELETE CASCADE,
     FOREIGN KEY (following_id) REFERENCES users(user_id) ON DELETE CASCADE,
     UNIQUE (follower_id, following_id)
@@ -68,7 +68,7 @@ CREATE TABLE likes (
     post_id INT NOT NULL,
     comment_id INT NULL,
     user_id INT NOT NULL,
-    created_at TIMESTAMP with time zone default now(),
+    created_at TIMESTAMPTZ default CURRENT_TIMESTAMP,
     FOREIGN KEY (post_id) REFERENCES posts(post_id) ON DELETE CASCADE,
     FOREIGN KEY (comment_id) REFERENCES comments(comment_id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
@@ -105,7 +105,7 @@ CREATE TABLE notifications (
     viewed BOOLEAN NOT NULL DEFAULT FALSE,
     facets JSON,
     notification_type VARCHAR(50) NOT NULL DEFAULT 'default',
-    created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
     FOREIGN KEY (post_id) REFERENCES posts(post_id) ON DELETE CASCADE,
     FOREIGN KEY (comment_id) REFERENCES comments(comment_id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
@@ -123,7 +123,7 @@ CREATE TABLE "verificationCodes" ( -- TODO: rename this to fit the casing of oth
     id SERIAL PRIMARY KEY NOT NULL,
     code TEXT NOT NULL,
     user_id INT UNIQUE NOT NULL,
-    expires_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL
+    expires_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS block (

@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgtype"
 	"splajompy.com/api/v2/internal/db"
 	"splajompy.com/api/v2/internal/db/queries"
 	"splajompy.com/api/v2/internal/models"
@@ -97,16 +96,11 @@ func (r Store) GetUserUnreadNotificationCount(ctx context.Context, userId int) (
 // GetReadNotificationsForUserIdWithTimeOffset retrieves read notifications for a user with time-based pagination
 func (r Store) GetReadNotificationsForUserIdWithTimeOffset(ctx context.Context, userId int, beforeTime time.Time, limit int, notificationType *string) ([]*models.Notification, error) {
 	params := queries.GetNotificationsForUserIdWithTimeOffsetParams{
-		UserID:    userId,
-		CreatedAt: pgtype.Timestamp{Time: beforeTime, Valid: true},
-		Limit:     limit,
-		Viewed:    true,
-	}
-
-	if notificationType != nil {
-		params.NotificationType = pgtype.Text{String: *notificationType, Valid: true}
-	} else {
-		params.NotificationType = pgtype.Text{Valid: false}
+		UserID:           userId,
+		CreatedAt:        beforeTime,
+		Limit:            limit,
+		Viewed:           true,
+		NotificationType: notificationType,
 	}
 
 	notifications, err := r.querier.GetNotificationsForUserIdWithTimeOffset(ctx, params)
@@ -125,16 +119,11 @@ func (r Store) GetReadNotificationsForUserIdWithTimeOffset(ctx context.Context, 
 // GetUnreadNotificationsForUserIdWithTimeOffset retrieves unread notifications for a user with time-based pagination
 func (r Store) GetUnreadNotificationsForUserIdWithTimeOffset(ctx context.Context, userId int, beforeTime time.Time, limit int, notificationType *string) ([]*models.Notification, error) {
 	params := queries.GetNotificationsForUserIdWithTimeOffsetParams{
-		UserID:    userId,
-		CreatedAt: pgtype.Timestamp{Time: beforeTime, Valid: true},
-		Limit:     limit,
-		Viewed:    false,
-	}
-
-	if notificationType != nil {
-		params.NotificationType = pgtype.Text{String: *notificationType, Valid: true}
-	} else {
-		params.NotificationType = pgtype.Text{Valid: false}
+		UserID:           userId,
+		CreatedAt:        beforeTime,
+		Limit:            limit,
+		Viewed:           false,
+		NotificationType: notificationType,
 	}
 
 	notifications, err := r.querier.GetNotificationsForUserIdWithTimeOffset(ctx, params)

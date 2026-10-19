@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgtype"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
@@ -64,8 +63,8 @@ func AuthMiddleware(q *queries.Queries) func(http.Handler) http.Handler {
 				return
 			}
 
-			if time.Now().Unix() >= session.ExpiresAt.Time.Unix() {
-				slog.InfoContext(ctx, "auth: session expired", "user_id", session.UserID, "expired_at", session.ExpiresAt.Time)
+			if time.Now().Unix() >= session.ExpiresAt.Unix() {
+				slog.InfoContext(ctx, "auth: session expired", "user_id", session.UserID, "expired_at", session.ExpiresAt)
 				err = q.DeleteSession(ctx, session.ID)
 				if err != nil {
 					slog.ErrorContext(ctx, "auth: failed to delete expired session", "user_id", session.UserID, "error", err)
@@ -78,14 +77,11 @@ func AuthMiddleware(q *queries.Queries) func(http.Handler) http.Handler {
 
 			// extend session if it's getting old (expires within 30 days)
 			thirtyDaysFromNow := time.Now().Add(time.Hour * 24 * 30)
-			if session.ExpiresAt.Time.Before(thirtyDaysFromNow) {
+			if session.ExpiresAt.Before(thirtyDaysFromNow) {
 				newExpiry := time.Now().Add(time.Hour * 24 * 90)
 				err = q.UpdateSessionExpiry(ctx, queries.UpdateSessionExpiryParams{
-					ID: session.ID,
-					ExpiresAt: pgtype.Timestamp{
-						Time:  newExpiry,
-						Valid: true,
-					},
+					ID:        session.ID,
+					ExpiresAt: newExpiry,
 				})
 				if err != nil {
 					slog.WarnContext(ctx, "auth: failed to extend session", "user_id", session.UserID, "error", err)

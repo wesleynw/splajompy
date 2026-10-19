@@ -42,7 +42,7 @@ func TestAddCommentToPost(t *testing.T) {
 
 	user0 := testutil.CreateTestUser(t, env.userRepository, "user0")
 
-	post, err := env.postRepository.InsertPost(t.Context(), user0.UserID, "post0", nil, nil, new(models.VisibilityPublic))
+	post, err := env.postRepository.InsertPost(t.Context(), user0.UserID, new("post0"), nil, nil, new(models.VisibilityPublic))
 	require.NoError(t, err)
 
 	commentContent := "test comment"
@@ -63,7 +63,7 @@ func TestDeleteComment_UnauthorizedUser(t *testing.T) {
 	user0 := testutil.CreateTestUser(t, env.userRepository, "user0")
 	user1 := testutil.CreateTestUser(t, env.userRepository, "user1")
 
-	post, err := env.postRepository.InsertPost(t.Context(), user0.UserID, "test post", nil, nil, new(models.VisibilityPublic))
+	post, err := env.postRepository.InsertPost(t.Context(), user0.UserID, new("test post"), nil, nil, new(models.VisibilityPublic))
 	require.NoError(t, err)
 
 	comment, err := env.svc.AddCommentToPost(t.Context(), user0, post.PostID, "test comment", nil)
@@ -84,7 +84,7 @@ func TestGetComments_DoesNotReturnBlockedUserComments(t *testing.T) {
 	user0 := testutil.CreateTestUser(t, env.userRepository, "user0")
 	user1 := testutil.CreateTestUser(t, env.userRepository, "user1")
 
-	post, err := env.postRepository.InsertPost(t.Context(), user0.UserID, "test post", nil, nil, new(models.VisibilityPublic))
+	post, err := env.postRepository.InsertPost(t.Context(), user0.UserID, new("test post"), nil, nil, new(models.VisibilityPublic))
 	require.NoError(t, err)
 
 	comment, err := env.svc.AddCommentToPost(t.Context(), user1, post.PostID, "test comment", nil)
@@ -109,7 +109,7 @@ func TestGetComments_DoesNotReturnMutedUserComments(t *testing.T) {
 	user0 := testutil.CreateTestUser(t, env.userRepository, "user0")
 	user1 := testutil.CreateTestUser(t, env.userRepository, "user1")
 
-	post, err := env.postRepository.InsertPost(t.Context(), user0.UserID, "test post", nil, nil, new(models.VisibilityPublic))
+	post, err := env.postRepository.InsertPost(t.Context(), user0.UserID, new("test post"), nil, nil, new(models.VisibilityPublic))
 	require.NoError(t, err)
 
 	comment, err := env.svc.AddCommentToPost(t.Context(), user1, post.PostID, "test comment", nil)
@@ -133,7 +133,7 @@ func TestGetComments_WithImage(t *testing.T) {
 
 	user0 := testutil.CreateTestUser(t, env.userRepository, "user0")
 
-	post, err := env.postRepository.InsertPost(t.Context(), user0.UserID, "test post", nil, nil, new(models.VisibilityPublic))
+	post, err := env.postRepository.InsertPost(t.Context(), user0.UserID, new("test post"), nil, nil, new(models.VisibilityPublic))
 	require.NoError(t, err)
 
 	images := map[int]models.ImageData{
@@ -157,7 +157,7 @@ func TestGetComments_ReturnsMutedUserCommentsOnMutedUserPost(t *testing.T) {
 	user0 := testutil.CreateTestUser(t, env.userRepository, "user0")
 	user1 := testutil.CreateTestUser(t, env.userRepository, "user1")
 
-	post, err := env.postRepository.InsertPost(t.Context(), user0.UserID, "test post", nil, nil, new(models.VisibilityPublic))
+	post, err := env.postRepository.InsertPost(t.Context(), user0.UserID, new("test post"), nil, nil, new(models.VisibilityPublic))
 	require.NoError(t, err)
 
 	_, err = env.svc.AddCommentToPost(t.Context(), user0, post.PostID, "test comment", nil)
@@ -181,7 +181,7 @@ func TestGetComments_DoesNotReturnBlockingUserComments(t *testing.T) {
 	user0 := testutil.CreateTestUser(t, env.userRepository, "user0")
 	user1 := testutil.CreateTestUser(t, env.userRepository, "user1")
 
-	post, err := env.postRepository.InsertPost(t.Context(), user0.UserID, "test post", nil, nil, new(models.VisibilityPublic))
+	post, err := env.postRepository.InsertPost(t.Context(), user0.UserID, new("test post"), nil, nil, new(models.VisibilityPublic))
 	require.NoError(t, err)
 
 	_, err = env.svc.AddCommentToPost(t.Context(), user1, post.PostID, "test comment", nil)
@@ -205,13 +205,13 @@ func TestGetComments_DoesNotReturnOtherPostComments(t *testing.T) {
 	user0 := testutil.CreateTestUser(t, env.userRepository, "user0")
 	user1 := testutil.CreateTestUser(t, env.userRepository, "user1")
 
-	post_0, err := env.postRepository.InsertPost(t.Context(), user0.UserID, "test post", nil, nil, new(models.VisibilityPublic))
+	post_0, err := env.postRepository.InsertPost(t.Context(), user0.UserID, new("test post"), nil, nil, new(models.VisibilityPublic))
 	require.NoError(t, err)
 
 	_, err = env.svc.AddCommentToPost(t.Context(), user1, post_0.PostID, "test comment", nil)
 	require.NoError(t, err)
 
-	post_1, err := env.postRepository.InsertPost(t.Context(), user0.UserID, "test post", nil, nil, new(models.VisibilityPublic))
+	post_1, err := env.postRepository.InsertPost(t.Context(), user0.UserID, new("test post"), nil, nil, new(models.VisibilityPublic))
 	require.NoError(t, err)
 
 	_, err = env.svc.AddCommentToPost(t.Context(), user1, post_1.PostID, "test comment", nil)

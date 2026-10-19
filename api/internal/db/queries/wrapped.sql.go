@@ -9,7 +9,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/jackc/pgx/v5/pgtype"
 	db "splajompy.com/api/v2/internal/db"
 )
 
@@ -72,9 +71,9 @@ LIMIT $2
 `
 
 type WrappedGetAllUserCommentsWithCursorParams struct {
-	UserID int              `json:"userId"`
-	Limit  int              `json:"limit"`
-	Cursor pgtype.Timestamp `json:"cursor"`
+	UserID int        `json:"userId"`
+	Limit  int        `json:"limit"`
+	Cursor *time.Time `json:"cursor"`
 }
 
 func (q *Queries) WrappedGetAllUserCommentsWithCursor(ctx context.Context, arg WrappedGetAllUserCommentsWithCursorParams) ([]Comment, error) {
@@ -133,15 +132,15 @@ const wrappedGetAllUserLikesWithCursor = `-- name: WrappedGetAllUserLikesWithCur
 SELECT post_id, comment_id, user_id, created_at
 FROM likes
 WHERE user_id = $1 AND EXTRACT(YEAR FROM created_at) = 2025
-    AND ($3::timestamptz IS NULL OR created_at < $3::timestamptz)
+    AND ($3::timestamp IS NULL OR created_at < $3)
 ORDER BY created_at DESC
 LIMIT $2
 `
 
 type WrappedGetAllUserLikesWithCursorParams struct {
-	UserID int       `json:"userId"`
-	Limit  int       `json:"limit"`
-	Cursor time.Time `json:"cursor"`
+	UserID int        `json:"userId"`
+	Limit  int        `json:"limit"`
+	Cursor *time.Time `json:"cursor"`
 }
 
 func (q *Queries) WrappedGetAllUserLikesWithCursor(ctx context.Context, arg WrappedGetAllUserLikesWithCursorParams) ([]Like, error) {
@@ -180,9 +179,9 @@ LIMIT $2
 `
 
 type WrappedGetAllUserPostsWithCursorParams struct {
-	UserID int              `json:"userId"`
-	Limit  int              `json:"limit"`
-	Cursor pgtype.Timestamp `json:"cursor"`
+	UserID int       `json:"userId"`
+	Limit  int       `json:"limit"`
+	Cursor time.Time `json:"cursor"`
 }
 
 func (q *Queries) WrappedGetAllUserPostsWithCursor(ctx context.Context, arg WrappedGetAllUserPostsWithCursorParams) ([]Post, error) {
@@ -297,8 +296,8 @@ WHERE user_id = $1
 `
 
 type WrappedGetCompiledDataByUserIdRow struct {
-	Content   []byte           `json:"content"`
-	Generated pgtype.Timestamp `json:"generated"`
+	Content   []byte     `json:"content"`
+	Generated *time.Time `json:"generated"`
 }
 
 func (q *Queries) WrappedGetCompiledDataByUserId(ctx context.Context, userID int) (WrappedGetCompiledDataByUserIdRow, error) {
@@ -339,18 +338,18 @@ WHERE attributes->'poll' IS NOT NULL AND poll_vote.user_id = $1
 `
 
 type WrappedGetPollsThatUserVotedInRow struct {
-	PostID         int              `json:"postId"`
-	UserID         int              `json:"userId"`
-	Text           pgtype.Text      `json:"text"`
-	CreatedAt      pgtype.Timestamp `json:"createdAt"`
-	Facets         db.Facets        `json:"facets"`
-	Attributes     *db.Attributes   `json:"attributes"`
-	Visibilitytype int              `json:"visibilitytype"`
-	ID             int              `json:"id"`
-	PostID_2       int              `json:"postId2"`
-	UserID_2       int              `json:"userId2"`
-	OptionIndex    int              `json:"optionIndex"`
-	CreatedAt_2    pgtype.Timestamp `json:"createdAt2"`
+	PostID         int            `json:"postId"`
+	UserID         int            `json:"userId"`
+	Text           *string        `json:"text"`
+	CreatedAt      time.Time      `json:"createdAt"`
+	Facets         db.Facets      `json:"facets"`
+	Attributes     *db.Attributes `json:"attributes"`
+	Visibilitytype int            `json:"visibilitytype"`
+	ID             int            `json:"id"`
+	PostID_2       int            `json:"postId2"`
+	UserID_2       int            `json:"userId2"`
+	OptionIndex    int            `json:"optionIndex"`
+	CreatedAt_2    *time.Time     `json:"createdAt2"`
 }
 
 func (q *Queries) WrappedGetPollsThatUserVotedIn(ctx context.Context, userID int) ([]WrappedGetPollsThatUserVotedInRow, error) {

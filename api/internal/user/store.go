@@ -7,7 +7,6 @@ import (
 	"splajompy.com/api/v2/internal/db"
 	"splajompy.com/api/v2/internal/utilities"
 
-	"github.com/jackc/pgx/v5/pgtype"
 	"splajompy.com/api/v2/internal/db/queries"
 	"splajompy.com/api/v2/internal/models"
 )
@@ -133,7 +132,7 @@ func (r Store) SearchUsername(ctx context.Context, prefix string, limit int, cur
 func (r Store) UpdateUserName(ctx context.Context, userId int, newName string) error {
 	return r.querier.UpdateUserName(ctx, queries.UpdateUserNameParams{
 		UserID: userId,
-		Name:   pgtype.Text{String: newName, Valid: true},
+		Name:   &newName,
 	})
 }
 
@@ -192,7 +191,7 @@ func (r Store) CreateVerificationCode(ctx context.Context, userId int, code stri
 	return r.querier.CreateVerificationCode(ctx, queries.CreateVerificationCodeParams{
 		UserID:    userId,
 		Code:      code,
-		ExpiresAt: pgtype.Timestamp{Time: expiresAt, Valid: true},
+		ExpiresAt: expiresAt,
 	})
 }
 
@@ -211,7 +210,7 @@ func (r Store) CreateSession(ctx context.Context, sessionId string, userId int, 
 	return r.querier.CreateSession(ctx, queries.CreateSessionParams{
 		ID:        sessionId,
 		UserID:    userId,
-		ExpiresAt: pgtype.Timestamp{Time: expiresAt, Valid: true},
+		ExpiresAt: expiresAt,
 	})
 }
 
@@ -286,7 +285,7 @@ func (r Store) GetFollowingUserIds(ctx context.Context, userId int, limit int, b
 
 	var cursor *time.Time
 	if len(rows) > 0 {
-		t := rows[len(rows)-1].CreatedAt.Time
+		t := rows[len(rows)-1].CreatedAt
 		cursor = &t
 	}
 
@@ -311,7 +310,7 @@ func (r Store) GetMutualUserIds(ctx context.Context, userId int, targetUserId in
 
 	var cursor *time.Time
 	if len(rows) > 0 {
-		t := rows[len(rows)-1].CreatedAt.Time
+		t := rows[len(rows)-1].CreatedAt
 		cursor = &t
 	}
 
@@ -353,7 +352,7 @@ func (r Store) GetRelationshipUserIds(ctx context.Context, userId int, limit int
 
 	var cursor *time.Time
 	if len(rows) > 0 {
-		t := rows[len(rows)-1].RelationshipCreatedAt.Time
+		t := rows[len(rows)-1].RelationshipCreatedAt
 		cursor = &t
 	}
 

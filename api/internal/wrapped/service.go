@@ -8,7 +8,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jackc/pgx/v5/pgtype"
 	"splajompy.com/api/v2/internal/db/queries"
 	"splajompy.com/api/v2/internal/models"
 	"splajompy.com/api/v2/internal/post"
@@ -41,7 +40,7 @@ func (s *Service) GetPrecomputedWrappedDataByUserId(ctx context.Context, userId 
 	if err != nil {
 		return nil, err
 	}
-	wrappedData.GeneratedUtc = data.Generated.Time
+	wrappedData.GeneratedUtc = *data.Generated
 
 	return &wrappedData, nil
 }
@@ -117,7 +116,7 @@ func (s *Service) IsUserEligibleForWrapped(ctx context.Context, userId int) (boo
 	}
 
 	// was user created before 12/25/2025?
-	if user.CreatedAt.Time.After(time.Date(2025, 12, 25, 0, 0, 0, 0, time.UTC)) {
+	if user.CreatedAt.After(time.Date(2025, 12, 25, 0, 0, 0, 0, time.UTC)) {
 		return false, nil
 	}
 
@@ -239,16 +238,10 @@ func (s *Service) getUserActivityData(ctx context.Context, userId int) (*models.
 
 	// posts
 	for {
-		var timestamp pgtype.Timestamp
-		if cursor != nil {
-			timestamp.Time = *cursor
-			timestamp.Valid = true
-		}
-
 		posts, err := s.querier.WrappedGetAllUserPostsWithCursor(ctx, queries.WrappedGetAllUserPostsWithCursorParams{
 			UserID: userId,
 			Limit:  fetchLimit,
-			Cursor: timestamp,
+			Cursor: *cursor,
 		})
 		if err != nil {
 			return nil, nil, err
@@ -259,33 +252,27 @@ func (s *Service) getUserActivityData(ctx context.Context, userId int) (*models.
 
 		var lastPost *queries.Post
 		for _, post := range posts {
-			dateKey := post.CreatedAt.Time.Format("2006-01-02")
+			dateKey := post.CreatedAt.Format("2006-01-02")
 			counts[dateKey]++
 			if counts[dateKey] > ceiling {
 				ceiling = counts[dateKey]
 				mostActiveDay = dateKey
 			}
 
-			weeklyCounts[post.CreatedAt.Time.Weekday()]++
+			weeklyCounts[post.CreatedAt.Weekday()]++
 			lastPost = &post
 		}
-		cursor = &lastPost.CreatedAt.Time
+		cursor = &lastPost.CreatedAt
 	}
 
 	cursor = nil
 
 	// comments
 	for {
-		var timestamp pgtype.Timestamp
-		if cursor != nil {
-			timestamp.Time = *cursor
-			timestamp.Valid = true
-		}
-
 		comments, err := s.querier.WrappedGetAllUserCommentsWithCursor(ctx, queries.WrappedGetAllUserCommentsWithCursorParams{
 			UserID: userId,
 			Limit:  fetchLimit,
-			Cursor: timestamp,
+			Cursor: cursor,
 		})
 		if err != nil {
 			return nil, nil, err
@@ -296,17 +283,17 @@ func (s *Service) getUserActivityData(ctx context.Context, userId int) (*models.
 
 		var lastComment *queries.Comment
 		for _, comment := range comments {
-			dateKey := comment.CreatedAt.Time.Format("2006-01-02")
+			dateKey := comment.CreatedAt.Format("2006-01-02")
 			counts[dateKey]++
 			if counts[dateKey] > ceiling {
 				ceiling = counts[dateKey]
 				mostActiveDay = dateKey
 			}
 
-			weeklyCounts[comment.CreatedAt.Time.Weekday()]++
+			weeklyCounts[comment.CreatedAt.Weekday()]++
 			lastComment = &comment
 		}
-		cursor = &lastComment.CreatedAt.Time
+		cursor = &lastComment.CreatedAt
 	}
 
 	cursor = nil
@@ -316,7 +303,7 @@ func (s *Service) getUserActivityData(ctx context.Context, userId int) (*models.
 		likes, err := s.querier.WrappedGetAllUserLikesWithCursor(ctx, queries.WrappedGetAllUserLikesWithCursorParams{
 			UserID: userId,
 			Limit:  fetchLimit,
-			Cursor: *cursor,
+			Cursor: cursor,
 		})
 		if err != nil {
 			return nil, nil, err
@@ -327,17 +314,17 @@ func (s *Service) getUserActivityData(ctx context.Context, userId int) (*models.
 
 		var lastLike *queries.Like
 		for _, like := range likes {
-			dateKey := like.CreatedAt.Time.Format("2006-01-02")
+			dateKey := like.CreatedAt.Format("2006-01-02")
 			counts[dateKey]++
 			if counts[dateKey] > ceiling {
 				ceiling = counts[dateKey]
 				mostActiveDay = dateKey
 			}
 
-			weeklyCounts[like.CreatedAt.Time.Weekday()]++
+			weeklyCounts[like.CreatedAt.Weekday()]++
 			lastLike = &like
 		}
-		cursor = &lastLike.CreatedAt.Time
+		cursor = lastLike.CreatedAt
 	}
 
 	// scale weekly activity to 100
@@ -573,16 +560,10 @@ func (s *Service) getWordCountData(ctx context.Context, userId int) (*int, error
 	var cursor *time.Time
 
 	for {
-		var timestamp pgtype.Timestamp
-		if cursor != nil {
-			timestamp.Time = *cursor
-			timestamp.Valid = true
-		}
-
 		posts, err := s.querier.WrappedGetAllUserPostsWithCursor(ctx, queries.WrappedGetAllUserPostsWithCursorParams{
 			UserID: userId,
 			Limit:  fetchLimit,
-			Cursor: timestamp,
+			Cursor: *cursor,
 		})
 		if err != nil {
 			return nil, err
@@ -592,27 +573,21 @@ func (s *Service) getWordCountData(ctx context.Context, userId int) (*int, error
 		}
 
 		for _, post := range posts {
-			postTextBreakdown := strings.Fields(post.Text.String)
+			postTextBreakdown := strings.Fields(*post.Text) // TODO: fix null ref
 			totalWordCount += len(postTextBreakdown)
 		}
 
 		lastPost := posts[len(posts)-1]
-		cursor = &lastPost.CreatedAt.Time
+		cursor = &lastPost.CreatedAt
 	}
 
 	cursor = nil
 
 	for {
-		var timestamp pgtype.Timestamp
-		if cursor != nil {
-			timestamp.Time = *cursor
-			timestamp.Valid = true
-		}
-
 		comments, err := s.querier.WrappedGetAllUserCommentsWithCursor(ctx, queries.WrappedGetAllUserCommentsWithCursorParams{
 			UserID: userId,
 			Limit:  fetchLimit,
-			Cursor: timestamp,
+			Cursor: cursor,
 		})
 		if err != nil {
 			return nil, err
@@ -627,7 +602,7 @@ func (s *Service) getWordCountData(ctx context.Context, userId int) (*int, error
 		}
 
 		lastComment := comments[len(comments)-1]
-		cursor = &lastComment.CreatedAt.Time
+		cursor = &lastComment.CreatedAt
 	}
 
 	return &totalWordCount, nil

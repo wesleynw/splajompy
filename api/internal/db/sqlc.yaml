@@ -10,8 +10,19 @@ sql:
         sql_package: "pgx/v5"
         emit_json_tags: true
         emit_interface: true
+        emit_pointers_for_null_types: true
         json_tags_case_style: "camel"
         overrides:
+          - db_type: "pg_catalog.timestamptz"
+            go_type:
+              import: "time"
+              type: "Time"
+          - db_type: "pg_catalog.timestamptz"
+            go_type:
+              import: "time"
+              type: "Time"
+              pointer: true
+            nullable: true
           - db_type: "timestamptz"
             go_type:
               import: "time"
@@ -22,32 +33,37 @@ sql:
               type: "Time"
               pointer: true
             nullable: true
+          - db_type: "pg_catalog.timestamp"
+            go_type:
+              import: "time"
+              type: "Time"
+          - db_type: "pg_catalog.timestamp"
+            go_type:
+              import: "time"
+              type: "Time"
+              pointer: true
+            nullable: true
+          - db_type: "timestamp"
+            go_type:
+              import: "time"
+              type: "Time"
+          - db_type: "timestamp"
+            go_type:
+              import: "time"
+              type: "Time"
+              pointer: true
+            nullable: true
           - db_type: "pg_catalog.int4"
             go_type: "int"
+          - db_type: "pg_catalog.int4"
+            go_type:
+              type: "int"
+              pointer: true
+            nullable: true
           - db_type: "serial"
             go_type: "int"
           - db_type: "integer"
             go_type: "int"
-          - column: "likes.comment_id"
-            go_type:
-              type: "int"
-              pointer: true
-          - column: "notifications.post_id"
-            go_type:
-              type: "int"
-              pointer: true
-          - column: "notifications.comment_id"
-            go_type:
-              type: "int"
-              pointer: true
-          - column: "notifications.target_user_id"
-            go_type:
-              type: "int"
-              pointer: true
-          - column: "users.pinned_post_id"
-            go_type:
-              type: "int"
-              pointer: true
           - column: "posts.attributes"
             "go_type":
               {
