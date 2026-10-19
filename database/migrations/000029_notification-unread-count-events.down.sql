@@ -1,0 +1,2 @@
+DROP TRIGGER notification_unread_count_changed ON notifications;
+DROP FUNCTION notify_unread_notification_count_change();

@@ -13,7 +13,8 @@ import (
 )
 
 type Store struct {
-	querier queries.Querier
+	querier      queries.Querier
+	unreadCounts *unreadCountListener
 }
 
 // InsertNotification adds a new notification for a user
@@ -234,6 +235,6 @@ func (r Store) RemoveDeviceToken(ctx context.Context, token string) error {
 }
 
 // NewNotificationStore creates a new notification repository
-func NewNotificationStore(querier queries.Querier) Store {
-	return Store{querier: querier}
+func NewNotificationStore(querier queries.Querier, config *pgx.ConnConfig) Store {
+	return Store{querier: querier, unreadCounts: &unreadCountListener{config: config.Copy()}}
 }

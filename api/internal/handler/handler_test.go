@@ -23,7 +23,9 @@ import (
 	"splajompy.com/api/v2/internal/testutil"
 )
 
-type connectHandler struct{}
+type connectHandler struct {
+	splajompyv1connect.UnimplementedNotificationServiceHandler
+}
 
 func (h connectHandler) RegisterConnectRoutes(server *connect.Server) {
 	splajompyv1connect.RegisterNotificationServiceHandler(server, h)
