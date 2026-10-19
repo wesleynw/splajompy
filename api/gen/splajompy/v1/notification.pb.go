@@ -10,7 +10,6 @@ import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
-	sync "sync"
 	unsafe "unsafe"
 )
 
@@ -22,7 +21,7 @@ const (
 )
 
 type GetUnreadNotificationCountRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
+	state         protoimpl.MessageState `protogen:"opaque.v1"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -52,16 +51,23 @@ func (x *GetUnreadNotificationCountRequest) ProtoReflect() protoreflect.Message 
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use GetUnreadNotificationCountRequest.ProtoReflect.Descriptor instead.
-func (*GetUnreadNotificationCountRequest) Descriptor() ([]byte, []int) {
-	return file_splajompy_v1_notification_proto_rawDescGZIP(), []int{0}
+type GetUnreadNotificationCountRequest_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+}
+
+func (b0 GetUnreadNotificationCountRequest_builder) Build() *GetUnreadNotificationCountRequest {
+	m0 := &GetUnreadNotificationCountRequest{}
+	b, x := &b0, m0
+	_, _ = b, x
+	return m0
 }
 
 type GetUnreadNotificationCountResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	UnreadCount   int64                  `protobuf:"varint,1,opt,name=unread_count,json=unreadCount,proto3" json:"unread_count,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state                  protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_UnreadCount int64                  `protobuf:"varint,1,opt,name=unread_count,json=unreadCount,proto3"`
+	unknownFields          protoimpl.UnknownFields
+	sizeCache              protoimpl.SizeCache
 }
 
 func (x *GetUnreadNotificationCountResponse) Reset() {
@@ -89,16 +95,29 @@ func (x *GetUnreadNotificationCountResponse) ProtoReflect() protoreflect.Message
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use GetUnreadNotificationCountResponse.ProtoReflect.Descriptor instead.
-func (*GetUnreadNotificationCountResponse) Descriptor() ([]byte, []int) {
-	return file_splajompy_v1_notification_proto_rawDescGZIP(), []int{1}
-}
-
 func (x *GetUnreadNotificationCountResponse) GetUnreadCount() int64 {
 	if x != nil {
-		return x.UnreadCount
+		return x.xxx_hidden_UnreadCount
 	}
 	return 0
+}
+
+func (x *GetUnreadNotificationCountResponse) SetUnreadCount(v int64) {
+	x.xxx_hidden_UnreadCount = v
+}
+
+type GetUnreadNotificationCountResponse_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	UnreadCount int64
+}
+
+func (b0 GetUnreadNotificationCountResponse_builder) Build() *GetUnreadNotificationCountResponse {
+	m0 := &GetUnreadNotificationCountResponse{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.xxx_hidden_UnreadCount = b.UnreadCount
+	return m0
 }
 
 var File_splajompy_v1_notification_proto protoreflect.FileDescriptor
@@ -111,18 +130,6 @@ const file_splajompy_v1_notification_proto_rawDesc = "" +
 	"\funread_count\x18\x01 \x01(\x03R\vunreadCount2\x96\x01\n" +
 	"\x13NotificationService\x12\x7f\n" +
 	"\x1aGetUnreadNotificationCount\x12/.splajompy.v1.GetUnreadNotificationCountRequest\x1a0.splajompy.v1.GetUnreadNotificationCountResponseB3Z1splajompy.com/api/v2/gen/splajompy/v1;splajompyv1b\x06proto3"
-
-var (
-	file_splajompy_v1_notification_proto_rawDescOnce sync.Once
-	file_splajompy_v1_notification_proto_rawDescData []byte
-)
-
-func file_splajompy_v1_notification_proto_rawDescGZIP() []byte {
-	file_splajompy_v1_notification_proto_rawDescOnce.Do(func() {
-		file_splajompy_v1_notification_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_splajompy_v1_notification_proto_rawDesc), len(file_splajompy_v1_notification_proto_rawDesc)))
-	})
-	return file_splajompy_v1_notification_proto_rawDescData
-}
 
 var file_splajompy_v1_notification_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
 var file_splajompy_v1_notification_proto_goTypes = []any{

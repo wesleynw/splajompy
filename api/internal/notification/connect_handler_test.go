@@ -46,7 +46,7 @@ func TestConnectUnreadCountWithREST(t *testing.T) {
 	info.RequestHeader().Set("Authorization", "Bearer owner-token")
 	response, err := client.GetUnreadNotificationCount(ctx, &splajompyv1.GetUnreadNotificationCountRequest{})
 	require.NoError(t, err)
-	require.Zero(t, response.UnreadCount)
+	require.Zero(t, response.GetUnreadCount())
 
 	other := testutil.CreateTestUser(t, db.UserRepository, "other")
 	for _, userID := range []int{owner.UserID, other.UserID} {
@@ -69,7 +69,7 @@ func TestConnectUnreadCountWithREST(t *testing.T) {
 			info.RequestHeader().Set("Authorization", "Bearer owner-token")
 			response, err := client.GetUnreadNotificationCount(ctx, &splajompyv1.GetUnreadNotificationCountRequest{})
 			require.NoError(t, err)
-			require.EqualValues(t, 1, response.UnreadCount)
+			require.EqualValues(t, 1, response.GetUnreadCount())
 
 			info.RequestHeader().Set("X-App-Version", "1.8.0")
 			_, err = client.GetUnreadNotificationCount(ctx, &splajompyv1.GetUnreadNotificationCountRequest{})
@@ -86,7 +86,7 @@ func TestConnectUnreadCountWithREST(t *testing.T) {
 
 	response, err = client.GetUnreadNotificationCount(ctx, &splajompyv1.GetUnreadNotificationCountRequest{})
 	require.NoError(t, err)
-	require.Zero(t, response.UnreadCount)
+	require.Zero(t, response.GetUnreadCount())
 
 	// Database failures must not sign the client out.
 	db.Pool.Close()
