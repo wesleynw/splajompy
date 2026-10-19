@@ -43,6 +43,7 @@ func (e *AuthError) Error() string {
 }
 
 func Authenticate(ctx context.Context, q *queries.Queries, header string) (context.Context, *AuthError) {
+	requestCtx := ctx
 	ctx, span := tracer.Start(ctx, "authenticate")
 	defer span.End()
 
@@ -146,6 +147,5 @@ func Authenticate(ctx context.Context, q *queries.Queries, header string) (conte
 
 	span.SetAttributes(attribute.Int("user.id", session.UserID))
 
-	ctx = context.WithValue(ctx, utilities.UserContextKey, publicUser)
-	return ctx, nil
+	return context.WithValue(requestCtx, utilities.UserContextKey, publicUser), nil
 }

@@ -10,6 +10,8 @@ import (
 	"connectrpc.com/connect/v2/connecthttp"
 	"connectrpc.com/connect/v2/connectproto"
 	"github.com/stretchr/testify/require"
+	sdktrace "go.opentelemetry.io/otel/sdk/trace"
+	"go.opentelemetry.io/otel/trace"
 	"google.golang.org/genproto/googleapis/rpc/errdetails"
 	splajompyv1 "splajompy.com/api/v2/gen/splajompy/v1"
 	"splajompy.com/api/v2/gen/splajompy/v1/splajompyv1connect"
@@ -38,6 +40,11 @@ func TestConnectUnreadCountWithREST(t *testing.T) {
 
 	owner := testutil.CreateTestUser(t, db.UserRepository, "owner")
 	require.NoError(t, db.UserRepository.CreateSession(t.Context(), "owner-token", owner.UserID, time.Now().UTC().Add(time.Hour)))
+	requestCtx, span := sdktrace.NewTracerProvider().Tracer("test").Start(t.Context(), "request")
+	defer span.End()
+	authenticatedCtx, authErr := middleware.Authenticate(requestCtx, db.Queries, "Bearer owner-token")
+	require.Nil(t, authErr)
+	require.True(t, trace.SpanFromContext(authenticatedCtx).IsRecording())
 	transport := connecthttp.NewTransport(server.Client(), server.URL)
 	client := splajompyv1connect.NewNotificationServiceClient(connect.NewClient(transport))
 	ctx, info := connect.NewClientContext(t.Context())

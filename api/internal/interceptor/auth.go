@@ -13,8 +13,11 @@ func Auth(q *queries.Queries) connect.ServerInterceptor {
 	return func(next connect.ServerFunc) connect.ServerFunc {
 		return func(ctx context.Context, spec connect.Spec, stream connect.ServerStream) error {
 			info, _ := connect.CallInfoForServerContext(ctx)
-			ctx, err := middleware.Authenticate(ctx, q, info.RequestHeader().Get("Authorization"))
+			authenticatedCtx, err := middleware.Authenticate(ctx, q, info.RequestHeader().Get("Authorization"))
 			if err != nil {
+				if ctxErr := ctx.Err(); ctxErr != nil {
+					return ctxErr
+				}
 				code, message := connect.CodeInternal, http.StatusText(http.StatusInternalServerError)
 				switch err.Status {
 				case http.StatusBadRequest:
@@ -24,7 +27,7 @@ func Auth(q *queries.Queries) connect.ServerInterceptor {
 				}
 				return connect.NewError(code, message)
 			}
-			return next(ctx, spec, stream)
+			return next(authenticatedCtx, spec, stream)
 		}
 	}
 }

@@ -15,9 +15,8 @@ type RESTRegistrar interface {
 	RegisterRESTRoutes(public, withAuth func(string, func(http.ResponseWriter, *http.Request)))
 }
 
-// ConnectRegistrar registers each service on either public or withAuth.
 type ConnectRegistrar interface {
-	RegisterConnectRoutes(public, withAuth *connect.Server)
+	RegisterConnectRoutes(server *connect.Server)
 }
 
 type Handler struct {
@@ -43,11 +42,9 @@ func (h *Handler) RegisterRESTRoutes(mux *http.ServeMux, q *queries.Queries) {
 }
 
 func (h *Handler) RegisterConnectRoutes(mux *http.ServeMux, q *queries.Queries) {
-	public := connect.NewServer(interceptor.AppVersion, validate.NewServerInterceptor())
-	withAuth := connect.NewServer(interceptor.AppVersion, interceptor.Auth(q), validate.NewServerInterceptor())
+	server := connect.NewServer(interceptor.AppVersion, interceptor.Auth(q), validate.NewServerInterceptor())
 	for _, r := range h.connectRegistrars {
-		r.RegisterConnectRoutes(public, withAuth)
+		r.RegisterConnectRoutes(server)
 	}
-	connecthttp.Mount(mux, public)
-	connecthttp.Mount(mux, withAuth)
+	connecthttp.Mount(mux, server)
 }
