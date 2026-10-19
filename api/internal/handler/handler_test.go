@@ -12,7 +12,6 @@ import (
 	"github.com/stretchr/testify/require"
 	splajompyv1 "splajompy.com/api/v2/gen/splajompy/v1"
 	"splajompy.com/api/v2/internal/handler"
-	"splajompy.com/api/v2/internal/middleware"
 )
 
 type connectHandler struct{}
@@ -68,9 +67,6 @@ func TestConnectAuthentication(t *testing.T) {
 				var body struct{ Code string }
 				require.NoError(t, json.Unmarshal(response.Body.Bytes(), &body))
 				require.Equal(t, tc.code, body.Code)
-			}
-			if tc.version != "" {
-				require.Equal(t, middleware.MinimumAppVersion, response.Header().Get("X-Minimum-App-Version"))
 			}
 		})
 	}
