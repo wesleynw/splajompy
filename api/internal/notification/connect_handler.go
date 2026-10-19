@@ -19,7 +19,7 @@ func NewConnectHandler(svc *Service) *ConnectHandler {
 	return &ConnectHandler{svc: svc}
 }
 
-func (h *ConnectHandler) RegisterConnectRoutes(public, withAuth *connect.Server) {
+func (h *ConnectHandler) RegisterConnectRoutes(_, withAuth *connect.Server) {
 	splajompyv1connect.RegisterNotificationServiceHandler(withAuth, h)
 }
 
