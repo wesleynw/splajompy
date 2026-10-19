@@ -5,12 +5,9 @@ WORKDIR /app
 COPY go.mod go.sum ./
 RUN go mod download
 COPY . .
-RUN CGO_ENABLED=0 GOOS=linux go build -o main ./cmd/api
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -trimpath -o main ./cmd/api
 
-FROM builder AS tester
-RUN go test -v ./...
-
-FROM gcr.io/distroless/static-debian13 AS runner
+FROM gcr.io/distroless/static-debian13:nonroot AS runner
 WORKDIR /app
 COPY --from=builder /app/main /main
 
