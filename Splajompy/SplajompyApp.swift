@@ -127,20 +127,13 @@ struct SplajompyApp: App {
     .modifier(SupportedVersionViewModifier())
     .environment(authManager)
     .preferredColorScheme(colorScheme)
-    .task(id: notificationPollingUserId) {
-      guard notificationPollingUserId != nil else { return }
-      while !Task.isCancelled {
-        await notificationBadgeStore.refresh()
-        do {
-          try await Task.sleep(for: .seconds(30))
-        } catch {
-          return
-        }
-      }
+    .task(id: notificationStreamingUserId) {
+      guard notificationStreamingUserId != nil else { return }
+      await notificationBadgeStore.watchUnreadCount()
     }
   }
 
-  private var notificationPollingUserId: Int? {
+  private var notificationStreamingUserId: Int? {
     guard isNotificationBadgeEnabled, scenePhase == .active,
       authManager.isAuthenticated
     else { return nil }
