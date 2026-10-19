@@ -6,7 +6,7 @@ VALUES ($1, $2, $3);
 DELETE FROM likes
 WHERE post_id = $1
 AND user_id = $2
-AND ($3 = TRUE OR comment_id = $4);
+AND (sqlc.narg(comment_id)::int IS NULL OR comment_id = sqlc.narg(comment_id)::int);
 
 -- name: GetIsPostLikedByUser :one
 SELECT EXISTS (

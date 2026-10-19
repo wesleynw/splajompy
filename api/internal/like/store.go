@@ -24,7 +24,6 @@ func (r Store) RemoveLike(ctx context.Context, userId int, postId int, commentId
 	return r.querier.RemoveLike(ctx, queries.RemoveLikeParams{
 		PostID:    postId,
 		UserID:    userId,
-		Column3:   commentId == nil, // is_post
 		CommentID: commentId,
 	})
 }

@@ -133,22 +133,16 @@ const removeLike = `-- name: RemoveLike :exec
 DELETE FROM likes
 WHERE post_id = $1
 AND user_id = $2
-AND ($3 = TRUE OR comment_id = $4)
+AND ($3::int IS NULL OR comment_id = $3::int)
 `
 
 type RemoveLikeParams struct {
-	PostID    int         `json:"postId"`
-	UserID    int         `json:"userId"`
-	Column3   interface{} `json:"column3"`
-	CommentID *int        `json:"commentId"`
+	PostID    int  `json:"postId"`
+	UserID    int  `json:"userId"`
+	CommentID *int `json:"commentId"`
 }
 
 func (q *Queries) RemoveLike(ctx context.Context, arg RemoveLikeParams) error {
-	_, err := q.db.Exec(ctx, removeLike,
-		arg.PostID,
-		arg.UserID,
-		arg.Column3,
-		arg.CommentID,
-	)
+	_, err := q.db.Exec(ctx, removeLike, arg.PostID, arg.UserID, arg.CommentID)
 	return err
 }
