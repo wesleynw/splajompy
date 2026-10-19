@@ -14,7 +14,7 @@ type PostReportEmailData struct {
 	AuthorUsername   string
 	AuthorUserID     int
 	PostID           int
-	PostText         *string
+	PostText         string
 	PostCreatedAt    time.Time
 	ReportedAt       time.Time
 	Images           []queries.Image

@@ -30,7 +30,7 @@ type Comment struct {
 	Text            string    `json:"text"`
 	Facets          db.Facets `json:"facets"`
 	CreatedAt       time.Time `json:"createdAt"`
-	ParentCommentID *int32    `json:"parentCommentId"`
+	ParentCommentID *int      `json:"parentCommentId"`
 }
 
 type CommentImage struct {

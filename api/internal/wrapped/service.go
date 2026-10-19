@@ -272,7 +272,7 @@ func (s *Service) getUserActivityData(ctx context.Context, userId int) (*models.
 		comments, err := s.querier.WrappedGetAllUserCommentsWithCursor(ctx, queries.WrappedGetAllUserCommentsWithCursorParams{
 			UserID: userId,
 			Limit:  fetchLimit,
-			Cursor: *cursor,
+			Cursor: cursor,
 		})
 		if err != nil {
 			return nil, nil, err
@@ -587,7 +587,7 @@ func (s *Service) getWordCountData(ctx context.Context, userId int) (*int, error
 		comments, err := s.querier.WrappedGetAllUserCommentsWithCursor(ctx, queries.WrappedGetAllUserCommentsWithCursorParams{
 			UserID: userId,
 			Limit:  fetchLimit,
-			Cursor: *cursor,
+			Cursor: cursor,
 		})
 		if err != nil {
 			return nil, err

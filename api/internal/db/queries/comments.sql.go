@@ -22,7 +22,7 @@ type AddCommentToPostParams struct {
 	UserID          int       `json:"userId"`
 	Text            string    `json:"text"`
 	Facets          db.Facets `json:"facets"`
-	ParentCommentID *int32    `json:"parentCommentId"`
+	ParentCommentID *int      `json:"parentCommentId"`
 }
 
 func (q *Queries) AddCommentToPost(ctx context.Context, arg AddCommentToPostParams) (Comment, error) {
@@ -119,8 +119,8 @@ ORDER BY comments.created_at DESC
 `
 
 type GetCommentsByParentCommentIdParams struct {
-	ParentCommentID *int32 `json:"parentCommentId"`
-	UserID          int    `json:"userId"`
+	ParentCommentID *int `json:"parentCommentId"`
+	UserID          int  `json:"userId"`
 }
 
 func (q *Queries) GetCommentsByParentCommentId(ctx context.Context, arg GetCommentsByParentCommentIdParams) ([]Comment, error) {

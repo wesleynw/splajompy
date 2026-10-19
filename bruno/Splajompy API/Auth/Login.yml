@@ -14,11 +14,6 @@ http:
           "Password": "{{login_password}}"
       }
 
-runtime:
-  variables:
-    - name: login_password
-      value: DBW_anr9zny5vrd!egc
-
 settings:
   encodeUrl: true
   timeout: 0
