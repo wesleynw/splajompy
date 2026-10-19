@@ -8,7 +8,6 @@ import (
 	"strings"
 	"time"
 
-	"connectrpc.com/connect/v2"
 	"github.com/jackc/pgx/v5"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
@@ -24,9 +23,9 @@ var tracer = otel.Tracer("splajompy.com/api/v2/internal/middleware")
 func AuthMiddleware(q *queries.Queries) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			ctx, err := authenticate(r.Context(), q, r.Header.Get("Authorization"))
+			ctx, err := Authenticate(r.Context(), q, r.Header.Get("Authorization"))
 			if err != nil {
-				utilities.HandleError(w, err.status, err.Error())
+				utilities.HandleError(w, err.Status, err.Error())
 				return
 			}
 			next.ServeHTTP(w, r.WithContext(ctx))
@@ -34,49 +33,29 @@ func AuthMiddleware(q *queries.Queries) func(http.Handler) http.Handler {
 	}
 }
 
-func AuthInterceptor(q *queries.Queries) connect.ServerInterceptor {
-	return func(next connect.ServerFunc) connect.ServerFunc {
-		return func(ctx context.Context, spec connect.Spec, stream connect.ServerStream) error {
-			info, _ := connect.CallInfoForServerContext(ctx)
-			ctx, err := authenticate(ctx, q, info.RequestHeader().Get("Authorization"))
-			if err != nil {
-				code, message := connect.CodeInternal, http.StatusText(http.StatusInternalServerError)
-				switch err.status {
-				case http.StatusBadRequest:
-					code, message = connect.CodeInvalidArgument, err.Error()
-				case http.StatusUnauthorized:
-					code, message = connect.CodeUnauthenticated, err.Error()
-				}
-				return connect.NewError(code, message)
-			}
-			return next(ctx, spec, stream)
-		}
-	}
-}
-
-type authError struct {
-	status  int
+type AuthError struct {
+	Status  int
 	message string
 }
 
-func (e *authError) Error() string {
+func (e *AuthError) Error() string {
 	return e.message
 }
 
-func authenticate(ctx context.Context, q *queries.Queries, header string) (context.Context, *authError) {
+func Authenticate(ctx context.Context, q *queries.Queries, header string) (context.Context, *AuthError) {
 	ctx, span := tracer.Start(ctx, "authenticate")
 	defer span.End()
 
 	if header == "" {
 		slog.WarnContext(ctx, "auth: missing authorization header")
-		return nil, &authError{status: http.StatusUnauthorized, message: http.StatusText(http.StatusUnauthorized)}
+		return nil, &AuthError{Status: http.StatusUnauthorized, message: http.StatusText(http.StatusUnauthorized)}
 	}
 
 	scheme, token, ok := strings.Cut(header, " ")
 	token = strings.TrimSpace(token)
 	if !ok || !strings.EqualFold(scheme, "Bearer") || token == "" {
 		slog.WarnContext(ctx, "auth: malformed authorization header")
-		return nil, &authError{status: http.StatusBadRequest, message: "Invalid authorization header"}
+		return nil, &AuthError{Status: http.StatusBadRequest, message: "Invalid authorization header"}
 	}
 
 	token = strings.ReplaceAll(token, `\/`, `/`)
@@ -90,10 +69,10 @@ func authenticate(ctx context.Context, q *queries.Queries, header string) (conte
 	// people out automatically
 	if errors.Is(err, pgx.ErrNoRows) {
 		slog.WarnContext(ctx, "auth: session not found", "error", err)
-		return nil, &authError{status: http.StatusUnauthorized, message: "no session found"}
+		return nil, &AuthError{Status: http.StatusUnauthorized, message: "no session found"}
 	} else if err != nil {
 		slog.ErrorContext(ctx, "auth: failed to fetch session", "error", err)
-		return nil, &authError{status: http.StatusInternalServerError, message: "something went wrong"}
+		return nil, &AuthError{Status: http.StatusInternalServerError, message: "something went wrong"}
 	}
 
 	if time.Now().Unix() >= session.ExpiresAt.Unix() {
@@ -101,9 +80,9 @@ func authenticate(ctx context.Context, q *queries.Queries, header string) (conte
 		err = q.DeleteSession(ctx, session.ID)
 		if err != nil {
 			slog.ErrorContext(ctx, "auth: failed to delete expired session", "user_id", session.UserID, "error", err)
-			return nil, &authError{status: http.StatusInternalServerError, message: "failed to delete expired session"}
+			return nil, &AuthError{Status: http.StatusInternalServerError, message: "failed to delete expired session"}
 		}
-		return nil, &authError{status: http.StatusUnauthorized, message: "session expired"}
+		return nil, &AuthError{Status: http.StatusUnauthorized, message: "session expired"}
 	}
 
 	// extend session if it's getting old (expires within 30 days)
@@ -126,7 +105,7 @@ func authenticate(ctx context.Context, q *queries.Queries, header string) (conte
 		if errors.Is(err, pgx.ErrNoRows) {
 			status, message = http.StatusUnauthorized, "no user found"
 		}
-		return nil, &authError{status: status, message: message}
+		return nil, &AuthError{Status: status, message: message}
 	}
 
 	// log latest app version in profile

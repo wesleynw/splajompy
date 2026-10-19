@@ -7,6 +7,7 @@ import (
 	"connectrpc.com/connect/v2/connecthttp"
 	"connectrpc.com/validate"
 	"splajompy.com/api/v2/internal/db/queries"
+	"splajompy.com/api/v2/internal/interceptor"
 	"splajompy.com/api/v2/internal/middleware"
 )
 
@@ -42,8 +43,8 @@ func (h *Handler) RegisterRESTRoutes(mux *http.ServeMux, q *queries.Queries) {
 }
 
 func (h *Handler) RegisterConnectRoutes(mux *http.ServeMux, q *queries.Queries) {
-	public := connect.NewServer(middleware.AppVersionInterceptor, validate.NewServerInterceptor())
-	withAuth := connect.NewServer(middleware.AppVersionInterceptor, middleware.AuthInterceptor(q), validate.NewServerInterceptor())
+	public := connect.NewServer(interceptor.AppVersion, validate.NewServerInterceptor())
+	withAuth := connect.NewServer(interceptor.AppVersion, interceptor.Auth(q), validate.NewServerInterceptor())
 	for _, r := range h.connectRegistrars {
 		r.RegisterConnectRoutes(public, withAuth)
 	}
