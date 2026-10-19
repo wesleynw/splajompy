@@ -23,19 +23,29 @@ extension Foundation.Notification.Name {
 }
 
 public struct APIService {
-  static let baseUrl: String =
-    Bundle.main.object(forInfoDictionaryKey: "API_URL") as? String
-    ?? "http://api.splajompy.com"
+  static let serverURLKey = "api_server_url"
 
-  static let connectClient = ProtocolClient(
-    httpClient: URLSessionHTTPClient(),
-    config: ProtocolClientConfig(
-      host: baseUrl,
-      networkProtocol: .connect,
-      codec: ProtoCodec(),
-      interceptors: [.init { _ in ConnectAPIInterceptor() }]
+  static let defaultBaseUrl: String =
+    Bundle.main.object(forInfoDictionaryKey: "API_URL") as? String
+    ?? "https://api.splajompy.com"
+
+  static var baseUrl: String {
+    UserDefaults.standard.string(forKey: serverURLKey) ?? defaultBaseUrl
+  }
+
+  private static let connectHTTPClient = URLSessionHTTPClient()
+
+  static var connectClient: ProtocolClient {
+    ProtocolClient(
+      httpClient: connectHTTPClient,
+      config: ProtocolClientConfig(
+        host: baseUrl,
+        networkProtocol: .connect,
+        codec: ProtoCodec(),
+        interceptors: [.init { _ in ConnectAPIInterceptor() }]
+      )
     )
-  )
+  }
 
   private static func createRequest(
     for url: URL,

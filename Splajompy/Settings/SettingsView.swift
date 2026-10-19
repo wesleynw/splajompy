@@ -36,6 +36,12 @@ struct SettingsView: View {
         }
 
         Section {
+          NavigationLink(value: SettingsRoute.developer) {
+            Label("Developer", systemImage: "hammer")
+          }
+        }
+
+        Section {
           NavigationLink(value: SettingsRoute.about) {
             Label("About", systemImage: "info.circle")
           }
