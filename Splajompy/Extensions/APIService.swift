@@ -327,12 +327,15 @@ final class ConnectAPIInterceptor: UnaryInterceptor {
     _ response: ResponseMessage<Message>,
     proceed: @escaping @Sendable (ResponseMessage<Message>) -> Void
   ) {
+    let errorDetails: [Google_Rpc_ErrorInfo] = response.error?.unpackedDetails() ?? []
     let handleError: @MainActor @Sendable () -> Void
     switch response.error?.code {
     case .unauthenticated:
       handleError = onUnauthenticated
     case .failedPrecondition
-    where response.error?.metadata["x-minimum-app-version"]?.first != nil:
+    where errorDetails.contains(where: {
+      $0.domain == "splajompy.com" && $0.reason == "APP_UPGRADE_REQUIRED"
+    }):
       handleError = onUpgradeRequired
     default:
       proceed(response)
