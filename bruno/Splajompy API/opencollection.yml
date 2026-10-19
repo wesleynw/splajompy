@@ -3,6 +3,9 @@ opencollection: 1.0.0
 info:
   name: Splajompy API
 config:
+  protobuf:
+    importPaths:
+      - path: ../../proto/splajompy/v1
   proxy:
     inherit: true
     config:

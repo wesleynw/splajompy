@@ -1,0 +1,14 @@
+info:
+  name: GetUnreadNotifications
+  type: grpc
+  seq: 6
+
+grpc:
+  url: "{{apiUrl}}"
+  method: /splajompy.v1.NotificationService/GetUnreadNotificationCount
+  methodType: unary
+  protoFilePath: ../../proto/splajompy/v1/notification.proto
+  message:
+    - title: message 1
+      message: "{}"
+  auth: inherit
