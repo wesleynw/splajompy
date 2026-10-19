@@ -64,7 +64,7 @@ func AuthMiddleware(q *queries.Queries) func(http.Handler) http.Handler {
 			}
 
 			if time.Now().Unix() >= session.ExpiresAt.Unix() {
-				slog.InfoContext(ctx, "auth: session expired", "user_id", session.UserID, "expired_at", session.ExpiresAt.Time)
+				slog.InfoContext(ctx, "auth: session expired", "user_id", session.UserID, "expired_at", session.ExpiresAt)
 				err = q.DeleteSession(ctx, session.ID)
 				if err != nil {
 					slog.ErrorContext(ctx, "auth: failed to delete expired session", "user_id", session.UserID, "error", err)
