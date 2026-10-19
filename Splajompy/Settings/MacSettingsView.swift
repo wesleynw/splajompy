@@ -45,6 +45,13 @@
         }
 
         NavigationStack {
+          DeveloperSettingsView()
+        }
+        .tabItem {
+          Label("Developer", systemImage: "hammer")
+        }
+
+        NavigationStack {
           StatisticsView()
         }
         .tabItem {

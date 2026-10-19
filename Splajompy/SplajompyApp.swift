@@ -339,6 +339,8 @@ struct SplajompyApp: App {
     case .notifications:
       PushNotificationSettingsView()
         .postHogScreenView()
+    case .developer:
+      DeveloperSettingsView()
     case .statistics:
       StatisticsView()
         .postHogScreenView()

@@ -5,6 +5,7 @@ struct SplashScreenView: View {
   @Environment(AuthManager.self) private var authManager
   @State private var isLoginViewPresenting: Bool = false
   @State private var isRegisterViewPresenting: Bool = false
+  @State private var isShowingDeveloperSettings = false
 
   var body: some View {
     VStack {
@@ -53,6 +54,25 @@ struct SplashScreenView: View {
         .sensoryFeedback(.impact, trigger: isRegisterViewPresenting)
       }
       .padding()
+    }
+    .overlay(alignment: .topTrailing) {
+      Button {
+        isShowingDeveloperSettings = true
+      } label: {
+        Label("Developer Settings", systemImage: "hammer")
+          .labelStyle(.iconOnly)
+      }
+      .padding()
+    }
+    .sheet(isPresented: $isShowingDeveloperSettings) {
+      NavigationStack {
+        DeveloperSettingsView()
+          .toolbar {
+            ToolbarItem(placement: .cancellationAction) {
+              Button("Close") { isShowingDeveloperSettings = false }
+            }
+          }
+      }
     }
     #if os(iOS)
       .fullScreenCover(isPresented: $isLoginViewPresenting) {

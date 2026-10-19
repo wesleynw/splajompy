@@ -194,11 +194,21 @@ class AuthManager: Sendable {
     await SessionStore.shared.loadSession()?.token
   }
 
+  func changeAPIServer(to url: String) async {
+    await SessionStore.shared.clearSession()
+    completeSignOut(reason: "api_server_changed")
+    UserDefaults.standard.set(url, forKey: APIService.serverURLKey)
+  }
+
   func signOut(reason: String = "manual") {
-    PostHogSDK.shared.capture("user_signout", properties: ["reason": reason])
     Task {
       await SessionStore.shared.clearSession()
     }
+    completeSignOut(reason: reason)
+  }
+
+  private func completeSignOut(reason: String) {
+    PostHogSDK.shared.capture("user_signout", properties: ["reason": reason])
 
     UserDefaults.standard.removeObject(forKey: "selectedFeedType")
     UserDefaults.standard.removeObject(forKey: "push_notifications_enabled")
