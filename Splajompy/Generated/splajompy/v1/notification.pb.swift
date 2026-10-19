@@ -42,6 +42,28 @@ nonisolated struct Splajompy_V1_GetUnreadNotificationCountResponse: Sendable {
   init() {}
 }
 
+nonisolated struct Splajompy_V1_WatchUnreadNotificationCountRequest: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  init() {}
+}
+
+nonisolated struct Splajompy_V1_WatchUnreadNotificationCountResponse: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  var unreadCount: Int64 = 0
+
+  var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  init() {}
+}
+
 // MARK: - Code below here is support for the SwiftProtobuf runtime.
 
 fileprivate nonisolated let _protobuf_package = "splajompy.v1"
@@ -89,6 +111,55 @@ nonisolated extension Splajompy_V1_GetUnreadNotificationCountResponse: SwiftProt
   }
 
   static func ==(lhs: Splajompy_V1_GetUnreadNotificationCountResponse, rhs: Splajompy_V1_GetUnreadNotificationCountResponse) -> Bool {
+    if lhs.unreadCount != rhs.unreadCount {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+nonisolated extension Splajompy_V1_WatchUnreadNotificationCountRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = _protobuf_package + ".WatchUnreadNotificationCountRequest"
+  static let _protobuf_nameMap = SwiftProtobuf._NameMap()
+
+  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    // Load everything into unknown fields
+    while try decoder.nextFieldNumber() != nil {}
+  }
+
+  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  static func ==(lhs: Splajompy_V1_WatchUnreadNotificationCountRequest, rhs: Splajompy_V1_WatchUnreadNotificationCountRequest) -> Bool {
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+nonisolated extension Splajompy_V1_WatchUnreadNotificationCountResponse: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = _protobuf_package + ".WatchUnreadNotificationCountResponse"
+  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}unread_count\0")
+
+  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularInt64Field(value: &self.unreadCount) }()
+      default: break
+      }
+    }
+  }
+
+  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if self.unreadCount != 0 {
+      try visitor.visitSingularInt64Field(value: self.unreadCount, fieldNumber: 1)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  static func ==(lhs: Splajompy_V1_WatchUnreadNotificationCountResponse, rhs: Splajompy_V1_WatchUnreadNotificationCountResponse) -> Bool {
     if lhs.unreadCount != rhs.unreadCount {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true

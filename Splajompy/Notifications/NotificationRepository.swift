@@ -51,6 +51,8 @@ protocol NotificationServiceProtocol: Sendable {
 
   func getUnreadNotificationCount() async -> Result<Int, Error>
 
+  func watchUnreadNotificationCount() -> AsyncThrowingStream<Int, Error>
+
   func getReadNotificationsWithTimeOffset(
     beforeTime: String?,
     limit: Int,
@@ -108,6 +110,36 @@ struct NotificationService: NotificationServiceProtocol {
   func getUnreadNotificationCount() async -> Result<Int, Error> {
     let response = await client.getUnreadNotificationCount(request: .init(), headers: [:])
     return response.result.map { Int($0.unreadCount) }.mapError { $0 as Error }
+  }
+
+  func watchUnreadNotificationCount() -> AsyncThrowingStream<Int, Error> {
+    let stream = client.watchUnreadNotificationCount(headers: [:])
+    return AsyncThrowingStream(bufferingPolicy: .bufferingNewest(1)) { continuation in
+      let task = Task {
+        defer { stream.cancel() }
+        do {
+          try Task.checkCancellation()
+          try stream.send(.init())
+          for await result in stream.results() {
+            switch result {
+            case .message(let message):
+              continuation.yield(Int(message.unreadCount))
+            case .complete(_, let error, _):
+              if let error { throw error }
+            default:
+              break
+            }
+          }
+          continuation.finish()
+        } catch {
+          continuation.finish(throwing: error)
+        }
+      }
+      continuation.onTermination = { _ in
+        task.cancel()
+        stream.cancel()
+      }
+    }
   }
 
   func getReadNotificationsWithTimeOffset(

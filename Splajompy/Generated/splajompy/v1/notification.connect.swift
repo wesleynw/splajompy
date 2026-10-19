@@ -13,6 +13,11 @@ internal protocol Splajompy_V1_NotificationServiceClientInterface: Sendable {
 
     @available(iOS 13, *)
     func `getUnreadNotificationCount`(request: Splajompy_V1_GetUnreadNotificationCountRequest, headers: Connect.Headers) async -> ResponseMessage<Splajompy_V1_GetUnreadNotificationCountResponse>
+
+    /// Sends a count snapshot on connection, after changes, and every 30 seconds.
+    /// Streams close after five minutes. Reconnect to get a new snapshot.
+    @available(iOS 13, *)
+    func `watchUnreadNotificationCount`(headers: Connect.Headers) -> any Connect.ServerOnlyAsyncStreamInterface<Splajompy_V1_WatchUnreadNotificationCountRequest, Splajompy_V1_WatchUnreadNotificationCountResponse>
 }
 
 /// Concrete implementation of `Splajompy_V1_NotificationServiceClientInterface`.
@@ -28,9 +33,15 @@ internal final class Splajompy_V1_NotificationServiceClient: Splajompy_V1_Notifi
         return await self.client.unary(path: "/splajompy.v1.NotificationService/GetUnreadNotificationCount", idempotencyLevel: .unknown, request: request, headers: headers)
     }
 
+    @available(iOS 13, *)
+    internal func `watchUnreadNotificationCount`(headers: Connect.Headers = [:]) -> any Connect.ServerOnlyAsyncStreamInterface<Splajompy_V1_WatchUnreadNotificationCountRequest, Splajompy_V1_WatchUnreadNotificationCountResponse> {
+        return self.client.serverOnlyStream(path: "/splajompy.v1.NotificationService/WatchUnreadNotificationCount", headers: headers)
+    }
+
     internal enum Metadata {
         internal enum Methods {
             internal static let getUnreadNotificationCount = Connect.MethodSpec(name: "GetUnreadNotificationCount", service: "splajompy.v1.NotificationService", type: .unary)
+            internal static let watchUnreadNotificationCount = Connect.MethodSpec(name: "WatchUnreadNotificationCount", service: "splajompy.v1.NotificationService", type: .serverStream)
         }
     }
 }
