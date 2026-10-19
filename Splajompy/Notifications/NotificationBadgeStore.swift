@@ -24,6 +24,28 @@ class NotificationBadgeStore {
     }
   }
 
+  func watchUnreadCount() async {
+    var retryDelay = 1.0
+    while !Task.isCancelled {
+      do {
+        for try await count in service.watchUnreadNotificationCount() {
+          guard !Task.isCancelled else { return }
+          revision += 1
+          unreadCount = count
+          retryDelay = 1
+        }
+      } catch {
+        if Task.isCancelled { return }
+      }
+      do {
+        try await Task.sleep(for: .seconds(Double.random(in: retryDelay...(retryDelay * 1.5))))
+      } catch {
+        return
+      }
+      retryDelay = min(retryDelay * 2, 30)
+    }
+  }
+
   func clear() {
     revision += 1
     unreadCount = 0

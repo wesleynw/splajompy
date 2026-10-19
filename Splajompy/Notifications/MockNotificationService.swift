@@ -1,6 +1,13 @@
 import Foundation
 
 class MockNotificationService: @unchecked Sendable, NotificationServiceProtocol {
+  func watchUnreadNotificationCount() -> AsyncThrowingStream<Int, Error> {
+    AsyncThrowingStream { continuation in
+      continuation.yield(0)
+      continuation.finish()
+    }
+  }
+
   func getUnreadNotificationCount() async -> Result<Int, Error> {
     return .success(0)
   }
@@ -427,6 +434,13 @@ class MockNotificationService: @unchecked Sendable, NotificationServiceProtocol 
 }
 
 final class MockNotificationService_Empty: NotificationServiceProtocol {
+  func watchUnreadNotificationCount() -> AsyncThrowingStream<Int, Error> {
+    AsyncThrowingStream { continuation in
+      continuation.yield(0)
+      continuation.finish()
+    }
+  }
+
   func markNotificationAsRead(notificationId: Int) async -> Result<
     Void, any Error
   > {

@@ -284,7 +284,7 @@ public struct APIService {
   }
 }
 
-final class ConnectAPIInterceptor: UnaryInterceptor {
+final class ConnectAPIInterceptor: UnaryInterceptor, StreamInterceptor {
   private let tokenProvider: @Sendable () async -> String?
   private let appVersion: String?
   private let onUnauthenticated: @MainActor @Sendable () -> Void
@@ -309,6 +309,20 @@ final class ConnectAPIInterceptor: UnaryInterceptor {
   }
 
   func handleUnaryRequest<Message: ProtobufMessage>(
+    _ request: HTTPRequest<Message>,
+    proceed: @escaping @Sendable (Result<HTTPRequest<Message>, ConnectError>) -> Void
+  ) {
+    authorize(request, proceed: proceed)
+  }
+
+  func handleStreamStart(
+    _ request: HTTPRequest<Void>,
+    proceed: @escaping @Sendable (Result<HTTPRequest<Void>, ConnectError>) -> Void
+  ) {
+    authorize(request, proceed: proceed)
+  }
+
+  private func authorize<Message: Sendable>(
     _ request: HTTPRequest<Message>,
     proceed: @escaping @Sendable (Result<HTTPRequest<Message>, ConnectError>) -> Void
   ) {
@@ -337,23 +351,38 @@ final class ConnectAPIInterceptor: UnaryInterceptor {
     _ response: ResponseMessage<Message>,
     proceed: @escaping @Sendable (ResponseMessage<Message>) -> Void
   ) {
-    let errorDetails: [Google_Rpc_ErrorInfo] = response.error?.unpackedDetails() ?? []
-    let handleError: @MainActor @Sendable () -> Void
-    switch response.error?.code {
+    handleError(response.error) { proceed(response) }
+  }
+
+  func handleStreamResult<Message: ProtobufMessage>(
+    _ result: StreamResult<Message>,
+    proceed: @escaping @Sendable (StreamResult<Message>) -> Void
+  ) {
+    if case .complete(_, let error, _) = result {
+      handleError(error as? ConnectError) { proceed(result) }
+    } else {
+      proceed(result)
+    }
+  }
+
+  private func handleError(_ error: ConnectError?, completion: @escaping @Sendable () -> Void) {
+    let errorDetails: [Google_Rpc_ErrorInfo] = error?.unpackedDetails() ?? []
+    let action: @MainActor @Sendable () -> Void
+    switch error?.code {
     case .unauthenticated:
-      handleError = onUnauthenticated
+      action = onUnauthenticated
     case .failedPrecondition
     where errorDetails.contains(where: {
       $0.domain == "splajompy.com" && $0.reason == "APP_UPGRADE_REQUIRED"
     }):
-      handleError = onUpgradeRequired
+      action = onUpgradeRequired
     default:
-      proceed(response)
+      completion()
       return
     }
     Task { @MainActor in
-      handleError()
-      proceed(response)
+      action()
+      completion()
     }
   }
 }
