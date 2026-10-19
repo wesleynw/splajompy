@@ -75,13 +75,16 @@ protocol NotificationServiceProtocol: Sendable {
 }
 
 struct NotificationService: NotificationServiceProtocol {
-  private let client: Splajompy_V1_NotificationServiceClientInterface
+  private let configuredClient: Splajompy_V1_NotificationServiceClientInterface?
+
+  private var client: Splajompy_V1_NotificationServiceClientInterface {
+    configuredClient ?? Splajompy_V1_NotificationServiceClient(client: APIService.connectClient)
+  }
 
   init(
-    client: Splajompy_V1_NotificationServiceClientInterface =
-      Splajompy_V1_NotificationServiceClient(client: APIService.connectClient)
+    client: Splajompy_V1_NotificationServiceClientInterface? = nil
   ) {
-    self.client = client
+    self.configuredClient = client
   }
 
   func markNotificationAsRead(notificationId: Int) async -> Result<Void, Error> {
