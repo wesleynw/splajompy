@@ -5,7 +5,7 @@ CREATE TABLE users (
     email character varying(255) NOT NULL UNIQUE,
     password character varying(255) NOT NULL,
     username character varying(100) NOT NULL UNIQUE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
     name text,
     pinned_post_id integer,
     user_display_properties jsonb NULL,
@@ -13,15 +13,15 @@ CREATE TABLE users (
 );
 
 CREATE TABLE user_relationship (
-    user_id INT REFERENCES users(user_id),
-    target_user_id INT REFERENCES users(user_id),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    user_id INT REFERENCES users(user_id) ON DELETE CASCADE,
+    target_user_id INT REFERENCES users(user_id) ON DELETE CASCADE,
+    created_at TIMESTAMP DEFAULT now() NOT NULL,
     PRIMARY KEY (user_id, target_user_id)
 );
 
 CREATE TABLE bios (
     id SERIAL PRIMARY KEY NOT NULL,
-    user_id INT NOT NULL,
+    user_id INT NOT NULL UNIQUE,
     text TEXT NOT NULL,
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
@@ -30,7 +30,7 @@ CREATE TABLE posts (
     post_id SERIAL PRIMARY KEY NOT NULL,
     user_id INTEGER NOT NULL,
     text TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    created_at TIMESTAMP DEFAULT now() NOT NULL,
     facets JSON,
     attributes JSON,
     visibilityType INT NOT NULL DEFAULT 0,
@@ -38,27 +38,25 @@ CREATE TABLE posts (
 );
 
 CREATE TABLE comments (
-    comment_id SERIAL PRIMARY KEY NOT NULL,
-    post_id INT NOT NULL,
-    user_id INT NOT NULL,
+    comment_id SERIAL PRIMARY KEY,
+    post_id INT NOT NULL REFERENCES posts(post_id) ON DELETE CASCADE,
+    user_id INT NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
     text TEXT NOT NULL,
     facets JSON,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    FOREIGN KEY (post_id) REFERENCES posts(post_id) ON DELETE CASCADE,
-    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+    created_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
 CREATE TABLE sessions (
     id TEXT PRIMARY KEY NOT NULL,
     user_id INTEGER UNIQUE NOT NULL,
-    expires_at TIMESTAMP NOT NULL,
+    expires_at timestamp with time zone NOT NULL,
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
 
 CREATE TABLE follows (
     follower_id INTEGER NOT NULL,
     following_id INTEGER NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    created_at TIMESTAMP DEFAULT now() NOT NULL,
     FOREIGN KEY (follower_id) REFERENCES users(user_id) ON DELETE CASCADE,
     FOREIGN KEY (following_id) REFERENCES users(user_id) ON DELETE CASCADE,
     UNIQUE (follower_id, following_id)
@@ -68,7 +66,7 @@ CREATE TABLE likes (
     post_id INT NOT NULL,
     comment_id INT NULL,
     user_id INT NOT NULL,
-    created_at TIMESTAMPTZ default CURRENT_TIMESTAMP,
+    created_at timestamp with time zone default now(),
     FOREIGN KEY (post_id) REFERENCES posts(post_id) ON DELETE CASCADE,
     FOREIGN KEY (comment_id) REFERENCES comments(comment_id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
@@ -105,7 +103,7 @@ CREATE TABLE notifications (
     viewed BOOLEAN NOT NULL DEFAULT FALSE,
     facets JSON,
     notification_type VARCHAR(50) NOT NULL DEFAULT 'default',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
     FOREIGN KEY (post_id) REFERENCES posts(post_id) ON DELETE CASCADE,
     FOREIGN KEY (comment_id) REFERENCES comments(comment_id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
@@ -115,7 +113,7 @@ CREATE TABLE notification_actor (
     id SERIAL PRIMARY KEY,
     notification_id INT NOT NULL REFERENCES notifications(notification_id) ON DELETE CASCADE ,
     user_id INT NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
-    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    created_at timestamp with time zone DEFAULT now(),
     UNIQUE (notification_id, user_id)
 );
 
@@ -123,24 +121,24 @@ CREATE TABLE "verificationCodes" ( -- TODO: rename this to fit the casing of oth
     id SERIAL PRIMARY KEY NOT NULL,
     code TEXT NOT NULL,
     user_id INT UNIQUE NOT NULL,
-    expires_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
+    expires_at timestamp with time zone NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS block (
- id SERIAL PRIMARY KEY,
- user_id INT NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
-target_user_id INT NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
-created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    id SERIAL PRIMARY KEY,
+    user_id INT NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+    target_user_id INT NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+    created_at timestamp with time zone NOT NULL DEFAULT now(),
 
-CONSTRAINT unique_user_target_user_id_block UNIQUE(user_id, target_user_id),
-CONSTRAINT check_no_self_block CHECK (user_id != target_user_id)
+    CONSTRAINT unique_user_target_user_id_block UNIQUE(user_id, target_user_id),
+    CONSTRAINT check_no_self_block CHECK (user_id <> target_user_id)
 );
 
 CREATE TABLE IF NOT EXISTS mute (
     id SERIAL PRIMARY KEY,
     user_id INT NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
     target_user_id INT NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
 
     CONSTRAINT unique_user_target_user_id_mute UNIQUE(user_id, target_user_id),
     CONSTRAINT check_no_self_mute CHECK (user_id != target_user_id)
@@ -172,5 +170,5 @@ CREATE TABLE device_token (
     is_enabled_mentions BOOLEAN NOT NULL DEFAULT TRUE,
     is_enabled_comments BOOLEAN NOT NULL DEFAULT TRUE,
     is_enabled_follows BOOLEAN NOT NULL DEFAULT TRUE,
-    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+    created_at timestamp with time zone DEFAULT now()
 );
