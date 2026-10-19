@@ -8,7 +8,9 @@ import (
 
 	"connectrpc.com/connect/v2"
 	"connectrpc.com/connect/v2/connecthttp"
+	"connectrpc.com/connect/v2/connectproto"
 	"github.com/stretchr/testify/require"
+	"google.golang.org/genproto/googleapis/rpc/errdetails"
 	splajompyv1 "splajompy.com/api/v2/gen/splajompy/v1"
 	"splajompy.com/api/v2/gen/splajompy/v1/splajompyv1connect"
 	"splajompy.com/api/v2/internal/apns"
@@ -74,13 +76,28 @@ func TestConnectUnreadCountWithREST(t *testing.T) {
 			info.RequestHeader().Set("X-App-Version", "1.8.0")
 			_, err = client.GetUnreadNotificationCount(ctx, &splajompyv1.GetUnreadNotificationCountRequest{})
 			require.Equal(t, connect.CodeFailedPrecondition, connect.CodeOf(err))
-			require.Equal(t, middleware.MinimumAppVersion, info.ResponseHeader().Get("X-Minimum-App-Version"))
+			var rpcError *connect.Error
+			require.ErrorAs(t, err, &rpcError)
+			require.Len(t, rpcError.Details(), 1)
+			detail, detailErr := connectproto.UnmarshalErrorDetail(rpcError.Details()[0])
+			require.NoError(t, detailErr)
+			errorInfo, ok := detail.(*errdetails.ErrorInfo)
+			require.True(t, ok)
+			require.Equal(t, "APP_UPGRADE_REQUIRED", errorInfo.GetReason())
+			require.Equal(t, "splajompy.com", errorInfo.GetDomain())
+			require.Equal(t, middleware.MinimumAppVersion, errorInfo.GetMetadata()["minimumAppVersion"])
 		})
 	}
 
 	request := httptest.NewRequest(http.MethodPost, "/notifications/markRead", nil)
 	request.Header.Set("Authorization", "Bearer owner-token")
+	request.Header.Set("X-App-Version", "1.8.0")
 	recorder := httptest.NewRecorder()
+	mux.ServeHTTP(recorder, request)
+	require.Equal(t, http.StatusUpgradeRequired, recorder.Code)
+
+	request.Header.Del("X-App-Version")
+	recorder = httptest.NewRecorder()
 	mux.ServeHTTP(recorder, request)
 	require.Equal(t, http.StatusOK, recorder.Code)
 
