@@ -36,5 +36,7 @@ func (h *ConnectHandler) GetUnreadNotificationCount(ctx context.Context, _ *spla
 		slog.ErrorContext(ctx, "failed to get unread notification count", "error", err)
 		return nil, connect.NewError(connect.CodeInternal, "Unable to get unread notification count")
 	}
-	return &splajompyv1.GetUnreadNotificationCountResponse{UnreadCount: int64(count)}, nil
+	response := &splajompyv1.GetUnreadNotificationCountResponse{}
+	response.SetUnreadCount(int64(count))
+	return response, nil
 }
