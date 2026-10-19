@@ -254,7 +254,7 @@ func (q *Queries) GetIsUsernameInUse(ctx context.Context, username string) (bool
 const getNotificationActorUserIds = `-- name: GetNotificationActorUserIds :many
 SELECT user_id, created_at
 FROM notification_actor
-WHERE notification_id = $1 AND ($3::timestamp IS NULL OR created_at < $3::timestamp)
+WHERE notification_id = $1 AND ($3::timestamp IS NULL OR created_at < $3)
 ORDER BY created_at DESC
 LIMIT $2
 `
@@ -428,7 +428,7 @@ SELECT users.user_id, users.email, users.password, users.username, users.created
 FROM users
 JOIN user_relationship ON user_relationship.user_id = $1::int
 WHERE users.user_id = user_relationship.target_user_id
-    AND ($2::timestamp IS NULL OR user_relationship.created_at < $2)
+    AND ($2::timestamp IS NULL OR user_relationship.created_at < $2::timestamp)
 ORDER BY user_relationship.created_at DESC
 LIMIT $3::int
 `

@@ -42,7 +42,7 @@ SELECT users.user_id, follows.created_at
 FROM users
 INNER JOIN follows ON users.user_id = follows.following_id
 WHERE follows.follower_id = @user_id::int
-    AND (sqlc.narg('before')::timestamp IS NULL OR follows.created_at < sqlc.narg('before'))::timestamp
+    AND (sqlc.narg('before')::timestamp IS NULL OR follows.created_at < sqlc.narg('before')::timestamp)
 ORDER BY follows.created_at DESC
 LIMIT sqlc.arg('limit')::int;
 

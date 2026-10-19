@@ -128,7 +128,7 @@ SELECT users.user_id, follows.created_at
 FROM users
 INNER JOIN follows ON users.user_id = follows.following_id
 WHERE follows.follower_id = $1::int
-    AND ($2::timestamp IS NULL OR follows.created_at < $2)::timestamp
+    AND ($2::timestamp IS NULL OR follows.created_at < $2::timestamp)
 ORDER BY follows.created_at DESC
 LIMIT $3::int
 `
