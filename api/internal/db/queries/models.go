@@ -7,7 +7,6 @@ package queries
 import (
 	"time"
 
-	"github.com/jackc/pgx/v5/pgtype"
 	db "splajompy.com/api/v2/internal/db"
 )
 
@@ -31,7 +30,7 @@ type Comment struct {
 	Text            string    `json:"text"`
 	Facets          db.Facets `json:"facets"`
 	CreatedAt       time.Time `json:"createdAt"`
-	ParentCommentID *int      `json:"parentCommentId"`
+	ParentCommentID *int32    `json:"parentCommentId"`
 }
 
 type CommentImage struct {
@@ -40,13 +39,13 @@ type CommentImage struct {
 }
 
 type DeviceToken struct {
-	ID                int                `json:"id"`
-	UserID            int                `json:"userId"`
-	Token             string             `json:"token"`
-	IsEnabledMentions bool               `json:"isEnabledMentions"`
-	IsEnabledComments bool               `json:"isEnabledComments"`
-	IsEnabledFollows  bool               `json:"isEnabledFollows"`
-	CreatedAt         pgtype.Timestamptz `json:"createdAt"`
+	ID                int        `json:"id"`
+	UserID            int        `json:"userId"`
+	Token             string     `json:"token"`
+	IsEnabledMentions bool       `json:"isEnabledMentions"`
+	IsEnabledComments bool       `json:"isEnabledComments"`
+	IsEnabledFollows  bool       `json:"isEnabledFollows"`
+	CreatedAt         *time.Time `json:"createdAt"`
 }
 
 type Follow struct {
@@ -63,10 +62,10 @@ type Image struct {
 }
 
 type Like struct {
-	PostID    int                `json:"postId"`
-	CommentID *int               `json:"commentId"`
-	UserID    int                `json:"userId"`
-	CreatedAt pgtype.Timestamptz `json:"createdAt"`
+	PostID    int        `json:"postId"`
+	CommentID *int       `json:"commentId"`
+	UserID    int        `json:"userId"`
+	CreatedAt *time.Time `json:"createdAt"`
 }
 
 type Mute struct {
@@ -91,10 +90,10 @@ type Notification struct {
 }
 
 type NotificationActor struct {
-	ID             int                `json:"id"`
-	NotificationID int                `json:"notificationId"`
-	UserID         int                `json:"userId"`
-	CreatedAt      pgtype.Timestamptz `json:"createdAt"`
+	ID             int        `json:"id"`
+	NotificationID int        `json:"notificationId"`
+	UserID         int        `json:"userId"`
+	CreatedAt      *time.Time `json:"createdAt"`
 }
 
 type PollVote struct {
