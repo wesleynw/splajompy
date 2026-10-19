@@ -4,6 +4,9 @@
 # Environment variables
 *.env
 
+# Local mise config
+mise.local.toml
+
 # OS specific files
 .DS_Store
 
