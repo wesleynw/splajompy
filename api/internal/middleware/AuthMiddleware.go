@@ -54,13 +54,13 @@ func AuthMiddleware(q *queries.Queries) func(http.Handler) http.Handler {
 			}
 			// want to be careful here: if it's a server error, don't want to be logging
 			// people out automatically
-			if err != nil && !errors.Is(err, pgx.ErrNoRows) {
-				slog.ErrorContext(ctx, "auth: failed to fetch session", "error", err)
-				utilities.HandleError(w, http.StatusInternalServerError, "something went wrong")
-				return
-			} else if err != nil {
+			if errors.Is(err, pgx.ErrNoRows) {
 				slog.WarnContext(ctx, "auth: session not found", "error", err)
 				utilities.HandleError(w, http.StatusUnauthorized, "no session found")
+				return
+			} else if err != nil {
+				slog.ErrorContext(ctx, "auth: failed to fetch session", "error", err)
+				utilities.HandleError(w, http.StatusInternalServerError, "something went wrong")
 				return
 			}
 
