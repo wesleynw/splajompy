@@ -35,7 +35,7 @@ type RESTRegistrar interface {
 }
 ```
 
-The root handler in `internal/handler` registers REST handlers from `handler.go` and Connect handlers from `connect_handler.go`. Connect procedures require authentication unless their registrar explicitly returns their exact paths for public access.
+The root handler in `internal/handler` registers REST handlers from `handler.go` and Connect handlers from `connect_handler.go`. Connect registrars register each service on `public` or `withAuth`.
 
 `Store`s are currently a thin layer over the database, but exist as a natural place to add caching per domain in the future.
 

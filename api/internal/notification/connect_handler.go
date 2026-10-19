@@ -19,9 +19,8 @@ func NewConnectHandler(svc *Service) *ConnectHandler {
 	return &ConnectHandler{svc: svc}
 }
 
-func (h *ConnectHandler) RegisterConnectRoutes(server *connect.Server) []string {
-	splajompyv1connect.RegisterNotificationServiceHandler(server, h)
-	return nil
+func (h *ConnectHandler) RegisterConnectRoutes(public, withAuth *connect.Server) {
+	splajompyv1connect.RegisterNotificationServiceHandler(withAuth, h)
 }
 
 func (h *ConnectHandler) GetUnreadNotificationCount(ctx context.Context, _ *splajompyv1.GetUnreadNotificationCountRequest) (*splajompyv1.GetUnreadNotificationCountResponse, error) {
