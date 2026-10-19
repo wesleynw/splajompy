@@ -18,7 +18,6 @@ func AppVersion(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := WithAppVersion(r.Context(), r.Header.Get("X-App-Version"))
 		if !utilities.IsAppUpdatedToVersion(ctx, MinimumAppVersion) {
-			w.Header().Set("X-Minimum-App-Version", MinimumAppVersion)
 			utilities.HandleError(w, http.StatusUpgradeRequired, AppUpgradeMessage)
 			return
 		}
