@@ -290,6 +290,7 @@ func TestReplyToComment_DoesNotReturnBlockedNestedComments(t *testing.T) {
 	assert.NoError(t, err)
 
 	comments, err := env.svc.GetCommentsByPostId(t.Context(), user0, post.PostID)
+	require.NoError(t, err)
 	require.Len(t, comments, 1)
 	require.NotNil(t, comments[0].Children)
 	require.Len(t, comments[0].Children, 1)
@@ -317,9 +318,10 @@ func TestReplyToComment_DoesNotReturnBlockingNestedComments(t *testing.T) {
 	require.NoError(t, err)
 
 	_, err = env.svc.AddComment(t.Context(), user1, post.PostID, new(comment.CommentID), "test comment reply", nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	comments, err := env.svc.GetCommentsByPostId(t.Context(), user0, post.PostID)
+	require.NoError(t, err)
 	require.Len(t, comments, 1)
 	require.NotNil(t, comments[0].Children)
 	require.Len(t, comments[0].Children, 1)
