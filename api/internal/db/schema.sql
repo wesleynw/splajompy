@@ -48,7 +48,7 @@ CREATE TABLE comments (
 
 CREATE TABLE sessions (
     id TEXT PRIMARY KEY NOT NULL,
-    user_id INTEGER UNIQUE NOT NULL,
+    user_id INTEGER NOT NULL,
     expires_at timestamp with time zone NOT NULL,
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
