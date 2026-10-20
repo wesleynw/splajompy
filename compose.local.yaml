@@ -1,0 +1,38 @@
+services:
+  api:
+    ports: !override
+      - "8081:8080"
+    environment:
+      DB_CONNECTION_STRING: postgresql://splajompy:local@postgres:5432/splajompy-local?sslmode=disable
+      DB_LISTEN_CONNECTION_STRING: ""
+    depends_on:
+      postgres:
+        condition: service_healthy
+  postgres:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: splajompy-local
+      POSTGRES_USER: splajompy
+      POSTGRES_PASSWORD: local
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h localhost -U splajompy -d splajompy-local"]
+      interval: 2s
+      timeout: 3s
+      retries: 15
+  migrate:
+    image: migrate/migrate:v4.20.1
+    profiles: [tools]
+    entrypoint:
+      - migrate
+      - -path=/migrations
+      - -database=postgresql://splajompy:local@postgres:5432/splajompy-local?sslmode=disable
+    command: [up]
+    volumes:
+      - ./database/migrations:/migrations:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+volumes:
+  postgres-data:

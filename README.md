@@ -40,9 +40,9 @@ The root handler in `internal/handler` holds a slice of `RouteRegistrar`s and re
 `Store`s are currently a thin layer over the database, but exist as a natural place to add caching per domain in the future.
 
 ## Starting the API
-Install the [Pulumi CLI](https://www.pulumi.com/docs/install/) and run `pulumi login`. Get access to `splajompy-org/splajompy/dev` and add your public IP to the database allowlist.
+Install the [Pulumi CLI](https://www.pulumi.com/docs/install/) and run `pulumi login`. Get access to `splajompy-org/splajompy/dev`. Add your public IP to the database allowlist only when using the shared development database.
 
-Run either option from the repository root. Both use the shared `splajompy-dev` database. Press `Ctrl+C` to stop the API.
+Run from the repository root. `make dev` and the native Go command use the shared `splajompy-dev` database. Press `Ctrl+C` to stop the API.
 
 ### Docker
 Install Docker, then run:
@@ -52,6 +52,10 @@ make dev
 ```
 
 Run `make dev` again after code changes.
+
+For local PostgreSQL, run `make local`. It applies migrations and seeds two users, `local_alice` and `local_bob`, both with password `localdev`. The API listens on port `8081`.
+
+Use `make local-migrate` to apply migrations, `make local-rollback` to undo one, and `make local-seed` to restore missing sample data. `make local-stop` stops the containers and keeps the database.
 
 ### Native Go
 Install Go, then run:
