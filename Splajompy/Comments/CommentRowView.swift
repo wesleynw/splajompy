@@ -1,3 +1,4 @@
+import PostHog
 import SwiftUI
 
 struct CommentRow: View {
@@ -61,7 +62,9 @@ struct CommentRow: View {
 
         Spacer()
 
-        if let commentReplyCallback = handleCommentReply {
+        if let commentReplyCallback = handleCommentReply,
+          PostHogSDK.shared.isFeatureEnabled("comment-replies")
+        {
           Button {
             commentReplyCallback()
           } label: {
@@ -100,6 +103,17 @@ struct CommentRow: View {
         }
       }
       .allowsHitTesting(true)
+    }
+    .modify {
+      if PostHogSDK.shared.isFeatureEnabled("comment-replies") {
+        $0.swipeActions(edge: .leading) {
+          Button {
+            viewModel.stageCommentReply(to: comment)
+          } label: {
+            Label("Reply", systemImage: "arrowshape.turn.up.left.fill")
+          }
+        }
+      }
     }
     .padding(.vertical, 8)
     #if os(iOS)
