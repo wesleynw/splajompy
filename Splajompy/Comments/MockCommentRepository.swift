@@ -120,9 +120,9 @@ class MockCommentService: CommentServiceProtocol, @unchecked Sendable {
       ),
       PublicUser(
         userId: 3,
-        username: "bobsmith",
+        username: "wesley",
         createdAt: Date(),
-        name: "Bob Smith",
+        name: "Wesley",
         isVerified: false,
         displayProperties: UserDisplayProperties(fontChoiceId: 0)
       ),
@@ -182,7 +182,7 @@ class MockCommentService: CommentServiceProtocol, @unchecked Sendable {
           commentId: 4,
           postId: 3,
           userId: 3,
-          text: "parent comment",
+          text: "test comment",
           createdAt: currentDate,
           user: mockUsers[2],
           facets: nil,

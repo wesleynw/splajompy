@@ -1,18 +1,19 @@
 package comment_test
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"splajompy.com/api/v2/internal/apns"
-	"splajompy.com/api/v2/internal/auth"
 	"splajompy.com/api/v2/internal/comment"
 	"splajompy.com/api/v2/internal/models"
 	"splajompy.com/api/v2/internal/notification"
 	"splajompy.com/api/v2/internal/post"
 	"splajompy.com/api/v2/internal/testutil"
 	"splajompy.com/api/v2/internal/user"
+	"splajompy.com/api/v2/internal/utilities"
 )
 
 type commentServiceTestEnv struct {
@@ -339,17 +340,17 @@ func TestReplyToComment_CannotReplyToBlockingUserPost(t *testing.T) {
 	user0 := testutil.CreateTestUser(t, env.userRepository, "user0")
 	user1 := testutil.CreateTestUser(t, env.userRepository, "user1")
 
-	post, err := env.postRepository.InsertPost(t.Context(), user0.UserID, new("test post"), nil, nil, new(models.VisibilityPublic))
+	post0, err := env.postRepository.InsertPost(t.Context(), user0.UserID, new("test post"), nil, nil, new(models.VisibilityPublic))
 	require.NoError(t, err)
 
-	comment, err := env.svc.AddComment(t.Context(), user1, post.PostID, nil, "test comment", nil)
+	comment, err := env.svc.AddComment(t.Context(), user1, post0.PostID, nil, "test comment", nil)
 	require.NoError(t, err)
 
 	err = env.userRepository.BlockUser(t.Context(), user0.UserID, user1.UserID)
 	require.NoError(t, err)
 
-	_, err = env.svc.AddComment(t.Context(), user1, post.PostID, new(comment.CommentID), "test comment reply", nil)
-	assert.ErrorIs(t, err, auth.ErrForbidden)
+	_, err = env.svc.AddComment(t.Context(), user1, post0.PostID, new(comment.CommentID), "test comment reply", nil)
+	assert.ErrorIs(t, err, post.ErrPostNotFound)
 }
 
 func TestReplyToComment_CannotReplyToBlockingUserComment(t *testing.T) {
@@ -362,14 +363,15 @@ func TestReplyToComment_CannotReplyToBlockingUserComment(t *testing.T) {
 	post, err := env.postRepository.InsertPost(t.Context(), user0.UserID, new("test post"), nil, nil, new(models.VisibilityPublic))
 	require.NoError(t, err)
 
-	comment, err := env.svc.AddComment(t.Context(), user1, post.PostID, nil, "test comment", nil)
+	comment0, err := env.svc.AddComment(t.Context(), user1, post.PostID, nil, "test comment", nil)
 	require.NoError(t, err)
 
 	err = env.userRepository.BlockUser(t.Context(), user1.UserID, user2.UserID)
 	require.NoError(t, err)
 
-	_, err = env.svc.AddComment(t.Context(), user2, post.PostID, new(comment.CommentID), "test comment reply", nil)
-	assert.ErrorIs(t, err, auth.ErrForbidden)
+	_, err = env.svc.AddComment(t.Context(), user2, post.PostID, new(comment0.CommentID), "test comment reply", nil)
+
+	assert.ErrorIs(t, err, comment.ErrCommentNotFound)
 }
 
 func TestReplyToComment_DepthMaximum(t *testing.T) {
@@ -410,4 +412,45 @@ func TestReplyToComment_DeletesChild(t *testing.T) {
 	result, err := env.svc.GetCommentsByPostId(t.Context(), user0, post.PostID)
 	require.NoError(t, err)
 	assert.Len(t, result, 0)
+}
+
+func TestCommentReplies_OutdatedUserSeesWarning(t *testing.T) {
+	env := setupCommentTest(t)
+
+	user0 := testutil.CreateTestUser(t, env.userRepository, "user0")
+
+	post, err := env.postRepository.InsertPost(t.Context(), user0.UserID, new("test post"), nil, nil, new(models.VisibilityPublic))
+	require.NoError(t, err)
+
+	newComment, err := env.svc.AddComment(t.Context(), user0, post.PostID, nil, "test comment", nil)
+	require.NoError(t, err)
+
+	_, err = env.svc.AddComment(t.Context(), user0, post.PostID, new(newComment.CommentID), "test comment reply", nil)
+	assert.NoError(t, err)
+
+	ctx := context.WithValue(t.Context(), utilities.AppVersionKey, "v1.9.2")
+
+	result, err := env.svc.GetCommentsByPostId(ctx, user0, post.PostID)
+	require.NoError(t, err)
+	assert.Len(t, result, 1)
+	targetText := result[0].Text
+	assert.Equal(t, "test comment\n\n[Update Splajompy](https://apps.apple.com/us/app/splajompy/id6744034321) to view replies to this comment.", targetText)
+
+	err = env.svc.DeleteComment(t.Context(), user0, newComment.CommentID)
+	require.NoError(t, err)
+
+	images := map[int]models.ImageData{
+		1: {S3Key: "images/photo1.jpg", Width: 1920, Height: 1080},
+	}
+	newComment, err = env.svc.AddComment(t.Context(), user0, post.PostID, nil, "", images)
+	require.NoError(t, err)
+
+	_, err = env.svc.AddComment(t.Context(), user0, post.PostID, new(newComment.CommentID), "test comment reply", nil)
+	assert.NoError(t, err)
+
+	result, err = env.svc.GetCommentsByPostId(ctx, user0, post.PostID)
+	require.NoError(t, err)
+	assert.Len(t, result, 1)
+	targetText = result[0].Text
+	assert.Equal(t, "[Update Splajompy](https://apps.apple.com/us/app/splajompy/id6744034321) to view replies to this comment.", targetText)
 }

@@ -208,5 +208,10 @@ struct CommentsContainerView: View {
       viewModel: mockViewModel
     )
     .environment(AuthManager())
+    .modify {
+      if #available(anyAppleOS 27, *) {
+        $0.swipeActionsContainer()
+      }
+    }
   }
 }

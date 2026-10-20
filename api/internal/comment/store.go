@@ -22,8 +22,11 @@ func (r Store) AddCommentToPost(ctx context.Context, userId int, postId int, con
 	})
 }
 
-func (r Store) GetCommentById(ctx context.Context, commentId int) (queries.Comment, error) {
-	return r.querier.GetCommentById(ctx, commentId)
+func (r Store) GetCommentById(ctx context.Context, userId int, commentId int) (queries.Comment, error) {
+	return r.querier.GetCommentById(ctx, queries.GetCommentByIdParams{
+		UserID:    userId,
+		CommentID: commentId,
+	})
 }
 
 // GetCommentsByPostId retrieves all comments for a specific post, excluding comments from users blocked by userId

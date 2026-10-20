@@ -75,11 +75,25 @@ const getCommentById = `-- name: GetCommentById :one
 SELECT comment_id, post_id, user_id, text, facets, created_at, parent_comment_id
 FROM comments
 WHERE comment_id = $1
+AND NOT EXISTS (
+    SELECT 1
+    FROM block
+    WHERE block.user_id = $2 AND target_user_id = comments.user_id
+) AND NOT EXISTS (
+    SELECT 1
+    FROM block
+    WHERE block.user_id = comments.user_id AND target_user_id = $2
+)
 LIMIT 1
 `
 
-func (q *Queries) GetCommentById(ctx context.Context, commentID int) (Comment, error) {
-	row := q.db.QueryRow(ctx, getCommentById, commentID)
+type GetCommentByIdParams struct {
+	CommentID int `json:"commentId"`
+	UserID    int `json:"userId"`
+}
+
+func (q *Queries) GetCommentById(ctx context.Context, arg GetCommentByIdParams) (Comment, error) {
+	row := q.db.QueryRow(ctx, getCommentById, arg.CommentID, arg.UserID)
 	var i Comment
 	err := row.Scan(
 		&i.CommentID,

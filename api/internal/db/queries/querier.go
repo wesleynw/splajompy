@@ -30,7 +30,7 @@ type Querier interface {
 	GetAllImagesByUserId(ctx context.Context, userID int) ([]Image, error)
 	GetAllPostIdsCursor(ctx context.Context, arg GetAllPostIdsCursorParams) ([]int, error)
 	GetBioByUserId(ctx context.Context, userID int) (string, error)
-	GetCommentById(ctx context.Context, commentID int) (Comment, error)
+	GetCommentById(ctx context.Context, arg GetCommentByIdParams) (Comment, error)
 	GetCommentCountByPostID(ctx context.Context, postID int) (int64, error)
 	GetCommentsByParentCommentId(ctx context.Context, arg GetCommentsByParentCommentIdParams) ([]Comment, error)
 	GetCommentsByPostId(ctx context.Context, arg GetCommentsByPostIdParams) ([]Comment, error)

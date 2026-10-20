@@ -52,6 +52,16 @@ func (s *Service) AddComment(ctx context.Context, currentUser models.PublicUser,
 		return nil, post.ErrPostNotFound
 	}
 
+	if commentId != nil {
+		targetComment, err := s.commentRepository.GetCommentById(ctx, currentUser.UserID, *commentId)
+		if err != nil {
+			return nil, ErrCommentNotFound
+		}
+		if targetComment.ParentCommentID != nil {
+			return nil, ErrCommentReplyNotAllowed
+		}
+	}
+
 	commentFacets, err := utilities.GenerateFacets(ctx, s.userRepository, content)
 	if err != nil {
 		return nil, errors.New("unable to generate facets")
@@ -159,7 +169,7 @@ func (s *Service) AddLikeToCommentById(ctx context.Context, currentUser models.P
 		return errors.New("unable to add like to comment")
 	}
 
-	comment, err := s.commentRepository.GetCommentById(ctx, commentId)
+	comment, err := s.commentRepository.GetCommentById(ctx, currentUser.UserID, commentId)
 	if err != nil {
 		return errors.New("unable to find comment")
 	}
@@ -187,7 +197,7 @@ func (s *Service) RemoveLikeFromCommentById(ctx context.Context, user models.Pub
 
 // DeleteComment deletes a comment by ID if the current user owns it
 func (s *Service) DeleteComment(ctx context.Context, currentUser models.PublicUser, commentId int) error {
-	comment, err := s.commentRepository.GetCommentById(ctx, commentId)
+	comment, err := s.commentRepository.GetCommentById(ctx, currentUser.UserID, commentId)
 	if err != nil {
 		return errors.New("unable to find comment")
 	}
@@ -277,12 +287,19 @@ func (s *Service) hydrateComment(ctx context.Context, postId int, currentUser mo
 	}
 
 	var hydratedChildren []models.DetailedComment
-	for _, child := range children {
-		hydratedChild, err := s.hydrateComment(ctx, postId, currentUser, child, 1)
-		if err != nil {
-			return nil, err
+	if !utilities.IsAppUpdatedToVersion(ctx, "v1.13.0") {
+		if len(comment.Text) != 0 {
+			comment.Text = comment.Text + "\n\n"
 		}
-		hydratedChildren = append(hydratedChildren, *hydratedChild)
+		comment.Text = comment.Text + "[Update Splajompy](https://apps.apple.com/us/app/splajompy/id6744034321) to view replies to this comment."
+	} else {
+		for _, child := range children {
+			hydratedChild, err := s.hydrateComment(ctx, postId, currentUser, child, 1)
+			if err != nil {
+				return nil, err
+			}
+			hydratedChildren = append(hydratedChildren, *hydratedChild)
+		}
 	}
 
 	detailedComment := models.DetailedComment{

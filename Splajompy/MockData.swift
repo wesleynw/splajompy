@@ -64,7 +64,7 @@ struct Mocks {
     userId: 100,
     username: "wesley",
     createdAt: Date(),
-    name: "Wesley W",
+    name: "Wesley",
     isVerified: true,
     displayProperties: UserDisplayProperties(fontChoiceId: 0)
   )

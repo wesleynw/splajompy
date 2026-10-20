@@ -2,6 +2,15 @@
 SELECT *
 FROM comments
 WHERE comment_id = $1
+AND NOT EXISTS (
+    SELECT 1
+    FROM block
+    WHERE block.user_id = $2 AND target_user_id = comments.user_id
+) AND NOT EXISTS (
+    SELECT 1
+    FROM block
+    WHERE block.user_id = comments.user_id AND target_user_id = $2
+)
 LIMIT 1;
 
 -- name: GetCommentsByPostId :many

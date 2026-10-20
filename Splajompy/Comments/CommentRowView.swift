@@ -108,7 +108,7 @@ struct CommentRow: View {
       if PostHogSDK.shared.isFeatureEnabled("comment-replies") {
         $0.swipeActions(edge: .leading) {
           Button {
-            viewModel.stageCommentReply(to: comment)
+            handleCommentReply?()
           } label: {
             Label("Reply", systemImage: "arrowshape.turn.up.left.fill")
           }
