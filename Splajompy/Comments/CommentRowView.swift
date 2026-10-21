@@ -112,6 +112,7 @@ struct CommentRow: View {
           } label: {
             Label("Reply", systemImage: "arrowshape.turn.up.left.fill")
           }
+          .tint(.accent)
         }
       }
     }
