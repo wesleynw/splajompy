@@ -1,9 +1,14 @@
 package auth_test
 
 import (
+	"bytes"
+	"encoding/json"
+	"net/http"
+	"net/http/httptest"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"splajompy.com/api/v2/internal/auth"
 	"splajompy.com/api/v2/internal/post"
 	"splajompy.com/api/v2/internal/user"
@@ -216,4 +221,34 @@ func TestAuthService_ValidateRegistrationData(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestRequestEmailVerification_FailsOnBadRequest(t *testing.T) {
+	env := setupAuthServiceTest(t)
+
+	req := httptest.NewRequest(http.MethodPost, "/email-verify", nil)
+	w := httptest.NewRecorder()
+	env.handler.RequestEmailVerification(w, req)
+	res := w.Result()
+
+	assert.Equal(t, res.StatusCode, http.StatusBadRequest)
+}
+
+func TestRequestEmailVerification_Succeeds(t *testing.T) {
+	env := setupAuthServiceTest(t)
+
+	body := auth.RequestEmailVerificationRequest{
+		Email: "test@splajompy.com",
+	}
+
+	var buf bytes.Buffer
+	err := json.NewEncoder(&buf).Encode(body)
+	require.NoError(t, err)
+
+	req := httptest.NewRequest(http.MethodPost, "/email-verify", &buf)
+	w := httptest.NewRecorder()
+	env.handler.RequestEmailVerification(w, req)
+	res := w.Result()
+
+	assert.Equal(t, res.StatusCode, http.StatusOK)
 }

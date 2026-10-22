@@ -127,6 +127,13 @@ CREATE TABLE "verificationCodes" ( -- TODO: rename this to fit the casing of oth
     expires_at timestamp with time zone NOT NULL
 );
 
+CREATE TABLE email_verify_requests (
+    id SERIAL PRIMARY KEY,
+    email TEXT NOT NULL UNIQUE,
+    code TEXT NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS block (
     id SERIAL PRIMARY KEY,
     user_id INT NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
