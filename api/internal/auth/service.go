@@ -227,7 +227,7 @@ func (s *Service) ProcessOTC(ctx context.Context, identifier string) error {
 		return err
 	}
 
-	code, err := s.GenerateOTCCode()
+	code, err := s.generateOTCCode()
 	if err != nil {
 		return err
 	}
@@ -254,7 +254,7 @@ func (s *Service) ProcessOTC(ctx context.Context, identifier string) error {
 	return err
 }
 
-func (s *Service) GenerateOTCCode() (string, error) {
+func (s *Service) generateOTCCode() (string, error) {
 	max := big.NewInt(1000000)
 	n, err := rand.Int(rand.Reader, max)
 	if err != nil {
@@ -350,6 +350,53 @@ func (s *Service) DeleteAccount(ctx context.Context, currentUser models.PublicUs
 	go s.sendAccountDeletionNotification(currentUser)
 
 	return nil
+}
+
+// func (s *Service) AssertEmailVerificationIfApplicable(ctx context.Context, email string) (error) {
+//
+// }
+
+func (s Service) RequestEmailVerification(ctx context.Context, email string) error {
+	code, err := s.generateOTCCode()
+	if err != nil {
+		return err
+	}
+
+	html, err := templates.GenerateVerificationEmail(code)
+	if err != nil {
+		return err
+	}
+
+	params := &resend.SendEmailRequest{
+		From:    "Splajompy <no-reply@splajompy.com>",
+		To:      []string{email},
+		Subject: fmt.Sprintf("%s is your Splajompy code", code),
+		Html:    html,
+	}
+
+	err = s.userRepository.SetEmailVerificationCode(ctx, email, code)
+	if err != nil {
+		return err
+	}
+
+	_, err = s.emailClient.SendEmail(params)
+	return err
+}
+
+var ErrEmailVerificationFailed = errors.New("unable to verify this email")
+
+func (s Service) VerifyEmail(ctx context.Context, email string, code string) error {
+	storedCode, createdAt, err := s.userRepository.GetEmailVerificationCode(ctx, email)
+	if err != nil {
+		return ErrEmailVerificationFailed
+	}
+
+	fiveMinutesAgo := time.Now().Add(-5 * time.Minute)
+	if code == *storedCode && createdAt.After(fiveMinutesAgo) {
+		return nil
+	}
+
+	return ErrEmailVerificationFailed
 }
 
 // sendAccountDeletionNotification notifies the site admin whenever a user deletes their account.
