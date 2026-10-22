@@ -7,7 +7,8 @@ private struct SelectedImage: Identifiable {
 }
 
 struct CommentInputView: View {
-  @Bindable var viewModel: CommentsView.ViewModel
+  let onCommentReplyTap: () -> Void
+  @Bindable var viewModel: CommentsContainerView.ViewModel
 
   @State private var mentionViewModel =
     MentionTextEditor.MentionViewModel()
@@ -45,6 +46,34 @@ struct CommentInputView: View {
       }
 
       VStack {
+        if let replyingComment = viewModel.respondingToComment {
+          HStack {
+            Image(systemName: "arrowshape.turn.up.left.fill")
+              .font(.body)
+
+            Text("Replying to ")
+              + Text("@\(replyingComment.user.username)").fontWeight(.semibold)
+              .foregroundStyle(.accent)
+
+            Spacer()
+
+            Button {
+              viewModel.unstageCommentReply()
+            } label: {
+              Image(systemName: "xmark.circle.fill")
+                .font(.body)
+            }
+            .buttonStyle(.plain)
+          }
+          .fontWeight(.semibold)
+          .padding(10)
+          .frame(maxWidth: .infinity, alignment: .leading)
+          .transition(.blurReplace)
+          .onTapGesture {
+            onCommentReplyTap()
+          }
+        }
+
         if viewModel.imageState != .empty {
 
           ScrollView(.horizontal) {
@@ -145,6 +174,7 @@ struct CommentInputView: View {
         }
       }
     }
+    .animation(.default, value: viewModel.respondingToComment)
     .sheet(item: $presentingImage) { selected in
       LocalImagePager(
         images: [selected.image],
@@ -177,6 +207,17 @@ struct CommentInputView: View {
 
 #Preview {
   CommentInputView(
-    viewModel: CommentsView.ViewModel(postId: 1, postManager: PostStore())
+    onCommentReplyTap: {},
+    viewModel: CommentsContainerView.ViewModel(postId: 1, postManager: PostStore())
+  )
+}
+
+#Preview("responding to comment") {
+  let viewModel = CommentsContainerView.ViewModel(postId: 1, postManager: PostStore())
+  viewModel.stageCommentReply(to: Mocks.comment1)
+
+  return CommentInputView(
+    onCommentReplyTap: {},
+    viewModel: viewModel
   )
 }

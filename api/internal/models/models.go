@@ -99,15 +99,17 @@ type DetailedPoll struct {
 }
 
 type DetailedComment struct {
-	CommentID int             `json:"commentId"`
-	PostID    int             `json:"postId"`
-	UserID    int             `json:"userId"`
-	Text      string          `json:"text"`
-	Facets    db.Facets       `json:"facets"`
-	CreatedAt time.Time       `json:"createdAt"`
-	User      PublicUser      `json:"user"`
-	IsLiked   bool            `json:"isLiked"`
-	Images    []DetailedImage `json:"images"`
+	CommentID       int               `json:"commentId"`
+	PostID          int               `json:"postId"`
+	UserID          int               `json:"userId"`
+	Text            string            `json:"text"`
+	Facets          db.Facets         `json:"facets"`
+	CreatedAt       time.Time         `json:"createdAt"`
+	User            PublicUser        `json:"user"`
+	IsLiked         bool              `json:"isLiked"`
+	Images          []DetailedImage   `json:"images"`
+	Children        []DetailedComment `json:"children"`
+	ParentCommentId *int              `json:"parentCommentId"`
 }
 
 type DetailedNotification struct {
