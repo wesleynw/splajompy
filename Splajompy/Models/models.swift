@@ -194,6 +194,8 @@ struct DetailedComment: Identifiable, Decodable, Equatable {
   let facets: [Facet]?
   let images: [ImageDTO]?
   var isLiked: Bool
+  var children: [DetailedComment]?
+  var parentCommentId: Int?
 
   var id: Int { commentId }
 
