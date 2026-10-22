@@ -4,9 +4,9 @@ import (
 	"os"
 	"testing"
 
-	"github.com/resend/resend-go/v3"
 	"github.com/stretchr/testify/assert"
 	"splajompy.com/api/v2/internal/auth"
+	"splajompy.com/api/v2/internal/email"
 	"splajompy.com/api/v2/internal/testutil"
 	"splajompy.com/api/v2/internal/user"
 )
@@ -22,7 +22,7 @@ func setupAuthServiceTest(t *testing.T) authServiceTestEnv {
 
 	_ = os.Setenv("ENVIRONMENT", "test")
 
-	svc := auth.NewService(db.UserRepository, db.PostRepository, db.BucketRepository, resend.NewClient("test-key"))
+	svc := auth.NewService(db.UserRepository, db.PostRepository, db.BucketRepository, email.NewMockEmailClient())
 
 	return authServiceTestEnv{
 		svc:            svc,
