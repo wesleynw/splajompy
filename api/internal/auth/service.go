@@ -12,6 +12,7 @@ import (
 	"uuid"
 
 	"splajompy.com/api/v2/internal/bucket"
+	"splajompy.com/api/v2/internal/email"
 	"splajompy.com/api/v2/internal/post"
 	"splajompy.com/api/v2/internal/user"
 	"splajompy.com/api/v2/internal/utilities"
@@ -26,15 +27,15 @@ type Service struct {
 	userRepository   user.Store
 	postRepository   post.Store
 	bucketRepository bucket.Repository
-	resendClient     *resend.Client
+	emailClient      email.Client
 }
 
-func NewService(userRepository user.Store, postRepository post.Store, bucketRepository bucket.Repository, resendClient *resend.Client) *Service {
+func NewService(userRepository user.Store, postRepository post.Store, bucketRepository bucket.Repository, emailClient email.Client) *Service {
 	return &Service{
 		userRepository:   userRepository,
 		postRepository:   postRepository,
 		bucketRepository: bucketRepository,
-		resendClient:     resendClient,
+		emailClient:      emailClient,
 	}
 }
 
@@ -248,7 +249,8 @@ func (s *Service) ProcessOTC(ctx context.Context, identifier string) error {
 		Html:    html,
 	}
 
-	_, err = s.resendClient.Emails.Send(params)
+	_, err = s.emailClient.SendEmail(params)
+
 	return err
 }
 
@@ -315,7 +317,7 @@ func (s *Service) sendSignInEmail(email, username string) {
 		Text:    text,
 	}
 
-	_, _ = s.resendClient.Emails.Send(params)
+	_, _ = s.emailClient.SendEmail(params)
 }
 
 func (s *Service) DeleteAccount(ctx context.Context, currentUser models.PublicUser) error {
@@ -359,5 +361,5 @@ func (s *Service) sendAccountDeletionNotification(deletedUser models.PublicUser)
 		Text:    fmt.Sprintf("User %s (ID: %d) deleted their account.", deletedUser.Username, deletedUser.UserID),
 	}
 
-	_, _ = s.resendClient.Emails.Send(params)
+	_, _ = s.emailClient.SendEmail(params)
 }

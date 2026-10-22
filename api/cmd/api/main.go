@@ -16,6 +16,7 @@ import (
 	"splajompy.com/api/v2/internal/bucket"
 	"splajompy.com/api/v2/internal/comment"
 	"splajompy.com/api/v2/internal/db/queries"
+	"splajompy.com/api/v2/internal/email"
 	"splajompy.com/api/v2/internal/like"
 	"splajompy.com/api/v2/internal/notification"
 	"splajompy.com/api/v2/internal/post"
@@ -105,7 +106,8 @@ func main() {
 	userService := user.NewUserService(userRepository, *notificationService, resendClient)
 	userHandler := user.NewHandler(userService)
 	notificationHandler := notification.NewHandler(notificationService)
-	authService := auth.NewService(userRepository, postRepository, bucketRepository, resendClient)
+	emailClient := email.NewResendEmailClient(resendClient)
+	authService := auth.NewService(userRepository, postRepository, bucketRepository, emailClient)
 	authHandler := auth.NewHandler(authService)
 	statsService := stats.NewService(statsRepository)
 	statsHandler := stats.NewHandler(statsService)
