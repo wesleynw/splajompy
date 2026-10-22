@@ -24,12 +24,13 @@ type Block struct {
 }
 
 type Comment struct {
-	CommentID int       `json:"commentId"`
-	PostID    int       `json:"postId"`
-	UserID    int       `json:"userId"`
-	Text      string    `json:"text"`
-	Facets    db.Facets `json:"facets"`
-	CreatedAt time.Time `json:"createdAt"`
+	CommentID       int       `json:"commentId"`
+	PostID          int       `json:"postId"`
+	UserID          int       `json:"userId"`
+	Text            string    `json:"text"`
+	Facets          db.Facets `json:"facets"`
+	CreatedAt       time.Time `json:"createdAt"`
+	ParentCommentID *int      `json:"parentCommentId"`
 }
 
 type CommentImage struct {
