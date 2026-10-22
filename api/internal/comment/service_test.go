@@ -1,7 +1,6 @@
 package comment_test
 
 import (
-	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -13,7 +12,6 @@ import (
 	"splajompy.com/api/v2/internal/post"
 	"splajompy.com/api/v2/internal/testutil"
 	"splajompy.com/api/v2/internal/user"
-	"splajompy.com/api/v2/internal/utilities"
 )
 
 type commentServiceTestEnv struct {
@@ -48,7 +46,7 @@ func TestAddCommentToPost(t *testing.T) {
 	require.NoError(t, err)
 
 	commentContent := "test comment"
-	detailedComment, err := env.svc.AddComment(t.Context(), user0, post.PostID, nil, commentContent, nil)
+	detailedComment, err := env.svc.AddCommentToPost(t.Context(), user0, post.PostID, commentContent, nil)
 
 	assert.NoError(t, err)
 	assert.NotNil(t, detailedComment)
@@ -68,7 +66,7 @@ func TestDeleteComment_UnauthorizedUser(t *testing.T) {
 	post, err := env.postRepository.InsertPost(t.Context(), user0.UserID, new("test post"), nil, nil, new(models.VisibilityPublic))
 	require.NoError(t, err)
 
-	comment, err := env.svc.AddComment(t.Context(), user0, post.PostID, nil, "test comment", nil)
+	comment, err := env.svc.AddCommentToPost(t.Context(), user0, post.PostID, "test comment", nil)
 	require.NoError(t, err)
 
 	err = env.svc.DeleteComment(t.Context(), user1, comment.CommentID)
@@ -89,7 +87,7 @@ func TestGetComments_DoesNotReturnBlockedUserComments(t *testing.T) {
 	post, err := env.postRepository.InsertPost(t.Context(), user0.UserID, new("test post"), nil, nil, new(models.VisibilityPublic))
 	require.NoError(t, err)
 
-	comment, err := env.svc.AddComment(t.Context(), user1, post.PostID, nil, "test comment", nil)
+	comment, err := env.svc.AddCommentToPost(t.Context(), user1, post.PostID, "test comment", nil)
 	require.NoError(t, err)
 
 	comments, err := env.svc.GetCommentsByPostId(t.Context(), user0, post.PostID)
@@ -114,7 +112,7 @@ func TestGetComments_DoesNotReturnMutedUserComments(t *testing.T) {
 	post, err := env.postRepository.InsertPost(t.Context(), user0.UserID, new("test post"), nil, nil, new(models.VisibilityPublic))
 	require.NoError(t, err)
 
-	comment, err := env.svc.AddComment(t.Context(), user1, post.PostID, nil, "test comment", nil)
+	comment, err := env.svc.AddCommentToPost(t.Context(), user1, post.PostID, "test comment", nil)
 	require.NoError(t, err)
 
 	comments, err := env.svc.GetCommentsByPostId(t.Context(), user0, post.PostID)
@@ -142,7 +140,7 @@ func TestGetComments_WithImage(t *testing.T) {
 		0: {S3Key: "images/photo1.jpg", Width: 1920, Height: 1080},
 	}
 
-	_, err = env.svc.AddComment(t.Context(), user0, post.PostID, nil, "test comment", images)
+	_, err = env.svc.AddCommentToPost(t.Context(), user0, post.PostID, "test comment", images)
 	require.NoError(t, err)
 
 	comments, err := env.svc.GetCommentsByPostId(t.Context(), user0, post.PostID)
@@ -162,7 +160,7 @@ func TestGetComments_ReturnsMutedUserCommentsOnMutedUserPost(t *testing.T) {
 	post, err := env.postRepository.InsertPost(t.Context(), user0.UserID, new("test post"), nil, nil, new(models.VisibilityPublic))
 	require.NoError(t, err)
 
-	_, err = env.svc.AddComment(t.Context(), user0, post.PostID, nil, "test comment", nil)
+	_, err = env.svc.AddCommentToPost(t.Context(), user0, post.PostID, "test comment", nil)
 	require.NoError(t, err)
 
 	comments, err := env.svc.GetCommentsByPostId(t.Context(), user1, post.PostID)
@@ -186,7 +184,7 @@ func TestGetComments_DoesNotReturnBlockingUserComments(t *testing.T) {
 	post, err := env.postRepository.InsertPost(t.Context(), user0.UserID, new("test post"), nil, nil, new(models.VisibilityPublic))
 	require.NoError(t, err)
 
-	_, err = env.svc.AddComment(t.Context(), user1, post.PostID, nil, "test comment", nil)
+	_, err = env.svc.AddCommentToPost(t.Context(), user1, post.PostID, "test comment", nil)
 	require.NoError(t, err)
 
 	comments, err := env.svc.GetCommentsByPostId(t.Context(), user0, post.PostID)
@@ -210,13 +208,13 @@ func TestGetComments_DoesNotReturnOtherPostComments(t *testing.T) {
 	post_0, err := env.postRepository.InsertPost(t.Context(), user0.UserID, new("test post"), nil, nil, new(models.VisibilityPublic))
 	require.NoError(t, err)
 
-	_, err = env.svc.AddComment(t.Context(), user1, post_0.PostID, nil, "test comment", nil)
+	_, err = env.svc.AddCommentToPost(t.Context(), user1, post_0.PostID, "test comment", nil)
 	require.NoError(t, err)
 
 	post_1, err := env.postRepository.InsertPost(t.Context(), user0.UserID, new("test post"), nil, nil, new(models.VisibilityPublic))
 	require.NoError(t, err)
 
-	_, err = env.svc.AddComment(t.Context(), user1, post_1.PostID, nil, "test comment", nil)
+	_, err = env.svc.AddCommentToPost(t.Context(), user1, post_1.PostID, "test comment", nil)
 	require.NoError(t, err)
 
 	comments, err := env.svc.GetCommentsByPostId(t.Context(), user0, post_0.PostID)
@@ -226,233 +224,4 @@ func TestGetComments_DoesNotReturnOtherPostComments(t *testing.T) {
 	comments, err = env.svc.GetCommentsByPostId(t.Context(), user0, post_1.PostID)
 	require.NoError(t, err)
 	assert.Len(t, comments, 1)
-}
-
-func TestReplyToComment_ErrorsOnNonexistentPost(t *testing.T) {
-	env := setupCommentTest(t)
-
-	user0 := testutil.CreateTestUser(t, env.userRepository, "user0")
-
-	_, err := env.svc.AddComment(t.Context(), user0, 100, new(100), "test comment", nil)
-	assert.ErrorIs(t, err, post.ErrPostNotFound)
-}
-
-func TestReplyToComment_ErrorsOnNonexistentComment(t *testing.T) {
-	env := setupCommentTest(t)
-
-	user0 := testutil.CreateTestUser(t, env.userRepository, "user0")
-
-	post, err := env.postRepository.InsertPost(t.Context(), user0.UserID, new("test post"), nil, nil, new(models.VisibilityPublic))
-	require.NoError(t, err)
-
-	_, err = env.svc.AddComment(t.Context(), user0, post.PostID, new(100), "test comment", nil)
-	assert.ErrorIs(t, err, comment.ErrCommentNotFound)
-}
-
-func TestReplyToComment_Succeeds(t *testing.T) {
-	env := setupCommentTest(t)
-
-	user0 := testutil.CreateTestUser(t, env.userRepository, "user0")
-
-	post, err := env.postRepository.InsertPost(t.Context(), user0.UserID, new("test post"), nil, nil, new(models.VisibilityPublic))
-	require.NoError(t, err)
-
-	comment, err := env.svc.AddComment(t.Context(), user0, post.PostID, nil, "test comment", nil)
-	require.NoError(t, err)
-
-	_, err = env.svc.AddComment(t.Context(), user0, post.PostID, new(comment.CommentID), "test comment reply", nil)
-	assert.NoError(t, err)
-
-	comments, err := env.svc.GetCommentsByPostId(t.Context(), user0, post.PostID)
-	assert.NoError(t, err)
-	require.Len(t, comments, 1)
-
-	require.NotNil(t, comments[0].Children)
-	require.Len(t, comments[0].Children, 1)
-	assert.Equal(t, comment.CommentID, *comments[0].Children[0].ParentCommentId)
-	assert.Equal(t, "test comment reply", comments[0].Children[0].Text)
-	assert.Nil(t, comments[0].Children[0].Children)
-}
-
-func TestReplyToComment_DoesNotReturnBlockedNestedComments(t *testing.T) {
-	env := setupCommentTest(t)
-
-	user0 := testutil.CreateTestUser(t, env.userRepository, "user0")
-	user1 := testutil.CreateTestUser(t, env.userRepository, "user1")
-
-	post, err := env.postRepository.InsertPost(t.Context(), user0.UserID, new("test post"), nil, nil, new(models.VisibilityPublic))
-	require.NoError(t, err)
-
-	comment, err := env.svc.AddComment(t.Context(), user0, post.PostID, nil, "test comment", nil)
-	require.NoError(t, err)
-
-	_, err = env.svc.AddComment(t.Context(), user1, post.PostID, new(comment.CommentID), "test comment reply", nil)
-	assert.NoError(t, err)
-
-	comments, err := env.svc.GetCommentsByPostId(t.Context(), user0, post.PostID)
-	require.NoError(t, err)
-	require.Len(t, comments, 1)
-	require.NotNil(t, comments[0].Children)
-	require.Len(t, comments[0].Children, 1)
-	assert.Equal(t, "test comment reply", comments[0].Children[0].Text)
-
-	err = env.userRepository.BlockUser(t.Context(), user0.UserID, user1.UserID)
-	require.NoError(t, err)
-
-	comments, err = env.svc.GetCommentsByPostId(t.Context(), user0, post.PostID)
-	assert.NoError(t, err)
-	assert.Len(t, comments, 1)
-	assert.Len(t, comments[0].Children, 0)
-}
-
-func TestReplyToComment_DoesNotReturnBlockingNestedComments(t *testing.T) {
-	env := setupCommentTest(t)
-
-	user0 := testutil.CreateTestUser(t, env.userRepository, "user0")
-	user1 := testutil.CreateTestUser(t, env.userRepository, "user1")
-
-	post, err := env.postRepository.InsertPost(t.Context(), user0.UserID, new("test post"), nil, nil, new(models.VisibilityPublic))
-	require.NoError(t, err)
-
-	comment, err := env.svc.AddComment(t.Context(), user0, post.PostID, nil, "test comment", nil)
-	require.NoError(t, err)
-
-	_, err = env.svc.AddComment(t.Context(), user1, post.PostID, new(comment.CommentID), "test comment reply", nil)
-	require.NoError(t, err)
-
-	comments, err := env.svc.GetCommentsByPostId(t.Context(), user0, post.PostID)
-	require.NoError(t, err)
-	require.Len(t, comments, 1)
-	require.NotNil(t, comments[0].Children)
-	require.Len(t, comments[0].Children, 1)
-	assert.Equal(t, "test comment reply", comments[0].Children[0].Text)
-
-	err = env.userRepository.BlockUser(t.Context(), user1.UserID, user0.UserID)
-	require.NoError(t, err)
-
-	comments, err = env.svc.GetCommentsByPostId(t.Context(), user0, post.PostID)
-	assert.NoError(t, err)
-	assert.Len(t, comments, 1)
-	assert.Len(t, comments[0].Children, 0)
-}
-
-func TestReplyToComment_CannotReplyToBlockingUserPost(t *testing.T) {
-	env := setupCommentTest(t)
-
-	user0 := testutil.CreateTestUser(t, env.userRepository, "user0")
-	user1 := testutil.CreateTestUser(t, env.userRepository, "user1")
-
-	post0, err := env.postRepository.InsertPost(t.Context(), user0.UserID, new("test post"), nil, nil, new(models.VisibilityPublic))
-	require.NoError(t, err)
-
-	comment, err := env.svc.AddComment(t.Context(), user1, post0.PostID, nil, "test comment", nil)
-	require.NoError(t, err)
-
-	err = env.userRepository.BlockUser(t.Context(), user0.UserID, user1.UserID)
-	require.NoError(t, err)
-
-	_, err = env.svc.AddComment(t.Context(), user1, post0.PostID, new(comment.CommentID), "test comment reply", nil)
-	assert.ErrorIs(t, err, post.ErrPostNotFound)
-}
-
-func TestReplyToComment_CannotReplyToBlockingUserComment(t *testing.T) {
-	env := setupCommentTest(t)
-
-	user0 := testutil.CreateTestUser(t, env.userRepository, "user0")
-	user1 := testutil.CreateTestUser(t, env.userRepository, "user1")
-	user2 := testutil.CreateTestUser(t, env.userRepository, "user2")
-
-	post, err := env.postRepository.InsertPost(t.Context(), user0.UserID, new("test post"), nil, nil, new(models.VisibilityPublic))
-	require.NoError(t, err)
-
-	comment0, err := env.svc.AddComment(t.Context(), user1, post.PostID, nil, "test comment", nil)
-	require.NoError(t, err)
-
-	err = env.userRepository.BlockUser(t.Context(), user1.UserID, user2.UserID)
-	require.NoError(t, err)
-
-	_, err = env.svc.AddComment(t.Context(), user2, post.PostID, new(comment0.CommentID), "test comment reply", nil)
-
-	assert.ErrorIs(t, err, comment.ErrCommentNotFound)
-}
-
-func TestReplyToComment_DepthMaximum(t *testing.T) {
-	env := setupCommentTest(t)
-
-	user0 := testutil.CreateTestUser(t, env.userRepository, "user0")
-
-	post, err := env.postRepository.InsertPost(t.Context(), user0.UserID, new("test post"), nil, nil, new(models.VisibilityPublic))
-	require.NoError(t, err)
-
-	newComment, err := env.svc.AddComment(t.Context(), user0, post.PostID, nil, "test comment", nil)
-	require.NoError(t, err)
-
-	reply, err := env.svc.AddComment(t.Context(), user0, post.PostID, new(newComment.CommentID), "test comment reply", nil)
-	assert.NoError(t, err)
-
-	_, err = env.svc.AddComment(t.Context(), user0, post.PostID, new(reply.CommentID), "test comment reply", nil)
-	assert.ErrorIs(t, err, comment.ErrCommentReplyNotAllowed)
-}
-
-func TestReplyToComment_DeletesChild(t *testing.T) {
-	env := setupCommentTest(t)
-
-	user0 := testutil.CreateTestUser(t, env.userRepository, "user0")
-
-	post, err := env.postRepository.InsertPost(t.Context(), user0.UserID, new("test post"), nil, nil, new(models.VisibilityPublic))
-	require.NoError(t, err)
-
-	newComment, err := env.svc.AddComment(t.Context(), user0, post.PostID, nil, "test comment", nil)
-	require.NoError(t, err)
-
-	_, err = env.svc.AddComment(t.Context(), user0, post.PostID, new(newComment.CommentID), "test comment reply", nil)
-	assert.NoError(t, err)
-
-	err = env.svc.DeleteComment(t.Context(), user0, newComment.CommentID)
-	require.NoError(t, err)
-
-	result, err := env.svc.GetCommentsByPostId(t.Context(), user0, post.PostID)
-	require.NoError(t, err)
-	assert.Len(t, result, 0)
-}
-
-func TestCommentReplies_OutdatedUserSeesWarning(t *testing.T) {
-	env := setupCommentTest(t)
-
-	user0 := testutil.CreateTestUser(t, env.userRepository, "user0")
-
-	post, err := env.postRepository.InsertPost(t.Context(), user0.UserID, new("test post"), nil, nil, new(models.VisibilityPublic))
-	require.NoError(t, err)
-
-	newComment, err := env.svc.AddComment(t.Context(), user0, post.PostID, nil, "test comment", nil)
-	require.NoError(t, err)
-
-	_, err = env.svc.AddComment(t.Context(), user0, post.PostID, new(newComment.CommentID), "test comment reply", nil)
-	assert.NoError(t, err)
-
-	ctx := context.WithValue(t.Context(), utilities.AppVersionKey, "v1.9.2")
-
-	result, err := env.svc.GetCommentsByPostId(ctx, user0, post.PostID)
-	require.NoError(t, err)
-	assert.Len(t, result, 1)
-	targetText := result[0].Text
-	assert.Equal(t, "test comment\n\n[Update Splajompy](https://apps.apple.com/us/app/splajompy/id6744034321) to view replies to this comment.", targetText)
-
-	err = env.svc.DeleteComment(t.Context(), user0, newComment.CommentID)
-	require.NoError(t, err)
-
-	images := map[int]models.ImageData{
-		1: {S3Key: "images/photo1.jpg", Width: 1920, Height: 1080},
-	}
-	newComment, err = env.svc.AddComment(t.Context(), user0, post.PostID, nil, "", images)
-	require.NoError(t, err)
-
-	_, err = env.svc.AddComment(t.Context(), user0, post.PostID, new(newComment.CommentID), "test comment reply", nil)
-	assert.NoError(t, err)
-
-	result, err = env.svc.GetCommentsByPostId(ctx, user0, post.PostID)
-	require.NoError(t, err)
-	assert.Len(t, result, 1)
-	targetText = result[0].Text
-	assert.Equal(t, "[Update Splajompy](https://apps.apple.com/us/app/splajompy/id6744034321) to view replies to this comment.", targetText)
 }

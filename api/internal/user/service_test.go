@@ -60,7 +60,7 @@ func TestGetNotificationActors_ReturnsLikingUsers(t *testing.T) {
 	notification, err := env.notificationStore.InsertNotification(t.Context(), user0.UserID, nil, nil, nil, "test notification", models.NotificationTypeLike, nil)
 	require.NoError(t, err)
 
-	page, err := env.svc.GetNotificationActors(t.Context(), user0.UserID, notification.NotificationID, 10, new(time.Now().UTC().Add(time.Second)))
+	page, err := env.svc.GetNotificationActors(t.Context(), user0.UserID, notification.NotificationID, 10, new(time.Now().UTC()))
 	require.NoError(t, err)
 	assert.Empty(t, page.Users)
 
@@ -69,7 +69,7 @@ func TestGetNotificationActors_ReturnsLikingUsers(t *testing.T) {
 	err = env.notificationStore.InsertNotificationActor(t.Context(), notification.NotificationID, user2.UserID)
 	require.NoError(t, err)
 
-	page, err = env.svc.GetNotificationActors(t.Context(), user0.UserID, notification.NotificationID, 10, new(time.Now().UTC().Add(time.Second)))
+	page, err = env.svc.GetNotificationActors(t.Context(), user0.UserID, notification.NotificationID, 10, new(time.Now().UTC()))
 	require.NoError(t, err)
 	require.NotNil(t, page)
 	require.Len(t, page.Users, 2)
@@ -86,7 +86,7 @@ func TestGetNotificationActors_DoesntReturnForNonOwningUser(t *testing.T) {
 	notification, err := env.notificationStore.InsertNotification(t.Context(), user0.UserID, nil, nil, nil, "test notification", models.NotificationTypeLike, nil)
 	require.NoError(t, err)
 
-	page, err := env.svc.GetNotificationActors(t.Context(), user1.UserID, notification.NotificationID, 10, new(time.Now().UTC().Add(time.Second)))
+	page, err := env.svc.GetNotificationActors(t.Context(), user1.UserID, notification.NotificationID, 10, new(time.Now().UTC()))
 	assert.Nil(t, page)
 	assert.ErrorIs(t, err, utilities.ErrUnauthorized)
 }
@@ -96,7 +96,7 @@ func TestGetNotificationActors_ReturnsErrorWhenNotificationDoesNotExist(t *testi
 
 	user0 := testutil.CreateTestUser(t, env.userRepository, "user0")
 
-	page, err := env.svc.GetNotificationActors(t.Context(), user0.UserID, 500, 10, new(time.Now().UTC().Add(time.Second)))
+	page, err := env.svc.GetNotificationActors(t.Context(), user0.UserID, 500, 10, new(time.Now().UTC()))
 	assert.ErrorIs(t, err, user.ErrNotificationDoesNotExist)
 	assert.Nil(t, page)
 }
@@ -109,7 +109,7 @@ func TestFollowUser_SendsNotification(t *testing.T) {
 	err := env.svc.FollowUser(t.Context(), u0, u1.UserID)
 	require.NoError(t, err)
 
-	notifications, err := env.notificationStore.GetUnreadNotificationsForUserIdWithTimeOffset(t.Context(), u1.UserID, time.Now().UTC().Add(time.Second), 10, nil)
+	notifications, err := env.notificationStore.GetUnreadNotificationsForUserIdWithTimeOffset(t.Context(), u1.UserID, time.Now().UTC(), 10, nil)
 	require.NoError(t, err)
 
 	assert.Len(t, notifications, 1)

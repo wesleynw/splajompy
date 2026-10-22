@@ -9,12 +9,10 @@ enum CommentState {
   case failed(Error)
 }
 
-extension CommentsContainerView {
+extension CommentsView {
   @MainActor @Observable class ViewModel {
     private let postId: Int
     private var service: CommentServiceProtocol
-
-    private(set) var respondingToComment: DetailedComment?
 
     var commentSortOrder: String {
       get {
@@ -138,24 +136,10 @@ extension CommentsContainerView {
     private func addCommentToList(_ comment: DetailedComment) {
       guard case .loaded(var currentComments) = state else { return }
 
-      if let parentId = comment.parentCommentId {
-        if let index = currentComments.firstIndex(where: {
-          $0.commentId == parentId
-        }) {
-          var children = currentComments[index].children ?? []
-          if commentSortOrder == "Oldest First" {
-            children.append(comment)
-          } else {
-            children.insert(comment, at: 0)
-          }
-          currentComments[index].children = children
-        }
+      if commentSortOrder == "Oldest First" {
+        currentComments.append(comment)
       } else {
-        if commentSortOrder == "Oldest First" {
-          currentComments.append(comment)
-        } else {
-          currentComments.insert(comment, at: 0)
-        }
+        currentComments.insert(comment, at: 0)
       }
 
       withAnimation {
@@ -173,8 +157,7 @@ extension CommentsContainerView {
       let hasImage = imageState.hasPhoto
       guard !text.isEmpty || hasImage else { return false }
 
-      let imageData: ImageData? =
-        if case .uploaded(_, let data) = imageState { data } else { nil }
+      let imageData: ImageData? = if case .uploaded(_, let data) = imageState { data } else { nil }
       guard !hasImage || imageData != nil else {
         errorMessage = "Image upload failed. Please retry or remove the image."
         showError = true
@@ -184,12 +167,7 @@ extension CommentsContainerView {
       isSubmitting = true
       defer { isSubmitting = false }
 
-      let result = await service.addComment(
-        postId: postId,
-        commentId: respondingToComment?.commentId,
-        text: text,
-        imageData: imageData
-      )
+      let result = await service.addComment(postId: postId, text: text, imageData: imageData)
 
       switch result {
       case .success(let newComment):
@@ -214,7 +192,6 @@ extension CommentsContainerView {
       text = NSAttributedString(string: "")
       imageSelection = nil
       selectedRange = NSRange(location: 0, length: 0)
-      respondingToComment = nil
     }
 
     func deleteComment(_ comment: DetailedComment) async {
@@ -229,10 +206,6 @@ extension CommentsContainerView {
       currentComments.remove(at: index)
       withAnimation {
         state = .loaded(currentComments)
-      }
-
-      postManager.updatePost(id: postId) { post in
-        post.commentCount -= 1
       }
 
       let result = await service.deleteComment(commentId: comment.commentId)
@@ -257,14 +230,6 @@ extension CommentsContainerView {
     func retryUpload() {
       guard case .uploadFailed(let image) = imageState else { return }
       startUpload(image: image)
-    }
-
-    func stageCommentReply(to comment: DetailedComment) {
-      respondingToComment = comment
-    }
-
-    func unstageCommentReply() {
-      respondingToComment = nil
     }
 
     private func cancelUpload() {
@@ -296,9 +261,7 @@ extension CommentsContainerView {
         let imageData = await uploadImageData(image, folder: folder)
         guard !Task.isCancelled else { return }
         self.imageState =
-          if let imageData { .uploaded(image, imageData) } else {
-            .uploadFailed(image)
-          }
+          if let imageData { .uploaded(image, imageData) } else { .uploadFailed(image) }
         self.uploadTask = nil
       }
     }
@@ -312,9 +275,7 @@ extension CommentsContainerView {
         let imageData = await uploadImageData(image, folder: folder)
         guard !Task.isCancelled else { return }
         self.imageState =
-          if let imageData { .uploaded(image, imageData) } else {
-            .uploadFailed(image)
-          }
+          if let imageData { .uploaded(image, imageData) } else { .uploadFailed(image) }
         self.uploadTask = nil
       }
     }

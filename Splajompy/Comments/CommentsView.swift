@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct CommentsContainerView: View {
+struct CommentsView: View {
   var postId: Int
   var postManager: PostStore
   var scrollProxy: ScrollViewProxy?
@@ -49,28 +49,26 @@ struct CommentsContainerView: View {
           #endif
       case .loaded(let comments):
         VStack(spacing: 0) {
-          ForEach(comments) { comment in
-            CommentView(
+          ForEach(comments, id: \.commentId) { comment in
+            CommentRow(
               comment: comment,
-              onToggleLike: { comment in viewModel.toggleLike(for: comment)
+              isInSheet: false,
+              toggleLike: {
+                viewModel.toggleLike(for: comment)
               },
-              onDelete: { commentId in
-                Task { await viewModel.deleteComment(comment) }
-              },
-              onAppear: { comment in
-                guard viewModel.pendingScrollCommentId == comment.commentId
-                else { return }
-                viewModel.pendingScrollCommentId = nil
-                withAnimation {
-                  scrollProxy?.scrollTo(
-                    comment.commentId,
-                    anchor: viewModel.commentSortOrder == "Oldest First"
-                      ? .bottom : .top
-                  )
+              deleteComment: {
+                Task {
+                  await viewModel.deleteComment(comment)
+                  postManager.updatePost(id: postId) { post in
+                    post.commentCount -= 1
+                  }
                 }
-              },
-              onCommentReply: { viewModel.stageCommentReply(to: comment) }
+              }
             )
+            .id(comment.commentId)
+            .geometryGroup()
+            .transition(.opacity.combined(with: .scale(scale: 0.95)))
+            .scrollToCommentWhenAdded(comment.commentId, viewModel: viewModel, proxy: scrollProxy)
           }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -123,7 +121,7 @@ struct CommentsContainerView: View {
 }
 
 #Preview {
-  let mockViewModel = CommentsContainerView.ViewModel(
+  let mockViewModel = CommentsView.ViewModel(
     postId: 1,
     service: MockCommentService(),
     postManager: PostStore()
@@ -132,7 +130,7 @@ struct CommentsContainerView: View {
   let postManager = PostStore()
 
   NavigationStack {
-    CommentsContainerView(
+    CommentsView(
       postId: 1,
       postManager: postManager,
       viewModel: mockViewModel
@@ -142,7 +140,7 @@ struct CommentsContainerView: View {
 }
 
 #Preview("Loading") {
-  let mockViewModel = CommentsContainerView.ViewModel(
+  let mockViewModel = CommentsView.ViewModel(
     postId: 1,
     service: MockCommentService_Loading(),
     postManager: PostStore()
@@ -150,7 +148,7 @@ struct CommentsContainerView: View {
 
   let postManager = PostStore()
 
-  CommentsContainerView(
+  CommentsView(
     postId: 1,
     postManager: postManager,
     viewModel: mockViewModel
@@ -159,7 +157,7 @@ struct CommentsContainerView: View {
 }
 
 #Preview("No Comments") {
-  let mockViewModel = CommentsContainerView.ViewModel(
+  let mockViewModel = CommentsView.ViewModel(
     postId: 1,
     service: MockCommentService_Empty(),
     postManager: PostStore()
@@ -167,7 +165,7 @@ struct CommentsContainerView: View {
 
   let postManager = PostStore()
 
-  CommentsContainerView(
+  CommentsView(
     postId: 1,
     postManager: postManager,
     viewModel: mockViewModel
@@ -176,7 +174,7 @@ struct CommentsContainerView: View {
 }
 
 #Preview("Error") {
-  let mockViewModel = CommentsContainerView.ViewModel(
+  let mockViewModel = CommentsView.ViewModel(
     postId: 1,
     service: MockCommentService_Error(),
     postManager: PostStore()
@@ -184,34 +182,10 @@ struct CommentsContainerView: View {
 
   let postManager = PostStore()
 
-  CommentsContainerView(
+  CommentsView(
     postId: 1,
     postManager: postManager,
     viewModel: mockViewModel
   )
   .environment(AuthManager())
-}
-
-#Preview("nested comments") {
-  let mockViewModel = CommentsContainerView.ViewModel(
-    postId: 3,
-    service: MockCommentService(),
-    postManager: PostStore()
-  )
-
-  let postManager = PostStore()
-
-  NavigationStack {
-    CommentsContainerView(
-      postId: 3,
-      postManager: postManager,
-      viewModel: mockViewModel
-    )
-    .environment(AuthManager())
-    .modify {
-      if #available(anyAppleOS 27, *) {
-        $0.swipeActionsContainer()
-      }
-    }
-  }
 }
