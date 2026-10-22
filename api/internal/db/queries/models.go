@@ -48,6 +48,13 @@ type DeviceToken struct {
 	CreatedAt         *time.Time `json:"createdAt"`
 }
 
+type EmailVerifyRequest struct {
+	ID        int       `json:"id"`
+	Email     string    `json:"email"`
+	Code      string    `json:"code"`
+	CreatedAt time.Time `json:"createdAt"`
+}
+
 type Follow struct {
 	FollowerID  int       `json:"followerId"`
 	FollowingID int       `json:"followingId"`

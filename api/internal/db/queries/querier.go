@@ -83,6 +83,7 @@ type Querier interface {
 	GetUserWithPasswordByIdentifier(ctx context.Context, email string) (User, error)
 	GetVerificationCode(ctx context.Context, arg GetVerificationCodeParams) (VerificationCode, error)
 	InsertDeviceToken(ctx context.Context, arg InsertDeviceTokenParams) error
+	InsertEmailVerificationRequest(ctx context.Context, arg InsertEmailVerificationRequestParams) error
 	InsertFollow(ctx context.Context, arg InsertFollowParams) error
 	InsertImage(ctx context.Context, arg InsertImageParams) (Image, error)
 	InsertNotification(ctx context.Context, arg InsertNotificationParams) (Notification, error)
@@ -97,6 +98,7 @@ type Querier interface {
 	PinPost(ctx context.Context, arg PinPostParams) error
 	RemoveLike(ctx context.Context, arg RemoveLikeParams) error
 	RemoveUserRelationship(ctx context.Context, arg RemoveUserRelationshipParams) error
+	SelectEmailVerificationRequestForEmail(ctx context.Context, email string) (EmailVerifyRequest, error)
 	UnblockUser(ctx context.Context, arg UnblockUserParams) error
 	UnmuteUser(ctx context.Context, arg UnmuteUserParams) error
 	UnpinPost(ctx context.Context, userID int) error
