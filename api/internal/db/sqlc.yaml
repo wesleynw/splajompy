@@ -102,8 +102,3 @@ sql:
                 type: "UserDisplayProperties",
                 pointer: true,
               }
-          - column: "comments.parent_comment_id"
-            go_type:
-              type: "int"
-              pointer: true
-            nullable: true

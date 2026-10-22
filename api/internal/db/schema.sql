@@ -43,10 +43,7 @@ CREATE TABLE comments (
     user_id INT NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
     text TEXT NOT NULL,
     facets JSON,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    parent_comment_id INT NULL REFERENCES comments(comment_id) ON DELETE CASCADE,
-    FOREIGN KEY (post_id) REFERENCES posts(post_id) ON DELETE CASCADE,
-    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+    created_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
 CREATE TABLE sessions (

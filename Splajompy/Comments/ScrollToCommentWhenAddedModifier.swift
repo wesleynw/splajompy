@@ -2,7 +2,7 @@ import SwiftUI
 
 struct ScrollToCommentWhenAddedModifier: ViewModifier {
   let commentId: Int
-  let viewModel: CommentsContainerView.ViewModel
+  let viewModel: CommentsView.ViewModel
   let proxy: ScrollViewProxy?
 
   func body(content: Content) -> some View {
@@ -23,7 +23,7 @@ struct ScrollToCommentWhenAddedModifier: ViewModifier {
 extension View {
   func scrollToCommentWhenAdded(
     _ commentId: Int,
-    viewModel: CommentsContainerView.ViewModel,
+    viewModel: CommentsView.ViewModel,
     proxy: ScrollViewProxy?
   ) -> some View {
     modifier(

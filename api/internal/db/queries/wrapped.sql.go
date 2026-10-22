@@ -61,7 +61,7 @@ func (q *Queries) WrappedDeleteAllStored(ctx context.Context) error {
 }
 
 const wrappedGetAllUserCommentsWithCursor = `-- name: WrappedGetAllUserCommentsWithCursor :many
-SELECT comment_id, post_id, user_id, text, facets, created_at, parent_comment_id
+SELECT comment_id, post_id, user_id, text, facets, created_at
 FROM comments
 WHERE user_id = $1
   AND EXTRACT(YEAR FROM created_at) = 2025
@@ -92,7 +92,6 @@ func (q *Queries) WrappedGetAllUserCommentsWithCursor(ctx context.Context, arg W
 			&i.Text,
 			&i.Facets,
 			&i.CreatedAt,
-			&i.ParentCommentID,
 		); err != nil {
 			return nil, err
 		}

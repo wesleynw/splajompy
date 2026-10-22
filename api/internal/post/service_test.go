@@ -348,7 +348,7 @@ func TestGetPost_RelevantLikesDoesNotCountCommentLikes(t *testing.T) {
 	post, err := env.svc.NewPost(t.Context(), user0, new("test post"), nil, nil, nil)
 	require.NoError(t, err)
 
-	comment, err := env.commentSvc.AddComment(t.Context(), user0, post.PostID, nil, "test comment", nil)
+	comment, err := env.commentSvc.AddCommentToPost(t.Context(), user0, post.PostID, "test comment", nil)
 	require.NoError(t, err)
 
 	err = env.commentSvc.AddLikeToCommentById(t.Context(), user1, post.PostID, comment.CommentID)

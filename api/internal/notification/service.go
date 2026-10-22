@@ -39,7 +39,7 @@ type userReader interface {
 }
 
 type commentReader interface {
-	GetCommentById(ctx context.Context, userId int, commentId int) (queries.Comment, error)
+	GetCommentById(ctx context.Context, commentId int) (queries.Comment, error)
 	GetImagesByCommentId(ctx context.Context, commentId int) ([]queries.Image, error)
 }
 
@@ -140,7 +140,7 @@ func (s *Service) buildDetailedNotifications(ctx context.Context, currentUserId 
 		}
 
 		if notification.CommentID != nil {
-			comment, err := s.commentRepository.GetCommentById(ctx, currentUserId, *notification.CommentID)
+			comment, err := s.commentRepository.GetCommentById(ctx, *notification.CommentID)
 			if err != nil {
 				return nil, errors.New("unable to retrieve comment")
 			}
@@ -195,7 +195,7 @@ func (s *Service) AddLikeNotification(ctx context.Context, currentUserId int, po
 	// resolve recipient: comment author for comment likes, post author otherwise
 	recipientId := post.UserID
 	if commentId != nil {
-		comment, err := s.commentRepository.GetCommentById(ctx, currentUserId, *commentId)
+		comment, err := s.commentRepository.GetCommentById(ctx, *commentId)
 		if err != nil {
 			return err
 		}
@@ -267,7 +267,7 @@ func (s *Service) RemoveLikeNotification(ctx context.Context, currentUserId int,
 	// resolve recipient: comment author for comment likes, post author otherwise
 	recipientId := post.UserID
 	if commentId != nil {
-		comment, err := s.commentRepository.GetCommentById(ctx, currentUserId, *commentId)
+		comment, err := s.commentRepository.GetCommentById(ctx, *commentId)
 		if err != nil {
 			return err
 		}

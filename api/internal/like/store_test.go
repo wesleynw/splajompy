@@ -40,7 +40,7 @@ func TestPostAndCommentLiking_Succeeds(t *testing.T) {
 	post0, err := env.postRepository.InsertPost(t.Context(), user0.UserID, new("test"), nil, nil, new(models.VisibilityPublic))
 	require.NoError(t, err)
 
-	comment0, err := env.commentRepository.AddCommentToPost(t.Context(), user0.UserID, post0.PostID, "test comment", nil, nil)
+	comment0, err := env.commentRepository.AddCommentToPost(t.Context(), user0.UserID, post0.PostID, "test comment", nil)
 	require.NoError(t, err)
 
 	is_liked, err := env.likeRepository.IsLiked(t.Context(), user0.UserID, post0.PostID, nil)

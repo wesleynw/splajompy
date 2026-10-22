@@ -1,4 +1,3 @@
-import PostHog
 import SwiftUI
 
 struct CommentRow: View {
@@ -6,7 +5,6 @@ struct CommentRow: View {
   let isInSheet: Bool
   let toggleLike: () -> Void
   let deleteComment: () -> Void
-  var handleCommentReply: (() -> Void)? = nil
 
   let formatter = RelativeDateTimeFormatter()
 
@@ -62,19 +60,7 @@ struct CommentRow: View {
 
         Spacer()
 
-        if let commentReplyCallback = handleCommentReply,
-          PostHogSDK.shared.isFeatureEnabled("comment-replies")
-        {
-          Button {
-            commentReplyCallback()
-          } label: {
-            Text("Reply")
-              .font(SJFont.body)
-          }
-          .buttonStyle(.plain)
-        }
-
-        HStack {
+        HStack(spacing: 0) {
           if let currentUser = authManager.currentUser {
             if currentUser.userId == comment.user.userId {
               Menu(
@@ -103,18 +89,6 @@ struct CommentRow: View {
         }
       }
       .allowsHitTesting(true)
-    }
-    .modify {
-      if PostHogSDK.shared.isFeatureEnabled("comment-replies") {
-        $0.swipeActions(edge: .leading) {
-          Button {
-            handleCommentReply?()
-          } label: {
-            Label("Reply", systemImage: "arrowshape.turn.up.left.fill")
-          }
-          .tint(.accent)
-        }
-      }
     }
     .padding(.vertical, 8)
     #if os(iOS)
@@ -167,17 +141,5 @@ struct LikeButton: View {
     }
     .buttonStyle(.plain)
     .sensoryFeedback(.impact, trigger: isLiked)
-  }
-}
-
-#Preview {
-  NavigationStack {
-    CommentRow(
-      comment: Mocks.comment1,
-      isInSheet: false,
-      toggleLike: {},
-      deleteComment: {},
-    )
-    .environment(AuthManager())
   }
 }
