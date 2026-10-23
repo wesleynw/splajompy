@@ -15,7 +15,11 @@ struct CommentInputView: View {
   @State private var cursorY: CGFloat = 0
   @State private var submitButtonWidth: CGFloat = 0
   @State private var presentingImage: SelectedImage? = nil
-  @Namespace var namespace
+
+  var replyNamespace: Namespace.ID?
+  @Namespace private var namespace
+
+  @FocusState private var focus
 
   var body: some View {
     VStack {
@@ -46,64 +50,12 @@ struct CommentInputView: View {
       }
 
       VStack {
-        if let replyingComment = viewModel.respondingToComment {
-          HStack {
-            Image(systemName: "arrowshape.turn.up.left.fill")
-              .font(.body)
+        ViewThatFits(in: .vertical) {
+          inputTopAccessories
 
-            Text("Replying to ")
-              + Text("@\(replyingComment.user.username)").fontWeight(.semibold)
-              .foregroundStyle(.accent)
-
-            Spacer()
-
-            Button {
-              viewModel.unstageCommentReply()
-            } label: {
-              Image(systemName: "xmark.circle.fill")
-                .font(.body)
-            }
-            .buttonStyle(.plain)
+          ScrollView {
+            inputTopAccessories
           }
-          .fontWeight(.semibold)
-          .padding(10)
-          .frame(maxWidth: .infinity, alignment: .leading)
-          .transition(.blurReplace)
-          .onTapGesture {
-            onCommentReplyTap()
-          }
-        }
-
-        if viewModel.imageState != .empty {
-
-          ScrollView(.horizontal) {
-            HStack {
-              ImagePreviewView(
-                state: viewModel.imageState,
-                onRetry: {
-                  viewModel.retryImage()
-                },
-                onRemove: {
-                  viewModel.imageSelection = nil
-                },
-                onTap: {
-                  if let photo = viewModel.imageState.image {
-                    presentingImage = SelectedImage(id: 0, image: photo)
-                  }
-                },
-                onRetryUpload: {
-                  viewModel.retryUpload()
-                }
-              )
-              .modify {
-                if #available(iOS 18, *) {
-                  $0.matchedTransitionSource(id: "zoom", in: namespace)
-                }
-              }
-              .disabled(viewModel.isSubmitting)
-            }
-          }
-          .scrollIndicators(.hidden)
         }
 
         HStack(alignment: .bottom, spacing: 0) {
@@ -124,6 +76,7 @@ struct CommentInputView: View {
             isCompact: true,
             trailingInset: submitButtonWidth
           )
+          .focused($focus)
           .overlay(alignment: .bottomTrailing) {
             Button(action: {
               mentionViewModel.clearMentionState()
@@ -174,7 +127,11 @@ struct CommentInputView: View {
         }
       }
     }
-    .animation(.default, value: viewModel.respondingToComment)
+    .onChange(of: viewModel.respondingToComment?.commentId) { _, newValue in
+      if newValue != nil {
+        focus = true
+      }
+    }
     .sheet(item: $presentingImage) { selected in
       LocalImagePager(
         images: [selected.image],
@@ -194,6 +151,88 @@ struct CommentInputView: View {
     #endif
   }
 
+  @ContentBuilder
+  private var inputTopAccessories: some View {
+    VStack {
+      if let replyingComment = viewModel.respondingToComment {
+        VStack {
+          CommentView(
+            comment: replyingComment,
+            onToggleLike: { comment in },
+            onDelete: { commentId in },
+            onAppear: { comment in },
+            onCommentReply: {},
+            isReadOnly: true,
+            showChildren: false,
+            replyNamespace: replyNamespace,
+            isAnimationSource: true,
+          )
+
+          HStack {
+            Image(systemName: "arrowshape.turn.up.left.fill")
+              .font(.body)
+
+            Text("Replying to ")
+              + Text("@\(replyingComment.user.username)").fontWeight(
+                .semibold
+              )
+              .foregroundStyle(.accent)
+
+            Spacer()
+
+            Button {
+              withAnimation {
+                viewModel.unstageCommentReply()
+              }
+            } label: {
+              Image(systemName: "xmark.circle.fill")
+                .font(.body)
+            }
+            .buttonStyle(.plain)
+          }
+          .fontWeight(.semibold)
+          .padding(10)
+          .frame(maxWidth: .infinity, alignment: .leading)
+          .transition(.blurReplace)
+          .onTapGesture {
+            onCommentReplyTap()
+          }
+        }
+      }
+
+      if viewModel.imageState != .empty {
+        ScrollView(.horizontal) {
+          HStack {
+            ImagePreviewView(
+              state: viewModel.imageState,
+              onRetry: {
+                viewModel.retryImage()
+              },
+              onRemove: {
+                viewModel.imageSelection = nil
+              },
+              onTap: {
+                if let photo = viewModel.imageState.image {
+                  presentingImage = SelectedImage(id: 0, image: photo)
+                }
+              },
+              onRetryUpload: {
+                viewModel.retryUpload()
+              }
+            )
+            .modify {
+              if #available(iOS 18, *) {
+                $0.matchedTransitionSource(id: "zoom", in: namespace)
+              }
+            }
+            .disabled(viewModel.isSubmitting)
+          }
+        }
+        .scrollIndicators(.hidden)
+      }
+    }
+  }
+
   private var isSubmitButtonDisabled: Bool {
     let hasImage = viewModel.imageState.hasPhoto
     let textEmpty = viewModel.text.string.trimmingCharacters(
@@ -208,12 +247,18 @@ struct CommentInputView: View {
 #Preview {
   CommentInputView(
     onCommentReplyTap: {},
-    viewModel: CommentsContainerView.ViewModel(postId: 1, postManager: PostStore())
+    viewModel: CommentsContainerView.ViewModel(
+      postId: 1,
+      postManager: PostStore()
+    )
   )
 }
 
 #Preview("responding to comment") {
-  let viewModel = CommentsContainerView.ViewModel(postId: 1, postManager: PostStore())
+  let viewModel = CommentsContainerView.ViewModel(
+    postId: 1,
+    postManager: PostStore()
+  )
   viewModel.stageCommentReply(to: Mocks.comment1)
 
   return CommentInputView(

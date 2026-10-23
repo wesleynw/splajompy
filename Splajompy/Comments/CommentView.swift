@@ -2,11 +2,19 @@ import SwiftUI
 
 struct CommentView: View {
   let comment: DetailedComment
+  var replyToComment: Int? = nil
 
   let onToggleLike: (DetailedComment) -> Void
   let onDelete: (DetailedComment) -> Void
   let onAppear: (DetailedComment) -> Void
   let onCommentReply: () -> Void
+
+  var isReadOnly: Bool = false
+  var isBlurring: Bool = false
+  var showChildren: Bool = true
+
+  var replyNamespace: Namespace.ID?
+  var isAnimationSource: Bool = true
 
   var body: some View {
     VStack {
@@ -21,16 +29,34 @@ struct CommentView: View {
         },
         handleCommentReply: {
           onCommentReply()
-        }
+        },
+        isReadOnly: isReadOnly
       )
+      .modify {
+        if let namespace = replyNamespace {
+          $0.matchedGeometryEffect(
+            id: comment.commentId,
+            in: namespace,
+            isSource: isAnimationSource
+          )
+        }
+      }
       .id(comment.commentId)
       .geometryGroup()
-      .transition(.opacity.combined(with: .scale(scale: 0.95)))
       .onAppear {
         onAppear(comment)
       }
+      .blur(
+        radius: replyToComment != nil
+          && replyToComment
+            != comment.commentId
+          ? 6 : 0
+      )
 
-      childCommentsView
+      if showChildren {
+        childCommentsView
+          .blur(radius: replyToComment != nil ? 6 : 0)
+      }
     }
   }
 

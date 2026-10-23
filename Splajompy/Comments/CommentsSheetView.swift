@@ -7,6 +7,8 @@ struct CommentsSheetView: View {
   @State private var viewModel: CommentsContainerView.ViewModel
   @Environment(\.dismiss) private var dismiss
 
+  @Namespace private var replyNamespace
+
   init(
     postId: Int,
     postManager: PostStore,
@@ -40,28 +42,40 @@ struct CommentsSheetView: View {
               ForEach(comments) { comment in
                 CommentView(
                   comment: comment,
+                  replyToComment: viewModel.respondingToComment?.commentId ?? nil,
                   onToggleLike: { comment in viewModel.toggleLike(for: comment)
                   },
                   onDelete: { commentId in
                     Task { await viewModel.deleteComment(comment) }
                   },
                   onAppear: { comment in
-                    guard viewModel.pendingScrollCommentId == comment.commentId else { return }
+                    guard viewModel.pendingScrollCommentId == comment.commentId
+                    else { return }
                     viewModel.pendingScrollCommentId = nil
                     withAnimation {
                       proxy.scrollTo(
                         comment.commentId,
-                        anchor: viewModel.commentSortOrder == "Oldest First" ? .bottom : .top
+                        anchor: viewModel.commentSortOrder == "Oldest First"
+                          ? .bottom : .top
                       )
                     }
                   },
-                  onCommentReply: { viewModel.stageCommentReply(to: comment) }
+                  onCommentReply: {
+                    withAnimation {
+                      viewModel.stageCommentReply(to: comment)
+                    }
+                  },
+                  replyNamespace: replyNamespace,
+                  isAnimationSource: true
                 )
+
               }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
+            .allowsHitTesting(viewModel.respondingToComment == nil)
           }
         }
+        .scrollDisabled(viewModel.respondingToComment != nil)
         .modify {
           if #available(anyAppleOS 27, *) {
             $0.swipeActionsContainer()
@@ -94,7 +108,8 @@ struct CommentsSheetView: View {
                     }
                   }
                 },
-                viewModel: viewModel
+                viewModel: viewModel,
+                replyNamespace: replyNamespace
               )
             }
           } else {
@@ -118,6 +133,7 @@ struct CommentsSheetView: View {
         !viewModel.text.string.trimmingCharacters(
           in: .whitespacesAndNewlines
         ).isEmpty || viewModel.imageSelection != nil
+          || viewModel.respondingToComment != nil
       )
       .toolbar {
         #if os(iOS)
