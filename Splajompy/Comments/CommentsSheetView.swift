@@ -42,7 +42,8 @@ struct CommentsSheetView: View {
               ForEach(comments) { comment in
                 CommentView(
                   comment: comment,
-                  replyToComment: viewModel.respondingToComment?.commentId ?? nil,
+                  replyToComment: viewModel.respondingToComment?.commentId
+                    ?? nil,
                   onToggleLike: { comment in viewModel.toggleLike(for: comment)
                   },
                   onDelete: { commentId in
@@ -66,9 +67,7 @@ struct CommentsSheetView: View {
                     }
                   },
                   replyNamespace: replyNamespace,
-                  isAnimationSource: true
                 )
-
               }
             }
             .frame(maxWidth: .infinity, alignment: .leading)

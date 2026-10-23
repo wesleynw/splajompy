@@ -165,7 +165,6 @@ struct CommentInputView: View {
             isReadOnly: true,
             showChildren: false,
             replyNamespace: replyNamespace,
-            isAnimationSource: true,
           )
 
           HStack {
