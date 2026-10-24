@@ -64,7 +64,7 @@ struct Mocks {
     userId: 100,
     username: "wesley",
     createdAt: Date(),
-    name: "Wesley W",
+    name: "Wesley",
     isVerified: true,
     displayProperties: UserDisplayProperties(fontChoiceId: 0)
   )
@@ -101,6 +101,18 @@ struct Mocks {
     relevantLikes: [],
     hasOtherLikes: false,
     isPinned: false
+  )
+
+  static let comment1 = DetailedComment(
+    commentId: 1,
+    postId: 1,
+    userId: 1,
+    text: "test comment",
+    createdAt: Date(),
+    user: testPublicUser1,
+    facets: nil,
+    images: nil,
+    isLiked: false
   )
 
   static let wrappedData = WrappedData(

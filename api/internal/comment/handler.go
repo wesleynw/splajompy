@@ -18,6 +18,7 @@ func NewHandler(svc *Service) *Handler {
 
 func (h *Handler) RegisterRESTRoutes(_, withAuth func(string, func(http.ResponseWriter, *http.Request))) {
 	withAuth("POST /post/{post_id}/comment", h.AddCommentToPostById)
+	withAuth("POST /post/{post_id}/comment/{comment_id}/reply", h.ReplyToComment)
 	withAuth("POST /post/{post_id}/comment/{comment_id}/liked", h.AddCommentLike)
 	withAuth("DELETE /post/{post_id}/comment/{comment_id}/liked", h.RemoveCommentLike)
 	withAuth("DELETE /comment/{comment_id}", h.DeleteComment)
@@ -41,7 +42,6 @@ func (h *Handler) GetCommentsByPost(w http.ResponseWriter, r *http.Request) {
 	utilities.HandleSuccess(w, comments)
 }
 
-// AddCommentToPostById POST /post/{id}/comment
 func (h *Handler) AddCommentToPostById(w http.ResponseWriter, r *http.Request) {
 	currentUser := utilities.GetAuthenticatedUser(r)
 
@@ -61,7 +61,7 @@ func (h *Handler) AddCommentToPostById(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	comment, err := h.svc.AddCommentToPost(r.Context(), *currentUser, postId, requestBody.Text, requestBody.ImageKeyMap)
+	comment, err := h.svc.AddComment(r.Context(), *currentUser, postId, nil, requestBody.Text, requestBody.ImageKeyMap)
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
 		return
@@ -94,7 +94,6 @@ func (h *Handler) AddCommentLike(w http.ResponseWriter, r *http.Request) {
 	utilities.HandleEmptySuccess(w)
 }
 
-// RemoveCommentLike DELETE /post/{post_id}/comment/{comment_id}/liked
 func (h *Handler) RemoveCommentLike(w http.ResponseWriter, r *http.Request) {
 	currentUser := utilities.GetAuthenticatedUser(r)
 
@@ -119,7 +118,6 @@ func (h *Handler) RemoveCommentLike(w http.ResponseWriter, r *http.Request) {
 	utilities.HandleEmptySuccess(w)
 }
 
-// DeleteComment DELETE /comment/{comment_id}
 func (h *Handler) DeleteComment(w http.ResponseWriter, r *http.Request) {
 	currentUser := utilities.GetAuthenticatedUser(r)
 
@@ -136,4 +134,38 @@ func (h *Handler) DeleteComment(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utilities.HandleEmptySuccess(w)
+}
+
+func (h *Handler) ReplyToComment(w http.ResponseWriter, r *http.Request) {
+	currentUser := utilities.GetAuthenticatedUser(r)
+
+	postId, err := utilities.GetIntPathParam(r, "post_id")
+	if err != nil {
+		utilities.HandleError(w, http.StatusBadRequest, "Missing parameter")
+		return
+	}
+
+	commentId, err := utilities.GetIntPathParam(r, "comment_id")
+	if err != nil {
+		utilities.HandleError(w, http.StatusBadRequest, "Missing parameter")
+		return
+	}
+
+	var requestBody struct {
+		Text        string
+		ImageKeyMap map[int]models.ImageData `json:"imageKeyMap"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&requestBody); err != nil {
+		utilities.HandleError(w, http.StatusBadRequest, "malformed request body")
+		return
+	}
+
+	comment, err := h.svc.AddComment(r.Context(), *currentUser, postId, &commentId, requestBody.Text, requestBody.ImageKeyMap)
+	if err != nil {
+		utilities.HandleError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	utilities.HandleSuccess(w, comment)
 }
