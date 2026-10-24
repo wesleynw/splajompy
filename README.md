@@ -72,6 +72,8 @@ sqlc generate -f api/internal/db/sqlc.yaml
 
 Install [Buf](https://buf.build/docs/cli/installation/), then run `go generate ./...` from `api/` to generate Go code from `proto/`. Generator versions are managed in `api/go.mod`.
 
+Run `buf generate` from `Splajompy/` to generate Swift code. Generator versions are pinned in `Splajompy/buf.gen.yaml`.
+
 ## DB Migrations
 Migrations are handled with `golang-migrate`. To make changes to the DB, follow the linked guide below. This usually involves writing up and down migrations, which you can first push to the development DB, and then to production when new API code is merged.
 
