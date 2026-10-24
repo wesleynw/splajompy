@@ -5,6 +5,7 @@ struct SplashScreenView: View {
   @Environment(AuthManager.self) private var authManager
   @State private var isLoginViewPresenting: Bool = false
   @State private var isRegisterViewPresenting: Bool = false
+  @State private var isDeveloperSettingsUnlocked = false
   @State private var isShowingDeveloperSettings = false
 
   var body: some View {
@@ -13,6 +14,7 @@ struct SplashScreenView: View {
         .resizable()
         .scaledToFit()
         .frame(height: 160)
+        .onTapGesture(count: 5) { isDeveloperSettingsUnlocked = true }
         .padding(.top, 150)
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
@@ -56,13 +58,15 @@ struct SplashScreenView: View {
       .padding()
     }
     .overlay(alignment: .topTrailing) {
-      Button {
-        isShowingDeveloperSettings = true
-      } label: {
-        Label("Developer Settings", systemImage: "hammer")
-          .labelStyle(.iconOnly)
+      if isDeveloperSettingsUnlocked {
+        Button {
+          isShowingDeveloperSettings = true
+        } label: {
+          Label("Developer Settings", systemImage: "hammer")
+            .labelStyle(.iconOnly)
+        }
+        .padding()
       }
-      .padding()
     }
     .sheet(isPresented: $isShowingDeveloperSettings) {
       NavigationStack {

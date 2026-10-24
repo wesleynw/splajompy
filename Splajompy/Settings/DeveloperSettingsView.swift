@@ -3,32 +3,49 @@ import SwiftUI
 struct DeveloperSettingsView: View {
   @Environment(AuthManager.self) private var authManager
   @Environment(\.dismiss) private var dismiss
-  @State private var serverURL = APIService.baseUrl
+  @State private var serverURL: String
+  @State private var port: String
   @State private var isSaving = false
+
+  init() {
+    var components = URLComponents(string: APIService.baseUrl)
+    _port = State(initialValue: components?.port.map(String.init) ?? "")
+    components?.port = nil
+    _serverURL = State(initialValue: components?.string ?? APIService.baseUrl)
+  }
 
   private var normalizedURL: String? {
     guard
-      let components = URLComponents(
+      var components = URLComponents(
         string: serverURL.trimmingCharacters(in: .whitespacesAndNewlines)),
       let scheme = components.scheme?.lowercased(), ["http", "https"].contains(scheme),
       let host = components.host, !host.isEmpty,
-      components.user == nil, components.password == nil,
+      components.user == nil, components.password == nil, components.port == nil,
       components.query == nil, components.fragment == nil,
-      components.path.isEmpty || components.path == "/",
-      components.port.map({ (1...65535).contains($0) }) ?? true,
-      let url = components.url
+      components.path.isEmpty || components.path == "/"
     else { return nil }
-    return url.absoluteString.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+    let port = port.trimmingCharacters(in: .whitespacesAndNewlines)
+    if !port.isEmpty {
+      guard let number = Int(port), (1...65535).contains(number) else { return nil }
+      components.port = number
+    }
+    components.path = ""
+    return components.url?.absoluteString
   }
 
   var body: some View {
     Form {
-      Section {
-        TextField("API Server URL", text: $serverURL)
+      Section("API Server") {
+        TextField("URL", text: $serverURL)
           .autocorrectionDisabled()
           #if os(iOS)
             .textInputAutocapitalization(.never)
             .keyboardType(.URL)
+          #endif
+
+        TextField("Port", text: $port)
+          #if os(iOS)
+            .keyboardType(.numberPad)
           #endif
 
         Button("Apply and Sign Out") {
@@ -43,12 +60,11 @@ struct DeveloperSettingsView: View {
         .disabled(isSaving || normalizedURL == nil || normalizedURL == APIService.baseUrl)
 
         Button("Use Default Server") {
-          serverURL = APIService.defaultBaseUrl
+          var components = URLComponents(string: APIService.defaultBaseUrl)
+          port = components?.port.map(String.init) ?? ""
+          components?.port = nil
+          serverURL = components?.string ?? APIService.defaultBaseUrl
         }
-      } footer: {
-        Text(
-          "Include http:// or https:// and the port. Changing servers signs you out. For local Wi-Fi, use your Mac's .local name."
-        )
       }
     }
     .formStyle(.grouped)
