@@ -15,7 +15,7 @@ func NewHandler(svc *Service) *Handler {
 	return &Handler{svc: svc}
 }
 
-func (h *Handler) RegisterRoutes(public, withAuth func(string, func(http.ResponseWriter, *http.Request))) {
+func (h *Handler) RegisterRESTRoutes(public, withAuth func(string, func(http.ResponseWriter, *http.Request))) {
 	public("POST /register", h.Register)
 	public("POST /login", h.Login)
 	public("POST /otc/generate", h.GenerateOTC)

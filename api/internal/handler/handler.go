@@ -2,28 +2,49 @@ package handler
 
 import (
 	"net/http"
+
+	"connectrpc.com/connect/v2"
+	"connectrpc.com/connect/v2/connecthttp"
+	"connectrpc.com/validate"
+	"splajompy.com/api/v2/internal/db/queries"
+	"splajompy.com/api/v2/internal/interceptor"
+	"splajompy.com/api/v2/internal/middleware"
 )
 
-type RouteRegistrar interface {
-	RegisterRoutes(public, withAuth func(string, func(http.ResponseWriter, *http.Request)))
+type RESTRegistrar interface {
+	RegisterRESTRoutes(public, withAuth func(string, func(http.ResponseWriter, *http.Request)))
+}
+
+type ConnectRegistrar interface {
+	RegisterConnectRoutes(server *connect.Server)
 }
 
 type Handler struct {
-	registrars []RouteRegistrar
+	restRegistrars    []RESTRegistrar
+	connectRegistrars []ConnectRegistrar
 }
 
-func NewHandler(registrars ...RouteRegistrar) *Handler {
-	return &Handler{registrars: registrars}
+func NewHandler(restRegistrars []RESTRegistrar, connectRegistrars []ConnectRegistrar) *Handler {
+	return &Handler{restRegistrars: restRegistrars, connectRegistrars: connectRegistrars}
 }
 
-func (h *Handler) RegisterRoutes(handleFunc func(string, func(http.ResponseWriter, *http.Request)), authMiddleware func(http.Handler) http.Handler) {
-	withAuth := func(pattern string, handlerFunc func(http.ResponseWriter, *http.Request)) {
-		handleFunc(pattern, func(w http.ResponseWriter, r *http.Request) {
-			authMiddleware(http.HandlerFunc(handlerFunc)).ServeHTTP(w, r)
-		})
+func (h *Handler) RegisterRESTRoutes(mux *http.ServeMux, q *queries.Queries) {
+	public := func(pattern string, handler func(http.ResponseWriter, *http.Request)) {
+		mux.Handle(pattern, middleware.AppVersion(http.HandlerFunc(handler)))
 	}
+	auth := middleware.AuthMiddleware(q)
+	withAuth := func(pattern string, handler func(http.ResponseWriter, *http.Request)) {
+		mux.Handle(pattern, middleware.AppVersion(auth(http.HandlerFunc(handler))))
+	}
+	for _, r := range h.restRegistrars {
+		r.RegisterRESTRoutes(public, withAuth)
+	}
+}
 
-	for _, r := range h.registrars {
-		r.RegisterRoutes(handleFunc, withAuth)
+func (h *Handler) RegisterConnectRoutes(mux *http.ServeMux, q *queries.Queries) {
+	server := connect.NewServer(interceptor.AppVersion, interceptor.Auth(q), validate.NewServerInterceptor())
+	for _, r := range h.connectRegistrars {
+		r.RegisterConnectRoutes(server)
 	}
+	connecthttp.Mount(mux, server)
 }
