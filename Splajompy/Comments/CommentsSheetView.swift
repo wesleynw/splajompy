@@ -75,11 +75,6 @@ struct CommentsSheetView: View {
           }
         }
         .scrollDisabled(viewModel.respondingToComment != nil)
-        .modify {
-          if #available(anyAppleOS 27, *) {
-            $0.swipeActionsContainer()
-          }
-        }
         .overlay {
           switch viewModel.state {
           case .idle, .loading:

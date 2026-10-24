@@ -58,11 +58,6 @@ struct StandalonePostView: View {
           #endif
         }
       }
-      .modify {
-        if #available(anyAppleOS 27, *) {
-          $0.swipeActionsContainer()
-        }
-      }
       .overlay {
         switch viewModel.state {
         case .idle, .loading:

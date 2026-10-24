@@ -15,6 +15,8 @@ struct CommentRow: View {
   @Environment(AuthManager.self) private var authManager
   @Environment(\.openURL) private var openURL
   @State private var showDeleteConfirmation = false
+  @State private var replyGestureOffset: CGFloat = CGFloat.zero
+  private let replyThreshold: CGFloat = 60
 
   var body: some View {
     VStack(alignment: .leading, spacing: 6) {
@@ -71,8 +73,8 @@ struct CommentRow: View {
             Button {
               commentReplyCallback()
             } label: {
-              Text("Reply")
-                .font(SJFont.body)
+              Image(systemName: "arrowshape.turn.up.left.fill")
+                .font(.body)
             }
             .buttonStyle(.plain)
           }
@@ -110,17 +112,19 @@ struct CommentRow: View {
       }
       .allowsHitTesting(true)
     }
-    .modify {
-      if PostHogSDK.shared.isFeatureEnabled("comment-replies") {
-        $0.swipeActions(edge: .leading) {
-          Button {
-            handleCommentReply?()
-          } label: {
-            Label("Reply", systemImage: "arrowshape.turn.up.left.fill")
-          }
-          .tint(.accent)
-        }
-      }
+    .offset(x: replyGestureOffset)
+    .gesture(replyGesture)
+    .gesture(
+      replyGesture,
+      isEnabled: PostHogSDK.shared.isFeatureEnabled("comment-replies")
+    )
+    .sensoryFeedback(.impact, trigger: replyGestureOffset > replyThreshold)
+    .background(alignment: .leading) {
+      Image(systemName: "arrowshape.turn.up.left.fill")
+        .font(.body)
+        .scaleEffect(replyGestureOffset > replyThreshold ? 1.2 : 1)
+        .opacity(replyIndicatorOpacity)
+        .animation(.default, value: replyGestureOffset)
     }
     .padding(.vertical, 8)
     #if os(iOS)
@@ -149,6 +153,35 @@ struct CommentRow: View {
       Button("Cancel", role: .cancel) {}
     }
 
+  }
+
+  private var replyGesture: some Gesture {
+    DragGesture()
+      .onChanged { value in
+        let x = max(0, value.translation.width)
+        let resisted = 120 * (1 - exp(-x / 120))
+        replyGestureOffset = resisted
+      }
+      .onEnded { value in
+        if value.translation.width > replyThreshold {
+          handleCommentReply?()
+        } else {
+          withAnimation {
+            replyGestureOffset = .zero
+          }
+        }
+      }
+  }
+
+  private var replyIndicatorOpacity: Double {
+    let revealStart: CGFloat = 16  // ~ the icon's leading padding
+    let revealEnd: CGFloat = replyThreshold
+    return Double(
+      min(
+        1,
+        max(0, (replyGestureOffset - revealStart) / (revealEnd - revealStart))
+      )
+    )
   }
 }
 

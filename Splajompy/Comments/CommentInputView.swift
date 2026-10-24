@@ -156,17 +156,6 @@ struct CommentInputView: View {
     VStack {
       if let replyingComment = viewModel.respondingToComment {
         VStack {
-          CommentView(
-            comment: replyingComment,
-            onToggleLike: { comment in },
-            onDelete: { commentId in },
-            onAppear: { comment in },
-            onCommentReply: {},
-            isReadOnly: true,
-            showChildren: false,
-            replyNamespace: replyNamespace,
-          )
-
           HStack {
             Image(systemName: "arrowshape.turn.up.left.fill")
               .font(.body)
@@ -196,6 +185,18 @@ struct CommentInputView: View {
           .onTapGesture {
             onCommentReplyTap()
           }
+
+          CommentView(
+            comment: replyingComment,
+            onToggleLike: { comment in },
+            onDelete: { commentId in },
+            onAppear: { comment in },
+            onCommentReply: {},
+            isReadOnly: true,
+            showChildren: false,
+            replyNamespace: replyNamespace,
+          )
+
         }
       }
 
