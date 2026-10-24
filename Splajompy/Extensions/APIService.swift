@@ -22,9 +22,15 @@ extension Foundation.Notification.Name {
 }
 
 public struct APIService {
-  static let baseUrl: String =
+  static let serverURLKey = "api_server_url"
+
+  static let defaultBaseUrl: String =
     Bundle.main.object(forInfoDictionaryKey: "API_URL") as? String
-    ?? "http://api.splajompy.com"
+    ?? "https://api.splajompy.com"
+
+  static var baseUrl: String {
+    UserDefaults.standard.string(forKey: serverURLKey) ?? defaultBaseUrl
+  }
 
   private static func createRequest(
     for url: URL,
@@ -76,6 +82,7 @@ public struct APIService {
       span.end()
     }
 
+    let baseUrl = Self.baseUrl
     guard var urlComponents = URLComponents(string: "\(baseUrl)/\(endpoint)")
     else {
       span.status = .error(description: "Bad URL")
@@ -107,8 +114,15 @@ public struct APIService {
       return .failure(error)
     }
 
+    guard baseUrl == Self.baseUrl else {
+      return .failure(URLError(.cancelled))
+    }
+
     do {
       let (data, response) = try await URLSession.shared.data(for: request)
+      guard baseUrl == Self.baseUrl else {
+        return .failure(URLError(.cancelled))
+      }
 
       if let httpResponse = response as? HTTPURLResponse {
         span.setAttribute(
@@ -118,6 +132,7 @@ public struct APIService {
 
         if httpResponse.statusCode == 426 {
           await MainActor.run {
+            guard baseUrl == Self.baseUrl else { return }
             NotificationCenter.default.post(
               name: .userNeedsAppUpgrade,
               object: nil
@@ -127,7 +142,10 @@ public struct APIService {
 
         if httpResponse.statusCode == 401 {
           span.status = .error(description: "Unauthorized")
-          await AuthManager.shared.signOut(reason: "401_\(endpoint)")
+          await MainActor.run {
+            guard baseUrl == Self.baseUrl else { return }
+            AuthManager.shared.signOut(reason: "401_\(endpoint)")
+          }
           return .failure(
             APIErrorMessage(message: "Session expired. Please sign in again.")
           )
