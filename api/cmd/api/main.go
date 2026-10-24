@@ -23,6 +23,7 @@ import (
 	"splajompy.com/api/v2/internal/user"
 	"splajompy.com/api/v2/internal/utilities"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
 	"github.com/resend/resend-go/v3"
@@ -70,6 +71,15 @@ func main() {
 
 	q := queries.New(conn)
 
+	notificationConfig := cfg.ConnConfig
+	// LISTEN requires a direct or session-pooled connection.
+	if listenURL := os.Getenv("DB_LISTEN_CONNECTION_STRING"); listenURL != "" {
+		notificationConfig, err = pgx.ParseConfig(listenURL)
+		if err != nil {
+			log.Fatal("invalid notification database configuration")
+		}
+	}
+
 	resendApiKey := os.Getenv("RESEND_API_KEY")
 	resendClient := resend.NewClient(resendApiKey)
 
@@ -86,7 +96,7 @@ func main() {
 
 	postRepository := post.NewDBPostRepository(q)
 	userRepository := user.NewUserRepository(q)
-	notificationsRepository := notification.NewNotificationStore(q)
+	notificationsRepository := notification.NewNotificationStore(q, notificationConfig)
 	commentRepository := comment.NewStore(q)
 	likeRepository := like.NewStore(q)
 	statsRepository := stats.NewStore(q)
