@@ -1,6 +1,6 @@
 import Foundation
 
-struct DeveloperSettings: Equatable, Sendable {
+struct DeveloperSettingsManager: Equatable, Sendable {
   enum Setting: String, Sendable {
     case apiServerURL = "API Server URL"
   }
@@ -9,16 +9,16 @@ struct DeveloperSettings: Equatable, Sendable {
 
   var apiServerURL: String
 
-  static let defaults: DeveloperSettings = {
-    let settings = DeveloperSettings(apiServerURL: APIService.defaultBaseUrl)
+  static let defaults: DeveloperSettingsManager = {
+    let settings = DeveloperSettingsManager(apiServerURL: APIService.defaultBaseUrl)
     return settings.validated ?? settings
   }()
 
-  static var current: DeveloperSettings {
-    DeveloperSettings(apiServerURL: APIService.baseUrl)
+  static var current: DeveloperSettingsManager {
+    DeveloperSettingsManager(apiServerURL: APIService.baseUrl)
   }
 
-  var validated: DeveloperSettings? {
+  var validated: DeveloperSettingsManager? {
     guard
       var components = URLComponents(
         string: apiServerURL.trimmingCharacters(in: .whitespacesAndNewlines)),
@@ -36,7 +36,7 @@ struct DeveloperSettings: Equatable, Sendable {
     return settings
   }
 
-  func changedSettings(from original: DeveloperSettings) -> [Setting] {
+  func changedSettings(from original: DeveloperSettingsManager) -> [Setting] {
     var changes: [Setting] = []
     if validated?.apiServerURL != original.validated?.apiServerURL {
       changes.append(.apiServerURL)

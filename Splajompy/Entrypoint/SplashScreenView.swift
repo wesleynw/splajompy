@@ -71,6 +71,8 @@ struct SplashScreenView: View {
     .sheet(isPresented: $isDeveloperSettingsPresenting) {
       NavigationStack {
         DeveloperSettingsView()
+          .interactiveDismissDisabled()
+          .postHogScreenView()
       }
     }
     #if os(iOS)

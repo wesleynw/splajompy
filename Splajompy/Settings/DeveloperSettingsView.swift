@@ -3,13 +3,14 @@ import SwiftUI
 struct DeveloperSettingsView: View {
   @Environment(AuthManager.self) private var authManager
   @Environment(\.dismiss) private var dismiss
-  @State private var settings: DeveloperSettings = .current
+
+  @State private var settings: DeveloperSettingsManager = .current
   @State private var isSaving: Bool = false
   @State private var isSignOutConfirmationPresenting: Bool = false
   @State private var connectionTestURL: URL?
   @State private var connectionResult: Result<Void, Error>?
 
-  private var changedSettings: [DeveloperSettings.Setting] {
+  private var changedSettings: [DeveloperSettingsManager.Setting] {
     settings.validated?.changedSettings(from: .current) ?? []
   }
 
@@ -17,8 +18,10 @@ struct DeveloperSettingsView: View {
     !isSaving && settings.validated != nil && !changedSettings.isEmpty
   }
 
-  private var changedSettingsRequiringSignOut: [DeveloperSettings.Setting] {
-    changedSettings.filter { DeveloperSettings.settingsRequiringSignOut.contains($0) }
+  private var changedSettingsRequiringSignOut: [DeveloperSettingsManager.Setting] {
+    changedSettings.filter {
+      DeveloperSettingsManager.settingsRequiringSignOut.contains($0)
+    }
   }
 
   private var connectionStatus: (message: String, color: Color, icon: String)? {
@@ -28,7 +31,8 @@ struct DeveloperSettingsView: View {
       return ("Connection successful", .green, "checkmark.circle.fill")
     case .failure(let error):
       let message = error.localizedDescription.trimmingCharacters(
-        in: .whitespacesAndNewlines.union(.punctuationCharacters))
+        in: .whitespacesAndNewlines.union(.punctuationCharacters)
+      )
       return (message, .red, "exclamationmark.circle.fill")
     }
   }
@@ -49,14 +53,25 @@ struct DeveloperSettingsView: View {
           .disabled(isSaving)
       }
       ToolbarItem(placement: .confirmationAction) {
-        Button("Save") {
-          if changedSettingsRequiringSignOut.isEmpty {
-            saveSettings()
-          } else {
-            isSignOutConfirmationPresenting = true
+        if #available(anyAppleOS 26, *) {
+          Button(role: .confirm) {
+            if changedSettingsRequiringSignOut.isEmpty {
+              saveSettings()
+            } else {
+              isSignOutConfirmationPresenting = true
+            }
           }
+          .disabled(!canSave)
+        } else {
+          Button("Save") {
+            if changedSettingsRequiringSignOut.isEmpty {
+              saveSettings()
+            } else {
+              isSignOutConfirmationPresenting = true
+            }
+          }
+          .disabled(!canSave)
         }
-        .disabled(!canSave)
       }
     }
     .alert("Save Changes?", isPresented: $isSignOutConfirmationPresenting) {
@@ -93,7 +108,9 @@ struct DeveloperSettingsView: View {
       Button {
         guard let address = settings.validated?.apiServerURL else { return }
         connectionResult = nil
-        connectionTestURL = URL(string: address)?.appendingPathComponent("health")
+        connectionTestURL = URL(string: address)?.appendingPathComponent(
+          "health"
+        )
       } label: {
         HStack {
           Text("Test Connection")
@@ -108,15 +125,19 @@ struct DeveloperSettingsView: View {
       }
       .disabled(settings.validated == nil || connectionTestURL != nil)
 
-      if settings.validated?.apiServerURL != DeveloperSettings.defaults.apiServerURL {
+      if settings.validated?.apiServerURL
+        != DeveloperSettingsManager.defaults.apiServerURL
+      {
         Button("Use Default Server") {
-          settings.apiServerURL = DeveloperSettings.defaults.apiServerURL
+          settings.apiServerURL = DeveloperSettingsManager.defaults.apiServerURL
         }
       }
     } header: {
       Text("API Server")
     } footer: {
-      Text("Include http:// or https:// and an optional port. Saving a changed URL signs you out.")
+      Text(
+        "Include http:// or https:// and an optional port. Saving a changed URL signs you out."
+      )
     }
   }
 
@@ -149,13 +170,20 @@ struct DeveloperSettingsView: View {
 
   private func testConnection(to url: URL) async -> Result<Void, Error> {
     var request = URLRequest(
-      url: url, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 5)
+      url: url,
+      cachePolicy: .reloadIgnoringLocalCacheData,
+      timeoutInterval: 5
+    )
     request.httpShouldHandleCookies = false
     do {
       let (_, response) = try await URLSession.shared.data(for: request)
-      guard let response = response as? HTTPURLResponse else { throw URLError(.badServerResponse) }
+      guard let response = response as? HTTPURLResponse else {
+        throw URLError(.badServerResponse)
+      }
       guard (200...299).contains(response.statusCode) else {
-        throw APIErrorMessage(message: "Server returned HTTP \(response.statusCode)")
+        throw APIErrorMessage(
+          message: "Server returned HTTP \(response.statusCode)"
+        )
       }
       return .success(())
     } catch {
