@@ -6,6 +6,8 @@ struct DeveloperSettingsView: View {
   @State private var serverURL: String
   @State private var port: String
   @State private var isSaving = false
+  @State private var isTestingConnection = false
+  @State private var connectionStatus: String?
 
   init() {
     var components = URLComponents(string: APIService.baseUrl)
@@ -48,6 +50,30 @@ struct DeveloperSettingsView: View {
             .keyboardType(.numberPad)
           #endif
 
+        Button {
+          guard let address = normalizedURL,
+            let url = URL(string: address)?.appendingPathComponent("health")
+          else { return }
+          isTestingConnection = true
+          connectionStatus = nil
+          Task {
+            connectionStatus = await testConnection(to: url)
+            isTestingConnection = false
+          }
+        } label: {
+          Text("Test Connection")
+            .opacity(isTestingConnection ? 0 : 1)
+            .overlay {
+              if isTestingConnection { ProgressView() }
+            }
+        }
+        .disabled(normalizedURL == nil)
+
+        if let connectionStatus {
+          Text(connectionStatus)
+            .foregroundStyle(.secondary)
+        }
+
         Button("Apply and Sign Out") {
           guard let url = normalizedURL else { return }
           isSaving = true
@@ -57,7 +83,7 @@ struct DeveloperSettingsView: View {
             isSaving = false
           }
         }
-        .disabled(isSaving || normalizedURL == nil || normalizedURL == APIService.baseUrl)
+        .disabled(normalizedURL == nil || normalizedURL == APIService.baseUrl)
 
         Button("Use Default Server") {
           var components = URLComponents(string: APIService.defaultBaseUrl)
@@ -66,8 +92,24 @@ struct DeveloperSettingsView: View {
           serverURL = components?.string ?? APIService.defaultBaseUrl
         }
       }
+      .disabled(isSaving || isTestingConnection)
     }
     .formStyle(.grouped)
     .pageTitle("Developer")
+    .onChange(of: normalizedURL) { connectionStatus = nil }
+  }
+
+  private func testConnection(to url: URL) async -> String {
+    var request = URLRequest(
+      url: url, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 5)
+    request.httpShouldHandleCookies = false
+    do {
+      let (_, response) = try await URLSession.shared.data(for: request)
+      guard let response = response as? HTTPURLResponse else { return "Invalid server response." }
+      return (200...299).contains(response.statusCode)
+        ? "Connected." : "Server returned HTTP \(response.statusCode)."
+    } catch {
+      return error.localizedDescription
+    }
   }
 }
