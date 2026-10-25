@@ -62,6 +62,7 @@ public struct APIService {
     return request
   }
 
+  @MainActor
   static private func executeRequest(
     endpoint: String,
     method: String = "GET",
@@ -82,8 +83,8 @@ public struct APIService {
       span.end()
     }
 
-    let baseUrl = Self.baseUrl
-    guard var urlComponents = URLComponents(string: "\(baseUrl)/\(endpoint)")
+    let requestBaseUrl = Self.baseUrl
+    guard var urlComponents = URLComponents(string: "\(requestBaseUrl)/\(endpoint)")
     else {
       span.status = .error(description: "Bad URL")
       return .failure(URLError(.badURL))
@@ -114,13 +115,13 @@ public struct APIService {
       return .failure(error)
     }
 
-    guard baseUrl == Self.baseUrl else {
+    guard requestBaseUrl == Self.baseUrl else {
       return .failure(URLError(.cancelled))
     }
 
     do {
       let (data, response) = try await URLSession.shared.data(for: request)
-      guard baseUrl == Self.baseUrl else {
+      guard requestBaseUrl == Self.baseUrl else {
         return .failure(URLError(.cancelled))
       }
 
@@ -131,21 +132,15 @@ public struct APIService {
         )
 
         if httpResponse.statusCode == 426 {
-          await MainActor.run {
-            guard baseUrl == Self.baseUrl else { return }
-            NotificationCenter.default.post(
-              name: .userNeedsAppUpgrade,
-              object: nil
-            )
-          }
+          NotificationCenter.default.post(
+            name: .userNeedsAppUpgrade,
+            object: nil
+          )
         }
 
         if httpResponse.statusCode == 401 {
           span.status = .error(description: "Unauthorized")
-          await Task { @MainActor in
-            guard baseUrl == Self.baseUrl else { return }
-            await AuthManager.shared.signOut(reason: "401_\(endpoint)")
-          }.value
+          await AuthManager.shared.signOut(reason: "401_\(endpoint)")
           return .failure(
             APIErrorMessage(message: "Session expired. Please sign in again.")
           )
