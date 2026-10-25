@@ -194,14 +194,9 @@ class AuthManager: Sendable {
     await SessionStore.shared.loadSession()?.token
   }
 
-  func changeAPIServer(to url: String) async {
+  func signOutAndClearSession(reason: String) async {
     await SessionStore.shared.clearSession()
-    completeSignOut(reason: "api_server_changed")
-    if url == APIService.defaultBaseUrl {
-      UserDefaults.standard.removeObject(forKey: APIService.serverURLKey)
-    } else {
-      UserDefaults.standard.set(url, forKey: APIService.serverURLKey)
-    }
+    completeSignOut(reason: reason)
   }
 
   func signOut(reason: String = "manual") {

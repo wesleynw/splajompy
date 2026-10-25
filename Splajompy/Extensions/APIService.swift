@@ -22,7 +22,7 @@ extension Foundation.Notification.Name {
 }
 
 public struct APIService {
-  static let serverURLKey = "api_server_url"
+  static let serverURLKey: String = "api_server_url"
 
   static let defaultBaseUrl: String =
     Bundle.main.object(forInfoDictionaryKey: "API_URL") as? String

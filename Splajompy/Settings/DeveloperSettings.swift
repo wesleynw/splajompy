@@ -1,0 +1,55 @@
+import Foundation
+
+struct DeveloperSettings: Equatable, Sendable {
+  enum Setting: String, Sendable {
+    case apiServerURL = "API Server URL"
+  }
+
+  static let settingsRequiringSignOut: Set<Setting> = [.apiServerURL]
+
+  var apiServerURL: String
+
+  static let defaults: DeveloperSettings = {
+    let settings = DeveloperSettings(apiServerURL: APIService.defaultBaseUrl)
+    return settings.validated ?? settings
+  }()
+
+  static var current: DeveloperSettings {
+    DeveloperSettings(apiServerURL: APIService.baseUrl)
+  }
+
+  var validated: DeveloperSettings? {
+    guard
+      var components = URLComponents(
+        string: apiServerURL.trimmingCharacters(in: .whitespacesAndNewlines)),
+      let scheme = components.scheme?.lowercased(), ["http", "https"].contains(scheme),
+      let host = components.host, !host.isEmpty,
+      components.user == nil, components.password == nil,
+      components.query == nil, components.fragment == nil,
+      components.path.isEmpty || components.path == "/",
+      components.port.map({ (1...65535).contains($0) }) ?? true
+    else { return nil }
+    components.path = ""
+    guard let url = components.url else { return nil }
+    var settings = self
+    settings.apiServerURL = url.absoluteString
+    return settings
+  }
+
+  func changedSettings(from original: DeveloperSettings) -> [Setting] {
+    var changes: [Setting] = []
+    if validated?.apiServerURL != original.validated?.apiServerURL {
+      changes.append(.apiServerURL)
+    }
+    return changes
+  }
+
+  func save() {
+    guard let settings = validated else { return }
+    if settings.apiServerURL == Self.defaults.apiServerURL {
+      UserDefaults.standard.removeObject(forKey: APIService.serverURLKey)
+    } else {
+      UserDefaults.standard.set(settings.apiServerURL, forKey: APIService.serverURLKey)
+    }
+  }
+}

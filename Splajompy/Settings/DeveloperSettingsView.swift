@@ -3,113 +3,163 @@ import SwiftUI
 struct DeveloperSettingsView: View {
   @Environment(AuthManager.self) private var authManager
   @Environment(\.dismiss) private var dismiss
-  @State private var serverURL: String
-  @State private var port: String
-  @State private var isSaving = false
-  @State private var isTestingConnection = false
-  @State private var connectionStatus: String?
+  @State private var settings: DeveloperSettings = .current
+  @State private var isSaving: Bool = false
+  @State private var isSignOutConfirmationPresenting: Bool = false
+  @State private var connectionTestURL: URL?
+  @State private var connectionResult: Result<Void, Error>?
 
-  init() {
-    var components = URLComponents(string: APIService.baseUrl)
-    _port = State(initialValue: components?.port.map(String.init) ?? "")
-    components?.port = nil
-    _serverURL = State(initialValue: components?.string ?? APIService.baseUrl)
+  private var changedSettings: [DeveloperSettings.Setting] {
+    settings.validated?.changedSettings(from: .current) ?? []
   }
 
-  private var normalizedURL: String? {
-    guard
-      var components = URLComponents(
-        string: serverURL.trimmingCharacters(in: .whitespacesAndNewlines)),
-      let scheme = components.scheme?.lowercased(), ["http", "https"].contains(scheme),
-      let host = components.host, !host.isEmpty,
-      components.user == nil, components.password == nil, components.port == nil,
-      components.query == nil, components.fragment == nil,
-      components.path.isEmpty || components.path == "/"
-    else { return nil }
-    let port = port.trimmingCharacters(in: .whitespacesAndNewlines)
-    if !port.isEmpty {
-      guard let number = Int(port), (1...65535).contains(number) else { return nil }
-      components.port = number
+  private var canSave: Bool {
+    !isSaving && settings.validated != nil && !changedSettings.isEmpty
+  }
+
+  private var changedSettingsRequiringSignOut: [DeveloperSettings.Setting] {
+    changedSettings.filter { DeveloperSettings.settingsRequiringSignOut.contains($0) }
+  }
+
+  private var connectionStatus: (message: String, color: Color, icon: String)? {
+    guard let connectionResult else { return nil }
+    switch connectionResult {
+    case .success:
+      return ("Connection successful", .green, "checkmark.circle.fill")
+    case .failure(let error):
+      let message = error.localizedDescription.trimmingCharacters(
+        in: .whitespacesAndNewlines.union(.punctuationCharacters))
+      return (message, .red, "exclamationmark.circle.fill")
     }
-    components.path = ""
-    return components.url?.absoluteString
   }
 
   var body: some View {
     Form {
-      Section("API Server") {
-        TextField("URL", text: $serverURL)
-          .autocorrectionDisabled()
-          #if os(iOS)
-            .textInputAutocapitalization(.never)
-            .keyboardType(.URL)
-          #endif
-
-        TextField("Port", text: $port)
-          #if os(iOS)
-            .keyboardType(.numberPad)
-          #endif
-
-        Button {
-          guard let address = normalizedURL,
-            let url = URL(string: address)?.appendingPathComponent("health")
-          else { return }
-          isTestingConnection = true
-          connectionStatus = nil
-          Task {
-            connectionStatus = await testConnection(to: url)
-            isTestingConnection = false
-          }
-        } label: {
-          Text("Test Connection")
-            .opacity(isTestingConnection ? 0 : 1)
-            .overlay {
-              if isTestingConnection { ProgressView() }
-            }
-        }
-        .disabled(normalizedURL == nil)
-
-        if let connectionStatus {
-          Text(connectionStatus)
-            .foregroundStyle(.secondary)
-        }
-
-        Button("Apply and Sign Out") {
-          guard let url = normalizedURL else { return }
-          isSaving = true
-          Task {
-            await authManager.changeAPIServer(to: url)
-            dismiss()
-            isSaving = false
-          }
-        }
-        .disabled(normalizedURL == nil || normalizedURL == APIService.baseUrl)
-
-        Button("Use Default Server") {
-          var components = URLComponents(string: APIService.defaultBaseUrl)
-          port = components?.port.map(String.init) ?? ""
-          components?.port = nil
-          serverURL = components?.string ?? APIService.defaultBaseUrl
-        }
-      }
-      .disabled(isSaving || isTestingConnection)
+      settingsSections
     }
     .formStyle(.grouped)
+    .disabled(isSaving)
     .pageTitle("Developer")
-    .onChange(of: normalizedURL) { connectionStatus = nil }
+    .safeAreaInset(edge: .top, spacing: 0) {
+      connectionBanner
+    }
+    .toolbar {
+      ToolbarItem(placement: .cancellationAction) {
+        Button("Close") { dismiss() }
+          .disabled(isSaving)
+      }
+      ToolbarItem(placement: .confirmationAction) {
+        Button("Save") {
+          if changedSettingsRequiringSignOut.isEmpty {
+            saveSettings()
+          } else {
+            isSignOutConfirmationPresenting = true
+          }
+        }
+        .disabled(!canSave)
+      }
+    }
+    .alert("Save Changes?", isPresented: $isSignOutConfirmationPresenting) {
+      Button("Cancel", role: .cancel) {}
+      Button("Save and Sign Out", role: .destructive) { saveSettings() }
+    } message: {
+      Text(
+        "Changing \(changedSettingsRequiringSignOut.map(\.rawValue).formatted(.list(type: .and))) will sign you out"
+      )
+    }
+    .onChange(of: settings.validated?.apiServerURL) {
+      connectionTestURL = nil
+      connectionResult = nil
+    }
+    .task(id: connectionTestURL) {
+      guard let url = connectionTestURL else { return }
+      let result = await testConnection(to: url)
+      guard !Task.isCancelled, connectionTestURL == url else { return }
+      connectionResult = result
+      connectionTestURL = nil
+    }
   }
 
-  private func testConnection(to url: URL) async -> String {
+  @ViewBuilder
+  private var settingsSections: some View {
+    Section {
+      TextField("URL", text: $settings.apiServerURL)
+        .autocorrectionDisabled()
+        #if os(iOS)
+          .textInputAutocapitalization(.never)
+          .keyboardType(.URL)
+        #endif
+
+      Button {
+        guard let address = settings.validated?.apiServerURL else { return }
+        connectionResult = nil
+        connectionTestURL = URL(string: address)?.appendingPathComponent("health")
+      } label: {
+        HStack {
+          Text("Test Connection")
+          if connectionTestURL != nil {
+            ProgressView()
+              .controlSize(.small)
+          } else if let status = connectionStatus {
+            Image(systemName: status.icon)
+              .foregroundStyle(status.color)
+          }
+        }
+      }
+      .disabled(settings.validated == nil || connectionTestURL != nil)
+
+      if settings.validated?.apiServerURL != DeveloperSettings.defaults.apiServerURL {
+        Button("Use Default Server") {
+          settings.apiServerURL = DeveloperSettings.defaults.apiServerURL
+        }
+      }
+    } header: {
+      Text("API Server")
+    } footer: {
+      Text("Include http:// or https:// and an optional port. Saving a changed URL signs you out.")
+    }
+  }
+
+  @ViewBuilder
+  private var connectionBanner: some View {
+    if let status = connectionStatus {
+      Label(status.message, systemImage: status.icon)
+        .font(.subheadline)
+        .foregroundStyle(status.color)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal)
+        .padding(.vertical, 8)
+        .background(status.color.opacity(0.12))
+    }
+  }
+
+  private func saveSettings() {
+    guard let settings = settings.validated else { return }
+    let requiresSignOut = !changedSettingsRequiringSignOut.isEmpty
+    isSaving = true
+    Task {
+      if requiresSignOut {
+        await authManager.signOutAndClearSession(reason: "developer_settings_changed")
+      }
+      settings.save()
+      isSaving = false
+      dismiss()
+    }
+  }
+
+  private func testConnection(to url: URL) async -> Result<Void, Error> {
     var request = URLRequest(
       url: url, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 5)
     request.httpShouldHandleCookies = false
     do {
       let (_, response) = try await URLSession.shared.data(for: request)
-      guard let response = response as? HTTPURLResponse else { return "Invalid server response." }
-      return (200...299).contains(response.statusCode)
-        ? "Connected." : "Server returned HTTP \(response.statusCode)."
+      guard let response = response as? HTTPURLResponse else { throw URLError(.badServerResponse) }
+      guard (200...299).contains(response.statusCode) else {
+        throw APIErrorMessage(message: "Server returned HTTP \(response.statusCode)")
+      }
+      return .success(())
     } catch {
-      return error.localizedDescription
+      return .failure(error)
     }
   }
 }

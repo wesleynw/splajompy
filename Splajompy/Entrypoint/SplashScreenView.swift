@@ -5,8 +5,8 @@ struct SplashScreenView: View {
   @Environment(AuthManager.self) private var authManager
   @State private var isLoginViewPresenting: Bool = false
   @State private var isRegisterViewPresenting: Bool = false
-  @State private var isDeveloperSettingsUnlocked = false
-  @State private var isShowingDeveloperSettings = false
+  @State private var isDeveloperSettingsUnlocked: Bool = false
+  @State private var isDeveloperSettingsPresenting: Bool = false
 
   var body: some View {
     VStack {
@@ -60,7 +60,7 @@ struct SplashScreenView: View {
     .overlay(alignment: .topTrailing) {
       if isDeveloperSettingsUnlocked {
         Button {
-          isShowingDeveloperSettings = true
+          isDeveloperSettingsPresenting = true
         } label: {
           Label("Developer Settings", systemImage: "hammer")
             .labelStyle(.iconOnly)
@@ -68,14 +68,9 @@ struct SplashScreenView: View {
         .padding()
       }
     }
-    .sheet(isPresented: $isShowingDeveloperSettings) {
+    .sheet(isPresented: $isDeveloperSettingsPresenting) {
       NavigationStack {
         DeveloperSettingsView()
-          .toolbar {
-            ToolbarItem(placement: .cancellationAction) {
-              Button("Close") { isShowingDeveloperSettings = false }
-            }
-          }
       }
     }
     #if os(iOS)
