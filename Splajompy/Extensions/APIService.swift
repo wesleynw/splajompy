@@ -142,10 +142,10 @@ public struct APIService {
 
         if httpResponse.statusCode == 401 {
           span.status = .error(description: "Unauthorized")
-          await MainActor.run {
+          await Task { @MainActor in
             guard baseUrl == Self.baseUrl else { return }
-            AuthManager.shared.signOut(reason: "401_\(endpoint)")
-          }
+            await AuthManager.shared.signOut(reason: "401_\(endpoint)")
+          }.value
           return .failure(
             APIErrorMessage(message: "Session expired. Please sign in again.")
           )

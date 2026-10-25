@@ -139,7 +139,7 @@ struct DeveloperSettingsView: View {
     isSaving = true
     Task {
       if requiresSignOut {
-        await authManager.signOutAndClearSession(reason: "developer_settings_changed")
+        await authManager.signOut(reason: "developer_settings_changed")
       }
       settings.save()
       isSaving = false
