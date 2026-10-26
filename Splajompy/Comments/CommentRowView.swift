@@ -113,10 +113,14 @@ struct CommentRow: View {
       .allowsHitTesting(true)
     }
     .offset(x: replyGestureOffset)
-    .gesture(replyGesture)
+    .contentShape(.rect)
     .gesture(
-      replyGesture,
+      CommentReplyGesture(
+        onTrigger: handleCommentReply ?? {},
+        replyGestureOffset: $replyGestureOffset
+      ),
       isEnabled: PostHogSDK.shared.isFeatureEnabled("comment-replies")
+        && comment.parentCommentId == nil
     )
     .sensoryFeedback(.impact, trigger: replyGestureOffset > replyThreshold)
     .background(alignment: .leading) {
@@ -155,26 +159,8 @@ struct CommentRow: View {
 
   }
 
-  private var replyGesture: some Gesture {
-    DragGesture()
-      .onChanged { value in
-        let x = max(0, value.translation.width)
-        let resisted = 120 * (1 - exp(-x / 120))
-        replyGestureOffset = resisted
-      }
-      .onEnded { value in
-        if value.translation.width > replyThreshold {
-          handleCommentReply?()
-        } else {
-          withAnimation {
-            replyGestureOffset = .zero
-          }
-        }
-      }
-  }
-
   private var replyIndicatorOpacity: Double {
-    let revealStart: CGFloat = 16  // ~ the icon's leading padding
+    let revealStart: CGFloat = 16
     let revealEnd: CGFloat = replyThreshold
     return Double(
       min(

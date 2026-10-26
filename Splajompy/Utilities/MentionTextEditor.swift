@@ -168,7 +168,7 @@ struct MentionTextEditor: View {
       cursorY: $cursorY,
       isScrollEnabled: isCompact,
       trailingInset: trailingInset,
-      placeholder: isCompact ? "Add a comment..." : "What's on your mind?"
+      placeholder: isCompact ? "No comment..." : "What's on your mind?"
     )
     .focused($isFocused)
     .onAppear {

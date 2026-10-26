@@ -4,6 +4,7 @@ struct CommentsContainerView: View {
   var postId: Int
   var postManager: PostStore
   var scrollProxy: ScrollViewProxy?
+  var replyNamespace: Namespace.ID
 
   @State private var viewModel: ViewModel
 
@@ -11,6 +12,7 @@ struct CommentsContainerView: View {
     postId: Int,
     postManager: PostStore,
     scrollProxy: ScrollViewProxy? = nil,
+    replyNamespace: Namespace.ID
   ) {
     self.postId = postId
     _viewModel = State(
@@ -18,6 +20,7 @@ struct CommentsContainerView: View {
     )
     self.postManager = postManager
     self.scrollProxy = scrollProxy
+    self.replyNamespace = replyNamespace
   }
 
   init(
@@ -25,11 +28,13 @@ struct CommentsContainerView: View {
     postManager: PostStore,
     scrollProxy: ScrollViewProxy? = nil,
     viewModel: ViewModel,
+    replyNamespace: Namespace.ID
   ) {
     self.postId = postId
     _viewModel = State(wrappedValue: viewModel)
     self.postManager = postManager
     self.scrollProxy = scrollProxy
+    self.replyNamespace = replyNamespace
   }
 
   var body: some View {
@@ -49,9 +54,14 @@ struct CommentsContainerView: View {
           #endif
       case .loaded(let comments):
         VStack(spacing: 0) {
-          ForEach(comments) { comment in
+          ForEach(
+            comments.filter {
+              $0.commentId != viewModel.respondingToComment?.commentId
+            }
+          ) { comment in
             CommentView(
               comment: comment,
+              replyToComment: viewModel.respondingToComment?.commentId,
               onToggleLike: { comment in viewModel.toggleLike(for: comment)
               },
               onDelete: { commentId in
@@ -69,8 +79,14 @@ struct CommentsContainerView: View {
                   )
                 }
               },
-              onCommentReply: { viewModel.stageCommentReply(to: comment) }
+              onCommentReply: {
+                withAnimation {
+                  viewModel.stageCommentReply(to: comment)
+                }
+              },
+              replyNamespace: replyNamespace
             )
+            .allowsHitTesting(viewModel.respondingToComment == nil)
           }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -123,6 +139,8 @@ struct CommentsContainerView: View {
 }
 
 #Preview {
+  @Previewable @Namespace var namespace
+
   let mockViewModel = CommentsContainerView.ViewModel(
     postId: 1,
     service: MockCommentService(),
@@ -135,13 +153,16 @@ struct CommentsContainerView: View {
     CommentsContainerView(
       postId: 1,
       postManager: postManager,
-      viewModel: mockViewModel
+      viewModel: mockViewModel,
+      replyNamespace: namespace
     )
     .environment(AuthManager())
   }
 }
 
 #Preview("Loading") {
+  @Previewable @Namespace var namespace
+
   let mockViewModel = CommentsContainerView.ViewModel(
     postId: 1,
     service: MockCommentService_Loading(),
@@ -153,12 +174,15 @@ struct CommentsContainerView: View {
   CommentsContainerView(
     postId: 1,
     postManager: postManager,
-    viewModel: mockViewModel
+    viewModel: mockViewModel,
+    replyNamespace: namespace,
   )
   .environment(AuthManager())
 }
 
 #Preview("No Comments") {
+  @Previewable @Namespace var namespace
+
   let mockViewModel = CommentsContainerView.ViewModel(
     postId: 1,
     service: MockCommentService_Empty(),
@@ -170,12 +194,15 @@ struct CommentsContainerView: View {
   CommentsContainerView(
     postId: 1,
     postManager: postManager,
-    viewModel: mockViewModel
+    viewModel: mockViewModel,
+    replyNamespace: namespace,
   )
   .environment(AuthManager())
 }
 
 #Preview("Error") {
+  @Previewable @Namespace var namespace
+
   let mockViewModel = CommentsContainerView.ViewModel(
     postId: 1,
     service: MockCommentService_Error(),
@@ -187,12 +214,15 @@ struct CommentsContainerView: View {
   CommentsContainerView(
     postId: 1,
     postManager: postManager,
-    viewModel: mockViewModel
+    viewModel: mockViewModel,
+    replyNamespace: namespace,
   )
   .environment(AuthManager())
 }
 
 #Preview("nested comments") {
+  @Previewable @Namespace var namespace
+
   let mockViewModel = CommentsContainerView.ViewModel(
     postId: 3,
     service: MockCommentService(),
@@ -205,7 +235,8 @@ struct CommentsContainerView: View {
     CommentsContainerView(
       postId: 3,
       postManager: postManager,
-      viewModel: mockViewModel
+      viewModel: mockViewModel,
+      replyNamespace: namespace,
     )
     .environment(AuthManager())
   }

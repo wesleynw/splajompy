@@ -7,6 +7,8 @@ struct StandalonePostView: View {
 
   @State private var viewModel: ViewModel
   @State private var commentsViewModel: CommentsContainerView.ViewModel
+  @Namespace private var replyNamespace: Namespace.ID
+
   @Environment(\.dismiss) private var dismiss
 
   init(postId: Int, postManager: PostStore) {
@@ -49,6 +51,7 @@ struct StandalonePostView: View {
               postManager: postManager,
               scrollProxy: proxy,
               viewModel: commentsViewModel,
+              replyNamespace: replyNamespace,
             )
           }
           #if os(macOS)
@@ -81,6 +84,7 @@ struct StandalonePostView: View {
         }
       }
       .scrollDismissesKeyboard(.interactively)
+      .scrollDisabled(commentsViewModel.respondingToComment?.commentId != nil)
       .refreshable {
         async let post: () = await viewModel.load(resetLoadingState: false)
         async let comments: () = await commentsViewModel.loadComments(
@@ -126,7 +130,8 @@ struct StandalonePostView: View {
                   }
                 }
               },
-              viewModel: commentsViewModel
+              viewModel: commentsViewModel,
+              replyNamespace: replyNamespace,
             )
           }
         } else {
@@ -139,7 +144,8 @@ struct StandalonePostView: View {
                   }
                 }
               },
-              viewModel: commentsViewModel
+              viewModel: commentsViewModel,
+              replyNamespace: replyNamespace,
             )
           }
         }

@@ -39,7 +39,11 @@ struct CommentsSheetView: View {
         ScrollView {
           if case .loaded(let comments) = viewModel.state {
             VStack(spacing: 0) {
-              ForEach(comments) { comment in
+              ForEach(
+                comments.filter {
+                  $0.commentId != viewModel.respondingToComment?.commentId
+                }
+              ) { comment in
                 CommentView(
                   comment: comment,
                   replyToComment: viewModel.respondingToComment?.commentId
@@ -116,7 +120,8 @@ struct CommentsSheetView: View {
                     }
                   }
                 },
-                viewModel: viewModel
+                viewModel: viewModel,
+                replyNamespace: replyNamespace
               )
             }
           }
@@ -231,6 +236,8 @@ struct CommentsSheetView: View {
 }
 
 #Preview("Error") {
+  @Previewable @Namespace var namespace
+
   let mockViewModel = CommentsContainerView.ViewModel(
     postId: 1,
     service: MockCommentService_Error(),
@@ -242,7 +249,8 @@ struct CommentsSheetView: View {
   CommentsContainerView(
     postId: 1,
     postManager: postManager,
-    viewModel: mockViewModel
+    viewModel: mockViewModel,
+    replyNamespace: namespace,
   )
   .environment(AuthManager())
 }
