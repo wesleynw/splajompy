@@ -119,7 +119,7 @@ struct CommentRow: View {
         replyGestureOffset: $replyGestureOffset
       ),
       isEnabled: PostHogSDK.shared.isFeatureEnabled("comment-replies")
-        && comment.parentCommentId == nil
+        && comment.parentCommentId == nil && handleCommentReply != nil
     )
     .sensoryFeedback(.impact, trigger: replyGestureOffset > replyThreshold)
     .background(alignment: .leading) {
