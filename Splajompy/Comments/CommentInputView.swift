@@ -128,9 +128,7 @@ struct CommentInputView: View {
       }
     }
     .onChange(of: viewModel.respondingToComment?.commentId) { _, newValue in
-      if newValue != nil {
-        focus = true
-      }
+      focus = newValue != nil
     }
     .sheet(item: $presentingImage) { selected in
       LocalImagePager(
@@ -179,7 +177,7 @@ struct CommentInputView: View {
             .buttonStyle(.plain)
           }
           .fontWeight(.semibold)
-          .padding(10)
+          .padding()
           .frame(maxWidth: .infinity, alignment: .leading)
           .transition(.blurReplace)
           .onTapGesture {
