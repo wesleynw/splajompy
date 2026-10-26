@@ -287,7 +287,7 @@ func (s *Service) hydrateComment(ctx context.Context, postId int, currentUser mo
 	}
 
 	var hydratedChildren []models.DetailedComment
-	if !utilities.IsAppUpdatedToVersion(ctx, "v1.13.0") {
+	if len(children) > 0 && !utilities.IsAppUpdatedToVersion(ctx, "v1.13.0") {
 		if len(comment.Text) != 0 {
 			comment.Text = comment.Text + "\n\n"
 		}
