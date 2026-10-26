@@ -172,7 +172,7 @@ struct CommentInputView: View {
               }
             } label: {
               Image(systemName: "xmark.circle.fill")
-                .font(.body)
+                .imageScale(.medium)
             }
             .buttonStyle(.plain)
           }

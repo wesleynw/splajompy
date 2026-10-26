@@ -112,7 +112,10 @@ struct CommentRow: View {
       }
       .allowsHitTesting(true)
     }
-    .offset(x: replyGestureOffset)
+    .animation(.default) { content in
+      content
+        .offset(x: replyGestureOffset)
+    }
     .contentShape(.rect)
     .gesture(
       CommentReplyGesture(
