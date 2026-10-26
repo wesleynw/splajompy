@@ -5,24 +5,22 @@ struct DeveloperSettingsView: View {
   @Environment(\.dismiss) private var dismiss
   @AppStorage(APIService.serverURLKey) private var savedAPIServerURL: String?
 
-  @State private var settings: DeveloperSettingsManager = .current
-  @State private var isSaving: Bool = false
-  @State private var isSignOutConfirmationPresenting: Bool = false
+  @State private var serverURL: String = APIService.baseUrl
+  @State private var isApplyingServer: Bool = false
   @State private var connectionTestURL: URL?
   @State private var connectionResult: Result<Void, Error>?
 
-  private var changedSettings: [DeveloperSettingsManager.Setting] {
-    settings.validated?.changedSettings(from: .current) ?? []
+  private static let defaultServerURL: String =
+    normalizeServerURL(APIService.defaultBaseUrl) ?? APIService.defaultBaseUrl
+
+  private var normalizedServerURL: String? {
+    Self.normalizeServerURL(serverURL)
   }
 
-  private var canSave: Bool {
-    !isSaving && settings.validated != nil && !changedSettings.isEmpty
-  }
-
-  private var changedSettingsRequiringSignOut: [DeveloperSettingsManager.Setting] {
-    changedSettings.filter {
-      DeveloperSettingsManager.settingsRequiringSignOut.contains($0)
-    }
+  private var canApplyServer: Bool {
+    guard let url = normalizedServerURL else { return false }
+    return !isApplyingServer
+      && url != Self.normalizeServerURL(savedAPIServerURL ?? Self.defaultServerURL)
   }
 
   private var connectionStatus: (message: String, color: Color, icon: String)? {
@@ -43,47 +41,23 @@ struct DeveloperSettingsView: View {
       settingsSections
     }
     .formStyle(.grouped)
-    .disabled(isSaving)
+    .disabled(isApplyingServer)
     .pageTitle("Developer")
     .safeAreaInset(edge: .top, spacing: 0) {
       connectionBanner
     }
     .toolbar {
-      ToolbarItem(placement: .cancellationAction) {
-        Button("Close") { dismiss() }
-          .disabled(isSaving)
-      }
       ToolbarItem(placement: .confirmationAction) {
         if #available(anyAppleOS 26, *) {
-          Button(role: .confirm) {
-            if changedSettingsRequiringSignOut.isEmpty {
-              saveSettings()
-            } else {
-              isSignOutConfirmationPresenting = true
-            }
-          }
-          .disabled(!canSave)
+          Button(role: .confirm) { dismiss() }
+            .disabled(isApplyingServer)
         } else {
-          Button("Save") {
-            if changedSettingsRequiringSignOut.isEmpty {
-              saveSettings()
-            } else {
-              isSignOutConfirmationPresenting = true
-            }
-          }
-          .disabled(!canSave)
+          Button("Done") { dismiss() }
+            .disabled(isApplyingServer)
         }
       }
     }
-    .alert("Save Changes?", isPresented: $isSignOutConfirmationPresenting) {
-      Button("Cancel", role: .cancel) {}
-      Button("Save and Sign Out", role: .destructive) { saveSettings() }
-    } message: {
-      Text(
-        "Changing \(changedSettingsRequiringSignOut.map(\.rawValue).formatted(.list(type: .and))) will sign you out"
-      )
-    }
-    .onChange(of: settings.validated?.apiServerURL) {
+    .onChange(of: normalizedServerURL) {
       connectionTestURL = nil
       connectionResult = nil
     }
@@ -99,7 +73,7 @@ struct DeveloperSettingsView: View {
   @ViewBuilder
   private var settingsSections: some View {
     Section {
-      TextField("URL", text: $settings.apiServerURL)
+      TextField("URL", text: $serverURL)
         .autocorrectionDisabled()
         #if os(iOS)
           .textInputAutocapitalization(.never)
@@ -107,7 +81,7 @@ struct DeveloperSettingsView: View {
         #endif
 
       Button {
-        guard let address = settings.validated?.apiServerURL else { return }
+        guard let address = normalizedServerURL else { return }
         connectionResult = nil
         connectionTestURL = URL(string: address)?.appendingPathComponent(
           "health"
@@ -124,20 +98,21 @@ struct DeveloperSettingsView: View {
           }
         }
       }
-      .disabled(settings.validated == nil || connectionTestURL != nil)
+      .disabled(normalizedServerURL == nil || connectionTestURL != nil)
 
-      if settings.validated?.apiServerURL
-        != DeveloperSettingsManager.defaults.apiServerURL
-      {
+      if normalizedServerURL != Self.defaultServerURL {
         Button("Use Default Server") {
-          settings.apiServerURL = DeveloperSettingsManager.defaults.apiServerURL
+          serverURL = Self.defaultServerURL
         }
       }
+
+      Button("Apply Server", action: applyServer)
+        .disabled(!canApplyServer)
     } header: {
       Text("API Server")
     } footer: {
       Text(
-        "Include http:// or https:// and an optional port. Saving a changed URL signs you out."
+        "Include http:// or https:// and an optional port. Applying changes signs you out."
       )
     }
   }
@@ -155,22 +130,30 @@ struct DeveloperSettingsView: View {
     }
   }
 
-  private func saveSettings() {
-    guard let settings = settings.validated else { return }
-    let requiresSignOut = !changedSettingsRequiringSignOut.isEmpty
-    isSaving = true
+  private func applyServer() {
+    guard let url = normalizedServerURL, canApplyServer else { return }
+    isApplyingServer = true
     Task {
-      if requiresSignOut {
-        await authManager.signOut(reason: "developer_settings_changed")
-      }
-      if settings.apiServerURL == DeveloperSettingsManager.defaults.apiServerURL {
-        savedAPIServerURL = nil
-      } else {
-        savedAPIServerURL = settings.apiServerURL
-      }
-      isSaving = false
+      await authManager.signOut(reason: "developer_settings_changed")
+      savedAPIServerURL = url == Self.defaultServerURL ? nil : url
+      isApplyingServer = false
       dismiss()
     }
+  }
+
+  private static func normalizeServerURL(_ value: String) -> String? {
+    guard
+      var components = URLComponents(
+        string: value.trimmingCharacters(in: .whitespacesAndNewlines)),
+      let scheme = components.scheme?.lowercased(), ["http", "https"].contains(scheme),
+      let host = components.host, !host.isEmpty,
+      components.user == nil, components.password == nil,
+      components.query == nil, components.fragment == nil,
+      components.path.isEmpty || components.path == "/",
+      components.port.map({ (1...65535).contains($0) }) ?? true
+    else { return nil }
+    components.path = ""
+    return components.url?.absoluteString
   }
 
   private func testConnection(to url: URL) async -> Result<Void, Error> {
