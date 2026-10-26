@@ -177,7 +177,7 @@ struct CommentInputView: View {
             .buttonStyle(.plain)
           }
           .fontWeight(.semibold)
-          .padding(10)
+          .padding()
           .frame(maxWidth: .infinity, alignment: .leading)
           .transition(.blurReplace)
           .onTapGesture {
