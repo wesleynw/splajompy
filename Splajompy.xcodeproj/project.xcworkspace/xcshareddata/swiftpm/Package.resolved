@@ -1,6 +1,15 @@
 {
-  "originHash" : "89054cfeda66d29a0bd814ebc482f7afbb12a2a824bcf1c9776b877cf8148c51",
+  "originHash" : "3129eb58b50fa7e1a25d0c6b11d474d49b753f2dff7b7160cbb47920a8f743e6",
   "pins" : [
+    {
+      "identity" : "connect-swift",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/connectrpc/connect-swift",
+      "state" : {
+        "revision" : "ed56816fe90ab872566f09ed73e28ae078057e3d",
+        "version" : "1.2.3"
+      }
+    },
     {
       "identity" : "grpc-swift",
       "kind" : "remoteSourceControl",
