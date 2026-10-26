@@ -3,6 +3,7 @@ import SwiftUI
 struct DeveloperSettingsView: View {
   @Environment(AuthManager.self) private var authManager
   @Environment(\.dismiss) private var dismiss
+  @AppStorage(APIService.serverURLKey) private var savedAPIServerURL: String?
 
   @State private var settings: DeveloperSettingsManager = .current
   @State private var isSaving: Bool = false
@@ -162,7 +163,11 @@ struct DeveloperSettingsView: View {
       if requiresSignOut {
         await authManager.signOut(reason: "developer_settings_changed")
       }
-      settings.save()
+      if settings.apiServerURL == DeveloperSettingsManager.defaults.apiServerURL {
+        savedAPIServerURL = nil
+      } else {
+        savedAPIServerURL = settings.apiServerURL
+      }
       isSaving = false
       dismiss()
     }

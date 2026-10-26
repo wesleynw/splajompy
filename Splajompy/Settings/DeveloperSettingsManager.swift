@@ -43,13 +43,4 @@ struct DeveloperSettingsManager: Equatable, Sendable {
     }
     return changes
   }
-
-  func save() {
-    guard let settings = validated else { return }
-    if settings.apiServerURL == Self.defaults.apiServerURL {
-      UserDefaults.standard.removeObject(forKey: APIService.serverURLKey)
-    } else {
-      UserDefaults.standard.set(settings.apiServerURL, forKey: APIService.serverURLKey)
-    }
-  }
 }
