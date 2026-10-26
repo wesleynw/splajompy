@@ -32,18 +32,26 @@ public struct APIService {
     UserDefaults.standard.string(forKey: serverURLKey) ?? defaultBaseUrl
   }
 
+  @MainActor
   private static func createRequest(
-    for url: URL,
+    endpoint: String,
     method: String = "GET",
+    queryItems: [URLQueryItem]? = nil,
     body: Data? = nil,
     requiresAuth: Bool = true
-  ) async throws -> URLRequest {
+  ) async throws -> (request: URLRequest, baseUrl: String) {
+    let baseUrl = Self.baseUrl
+    guard var components = URLComponents(string: "\(baseUrl)/\(endpoint)") else {
+      throw URLError(.badURL)
+    }
+    components.queryItems = queryItems
+    guard let url = components.url else { throw URLError(.badURL) }
+
     var request = URLRequest(url: url)
     request.httpMethod = method
 
-    let token = await AuthManager.shared.getAuthToken()
     if requiresAuth {
-      guard let token else {
+      guard let token = await AuthManager.shared.getAuthToken() else {
         throw APIErrorMessage(message: "Not authenticated")
       }
       request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
@@ -59,11 +67,12 @@ public struct APIService {
       forHTTPHeaderField: "X-App-Version"
     )
 
-    return request
+    guard baseUrl == Self.baseUrl else { throw URLError(.cancelled) }
+    return (request, baseUrl)
   }
 
   @MainActor
-  static private func executeRequest(
+  private static func executeRequest(
     endpoint: String,
     method: String = "GET",
     queryItems: [URLQueryItem]? = nil,
@@ -83,82 +92,62 @@ public struct APIService {
       span.end()
     }
 
-    let requestBaseUrl = Self.baseUrl
-    guard var urlComponents = URLComponents(string: "\(requestBaseUrl)/\(endpoint)")
-    else {
-      span.status = .error(description: "Bad URL")
-      return .failure(URLError(.badURL))
-    }
-
-    urlComponents.queryItems = queryItems
-
-    guard let url = urlComponents.url else {
-      span.status = .error(description: "Bad URL")
-      return .failure(URLError(.badURL))
-    }
-
     span.setAttribute(key: "http.method", value: method)
-    span.setAttribute(key: "http.url", value: url.absoluteString)
     span.setAttribute(key: "http.target", value: endpoint)
 
-    print("REQUEST: \(method) \(url)")
-    let request: URLRequest
     do {
-      request = try await createRequest(
-        for: url,
+      let (request, requestBaseUrl) = try await createRequest(
+        endpoint: endpoint,
         method: method,
+        queryItems: queryItems,
         body: body,
         requiresAuth: requiresAuth
       )
-    } catch {
-      span.status = .error(description: error.localizedDescription)
-      return .failure(error)
-    }
+      if let url = request.url {
+        span.setAttribute(key: "http.url", value: url.absoluteString)
+        print("REQUEST: \(method) \(url)")
+      }
 
-    guard requestBaseUrl == Self.baseUrl else {
-      return .failure(URLError(.cancelled))
-    }
-
-    do {
       let (data, response) = try await URLSession.shared.data(for: request)
       guard requestBaseUrl == Self.baseUrl else {
         return .failure(URLError(.cancelled))
       }
-
-      if let httpResponse = response as? HTTPURLResponse {
-        span.setAttribute(
-          key: "http.status_code",
-          value: httpResponse.statusCode
-        )
-
-        if httpResponse.statusCode == 426 {
-          NotificationCenter.default.post(
-            name: .userNeedsAppUpgrade,
-            object: nil
-          )
-        }
-
-        if httpResponse.statusCode == 401 {
-          span.status = .error(description: "Unauthorized")
-          await AuthManager.shared.signOut(reason: "401_\(endpoint)")
-          return .failure(
-            APIErrorMessage(message: "Session expired. Please sign in again.")
-          )
-        }
-        if httpResponse.statusCode == 503 || httpResponse.statusCode == 504 {
-          span.status = .error(description: "Service unavailable")
-          return .failure(
-            APIErrorMessage(message: "Service unavailable.")
-          )
-        }
-
-        if 500...599 ~= httpResponse.statusCode {
-          span.status = .error(description: "internal server error")
-          return .failure(APIErrorMessage(message: "Internal Server Error"))
-        }
-
-        return .success((data, response))
+      guard let httpResponse = response as? HTTPURLResponse else {
+        throw URLError(.badServerResponse)
       }
+
+      span.setAttribute(
+        key: "http.status_code",
+        value: httpResponse.statusCode
+      )
+
+      if httpResponse.statusCode == 426 {
+        NotificationCenter.default.post(
+          name: .userNeedsAppUpgrade,
+          object: nil
+        )
+      }
+
+      if httpResponse.statusCode == 401 {
+        span.status = .error(description: "Unauthorized")
+        await AuthManager.shared.signOut(reason: "401_\(endpoint)")
+        return .failure(
+          APIErrorMessage(message: "Session expired. Please sign in again.")
+        )
+      }
+      if httpResponse.statusCode == 503 || httpResponse.statusCode == 504 {
+        span.status = .error(description: "Service unavailable")
+        return .failure(
+          APIErrorMessage(message: "Service unavailable.")
+        )
+      }
+
+      if 500...599 ~= httpResponse.statusCode {
+        span.status = .error(description: "internal server error")
+        return .failure(APIErrorMessage(message: "Internal Server Error"))
+      }
+
+      return .success((data, response))
     } catch {
       print("API call error: \(error)")
       span.status = .error(
@@ -166,8 +155,6 @@ public struct APIService {
       )
       return .failure(error)
     }
-
-    return .failure(APIErrorMessage(message: "TODO"))
   }
 
   static func performRequest(

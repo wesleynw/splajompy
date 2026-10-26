@@ -209,6 +209,7 @@ class AuthManager: Sendable {
     )
 
     UserDefaults.standard.removeObject(forKey: "caught_up_enabled")
+    SessionHistoryService.clearSessionHistory()
     UserDefaults.standard.removeObject(
       forKey: SessionHistoryService.sessionStorageKey
     )

@@ -106,8 +106,10 @@ struct DeveloperSettingsView: View {
         }
       }
 
-      Button("Apply Server", action: applyServer)
-        .disabled(!canApplyServer)
+      Button("Apply Server") {
+        Task { await applyServer() }
+      }
+      .disabled(!canApplyServer)
     } header: {
       Text("API Server")
     } footer: {
@@ -130,15 +132,13 @@ struct DeveloperSettingsView: View {
     }
   }
 
-  private func applyServer() {
+  private func applyServer() async {
     guard let url = normalizedServerURL, canApplyServer else { return }
     isApplyingServer = true
-    Task {
-      await authManager.signOut(reason: "developer_settings_changed")
-      savedAPIServerURL = url == Self.defaultServerURL ? nil : url
-      isApplyingServer = false
-      dismiss()
-    }
+    await authManager.signOut(reason: "developer_settings_changed")
+    savedAPIServerURL = url == Self.defaultServerURL ? nil : url
+    isApplyingServer = false
+    dismiss()
   }
 
   private static func normalizeServerURL(_ value: String) -> String? {
