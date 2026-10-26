@@ -89,7 +89,7 @@ func StartPostgres(t *testing.T) *TestDB {
 		PostRepository:    post.NewDBPostRepository(q),
 		CommentRepository: *comment.NewStore(q),
 		LikeRepository:    like.NewStore(q),
-		NotificationStore: notification.NewNotificationStore(q),
+		NotificationStore: notification.NewNotificationStore(q, pool.Config().ConnConfig),
 		BucketRepository:  &bucket.FakeBucketRepository{},
 	}
 }
