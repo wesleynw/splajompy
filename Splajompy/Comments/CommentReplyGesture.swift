@@ -14,9 +14,7 @@ struct CommentReplyGesture: Gesture {
         replyGestureOffset = resisted
       }
       .onEnded { value in
-        withAnimation {
-          replyGestureOffset = .zero
-        }
+        replyGestureOffset = .zero
 
         if value.translation.width > replyThreshold {
           onTrigger()
