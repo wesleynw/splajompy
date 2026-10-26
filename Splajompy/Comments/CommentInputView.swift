@@ -7,14 +7,19 @@ private struct SelectedImage: Identifiable {
 }
 
 struct CommentInputView: View {
-  @Bindable var viewModel: CommentsView.ViewModel
+  let onCommentReplyTap: () -> Void
+  @Bindable var viewModel: CommentsContainerView.ViewModel
 
   @State private var mentionViewModel =
     MentionTextEditor.MentionViewModel()
   @State private var cursorY: CGFloat = 0
   @State private var submitButtonWidth: CGFloat = 0
   @State private var presentingImage: SelectedImage? = nil
-  @Namespace var namespace
+
+  var replyNamespace: Namespace.ID?
+  @Namespace private var namespace
+
+  @FocusState private var focus
 
   var body: some View {
     VStack {
@@ -45,36 +50,12 @@ struct CommentInputView: View {
       }
 
       VStack {
-        if viewModel.imageState != .empty {
+        ViewThatFits(in: .vertical) {
+          inputTopAccessories
 
-          ScrollView(.horizontal) {
-            HStack {
-              ImagePreviewView(
-                state: viewModel.imageState,
-                onRetry: {
-                  viewModel.retryImage()
-                },
-                onRemove: {
-                  viewModel.imageSelection = nil
-                },
-                onTap: {
-                  if let photo = viewModel.imageState.image {
-                    presentingImage = SelectedImage(id: 0, image: photo)
-                  }
-                },
-                onRetryUpload: {
-                  viewModel.retryUpload()
-                }
-              )
-              .modify {
-                if #available(iOS 18, *) {
-                  $0.matchedTransitionSource(id: "zoom", in: namespace)
-                }
-              }
-              .disabled(viewModel.isSubmitting)
-            }
+          ScrollView {
+            inputTopAccessories
           }
-          .scrollIndicators(.hidden)
         }
 
         HStack(alignment: .bottom, spacing: 0) {
@@ -95,6 +76,7 @@ struct CommentInputView: View {
             isCompact: true,
             trailingInset: submitButtonWidth
           )
+          .focused($focus)
           .overlay(alignment: .bottomTrailing) {
             Button(action: {
               mentionViewModel.clearMentionState()
@@ -145,6 +127,11 @@ struct CommentInputView: View {
         }
       }
     }
+    .onChange(of: viewModel.respondingToComment?.commentId) { _, newValue in
+      if newValue != nil {
+        focus = true
+      }
+    }
     .sheet(item: $presentingImage) { selected in
       LocalImagePager(
         images: [selected.image],
@@ -164,6 +151,88 @@ struct CommentInputView: View {
     #endif
   }
 
+  @ContentBuilder
+  private var inputTopAccessories: some View {
+    VStack {
+      if let replyingComment = viewModel.respondingToComment {
+        VStack {
+          HStack {
+            Image(systemName: "arrowshape.turn.up.left.fill")
+              .font(.body)
+
+            Text("Replying to ")
+              + Text("@\(replyingComment.user.username)").fontWeight(
+                .semibold
+              )
+              .foregroundStyle(.accent)
+
+            Spacer()
+
+            Button {
+              withAnimation {
+                viewModel.unstageCommentReply()
+              }
+            } label: {
+              Image(systemName: "xmark.circle.fill")
+                .font(.body)
+            }
+            .buttonStyle(.plain)
+          }
+          .fontWeight(.semibold)
+          .padding(10)
+          .frame(maxWidth: .infinity, alignment: .leading)
+          .transition(.blurReplace)
+          .onTapGesture {
+            onCommentReplyTap()
+          }
+
+          CommentView(
+            comment: replyingComment,
+            onToggleLike: { comment in },
+            onDelete: { commentId in },
+            onAppear: { comment in },
+            onCommentReply: {},
+            isReadOnly: true,
+            showChildren: false,
+            replyNamespace: replyNamespace,
+          )
+
+        }
+      }
+
+      if viewModel.imageState != .empty {
+        ScrollView(.horizontal) {
+          HStack {
+            ImagePreviewView(
+              state: viewModel.imageState,
+              onRetry: {
+                viewModel.retryImage()
+              },
+              onRemove: {
+                viewModel.imageSelection = nil
+              },
+              onTap: {
+                if let photo = viewModel.imageState.image {
+                  presentingImage = SelectedImage(id: 0, image: photo)
+                }
+              },
+              onRetryUpload: {
+                viewModel.retryUpload()
+              }
+            )
+            .modify {
+              if #available(iOS 18, *) {
+                $0.matchedTransitionSource(id: "zoom", in: namespace)
+              }
+            }
+            .disabled(viewModel.isSubmitting)
+          }
+        }
+        .scrollIndicators(.hidden)
+      }
+    }
+  }
+
   private var isSubmitButtonDisabled: Bool {
     let hasImage = viewModel.imageState.hasPhoto
     let textEmpty = viewModel.text.string.trimmingCharacters(
@@ -177,6 +246,23 @@ struct CommentInputView: View {
 
 #Preview {
   CommentInputView(
-    viewModel: CommentsView.ViewModel(postId: 1, postManager: PostStore())
+    onCommentReplyTap: {},
+    viewModel: CommentsContainerView.ViewModel(
+      postId: 1,
+      postManager: PostStore()
+    )
+  )
+}
+
+#Preview("responding to comment") {
+  let viewModel = CommentsContainerView.ViewModel(
+    postId: 1,
+    postManager: PostStore()
+  )
+  viewModel.stageCommentReply(to: Mocks.comment1)
+
+  return CommentInputView(
+    onCommentReplyTap: {},
+    viewModel: viewModel
   )
 }

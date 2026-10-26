@@ -6,7 +6,9 @@ struct StandalonePostView: View {
   var postManager: PostStore
 
   @State private var viewModel: ViewModel
-  @State private var commentsViewModel: CommentsView.ViewModel
+  @State private var commentsViewModel: CommentsContainerView.ViewModel
+  @Namespace private var replyNamespace: Namespace.ID
+
   @Environment(\.dismiss) private var dismiss
 
   init(postId: Int, postManager: PostStore) {
@@ -16,7 +18,7 @@ struct StandalonePostView: View {
       wrappedValue: ViewModel(postId: postId, postManager: postManager)
     )
     _commentsViewModel = State(
-      wrappedValue: CommentsView.ViewModel(
+      wrappedValue: CommentsContainerView.ViewModel(
         postId: postId,
         postManager: postManager
       )
@@ -44,11 +46,12 @@ struct StandalonePostView: View {
               onPostDeleted: handlePostDeleted
             )
 
-            CommentsView(
+            CommentsContainerView(
               postId: postId,
               postManager: postManager,
               scrollProxy: proxy,
               viewModel: commentsViewModel,
+              replyNamespace: replyNamespace,
             )
           }
           #if os(macOS)
@@ -81,6 +84,7 @@ struct StandalonePostView: View {
         }
       }
       .scrollDismissesKeyboard(.interactively)
+      .scrollDisabled(commentsViewModel.respondingToComment?.commentId != nil)
       .refreshable {
         async let post: () = await viewModel.load(resetLoadingState: false)
         async let comments: () = await commentsViewModel.loadComments(
@@ -118,11 +122,31 @@ struct StandalonePostView: View {
       .modify {
         if #available(iOS 26, macOS 26, *) {
           $0.safeAreaBar(edge: .bottom) {
-            CommentInputView(viewModel: commentsViewModel)
+            CommentInputView(
+              onCommentReplyTap: {
+                if let replyingToComment = commentsViewModel.respondingToComment {
+                  withAnimation {
+                    proxy.scrollTo(replyingToComment.commentId)
+                  }
+                }
+              },
+              viewModel: commentsViewModel,
+              replyNamespace: replyNamespace,
+            )
           }
         } else {
           $0.safeAreaInset(edge: .bottom) {
-            CommentInputView(viewModel: commentsViewModel)
+            CommentInputView(
+              onCommentReplyTap: {
+                if let replyingToComment = commentsViewModel.respondingToComment {
+                  withAnimation {
+                    proxy.scrollTo(replyingToComment.commentId)
+                  }
+                }
+              },
+              viewModel: commentsViewModel,
+              replyNamespace: replyNamespace,
+            )
           }
         }
       }

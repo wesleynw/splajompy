@@ -1,9 +1,10 @@
 import SwiftUI
 
-struct CommentsView: View {
+struct CommentsContainerView: View {
   var postId: Int
   var postManager: PostStore
   var scrollProxy: ScrollViewProxy?
+  var replyNamespace: Namespace.ID
 
   @State private var viewModel: ViewModel
 
@@ -11,6 +12,7 @@ struct CommentsView: View {
     postId: Int,
     postManager: PostStore,
     scrollProxy: ScrollViewProxy? = nil,
+    replyNamespace: Namespace.ID
   ) {
     self.postId = postId
     _viewModel = State(
@@ -18,6 +20,7 @@ struct CommentsView: View {
     )
     self.postManager = postManager
     self.scrollProxy = scrollProxy
+    self.replyNamespace = replyNamespace
   }
 
   init(
@@ -25,11 +28,13 @@ struct CommentsView: View {
     postManager: PostStore,
     scrollProxy: ScrollViewProxy? = nil,
     viewModel: ViewModel,
+    replyNamespace: Namespace.ID
   ) {
     self.postId = postId
     _viewModel = State(wrappedValue: viewModel)
     self.postManager = postManager
     self.scrollProxy = scrollProxy
+    self.replyNamespace = replyNamespace
   }
 
   var body: some View {
@@ -49,26 +54,39 @@ struct CommentsView: View {
           #endif
       case .loaded(let comments):
         VStack(spacing: 0) {
-          ForEach(comments, id: \.commentId) { comment in
-            CommentRow(
+          ForEach(
+            comments.filter {
+              $0.commentId != viewModel.respondingToComment?.commentId
+            }
+          ) { comment in
+            CommentView(
               comment: comment,
-              isInSheet: false,
-              toggleLike: {
-                viewModel.toggleLike(for: comment)
+              replyToComment: viewModel.respondingToComment?.commentId,
+              onToggleLike: { comment in viewModel.toggleLike(for: comment)
               },
-              deleteComment: {
-                Task {
-                  await viewModel.deleteComment(comment)
-                  postManager.updatePost(id: postId) { post in
-                    post.commentCount -= 1
-                  }
+              onDelete: { commentId in
+                Task { await viewModel.deleteComment(comment) }
+              },
+              onAppear: { comment in
+                guard viewModel.pendingScrollCommentId == comment.commentId
+                else { return }
+                viewModel.pendingScrollCommentId = nil
+                withAnimation {
+                  scrollProxy?.scrollTo(
+                    comment.commentId,
+                    anchor: viewModel.commentSortOrder == "Oldest First"
+                      ? .bottom : .top
+                  )
                 }
-              }
+              },
+              onCommentReply: {
+                withAnimation {
+                  viewModel.stageCommentReply(to: comment)
+                }
+              },
+              replyNamespace: replyNamespace
             )
-            .id(comment.commentId)
-            .geometryGroup()
-            .transition(.opacity.combined(with: .scale(scale: 0.95)))
-            .scrollToCommentWhenAdded(comment.commentId, viewModel: viewModel, proxy: scrollProxy)
+            .allowsHitTesting(viewModel.respondingToComment == nil)
           }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -121,7 +139,9 @@ struct CommentsView: View {
 }
 
 #Preview {
-  let mockViewModel = CommentsView.ViewModel(
+  @Previewable @Namespace var namespace
+
+  let mockViewModel = CommentsContainerView.ViewModel(
     postId: 1,
     service: MockCommentService(),
     postManager: PostStore()
@@ -130,17 +150,20 @@ struct CommentsView: View {
   let postManager = PostStore()
 
   NavigationStack {
-    CommentsView(
+    CommentsContainerView(
       postId: 1,
       postManager: postManager,
-      viewModel: mockViewModel
+      viewModel: mockViewModel,
+      replyNamespace: namespace
     )
     .environment(AuthManager())
   }
 }
 
 #Preview("Loading") {
-  let mockViewModel = CommentsView.ViewModel(
+  @Previewable @Namespace var namespace
+
+  let mockViewModel = CommentsContainerView.ViewModel(
     postId: 1,
     service: MockCommentService_Loading(),
     postManager: PostStore()
@@ -148,16 +171,19 @@ struct CommentsView: View {
 
   let postManager = PostStore()
 
-  CommentsView(
+  CommentsContainerView(
     postId: 1,
     postManager: postManager,
-    viewModel: mockViewModel
+    viewModel: mockViewModel,
+    replyNamespace: namespace,
   )
   .environment(AuthManager())
 }
 
 #Preview("No Comments") {
-  let mockViewModel = CommentsView.ViewModel(
+  @Previewable @Namespace var namespace
+
+  let mockViewModel = CommentsContainerView.ViewModel(
     postId: 1,
     service: MockCommentService_Empty(),
     postManager: PostStore()
@@ -165,16 +191,19 @@ struct CommentsView: View {
 
   let postManager = PostStore()
 
-  CommentsView(
+  CommentsContainerView(
     postId: 1,
     postManager: postManager,
-    viewModel: mockViewModel
+    viewModel: mockViewModel,
+    replyNamespace: namespace,
   )
   .environment(AuthManager())
 }
 
 #Preview("Error") {
-  let mockViewModel = CommentsView.ViewModel(
+  @Previewable @Namespace var namespace
+
+  let mockViewModel = CommentsContainerView.ViewModel(
     postId: 1,
     service: MockCommentService_Error(),
     postManager: PostStore()
@@ -182,10 +211,33 @@ struct CommentsView: View {
 
   let postManager = PostStore()
 
-  CommentsView(
+  CommentsContainerView(
     postId: 1,
     postManager: postManager,
-    viewModel: mockViewModel
+    viewModel: mockViewModel,
+    replyNamespace: namespace,
   )
   .environment(AuthManager())
+}
+
+#Preview("nested comments") {
+  @Previewable @Namespace var namespace
+
+  let mockViewModel = CommentsContainerView.ViewModel(
+    postId: 3,
+    service: MockCommentService(),
+    postManager: PostStore()
+  )
+
+  let postManager = PostStore()
+
+  NavigationStack {
+    CommentsContainerView(
+      postId: 3,
+      postManager: postManager,
+      viewModel: mockViewModel,
+      replyNamespace: namespace,
+    )
+    .environment(AuthManager())
+  }
 }
