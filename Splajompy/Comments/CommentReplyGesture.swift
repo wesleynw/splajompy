@@ -7,7 +7,7 @@ struct CommentReplyGesture: Gesture {
   @Binding var replyGestureOffset: CGFloat
 
   var body: some Gesture {
-    DragGesture(minimumDistance: 30, coordinateSpace: .local)
+    DragGesture(minimumDistance: 20, coordinateSpace: .global)
       .onChanged { value in
         let x = max(0, value.translation.width)
         let resisted = 120 * (1 - exp(-x / 120))

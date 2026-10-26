@@ -36,7 +36,7 @@ struct CommentsSheetView: View {
   var body: some View {
     NavigationStack {
       ScrollViewReader { proxy in
-        ScrollView {
+        ScrollView(.vertical) {
           if case .loaded(let comments) = viewModel.state {
             VStack(spacing: 0) {
               ForEach(
