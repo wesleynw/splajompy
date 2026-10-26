@@ -37,11 +37,11 @@ struct CommentView: View {
             $0.matchedGeometryEffect(
               id: comment.commentId,
               in: namespace,
+              properties: .position
             )
           }
         }
         .id(comment.commentId)
-        .geometryGroup()
         .onAppear {
           onAppear(comment)
         }
@@ -84,7 +84,6 @@ struct CommentView: View {
               }
             )
             .id(child.commentId)
-            .geometryGroup()
             .transition(.opacity.combined(with: .scale(scale: 0.95)))
             .onAppear {
               onAppear(child)

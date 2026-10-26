@@ -67,45 +67,43 @@ struct CommentRow: View {
         Spacer()
 
         HStack {
+          if let currentUser = authManager.currentUser {
+            if currentUser.userId == comment.user.userId {
+              Menu(
+                content: {
+                  Button(
+                    role: .destructive,
+                    action: { showDeleteConfirmation = true }
+                  ) {
+                    Label("Delete", systemImage: "trash")
+                      .foregroundStyle(.red)
+                  }
+                },
+                label: {
+                  Image(systemName: "ellipsis")
+                    .font(.system(size: 16))
+                    .frame(width: 32, height: 32)
+                    .contentShape(.rect)
+                }
+              )
+              .buttonStyle(.plain)
+            }
+          }
+
           if let commentReplyCallback = handleCommentReply,
             PostHogSDK.shared.isFeatureEnabled("comment-replies")
           {
             Button {
               commentReplyCallback()
             } label: {
-              Image(systemName: "arrowshape.turn.up.left.fill")
+              Image(systemName: "arrowshape.turn.up.left")
                 .font(.body)
             }
             .buttonStyle(.plain)
           }
 
-          HStack {
-            if let currentUser = authManager.currentUser {
-              if currentUser.userId == comment.user.userId {
-                Menu(
-                  content: {
-                    Button(
-                      role: .destructive,
-                      action: { showDeleteConfirmation = true }
-                    ) {
-                      Label("Delete", systemImage: "trash")
-                        .foregroundStyle(.red)
-                    }
-                  },
-                  label: {
-                    Image(systemName: "ellipsis")
-                      .font(.system(size: 16))
-                      .frame(width: 32, height: 32)
-                      .contentShape(.rect)
-                  }
-                )
-                .buttonStyle(.plain)
-              }
-            }
-
-            LikeButton(isLiked: comment.isLiked, action: toggleLike)
-              .allowsHitTesting(true)
-          }
+          LikeButton(isLiked: comment.isLiked, action: toggleLike)
+            .allowsHitTesting(true)
         }
         .opacity(isReadOnly ? 0 : 1)
         .allowsHitTesting(!isReadOnly)
@@ -125,7 +123,7 @@ struct CommentRow: View {
     )
     .sensoryFeedback(.impact, trigger: replyGestureOffset > replyThreshold)
     .background(alignment: .leading) {
-      Image(systemName: "arrowshape.turn.up.left.fill")
+      Image(systemName: "arrowshape.turn.up.left")
         .font(.body)
         .scaleEffect(replyGestureOffset > replyThreshold ? 1.2 : 1)
         .opacity(replyIndicatorOpacity)
