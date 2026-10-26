@@ -113,7 +113,7 @@ struct CommentRow: View {
     .offset(x: replyGestureOffset)
     .animation(.default, value: replyGestureOffset)
     .contentShape(.rect)
-    .gesture(
+    .simultaneousGesture(
       CommentReplyGesture(
         onTrigger: handleCommentReply ?? {},
         replyGestureOffset: $replyGestureOffset
