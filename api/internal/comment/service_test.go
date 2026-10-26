@@ -427,15 +427,21 @@ func TestCommentReplies_OutdatedUserSeesWarning(t *testing.T) {
 	newComment, err := env.svc.AddComment(t.Context(), user0, post.PostID, nil, "test comment", nil)
 	require.NoError(t, err)
 
-	_, err = env.svc.AddComment(t.Context(), user0, post.PostID, new(newComment.CommentID), "test comment reply", nil)
-	assert.NoError(t, err)
-
 	ctx := context.WithValue(t.Context(), utilities.AppVersionKey, "v1.9.2")
 
 	result, err := env.svc.GetCommentsByPostId(ctx, user0, post.PostID)
 	require.NoError(t, err)
 	assert.Len(t, result, 1)
 	targetText := result[0].Text
+	assert.NotContains(t, targetText, "Update Splajompy")
+
+	_, err = env.svc.AddComment(t.Context(), user0, post.PostID, new(newComment.CommentID), "test comment reply", nil)
+	assert.NoError(t, err)
+
+	result, err = env.svc.GetCommentsByPostId(ctx, user0, post.PostID)
+	require.NoError(t, err)
+	assert.Len(t, result, 1)
+	targetText = result[0].Text
 	assert.Equal(t, "test comment\n\n[Update Splajompy](https://apps.apple.com/us/app/splajompy/id6744034321) to view replies to this comment.", targetText)
 
 	err = env.svc.DeleteComment(t.Context(), user0, newComment.CommentID)
