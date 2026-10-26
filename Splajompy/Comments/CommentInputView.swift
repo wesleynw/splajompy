@@ -158,11 +158,7 @@ struct CommentInputView: View {
             Image(systemName: "arrowshape.turn.up.left.fill")
               .font(.body)
 
-            Text("Replying to ")
-              + Text("@\(replyingComment.user.username)").fontWeight(
-                .semibold
-              )
-              .foregroundStyle(.accent)
+            Text("Replying to")
 
             Spacer()
 
