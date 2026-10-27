@@ -22,96 +22,99 @@ struct CommentInputView: View {
   @FocusState private var focus
 
   var body: some View {
-    VStack {
-      VStack {
-        ViewThatFits(in: .vertical) {
-          inputTopAccessories
-
-          ScrollView {
-            inputTopAccessories
-          }
-        }
-
-        HStack(alignment: .bottom, spacing: 0) {
-          PhotosPicker(selection: $viewModel.imageSelection, matching: .images) {
-            Image(systemName: "plus.circle.fill")
-              .resizable()
-              .frame(width: 32, height: 32)
-              .padding(5)
-          }
-          .buttonStyle(.plain)
-          .disabled(viewModel.imageState != .empty)
-
-          MentionTextEditor(
-            text: $viewModel.text,
-            viewModel: mentionViewModel,
-            cursorRect: $cursorRect,
-            selectedRange: $viewModel.selectedRange,
-            isCompact: true,
-            trailingInset: submitButtonWidth
-          )
-          .focused($focus)
-          .overlay(alignment: .bottomTrailing) {
-            Button(action: {
-              mentionViewModel.clearMentionState()
-              Task {
-                await viewModel.submitComment()
-              }
-            }) {
-              if viewModel.isSubmitting {
-                ProgressView()
-                  .frame(width: 32, height: 32)
-                  #if os(macOS)
-                    .controlSize(.small)
-                  #endif
-              } else {
-                Image(systemName: "arrow.up.circle.fill")
-                  .resizable()
-                  .frame(width: 32, height: 32)
-              }
-            }
-            .disabled(isSubmitButtonDisabled)
-            #if os(macOS)
-              .buttonStyle(.plain)
-            #endif
-            .padding(5)
-            .onGeometryChange(for: CGFloat.self) {
-              $0.size.width
-            } action: {
-              submitButtonWidth = $0
-            }
-          }
-          .overlay(alignment: .top) {
-            // HACK: need to wrap the if statement in view or else alignment guide doesn't work
-            VStack(spacing: 0) {
-              if mentionViewModel.isShowingSuggestions {
-                suggestionOverlay
-              }
-            }
-            .offset(y: cursorRect.minY - 5)
-            .alignmentGuide(.top) { dimensions in
-              dimensions[.bottom]
-            }
-          }
-          .animation(.default, value: mentionViewModel.isShowingSuggestions)
+    ZStack(alignment: .top) {
+      VStack(spacing: 0) {
+        if mentionViewModel.isShowingSuggestions {
+          suggestionOverlay
         }
       }
-      .modify {
-        if #available(anyAppleOS 26, *) {
-          $0
-            .containerShape(RoundedRectangle(cornerRadius: 25))
-            .glassEffect(
-              .regular.tint(.clear.opacity(0.15)).interactive(),
-              in: RoundedRectangle(cornerRadius: 25)
-            )
-            .padding()
-        } else {
-          $0
-            .padding(8)
-            .background(.bar)
-            .overlay(alignment: .top) {
-              Divider()
+      .offset(y: cursorRect.minY - 5)
+      .alignmentGuide(.top) { dimensions in
+        dimensions[.bottom]
+      }
+      .animation(.default, value: mentionViewModel.isShowingSuggestions)
+
+      VStack {
+        VStack {
+          ViewThatFits(in: .vertical) {
+            inputTopAccessories
+
+            ScrollView {
+              inputTopAccessories
             }
+          }
+
+          HStack(alignment: .bottom, spacing: 0) {
+            PhotosPicker(
+              selection: $viewModel.imageSelection,
+              matching: .images
+            ) {
+              Image(systemName: "plus.circle.fill")
+                .resizable()
+                .frame(width: 32, height: 32)
+                .padding(5)
+            }
+            .buttonStyle(.plain)
+            .disabled(viewModel.imageState != .empty)
+
+            MentionTextEditor(
+              text: $viewModel.text,
+              viewModel: mentionViewModel,
+              cursorRect: $cursorRect,
+              selectedRange: $viewModel.selectedRange,
+              isCompact: true,
+              trailingInset: submitButtonWidth
+            )
+            .focused($focus)
+            .overlay(alignment: .bottomTrailing) {
+              Button(action: {
+                mentionViewModel.clearMentionState()
+                Task {
+                  await viewModel.submitComment()
+                }
+              }) {
+                if viewModel.isSubmitting {
+                  ProgressView()
+                    .frame(width: 32, height: 32)
+                    #if os(macOS)
+                      .controlSize(.small)
+                    #endif
+                } else {
+                  Image(systemName: "arrow.up.circle.fill")
+                    .resizable()
+                    .frame(width: 32, height: 32)
+                }
+              }
+              .disabled(isSubmitButtonDisabled)
+              #if os(macOS)
+                .buttonStyle(.plain)
+              #endif
+              .padding(5)
+              .onGeometryChange(for: CGFloat.self) {
+                $0.size.width
+              } action: {
+                submitButtonWidth = $0
+              }
+            }
+          }
+        }
+        .modify {
+          if #available(anyAppleOS 26, *) {
+            $0
+              .containerShape(RoundedRectangle(cornerRadius: 25))
+              .glassEffect(
+                .regular.tint(.clear.opacity(0.15)).interactive(),
+                in: RoundedRectangle(cornerRadius: 25)
+              )
+              .padding()
+          } else {
+            $0
+              .padding(8)
+              .background(.bar)
+              .overlay(alignment: .top) {
+                Divider()
+              }
+          }
         }
       }
     }
