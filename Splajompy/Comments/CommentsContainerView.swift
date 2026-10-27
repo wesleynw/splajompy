@@ -69,16 +69,17 @@ struct CommentsContainerView: View {
               replyToComment: viewModel.respondingToComment?.commentId,
               onToggleLike: { comment in viewModel.toggleLike(for: comment)
               },
-              onDelete: { commentId in
+              onDelete: { comment in
                 Task { await viewModel.deleteComment(comment) }
               },
               onAppear: { comment in
-                guard viewModel.pendingScrollCommentId == comment.commentId
+                guard viewModel.pendingScrollCommentId == comment.commentId,
+                  comment.parentCommentId != nil
                 else { return }
                 viewModel.pendingScrollCommentId = nil
                 withAnimation {
                   scrollProxy?.scrollTo(
-                    comment.commentId,
+                    comment.parentCommentId,
                     anchor: viewModel.commentSortOrder == "Oldest First"
                       ? .bottom : .top
                   )

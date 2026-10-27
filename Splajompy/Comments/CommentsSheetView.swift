@@ -50,16 +50,17 @@ struct CommentsSheetView: View {
                     ?? nil,
                   onToggleLike: { comment in viewModel.toggleLike(for: comment)
                   },
-                  onDelete: { commentId in
+                  onDelete: { comment in
                     Task { await viewModel.deleteComment(comment) }
                   },
                   onAppear: { comment in
-                    guard viewModel.pendingScrollCommentId == comment.commentId
+                    guard viewModel.pendingScrollCommentId == comment.commentId,
+                      comment.parentCommentId != nil
                     else { return }
                     viewModel.pendingScrollCommentId = nil
                     withAnimation {
                       proxy.scrollTo(
-                        comment.commentId,
+                        comment.parentCommentId,
                         anchor: viewModel.commentSortOrder == "Oldest First"
                           ? .bottom : .top
                       )
@@ -72,7 +73,10 @@ struct CommentsSheetView: View {
                   },
                   replyNamespace: replyNamespace,
                 )
-                .sensoryFeedback(.impact, trigger: viewModel.respondingToComment?.commentId)
+                .sensoryFeedback(
+                  .impact,
+                  trigger: viewModel.respondingToComment?.commentId
+                )
               }
             }
             .frame(maxWidth: .infinity, alignment: .leading)

@@ -66,7 +66,7 @@ struct CommentView: View {
       HStack {
         Capsule()
           .foregroundStyle(.tertiary)
-          .frame(width: 4)
+          .frame(width: 6)
           .frame(maxHeight: .infinity)
           .padding(.vertical, 3)
           .padding(.leading)

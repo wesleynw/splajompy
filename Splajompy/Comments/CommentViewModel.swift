@@ -218,17 +218,26 @@ extension CommentsContainerView {
     }
 
     func deleteComment(_ comment: DetailedComment) async {
-      guard case .loaded(var currentComments) = state else { return }
+      guard case .loaded(let originalComments) = state else { return }
 
-      guard
-        let index = currentComments.firstIndex(where: {
+      var updatedComments = originalComments
+
+      if let index = updatedComments.firstIndex(where: {
+        $0.commentId == comment.commentId
+      }) {
+        updatedComments.remove(at: index)
+      } else if let index = updatedComments.firstIndex(where: {
+        $0.commentId == comment.parentCommentId
+      }) {
+        updatedComments[index].children?.removeAll(where: {
           $0.commentId == comment.commentId
         })
-      else { return }
+      } else {
+        return
+      }
 
-      currentComments.remove(at: index)
       withAnimation {
-        state = .loaded(currentComments)
+        state = .loaded(updatedComments)
       }
 
       postManager.updatePost(id: postId) { post in
@@ -237,12 +246,13 @@ extension CommentsContainerView {
 
       let result = await service.deleteComment(commentId: comment.commentId)
 
-      if case .failure(let error) = result {
-        print("Error deleting comment: \(error.localizedDescription)")
-        guard case .loaded(var revertComments) = state else { return }
-        revertComments.insert(comment, at: index)
+      if case .failure(_) = result {
         withAnimation {
-          state = .loaded(revertComments)
+          state = .loaded(originalComments)
+        }
+
+        postManager.updatePost(id: postId) { post in
+          post.commentCount += 1
         }
       }
     }

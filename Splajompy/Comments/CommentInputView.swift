@@ -12,7 +12,7 @@ struct CommentInputView: View {
 
   @State private var mentionViewModel =
     MentionTextEditor.MentionViewModel()
-  @State private var cursorY: CGFloat = 0
+  @State private var cursorRect: CGRect = CGRectZero
   @State private var submitButtonWidth: CGFloat = 0
   @State private var presentingImage: SelectedImage? = nil
 
@@ -23,32 +23,6 @@ struct CommentInputView: View {
 
   var body: some View {
     VStack {
-      if mentionViewModel.isShowingSuggestions {
-        MentionTextEditor.suggestionView(
-          suggestions: mentionViewModel.mentionSuggestions,
-          isLoading: mentionViewModel.isLoading,
-          onInsert: { user in
-            let result = mentionViewModel.insertMention(
-              user,
-              in: viewModel.text,
-              at: viewModel.selectedRange
-            )
-            viewModel.text = result.text
-            viewModel.selectedRange = result.newSelectedRange
-          }
-        )
-        .modify {
-          if #available(iOS 26, macOS 26, *) {
-            $0.glassEffect(
-              .regular.interactive(),
-              in: RoundedRectangle(cornerRadius: 15)
-            )
-          }
-        }
-        .animation(.default, value: mentionViewModel.isShowingSuggestions)
-        .padding(.horizontal)
-      }
-
       VStack {
         ViewThatFits(in: .vertical) {
           inputTopAccessories
@@ -71,7 +45,7 @@ struct CommentInputView: View {
           MentionTextEditor(
             text: $viewModel.text,
             viewModel: mentionViewModel,
-            cursorY: $cursorY,
+            cursorRect: $cursorRect,
             selectedRange: $viewModel.selectedRange,
             isCompact: true,
             trailingInset: submitButtonWidth
@@ -107,6 +81,19 @@ struct CommentInputView: View {
               submitButtonWidth = $0
             }
           }
+          .overlay(alignment: .top) {
+            // HACK: need to wrap the if statement in view or else alignment guide doesn't work
+            VStack(spacing: 0) {
+              if mentionViewModel.isShowingSuggestions {
+                suggestionOverlay
+              }
+            }
+            .offset(y: cursorRect.minY - 5)
+            .alignmentGuide(.top) { dimensions in
+              dimensions[.bottom]
+            }
+          }
+          .animation(.default, value: mentionViewModel.isShowingSuggestions)
         }
       }
       .modify {
@@ -211,6 +198,23 @@ struct CommentInputView: View {
         .scrollIndicators(.hidden)
       }
     }
+  }
+
+  private var suggestionOverlay: some View {
+    MentionTextEditor.suggestionView(
+      suggestions: mentionViewModel.mentionSuggestions,
+      isLoading: mentionViewModel.isLoading,
+      onInsert: { user in
+        let result = mentionViewModel.insertMention(
+          user,
+          in: viewModel.text,
+          at: viewModel.selectedRange
+        )
+        viewModel.text = result.text
+        viewModel.selectedRange = result.newSelectedRange
+      }
+    )
+    .padding(.horizontal)
   }
 
   private var isSubmitButtonDisabled: Bool {
