@@ -6,7 +6,7 @@ require (
 	github.com/pulumi/pulumi-aws/sdk/v7 v7.51.1
 	github.com/pulumi/pulumi-awsx/sdk/v3 v3.11.0
 	github.com/pulumi/pulumi-digitalocean/sdk/v4 v4.84.1
-	github.com/pulumi/pulumi/sdk/v3 v3.270.0
+	github.com/pulumi/pulumi/sdk/v3 v3.272.0
 )
 
 require (
@@ -109,7 +109,7 @@ require (
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/crypto v0.57.0 // indirect
 	golang.org/x/mod v0.41.0 // indirect
-	golang.org/x/net v0.59.0 // indirect
+	golang.org/x/net v0.60.0 // indirect
 	golang.org/x/sync v0.23.0 // indirect
 	golang.org/x/sys v0.48.0 // indirect
 	golang.org/x/term v0.46.0 // indirect
