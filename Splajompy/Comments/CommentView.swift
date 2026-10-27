@@ -8,6 +8,7 @@ struct CommentView: View {
   let onDelete: (DetailedComment) -> Void
   let onAppear: (DetailedComment) -> Void
   let onCommentReply: () -> Void
+  let enableReplySwipeGesure: Bool = false
 
   var isReadOnly: Bool = false
   var isBlurring: Bool = false
@@ -30,7 +31,8 @@ struct CommentView: View {
           handleCommentReply: {
             onCommentReply()
           },
-          isReadOnly: isReadOnly
+          enableReplySwipeGesure: enableReplySwipeGesure,
+          isReadOnly: isReadOnly,
         )
         .modify {
           if let namespace = replyNamespace {

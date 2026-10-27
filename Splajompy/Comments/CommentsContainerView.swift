@@ -5,6 +5,7 @@ struct CommentsContainerView: View {
   var postManager: PostStore
   var scrollProxy: ScrollViewProxy?
   var replyNamespace: Namespace.ID
+  var enableReplySwipeGesure: Bool
 
   @State private var viewModel: ViewModel
 
@@ -12,7 +13,8 @@ struct CommentsContainerView: View {
     postId: Int,
     postManager: PostStore,
     scrollProxy: ScrollViewProxy? = nil,
-    replyNamespace: Namespace.ID
+    replyNamespace: Namespace.ID,
+    enableReplySwipeGesure: Bool = false
   ) {
     self.postId = postId
     _viewModel = State(
@@ -21,6 +23,7 @@ struct CommentsContainerView: View {
     self.postManager = postManager
     self.scrollProxy = scrollProxy
     self.replyNamespace = replyNamespace
+    self.enableReplySwipeGesure = enableReplySwipeGesure
   }
 
   init(
@@ -28,13 +31,15 @@ struct CommentsContainerView: View {
     postManager: PostStore,
     scrollProxy: ScrollViewProxy? = nil,
     viewModel: ViewModel,
-    replyNamespace: Namespace.ID
+    replyNamespace: Namespace.ID,
+    enableReplySwipeGesure: Bool = false,
   ) {
     self.postId = postId
     _viewModel = State(wrappedValue: viewModel)
     self.postManager = postManager
     self.scrollProxy = scrollProxy
     self.replyNamespace = replyNamespace
+    self.enableReplySwipeGesure = enableReplySwipeGesure
   }
 
   var body: some View {
