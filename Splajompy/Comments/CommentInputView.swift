@@ -23,17 +23,6 @@ struct CommentInputView: View {
 
   var body: some View {
     ZStack(alignment: .top) {
-      VStack(spacing: 0) {
-        if mentionViewModel.isShowingSuggestions {
-          suggestionOverlay
-        }
-      }
-      .offset(y: cursorRect.minY - 5)
-      .alignmentGuide(.top) { dimensions in
-        dimensions[.bottom]
-      }
-      .animation(.default, value: mentionViewModel.isShowingSuggestions)
-
       VStack {
         VStack {
           ViewThatFits(in: .vertical) {
@@ -117,6 +106,17 @@ struct CommentInputView: View {
           }
         }
       }
+
+      VStack(spacing: 0) {
+        if mentionViewModel.isShowingSuggestions {
+          suggestionOverlay
+        }
+      }
+      .offset(y: cursorRect.minY - 5)
+      .alignmentGuide(.top) { dimensions in
+        dimensions[.bottom]
+      }
+      .animation(.default, value: mentionViewModel.isShowingSuggestions)
     }
     .onChange(of: viewModel.respondingToComment?.commentId) { _, newValue in
       focus = newValue != nil
