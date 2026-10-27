@@ -8,7 +8,7 @@ struct CommentView: View {
   let onDelete: (DetailedComment) -> Void
   let onAppear: (DetailedComment) -> Void
   let onCommentReply: () -> Void
-  let enableReplySwipeGesure: Bool = false
+  var enableReplySwipeGesture: Bool = false
 
   var isReadOnly: Bool = false
   var isBlurring: Bool = false
@@ -31,7 +31,7 @@ struct CommentView: View {
           handleCommentReply: {
             onCommentReply()
           },
-          enableReplySwipeGesure: enableReplySwipeGesure,
+          enableReplySwipeGesure: enableReplySwipeGesture,
           isReadOnly: isReadOnly,
         )
         .modify {

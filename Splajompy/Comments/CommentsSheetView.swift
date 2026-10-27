@@ -72,6 +72,7 @@ struct CommentsSheetView: View {
                   },
                   replyNamespace: replyNamespace,
                 )
+                .sensoryFeedback(.impact, trigger: viewModel.respondingToComment?.commentId)
               }
             }
             .frame(maxWidth: .infinity, alignment: .leading)

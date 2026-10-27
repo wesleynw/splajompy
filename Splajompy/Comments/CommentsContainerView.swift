@@ -5,7 +5,7 @@ struct CommentsContainerView: View {
   var postManager: PostStore
   var scrollProxy: ScrollViewProxy?
   var replyNamespace: Namespace.ID
-  var enableReplySwipeGesure: Bool
+  var enableReplySwipeGesture: Bool
 
   @State private var viewModel: ViewModel
 
@@ -14,7 +14,7 @@ struct CommentsContainerView: View {
     postManager: PostStore,
     scrollProxy: ScrollViewProxy? = nil,
     replyNamespace: Namespace.ID,
-    enableReplySwipeGesure: Bool = false
+    enableReplySwipeGesture: Bool = false
   ) {
     self.postId = postId
     _viewModel = State(
@@ -23,7 +23,7 @@ struct CommentsContainerView: View {
     self.postManager = postManager
     self.scrollProxy = scrollProxy
     self.replyNamespace = replyNamespace
-    self.enableReplySwipeGesure = enableReplySwipeGesure
+    self.enableReplySwipeGesture = enableReplySwipeGesture
   }
 
   init(
@@ -32,14 +32,14 @@ struct CommentsContainerView: View {
     scrollProxy: ScrollViewProxy? = nil,
     viewModel: ViewModel,
     replyNamespace: Namespace.ID,
-    enableReplySwipeGesure: Bool = false,
+    enableReplySwipeGesture: Bool = false,
   ) {
     self.postId = postId
     _viewModel = State(wrappedValue: viewModel)
     self.postManager = postManager
     self.scrollProxy = scrollProxy
     self.replyNamespace = replyNamespace
-    self.enableReplySwipeGesure = enableReplySwipeGesure
+    self.enableReplySwipeGesture = enableReplySwipeGesture
   }
 
   var body: some View {
@@ -89,10 +89,15 @@ struct CommentsContainerView: View {
                   viewModel.stageCommentReply(to: comment)
                 }
               },
-              replyNamespace: replyNamespace
+              enableReplySwipeGesture: enableReplySwipeGesture,
+              replyNamespace: replyNamespace,
             )
-            .allowsHitTesting(viewModel.respondingToComment == nil)
+            .sensoryFeedback(
+              .impact,
+              trigger: viewModel.respondingToComment?.commentId
+            )
           }
+          .allowsHitTesting(viewModel.respondingToComment == nil)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .overlay(alignment: .top) {

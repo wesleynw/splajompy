@@ -60,7 +60,7 @@ struct StandalonePostView: View {
               scrollProxy: proxy,
               viewModel: commentsViewModel,
               replyNamespace: replyNamespace,
-              enableReplySwipeGesure: true,
+              enableReplySwipeGesture: true,
             )
           }
           #if os(macOS)

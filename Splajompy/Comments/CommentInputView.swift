@@ -110,8 +110,9 @@ struct CommentInputView: View {
         }
       }
       .modify {
-        if #available(iOS 26, macOS 26, *) {
+        if #available(anyAppleOS 26, *) {
           $0
+            .containerShape(RoundedRectangle(cornerRadius: 25))
             .glassEffect(
               .regular.tint(.clear.opacity(0.15)).interactive(),
               in: RoundedRectangle(cornerRadius: 25)
@@ -153,44 +154,28 @@ struct CommentInputView: View {
   private var inputTopAccessories: some View {
     VStack {
       if let replyingComment = viewModel.respondingToComment {
-        VStack {
-          HStack {
-            Image(systemName: "arrowshape.turn.up.left.fill")
-              .font(.body)
-
-            Text("Replying to")
-
-            Spacer()
-
-            Button {
-              withAnimation {
-                viewModel.unstageCommentReply()
-              }
-            } label: {
-              Image(systemName: "xmark.circle.fill")
-                .imageScale(.medium)
+        CommentView(
+          comment: replyingComment,
+          onToggleLike: { comment in },
+          onDelete: { commentId in },
+          onAppear: { comment in },
+          onCommentReply: {},
+          isReadOnly: true,
+          showChildren: false,
+          replyNamespace: replyNamespace,
+        )
+        .padding(.top)
+        .overlay(alignment: .topTrailing) {
+          Button {
+            withAnimation {
+              viewModel.unstageCommentReply()
             }
-            .buttonStyle(.plain)
+          } label: {
+            Image(systemName: "xmark.circle.fill")
+              .imageScale(.medium)
           }
-          .fontWeight(.semibold)
+          .buttonStyle(.plain)
           .padding()
-          .frame(maxWidth: .infinity, alignment: .leading)
-          .transition(.blurReplace)
-          .onTapGesture {
-            onCommentReplyTap()
-          }
-
-          CommentView(
-            comment: replyingComment,
-            onToggleLike: { comment in },
-            onDelete: { commentId in },
-            onAppear: { comment in },
-            onCommentReply: {},
-            isReadOnly: true,
-            showChildren: false,
-            replyNamespace: replyNamespace,
-          )
-
         }
       }
 
