@@ -164,6 +164,7 @@ struct CommentInputView: View {
           showChildren: false,
           replyNamespace: replyNamespace,
         )
+        .allowsHitTesting(false)
         .padding(.top)
         .overlay(alignment: .topTrailing) {
           Button {
@@ -173,9 +174,9 @@ struct CommentInputView: View {
           } label: {
             Image(systemName: "xmark.circle.fill")
               .imageScale(.medium)
+              .padding()
           }
           .buttonStyle(.plain)
-          .padding()
         }
       }
 

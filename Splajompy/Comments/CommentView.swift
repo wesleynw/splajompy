@@ -18,42 +18,40 @@ struct CommentView: View {
 
   var body: some View {
     VStack {
-      if replyToComment != comment.commentId {
-        CommentRow(
-          comment: comment,
-          isInSheet: true,
-          toggleLike: {
-            onToggleLike(comment)
-          },
-          deleteComment: {
-            onDelete(comment)
-          },
-          handleCommentReply: {
-            onCommentReply()
-          },
-          enableReplySwipeGesure: enableReplySwipeGesture,
-          isReadOnly: isReadOnly,
-        )
-        .modify {
-          if let namespace = replyNamespace {
-            $0.matchedGeometryEffect(
-              id: comment.commentId,
-              in: namespace,
-              properties: .position
-            )
-          }
+      CommentRow(
+        comment: comment,
+        isInSheet: true,
+        toggleLike: {
+          onToggleLike(comment)
+        },
+        deleteComment: {
+          onDelete(comment)
+        },
+        handleCommentReply: {
+          onCommentReply()
+        },
+        enableReplySwipeGesure: enableReplySwipeGesture,
+        isReadOnly: isReadOnly,
+      )
+      .modify {
+        if let namespace = replyNamespace {
+          $0.matchedGeometryEffect(
+            id: comment.commentId,
+            in: namespace,
+            properties: .position
+          )
         }
-        .id(comment.commentId)
-        .onAppear {
-          onAppear(comment)
-        }
-        .blur(
-          radius: replyToComment != nil
-            && replyToComment
-              != comment.commentId
-            ? 6 : 0
-        )
       }
+      .id(comment.commentId)
+      .onAppear {
+        onAppear(comment)
+      }
+      .blur(
+        radius: replyToComment != nil
+          && replyToComment
+            != comment.commentId
+          ? 6 : 0
+      )
 
       if showChildren {
         childCommentsView
