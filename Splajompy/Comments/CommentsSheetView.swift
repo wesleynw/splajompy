@@ -38,43 +38,43 @@ struct CommentsSheetView: View {
       ScrollViewReader { proxy in
         ScrollView {
           if case .loaded(let comments) = viewModel.state {
-            VStack(spacing: 0) {
-              ForEach(
-                comments.filter {
-                  $0.commentId != viewModel.respondingToComment?.commentId
-                }
-              ) { comment in
-                CommentView(
-                  comment: comment,
-                  replyToComment: viewModel.respondingToComment?.commentId
-                    ?? nil,
-                  onToggleLike: { comment in viewModel.toggleLike(for: comment)
-                  },
-                  onDelete: { commentId in
-                    Task { await viewModel.deleteComment(comment) }
-                  },
-                  onAppear: { comment in
-                    guard viewModel.pendingScrollCommentId == comment.commentId
-                    else { return }
-                    viewModel.pendingScrollCommentId = nil
-                    withAnimation {
-                      proxy.scrollTo(
-                        comment.commentId,
-                        anchor: viewModel.commentSortOrder == "Oldest First"
-                          ? .bottom : .top
-                      )
-                    }
-                  },
-                  onCommentReply: {
-                    withAnimation {
-                      viewModel.stageCommentReply(to: comment)
-                    }
-                  },
-                  replyNamespace: replyNamespace,
-                )
+            //            VStack(spacing: 0) {
+            ForEach(
+              comments.filter {
+                $0.commentId != viewModel.respondingToComment?.commentId
               }
+            ) { comment in
+              CommentView(
+                comment: comment,
+                replyToComment: viewModel.respondingToComment?.commentId
+                  ?? nil,
+                onToggleLike: { comment in viewModel.toggleLike(for: comment)
+                },
+                onDelete: { commentId in
+                  Task { await viewModel.deleteComment(comment) }
+                },
+                onAppear: { comment in
+                  guard viewModel.pendingScrollCommentId == comment.commentId
+                  else { return }
+                  viewModel.pendingScrollCommentId = nil
+                  withAnimation {
+                    proxy.scrollTo(
+                      comment.commentId,
+                      anchor: viewModel.commentSortOrder == "Oldest First"
+                        ? .bottom : .top
+                    )
+                  }
+                },
+                onCommentReply: {
+                  withAnimation {
+                    viewModel.stageCommentReply(to: comment)
+                  }
+                },
+                replyNamespace: replyNamespace,
+              )
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
+            //            }
+            //            .frame(maxWidth: .infinity, alignment: .leading)
             .allowsHitTesting(viewModel.respondingToComment == nil)
           }
         }

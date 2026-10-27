@@ -45,7 +45,13 @@ struct StandalonePostView: View {
               onLikeButtonTapped: { viewModel.toggleLike() },
               onPostDeleted: handlePostDeleted
             )
-            .animation(.default, value: commentsViewModel.respondingToComment?.commentId)
+            .allowsHitTesting(
+              commentsViewModel.respondingToComment?.commentId == nil
+            )
+            .animation(
+              .default,
+              value: commentsViewModel.respondingToComment?.commentId
+            )
             .blur(radius: commentsViewModel.respondingToComment != nil ? 6 : 0)
 
             CommentsContainerView(
