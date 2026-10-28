@@ -7,7 +7,6 @@ private struct SelectedImage: Identifiable {
 }
 
 struct CommentInputView: View {
-  let onCommentReplyTap: () -> Void
   @Bindable var viewModel: CommentsContainerView.ViewModel
 
   @State private var mentionViewModel =
@@ -22,30 +21,30 @@ struct CommentInputView: View {
   @FocusState private var focus
 
   var body: some View {
-    ZStack(alignment: .top) {
+    VStack {
       VStack {
-        VStack {
-          ViewThatFits(in: .vertical) {
+        ViewThatFits(in: .vertical) {
+          inputTopAccessories
+
+          ScrollView {
             inputTopAccessories
-
-            ScrollView {
-              inputTopAccessories
-            }
           }
+        }
 
-          HStack(alignment: .bottom, spacing: 0) {
-            PhotosPicker(
-              selection: $viewModel.imageSelection,
-              matching: .images
-            ) {
-              Image(systemName: "plus.circle.fill")
-                .resizable()
-                .frame(width: 32, height: 32)
-                .padding(5)
-            }
-            .buttonStyle(.plain)
-            .disabled(viewModel.imageState != .empty)
+        HStack(alignment: .bottom, spacing: 0) {
+          PhotosPicker(
+            selection: $viewModel.imageSelection,
+            matching: .images
+          ) {
+            Image(systemName: "plus.circle.fill")
+              .resizable()
+              .frame(width: 32, height: 32)
+              .padding(5)
+          }
+          .buttonStyle(.plain)
+          .disabled(viewModel.imageState != .empty)
 
+          ZStack(alignment: .top) {
             MentionTextEditor(
               text: $viewModel.text,
               viewModel: mentionViewModel,
@@ -85,38 +84,39 @@ struct CommentInputView: View {
                 submitButtonWidth = $0
               }
             }
-          }
-        }
-        .modify {
-          if #available(anyAppleOS 26, *) {
-            $0
-              .containerShape(RoundedRectangle(cornerRadius: 25))
-              .glassEffect(
-                .regular.tint(.clear.opacity(0.15)).interactive(),
-                in: RoundedRectangle(cornerRadius: 25)
-              )
-              .padding()
-          } else {
-            $0
-              .padding(8)
-              .background(.bar)
-              .overlay(alignment: .top) {
-                Divider()
-              }
-          }
-        }
-      }
+            .layoutPriority(1)
 
-      VStack(spacing: 0) {
-        if mentionViewModel.isShowingSuggestions {
-          suggestionOverlay
+            VStack(spacing: 0) {
+              if mentionViewModel.isShowingSuggestions {
+                suggestionOverlay
+              }
+            }
+            .offset(y: cursorRect.minY - 5)
+            .alignmentGuide(.top) { dimensions in
+              dimensions[.bottom]
+            }
+            .animation(.default, value: mentionViewModel.isShowingSuggestions)
+          }
         }
       }
-      .offset(y: cursorRect.minY - 5)
-      .alignmentGuide(.top) { dimensions in
-        dimensions[.bottom]
+      .modify {
+        if #available(anyAppleOS 26, *) {
+          $0
+            .containerShape(RoundedRectangle(cornerRadius: 25))
+            .glassEffect(
+              .regular.tint(.clear.opacity(0.15)).interactive(),
+              in: RoundedRectangle(cornerRadius: 25)
+            )
+            .padding()
+        } else {
+          $0
+            .padding(8)
+            .background(.bar)
+            .overlay(alignment: .top) {
+              Divider()
+            }
+        }
       }
-      .animation(.default, value: mentionViewModel.isShowingSuggestions)
     }
     .onChange(of: viewModel.respondingToComment?.commentId) { _, newValue in
       focus = newValue != nil
@@ -233,7 +233,6 @@ struct CommentInputView: View {
 
 #Preview {
   CommentInputView(
-    onCommentReplyTap: {},
     viewModel: CommentsContainerView.ViewModel(
       postId: 1,
       postManager: PostStore()
@@ -249,7 +248,6 @@ struct CommentInputView: View {
   viewModel.stageCommentReply(to: Mocks.comment1)
 
   return CommentInputView(
-    onCommentReplyTap: {},
     viewModel: viewModel
   )
 }

@@ -78,8 +78,10 @@ struct CommentsContainerView: View {
                 else { return }
                 viewModel.pendingScrollCommentId = nil
                 withAnimation {
+                  let targetId = comment.parentCommentId ?? comment.commentId
+
                   scrollProxy?.scrollTo(
-                    comment.parentCommentId,
+                    targetId,
                     anchor: viewModel.commentSortOrder == "Oldest First"
                       ? .bottom : .top
                   )

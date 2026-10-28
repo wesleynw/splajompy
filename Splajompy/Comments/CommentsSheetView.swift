@@ -54,13 +54,11 @@ struct CommentsSheetView: View {
                     Task { await viewModel.deleteComment(comment) }
                   },
                   onAppear: { comment in
-                    guard viewModel.pendingScrollCommentId == comment.commentId,
-                      comment.parentCommentId != nil
-                    else { return }
                     viewModel.pendingScrollCommentId = nil
+                    let target = comment.parentCommentId ?? comment.commentId
                     withAnimation {
                       proxy.scrollTo(
-                        comment.parentCommentId,
+                        target,
                         anchor: viewModel.commentSortOrder == "Oldest First"
                           ? .bottom : .top
                       )
@@ -104,13 +102,6 @@ struct CommentsSheetView: View {
           if #available(iOS 26, macOS 26, *) {
             $0.safeAreaBar(edge: .bottom) {
               CommentInputView(
-                onCommentReplyTap: {
-                  if let replyingToComment = viewModel.respondingToComment {
-                    withAnimation {
-                      proxy.scrollTo(replyingToComment.commentId)
-                    }
-                  }
-                },
                 viewModel: viewModel,
                 replyNamespace: replyNamespace
               )
@@ -118,13 +109,6 @@ struct CommentsSheetView: View {
           } else {
             $0.safeAreaInset(edge: .bottom) {
               CommentInputView(
-                onCommentReplyTap: {
-                  if let replyingToComment = viewModel.respondingToComment {
-                    withAnimation {
-                      proxy.scrollTo(replyingToComment.commentId)
-                    }
-                  }
-                },
                 viewModel: viewModel,
                 replyNamespace: replyNamespace
               )

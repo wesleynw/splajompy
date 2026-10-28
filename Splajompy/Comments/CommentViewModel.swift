@@ -30,7 +30,9 @@ extension CommentsContainerView {
     }
 
     var state: CommentState = .idle
-    var isSubmitting: Bool = false
+    private(set) var isSubmitting: Bool = false {
+      didSet { print("isSubmitting ->", isSubmitting) }
+    }
     var showError: Bool = false
     var errorMessage: String?
     var postManager: PostStore
@@ -193,9 +195,16 @@ extension CommentsContainerView {
 
       switch result {
       case .success(let newComment):
+        self.respondingToComment = nil
+
         addCommentToList(newComment)
         resetInputState()
-        PostHogSDK.shared.capture("comment_created")
+
+        if respondingToComment?.commentId != nil {
+          PostHogSDK.shared.capture("comment_reply_created")
+        } else {
+          PostHogSDK.shared.capture("comment_created")
+        }
 
         postManager.updatePost(id: postId) { post in
           post.commentCount += 1
@@ -214,7 +223,9 @@ extension CommentsContainerView {
       text = NSAttributedString(string: "")
       imageSelection = nil
       selectedRange = NSRange(location: 0, length: 0)
-      respondingToComment = nil
+      withAnimation {
+        respondingToComment = nil
+      }
     }
 
     func deleteComment(_ comment: DetailedComment) async {

@@ -85,11 +85,13 @@ struct CommentView: View {
             )
             .id(child.commentId)
             .transition(.opacity.combined(with: .scale(scale: 0.95)))
+            .animation(.default, value: child.commentId)
             .onAppear {
               onAppear(child)
             }
           }
         }
+        .animation(.default, value: children)
       }
       .fixedSize(horizontal: false, vertical: true)
     }
