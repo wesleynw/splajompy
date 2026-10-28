@@ -165,7 +165,7 @@ struct AttributedTextEditor: UIViewRepresentable {
 
         let caretRect = textView.caretRect(for: selectedRange.start)
         self.selectedRange.wrappedValue = nsRange
-        self.cursorRect.wrappedValue = caretRect
+        self.cursorRect.wrappedValue = textView.convert(caretRect, to: nil)
 
         checkForMention(in: textView)
 
