@@ -7,6 +7,7 @@ struct CommentRow: View {
   let toggleLike: () -> Void
   let deleteComment: () -> Void
   var handleCommentReply: (() -> Void)? = nil
+  var enableReplySwipeGesure: Bool = false
 
   var isReadOnly: Bool = false
 
@@ -113,13 +114,13 @@ struct CommentRow: View {
     .offset(x: replyGestureOffset)
     .animation(.default, value: replyGestureOffset)
     .contentShape(.rect)
-    .gesture(
+    .simultaneousGesture(
       CommentReplyGesture(
         onTrigger: handleCommentReply ?? {},
         replyGestureOffset: $replyGestureOffset
       ),
       isEnabled: PostHogSDK.shared.isFeatureEnabled("comment-replies")
-        && comment.parentCommentId == nil
+        && comment.parentCommentId == nil && handleCommentReply != nil && enableReplySwipeGesure
     )
     .sensoryFeedback(.impact, trigger: replyGestureOffset > replyThreshold)
     .background(alignment: .leading) {

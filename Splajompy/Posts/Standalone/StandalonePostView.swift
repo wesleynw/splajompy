@@ -45,6 +45,14 @@ struct StandalonePostView: View {
               onLikeButtonTapped: { viewModel.toggleLike() },
               onPostDeleted: handlePostDeleted
             )
+            .allowsHitTesting(
+              commentsViewModel.respondingToComment?.commentId == nil
+            )
+            .animation(
+              .default,
+              value: commentsViewModel.respondingToComment?.commentId
+            )
+            .blur(radius: commentsViewModel.respondingToComment != nil ? 6 : 0)
 
             CommentsContainerView(
               postId: postId,
@@ -52,6 +60,7 @@ struct StandalonePostView: View {
               scrollProxy: proxy,
               viewModel: commentsViewModel,
               replyNamespace: replyNamespace,
+              enableReplySwipeGesture: true,
             )
           }
           #if os(macOS)
@@ -123,13 +132,6 @@ struct StandalonePostView: View {
         if #available(iOS 26, macOS 26, *) {
           $0.safeAreaBar(edge: .bottom) {
             CommentInputView(
-              onCommentReplyTap: {
-                if let replyingToComment = commentsViewModel.respondingToComment {
-                  withAnimation {
-                    proxy.scrollTo(replyingToComment.commentId)
-                  }
-                }
-              },
               viewModel: commentsViewModel,
               replyNamespace: replyNamespace,
             )
@@ -137,13 +139,6 @@ struct StandalonePostView: View {
         } else {
           $0.safeAreaInset(edge: .bottom) {
             CommentInputView(
-              onCommentReplyTap: {
-                if let replyingToComment = commentsViewModel.respondingToComment {
-                  withAnimation {
-                    proxy.scrollTo(replyingToComment.commentId)
-                  }
-                }
-              },
               viewModel: commentsViewModel,
               replyNamespace: replyNamespace,
             )

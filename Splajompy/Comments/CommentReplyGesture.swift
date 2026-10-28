@@ -7,16 +7,21 @@ struct CommentReplyGesture: Gesture {
   @Binding var replyGestureOffset: CGFloat
 
   var body: some Gesture {
-    DragGesture(minimumDistance: 20, coordinateSpace: .global)
+    DragGesture(minimumDistance: 30)
       .onChanged { value in
-        let x = max(0, value.translation.width)
-        let resisted = 120 * (1 - exp(-x / 120))
-        replyGestureOffset = resisted
+        let isHorizontal = abs(value.translation.width) > abs(value.translation.height)
+
+        if isHorizontal {
+          let x = max(0, value.translation.width)
+          let resisted = 120 * (1 - exp(-x / 120))
+          replyGestureOffset = resisted
+        }
       }
       .onEnded { value in
         replyGestureOffset = .zero
 
-        if value.translation.width > replyThreshold {
+        let isHorizontal = abs(value.translation.width) > abs(value.translation.height)
+        if isHorizontal && value.translation.width > replyThreshold {
           onTrigger()
         }
       }

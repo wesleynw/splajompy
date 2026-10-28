@@ -133,7 +133,7 @@ struct MentionUtilities {
 struct MentionTextEditor: View {
   @Binding var text: NSAttributedString
   var viewModel: MentionViewModel
-  @Binding var cursorY: CGFloat
+  @Binding var cursorRect: CGRect
   @Binding var selectedRange: NSRange
   var isCompact: Bool
   var trailingInset: CGFloat
@@ -145,7 +145,7 @@ struct MentionTextEditor: View {
   init(
     text: Binding<NSAttributedString>,
     viewModel: MentionViewModel,
-    cursorY: Binding<CGFloat>,
+    cursorRect: Binding<CGRect>,
     selectedRange: Binding<NSRange>,
     isCompact: Bool = false,
     trailingInset: CGFloat = 0,
@@ -153,7 +153,7 @@ struct MentionTextEditor: View {
   ) {
     self._text = text
     self.viewModel = viewModel
-    self._cursorY = cursorY
+    self._cursorRect = cursorRect
     self._selectedRange = selectedRange
     self.isCompact = isCompact
     self.trailingInset = trailingInset
@@ -165,7 +165,7 @@ struct MentionTextEditor: View {
       text: $text,
       currentMention: $currentMention,
       selectedRange: $selectedRange,
-      cursorY: $cursorY,
+      cursorRect: $cursorRect,
       isScrollEnabled: isCompact,
       trailingInset: trailingInset,
       placeholder: isCompact ? "No comment..." : "What's on your mind?"
@@ -232,7 +232,7 @@ struct MentionTextEditor: View {
           } label: {
             HStack {
               Text("@\(user.username)")
-                .fontWeight(.medium)
+                .fontWeight(.semibold)
                 .foregroundStyle(.primary)
             }
             .padding(.horizontal, 12)
@@ -246,7 +246,7 @@ struct MentionTextEditor: View {
           }
           .buttonStyle(.plain)
           if user.userId != suggestions.prefix(5).last?.userId {
-            Divider().opacity(0.4)
+            Divider()
           }
         }
       }
@@ -257,7 +257,7 @@ struct MentionTextEditor: View {
       .frame(maxWidth: .infinity)
     #endif
     .modify {
-      if #available(iOS 26, macOS 26, *) {
+      if #available(anyAppleOS 26, *) {
         $0.glassEffect(
           .regular.interactive(),
           in: RoundedRectangle(cornerRadius: 15)
@@ -278,16 +278,33 @@ struct MentionTextEditor: View {
   @Previewable @State var text: NSAttributedString = NSAttributedString(
     string: ""
   )
-  @Previewable @State var cursorY: CGFloat = 0
+  @Previewable @State var cursorRect: CGRect = CGRect.init(
+    x: 0,
+    y: 0,
+    width: 1,
+    height: 1
+  )
   @Previewable @State var selectedRange: NSRange = NSRange()
   @Previewable @FocusState var isFocused: Bool
 
   MentionTextEditor(
     text: $text,
     viewModel: MentionTextEditor.MentionViewModel(),
-    cursorY: $cursorY,
+    cursorRect: $cursorRect,
     selectedRange: $selectedRange,
     isCompact: false
   )
   .padding()
+}
+
+#Preview("suggestions view") {
+  Rectangle()
+    .fill(.red)
+    .overlay(alignment: .top) {
+      MentionTextEditor.suggestionView(
+        suggestions: [Mocks.testPublicUser1, Mocks.testPublicUser2],
+        onInsert: { x in }
+      )
+      .padding()
+    }
 }

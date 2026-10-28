@@ -5,6 +5,7 @@ struct CommentsContainerView: View {
   var postManager: PostStore
   var scrollProxy: ScrollViewProxy?
   var replyNamespace: Namespace.ID
+  var enableReplySwipeGesture: Bool
 
   @State private var viewModel: ViewModel
 
@@ -12,7 +13,8 @@ struct CommentsContainerView: View {
     postId: Int,
     postManager: PostStore,
     scrollProxy: ScrollViewProxy? = nil,
-    replyNamespace: Namespace.ID
+    replyNamespace: Namespace.ID,
+    enableReplySwipeGesture: Bool = false
   ) {
     self.postId = postId
     _viewModel = State(
@@ -21,6 +23,7 @@ struct CommentsContainerView: View {
     self.postManager = postManager
     self.scrollProxy = scrollProxy
     self.replyNamespace = replyNamespace
+    self.enableReplySwipeGesture = enableReplySwipeGesture
   }
 
   init(
@@ -28,13 +31,15 @@ struct CommentsContainerView: View {
     postManager: PostStore,
     scrollProxy: ScrollViewProxy? = nil,
     viewModel: ViewModel,
-    replyNamespace: Namespace.ID
+    replyNamespace: Namespace.ID,
+    enableReplySwipeGesture: Bool = false,
   ) {
     self.postId = postId
     _viewModel = State(wrappedValue: viewModel)
     self.postManager = postManager
     self.scrollProxy = scrollProxy
     self.replyNamespace = replyNamespace
+    self.enableReplySwipeGesture = enableReplySwipeGesture
   }
 
   var body: some View {
@@ -64,16 +69,19 @@ struct CommentsContainerView: View {
               replyToComment: viewModel.respondingToComment?.commentId,
               onToggleLike: { comment in viewModel.toggleLike(for: comment)
               },
-              onDelete: { commentId in
+              onDelete: { comment in
                 Task { await viewModel.deleteComment(comment) }
               },
               onAppear: { comment in
-                guard viewModel.pendingScrollCommentId == comment.commentId
+                guard viewModel.pendingScrollCommentId == comment.commentId,
+                  comment.parentCommentId != nil
                 else { return }
                 viewModel.pendingScrollCommentId = nil
                 withAnimation {
+                  let targetId = comment.parentCommentId ?? comment.commentId
+
                   scrollProxy?.scrollTo(
-                    comment.commentId,
+                    targetId,
                     anchor: viewModel.commentSortOrder == "Oldest First"
                       ? .bottom : .top
                   )
@@ -84,10 +92,15 @@ struct CommentsContainerView: View {
                   viewModel.stageCommentReply(to: comment)
                 }
               },
-              replyNamespace: replyNamespace
+              enableReplySwipeGesture: enableReplySwipeGesture,
+              replyNamespace: replyNamespace,
             )
-            .allowsHitTesting(viewModel.respondingToComment == nil)
+            .sensoryFeedback(
+              .impact,
+              trigger: viewModel.respondingToComment?.commentId
+            )
           }
+          .allowsHitTesting(viewModel.respondingToComment == nil)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .overlay(alignment: .top) {

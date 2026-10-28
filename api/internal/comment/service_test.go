@@ -80,6 +80,30 @@ func TestDeleteComment_UnauthorizedUser(t *testing.T) {
 	assert.Equal(t, comment.CommentID, comments[0].CommentID)
 }
 
+func TestDeleteComment_DeleteChildCommentOnly(t *testing.T) {
+	env := setupCommentTest(t)
+
+	user0 := testutil.CreateTestUser(t, env.userRepository, "user0")
+
+	post0, err := env.postRepository.InsertPost(t.Context(), user0.UserID, new("test post"), nil, nil, new(models.VisibilityPublic))
+	require.NoError(t, err)
+
+	comment0, err := env.svc.AddComment(t.Context(), user0, post0.PostID, nil, "test comment", nil)
+	require.NoError(t, err)
+
+	reply0, err := env.svc.AddComment(t.Context(), user0, post0.PostID, &comment0.CommentID, "test reply", nil)
+	require.NoError(t, err)
+
+	err = env.svc.DeleteComment(t.Context(), user0, reply0.CommentID)
+	require.NoError(t, err)
+
+	allComments, err := env.svc.GetCommentsByPostId(t.Context(), user0, post0.PostID)
+	require.NoError(t, err)
+	assert.Len(t, allComments, 1)
+	assert.Equal(t, allComments[0].CommentID, comment0.CommentID)
+	assert.Nil(t, allComments[0].Children)
+}
+
 func TestGetComments_DoesNotReturnBlockedUserComments(t *testing.T) {
 	env := setupCommentTest(t)
 

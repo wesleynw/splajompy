@@ -36,7 +36,7 @@ struct CommentsSheetView: View {
   var body: some View {
     NavigationStack {
       ScrollViewReader { proxy in
-        ScrollView(.vertical) {
+        ScrollView {
           if case .loaded(let comments) = viewModel.state {
             VStack(spacing: 0) {
               ForEach(
@@ -50,16 +50,15 @@ struct CommentsSheetView: View {
                     ?? nil,
                   onToggleLike: { comment in viewModel.toggleLike(for: comment)
                   },
-                  onDelete: { commentId in
+                  onDelete: { comment in
                     Task { await viewModel.deleteComment(comment) }
                   },
                   onAppear: { comment in
-                    guard viewModel.pendingScrollCommentId == comment.commentId
-                    else { return }
                     viewModel.pendingScrollCommentId = nil
+                    let target = comment.parentCommentId ?? comment.commentId
                     withAnimation {
                       proxy.scrollTo(
-                        comment.commentId,
+                        target,
                         anchor: viewModel.commentSortOrder == "Oldest First"
                           ? .bottom : .top
                       )
@@ -71,6 +70,10 @@ struct CommentsSheetView: View {
                     }
                   },
                   replyNamespace: replyNamespace,
+                )
+                .sensoryFeedback(
+                  .impact,
+                  trigger: viewModel.respondingToComment?.commentId
                 )
               }
             }
@@ -99,13 +102,6 @@ struct CommentsSheetView: View {
           if #available(iOS 26, macOS 26, *) {
             $0.safeAreaBar(edge: .bottom) {
               CommentInputView(
-                onCommentReplyTap: {
-                  if let replyingToComment = viewModel.respondingToComment {
-                    withAnimation {
-                      proxy.scrollTo(replyingToComment.commentId)
-                    }
-                  }
-                },
                 viewModel: viewModel,
                 replyNamespace: replyNamespace
               )
@@ -113,13 +109,6 @@ struct CommentsSheetView: View {
           } else {
             $0.safeAreaInset(edge: .bottom) {
               CommentInputView(
-                onCommentReplyTap: {
-                  if let replyingToComment = viewModel.respondingToComment {
-                    withAnimation {
-                      proxy.scrollTo(replyingToComment.commentId)
-                    }
-                  }
-                },
                 viewModel: viewModel,
                 replyNamespace: replyNamespace
               )
