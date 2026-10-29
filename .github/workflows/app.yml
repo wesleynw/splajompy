@@ -1,4 +1,4 @@
-name: App Build
+name: Build
 permissions:
   contents: read
 
@@ -29,8 +29,8 @@ jobs:
             destination: platform=macOS
 
     steps:
-      # - name: Checkout
-      #   uses: actions/checkout@v7
+      - name: Checkout
+        uses: actions/checkout@v7
       - name: Build
         run: |
           set -o pipefail
