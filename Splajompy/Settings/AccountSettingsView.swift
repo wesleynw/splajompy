@@ -56,8 +56,10 @@ struct AccountSettingsView: View {
         Button("Cancel", role: .cancel) {}
 
         Button("Sign Out", role: .destructive) {
-          authManager.signOut()
-          PostHogSDK.shared.reset()
+          Task {
+            await authManager.signOut()
+            PostHogSDK.shared.reset()
+          }
         }
       }
     }

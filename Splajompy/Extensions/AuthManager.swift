@@ -194,11 +194,9 @@ class AuthManager: Sendable {
     await SessionStore.shared.loadSession()?.token
   }
 
-  func signOut(reason: String = "manual") {
+  func signOut(reason: String = "manual") async {
+    await SessionStore.shared.clearSession()
     PostHogSDK.shared.capture("user_signout", properties: ["reason": reason])
-    Task {
-      await SessionStore.shared.clearSession()
-    }
 
     UserDefaults.standard.removeObject(forKey: "selectedFeedType")
     UserDefaults.standard.removeObject(forKey: "push_notifications_enabled")
@@ -211,9 +209,7 @@ class AuthManager: Sendable {
     )
 
     UserDefaults.standard.removeObject(forKey: "caught_up_enabled")
-    UserDefaults.standard.removeObject(
-      forKey: SessionHistoryService.sessionStorageKey
-    )
+    SessionHistoryService.clearSessionHistory()
 
     ImageCache.shared.removeAll()
     ImagePipeline.shared.cache.removeAll()
@@ -481,7 +477,7 @@ class AuthManager: Sendable {
     switch result {
     case .success:
       PostHogSDK.shared.capture("account_deleted")
-      signOut(reason: "account_deleted")
+      await signOut(reason: "account_deleted")
       return (true, "")
     case .failure(let error):
       return (false, error.localizedDescription)

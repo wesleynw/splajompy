@@ -2,6 +2,8 @@ import PostHog
 import SwiftUI
 
 struct AboutView: View {
+  @State private var isDeveloperSettingsPresenting: Bool = false
+
   let appVersion =
     Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? ""
   let buildNumber =
@@ -12,6 +14,13 @@ struct AboutView: View {
       aboutSections
     }
     .formStyle(.grouped)
+    .sheet(isPresented: $isDeveloperSettingsPresenting) {
+      NavigationStack {
+        DeveloperSettingsView()
+          .interactiveDismissDisabled()
+          .postHogScreenView()
+      }
+    }
     .modify {
       #if os(iOS)
         $0.pageTitle("About")
@@ -27,6 +36,7 @@ struct AboutView: View {
           .resizable()
           .aspectRatio(contentMode: .fit)
           .frame(width: 150, height: 150)
+          .onTapGesture(count: 5) { isDeveloperSettingsPresenting = true }
       }
       .frame(maxWidth: .infinity)
     }
