@@ -4,8 +4,10 @@ struct CommentsSheetView: View {
   var postId: Int
   var postManager: PostStore
 
-  @State private var viewModel: CommentsView.ViewModel
+  @State private var viewModel: CommentsContainerView.ViewModel
   @Environment(\.dismiss) private var dismiss
+
+  @Namespace private var replyNamespace
 
   init(
     postId: Int,
@@ -13,7 +15,7 @@ struct CommentsSheetView: View {
   ) {
     self.postId = postId
     _viewModel = State(
-      wrappedValue: CommentsView.ViewModel(
+      wrappedValue: CommentsContainerView.ViewModel(
         postId: postId,
         postManager: postManager
       )
@@ -24,7 +26,7 @@ struct CommentsSheetView: View {
   init(
     postId: Int,
     postManager: PostStore,
-    viewModel: CommentsView.ViewModel,
+    viewModel: CommentsContainerView.ViewModel,
   ) {
     self.postId = postId
     _viewModel = State(wrappedValue: viewModel)
@@ -37,31 +39,49 @@ struct CommentsSheetView: View {
         ScrollView {
           if case .loaded(let comments) = viewModel.state {
             VStack(spacing: 0) {
-              ForEach(comments, id: \.commentId) { comment in
-                CommentRow(
+              ForEach(
+                comments.filter {
+                  $0.commentId != viewModel.respondingToComment?.commentId
+                }
+              ) { comment in
+                CommentView(
                   comment: comment,
-                  isInSheet: true,
-                  toggleLike: {
-                    viewModel.toggleLike(for: comment)
+                  replyToComment: viewModel.respondingToComment?.commentId
+                    ?? nil,
+                  onToggleLike: { comment in viewModel.toggleLike(for: comment)
                   },
-                  deleteComment: {
-                    Task {
-                      await viewModel.deleteComment(comment)
-                      postManager.updatePost(id: postId) { post in
-                        post.commentCount -= 1
-                      }
+                  onDelete: { comment in
+                    Task { await viewModel.deleteComment(comment) }
+                  },
+                  onAppear: { comment in
+                    viewModel.pendingScrollCommentId = nil
+                    let target = comment.parentCommentId ?? comment.commentId
+                    withAnimation {
+                      proxy.scrollTo(
+                        target,
+                        anchor: viewModel.commentSortOrder == "Oldest First"
+                          ? .bottom : .top
+                      )
                     }
-                  }
+                  },
+                  onCommentReply: {
+                    withAnimation {
+                      viewModel.stageCommentReply(to: comment)
+                    }
+                  },
+                  replyNamespace: replyNamespace,
                 )
-                .id(comment.commentId)
-                .geometryGroup()
-                .transition(.opacity.combined(with: .scale(scale: 0.95)))
-                .scrollToCommentWhenAdded(comment.commentId, viewModel: viewModel, proxy: proxy)
+                .sensoryFeedback(
+                  .impact,
+                  trigger: viewModel.respondingToComment?.commentId
+                )
               }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
+            .allowsHitTesting(viewModel.respondingToComment == nil)
           }
         }
+        .scrollDisabled(viewModel.respondingToComment != nil)
         .overlay {
           switch viewModel.state {
           case .idle, .loading:
@@ -81,11 +101,17 @@ struct CommentsSheetView: View {
         .modify {
           if #available(iOS 26, macOS 26, *) {
             $0.safeAreaBar(edge: .bottom) {
-              CommentInputView(viewModel: viewModel)
+              CommentInputView(
+                viewModel: viewModel,
+                replyNamespace: replyNamespace
+              )
             }
           } else {
             $0.safeAreaInset(edge: .bottom) {
-              CommentInputView(viewModel: viewModel)
+              CommentInputView(
+                viewModel: viewModel,
+                replyNamespace: replyNamespace
+              )
             }
           }
         }
@@ -95,6 +121,7 @@ struct CommentsSheetView: View {
         !viewModel.text.string.trimmingCharacters(
           in: .whitespacesAndNewlines
         ).isEmpty || viewModel.imageSelection != nil
+          || viewModel.respondingToComment != nil
       )
       .toolbar {
         #if os(iOS)
@@ -147,7 +174,7 @@ struct CommentsSheetView: View {
 }
 
 #Preview {
-  let mockViewModel = CommentsView.ViewModel(
+  let mockViewModel = CommentsContainerView.ViewModel(
     postId: 1,
     service: MockCommentService(),
     postManager: PostStore()
@@ -164,7 +191,7 @@ struct CommentsSheetView: View {
 }
 
 #Preview("Loading") {
-  let mockViewModel = CommentsView.ViewModel(
+  let mockViewModel = CommentsContainerView.ViewModel(
     postId: 1,
     service: MockCommentService_Loading(),
     postManager: PostStore()
@@ -181,7 +208,7 @@ struct CommentsSheetView: View {
 }
 
 #Preview("No Comments") {
-  let mockViewModel = CommentsView.ViewModel(
+  let mockViewModel = CommentsContainerView.ViewModel(
     postId: 1,
     service: MockCommentService_Empty(),
     postManager: PostStore()
@@ -198,7 +225,9 @@ struct CommentsSheetView: View {
 }
 
 #Preview("Error") {
-  let mockViewModel = CommentsView.ViewModel(
+  @Previewable @Namespace var namespace
+
+  let mockViewModel = CommentsContainerView.ViewModel(
     postId: 1,
     service: MockCommentService_Error(),
     postManager: PostStore()
@@ -206,10 +235,11 @@ struct CommentsSheetView: View {
 
   let postManager = PostStore()
 
-  CommentsView(
+  CommentsContainerView(
     postId: 1,
     postManager: postManager,
-    viewModel: mockViewModel
+    viewModel: mockViewModel,
+    replyNamespace: namespace,
   )
   .environment(AuthManager())
 }

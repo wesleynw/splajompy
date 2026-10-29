@@ -21,7 +21,12 @@ protocol CommentServiceProtocol: Sendable {
   func toggleLike(postId: Int, commentId: Int, isLiked: Bool) async
     -> Result<Void, Error>
 
-  func addComment(postId: Int, text: String, imageData: ImageData?) async
+  func addComment(
+    postId: Int,
+    commentId: Int?,
+    text: String,
+    imageData: ImageData?
+  ) async
     -> Result<DetailedComment, Error>
 
   func deleteComment(commentId: Int) async -> Result<Void, Error>
@@ -46,7 +51,12 @@ struct CommentService: CommentServiceProtocol {
     )
   }
 
-  func addComment(postId: Int, text: String, imageData: ImageData?) async
+  func addComment(
+    postId: Int,
+    commentId: Int?,
+    text: String,
+    imageData: ImageData?
+  ) async
     -> Result<DetailedComment, Error>
   {
     var imageKeymap: [Int: ImageData] = [:]
@@ -63,11 +73,19 @@ struct CommentService: CommentServiceProtocol {
       return .failure(error)
     }
 
-    return await APIService.performRequest(
-      endpoint: "post/\(postId)/comment",
-      method: "POST",
-      body: jsonData
-    )
+    if let commentId {
+      return await APIService.performRequest(
+        endpoint: "post/\(postId)/comment/\(commentId)/reply",
+        method: "POST",
+        body: jsonData
+      )
+    } else {
+      return await APIService.performRequest(
+        endpoint: "post/\(postId)/comment",
+        method: "POST",
+        body: jsonData
+      )
+    }
   }
 
   func deleteComment(commentId: Int) async -> Result<Void, Error> {

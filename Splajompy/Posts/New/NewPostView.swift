@@ -3,7 +3,7 @@ import PostHog
 import SwiftUI
 
 struct NewPostView: View {
-  @State private var cursorY: CGFloat = 0
+  @State private var cursorRect: CGRect = CGRectZero
   @State private var showingPollCreation: Bool = false
   @State private var isDragTargeted: Bool = false
   @State private var isShowingImagePager: Bool = false
@@ -30,7 +30,7 @@ struct NewPostView: View {
             MentionTextEditor(
               text: $viewModel.text,
               viewModel: mentionViewModel,
-              cursorY: $cursorY,
+              cursorRect: $cursorRect,
               selectedRange: $viewModel.selectedRange,
               isCompact: false,
               autoFocusOnAppear: true
@@ -50,7 +50,7 @@ struct NewPostView: View {
                     viewModel.selectedRange = result.newSelectedRange
                   }
                 )
-                .offset(y: cursorY + 10)
+                .offset(y: cursorRect.maxY + 10)
                 .padding(.horizontal)
                 .animation(
                   .default,

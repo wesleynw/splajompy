@@ -29,6 +29,8 @@ struct CaughtUpView: View {
               $0.buttonStyle(.bordered)
             }
           }
+          .padding()
+          .contentShape(.rect)
       }
     }
     .padding()

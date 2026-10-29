@@ -2,6 +2,7 @@ package auth
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 
 	"splajompy.com/api/v2/internal/utilities"
@@ -50,10 +51,10 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 
 	response, err := h.svc.LoginWithCredentials(r.Context(), (*Credentials)(&request))
 	if err != nil {
-		switch err {
-		case ErrUserNotFound:
+		switch {
+		case errors.Is(err, ErrUserNotFound):
 			utilities.HandleError(w, http.StatusBadRequest, "This user doesn't exist")
-		case ErrInvalidPassword:
+		case errors.Is(err, ErrInvalidPassword):
 			utilities.HandleError(w, http.StatusBadRequest, "Incorrect password")
 		default:
 			utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
