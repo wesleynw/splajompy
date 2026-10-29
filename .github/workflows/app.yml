@@ -34,20 +34,29 @@ jobs:
       - name: Build
         run: |
           set -o pipefail
-          xcodebuild build-for-testing \
+          xcodebuild build \
             -project Splajompy.xcodeproj \
             -scheme Splajompy \
             -destination "${{ matrix.destination }}" \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO \
-            2>&1 | xcbeautify --renderer github-actions
+            2>&1 | tee xcodebuild.log | xcbeautify --renderer github-actions
       - name: Test
         run: |
           set -o pipefail
-          xcodebuild test-without-building \
+          xcodebuild test \
             -project Splajompy.xcodeproj \
             -scheme Splajompy \
             -destination "${{ matrix.destination }}" \
+            -resultBundlePath TestResults.xcresult \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO \
             2>&1 | xcbeautify --renderer github-actions
+      - name: Upload logs
+        if: failure() || cancelled()
+        uses: actions/upload-artifact@v4
+        with:
+          name: logs-${{ matrix.name }}
+          path: |
+            TestResults.xcresult
+            xcodebuild.log
