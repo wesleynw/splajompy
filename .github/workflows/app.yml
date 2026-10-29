@@ -38,6 +38,7 @@ jobs:
             -project Splajompy.xcodeproj \
             -scheme Splajompy \
             -destination "${{ matrix.destination }}" \
+            CODE_SIGNING_REQUIRED=NO
             2>&1 | xcbeautify --renderer github-actions
       - name: Test
         run: |
@@ -46,4 +47,5 @@ jobs:
             -project Splajompy.xcodeproj \
             -scheme Splajompy \
             -destination "${{ matrix.destination }}" \
+            CODE_SIGNING_REQUIRED=NO
             2>&1 | xcbeautify --renderer github-actions
