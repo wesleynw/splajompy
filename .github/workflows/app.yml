@@ -17,7 +17,6 @@ jobs:
   build:
     name: ${{ matrix.name }}
     runs-on: xcode-27
-    timeout-minutes: 10
     strategy:
       fail-fast: false
       matrix:
@@ -40,8 +39,9 @@ jobs:
             -destination "${{ matrix.destination }}" \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO \
-            2>&1 | tee xcodebuild.log | xcbeautify --renderer github-actions
+            2>&1 | xcbeautify --renderer github-actions
       - name: Test
+        timeout-minutes: 10 # this one times out sometimes
         run: |
           set -o pipefail
           xcodebuild test \
@@ -51,10 +51,10 @@ jobs:
             -resultBundlePath TestResults.xcresult \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO \
-            2>&1 | xcbeautify --renderer github-actions
+            2>&1 | tee xcodebuild.log | xcbeautify --renderer github-actions
       - name: Upload logs
         if: failure() || cancelled()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: logs-${{ matrix.name }}
           path: |
