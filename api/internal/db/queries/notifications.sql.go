@@ -119,7 +119,7 @@ func (q *Queries) FindLikeNotificationForPost(ctx context.Context, arg FindLikeN
 }
 
 const getDeviceTokensForUser = `-- name: GetDeviceTokensForUser :many
-SELECT id, user_id, token, is_enabled_mentions, is_enabled_comments, is_enabled_follows, created_at
+SELECT id, user_id, token, is_enabled_mentions, is_enabled_comments, is_enabled_follows, created_at, updated_at
 FROM device_token
 WHERE user_id = $1
 `
@@ -141,6 +141,7 @@ func (q *Queries) GetDeviceTokensForUser(ctx context.Context, userID int) ([]Dev
 			&i.IsEnabledComments,
 			&i.IsEnabledFollows,
 			&i.CreatedAt,
+			&i.UpdatedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -400,7 +401,8 @@ VALUES ($1, $2, $3, $4, $5)
 ON CONFLICT (token) DO UPDATE SET
   is_enabled_mentions = EXCLUDED.is_enabled_mentions,
   is_enabled_comments = EXCLUDED.is_enabled_comments,
-  is_enabled_follows = EXCLUDED.is_enabled_follows
+  is_enabled_follows = EXCLUDED.is_enabled_follows,
+  updated_at = CURRENT_TIMESTAMP
 `
 
 type InsertDeviceTokenParams struct {
