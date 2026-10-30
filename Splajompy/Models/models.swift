@@ -1,6 +1,6 @@
 import Foundation
 
-struct UserDisplayProperties: Codable {
+struct UserDisplayProperties: Codable, Equatable {
   let fontChoiceId: Int?
 }
 
@@ -12,7 +12,7 @@ struct CurrentUserModel: Codable {
   let name: String?
 }
 
-struct PublicUser: Decodable, Identifiable {
+struct PublicUser: Decodable, Identifiable, Equatable {
   let userId: Int
   let username: String
   let createdAt: Date
@@ -76,7 +76,7 @@ struct PaginatedUserList: Decodable, Sendable {
   let nextCursor: Date?
 }
 
-struct ImageDTO: Decodable {
+struct ImageDTO: Decodable, Equatable {
   let imageId: Int
   let height: Int
   let width: Int
@@ -98,7 +98,7 @@ extension Facet: Comparable {
   }
 }
 
-struct Post: Decodable {
+struct Post: Decodable, Equatable {
   let postId: Int
   let userId: Int
   let text: String?
@@ -128,7 +128,7 @@ struct Post: Decodable {
   }
 }
 
-struct RelevantLike: Decodable {
+struct RelevantLike: Decodable, Equatable {
   let username: String
   let userId: Int
 }
@@ -145,10 +145,6 @@ struct DetailedPost: Decodable, Equatable, Identifiable {
   var isPinned: Bool
 
   var id: Int { post.postId }
-
-  static func == (lhs: DetailedPost, rhs: DetailedPost) -> Bool {
-    return lhs.post.postId == rhs.post.postId
-  }
 }
 
 struct PollCreationRequest: Encodable {
@@ -156,14 +152,14 @@ struct PollCreationRequest: Encodable {
   let options: [String]
 }
 
-struct Poll: Decodable {
+struct Poll: Decodable, Equatable {
   let title: String
   var voteTotal: Int
   var currentUserVote: Int?
   var options: [PollOption]
 }
 
-struct PollOption: Decodable {
+struct PollOption: Decodable, Equatable {
   let title: String
   var voteTotal: Int
 }
@@ -177,7 +173,7 @@ struct AppStatistics: Decodable {
   let totalNotifications: Int
 }
 
-enum VisibilityType: Int, Decodable, Identifiable, CaseIterable {
+enum VisibilityType: Int, Decodable, Identifiable, CaseIterable, Equatable {
   case everyone = 0
   case friends = 1
 
@@ -198,12 +194,6 @@ struct DetailedComment: Identifiable, Decodable, Equatable {
   var parentCommentId: Int?
 
   var id: Int { commentId }
-
-  static func == (lhs: DetailedComment, rhs: DetailedComment) -> Bool {
-    // TODO: the isLiked part is a hack, this should really be an observed object
-    return lhs.commentId == rhs.commentId
-      && lhs.isLiked == rhs.isLiked
-  }
 
   var richContent: AttributedString {
     let markdown = generateAttributedStringUsingFacets(

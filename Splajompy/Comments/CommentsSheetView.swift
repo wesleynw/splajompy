@@ -53,17 +53,6 @@ struct CommentsSheetView: View {
                   onDelete: { comment in
                     Task { await viewModel.deleteComment(comment) }
                   },
-                  onAppear: { comment in
-                    viewModel.pendingScrollCommentId = nil
-                    let target = comment.parentCommentId ?? comment.commentId
-                    withAnimation {
-                      proxy.scrollTo(
-                        target,
-                        anchor: viewModel.commentSortOrder == "Oldest First"
-                          ? .bottom : .top
-                      )
-                    }
-                  },
                   onCommentReply: {
                     withAnimation {
                       viewModel.stageCommentReply(to: comment)
@@ -80,6 +69,18 @@ struct CommentsSheetView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .allowsHitTesting(viewModel.respondingToComment == nil)
           }
+        }
+        .task { viewModel.loadComments() }
+        .onChange(of: viewModel.pendingScrollCommentId) { _, id in
+          guard let id else { return }
+          withAnimation {
+            proxy.scrollTo(
+              id,
+              anchor: viewModel.commentSortOrder == "Oldest First"
+                ? .bottom : .top
+            )
+          }
+          viewModel.pendingScrollCommentId = nil
         }
         .scrollDisabled(viewModel.respondingToComment != nil)
         .overlay {
