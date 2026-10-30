@@ -9,7 +9,7 @@ struct AttributedTextEditor: NSViewRepresentable {
   @Binding var text: NSAttributedString
   @Binding var currentMention: String?
   @Binding var selectedRange: NSRange
-  @Binding var cursorY: CGFloat
+  @Binding var cursorRect: CGRect
 
   var isScrollEnabled: Bool
   var trailingInset: CGFloat = 0
@@ -144,14 +144,14 @@ struct AttributedTextEditor: NSViewRepresentable {
   }
 
   func makeCoordinator() -> Coordinator {
-    Coordinator($text, $currentMention, $selectedRange, $cursorY)
+    Coordinator($text, $currentMention, $selectedRange, $cursorRect)
   }
 
   @MainActor class Coordinator: NSObject, NSTextViewDelegate {
     var text: Binding<NSAttributedString>
     var currentMention: Binding<String?>
     var selectedRange: Binding<NSRange>
-    var cursorY: Binding<CGFloat>
+    var cursorRect: Binding<CGRect>
     var isUpdating = false
     weak var textView: NSTextView?
     var placeholderLabel: NSTextField?
@@ -160,12 +160,12 @@ struct AttributedTextEditor: NSViewRepresentable {
       _ text: Binding<NSAttributedString>,
       _ currentMention: Binding<String?>,
       _ selectedRange: Binding<NSRange>,
-      _ cursorY: Binding<CGFloat>
+      _ cursorRect: Binding<CGRect>
     ) {
       self.text = text
       self.currentMention = currentMention
       self.selectedRange = selectedRange
-      self.cursorY = cursorY
+      self.cursorRect = cursorRect
     }
 
     func textDidChange(_ notification: Foundation.Notification) {
@@ -210,8 +210,7 @@ struct AttributedTextEditor: NSViewRepresentable {
         )
 
         self.selectedRange.wrappedValue = nsRange
-        self.cursorY.wrappedValue =
-          boundingRect.maxY + textView.textContainerInset.height
+        self.cursorRect.wrappedValue = boundingRect
         self.checkForMention(in: textView)
       } else {
         self.selectedRange.wrappedValue = nsRange
