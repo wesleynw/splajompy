@@ -1,0 +1,62 @@
+name: Build
+permissions:
+  contents: read
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+
+jobs:
+  build:
+    name: ${{ matrix.name }}
+    runs-on: xcode-27
+    strategy:
+      fail-fast: false
+      matrix:
+        # available destinations: https://github.com/actions/runner-images/blob/main/images/macos/xcode-27-arm64-Readme.md
+        include:
+          - name: iOS
+            destination: platform=iOS Simulator,name=iPhone 17,OS=latest
+          - name: macOS
+            destination: platform=macOS
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+      - name: Build
+        run: |
+          set -o pipefail
+          xcodebuild build \
+            -project Splajompy.xcodeproj \
+            -scheme Splajompy \
+            -destination "${{ matrix.destination }}" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            2>&1 | xcbeautify --renderer github-actions
+      - name: Test
+        timeout-minutes: 10 # this one times out sometimes
+        run: |
+          set -o pipefail
+          xcodebuild test \
+            -project Splajompy.xcodeproj \
+            -scheme Splajompy \
+            -destination "${{ matrix.destination }}" \
+            -resultBundlePath TestResults.xcresult \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            2>&1 | tee xcodebuild.log | xcbeautify --renderer github-actions
+      - name: Upload logs
+        if: failure() || cancelled()
+        uses: actions/upload-artifact@v7
+        with:
+          name: logs-${{ matrix.name }}
+          path: |
+            TestResults.xcresult
+            xcodebuild.log

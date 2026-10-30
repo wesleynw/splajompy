@@ -22,7 +22,8 @@ jobs:
       - uses: actions/checkout@v7
       - uses: actions/setup-go@v7
         with:
-          go-version: stable
+          go-version-file: "infra/go.mod"
+          cache-dependency-path: infra/go.sum
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v9
         with:
