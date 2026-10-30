@@ -148,7 +148,6 @@ struct CommentInputView: View {
           comment: replyingComment,
           onToggleLike: { comment in },
           onDelete: { commentId in },
-          onAppear: { comment in },
           onCommentReply: {},
           isReadOnly: true,
           showChildren: false,

@@ -57,7 +57,6 @@ struct StandalonePostView: View {
             CommentsContainerView(
               postId: postId,
               postManager: postManager,
-              scrollProxy: proxy,
               viewModel: commentsViewModel,
               replyNamespace: replyNamespace,
               enableReplySwipeGesture: true,
@@ -69,6 +68,17 @@ struct StandalonePostView: View {
             .padding(.bottom, 200)
           #endif
         }
+      }
+      .onChange(of: commentsViewModel.pendingScrollCommentId) { _, id in
+        guard let id else { return }
+        withAnimation {
+          proxy.scrollTo(
+            id,
+            anchor: commentsViewModel.commentSortOrder == "Oldest First"
+              ? .bottom : .top
+          )
+        }
+        commentsViewModel.pendingScrollCommentId = nil
       }
       .overlay {
         switch viewModel.state {
@@ -105,6 +115,7 @@ struct StandalonePostView: View {
       }
       .task {
         await viewModel.load()
+        commentsViewModel.loadComments()
       }
       .pageTitle("Post")
       .toolbar {

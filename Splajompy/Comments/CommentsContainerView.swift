@@ -3,7 +3,6 @@ import SwiftUI
 struct CommentsContainerView: View {
   var postId: Int
   var postManager: PostStore
-  var scrollProxy: ScrollViewProxy?
   var replyNamespace: Namespace.ID
   var enableReplySwipeGesture: Bool
 
@@ -21,7 +20,6 @@ struct CommentsContainerView: View {
       wrappedValue: ViewModel(postId: postId, postManager: postManager)
     )
     self.postManager = postManager
-    self.scrollProxy = scrollProxy
     self.replyNamespace = replyNamespace
     self.enableReplySwipeGesture = enableReplySwipeGesture
   }
@@ -37,7 +35,6 @@ struct CommentsContainerView: View {
     self.postId = postId
     _viewModel = State(wrappedValue: viewModel)
     self.postManager = postManager
-    self.scrollProxy = scrollProxy
     self.replyNamespace = replyNamespace
     self.enableReplySwipeGesture = enableReplySwipeGesture
   }
@@ -71,21 +68,6 @@ struct CommentsContainerView: View {
               },
               onDelete: { comment in
                 Task { await viewModel.deleteComment(comment) }
-              },
-              onAppear: { comment in
-                guard viewModel.pendingScrollCommentId == comment.commentId,
-                  comment.parentCommentId != nil
-                else { return }
-                viewModel.pendingScrollCommentId = nil
-                withAnimation {
-                  let targetId = comment.parentCommentId ?? comment.commentId
-
-                  scrollProxy?.scrollTo(
-                    targetId,
-                    anchor: viewModel.commentSortOrder == "Oldest First"
-                      ? .bottom : .top
-                  )
-                }
               },
               onCommentReply: {
                 withAnimation {

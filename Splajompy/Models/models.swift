@@ -12,7 +12,11 @@ struct CurrentUserModel: Codable {
   let name: String?
 }
 
-struct PublicUser: Decodable, Identifiable {
+struct PublicUser: Decodable, Identifiable, Equatable {
+  static func == (lhs: borrowing PublicUser, rhs: borrowing PublicUser) -> Bool {
+    return lhs.id == rhs.id
+  }
+
   let userId: Int
   let username: String
   let createdAt: Date
@@ -76,7 +80,7 @@ struct PaginatedUserList: Decodable, Sendable {
   let nextCursor: Date?
 }
 
-struct ImageDTO: Decodable {
+struct ImageDTO: Decodable, Equatable {
   let imageId: Int
   let height: Int
   let width: Int
@@ -198,12 +202,6 @@ struct DetailedComment: Identifiable, Decodable, Equatable {
   var parentCommentId: Int?
 
   var id: Int { commentId }
-
-  static func == (lhs: DetailedComment, rhs: DetailedComment) -> Bool {
-    // TODO: the isLiked part is a hack, this should really be an observed object
-    return lhs.commentId == rhs.commentId
-      && lhs.isLiked == rhs.isLiked
-  }
 
   var richContent: AttributedString {
     let markdown = generateAttributedStringUsingFacets(

@@ -30,9 +30,7 @@ extension CommentsContainerView {
     }
 
     var state: CommentState = .idle
-    private(set) var isSubmitting: Bool = false {
-      didSet { print("isSubmitting ->", isSubmitting) }
-    }
+    private(set) var isSubmitting: Bool = false
     var showError: Bool = false
     var errorMessage: String?
     var postManager: PostStore
@@ -66,7 +64,6 @@ extension CommentsContainerView {
       self.postId = postId
       self.service = service
       self.postManager = postManager
-      loadComments()
     }
 
     func loadComments(useLoadingState: Bool = true) {
@@ -140,6 +137,7 @@ extension CommentsContainerView {
     private func addCommentToList(_ comment: DetailedComment) {
       guard case .loaded(var currentComments) = state else { return }
 
+      var pendingId: Int?
       if let parentId = comment.parentCommentId {
         if let index = currentComments.firstIndex(where: {
           $0.commentId == parentId
@@ -151,6 +149,7 @@ extension CommentsContainerView {
             children.insert(comment, at: 0)
           }
           currentComments[index].children = children
+          pendingId = parentId
         }
       } else {
         if commentSortOrder == "Oldest First" {
@@ -158,12 +157,13 @@ extension CommentsContainerView {
         } else {
           currentComments.insert(comment, at: 0)
         }
+        pendingId = comment.commentId
       }
 
       withAnimation {
         state = .loaded(currentComments)
       }
-      pendingScrollCommentId = comment.commentId
+      pendingScrollCommentId = pendingId
     }
 
     func submitComment() async -> Bool {
@@ -195,16 +195,18 @@ extension CommentsContainerView {
 
       switch result {
       case .success(let newComment):
-        self.respondingToComment = nil
-
-        addCommentToList(newComment)
-        resetInputState()
-
         if respondingToComment?.commentId != nil {
           PostHogSDK.shared.capture("comment_reply_created")
         } else {
           PostHogSDK.shared.capture("comment_created")
         }
+
+        withAnimation {
+          self.respondingToComment = nil
+        }
+
+        addCommentToList(newComment)
+        resetInputState()
 
         postManager.updatePost(id: postId) { post in
           post.commentCount += 1
