@@ -137,7 +137,8 @@ VALUES ($1, $2, $3, $4, $5)
 ON CONFLICT (token) DO UPDATE SET
   is_enabled_mentions = EXCLUDED.is_enabled_mentions,
   is_enabled_comments = EXCLUDED.is_enabled_comments,
-  is_enabled_follows = EXCLUDED.is_enabled_follows;
+  is_enabled_follows = EXCLUDED.is_enabled_follows,
+  updated_at = CURRENT_TIMESTAMP;
 
 -- name: GetDeviceTokensForUser :many
 SELECT *

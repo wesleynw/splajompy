@@ -191,4 +191,5 @@ type Device struct {
 	IsEnabledMentions bool   `json:"isEnabledMentions"`
 	IsEnabledComments bool   `json:"isEnabledComments"`
 	IsEnabledFollows  bool   `json:"isEnabledFollows"`
+	UpdatedUtc        time.Time
 }

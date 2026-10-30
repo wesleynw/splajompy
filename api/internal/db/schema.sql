@@ -173,5 +173,6 @@ CREATE TABLE device_token (
     is_enabled_mentions BOOLEAN NOT NULL DEFAULT TRUE,
     is_enabled_comments BOOLEAN NOT NULL DEFAULT TRUE,
     is_enabled_follows BOOLEAN NOT NULL DEFAULT TRUE,
-    created_at timestamp with time zone DEFAULT now()
+    created_at timestamp with time zone NOT NULL DEFAULT now(),
+    updated_at timestamp with time zone NOT NULL DEFAULT now()
 );
