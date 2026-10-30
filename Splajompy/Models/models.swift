@@ -1,6 +1,6 @@
 import Foundation
 
-struct UserDisplayProperties: Codable {
+struct UserDisplayProperties: Codable, Equatable {
   let fontChoiceId: Int?
 }
 
@@ -13,10 +13,6 @@ struct CurrentUserModel: Codable {
 }
 
 struct PublicUser: Decodable, Identifiable, Equatable {
-  static func == (lhs: borrowing PublicUser, rhs: borrowing PublicUser) -> Bool {
-    return lhs.id == rhs.id
-  }
-
   let userId: Int
   let username: String
   let createdAt: Date
@@ -102,7 +98,7 @@ extension Facet: Comparable {
   }
 }
 
-struct Post: Decodable {
+struct Post: Decodable, Equatable {
   let postId: Int
   let userId: Int
   let text: String?
@@ -132,7 +128,7 @@ struct Post: Decodable {
   }
 }
 
-struct RelevantLike: Decodable {
+struct RelevantLike: Decodable, Equatable {
   let username: String
   let userId: Int
 }
@@ -149,10 +145,6 @@ struct DetailedPost: Decodable, Equatable, Identifiable {
   var isPinned: Bool
 
   var id: Int { post.postId }
-
-  static func == (lhs: DetailedPost, rhs: DetailedPost) -> Bool {
-    return lhs.post.postId == rhs.post.postId
-  }
 }
 
 struct PollCreationRequest: Encodable {
@@ -160,14 +152,14 @@ struct PollCreationRequest: Encodable {
   let options: [String]
 }
 
-struct Poll: Decodable {
+struct Poll: Decodable, Equatable {
   let title: String
   var voteTotal: Int
   var currentUserVote: Int?
   var options: [PollOption]
 }
 
-struct PollOption: Decodable {
+struct PollOption: Decodable, Equatable {
   let title: String
   var voteTotal: Int
 }
@@ -181,7 +173,7 @@ struct AppStatistics: Decodable {
   let totalNotifications: Int
 }
 
-enum VisibilityType: Int, Decodable, Identifiable, CaseIterable {
+enum VisibilityType: Int, Decodable, Identifiable, CaseIterable, Equatable {
   case everyone = 0
   case friends = 1
 
