@@ -110,6 +110,7 @@ func MapToken(token queries.DeviceToken) models.Device {
 		IsEnabledMentions: token.IsEnabledMentions,
 		IsEnabledComments: token.IsEnabledComments,
 		IsEnabledFollows:  token.IsEnabledFollows,
+		UpdatedUtc:        token.UpdatedAt,
 	}
 }
 

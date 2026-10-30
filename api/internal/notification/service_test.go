@@ -3,6 +3,7 @@ package notification_test
 import (
 	"context"
 	"testing"
+	"testing/synctest"
 	"time"
 
 	"github.com/stretchr/testify/assert"
@@ -615,4 +616,26 @@ func TestRegisterDevice_UpdatePreferences(t *testing.T) {
 	assert.False(t, device.IsEnabledMentions)
 	assert.False(t, device.IsEnabledComments)
 	assert.True(t, device.IsEnabledFollows)
+}
+
+func TestRegisterDevice_UpdatesTimestamp(t *testing.T) {
+	env := setupNotificationService(t)
+
+	synctest.Test(t, func(t *testing.T) {
+		user := testutil.CreateTestUser(t, env.userRepository, "user0")
+		err := env.svc.RegisterDevice(t.Context(), user.UserID, "abc123", true, true, false)
+		require.NoError(t, err)
+
+		synctest.Sleep(time.Hour)
+
+		err = env.svc.RegisterDevice(t.Context(), user.UserID, "abc123", true, true, false)
+
+		tokens, err := env.notificationRepository.GetDeviceTokensForUser(t.Context(), user.UserID)
+		require.NoError(t, err)
+		require.Len(t, tokens, 1)
+
+		device := tokens[0]
+		assert.GreaterOrEqual(t, device.UpdatedUtc.Add(time.Minute), time.Now())
+	})
+
 }
