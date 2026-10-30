@@ -1,5 +1,6 @@
 import Foundation
 import OpenTelemetryApi
+import os
 
 public struct RequestResponse<T: Decodable & Sendable>: Decodable, Sendable {
   let success: Bool
@@ -22,6 +23,11 @@ extension Foundation.Notification.Name {
 }
 
 public struct APIService {
+  static private let logger = Logger(
+    subsystem: Bundle.main.bundleIdentifier!,
+    category: "api"
+  )
+
   static let serverURLKey: String = "api_server_url"
 
   static let defaultBaseUrl: String =
@@ -41,7 +47,8 @@ public struct APIService {
     requiresAuth: Bool = true
   ) async throws -> (request: URLRequest, baseUrl: String) {
     let baseUrl = Self.baseUrl
-    guard var components = URLComponents(string: "\(baseUrl)/\(endpoint)") else {
+    guard var components = URLComponents(string: "\(baseUrl)/\(endpoint)")
+    else {
       throw URLError(.badURL)
     }
     components.queryItems = queryItems
@@ -105,7 +112,11 @@ public struct APIService {
       )
       if let url = request.url {
         span.setAttribute(key: "http.url", value: url.absoluteString)
-        print("REQUEST: \(method) \(url)")
+        let name = "\(method) \(url)"
+        print("REQUEST: \(name)")
+        logger.info(
+          "Processing API request to endpoint \(name, privacy: .public)"
+        )
       }
 
       let (data, response) = try await URLSession.shared.data(for: request)
