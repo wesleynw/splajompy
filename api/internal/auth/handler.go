@@ -21,6 +21,8 @@ func (h *Handler) RegisterRESTRoutes(public, withAuth func(string, func(http.Res
 	public("POST /login", h.Login)
 	public("POST /otc/generate", h.GenerateOTC)
 	public("POST /otc/verify", h.VerifyOTC)
+	public("POST /email-verify", h.RequestEmailVerification)
+
 	withAuth("POST /account/delete", h.DeleteAccount)
 }
 
@@ -175,4 +177,17 @@ func (h *Handler) DeleteAccount(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utilities.HandleEmptySuccess(w)
+}
+
+type RequestEmailVerificationRequest struct {
+	Email string `json:"email"`
+}
+
+func (h *Handler) RequestEmailVerification(w http.ResponseWriter, r *http.Request) {
+
+	var body RequestEmailVerificationRequest
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		utilities.HandleError(w, http.StatusBadRequest, err.Error())
+		return
+	}
 }

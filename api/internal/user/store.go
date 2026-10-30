@@ -389,6 +389,23 @@ func (r *Store) GetNotificationActorUserIds(ctx context.Context, notificationId 
 	return userIds, cursor, nil
 }
 
+func (r Store) SetEmailVerificationCode(ctx context.Context, email string, code string) error {
+	return r.querier.InsertEmailVerificationRequest(ctx, queries.InsertEmailVerificationRequestParams{
+		Email:     email,
+		Code:      code,
+		CreatedAt: time.Now(),
+	})
+}
+
+func (r Store) GetEmailVerificationCode(ctx context.Context, email string) (*string, *time.Time, error) {
+	result, err := r.querier.SelectEmailVerificationRequestForEmail(ctx, email)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return &result.Code, &result.CreatedAt, nil
+}
+
 // NewUserRepository creates a new user repository
 func NewUserRepository(querier queries.Querier) Store {
 	return Store{querier: querier}
