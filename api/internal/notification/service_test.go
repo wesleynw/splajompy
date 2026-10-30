@@ -629,6 +629,7 @@ func TestRegisterDevice_UpdatesTimestamp(t *testing.T) {
 		synctest.Sleep(time.Hour)
 
 		err = env.svc.RegisterDevice(t.Context(), user.UserID, "abc123", true, true, false)
+		require.NoError(t, err)
 
 		tokens, err := env.notificationRepository.GetDeviceTokensForUser(t.Context(), user.UserID)
 		require.NoError(t, err)
