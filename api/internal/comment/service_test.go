@@ -3,6 +3,7 @@ package comment_test
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -17,10 +18,11 @@ import (
 )
 
 type commentServiceTestEnv struct {
-	svc            *comment.Service
-	userSvc        *user.Service
-	postRepository post.Store
-	userRepository user.Store
+	svc                    *comment.Service
+	userSvc                *user.Service
+	postRepository         post.Store
+	userRepository         user.Store
+	notificationRepository notification.Store
 }
 
 func setupCommentTest(t *testing.T) commentServiceTestEnv {
@@ -32,10 +34,11 @@ func setupCommentTest(t *testing.T) commentServiceTestEnv {
 	userSvc := user.NewUserService(db.UserRepository, *notificationService, nil)
 
 	return commentServiceTestEnv{
-		svc:            svc,
-		userSvc:        userSvc,
-		postRepository: db.PostRepository,
-		userRepository: db.UserRepository,
+		svc:                    svc,
+		userSvc:                userSvc,
+		postRepository:         db.PostRepository,
+		userRepository:         db.UserRepository,
+		notificationRepository: db.NotificationStore,
 	}
 }
 
@@ -485,4 +488,72 @@ func TestCommentReplies_OutdatedUserSeesWarning(t *testing.T) {
 	assert.Len(t, result, 1)
 	targetText = result[0].Text
 	assert.Equal(t, "[Update Splajompy](https://apps.apple.com/us/app/splajompy/id6744034321) to view replies to this comment.", targetText)
+}
+
+func TestReplyToComment_NoSelfNotifyOnComment(t *testing.T) {
+	env := setupCommentTest(t)
+
+	user0 := testutil.CreateTestUser(t, env.userRepository, "user0")
+	post0, err := env.postRepository.InsertPost(t.Context(), user0.UserID, new("test post"), nil, nil, new(models.VisibilityPublic))
+	require.NoError(t, err)
+
+	user1 := testutil.CreateTestUser(t, env.userRepository, "user1")
+	comment0, err := env.svc.AddComment(t.Context(), user1, post0.PostID, nil, "test comment", nil)
+	require.NoError(t, err)
+
+	_, err = env.svc.AddComment(t.Context(), user1, post0.PostID, new(comment0.CommentID), "test comment reply", nil)
+	assert.NoError(t, err)
+
+	notificationList, err := env.notificationRepository.GetUnreadNotificationsForUserIdWithTimeOffset(t.Context(), user1.UserID, time.Now(), 10, nil)
+	require.NoError(t, err)
+	assert.Len(t, notificationList, 0)
+}
+
+// no notifications when responding to comment on own post
+func TestReplyToComment_NoSelfNotifyOnOwnPost(t *testing.T) {
+	env := setupCommentTest(t)
+
+	user0 := testutil.CreateTestUser(t, env.userRepository, "user0")
+	post0, err := env.postRepository.InsertPost(t.Context(), user0.UserID, new("test post"), nil, nil, new(models.VisibilityPublic))
+	require.NoError(t, err)
+
+	user1 := testutil.CreateTestUser(t, env.userRepository, "user1")
+	comment0, err := env.svc.AddComment(t.Context(), user1, post0.PostID, nil, "test comment", nil)
+	require.NoError(t, err)
+
+	err = env.notificationRepository.MarkAllNotificationsAsReadForUser(t.Context(), user0.UserID)
+
+	_, err = env.svc.AddComment(t.Context(), user0, post0.PostID, new(comment0.CommentID), "test comment reply", nil)
+	assert.NoError(t, err)
+
+	notificationList, err := env.notificationRepository.GetUnreadNotificationsForUserIdWithTimeOffset(t.Context(), user0.UserID, time.Now(), 10, nil)
+	require.NoError(t, err)
+	assert.Len(t, notificationList, 0)
+}
+
+func TestReplyToComment_NotifiesParentAndPoster(t *testing.T) {
+	env := setupCommentTest(t)
+
+	user0 := testutil.CreateTestUser(t, env.userRepository, "user0")
+	post0, err := env.postRepository.InsertPost(t.Context(), user0.UserID, new("test post"), nil, nil, new(models.VisibilityPublic))
+	require.NoError(t, err)
+
+	user1 := testutil.CreateTestUser(t, env.userRepository, "user1")
+	comment0, err := env.svc.AddComment(t.Context(), user1, post0.PostID, nil, "test comment", nil)
+	require.NoError(t, err)
+
+	user2 := testutil.CreateTestUser(t, env.userRepository, "user2")
+	_, err = env.svc.AddComment(t.Context(), user2, post0.PostID, new(comment0.CommentID), "test comment reply", nil)
+	assert.NoError(t, err)
+
+	notificationList, err := env.notificationRepository.GetUnreadNotificationsForUserIdWithTimeOffset(t.Context(), user0.UserID, time.Now(), 10, nil)
+	require.NoError(t, err)
+	assert.Len(t, notificationList, 2)
+	assert.Equal(t, "@user2 commented", notificationList[0].Message)
+	assert.Equal(t, "@user1 commented", notificationList[1].Message)
+
+	notificationList, err = env.notificationRepository.GetUnreadNotificationsForUserIdWithTimeOffset(t.Context(), user1.UserID, time.Now(), 10, nil)
+	require.NoError(t, err)
+	assert.Len(t, notificationList, 1)
+	assert.Equal(t, "@user2 replied", notificationList[0].Message)
 }

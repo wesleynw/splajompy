@@ -44,7 +44,7 @@ func (r Store) InsertNotification(ctx context.Context, userId int, postId *int, 
 	return new(utilities.MapNotification(notification)), nil
 }
 
-// GetNotificationsForUserId retrieves notifications for a user.
+// Deprecated: prefer GetReadNotificationsForUserIdWithTimeOffset or GetUnreadNotificationsForUserIdWithTimeOffset
 func (r Store) GetNotificationsForUserId(ctx context.Context, userId int, offset int, limit int) ([]*models.Notification, error) {
 	notifications, err := r.querier.GetNotificationsForUserId(ctx, queries.GetNotificationsForUserIdParams{
 		UserID: userId,
