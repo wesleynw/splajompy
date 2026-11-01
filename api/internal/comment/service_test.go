@@ -522,6 +522,7 @@ func TestReplyToComment_NoSelfNotifyOnOwnPost(t *testing.T) {
 	require.NoError(t, err)
 
 	err = env.notificationRepository.MarkAllNotificationsAsReadForUser(t.Context(), user0.UserID)
+	require.NoError(t, err)
 
 	_, err = env.svc.AddComment(t.Context(), user0, post0.PostID, new(comment0.CommentID), "test comment reply", nil)
 	assert.NoError(t, err)
