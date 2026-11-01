@@ -109,6 +109,22 @@ func (s *Service) AddComment(ctx context.Context, currentUser models.PublicUser,
 		}
 	}
 
+	// notify parent commenter
+	if comment.ParentCommentID != nil {
+		parentComment, err := s.commentRepository.GetCommentById(ctx, currentUser.UserID, *comment.ParentCommentID)
+		if err != nil {
+			return nil, errors.New("unable to create notification")
+		}
+
+		if parentComment.UserID != targetPost.UserID && parentComment.UserID != comment.UserID {
+			text := fmt.Sprintf("@%s replied", currentUser.Username)
+			_, err = s.notificationService.AddNotification(ctx, parentComment.UserID, &postId, &comment.CommentID, nil, text, models.NotificationTypeComment, &comment.Text)
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+
 	// also send notifications to mentioned users
 	usersToNotify := map[int]bool{}
 	for _, facet := range commentFacets {
