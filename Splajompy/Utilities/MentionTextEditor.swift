@@ -111,7 +111,8 @@ struct MentionUtilities {
     }
   }
 
-  static func currentMention(in text: String, at cursorPosition: Int) -> String? {
+  static func currentMention(in text: String, at cursorPosition: Int) -> String?
+  {
     guard cursorPosition > 0, cursorPosition <= text.count else { return nil }
 
     for match in text.matches(of: mentionPattern) {
@@ -138,6 +139,7 @@ struct MentionTextEditor: View {
   var isCompact: Bool
   var trailingInset: CGFloat
   var autoFocusOnAppear: Bool
+  var onSubmit: (() -> Void)?
   @FocusState var isFocused: Bool
 
   @State private var currentMention: String?
@@ -149,7 +151,8 @@ struct MentionTextEditor: View {
     selectedRange: Binding<NSRange>,
     isCompact: Bool = false,
     trailingInset: CGFloat = 0,
-    autoFocusOnAppear: Bool = false
+    autoFocusOnAppear: Bool = false,
+    onSubmit: (() -> Void)? = nil
   ) {
     self._text = text
     self.viewModel = viewModel
@@ -158,6 +161,7 @@ struct MentionTextEditor: View {
     self.isCompact = isCompact
     self.trailingInset = trailingInset
     self.autoFocusOnAppear = autoFocusOnAppear
+    self.onSubmit = onSubmit
   }
 
   var body: some View {
@@ -168,7 +172,8 @@ struct MentionTextEditor: View {
       cursorRect: $cursorRect,
       isScrollEnabled: isCompact,
       trailingInset: trailingInset,
-      placeholder: isCompact ? "No comment..." : "What's on your mind?"
+      placeholder: isCompact ? "No comment..." : "What's on your mind?",
+      onSubmit: onSubmit,
     )
     .focused($isFocused)
     .onAppear {

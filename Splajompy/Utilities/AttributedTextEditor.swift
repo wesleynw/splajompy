@@ -120,7 +120,6 @@ struct AttributedTextEditor: UIViewRepresentable {
   }
 
   class Coordinator: NSObject, UITextViewDelegate {
-    var isUpdating = false
     var text: Binding<NSAttributedString>
     var currentMention: Binding<String?>
     var selectedRange: Binding<NSRange>
@@ -148,13 +147,14 @@ struct AttributedTextEditor: UIViewRepresentable {
       textView.attributedText = styledText
       textView.selectedRange = ranges
 
-      self.selectedRange.wrappedValue = ranges
-      self.text.wrappedValue = styledText
+      DispatchQueue.main.async {
+        self.selectedRange.wrappedValue = ranges
+        self.text.wrappedValue = styledText
+      }
       checkForMention(in: textView)
     }
 
     func textViewDidChangeSelection(_ textView: UITextView) {
-      guard !isUpdating else { return }
       let nsRange = textView.selectedRange
 
       if let selectedRange = textView.selectedTextRange {
@@ -164,8 +164,10 @@ struct AttributedTextEditor: UIViewRepresentable {
         )
 
         let caretRect = textView.caretRect(for: selectedRange.start)
-        self.selectedRange.wrappedValue = nsRange
-        self.cursorRect.wrappedValue = textView.convert(caretRect, to: textView.superview)
+        DispatchQueue.main.async {
+          self.selectedRange.wrappedValue = nsRange
+          self.cursorRect.wrappedValue = textView.convert(caretRect, to: textView.superview)
+        }
 
         checkForMention(in: textView)
 

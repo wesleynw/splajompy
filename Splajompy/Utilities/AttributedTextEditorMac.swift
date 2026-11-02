@@ -14,6 +14,7 @@ struct AttributedTextEditor: NSViewRepresentable {
   var isScrollEnabled: Bool
   var trailingInset: CGFloat = 0
   var placeholder: String = ""
+  var onSubmit: (() -> Void)? = nil
 
   private var centeredVerticalInset: CGFloat {
     let font = NSFont.preferredFont(forTextStyle: .body)
@@ -89,9 +90,6 @@ struct AttributedTextEditor: NSViewRepresentable {
   func updateNSView(_ nsView: NSScrollView, context: Context) {
     guard let textView = nsView.documentView as? NSTextView else { return }
 
-    context.coordinator.isUpdating = true
-    defer { context.coordinator.isUpdating = false }
-
     if textView.attributedString() != text {
       let selection = textView.selectedRange()
       textView.textStorage?.setAttributedString(text)
@@ -108,6 +106,7 @@ struct AttributedTextEditor: NSViewRepresentable {
     )
 
     context.coordinator.placeholderLabel?.isHidden = !text.string.isEmpty
+    context.coordinator.onSubmit = onSubmit
   }
 
   func sizeThatFits(
@@ -144,7 +143,7 @@ struct AttributedTextEditor: NSViewRepresentable {
   }
 
   func makeCoordinator() -> Coordinator {
-    Coordinator($text, $currentMention, $selectedRange, $cursorRect)
+    Coordinator($text, $currentMention, $selectedRange, $cursorRect, onSubmit)
   }
 
   @MainActor class Coordinator: NSObject, NSTextViewDelegate {
@@ -152,45 +151,44 @@ struct AttributedTextEditor: NSViewRepresentable {
     var currentMention: Binding<String?>
     var selectedRange: Binding<NSRange>
     var cursorRect: Binding<CGRect>
-    var isUpdating = false
     weak var textView: NSTextView?
     var placeholderLabel: NSTextField?
+    var onSubmit: (() -> Void)? = nil
 
     init(
       _ text: Binding<NSAttributedString>,
       _ currentMention: Binding<String?>,
       _ selectedRange: Binding<NSRange>,
-      _ cursorRect: Binding<CGRect>
+      _ cursorRect: Binding<CGRect>,
+      _ onSubmit: (() -> Void)?
     ) {
       self.text = text
       self.currentMention = currentMention
       self.selectedRange = selectedRange
       self.cursorRect = cursorRect
+      self.onSubmit = onSubmit
     }
 
     func textDidChange(_ notification: Foundation.Notification) {
-      guard let textView = notification.object as? NSTextView,
-        !isUpdating
+      guard let textView = notification.object as? NSTextView
       else { return }
 
       let currentText = textView.attributedString()
       let ranges = textView.selectedRange()
       let styledText = MentionUtilities.applyMentionStyling(to: currentText)
 
-      isUpdating = true
-      defer { isUpdating = false }
-
       textView.textStorage?.setAttributedString(styledText)
       textView.setSelectedRange(ranges)
 
-      self.selectedRange.wrappedValue = ranges
-      self.text.wrappedValue = styledText
+      DispatchQueue.main.async {
+        self.selectedRange.wrappedValue = ranges
+        self.text.wrappedValue = styledText
+      }
       self.checkForMention(in: textView)
     }
 
     func textViewDidChangeSelection(_ notification: Foundation.Notification) {
-      guard let textView = notification.object as? NSTextView,
-        !isUpdating
+      guard let textView = notification.object as? NSTextView
       else { return }
 
       let nsRange = textView.selectedRange()
@@ -209,12 +207,16 @@ struct AttributedTextEditor: NSViewRepresentable {
           in: textContainer
         )
 
-        self.selectedRange.wrappedValue = nsRange
-        self.cursorRect.wrappedValue = boundingRect
+        DispatchQueue.main.async {
+          self.selectedRange.wrappedValue = nsRange
+          self.cursorRect.wrappedValue = boundingRect
+        }
         self.checkForMention(in: textView)
       } else {
-        self.selectedRange.wrappedValue = nsRange
-        self.checkForMention(in: textView)
+        DispatchQueue.main.async {
+          self.selectedRange.wrappedValue = nsRange
+          self.checkForMention(in: textView)
+        }
       }
 
       let isInMention = MentionUtilities.isPositionInMention(
@@ -229,11 +231,26 @@ struct AttributedTextEditor: NSViewRepresentable {
       ]
     }
 
+    func textView(_ textView: NSTextView, doCommandBy commandSelector: Selector)
+      -> Bool
+    {
+      if let onSubmit = onSubmit,
+        commandSelector == #selector(NSResponder.insertNewline(_:))
+          && NSApp.currentEvent?.modifierFlags.contains(.shift) == false
+      {
+        onSubmit()
+        return true
+      }
+      return false
+    }
+
     private func checkForMention(in textView: NSTextView) {
-      self.currentMention.wrappedValue = MentionUtilities.currentMention(
-        in: textView.string,
-        at: textView.selectedRange().location
-      )
+      DispatchQueue.main.async {
+        self.currentMention.wrappedValue = MentionUtilities.currentMention(
+          in: textView.string,
+          at: textView.selectedRange().location
+        )
+      }
     }
   }
 }

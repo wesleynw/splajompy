@@ -51,7 +51,8 @@ struct CommentInputView: View {
               cursorRect: $cursorRect,
               selectedRange: $viewModel.selectedRange,
               isCompact: true,
-              trailingInset: submitButtonWidth
+              trailingInset: submitButtonWidth,
+              onSubmit: { Task { await viewModel.submitComment() } }
             )
             .focused($focus)
             .overlay(alignment: .bottomTrailing) {
