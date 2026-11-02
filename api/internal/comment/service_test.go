@@ -255,6 +255,23 @@ func TestGetComments_DoesNotReturnOtherPostComments(t *testing.T) {
 	assert.Len(t, comments, 1)
 }
 
+func TestAddCommentWithTag_CreatesOneNotification(t *testing.T) {
+	env := setupCommentTest(t)
+
+	user0 := testutil.CreateTestUser(t, env.userRepository, "user0")
+	post0, err := env.postRepository.InsertPost(t.Context(), user0.UserID, new("test post"), nil, nil, new(models.VisibilityPublic))
+	require.NoError(t, err)
+
+	user1 := testutil.CreateTestUser(t, env.userRepository, "user1")
+	_, err = env.svc.AddComment(t.Context(), user1, post0.PostID, nil, "hey @user0", nil)
+	require.NoError(t, err)
+
+	notificationList, err := env.notificationRepository.GetUnreadNotificationsForUserIdWithTimeOffset(t.Context(), user0.UserID, time.Now(), 10, nil)
+	require.NoError(t, err)
+	assert.Len(t, notificationList, 1)
+	assert.Equal(t, "@user1 commented", notificationList[0].Message)
+}
+
 func TestReplyToComment_ErrorsOnNonexistentPost(t *testing.T) {
 	env := setupCommentTest(t)
 
@@ -557,4 +574,28 @@ func TestReplyToComment_NotifiesParentAndPoster(t *testing.T) {
 	require.NoError(t, err)
 	assert.Len(t, notificationList, 1)
 	assert.Equal(t, "@user2 replied", notificationList[0].Message)
+}
+
+func TestReplyToComment_TagsDontDuplicateNotification(t *testing.T) {
+	env := setupCommentTest(t)
+
+	user0 := testutil.CreateTestUser(t, env.userRepository, "user0")
+	post0, err := env.postRepository.InsertPost(t.Context(), user0.UserID, new("test post"), nil, nil, new(models.VisibilityPublic))
+	require.NoError(t, err)
+
+	user1 := testutil.CreateTestUser(t, env.userRepository, "user1")
+	comment0, err := env.svc.AddComment(t.Context(), user1, post0.PostID, nil, "test comment", nil)
+	require.NoError(t, err)
+
+	err = env.notificationRepository.MarkAllNotificationsAsReadForUser(t.Context(), user0.UserID)
+	require.NoError(t, err)
+
+	user2 := testutil.CreateTestUser(t, env.userRepository, "user2")
+	_, err = env.svc.AddComment(t.Context(), user2, post0.PostID, new(comment0.CommentID), "test comment reply to @user1", nil)
+	assert.NoError(t, err)
+
+	notificationList, err := env.notificationRepository.GetUnreadNotificationsForUserIdWithTimeOffset(t.Context(), user1.UserID, time.Now(), 10, nil)
+	require.NoError(t, err)
+	assert.Len(t, notificationList, 1)
+	assert.Equal(t, "@user2 mentioned you", notificationList[0].Message)
 }
