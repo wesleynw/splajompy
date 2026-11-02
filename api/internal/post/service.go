@@ -13,6 +13,7 @@ import (
 	"splajompy.com/api/v2/internal/bucket"
 	"splajompy.com/api/v2/internal/db"
 	"splajompy.com/api/v2/internal/db/queries"
+	"splajompy.com/api/v2/internal/email"
 	"splajompy.com/api/v2/internal/like"
 	"splajompy.com/api/v2/internal/models"
 	"splajompy.com/api/v2/internal/notification"
@@ -29,10 +30,10 @@ type Service struct {
 	likeRepository      like.Store
 	notificationService notification.Service
 	bucketRepository    bucket.Repository
-	emailService        *resend.Client
+	emailService        email.Client
 }
 
-func NewService(postRepository Store, userRepository user.Store, likeRepository like.Store, notificationService notification.Service, bucketRepo bucket.Repository, emailService *resend.Client) *Service {
+func NewService(postRepository Store, userRepository user.Store, likeRepository like.Store, notificationService notification.Service, bucketRepo bucket.Repository, emailService email.Client) *Service {
 	return &Service{
 		postRepository:      postRepository,
 		userRepository:      userRepository,
@@ -294,7 +295,7 @@ func (s *Service) ReportPost(ctx context.Context, currentUser *models.PublicUser
 		Html:    html,
 	}
 
-	_, err = s.emailService.Emails.Send(params)
+	_, err = s.emailService.SendEmail(params)
 	return err
 }
 

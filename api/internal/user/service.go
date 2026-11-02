@@ -10,6 +10,7 @@ import (
 	"github.com/resend/resend-go/v3"
 	"golang.org/x/sync/errgroup"
 	"splajompy.com/api/v2/internal/db"
+	"splajompy.com/api/v2/internal/email"
 	"splajompy.com/api/v2/internal/notification"
 	"splajompy.com/api/v2/internal/templates"
 	"splajompy.com/api/v2/internal/utilities"
@@ -20,18 +21,18 @@ import (
 type Service struct {
 	store               Store
 	notificationService notification.Service
-	emailService        *resend.Client
+	emailClient         email.Client
 }
 
 var (
 	ErrNotificationDoesNotExist = errors.New("this notification no longer exists")
 )
 
-func NewUserService(userRepository Store, notificationService notification.Service, emailClient *resend.Client) *Service {
+func NewUserService(userRepository Store, notificationService notification.Service, emailClient email.Client) *Service {
 	return &Service{
 		store:               userRepository,
 		notificationService: notificationService,
-		emailService:        emailClient,
+		emailClient:         emailClient,
 	}
 }
 
@@ -195,7 +196,7 @@ func (s *Service) RequestFeature(ctx context.Context, user models.PublicUser, te
 		Text:    body,
 	}
 
-	_, err = s.emailService.Emails.Send(params)
+	_, err = s.emailClient.SendEmail(params)
 	return err
 }
 
