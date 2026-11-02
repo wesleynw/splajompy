@@ -23,7 +23,6 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
-	"github.com/resend/resend-go/v3"
 )
 
 func main() {
@@ -65,8 +64,7 @@ func main() {
 
 	q := queries.New(conn)
 
-	resendApiKey := os.Getenv("RESEND_API_KEY")
-	resendClient := resend.NewClient(resendApiKey)
+	emailClient := email.NewResendEmailClient()
 
 	s3Client, err := bucket.NewS3Client()
 	if err != nil {
@@ -93,15 +91,14 @@ func main() {
 
 	notificationService := notification.NewService(notificationsRepository, postRepository, commentRepository, userRepository, bucketRepository, *apnClient)
 
-	postService := post.NewService(postRepository, userRepository, likeRepository, *notificationService, bucketRepository, resendClient)
+	postService := post.NewService(postRepository, userRepository, likeRepository, *notificationService, bucketRepository, emailClient)
 	postHandler := post.NewHandler(postService)
 	commentService := comment.NewService(commentRepository, postRepository, *notificationService, userRepository, likeRepository, bucketRepository)
 	commentHandler := comment.NewHandler(commentService)
-	userService := user.NewUserService(userRepository, *notificationService, resendClient)
+	userService := user.NewUserService(userRepository, *notificationService, emailClient)
 	userHandler := user.NewHandler(userService)
 	notificationHandler := notification.NewHandler(notificationService)
 	notificationConnectHandler := notification.NewConnectHandler(notificationService)
-	emailClient := email.NewResendEmailClient(resendClient)
 	authService := auth.NewService(userRepository, postRepository, bucketRepository, emailClient)
 	authHandler := auth.NewHandler(authService)
 	statsService := stats.NewService(statsRepository)

@@ -1,14 +1,20 @@
 package email
 
-import "github.com/resend/resend-go/v3"
+import (
+	"os"
+
+	"github.com/resend/resend-go/v3"
+)
 
 type ResendEmailClient struct {
 	client *resend.Client
 }
 
-func NewResendEmailClient(resendClient *resend.Client) *ResendEmailClient {
+func NewResendEmailClient() *ResendEmailClient {
+	resendApiKey := os.Getenv("RESEND_API_KEY")
+
 	return &ResendEmailClient{
-		client: resendClient,
+		client: resend.NewClient(resendApiKey),
 	}
 }
 
