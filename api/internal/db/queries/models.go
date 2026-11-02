@@ -83,7 +83,6 @@ type Notification struct {
 	CommentID        *int      `json:"commentId"`
 	TargetUserID     *int      `json:"targetUserId"`
 	Message          string    `json:"message"`
-	Link             *string   `json:"link"`
 	Viewed           bool      `json:"viewed"`
 	Facets           db.Facets `json:"facets"`
 	NotificationType string    `json:"notificationType"`

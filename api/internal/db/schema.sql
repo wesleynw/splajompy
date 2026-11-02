@@ -102,7 +102,6 @@ CREATE TABLE notifications (
     comment_id INT NULL,
     target_user_id INT NULL REFERENCES users(user_id) ON DELETE SET NULL,
     message TEXT NOT NULL,
-    link TEXT NULL,
     viewed BOOLEAN NOT NULL DEFAULT FALSE,
     facets JSON,
     notification_type VARCHAR(50) NOT NULL DEFAULT 'default',

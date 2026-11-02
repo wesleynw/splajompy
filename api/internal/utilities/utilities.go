@@ -81,7 +81,6 @@ func MapNotification(notification queries.Notification) models.Notification {
 		CommentID:        commentId,
 		TargetUserId:     notification.TargetUserID,
 		Message:          notification.Message,
-		Link:             notification.Link,
 		Viewed:           notification.Viewed,
 		Facets:           notification.Facets,
 		NotificationType: models.NotificationType(notification.NotificationType),

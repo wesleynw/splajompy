@@ -170,7 +170,6 @@ struct Mocks {
     targetUserId: nil,
     targetUserUsername: nil,
     message: "new notification!",
-    link: nil,
     viewed: false,
     createdAt: Date(),
     imageBlob: nil,

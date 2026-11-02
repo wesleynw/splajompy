@@ -8,7 +8,6 @@ struct Notification: Identifiable, Decodable, Equatable {
   let targetUserId: Int?
   let targetUserUsername: String?
   let message: String
-  let link: String?
   var viewed: Bool
   let createdAt: Date
   let imageBlob: String?

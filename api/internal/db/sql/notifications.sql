@@ -43,8 +43,8 @@ LIMIT $2
 OFFSET $3;
 
 -- name: InsertNotification :one
-INSERT INTO notifications (user_id, post_id, comment_id, message, facets, link, notification_type, target_user_id)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+INSERT INTO notifications (user_id, post_id, comment_id, message, facets, notification_type, target_user_id)
+VALUES ($1, $2, $3, $4, $5, $6, $7)
 RETURNING *;
 
 -- name: GetNotificationsForUserIdWithTimeOffset :many
