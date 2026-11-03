@@ -287,16 +287,6 @@ func (s *Service) hydrateComment(ctx context.Context, postId int, currentUser mo
 		images = append(images, currentImage)
 	}
 
-	if len(dbImages) > 0 {
-		if !utilities.IsAppUpdatedToVersion(ctx, "v1.8.0") {
-			prefix := ""
-			if comment.Text != "" {
-				prefix = "\n\n"
-			}
-			comment.Text = comment.Text + prefix + "→ [Update Splajompy](https://apps.apple.com/us/app/splajompy/id6744034321) to view the image in this comment."
-		}
-	}
-
 	children, err := s.commentRepository.GetCommentsByParentCommentId(ctx, comment.CommentID, currentUser.UserID)
 	if err != nil {
 		return nil, err
