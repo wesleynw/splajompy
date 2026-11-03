@@ -55,7 +55,7 @@ class MockCommentService: CommentServiceProtocol, @unchecked Sendable {
         isVerified: false,
         displayProperties: UserDisplayProperties(fontChoiceId: 0)
       )
-    
+
     let newComment = DetailedComment(
       commentId: newCommentId,
       postId: postId,

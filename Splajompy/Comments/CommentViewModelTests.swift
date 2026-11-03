@@ -65,8 +65,7 @@ struct CommentViewModelTests {
     #expect(updatedParent.children?.first?.isLiked == false)
   }
 
-  @Test @MainActor func loadComments_UpdatesPostStoreCommentCount() async throws
-  {
+  @Test @MainActor func loadComments_UpdatesPostStoreCommentCount() async throws {
     let service = MockCommentService()
     let postService = MockPostService()
     let postStore = PostStore(postService: postService)
@@ -107,20 +106,20 @@ struct CommentViewModelTests {
       return
     }
     #expect(observablePost.commentCount == 2)
-    
+
     guard case .loaded(let currentComments) = viewModel.state else {
       Issue.record("Expected .loaded, got \( viewModel.state)")
       return
     }
-    
+
     let childComment = currentComments[0].children![0]
     await viewModel.deleteComment(childComment)
-    
+
     guard case .loaded(let currentComments) = viewModel.state else {
       Issue.record("Expected .loaded, got \( viewModel.state)")
       return
     }
-    
+
     #expect(currentComments.count == 1)
     targetPost = await postStore.loadSingleCachedPost(postId: 0)
     guard case .loaded(let observablePost) = targetPost else {
