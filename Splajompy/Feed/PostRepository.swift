@@ -18,7 +18,6 @@ protocol PostServiceProtocol: Sendable {
     limit: Int
   ) async -> Result<[DetailedPost], Error>
   func toggleLike(postId: Int, isLiked: Bool) async -> Result<Void, Error>
-  func addComment(postId: Int, content: String) async -> Result<Void, Error>
   func deletePost(postId: Int) async -> Result<Void, Error>
   func reportPost(postId: Int) async -> Result<Void, Error>
   func voteOnPostPoll(postId: Int, optionIndex: Int) async -> Result<

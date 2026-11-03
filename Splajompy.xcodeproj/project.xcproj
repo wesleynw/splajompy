@@ -62,6 +62,7 @@
         {
           "target": "Splajompy",
           "exclusions": [
+            "Comments/CommentViewModelTests.swift",
             "Configuration/Debug.xcconfig",
             "Configuration/Release.xcconfig",
             "Info.plist",
@@ -90,6 +91,7 @@
         }, {
           "target": "SplajompyTests",
           "inclusions": [
+            "Comments/CommentViewModelTests.swift",
             "Tests/GreatestRemainderQuotaTests.swift",
             "Tests/SessionHistoryServiceTests.swift",
           ],

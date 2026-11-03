@@ -66,56 +66,59 @@ extension CommentsContainerView {
       self.postManager = postManager
     }
 
-    func loadComments(useLoadingState: Bool = true) {
+    func loadComments(useLoadingState: Bool = true) async {
       if useLoadingState {
         state = .loading
       }
 
-      Task {
-        let result = await service.getComments(postId: postId)
+      let result = await service.getComments(postId: postId)
 
-        switch result {
-        case .success(let fetchedComments):
-          state = .loaded(sortComments(fetchedComments))
-          postManager.updatePost(
-            id: postId,
-            updates: { post in post.commentCount = fetchedComments.count }
-          )
-        case .failure(let error):
-          state = .failed(error)
-        }
+      switch result {
+      case .success(let fetchedComments):
+        let commentTotal =
+          fetchedComments.count
+          + fetchedComments.reduce(0) { $0 + ($1.children?.count ?? 0) }
+
+        state = .loaded(sortComments(fetchedComments))
+        postManager.updatePost(
+          id: postId,
+          updates: { post in post.commentCount = commentTotal }
+        )
+      case .failure(let error):
+        state = .failed(error)
       }
     }
 
-    func toggleLike(for comment: DetailedComment) {
-      guard case .loaded(var currentComments) = state else { return }
+    func toggleLike(for comment: DetailedComment) async {
+      guard case .loaded(let currentComments) = state else { return }
 
-      guard
-        let index = currentComments.firstIndex(where: {
+      var updatedComments = currentComments
+
+      if let parentCommentId = comment.parentCommentId,
+        let parentIndex = updatedComments.firstIndex(where: {
+          $0.commentId == parentCommentId
+        }),
+        let index = updatedComments[parentIndex].children?.firstIndex(where: {
           $0.commentId == comment.commentId
         })
-      else { return }
+      {
+        updatedComments[parentIndex].children?[index].isLiked.toggle()
+      } else if let index = updatedComments.firstIndex(where: {
+        $0.commentId == comment.commentId
+      }) {
+        updatedComments[index].isLiked.toggle()
+      }
 
-      currentComments[index].isLiked.toggle()
-      state = .loaded(currentComments)
+      state = .loaded(updatedComments)
 
-      Task {
-        let result = await service.toggleLike(
-          postId: comment.postId,
-          commentId: comment.commentId,
-          isLiked: comment.isLiked
-        )
+      let result = await service.toggleLike(
+        postId: comment.postId,
+        commentId: comment.commentId,
+        isLiked: comment.isLiked
+      )
 
-        if case .failure(let error) = result {
-          print("Error toggling like: \(error.localizedDescription)")
-          guard case .loaded(var revertComments) = state else { return }
-          if let index = revertComments.firstIndex(where: {
-            $0.commentId == comment.commentId
-          }) {
-            revertComments[index].isLiked.toggle()
-            state = .loaded(revertComments)
-          }
-        }
+      if case .failure(_) = result {
+        state = .loaded(currentComments)
       }
     }
 

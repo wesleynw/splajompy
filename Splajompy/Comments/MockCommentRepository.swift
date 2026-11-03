@@ -3,11 +3,7 @@ import Foundation
 class MockCommentService: CommentServiceProtocol, @unchecked Sendable {
   private var mockComments: [Int: [DetailedComment]] = [:]
   private var mockUsers: [PublicUser] = []
-  private var commentIdCounter = 1000
-
-  init() {
-    setupMockData()
-  }
+  private var commentIdCounter = 0
 
   func getComments(postId: Int) async -> Result<[DetailedComment], Error> {
     if let comments = mockComments[postId] {
@@ -69,11 +65,16 @@ class MockCommentService: CommentServiceProtocol, @unchecked Sendable {
       user: currentUser,
       facets: [],
       images: nil,
-      isLiked: false
+      isLiked: false,
+      parentCommentId: commentId
     )
 
     if mockComments[postId] != nil {
-      mockComments[postId]?.append(newComment)
+      if let commentId {
+        mockComments[postId]?[commentId].children?.append(newComment)
+      } else {
+        mockComments[postId]?.append(newComment)
+      }
     } else {
       mockComments[postId] = [newComment]
     }
@@ -96,102 +97,6 @@ class MockCommentService: CommentServiceProtocol, @unchecked Sendable {
         userInfo: [NSLocalizedDescriptionKey: "Comment not found"]
       )
     )
-  }
-
-  private func setupMockData() {
-    let currentDate = Date()
-
-    mockUsers = [
-      PublicUser(
-        userId: 1,
-        username: "johndoe",
-        createdAt: Date(),
-        name: "John Doe",
-        isVerified: false,
-        displayProperties: UserDisplayProperties(fontChoiceId: 0)
-      ),
-      PublicUser(
-        userId: 2,
-        username: "janedoe",
-        createdAt: Date(),
-        name: "Jane Doe",
-        isVerified: false,
-        displayProperties: UserDisplayProperties(fontChoiceId: 0)
-      ),
-      PublicUser(
-        userId: 3,
-        username: "wesley",
-        createdAt: Date(),
-        name: "Wesley",
-        isVerified: false,
-        displayProperties: UserDisplayProperties(fontChoiceId: 0)
-      ),
-    ]
-
-    mockComments = [
-      1: [
-        DetailedComment(
-          commentId: 1,
-          postId: 1,
-          userId: 1,
-          text: "Great post!",
-          createdAt: currentDate,
-          user: mockUsers[0],
-          facets: [],
-          images: nil,
-          isLiked: false
-        ),
-        DetailedComment(
-          commentId: 2,
-          postId: 1,
-          userId: 2,
-          text: "I totally agree with this.",
-          createdAt: currentDate,
-          user: mockUsers[1],
-          facets: [],
-          images: nil,
-          isLiked: true
-        ),
-      ],
-      2: [
-        DetailedComment(
-          commentId: 3,
-          postId: 2,
-          userId: 3,
-          text: "Interesting perspective.",
-          createdAt: currentDate,
-          user: mockUsers[2],
-          facets: [],
-          images: nil,
-          isLiked: false
-        ),
-        DetailedComment(
-          commentId: 4,
-          postId: 2,
-          userId: 1,
-          text: "Thanks for sharing this.",
-          createdAt: currentDate,
-          user: mockUsers[0],
-          facets: [],
-          images: nil,
-          isLiked: false
-        ),
-      ],
-      3: [
-        DetailedComment(
-          commentId: 4,
-          postId: 3,
-          userId: 3,
-          text: "test comment",
-          createdAt: currentDate,
-          user: mockUsers[2],
-          facets: nil,
-          images: nil,
-          isLiked: false,
-          children: [Mocks.comment1, Mocks.comment1]
-        )
-      ],
-    ]
   }
 }
 
