@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	MinimumAppVersion = "v1.9.0"
+	MinimumAppVersion = "v1.10.0"
 	AppUpgradeMessage = "You are using an unsupported version of Splajompy. Please visit the App Store to update."
 )
 

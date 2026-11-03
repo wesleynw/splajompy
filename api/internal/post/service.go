@@ -394,9 +394,9 @@ func (s *Service) GetPosts(ctx context.Context, currentUser models.PublicUser, f
 			return nil, errors.New("userId required for profile feed")
 		}
 
-		var pinnedPostId *int
-		if utilities.IsAppUpdatedToVersion(ctx, "v1.4.0") {
-			pinnedPostId, _ = s.postRepository.GetPinnedPostId(ctx, *userId)
+		pinnedPostId, err := s.postRepository.GetPinnedPostId(ctx, *userId)
+		if err != nil {
+			return nil, err
 		}
 
 		postIDs, err = s.postRepository.GetPostIdsByUserIdCursor(ctx, currentUser.UserID, *userId, limit, beforeTimestamp)
