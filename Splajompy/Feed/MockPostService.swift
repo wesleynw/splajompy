@@ -11,9 +11,9 @@ final class MockPostStore: @unchecked Sendable {
     let baseDate = Date()
 
     self.posts = [
-      4135: DetailedPost(
+      0: DetailedPost(
         post: Post(
-          postId: 4135,
+          postId: 0,
           userId: 151,
           text:
             "I foresee the stained glass community on Splajompy growing rapidly in 2026",
@@ -29,7 +29,7 @@ final class MockPostStore: @unchecked Sendable {
           displayProperties: UserDisplayProperties(fontChoiceId: 2)
         ),
         isLiked: true,
-        commentCount: 1,
+        commentCount: 0,
         images: [],
         relevantLikes: [
           RelevantLike(username: "sydknee", userId: 231),
@@ -396,21 +396,21 @@ struct MockPostService: PostServiceProtocol {
     }
   }
 
-  func addComment(postId: Int, content: String) async -> Result<Void, Error> {
-    try? await Task.sleep(nanoseconds: 400_000_000)
-
-    if store.deletedPostIds.contains(postId) {
-      return .failure(APIErrorMessage(message: "Post not found"))
-    }
-
-    if var post = store.posts[postId] {
-      post.commentCount += 1
-      store.posts[postId] = post
-      return .success(())
-    } else {
-      return .failure(APIErrorMessage(message: "Post not found"))
-    }
-  }
+//  func addComment(postId: Int, content: String) async -> Result<Void, Error> {
+//    try? await Task.sleep(nanoseconds: 400_000_000)
+//
+//    if store.deletedPostIds.contains(postId) {
+//      return .failure(APIErrorMessage(message: "Post not found"))
+//    }
+//
+//    if var post = store.posts[postId] {
+//      post.commentCount += 1
+//      store.posts[postId] = post
+//      return .success(())
+//    } else {
+//      return .failure(APIErrorMessage(message: "Post not found"))
+//    }
+//  }
 
   func deletePost(postId: Int) async -> Result<Void, Error> {
     try? await Task.sleep(nanoseconds: 300_000_000)

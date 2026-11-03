@@ -48,7 +48,8 @@ struct CommentsSheetView: View {
                   comment: comment,
                   replyToComment: viewModel.respondingToComment?.commentId
                     ?? nil,
-                  onToggleLike: { comment in viewModel.toggleLike(for: comment)
+                  onToggleLike: { comment in
+                    Task { await viewModel.toggleLike(for: comment) }
                   },
                   onDelete: { comment in
                     Task { await viewModel.deleteComment(comment) }
@@ -70,7 +71,7 @@ struct CommentsSheetView: View {
             .allowsHitTesting(viewModel.respondingToComment == nil)
           }
         }
-        .task { viewModel.loadComments() }
+        .task { await viewModel.loadComments() }
         .onChange(of: viewModel.pendingScrollCommentId) { _, id in
           guard let id else { return }
           withAnimation {
@@ -95,7 +96,7 @@ struct CommentsSheetView: View {
             ErrorScreen(
               errorString: error.localizedDescription,
               source: "CommentsView",
-              onRetry: { viewModel.loadComments() }
+              onRetry: { Task { await viewModel.loadComments() } }
             )
           }
         }

@@ -64,7 +64,8 @@ struct CommentsContainerView: View {
             CommentView(
               comment: comment,
               replyToComment: viewModel.respondingToComment?.commentId,
-              onToggleLike: { comment in viewModel.toggleLike(for: comment)
+              onToggleLike: { comment in
+                Task { await viewModel.toggleLike(for: comment) }
               },
               onDelete: { comment in
                 Task { await viewModel.deleteComment(comment) }
@@ -94,7 +95,7 @@ struct CommentsContainerView: View {
         ErrorScreen(
           errorString: error.localizedDescription,
           source: "CommentsView",
-          onRetry: { viewModel.loadComments() }
+          onRetry: { Task { await viewModel.loadComments() } }
         )
       }
     }
