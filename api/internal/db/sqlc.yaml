@@ -67,7 +67,7 @@ sql:
           - column: "posts.attributes"
             "go_type":
               {
-                import: "splajompy.com/api/v2/internal/db",
+                import: "splajompy.com/api/internal/db",
                 package: "db",
                 type: "Attributes",
                 pointer: true,
@@ -76,28 +76,28 @@ sql:
           - column: "posts.facets"
             "go_type":
               {
-                import: "splajompy.com/api/v2/internal/db",
+                import: "splajompy.com/api/internal/db",
                 package: "db",
                 type: "Facets",
               }
           - column: "notifications.facets"
             "go_type":
               {
-                import: "splajompy.com/api/v2/internal/db",
+                import: "splajompy.com/api/internal/db",
                 package: "db",
                 type: "Facets",
               }
           - column: "comments.facets"
             "go_type":
               {
-                import: "splajompy.com/api/v2/internal/db",
+                import: "splajompy.com/api/internal/db",
                 package: "db",
                 type: "Facets",
               }
           - column: "users.user_display_properties"
             "go_type":
               {
-                import: "splajompy.com/api/v2/internal/db",
+                import: "splajompy.com/api/internal/db",
                 package: "db",
                 type: "UserDisplayProperties",
                 pointer: true,

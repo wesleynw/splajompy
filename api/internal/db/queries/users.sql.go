@@ -9,7 +9,7 @@ import (
 	"context"
 	"time"
 
-	db "splajompy.com/api/v2/internal/db"
+	db "splajompy.com/api/internal/db"
 )
 
 const addUserRelationship = `-- name: AddUserRelationship :exec

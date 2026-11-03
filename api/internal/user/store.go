@@ -4,11 +4,11 @@ import (
 	"context"
 	"time"
 
-	"splajompy.com/api/v2/internal/db"
-	"splajompy.com/api/v2/internal/utilities"
+	"splajompy.com/api/internal/db"
+	"splajompy.com/api/internal/utilities"
 
-	"splajompy.com/api/v2/internal/db/queries"
-	"splajompy.com/api/v2/internal/models"
+	"splajompy.com/api/internal/db/queries"
+	"splajompy.com/api/internal/models"
 )
 
 type Store struct {

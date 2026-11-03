@@ -129,7 +129,7 @@ const file_splajompy_v1_notification_proto_rawDesc = "" +
 	"\"GetUnreadNotificationCountResponse\x12!\n" +
 	"\funread_count\x18\x01 \x01(\x03R\vunreadCount2\x96\x01\n" +
 	"\x13NotificationService\x12\x7f\n" +
-	"\x1aGetUnreadNotificationCount\x12/.splajompy.v1.GetUnreadNotificationCountRequest\x1a0.splajompy.v1.GetUnreadNotificationCountResponseB3Z1splajompy.com/api/v2/gen/splajompy/v1;splajompyv1b\x06proto3"
+	"\x1aGetUnreadNotificationCount\x12/.splajompy.v1.GetUnreadNotificationCountRequest\x1a0.splajompy.v1.GetUnreadNotificationCountResponseB0Z.splajompy.com/api/gen/splajompy/v1;splajompyv1b\x06proto3"
 
 var file_splajompy_v1_notification_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
 var file_splajompy_v1_notification_proto_goTypes = []any{

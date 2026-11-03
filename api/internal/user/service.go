@@ -9,12 +9,12 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/resend/resend-go/v3"
 	"golang.org/x/sync/errgroup"
-	"splajompy.com/api/v2/internal/db"
-	"splajompy.com/api/v2/internal/notification"
-	"splajompy.com/api/v2/internal/templates"
-	"splajompy.com/api/v2/internal/utilities"
+	"splajompy.com/api/internal/db"
+	"splajompy.com/api/internal/notification"
+	"splajompy.com/api/internal/templates"
+	"splajompy.com/api/internal/utilities"
 
-	"splajompy.com/api/v2/internal/models"
+	"splajompy.com/api/internal/models"
 )
 
 type Service struct {

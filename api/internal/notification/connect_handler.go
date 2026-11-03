@@ -5,10 +5,10 @@ import (
 	"log/slog"
 
 	"connectrpc.com/connect/v2"
-	splajompyv1 "splajompy.com/api/v2/gen/splajompy/v1"
-	"splajompy.com/api/v2/gen/splajompy/v1/splajompyv1connect"
-	"splajompy.com/api/v2/internal/models"
-	"splajompy.com/api/v2/internal/utilities"
+	splajompyv1 "splajompy.com/api/gen/splajompy/v1"
+	"splajompy.com/api/gen/splajompy/v1/splajompyv1connect"
+	"splajompy.com/api/internal/models"
+	"splajompy.com/api/internal/utilities"
 )
 
 type ConnectHandler struct {

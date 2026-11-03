@@ -7,7 +7,7 @@ package splajompyv1connect
 import (
 	connect "connectrpc.com/connect/v2"
 	context "context"
-	v1 "splajompy.com/api/v2/gen/splajompy/v1"
+	v1 "splajompy.com/api/gen/splajompy/v1"
 	sync "sync"
 )
 

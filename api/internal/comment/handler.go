@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"splajompy.com/api/v2/internal/models"
-	"splajompy.com/api/v2/internal/utilities"
+	"splajompy.com/api/internal/models"
+	"splajompy.com/api/internal/utilities"
 )
 
 type Handler struct {

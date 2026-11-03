@@ -6,9 +6,9 @@ import (
 
 	"github.com/resend/resend-go/v3"
 	"github.com/stretchr/testify/assert"
-	"splajompy.com/api/v2/internal/auth"
-	"splajompy.com/api/v2/internal/testutil"
-	"splajompy.com/api/v2/internal/user"
+	"splajompy.com/api/internal/auth"
+	"splajompy.com/api/internal/testutil"
+	"splajompy.com/api/internal/user"
 )
 
 type authServiceTestEnv struct {

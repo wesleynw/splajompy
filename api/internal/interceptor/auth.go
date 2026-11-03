@@ -5,8 +5,8 @@ import (
 	"net/http"
 
 	"connectrpc.com/connect/v2"
-	"splajompy.com/api/v2/internal/db/queries"
-	"splajompy.com/api/v2/internal/middleware"
+	"splajompy.com/api/internal/db/queries"
+	"splajompy.com/api/internal/middleware"
 )
 
 func Auth(q *queries.Queries) connect.ServerInterceptor {

@@ -6,8 +6,8 @@ import (
 	"connectrpc.com/connect/v2"
 	"connectrpc.com/connect/v2/connectproto"
 	"google.golang.org/genproto/googleapis/rpc/errdetails"
-	"splajompy.com/api/v2/internal/middleware"
-	"splajompy.com/api/v2/internal/utilities"
+	"splajompy.com/api/internal/middleware"
+	"splajompy.com/api/internal/utilities"
 )
 
 func AppVersion(next connect.ServerFunc) connect.ServerFunc {

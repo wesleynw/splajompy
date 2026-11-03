@@ -6,7 +6,7 @@ import (
 
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
-	"splajompy.com/api/v2/internal/utilities"
+	"splajompy.com/api/internal/utilities"
 )
 
 const (

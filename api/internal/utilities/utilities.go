@@ -7,8 +7,8 @@ import (
 	"net/http"
 
 	"golang.org/x/mod/semver"
-	"splajompy.com/api/v2/internal/db/queries"
-	"splajompy.com/api/v2/internal/models"
+	"splajompy.com/api/internal/db/queries"
+	"splajompy.com/api/internal/models"
 )
 
 type ContextKey string
