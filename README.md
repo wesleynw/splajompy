@@ -5,7 +5,7 @@
 </div>
 
 # Splajompy
-[![iOS Build](https://github.com/wesleynw/splajompy/actions/workflows/ios.yml/badge.svg)](https://github.com/wesleynw/splajompy/actions/workflows/ios.yml)
+[![App Build](https://github.com/wesleynw/splajompy/actions/workflows/app.yml/badge.svg)](https://github.com/wesleynw/splajompy/actions/workflows/app.yml)
 [![API Build](https://github.com/wesleynw/splajompy/actions/workflows/go.yml/badge.svg)](https://github.com/wesleynw/splajompy/actions/workflows/go.yml)
 
 ## What is Splajompy?
