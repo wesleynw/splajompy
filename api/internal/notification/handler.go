@@ -8,7 +8,7 @@ import (
 
 	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
-	"splajompy.com/api/v2/internal/utilities"
+	"splajompy.com/api/internal/utilities"
 )
 
 type Handler struct {

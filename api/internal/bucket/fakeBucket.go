@@ -3,7 +3,7 @@ package bucket
 import (
 	"context"
 
-	"splajompy.com/api/v2/internal/models"
+	"splajompy.com/api/internal/models"
 )
 
 type FakeBucketRepository struct{}

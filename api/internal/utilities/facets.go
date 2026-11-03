@@ -5,8 +5,8 @@ import (
 	"errors"
 
 	"github.com/jackc/pgx/v5"
-	"splajompy.com/api/v2/internal/db"
-	"splajompy.com/api/v2/internal/models"
+	"splajompy.com/api/internal/db"
+	"splajompy.com/api/internal/models"
 )
 
 type userReader interface {

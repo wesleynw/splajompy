@@ -6,9 +6,9 @@ import (
 	"connectrpc.com/connect/v2"
 	"connectrpc.com/connect/v2/connecthttp"
 	"connectrpc.com/validate"
-	"splajompy.com/api/v2/internal/db/queries"
-	"splajompy.com/api/v2/internal/interceptor"
-	"splajompy.com/api/v2/internal/middleware"
+	"splajompy.com/api/internal/db/queries"
+	"splajompy.com/api/internal/interceptor"
+	"splajompy.com/api/internal/middleware"
 )
 
 type RESTRegistrar interface {

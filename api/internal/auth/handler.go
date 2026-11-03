@@ -5,7 +5,7 @@ import (
 	"errors"
 	"net/http"
 
-	"splajompy.com/api/v2/internal/utilities"
+	"splajompy.com/api/internal/utilities"
 )
 
 type Handler struct {

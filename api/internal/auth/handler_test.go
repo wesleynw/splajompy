@@ -4,9 +4,9 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"splajompy.com/api/v2/internal/auth"
-	"splajompy.com/api/v2/internal/post"
-	"splajompy.com/api/v2/internal/user"
+	"splajompy.com/api/internal/auth"
+	"splajompy.com/api/internal/post"
+	"splajompy.com/api/internal/user"
 )
 
 func TestAuthService_ValidateRegistrationData(t *testing.T) {

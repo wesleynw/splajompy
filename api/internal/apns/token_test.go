@@ -11,7 +11,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"splajompy.com/api/v2/internal/apns"
+	"splajompy.com/api/internal/apns"
 )
 
 func TestGenerate_ReusesUnexpiredToken(t *testing.T) {

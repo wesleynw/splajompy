@@ -14,13 +14,13 @@ import (
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
 	"github.com/testcontainers/testcontainers-go/wait"
-	"splajompy.com/api/v2/internal/bucket"
-	"splajompy.com/api/v2/internal/comment"
-	"splajompy.com/api/v2/internal/db/queries"
-	"splajompy.com/api/v2/internal/like"
-	"splajompy.com/api/v2/internal/notification"
-	"splajompy.com/api/v2/internal/post"
-	"splajompy.com/api/v2/internal/user"
+	"splajompy.com/api/internal/bucket"
+	"splajompy.com/api/internal/comment"
+	"splajompy.com/api/internal/db/queries"
+	"splajompy.com/api/internal/like"
+	"splajompy.com/api/internal/notification"
+	"splajompy.com/api/internal/post"
+	"splajompy.com/api/internal/user"
 )
 
 // TestDB holds the database connection and container for an integration test.

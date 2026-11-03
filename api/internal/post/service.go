@@ -10,15 +10,15 @@ import (
 
 	"github.com/resend/resend-go/v3"
 	"golang.org/x/sync/errgroup"
-	"splajompy.com/api/v2/internal/bucket"
-	"splajompy.com/api/v2/internal/db"
-	"splajompy.com/api/v2/internal/db/queries"
-	"splajompy.com/api/v2/internal/like"
-	"splajompy.com/api/v2/internal/models"
-	"splajompy.com/api/v2/internal/notification"
-	"splajompy.com/api/v2/internal/templates"
-	"splajompy.com/api/v2/internal/user"
-	"splajompy.com/api/v2/internal/utilities"
+	"splajompy.com/api/internal/bucket"
+	"splajompy.com/api/internal/db"
+	"splajompy.com/api/internal/db/queries"
+	"splajompy.com/api/internal/like"
+	"splajompy.com/api/internal/models"
+	"splajompy.com/api/internal/notification"
+	"splajompy.com/api/internal/templates"
+	"splajompy.com/api/internal/user"
+	"splajompy.com/api/internal/utilities"
 )
 
 var ErrPostNotFound = errors.New("this post does not exist")

@@ -3,8 +3,8 @@ package models
 import (
 	"time"
 
-	"splajompy.com/api/v2/internal/db"
-	"splajompy.com/api/v2/internal/db/queries"
+	"splajompy.com/api/internal/db"
+	"splajompy.com/api/internal/db/queries"
 )
 
 type UserDisplayProperties struct {

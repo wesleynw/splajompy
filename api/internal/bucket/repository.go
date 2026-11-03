@@ -13,7 +13,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/feature/cloudfront/sign"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/s3/types"
-	"splajompy.com/api/v2/internal/models"
+	"splajompy.com/api/internal/models"
 )
 
 type Repository interface {

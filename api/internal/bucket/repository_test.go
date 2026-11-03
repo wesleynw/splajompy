@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"splajompy.com/api/v2/internal/bucket"
+	"splajompy.com/api/internal/bucket"
 )
 
 func TestGetDestinationKey(t *testing.T) {

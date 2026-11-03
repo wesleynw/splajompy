@@ -5,14 +5,14 @@ import (
 	"errors"
 	"fmt"
 
-	"splajompy.com/api/v2/internal/bucket"
-	"splajompy.com/api/v2/internal/db/queries"
-	"splajompy.com/api/v2/internal/like"
-	"splajompy.com/api/v2/internal/models"
-	"splajompy.com/api/v2/internal/notification"
-	"splajompy.com/api/v2/internal/post"
-	"splajompy.com/api/v2/internal/user"
-	"splajompy.com/api/v2/internal/utilities"
+	"splajompy.com/api/internal/bucket"
+	"splajompy.com/api/internal/db/queries"
+	"splajompy.com/api/internal/like"
+	"splajompy.com/api/internal/models"
+	"splajompy.com/api/internal/notification"
+	"splajompy.com/api/internal/post"
+	"splajompy.com/api/internal/user"
+	"splajompy.com/api/internal/utilities"
 )
 
 var ErrCommentNotFound = errors.New("this comment does not exist")

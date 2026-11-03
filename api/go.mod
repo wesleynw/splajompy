@@ -1,4 +1,4 @@
-module splajompy.com/api/v2
+module splajompy.com/api
 
 go 1.27
 
