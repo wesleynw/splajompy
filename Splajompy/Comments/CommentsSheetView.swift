@@ -71,6 +71,9 @@ struct CommentsSheetView: View {
             .allowsHitTesting(viewModel.respondingToComment == nil)
           }
         }
+        .blur(
+          radius: viewModel.respondingToComment != nil ? 6 : 0
+        )
         .task { await viewModel.loadComments() }
         .onChange(of: viewModel.pendingScrollCommentId) { _, id in
           guard let id else { return }

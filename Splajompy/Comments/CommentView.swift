@@ -19,7 +19,6 @@ struct CommentView: View {
     VStack {
       CommentRow(
         comment: comment,
-        isInSheet: true,
         toggleLike: {
           onToggleLike(comment)
         },
@@ -41,12 +40,6 @@ struct CommentView: View {
           )
         }
       }
-      .blur(
-        radius: replyToComment != nil
-          && replyToComment
-            != comment.commentId
-          ? 6 : 0
-      )
 
       if showChildren {
         childCommentsView
@@ -70,7 +63,6 @@ struct CommentView: View {
           ForEach(children) { child in
             CommentRow(
               comment: child,
-              isInSheet: false,
               toggleLike: {
                 onToggleLike(child)
               },
