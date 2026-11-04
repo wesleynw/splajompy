@@ -1,8 +1,6 @@
 import Foundation
 
 final class MockPostStore: @unchecked Sendable {
-  static let shared = MockPostStore()
-
   var posts: [Int: DetailedPost]
   var deletedPostIds: Set<Int> = []
   var pinnedPostId: Int? = nil
@@ -321,7 +319,7 @@ final class MockPostStore: @unchecked Sendable {
 }
 
 struct MockPostService: PostServiceProtocol {
-  private let store = MockPostStore.shared
+  private let store = MockPostStore()
 
   func getPostById(postId: Int) async -> Result<DetailedPost, Error> {
     try? await Task.sleep(nanoseconds: 300_000_000)

@@ -12,23 +12,35 @@ class MockCommentService: CommentServiceProtocol, @unchecked Sendable {
     return .success([])
   }
 
-  func toggleLike(postId: Int, commentId: Int, isLiked: Bool) async
-    -> Result<Void, Error>
-  {
-    if var comments = mockComments[postId],
-      let index = comments.firstIndex(where: { $0.commentId == commentId })
-    {
-      comments[index].isLiked = !isLiked
-      mockComments[postId] = comments
-      return .success(())
-    }
-    return .failure(
+  private var notFound: Result<Void, Error> {
+    .failure(
       NSError(
         domain: "MockError",
         code: 404,
         userInfo: [NSLocalizedDescriptionKey: "Comment not found"]
       )
     )
+  }
+
+  func toggleLike(postId: Int, commentId: Int, isLiked: Bool) async
+    -> Result<Void, Error>
+  {
+    guard var comments = mockComments[postId] else { return notFound }
+    for i in comments.indices {
+      if comments[i].commentId == commentId {
+        comments[i].isLiked = !isLiked
+        mockComments[postId] = comments
+        return .success(())
+      }
+      if let j = comments[i].children?.firstIndex(where: {
+        $0.commentId == commentId
+      }) {
+        comments[i].children?[j].isLiked = !isLiked
+        mockComments[postId] = comments
+        return .success(())
+      }
+    }
+    return notFound
   }
 
   func addComment(
@@ -70,8 +82,23 @@ class MockCommentService: CommentServiceProtocol, @unchecked Sendable {
     )
 
     if mockComments[postId] != nil {
-      if let commentId {
-        mockComments[postId]?[commentId].children?.append(newComment)
+      if let parentId = commentId {
+        guard
+          let parentIndex = mockComments[postId]?
+            .firstIndex(where: { $0.commentId == parentId })
+        else {
+          return .failure(
+            NSError(
+              domain: "MockError",
+              code: 404,
+              userInfo: [NSLocalizedDescriptionKey: "Parent comment not found"]
+            )
+          )
+        }
+
+        var children = mockComments[postId]![parentIndex].children ?? []
+        children.append(newComment)
+        mockComments[postId]![parentIndex].children = children
       } else {
         mockComments[postId]?.append(newComment)
       }
@@ -84,19 +111,22 @@ class MockCommentService: CommentServiceProtocol, @unchecked Sendable {
 
   func deleteComment(commentId: Int) async -> Result<Void, Error> {
     for (postId, var comments) in mockComments {
-      if let index = comments.firstIndex(where: { $0.commentId == commentId }) {
-        comments.remove(at: index)
+      if let i = comments.firstIndex(where: { $0.commentId == commentId }) {
+        comments.remove(at: i)
         mockComments[postId] = comments
         return .success(())
       }
+      for i in comments.indices {
+        if let j = comments[i].children?.firstIndex(where: {
+          $0.commentId == commentId
+        }) {
+          comments[i].children?.remove(at: j)
+          mockComments[postId] = comments
+          return .success(())
+        }
+      }
     }
-    return .failure(
-      NSError(
-        domain: "MockError",
-        code: 404,
-        userInfo: [NSLocalizedDescriptionKey: "Comment not found"]
-      )
-    )
+    return notFound
   }
 }
 
