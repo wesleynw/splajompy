@@ -20,7 +20,6 @@ func TestMapNotification_WithValidPostIDAndCommentID(t *testing.T) {
 		PostID:         &postID,
 		CommentID:      &commentID,
 		Message:        "Test notification",
-		Link:           new("https://example.com"),
 		Viewed:         true,
 		Facets:         db.Facets{},
 		CreatedAt:      time.Now(),
@@ -33,7 +32,6 @@ func TestMapNotification_WithValidPostIDAndCommentID(t *testing.T) {
 	assert.Equal(t, 123, result.NotificationID)
 	assert.Equal(t, 456, result.UserID)
 	assert.Equal(t, "Test notification", result.Message)
-	assert.Equal(t, "https://example.com", *result.Link)
 	assert.Equal(t, true, result.Viewed)
 }
 
