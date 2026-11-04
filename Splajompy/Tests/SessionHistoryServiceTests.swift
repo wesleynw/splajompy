@@ -3,9 +3,16 @@ import Testing
 
 @testable import Splajompy
 
-struct SessionHistoryServiceTests {
+class SessionHistoryServiceTests {
+  let defaults: UserDefaults
+  private let suiteName = "SessionHistoryServiceTests-\(UUID().uuidString)"
+
   init() {
-    SessionHistoryService.clearSessionHistory()
+    defaults = UserDefaults(suiteName: suiteName)!
+  }
+
+  deinit {
+    defaults.removePersistentDomain(forName: suiteName)
   }
 
   @Test func sessionHistory_ReturnsCaughtUp() async throws {
@@ -24,13 +31,20 @@ struct SessionHistoryServiceTests {
 
   @Test func getSessionHistory_DoesNotCrossFeedTypes() async throws {
     SessionHistoryService.saveSessionHistory(
-      feedType: .all, sessionStart: .now.addingTimeInterval(-8 * 60 * 60 * 24), sessionEnd: .now)
+      feedType: .all,
+      sessionStart: .now.addingTimeInterval(-8 * 60 * 60 * 24),
+      sessionEnd: .now
+    )
     SessionHistoryService.saveSessionHistory(
-      feedType: .following, sessionStart: .now.addingTimeInterval(-3 * 60 * 60 * 24),
-      sessionEnd: .now)
+      feedType: .following,
+      sessionStart: .now.addingTimeInterval(-3 * 60 * 60 * 24),
+      sessionEnd: .now
+    )
 
     #expect(SessionHistoryService.getCatchUpThreshold(feedType: .all) != nil)
-    #expect(SessionHistoryService.getCatchUpThreshold(feedType: .following) == nil)
+    #expect(
+      SessionHistoryService.getCatchUpThreshold(feedType: .following) == nil
+    )
     #expect(SessionHistoryService.getCatchUpThreshold(feedType: .mutual) == nil)
   }
 
