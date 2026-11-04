@@ -16,16 +16,23 @@ class SessionHistoryServiceTests {
   }
 
   @Test func sessionHistory_ReturnsCaughtUp() async throws {
-    var isCaughtUp = SessionHistoryService.getCatchUpThreshold(feedType: .all)
+    var isCaughtUp = SessionHistoryService.getCatchUpThreshold(
+      feedType: .all,
+      defaults: defaults
+    )
     #expect(isCaughtUp == nil)
 
     SessionHistoryService.saveSessionHistory(
       feedType: .all,
       sessionStart: .now.addingTimeInterval(-8 * 60 * 60 * 24),
-      sessionEnd: .now
+      sessionEnd: .now,
+      defaults: defaults
     )
 
-    isCaughtUp = SessionHistoryService.getCatchUpThreshold(feedType: .all)
+    isCaughtUp = SessionHistoryService.getCatchUpThreshold(
+      feedType: .all,
+      defaults: defaults
+    )
     #expect(isCaughtUp != nil)
   }
 
@@ -33,19 +40,34 @@ class SessionHistoryServiceTests {
     SessionHistoryService.saveSessionHistory(
       feedType: .all,
       sessionStart: .now.addingTimeInterval(-8 * 60 * 60 * 24),
-      sessionEnd: .now
+      sessionEnd: .now,
+      defaults: defaults
     )
     SessionHistoryService.saveSessionHistory(
       feedType: .following,
       sessionStart: .now.addingTimeInterval(-3 * 60 * 60 * 24),
-      sessionEnd: .now
+      sessionEnd: .now,
+      defaults: defaults
     )
 
-    #expect(SessionHistoryService.getCatchUpThreshold(feedType: .all) != nil)
     #expect(
-      SessionHistoryService.getCatchUpThreshold(feedType: .following) == nil
+      SessionHistoryService.getCatchUpThreshold(
+        feedType: .all,
+        defaults: defaults
+      ) != nil
     )
-    #expect(SessionHistoryService.getCatchUpThreshold(feedType: .mutual) == nil)
+    #expect(
+      SessionHistoryService.getCatchUpThreshold(
+        feedType: .following,
+        defaults: defaults
+      ) == nil
+    )
+    #expect(
+      SessionHistoryService.getCatchUpThreshold(
+        feedType: .mutual,
+        defaults: defaults
+      ) == nil
+    )
   }
 
   @Test func deduplicateSessionHistory_NonOverlapping() async throws {
