@@ -99,6 +99,9 @@ struct CommentsContainerView: View {
         )
       }
     }
+    .blur(
+      radius: viewModel.respondingToComment != nil ? 6 : 0
+    )
     .frame(maxWidth: .infinity, alignment: .leading)
     .alert(
       "Error submitting comment",

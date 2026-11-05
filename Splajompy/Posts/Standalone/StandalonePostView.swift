@@ -115,7 +115,7 @@ struct StandalonePostView: View {
       }
       .task {
         await viewModel.load()
-        await commentsViewModel.loadComments()
+        await commentsViewModel.loadComments(useLoadingState: false)
       }
       .pageTitle("Post")
       .toolbar {

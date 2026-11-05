@@ -3,7 +3,6 @@ import SwiftUI
 
 struct CommentRow: View {
   let comment: DetailedComment
-  let isInSheet: Bool
   let toggleLike: () -> Void
   let deleteComment: () -> Void
   var handleCommentReply: (() -> Void)? = nil
@@ -22,29 +21,17 @@ struct CommentRow: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 6) {
       HStack(alignment: .firstTextBaseline, spacing: 2) {
-        if isInSheet {
-          Button {
-            openURL(
-              URL(
-                string:
-                  "splajompy://user?id=\(comment.user.userId)&username=\(comment.user.username)"
-              )!
-            )
-          } label: {
-            ProfileDisplayNameView(user: comment.user, alignVertically: false)
-          }
-          .buttonStyle(.plain)
-        } else {
-          NavigationLink(
-            value: Route.profile(
-              id: String(comment.user.userId),
-              username: comment.user.username
-            )
-          ) {
-            ProfileDisplayNameView(user: comment.user, alignVertically: false)
-          }
-          .buttonStyle(.plain)
+        Button {
+          openURL(
+            URL(
+              string:
+                "splajompy://user?id=\(comment.user.userId)&username=\(comment.user.username)"
+            )!
+          )
+        } label: {
+          ProfileDisplayNameView(user: comment.user, alignVertically: false)
         }
+        .buttonStyle(.plain)
       }
 
       if let images = comment.images {
@@ -120,7 +107,8 @@ struct CommentRow: View {
         replyGestureOffset: $replyGestureOffset
       ),
       isEnabled: PostHogSDK.shared.isFeatureEnabled("comment-replies")
-        && comment.parentCommentId == nil && handleCommentReply != nil && enableReplySwipeGesure
+        && comment.parentCommentId == nil && handleCommentReply != nil
+        && enableReplySwipeGesure
     )
     .sensoryFeedback(.impact, trigger: replyGestureOffset > replyThreshold)
     .background(alignment: .leading) {
@@ -199,7 +187,6 @@ struct LikeButton: View {
   NavigationStack {
     CommentRow(
       comment: Mocks.comment1,
-      isInSheet: false,
       toggleLike: {},
       deleteComment: {},
     )
