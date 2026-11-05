@@ -67,10 +67,15 @@ struct CommentsSheetView: View {
                 )
               }
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
             .allowsHitTesting(viewModel.respondingToComment == nil)
           }
         }
+        .modify {
+          if #available(anyAppleOS 26, *) {
+            $0.scrollEdgeEffectStyle(.soft, for: .bottom)
+          }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
         .blur(
           radius: viewModel.respondingToComment != nil ? 6 : 0
         )
@@ -103,22 +108,11 @@ struct CommentsSheetView: View {
             )
           }
         }
-        .modify {
-          if #available(iOS 26, macOS 26, *) {
-            $0.safeAreaBar(edge: .bottom) {
-              CommentInputView(
-                viewModel: viewModel,
-                replyNamespace: replyNamespace
-              )
-            }
-          } else {
-            $0.safeAreaInset(edge: .bottom) {
-              CommentInputView(
-                viewModel: viewModel,
-                replyNamespace: replyNamespace
-              )
-            }
-          }
+        .safeAreaInset(edge: .bottom) {
+          CommentInputView(
+            viewModel: viewModel,
+            replyNamespace: replyNamespace
+          )
         }
       }
       .pageTitle("Comments")

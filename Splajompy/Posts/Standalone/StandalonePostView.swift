@@ -69,6 +69,7 @@ struct StandalonePostView: View {
           #endif
         }
       }
+      .frame(maxWidth: .infinity)
       .onChange(of: commentsViewModel.pendingScrollCommentId) { _, id in
         guard let id else { return }
         withAnimation {
@@ -139,22 +140,11 @@ struct StandalonePostView: View {
           }
         }
       }
-      .modify {
-        if #available(iOS 26, macOS 26, *) {
-          $0.safeAreaBar(edge: .bottom) {
-            CommentInputView(
-              viewModel: commentsViewModel,
-              replyNamespace: replyNamespace,
-            )
-          }
-        } else {
-          $0.safeAreaInset(edge: .bottom) {
-            CommentInputView(
-              viewModel: commentsViewModel,
-              replyNamespace: replyNamespace,
-            )
-          }
-        }
+      .overlay(alignment: .bottom) {
+        CommentInputView(
+          viewModel: commentsViewModel,
+          replyNamespace: replyNamespace,
+        )
       }
     }
   }
