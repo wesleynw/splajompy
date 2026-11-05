@@ -84,18 +84,18 @@ struct CommentInputView: View {
                 submitButtonWidth = $0
               }
             }
-            .layoutPriority(1)
-
-            VStack(spacing: 0) {
-              if mentionViewModel.isShowingSuggestions {
-                suggestionOverlay
+            .overlay(alignment: .topLeading) {
+              VStack(spacing: 0) {
+                if mentionViewModel.isShowingSuggestions {
+                  suggestionOverlay
+                }
               }
+              .offset(y: cursorRect.minY - 5)
+              .alignmentGuide(.top) { dimensions in
+                dimensions[.bottom]
+              }
+              .animation(.default, value: mentionViewModel.isShowingSuggestions)
             }
-            .offset(y: cursorRect.minY - 5)
-            .alignmentGuide(.top) { dimensions in
-              dimensions[.bottom]
-            }
-            .animation(.default, value: mentionViewModel.isShowingSuggestions)
           }
         }
       }
