@@ -58,12 +58,10 @@ struct ProfileEditorView: View {
         }
         #if os(macOS)
           .popover(isPresented: $isShowingFontPicker) {
-            ProfileDisplayNameFontPicker(
+            ProfileDisplayNameFontPickerMacOs(
               displayName: name,
-              displayNameFont: displayNameFont,
-              onChange: { newFont in displayNameFont = newFont }
+              displayNameFont: $displayNameFont
             )
-            .frame(width: 320, height: 420)
           }
         #endif
         .frame(maxWidth: .infinity, alignment: .leading)

@@ -87,6 +87,43 @@ struct ProfileDisplayNameFontPicker: View {
   }
 }
 
+struct ProfileDisplayNameFontPickerMacOs: View {
+  @Environment(\.dismiss) private var dismiss
+
+  var displayName: String
+  @Binding var displayNameFont: ProfileFontChoiceEnum
+
+  var body: some View {
+    List {
+      ForEach(ProfileFontChoiceEnum.allCases) { choice in
+        Button {
+          displayNameFont = choice
+          dismiss()
+        } label: {
+          HStack {
+            if choice.fontName != nil {
+              Text(
+                choice.fontNormalized(for: displayName, isLargeTitle: false)
+              )
+            } else {
+              HStack(alignment: .firstTextBaseline) {
+                Text(displayName)
+                  .font(.title2)
+                  .fontWeight(.black)
+
+                Text("Default")
+                  .foregroundStyle(.secondary)
+              }
+            }
+          }
+          .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .buttonStyle(.plain)
+      }
+    }
+  }
+}
+
 #Preview {
   @Previewable @State var displayNameFont: ProfileFontChoiceEnum = .sixtyFour
 
@@ -94,5 +131,14 @@ struct ProfileDisplayNameFontPicker: View {
     displayName: "Wesley",
     displayNameFont: displayNameFont,
     onChange: { newFont in print("new font: \(newFont)") }
+  )
+}
+
+#Preview("macos") {
+  @Previewable @State var displayNameFont: ProfileFontChoiceEnum = .sixtyFour
+
+  ProfileDisplayNameFontPickerMacOs(
+    displayName: "wesley",
+    displayNameFont: $displayNameFont
   )
 }
