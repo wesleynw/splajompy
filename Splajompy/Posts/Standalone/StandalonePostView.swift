@@ -52,7 +52,6 @@ struct StandalonePostView: View {
               .default,
               value: commentsViewModel.respondingToComment?.commentId
             )
-            .blur(radius: commentsViewModel.respondingToComment != nil ? 6 : 0)
 
             CommentsContainerView(
               postId: postId,
@@ -62,6 +61,7 @@ struct StandalonePostView: View {
               enableReplySwipeGesture: true,
             )
           }
+          .blur(radius: commentsViewModel.respondingToComment != nil ? 6 : 0)
           #if os(macOS)
             .frame(maxWidth: 600)
             .frame(maxWidth: .infinity)
