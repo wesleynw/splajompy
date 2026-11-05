@@ -2,7 +2,7 @@ package main
 
 import (
 	"encoding/base64"
-	"encoding/json"
+	"encoding/json/v2"
 	"splajompy/internal/codebuild"
 	"splajompy/internal/ecr"
 

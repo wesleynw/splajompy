@@ -1,7 +1,7 @@
 package notification
 
 import (
-	"encoding/json"
+	"encoding/json/v2"
 	"net/http"
 	"strconv"
 	"time"
@@ -173,7 +173,7 @@ func (h *Handler) SetDeviceToken(w http.ResponseWriter, r *http.Request) {
 		Followers bool   `json:"followers"`
 	}
 
-	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+	if err := json.UnmarshalRead(r.Body, body); err != nil {
 		utilities.HandleError(w, http.StatusBadRequest, err.Error())
 		return
 	}
