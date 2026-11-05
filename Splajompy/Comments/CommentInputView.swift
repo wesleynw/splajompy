@@ -84,7 +84,6 @@ struct CommentInputView: View {
                 submitButtonWidth = $0
               }
             }
-            .layoutPriority(1)
             .overlay(alignment: .topLeading) {
               VStack(spacing: 0) {
                 if mentionViewModel.isShowingSuggestions {
