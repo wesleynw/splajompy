@@ -1,3 +1,4 @@
+import PostHog
 import SwiftUI
 
 struct SettingsView: View {
@@ -7,6 +8,12 @@ struct SettingsView: View {
   var body: some View {
     VStack {
       List {
+        if PostHogSDK.shared.isFeatureEnabled("debug-menu") {
+          NavigationLink(value: SettingsRoute.debug) {
+            Label("Debug", systemImage: "ladybug")
+          }
+        }
+
         NavigationLink(value: SettingsRoute.account) {
           Label("Account", systemImage: "person.circle")
         }

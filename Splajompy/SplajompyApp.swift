@@ -342,6 +342,9 @@ struct SplajompyApp: App {
     case .statistics:
       StatisticsView()
         .postHogScreenView()
+    case .debug:
+      DebugView()
+        .postHogScreenView()
     }
   }
 

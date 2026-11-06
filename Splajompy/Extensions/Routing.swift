@@ -18,6 +18,7 @@ enum SettingsRoute: Hashable {
   case about
   case notifications
   case statistics
+  case debug
 }
 
 func parseDeepLink(_ url: URL) -> Route? {
