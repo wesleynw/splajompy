@@ -1,6 +1,8 @@
 import Foundation
 
-struct Session: Codable {
+struct Session: Codable, Identifiable {
+  var id: UUID = UUID()
+
   var oldestTimestamp: Date
   var newestTimestamp: Date
 }
@@ -105,7 +107,7 @@ struct SessionHistoryService {
     }
   }
 
-  static private func fetchSessionHistoryFromStorage(
+  static func fetchSessionHistoryFromStorage(
     feedType: FeedType,
     defaults: UserDefaults
   )
