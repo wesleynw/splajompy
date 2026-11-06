@@ -140,7 +140,7 @@ struct StandalonePostView: View {
           }
         }
       }
-      .overlay(alignment: .bottom) {
+      .safeAreaInset(edge: .bottom) {
         CommentInputView(
           viewModel: commentsViewModel,
           replyNamespace: replyNamespace,
