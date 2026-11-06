@@ -70,11 +70,6 @@ struct CommentsSheetView: View {
             .allowsHitTesting(viewModel.respondingToComment == nil)
           }
         }
-        .modify {
-          if #available(anyAppleOS 26, *) {
-            $0.scrollEdgeEffectStyle(.soft, for: .bottom)
-          }
-        }
         .frame(maxWidth: .infinity, alignment: .leading)
         .blur(
           radius: viewModel.respondingToComment != nil ? 6 : 0
