@@ -85,13 +85,13 @@ class RegistrationViewModel {
       return
     }
 
-    self.usernameValidation = .pending
-
     await scheduleUsernameAvailabilityCheck()
   }
 
   func scheduleUsernameAvailabilityCheck() async {
-    let (_, ) = await usernameAvailableCheckTask?.result
+    usernameAvailableCheckTask?.cancel()
+    
+    usernameValidation = .pending
 
     try? await Task.sleep(for: .seconds(2))
 
