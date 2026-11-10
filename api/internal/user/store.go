@@ -406,6 +406,14 @@ func (r Store) GetEmailVerificationCode(ctx context.Context, email string) (*str
 	return &result.Code, &result.CreatedAt, nil
 }
 
+func (r *Store) DeleteEmailVerification(ctx context.Context, email string) error {
+	return r.querier.DeleteEmailVerification(ctx, email)
+}
+
+func (r *Store) AddEmailVerification(ctx context.Context, email string) error {
+	return r.querier.InsertEmailVerification(ctx, email)
+}
+
 // NewUserRepository creates a new user repository
 func NewUserRepository(querier queries.Querier) Store {
 	return Store{querier: querier}

@@ -222,3 +222,11 @@ VALUES ($1, $2, $3);
 SELECT *
 FROM email_verify_requests
 WHERE email = $1;
+
+-- name: DeleteEmailVerification :exec
+DELETE FROM email_verification
+WHERE email = $1;
+
+-- name: InsertEmailVerification :exec
+INSERT INTO email_verification (email)
+VALUES ($1);

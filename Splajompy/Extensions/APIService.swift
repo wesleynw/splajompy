@@ -8,6 +8,8 @@ public struct RequestResponse<T: Decodable & Sendable>: Decodable, Sendable {
   let error: String?
 }
 
+private struct EmptyPayload: Decodable, Sendable {}
+
 public struct APIErrorMessage: Error, LocalizedError {
   let message: String
 
@@ -132,6 +134,10 @@ public struct APIService {
         value: httpResponse.statusCode
       )
 
+      if 200...299 ~= httpResponse.statusCode {
+        return .success((data, response))
+      }
+
       if httpResponse.statusCode == 426 {
         NotificationCenter.default.post(
           name: .userNeedsAppUpgrade,
@@ -158,7 +164,14 @@ public struct APIService {
         return .failure(APIErrorMessage(message: "Internal Server Error"))
       }
 
-      return .success((data, response))
+      let message =
+        (try? JSONDecoder().decode(
+          RequestResponse<EmptyPayload>.self,
+          from: data
+        ))?.error
+      return .failure(
+        APIErrorMessage(message: message ?? httpResponse.statusCode.description)
+      )
     } catch {
       print("API call error: \(error)")
       span.status = .error(
