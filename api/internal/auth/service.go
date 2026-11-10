@@ -50,6 +50,7 @@ var (
 	ErrUsernameTooLong       = errors.New("username must be 25 characters or less")
 	ErrPasswordTooShort      = errors.New("password must be at least 8 characters")
 	ErrInvalidEmail          = errors.New("please enter a valid email address")
+	ErrEmailInUse            = errors.New("this email is in use")
 )
 
 // Register performs all the necessary actions to set up a user in the system.
@@ -352,8 +353,6 @@ func (s *Service) DeleteAccount(ctx context.Context, currentUser models.PublicUs
 	return nil
 }
 
-var ErrEmailInUse = errors.New("This email is in use!")
-
 func (s Service) RequestEmailVerification(ctx context.Context, email string) error {
 	isInUse, err := s.userRepository.GetIsEmailInUse(ctx, email)
 	if err != nil {
@@ -420,4 +419,8 @@ func (s *Service) sendAccountDeletionNotification(deletedUser models.PublicUser)
 	}
 
 	_, _ = s.emailClient.SendEmail(params)
+}
+
+func (s *Service) GetIsUsernameInUse(ctx context.Context, username string) (bool, error) {
+	return s.userRepository.GetIsUsernameInUse(ctx, username)
 }

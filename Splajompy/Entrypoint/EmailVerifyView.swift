@@ -37,6 +37,27 @@ struct EmailVerifyView: View {
     .onAppear {
       isFocused = true
     }
+    .safeAreaInset(edge: .bottom) {
+      Button {
+        Task {
+          await viewModel.requestEmailVerification()
+        }
+      } label: {
+        Text("Continue")
+          .font(SJFont.body)
+          .frame(maxWidth: .infinity)
+      }
+      .disabled(viewModel.email.count == 0)
+      .controlSize(.extraLarge)
+      .modify {
+        if #available(anyAppleOS 26, *) {
+          $0.buttonStyle(.glassProminent)
+        } else {
+          $0.buttonStyle(.borderedProminent)
+        }
+      }
+      .padding()
+    }
   }
 }
 

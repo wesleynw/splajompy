@@ -1,6 +1,7 @@
 import SwiftUI
 
 enum FieldState: Equatable {
+  case pending
   case valid
   case invalid(String)
   case unchanged
@@ -23,7 +24,11 @@ class RegistrationViewModel {
 
   var emailVerificationCode: String = ""
 
-  var username: String? = nil
+  var username: String = ""
+  private(set) var usernameValidation: FieldState = .unchanged
+
+  var usernameAvailableCheckTask: Task<Void, Never>?
+
   var password: String? = nil
 
   private var isEmailVerified: Bool = false
@@ -34,7 +39,7 @@ class RegistrationViewModel {
       return
     }
 
-    let emailError = AuthManager().validateEmail(email)
+    let emailError = authService.validateEmail(email)
     if let emailError {
       self.emailValidation = .invalid(emailError)
       return
@@ -60,11 +65,44 @@ class RegistrationViewModel {
       with: self.emailVerificationCode
     )
     switch result {
-    case .success(let success):
+    case .success(_):
       path.append(OnboardingStep.usernameEntry)
     case .failure(let failure):
       alertText = failure.localizedDescription
     }
 
+  }
+
+  func setUsername() async {
+    guard username.count > 0 else {
+      self.usernameValidation = .invalid("This doesn't look like a username")
+      return
+    }
+
+    let usernameError = authService.validateUsername(username)
+    if let usernameError {
+      self.usernameValidation = .invalid(usernameError)
+      return
+    }
+
+    self.usernameValidation = .pending
+
+    await scheduleUsernameAvailabilityCheck()
+  }
+
+  func scheduleUsernameAvailabilityCheck() async {
+    let (_, ) = await usernameAvailableCheckTask?.result
+
+    try? await Task.sleep(for: .seconds(2))
+
+    usernameAvailableCheckTask = Task {
+      let result = await authService.getIsUsernameAvailable(self.username)
+      switch result {
+      case .success(_):
+        self.usernameValidation = .valid
+      case .failure(let failure):
+        self.usernameValidation = .invalid(failure.localizedDescription)
+      }
+    }
   }
 }

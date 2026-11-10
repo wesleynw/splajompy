@@ -264,7 +264,9 @@ class AuthManager: Sendable {
     )
   }
 
-  func verifyEmail(for email: String, with code: String) async -> Result<Void, Error> {
+  func verifyEmail(for email: String, with code: String) async -> Result<
+    Void, Error
+  > {
     struct body: Encodable {
       let email: String
       let code: String
@@ -281,6 +283,28 @@ class AuthManager: Sendable {
 
     return await APIService.performRequest(
       endpoint: "email-verify",
+      method: "POST",
+      body: jsonData,
+      requiresAuth: false
+    )
+  }
+
+  func getIsUsernameAvailable(_ username: String) async -> Result<Void, Error> {
+    struct body: Encodable {
+      let username: String
+    }
+
+    let jsonData: Data
+    do {
+      jsonData = try JSONEncoder().encode(
+        body(username: username)
+      )
+    } catch {
+      return .failure(error)
+    }
+
+    return await APIService.performRequest(
+      endpoint: "username-availability",
       method: "POST",
       body: jsonData,
       requiresAuth: false
