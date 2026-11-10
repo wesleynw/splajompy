@@ -22,7 +22,8 @@ func (h *Handler) RegisterRESTRoutes(public, withAuth func(string, func(http.Res
 	public("POST /otc/generate", h.GenerateOTC)
 	public("POST /otc/verify", h.VerifyOTC)
 	public("POST /send-email-verify", h.RequestEmailVerification)
-	public("POST /email-verify", h.RequestEmailVerification)
+	public("POST /email-verify", h.VerifyEmail)
+	public("POST /username-availability", h.GetIsUsernameInUse)
 
 	withAuth("POST /account/delete", h.DeleteAccount)
 }
@@ -218,6 +219,30 @@ func (h *Handler) VerifyEmail(w http.ResponseWriter, r *http.Request) {
 	err := h.svc.VerifyEmail(r.Context(), body.Email, body.Code)
 	if err != nil {
 		utilities.HandleError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	utilities.HandleEmptySuccess(w)
+}
+
+type UsernameInUseRequest struct {
+	Username string `json:"username"`
+}
+
+func (h *Handler) GetIsUsernameInUse(w http.ResponseWriter, r *http.Request) {
+	var body UsernameInUseRequest
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		utilities.HandleError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	inUse, err := h.svc.GetIsUsernameInUse(r.Context(), body.Username)
+	if err != nil {
+		utilities.HandleError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	if inUse {
+		utilities.HandleError(w, http.StatusConflict, ErrUsernameTaken.Error())
 		return
 	}
 

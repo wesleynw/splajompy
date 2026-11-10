@@ -63,7 +63,6 @@ struct EmailEntryView: View {
       }
       .padding()
     }
-
   }
 }
 
