@@ -28,7 +28,7 @@ struct UsernameEntryView: View {
         .focused($isFocused)
         .onChange(of: viewModel.username) {
           Task {
-            await viewModel.scheduleUsernameAvailabilityCheck()
+            await viewModel.setUsername()
           }
         }
 
@@ -59,7 +59,7 @@ struct UsernameEntryView: View {
           .font(SJFont.body)
           .frame(maxWidth: .infinity)
       }
-      .disabled(viewModel.email.count == 0)
+      .disabled(viewModel.usernameValidation != .valid)
       .controlSize(.extraLarge)
       .modify {
         if #available(anyAppleOS 26, *) {
