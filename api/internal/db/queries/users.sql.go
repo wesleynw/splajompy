@@ -112,6 +112,16 @@ func (q *Queries) CreateVerificationCode(ctx context.Context, arg CreateVerifica
 	return err
 }
 
+const deleteEmailVerification = `-- name: DeleteEmailVerification :exec
+DELETE FROM email_verification
+WHERE email = $1
+`
+
+func (q *Queries) DeleteEmailVerification(ctx context.Context, email string) error {
+	_, err := q.db.Exec(ctx, deleteEmailVerification, email)
+	return err
+}
+
 const deleteSession = `-- name: DeleteSession :exec
 DELETE FROM sessions
 WHERE id = $1
@@ -421,6 +431,16 @@ func (q *Queries) GetVerificationCode(ctx context.Context, arg GetVerificationCo
 		&i.ExpiresAt,
 	)
 	return i, err
+}
+
+const insertEmailVerification = `-- name: InsertEmailVerification :exec
+INSERT INTO email_verification (email)
+VALUES ($1)
+`
+
+func (q *Queries) InsertEmailVerification(ctx context.Context, email string) error {
+	_, err := q.db.Exec(ctx, insertEmailVerification, email)
+	return err
 }
 
 const insertEmailVerificationRequest = `-- name: InsertEmailVerificationRequest :exec

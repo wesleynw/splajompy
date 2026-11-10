@@ -352,11 +352,17 @@ func (s *Service) DeleteAccount(ctx context.Context, currentUser models.PublicUs
 	return nil
 }
 
-// func (s *Service) AssertEmailVerificationIfApplicable(ctx context.Context, email string) (error) {
-//
-// }
+var ErrEmailInUse = errors.New("This email is in use!")
 
 func (s Service) RequestEmailVerification(ctx context.Context, email string) error {
+	isInUse, err := s.userRepository.GetIsEmailInUse(ctx, email)
+	if err != nil {
+		return err
+	}
+	if isInUse {
+		return ErrEmailInUse
+	}
+
 	code, err := s.generateOTCCode()
 	if err != nil {
 		return err
@@ -372,6 +378,11 @@ func (s Service) RequestEmailVerification(ctx context.Context, email string) err
 		To:      []string{email},
 		Subject: fmt.Sprintf("%s is your Splajompy code", code),
 		Html:    html,
+	}
+
+	err = s.userRepository.DeleteEmailVerification(ctx, email)
+	if err != nil {
+		return err
 	}
 
 	err = s.userRepository.SetEmailVerificationCode(ctx, email, code)
