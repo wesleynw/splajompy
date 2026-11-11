@@ -2,6 +2,7 @@ import SwiftUI
 
 struct EmailEntryView: View {
   @Binding var viewModel: RegistrationViewModel
+  @Environment(\.dismiss) private var dismiss
 
   @FocusState private var isFocused: Bool
 
@@ -41,28 +42,43 @@ struct EmailEntryView: View {
       .frame(maxWidth: .infinity, alignment: .leading)
       .padding()
     }
-    .pageTitle("Register")
-    .safeAreaInset(edge: .bottom) {
-      Button {
-        Task {
-          await viewModel.setEmail()
+    .toolbar {
+      #if os(macOS)
+        ToolbarItem(placement: .confirmationAction) {
+          AsyncActionButton(
+            title: "Continue",
+            isLoading: viewModel.isSendingVerificationEmail,
+            isDisabled: viewModel.email.count == 0
+          ) {
+            await viewModel.setEmail()
+          }
         }
-      } label: {
-        Text("Continue")
+      #endif
+    }
+    .pageTitle("Register")
+    #if os(iOS)
+      .safeAreaInset(edge: .bottom) {
+        Button {
+          Task {
+            await viewModel.setEmail()
+          }
+        } label: {
+          Text("Continue")
           .font(SJFont.body)
           .frame(maxWidth: .infinity)
-      }
-      .disabled(viewModel.email.count == 0)
-      .controlSize(.extraLarge)
-      .modify {
-        if #available(anyAppleOS 26, *) {
-          $0.buttonStyle(.glassProminent)
-        } else {
-          $0.buttonStyle(.borderedProminent)
         }
+        .disabled(viewModel.email.count == 0)
+        .controlSize(.extraLarge)
+        .modify {
+          if #available(anyAppleOS 26, *) {
+            $0.buttonStyle(.glassProminent)
+          } else {
+            $0.buttonStyle(.borderedProminent)
+          }
+        }
+        .padding()
       }
-      .padding()
-    }
+    #endif
   }
 }
 
