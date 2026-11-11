@@ -1,0 +1,41 @@
+---
+import "../styles/global.css";
+import { Image } from "astro:assets";
+import Logo from "../assets/new_snail.png";
+import Layout from "../layouts/Layout.astro";
+---
+
+<Layout title="Support Splajompy">
+    <div class="flex flex-col h-screen">
+        <div class="flex flex-col items-center justify-center flex-1">
+            <Image src={Logo} alt="Logo" class="w-3xs" loading="eager" />
+            <a
+                class="text-amber-50 text-xl margin"
+                href="https://buy.stripe.com/aFa5kCgMcamefxwfwGbV601"
+                target="_blank"
+                rel="noopener noreferrer"
+            >
+                <h3>
+                    Support Splajompy by donating to help offset server costs
+                </h3>
+            </a>
+
+            <div class="p-10">
+                <script
+                    async
+                    src="https://js.stripe.com/v3/buy-button.js"
+                ></script>
+
+                <stripe-buy-button
+                    buy-button-id="buy_btn_1UalMFBMpe68cextcqwc9Bkm"
+                    publishable-key="pk_live_51Uaf4sBMpe68cextrQdvAQgKAAjSqAdQ6ZCWP3kNSjbs2HcviKi6r02VbSlUSt7UpoXVlgxnKkuKWojHaPQHtVbK00i0dxTxI2"
+                ></stripe-buy-button>
+            </div>
+        </div>
+    </div>
+    <style>
+        h3 {
+            font-family: var(--font-splajompy);
+        }
+    </style>
+</Layout>
