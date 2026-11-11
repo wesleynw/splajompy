@@ -21,4 +21,7 @@ export default defineConfig({
   vite: {
     plugins: [tailwindcss()],
   },
+  redirects: {
+    "/donate": "https://buy.stripe.com/7sYdR8cvW2TM998ckubV600"
+  }
 });
