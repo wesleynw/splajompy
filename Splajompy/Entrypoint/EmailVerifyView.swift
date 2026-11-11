@@ -2,6 +2,7 @@ import SwiftUI
 
 struct EmailVerifyView: View {
   @Binding var viewModel: RegistrationViewModel
+  @Environment(\.dismiss) private var dismiss
 
   @FocusState var isFocused
 
@@ -37,27 +38,41 @@ struct EmailVerifyView: View {
     .onAppear {
       isFocused = true
     }
-    .safeAreaInset(edge: .bottom) {
-      Button {
-        Task {
-          await viewModel.requestEmailVerification()
+    #if os(macOS)
+      .toolbar {
+        ToolbarItem(placement: .confirmationAction) {
+          AsyncActionButton(
+            title: "Continue",
+            isLoading: viewModel.isVerifyingEmailCode,
+            isDisabled: viewModel.email.count == 0
+          ) {
+            await viewModel.requestEmailVerification()
+          }
         }
-      } label: {
-        Text("Continue")
+      }
+    #elseif os(iOS)
+      .safeAreaInset(edge: .bottom) {
+        Button {
+          Task {
+            await viewModel.requestEmailVerification()
+          }
+        } label: {
+          Text("Continue")
           .font(SJFont.body)
           .frame(maxWidth: .infinity)
-      }
-      .disabled(viewModel.email.count == 0)
-      .controlSize(.extraLarge)
-      .modify {
-        if #available(anyAppleOS 26, *) {
-          $0.buttonStyle(.glassProminent)
-        } else {
-          $0.buttonStyle(.borderedProminent)
         }
+        .disabled(viewModel.email.count == 0)
+        .controlSize(.extraLarge)
+        .modify {
+          if #available(anyAppleOS 26, *) {
+            $0.buttonStyle(.glassProminent)
+          } else {
+            $0.buttonStyle(.borderedProminent)
+          }
+        }
+        .padding()
       }
-      .padding()
-    }
+    #endif
   }
 }
 

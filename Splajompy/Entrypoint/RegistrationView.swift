@@ -2,7 +2,7 @@ import SwiftUI
 
 struct RegistrationView: View {
   @State private var viewModel = RegistrationViewModel()
-  @Environment(\.dismiss) private var dismiss
+  @Environment(\.dismiss) private var dismiss: DismissAction
 
   var body: some View {
     NavigationStack(path: $viewModel.path) {
@@ -15,19 +15,6 @@ struct RegistrationView: View {
             UsernameEntryView(viewModel: $viewModel)
           }
         }
-        .toolbar {
-          ToolbarItem(placement: .cancellationAction) {
-            if #available(anyAppleOS 26, *) {
-              Button(role: .cancel) {
-                dismiss()
-              }
-            } else {
-              Button("Cancel") {
-                dismiss()
-              }
-            }
-          }
-        }
     }
     .alert(
       "Oops!",
@@ -37,5 +24,23 @@ struct RegistrationView: View {
         Text(errorStr)
       }
     )
+    #if os(macOS)
+      .toolbar {
+        ToolbarItem(placement: .cancellationAction) {
+          Button {
+            dismiss()
+          } label: {
+            Text("Close")
+            .font(SJFont.body)
+          }
+          .controlSize(.large)
+          .modify {
+            if #available(anyAppleOS 26, *) {
+              $0.buttonStyle(.glass)
+            }
+          }
+        }
+      }
+    #endif
   }
 }

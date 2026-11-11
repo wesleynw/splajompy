@@ -4,6 +4,7 @@ struct AsyncActionButton: View {
   let title: String
   let isLoading: Bool
   let isDisabled: Bool
+  let isProminent: Bool = true
   let action: () async -> Void
 
   var body: some View {
@@ -29,10 +30,18 @@ struct AsyncActionButton: View {
     }
     .controlSize(.large)
     .modify {
-      if #available(iOS 26, macOS 26, *) {
-        $0.buttonStyle(.glassProminent)
+      if #available(anyAppleOS 26, *) {
+        if isProminent {
+          $0.buttonStyle(.glassProminent)
+        } else {
+          $0.buttonStyle(.glass)
+        }
       } else {
-        $0.buttonStyle(.borderedProminent)
+        if isProminent {
+          $0.buttonStyle(.borderedProminent)
+        } else {
+          $0.buttonStyle(.bordered)
+        }
       }
     }
     .disabled(isLoading || isDisabled)
