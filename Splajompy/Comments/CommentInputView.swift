@@ -18,7 +18,7 @@ struct CommentInputView: View {
   var replyNamespace: Namespace.ID?
   @Namespace private var namespace
 
-  @FocusState var focus
+  @FocusState private var focus
 
   var body: some View {
     VStack {
@@ -239,12 +239,11 @@ struct CommentInputView: View {
 }
 
 #Preview {
-  @FocusState var focus
   CommentInputView(
     viewModel: CommentsContainerView.ViewModel(
       postId: 1,
       postManager: PostStore()
-    ),
+    )
   )
 }
 
