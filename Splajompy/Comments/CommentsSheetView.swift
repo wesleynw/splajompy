@@ -67,6 +67,7 @@ struct CommentsSheetView: View {
                 )
               }
             }
+            .frame(maxWidth: .infinity)
             .allowsHitTesting(viewModel.respondingToComment == nil)
           }
         }
