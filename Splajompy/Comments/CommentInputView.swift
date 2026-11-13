@@ -119,7 +119,15 @@ struct CommentInputView: View {
       }
     }
     .onChange(of: viewModel.respondingToComment?.commentId) { _, newValue in
-      focus = newValue != nil
+      guard newValue != nil else {
+        focus = false
+        return
+      }
+      Task { @MainActor in
+        // hack for ios 26 focus to work
+        try? await Task.sleep(for: .milliseconds(150))
+        focus = true
+      }
     }
     .sheet(item: $presentingImage) { selected in
       LocalImagePager(
@@ -247,6 +255,6 @@ struct CommentInputView: View {
   viewModel.stageCommentReply(to: Mocks.comment1)
 
   return CommentInputView(
-    viewModel: viewModel
+    viewModel: viewModel,
   )
 }

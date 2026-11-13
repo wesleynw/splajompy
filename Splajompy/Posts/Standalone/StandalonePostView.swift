@@ -81,7 +81,6 @@ struct StandalonePostView: View {
         }
         commentsViewModel.pendingScrollCommentId = nil
       }
-      .padding(.bottom, 200)
       .overlay {
         switch viewModel.state {
         case .idle, .loading:
