@@ -2,7 +2,7 @@ package handler_test
 
 import (
 	"context"
-	"encoding/json"
+	"encoding/json/v2"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -70,8 +70,11 @@ func TestConnectAuthentication(t *testing.T) {
 			mux.ServeHTTP(response, request)
 
 			require.Equal(t, tc.status, response.Code)
-			var body struct{ Code string }
-			require.NoError(t, json.Unmarshal(response.Body.Bytes(), &body))
+
+			var body struct {
+				Code string `json:"code"`
+			}
+			require.NoError(t, json.UnmarshalRead(response.Body, &body))
 			require.Equal(t, tc.code, body.Code)
 		})
 	}

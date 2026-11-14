@@ -2,7 +2,7 @@ package utilities
 
 import (
 	"context"
-	"encoding/json"
+	"encoding/json/v2"
 	"math"
 	"net/http"
 
@@ -120,8 +120,7 @@ func HandleError(w http.ResponseWriter, statusCode int, message string) {
 		Success: false,
 		Error:   message,
 	}
-	err := json.NewEncoder(w).Encode(response)
-	if err != nil {
+	if err := json.MarshalWrite(w, response); err != nil {
 		http.Error(w, "Error encoding response", http.StatusInternalServerError)
 	}
 }
@@ -132,8 +131,7 @@ func HandleSuccess[T any](w http.ResponseWriter, data T) {
 		Success: true,
 		Data:    data,
 	}
-	err := json.NewEncoder(w).Encode(response)
-	if err != nil {
+	if err := json.MarshalWrite(w, response); err != nil {
 		http.Error(w, "Error encoding response", http.StatusInternalServerError)
 	}
 }
@@ -141,8 +139,7 @@ func HandleSuccess[T any](w http.ResponseWriter, data T) {
 func HandleEmptySuccess(w http.ResponseWriter) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	err := json.NewEncoder(w).Encode(map[string]bool{"success": true})
-	if err != nil {
+	if err := json.MarshalWrite(w, map[string]bool{"success": true}); err != nil {
 		http.Error(w, "Error encoding response", http.StatusInternalServerError)
 	}
 }

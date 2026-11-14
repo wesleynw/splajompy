@@ -1,7 +1,7 @@
 package user
 
 import (
-	"encoding/json"
+	"encoding/json/v2"
 	"errors"
 	"net/http"
 
@@ -142,7 +142,7 @@ func (h *Handler) UpdateProfile(w http.ResponseWriter, r *http.Request) {
 	currentUser := utilities.GetAuthenticatedUser(r)
 
 	var request = new(UpdateProfileRequest)
-	if err := json.NewDecoder(r.Body).Decode(request); err != nil {
+	if err := json.UnmarshalRead(r.Body, request); err != nil {
 		utilities.HandleError(w, http.StatusBadRequest, "Invalid request payload")
 		return
 	}
@@ -285,7 +285,7 @@ func (h *Handler) RequestFeature(w http.ResponseWriter, r *http.Request) {
 	currentUser := utilities.GetAuthenticatedUser(r)
 
 	var payload = new(RequestFeaturePayload)
-	if err := json.NewDecoder(r.Body).Decode(payload); err != nil {
+	if err := json.UnmarshalRead(r.Body, payload); err != nil {
 		utilities.HandleError(w, http.StatusBadRequest, "Invalid request payload")
 		return
 	}

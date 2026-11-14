@@ -1,7 +1,7 @@
 package post
 
 import (
-	"encoding/json"
+	"encoding/json/v2"
 	"errors"
 	"net/http"
 
@@ -55,7 +55,7 @@ func (h *Handler) CreateNewPostV2(w http.ResponseWriter, r *http.Request) {
 		Poll        *db.Poll                 `json:"poll"`
 	}
 
-	if err := json.NewDecoder(r.Body).Decode(&requestBody); err != nil {
+	if err := json.UnmarshalRead(r.Body, requestBody); err != nil {
 		utilities.HandleError(w, http.StatusBadRequest, "Bad request format")
 		return
 	}

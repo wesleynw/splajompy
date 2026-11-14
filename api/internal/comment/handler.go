@@ -1,7 +1,7 @@
 package comment
 
 import (
-	"encoding/json"
+	"encoding/json/v2"
 	"net/http"
 
 	"splajompy.com/api/v2/internal/models"
@@ -56,7 +56,7 @@ func (h *Handler) AddCommentToPostById(w http.ResponseWriter, r *http.Request) {
 		ImageKeyMap map[int]models.ImageData `json:"imageKeyMap"`
 	}
 
-	if err := json.NewDecoder(r.Body).Decode(&requestBody); err != nil {
+	if err := json.UnmarshalRead(r.Body, requestBody); err != nil {
 		utilities.HandleError(w, http.StatusBadRequest, "Missing parameter")
 		return
 	}
@@ -156,7 +156,7 @@ func (h *Handler) ReplyToComment(w http.ResponseWriter, r *http.Request) {
 		ImageKeyMap map[int]models.ImageData `json:"imageKeyMap"`
 	}
 
-	if err := json.NewDecoder(r.Body).Decode(&requestBody); err != nil {
+	if err := json.UnmarshalRead(r.Body, requestBody); err != nil {
 		utilities.HandleError(w, http.StatusBadRequest, "malformed request body")
 		return
 	}

@@ -1,7 +1,7 @@
 package auth
 
 import (
-	"encoding/json"
+	"encoding/json/v2"
 	"errors"
 	"net/http"
 
@@ -39,7 +39,7 @@ type LoginRequest struct {
 // Returns 200 with auth token on success, 400 for invalid credentials.
 func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	var request LoginRequest
-	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+	if err := json.UnmarshalRead(r.Body, request); err != nil {
 		utilities.HandleError(w, http.StatusBadRequest, "Invalid request body")
 		return
 	}
@@ -73,7 +73,7 @@ type RegisterRequest struct {
 
 func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 	var request RegisterRequest
-	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+	if err := json.UnmarshalRead(r.Body, request); err != nil {
 		utilities.HandleError(w, http.StatusBadRequest, "Invalid request body")
 		return
 	}
@@ -108,7 +108,7 @@ type GenerateOtcRequest struct {
 
 func (h *Handler) GenerateOTC(w http.ResponseWriter, r *http.Request) {
 	var request GenerateOtcRequest
-	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+	if err := json.UnmarshalRead(r.Body, request); err != nil {
 		utilities.HandleError(w, http.StatusBadRequest, "Invalid request body")
 		return
 	}
@@ -129,7 +129,7 @@ type VerifyOtcRequest struct {
 
 func (h *Handler) VerifyOTC(w http.ResponseWriter, r *http.Request) {
 	var request VerifyOtcRequest
-	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+	if err := json.UnmarshalRead(r.Body, request); err != nil {
 		utilities.HandleError(w, http.StatusBadRequest, "Invalid request body")
 		return
 	}
@@ -155,7 +155,7 @@ type DeleteAccountRequest struct {
 // Returns 200 with auth token on success, 400 for invalid credentials.
 func (h *Handler) DeleteAccount(w http.ResponseWriter, r *http.Request) {
 	var request DeleteAccountRequest
-	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+	if err := json.UnmarshalRead(r.Body, request); err != nil {
 		utilities.HandleError(w, http.StatusBadRequest, "Invalid request body")
 		return
 	}
