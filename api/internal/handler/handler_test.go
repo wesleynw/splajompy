@@ -16,11 +16,11 @@ import (
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/trace"
 	"google.golang.org/genproto/googleapis/rpc/errdetails"
-	splajompyv1 "splajompy.com/api/v2/gen/splajompy/v1"
-	"splajompy.com/api/v2/gen/splajompy/v1/splajompyv1connect"
-	"splajompy.com/api/v2/internal/handler"
-	"splajompy.com/api/v2/internal/middleware"
-	"splajompy.com/api/v2/internal/testutil"
+	splajompyv1 "splajompy.com/api/gen/splajompy/v1"
+	"splajompy.com/api/gen/splajompy/v1/splajompyv1connect"
+	"splajompy.com/api/internal/handler"
+	"splajompy.com/api/internal/middleware"
+	"splajompy.com/api/internal/testutil"
 )
 
 type connectHandler struct{}

@@ -7,14 +7,14 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"splajompy.com/api/v2/internal/apns"
-	"splajompy.com/api/v2/internal/comment"
-	"splajompy.com/api/v2/internal/models"
-	"splajompy.com/api/v2/internal/notification"
-	"splajompy.com/api/v2/internal/post"
-	"splajompy.com/api/v2/internal/testutil"
-	"splajompy.com/api/v2/internal/user"
-	"splajompy.com/api/v2/internal/utilities"
+	"splajompy.com/api/internal/apns"
+	"splajompy.com/api/internal/comment"
+	"splajompy.com/api/internal/models"
+	"splajompy.com/api/internal/notification"
+	"splajompy.com/api/internal/post"
+	"splajompy.com/api/internal/testutil"
+	"splajompy.com/api/internal/user"
+	"splajompy.com/api/internal/utilities"
 )
 
 type commentServiceTestEnv struct {

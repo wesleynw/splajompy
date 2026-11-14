@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"time"
 
-	"splajompy.com/api/v2/internal/models"
+	"splajompy.com/api/internal/models"
 )
 
 var ErrUnauthorized = errors.New("unauthorized")

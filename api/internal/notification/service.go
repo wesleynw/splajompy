@@ -9,13 +9,13 @@ import (
 	"time"
 
 	"go.opentelemetry.io/otel/trace"
-	"splajompy.com/api/v2/internal/apns"
-	"splajompy.com/api/v2/internal/bucket"
-	"splajompy.com/api/v2/internal/db"
-	"splajompy.com/api/v2/internal/db/queries"
-	"splajompy.com/api/v2/internal/utilities"
+	"splajompy.com/api/internal/apns"
+	"splajompy.com/api/internal/bucket"
+	"splajompy.com/api/internal/db"
+	"splajompy.com/api/internal/db/queries"
+	"splajompy.com/api/internal/utilities"
 
-	"splajompy.com/api/v2/internal/models"
+	"splajompy.com/api/internal/models"
 )
 
 type Service struct {

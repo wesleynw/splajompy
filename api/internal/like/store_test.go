@@ -5,12 +5,12 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"splajompy.com/api/v2/internal/comment"
-	"splajompy.com/api/v2/internal/like"
-	"splajompy.com/api/v2/internal/models"
-	"splajompy.com/api/v2/internal/post"
-	"splajompy.com/api/v2/internal/testutil"
-	"splajompy.com/api/v2/internal/user"
+	"splajompy.com/api/internal/comment"
+	"splajompy.com/api/internal/like"
+	"splajompy.com/api/internal/models"
+	"splajompy.com/api/internal/post"
+	"splajompy.com/api/internal/testutil"
+	"splajompy.com/api/internal/user"
 )
 
 type testEnv struct {

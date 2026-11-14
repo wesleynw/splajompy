@@ -9,13 +9,13 @@ import (
 	"connectrpc.com/connect/v2"
 	"connectrpc.com/connect/v2/connecthttp"
 	"github.com/stretchr/testify/require"
-	splajompyv1 "splajompy.com/api/v2/gen/splajompy/v1"
-	"splajompy.com/api/v2/gen/splajompy/v1/splajompyv1connect"
-	"splajompy.com/api/v2/internal/apns"
-	"splajompy.com/api/v2/internal/handler"
-	"splajompy.com/api/v2/internal/models"
-	"splajompy.com/api/v2/internal/notification"
-	"splajompy.com/api/v2/internal/testutil"
+	splajompyv1 "splajompy.com/api/gen/splajompy/v1"
+	"splajompy.com/api/gen/splajompy/v1/splajompyv1connect"
+	"splajompy.com/api/internal/apns"
+	"splajompy.com/api/internal/handler"
+	"splajompy.com/api/internal/models"
+	"splajompy.com/api/internal/notification"
+	"splajompy.com/api/internal/testutil"
 )
 
 func TestGetUnreadNotificationCount(t *testing.T) {

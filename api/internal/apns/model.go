@@ -1,6 +1,6 @@
 package apns
 
-import "splajompy.com/api/v2/internal/models"
+import "splajompy.com/api/internal/models"
 
 type Notification struct {
 	Payload     NotificationPayload

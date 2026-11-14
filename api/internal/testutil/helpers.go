@@ -4,8 +4,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"splajompy.com/api/v2/internal/models"
-	"splajompy.com/api/v2/internal/user"
+	"splajompy.com/api/internal/models"
+	"splajompy.com/api/internal/user"
 )
 
 func CreateTestUser(t *testing.T, repo user.Store, username string) models.PublicUser {

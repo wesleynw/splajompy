@@ -6,9 +6,9 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"splajompy.com/api/v2/internal/db"
-	"splajompy.com/api/v2/internal/db/queries"
-	"splajompy.com/api/v2/internal/utilities"
+	"splajompy.com/api/internal/db"
+	"splajompy.com/api/internal/db/queries"
+	"splajompy.com/api/internal/utilities"
 )
 
 func TestMapNotification_WithValidPostIDAndCommentID(t *testing.T) {

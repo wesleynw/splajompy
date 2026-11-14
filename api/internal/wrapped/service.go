@@ -8,10 +8,10 @@ import (
 	"strings"
 	"time"
 
-	"splajompy.com/api/v2/internal/db/queries"
-	"splajompy.com/api/v2/internal/models"
-	"splajompy.com/api/v2/internal/post"
-	"splajompy.com/api/v2/internal/utilities"
+	"splajompy.com/api/internal/db/queries"
+	"splajompy.com/api/internal/models"
+	"splajompy.com/api/internal/post"
+	"splajompy.com/api/internal/utilities"
 )
 
 type Service struct {

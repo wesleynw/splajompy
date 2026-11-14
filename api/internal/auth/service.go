@@ -11,15 +11,15 @@ import (
 	"time"
 	"uuid"
 
-	"splajompy.com/api/v2/internal/bucket"
-	"splajompy.com/api/v2/internal/post"
-	"splajompy.com/api/v2/internal/user"
-	"splajompy.com/api/v2/internal/utilities"
+	"splajompy.com/api/internal/bucket"
+	"splajompy.com/api/internal/post"
+	"splajompy.com/api/internal/user"
+	"splajompy.com/api/internal/utilities"
 
 	"github.com/resend/resend-go/v3"
 	"golang.org/x/crypto/bcrypt"
-	"splajompy.com/api/v2/internal/models"
-	"splajompy.com/api/v2/internal/templates"
+	"splajompy.com/api/internal/models"
+	"splajompy.com/api/internal/templates"
 )
 
 type Service struct {

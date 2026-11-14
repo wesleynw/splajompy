@@ -13,12 +13,12 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
 	"golang.org/x/mod/semver"
-	"splajompy.com/api/v2/internal/db"
-	"splajompy.com/api/v2/internal/db/queries"
-	"splajompy.com/api/v2/internal/utilities"
+	"splajompy.com/api/internal/db"
+	"splajompy.com/api/internal/db/queries"
+	"splajompy.com/api/internal/utilities"
 )
 
-var tracer = otel.Tracer("splajompy.com/api/v2/internal/middleware")
+var tracer = otel.Tracer("splajompy.com/api/internal/middleware")
 
 func AuthMiddleware(q *queries.Queries) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
