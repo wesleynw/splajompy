@@ -112,6 +112,16 @@ func (q *Queries) CreateVerificationCode(ctx context.Context, arg CreateVerifica
 	return err
 }
 
+const deleteEmailVerification = `-- name: DeleteEmailVerification :exec
+DELETE FROM email_verification
+WHERE email = $1
+`
+
+func (q *Queries) DeleteEmailVerification(ctx context.Context, email string) error {
+	_, err := q.db.Exec(ctx, deleteEmailVerification, email)
+	return err
+}
+
 const deleteSession = `-- name: DeleteSession :exec
 DELETE FROM sessions
 WHERE id = $1
@@ -423,6 +433,32 @@ func (q *Queries) GetVerificationCode(ctx context.Context, arg GetVerificationCo
 	return i, err
 }
 
+const insertEmailVerification = `-- name: InsertEmailVerification :exec
+INSERT INTO email_verification (email)
+VALUES ($1)
+`
+
+func (q *Queries) InsertEmailVerification(ctx context.Context, email string) error {
+	_, err := q.db.Exec(ctx, insertEmailVerification, email)
+	return err
+}
+
+const insertEmailVerificationRequest = `-- name: InsertEmailVerificationRequest :exec
+INSERT INTO email_verify_requests (email, code, created_at)
+VALUES ($1, $2, $3)
+`
+
+type InsertEmailVerificationRequestParams struct {
+	Email     string    `json:"email"`
+	Code      string    `json:"code"`
+	CreatedAt time.Time `json:"createdAt"`
+}
+
+func (q *Queries) InsertEmailVerificationRequest(ctx context.Context, arg InsertEmailVerificationRequestParams) error {
+	_, err := q.db.Exec(ctx, insertEmailVerificationRequest, arg.Email, arg.Code, arg.CreatedAt)
+	return err
+}
+
 const listUserRelationships = `-- name: ListUserRelationships :many
 SELECT users.user_id, users.email, users.password, users.username, users.created_at, users.name, users.pinned_post_id, users.user_display_properties, users.referral_code, user_relationship.created_at AS relationship_created_at
 FROM users
@@ -512,6 +548,24 @@ type RemoveUserRelationshipParams struct {
 func (q *Queries) RemoveUserRelationship(ctx context.Context, arg RemoveUserRelationshipParams) error {
 	_, err := q.db.Exec(ctx, removeUserRelationship, arg.UserID, arg.TargetUserID)
 	return err
+}
+
+const selectEmailVerificationRequestForEmail = `-- name: SelectEmailVerificationRequestForEmail :one
+SELECT id, email, code, created_at
+FROM email_verify_requests
+WHERE email = $1
+`
+
+func (q *Queries) SelectEmailVerificationRequestForEmail(ctx context.Context, email string) (EmailVerifyRequest, error) {
+	row := q.db.QueryRow(ctx, selectEmailVerificationRequestForEmail, email)
+	var i EmailVerifyRequest
+	err := row.Scan(
+		&i.ID,
+		&i.Email,
+		&i.Code,
+		&i.CreatedAt,
+	)
+	return i, err
 }
 
 const unblockUser = `-- name: UnblockUser :exec

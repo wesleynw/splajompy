@@ -242,6 +242,75 @@ class AuthManager: Sendable {
     PostHogSDK.shared.capture(event)
   }
 
+  func requestEmailVerification(for email: String) async -> Result<Void, Error> {
+    struct body: Encodable {
+      let email: String
+    }
+
+    let jsonData: Data
+    do {
+      jsonData = try JSONEncoder().encode(
+        body(email: email.lowercased())
+      )
+    } catch {
+      return .failure(error)
+    }
+
+    return await APIService.performRequest(
+      endpoint: "send-email-verify",
+      method: "POST",
+      body: jsonData,
+      requiresAuth: false
+    )
+  }
+
+  func verifyEmail(for email: String, with code: String) async -> Result<
+    Void, Error
+  > {
+    struct body: Encodable {
+      let email: String
+      let code: String
+    }
+
+    let jsonData: Data
+    do {
+      jsonData = try JSONEncoder().encode(
+        body(email: email.lowercased(), code: code.lowercased())
+      )
+    } catch {
+      return .failure(error)
+    }
+
+    return await APIService.performRequest(
+      endpoint: "email-verify",
+      method: "POST",
+      body: jsonData,
+      requiresAuth: false
+    )
+  }
+
+  func getIsUsernameAvailable(_ username: String) async -> Result<Void, Error> {
+    struct body: Encodable {
+      let username: String
+    }
+
+    let jsonData: Data
+    do {
+      jsonData = try JSONEncoder().encode(
+        body(username: username)
+      )
+    } catch {
+      return .failure(error)
+    }
+
+    return await APIService.performRequest(
+      endpoint: "username-availability",
+      method: "POST",
+      body: jsonData,
+      requiresAuth: false
+    )
+  }
+
   /// Request a one time code be sent to the email of the user given by the identifier.
   func requestOneTimeCode(for identifier: String) async -> Bool {
     isLoading = true

@@ -21,6 +21,10 @@ func (h *Handler) RegisterRESTRoutes(public, withAuth func(string, func(http.Res
 	public("POST /login", h.Login)
 	public("POST /otc/generate", h.GenerateOTC)
 	public("POST /otc/verify", h.VerifyOTC)
+	public("POST /send-email-verify", h.RequestEmailVerification)
+	public("POST /email-verify", h.VerifyEmail)
+	public("POST /username-availability", h.GetIsUsernameInUse)
+
 	withAuth("POST /account/delete", h.DeleteAccount)
 }
 
@@ -171,6 +175,74 @@ func (h *Handler) DeleteAccount(w http.ResponseWriter, r *http.Request) {
 	err = h.svc.DeleteAccount(r.Context(), *user)
 	if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, "Something went wrong")
+		return
+	}
+
+	utilities.HandleEmptySuccess(w)
+}
+
+type RequestEmailVerificationRequest struct {
+	Email string `json:"email"`
+}
+
+func (h *Handler) RequestEmailVerification(w http.ResponseWriter, r *http.Request) {
+	var body RequestEmailVerificationRequest
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		utilities.HandleError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	err := h.svc.RequestEmailVerification(r.Context(), body.Email)
+	if errors.Is(err, ErrEmailInUse) {
+		utilities.HandleError(w, http.StatusConflict, err.Error())
+		return
+	} else if err != nil {
+		utilities.HandleError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	utilities.HandleEmptySuccess(w)
+}
+
+type EmailVerificationRequest struct {
+	Email string `json:"email"`
+	Code  string `json:"code"`
+}
+
+func (h *Handler) VerifyEmail(w http.ResponseWriter, r *http.Request) {
+	var body EmailVerificationRequest
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		utilities.HandleError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	err := h.svc.VerifyEmail(r.Context(), body.Email, body.Code)
+	if err != nil {
+		utilities.HandleError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	utilities.HandleEmptySuccess(w)
+}
+
+type UsernameInUseRequest struct {
+	Username string `json:"username"`
+}
+
+func (h *Handler) GetIsUsernameInUse(w http.ResponseWriter, r *http.Request) {
+	var body UsernameInUseRequest
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		utilities.HandleError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	inUse, err := h.svc.GetIsUsernameInUse(r.Context(), body.Username)
+	if err != nil {
+		utilities.HandleError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	if inUse {
+		utilities.HandleError(w, http.StatusConflict, ErrUsernameTaken.Error())
 		return
 	}
 

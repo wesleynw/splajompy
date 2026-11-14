@@ -50,6 +50,7 @@ var (
 	ErrUsernameTooLong       = errors.New("username must be 25 characters or less")
 	ErrPasswordTooShort      = errors.New("password must be at least 8 characters")
 	ErrInvalidEmail          = errors.New("please enter a valid email address")
+	ErrEmailInUse            = errors.New("this email is in use")
 )
 
 // Register performs all the necessary actions to set up a user in the system.
@@ -227,7 +228,7 @@ func (s *Service) ProcessOTC(ctx context.Context, identifier string) error {
 		return err
 	}
 
-	code, err := s.GenerateOTCCode()
+	code, err := s.generateOTCCode()
 	if err != nil {
 		return err
 	}
@@ -254,7 +255,7 @@ func (s *Service) ProcessOTC(ctx context.Context, identifier string) error {
 	return err
 }
 
-func (s *Service) GenerateOTCCode() (string, error) {
+func (s *Service) generateOTCCode() (string, error) {
 	max := big.NewInt(1000000)
 	n, err := rand.Int(rand.Reader, max)
 	if err != nil {
@@ -352,6 +353,62 @@ func (s *Service) DeleteAccount(ctx context.Context, currentUser models.PublicUs
 	return nil
 }
 
+func (s Service) RequestEmailVerification(ctx context.Context, email string) error {
+	isInUse, err := s.userRepository.GetIsEmailInUse(ctx, email)
+	if err != nil {
+		return err
+	}
+	if isInUse {
+		return ErrEmailInUse
+	}
+
+	code, err := s.generateOTCCode()
+	if err != nil {
+		return err
+	}
+
+	html, err := templates.GenerateVerificationEmail(code)
+	if err != nil {
+		return err
+	}
+
+	params := &resend.SendEmailRequest{
+		From:    "Splajompy <no-reply@splajompy.com>",
+		To:      []string{email},
+		Subject: fmt.Sprintf("%s is your Splajompy code", code),
+		Html:    html,
+	}
+
+	err = s.userRepository.DeleteEmailVerification(ctx, email)
+	if err != nil {
+		return err
+	}
+
+	err = s.userRepository.SetEmailVerificationCode(ctx, email, code)
+	if err != nil {
+		return err
+	}
+
+	_, err = s.emailClient.SendEmail(params)
+	return err
+}
+
+var ErrEmailVerificationFailed = errors.New("unable to verify this email")
+
+func (s Service) VerifyEmail(ctx context.Context, email string, code string) error {
+	storedCode, createdAt, err := s.userRepository.GetEmailVerificationCode(ctx, email)
+	if err != nil {
+		return ErrEmailVerificationFailed
+	}
+
+	fiveMinutesAgo := time.Now().Add(-5 * time.Minute)
+	if code == *storedCode && createdAt.After(fiveMinutesAgo) {
+		return nil
+	}
+
+	return ErrEmailVerificationFailed
+}
+
 // sendAccountDeletionNotification notifies the site admin whenever a user deletes their account.
 func (s *Service) sendAccountDeletionNotification(deletedUser models.PublicUser) {
 	params := &resend.SendEmailRequest{
@@ -362,4 +419,8 @@ func (s *Service) sendAccountDeletionNotification(deletedUser models.PublicUser)
 	}
 
 	_, _ = s.emailClient.SendEmail(params)
+}
+
+func (s *Service) GetIsUsernameInUse(ctx context.Context, username string) (bool, error) {
+	return s.userRepository.GetIsUsernameInUse(ctx, username)
 }
