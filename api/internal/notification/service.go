@@ -85,7 +85,15 @@ func (s *Service) GetUserUnreadNotificationCount(ctx context.Context, user model
 	return s.notificationRepository.GetUserUnreadNotificationCount(ctx, user.UserID)
 }
 
-func (s *Service) WatchUnreadNotificationCount(ctx context.Context, user models.PublicUser, send func(int) error) error {
+func (s *Service) WatchUnreadNotificationCount(ctx context.Context, user models.PublicUser, send func(int) error) (err error) {
+	parent := ctx
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Minute)
+	defer cancel()
+	defer func() {
+		if ctx.Err() == context.DeadlineExceeded && parent.Err() == nil {
+			err = nil
+		}
+	}()
 	updates, unsubscribe, err := s.notificationRepository.unreadCounts.subscribe(ctx, user.UserID)
 	if err != nil {
 		return fmt.Errorf("%w: %w", errUnreadCountUnavailable, err)
@@ -102,14 +110,10 @@ func (s *Service) WatchUnreadNotificationCount(ctx context.Context, user models.
 	}
 	heartbeat := time.NewTicker(30 * time.Second)
 	defer heartbeat.Stop()
-	lifetime := time.NewTimer(5 * time.Minute)
-	defer lifetime.Stop()
 	for {
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
-		case <-lifetime.C:
-			return nil
 		case <-heartbeat.C:
 			if err := send(count); err != nil {
 				return err

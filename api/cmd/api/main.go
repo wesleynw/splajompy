@@ -116,11 +116,11 @@ func main() {
 
 	notificationService := notification.NewService(notificationsRepository, postRepository, commentRepository, userRepository, bucketRepository, *apnClient)
 
-	postService := post.NewService(postRepository, userRepository, likeRepository, *notificationService, bucketRepository, resendClient)
+	postService := post.NewService(postRepository, userRepository, likeRepository, notificationService, bucketRepository, resendClient)
 	postHandler := post.NewHandler(postService)
-	commentService := comment.NewService(commentRepository, postRepository, *notificationService, userRepository, likeRepository, bucketRepository)
+	commentService := comment.NewService(commentRepository, postRepository, notificationService, userRepository, likeRepository, bucketRepository)
 	commentHandler := comment.NewHandler(commentService)
-	userService := user.NewUserService(userRepository, *notificationService, resendClient)
+	userService := user.NewUserService(userRepository, notificationService, resendClient)
 	userHandler := user.NewHandler(userService)
 	notificationHandler := notification.NewHandler(notificationService)
 	notificationConnectHandler := notification.NewConnectHandler(notificationService)

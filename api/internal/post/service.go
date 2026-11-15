@@ -27,12 +27,12 @@ type Service struct {
 	postRepository      Store
 	userRepository      user.Store
 	likeRepository      like.Store
-	notificationService notification.Service
+	notificationService *notification.Service
 	bucketRepository    bucket.Repository
 	emailService        *resend.Client
 }
 
-func NewService(postRepository Store, userRepository user.Store, likeRepository like.Store, notificationService notification.Service, bucketRepo bucket.Repository, emailService *resend.Client) *Service {
+func NewService(postRepository Store, userRepository user.Store, likeRepository like.Store, notificationService *notification.Service, bucketRepo bucket.Repository, emailService *resend.Client) *Service {
 	return &Service{
 		postRepository:      postRepository,
 		userRepository:      userRepository,

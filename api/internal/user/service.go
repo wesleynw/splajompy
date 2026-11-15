@@ -19,7 +19,7 @@ import (
 
 type Service struct {
 	store               Store
-	notificationService notification.Service
+	notificationService *notification.Service
 	emailService        *resend.Client
 }
 
@@ -27,7 +27,7 @@ var (
 	ErrNotificationDoesNotExist = errors.New("this notification no longer exists")
 )
 
-func NewUserService(userRepository Store, notificationService notification.Service, emailClient *resend.Client) *Service {
+func NewUserService(userRepository Store, notificationService *notification.Service, emailClient *resend.Client) *Service {
 	return &Service{
 		store:               userRepository,
 		notificationService: notificationService,

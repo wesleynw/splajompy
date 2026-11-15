@@ -30,8 +30,8 @@ func setupCommentTest(t *testing.T) commentServiceTestEnv {
 	db := testutil.StartPostgres(t)
 
 	notificationService := notification.NewService(db.NotificationStore, db.PostRepository, &db.CommentRepository, db.UserRepository, db.BucketRepository, apns.Client{})
-	svc := comment.NewService(&db.CommentRepository, db.PostRepository, *notificationService, db.UserRepository, db.LikeRepository, db.BucketRepository)
-	userSvc := user.NewUserService(db.UserRepository, *notificationService, nil)
+	svc := comment.NewService(&db.CommentRepository, db.PostRepository, notificationService, db.UserRepository, db.LikeRepository, db.BucketRepository)
+	userSvc := user.NewUserService(db.UserRepository, notificationService, nil)
 
 	return commentServiceTestEnv{
 		svc:                    svc,
