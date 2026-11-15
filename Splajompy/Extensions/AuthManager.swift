@@ -61,12 +61,14 @@ private actor SessionStore {
     )
   }
 
-  func clearSession() {
+  func clearSession(ifTokenMatches token: String? = nil) -> Bool {
+    guard token == nil || readPersistedSession()?.token == token else { return false }
     KeychainHelper.standard.delete(
       service: Self.sessionKeychainService,
       account: "self"
     )
     clearLegacyStorage()
+    return true
   }
 
   private func clearLegacyStorage() {
@@ -167,6 +169,7 @@ class AuthManager: Sendable {
   var authState: AuthState = .unknown
   var isLoading: Bool = false
   private(set) var currentUser: CurrentUserModel?
+  private var sessionRevision = 0
 
   var isAuthenticated: Bool {
     authState == .authenticated
@@ -194,8 +197,13 @@ class AuthManager: Sendable {
     await SessionStore.shared.loadSession()?.token
   }
 
-  func signOut(reason: String = "manual") async {
-    await SessionStore.shared.clearSession()
+  func signOut(reason: String = "manual", ifTokenMatches token: String? = nil) async {
+    // A sign-in can start while the session store clears the old token.
+    let revision = sessionRevision
+    guard await SessionStore.shared.clearSession(ifTokenMatches: token),
+      revision == sessionRevision
+    else { return }
+    sessionRevision += 1
     PostHogSDK.shared.capture("user_signout", properties: ["reason": reason])
 
     UserDefaults.standard.removeObject(forKey: "selectedFeedType")
@@ -222,6 +230,7 @@ class AuthManager: Sendable {
   }
 
   private func saveUserData(_ user: CurrentUserModel, token: String) async {
+    sessionRevision += 1
     await SessionStore.shared.persistSession(
       AuthSession(token: token, user: user)
     )
