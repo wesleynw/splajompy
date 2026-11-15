@@ -80,6 +80,7 @@
             "Configuration/Release.xcconfig",
             "Info.plist",
             "Splajompy.xctestplan",
+            "Tests/ConnectAPIInterceptorTests.swift",
             "Tests/GreatestRemainderQuotaTests.swift",
             "Tests/SessionHistoryServiceTests.swift",
           ],
@@ -105,6 +106,7 @@
           "target": "SplajompyTests",
           "inclusions": [
             "Comments/CommentViewModelTests.swift",
+            "Tests/ConnectAPIInterceptorTests.swift",
             "Tests/GreatestRemainderQuotaTests.swift",
             "Tests/SessionHistoryServiceTests.swift",
           ],
