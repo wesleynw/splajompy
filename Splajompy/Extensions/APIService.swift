@@ -162,7 +162,11 @@ public struct APIService {
 
       if httpResponse.statusCode == 401 {
         span.status = .error(description: "Unauthorized")
-        await AuthManager.shared.signOut(reason: "401_\(endpoint)")
+        if let authorization = request.value(forHTTPHeaderField: "Authorization") {
+          await AuthManager.shared.signOut(
+            reason: "401_\(endpoint)",
+            ifTokenMatches: String(authorization.dropFirst("Bearer ".count)))
+        }
         return .failure(
           APIErrorMessage(message: "Session expired. Please sign in again.")
         )
@@ -304,9 +308,10 @@ public struct APIService {
 
 final class ConnectAPIInterceptor: UnaryInterceptor {
   private let baseUrl: String
+  @MainActor private var requestToken: String?
   private let tokenProvider: @Sendable () async -> String?
   private let appVersion: String?
-  private let onUnauthenticated: @MainActor @Sendable () async -> Void
+  private let onUnauthenticated: @MainActor @Sendable (String) async -> Void
   private let onUpgradeRequired: @MainActor @Sendable () -> Void
 
   init(
@@ -315,8 +320,8 @@ final class ConnectAPIInterceptor: UnaryInterceptor {
       await AuthManager.shared.getAuthToken()
     },
     appVersion: String? = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String,
-    onUnauthenticated: @escaping @MainActor @Sendable () async -> Void = {
-      await AuthManager.shared.signOut(reason: "401_rpc")
+    onUnauthenticated: @escaping @MainActor @Sendable (String) async -> Void = { token in
+      await AuthManager.shared.signOut(reason: "401_rpc", ifTokenMatches: token)
     },
     onUpgradeRequired: @escaping @MainActor @Sendable () -> Void = {
       NotificationCenter.default.post(name: .userNeedsAppUpgrade, object: nil)
@@ -343,6 +348,7 @@ final class ConnectAPIInterceptor: UnaryInterceptor {
         proceed(.failure(ConnectError(code: .unauthenticated, message: "Not authenticated")))
         return
       }
+      requestToken = token
       var headers = request.headers
       headers["Authorization"] = ["Bearer \(token)"]
       headers["X-App-Version"] = appVersion.map { [$0] }
@@ -364,14 +370,15 @@ final class ConnectAPIInterceptor: UnaryInterceptor {
     proceed: @escaping @Sendable (ResponseMessage<Message>) -> Void
   ) {
     Task { @MainActor in
-      guard baseUrl == APIService.baseUrl else {
+      let token = await tokenProvider()
+      guard baseUrl == APIService.baseUrl, let requestToken, requestToken == token else {
         proceed(ResponseMessage(code: .canceled, result: .failure(.canceled())))
         return
       }
       let errorDetails: [Google_Rpc_ErrorInfo] = response.error?.unpackedDetails() ?? []
       switch response.error?.code {
       case .unauthenticated:
-        await onUnauthenticated()
+        await onUnauthenticated(requestToken)
       case .failedPrecondition
       where errorDetails.contains(where: {
         $0.domain == "splajompy.com" && $0.reason == "APP_UPGRADE_REQUIRED"
