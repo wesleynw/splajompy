@@ -50,33 +50,27 @@ struct CommentView: View {
 
   @ContentBuilder
   private var childCommentsView: some View {
-    if let children = comment.children, children.count > 0 {
-      HStack {
+    if let children = comment.children, !children.isEmpty {
+      VStack {
+        ForEach(children) { child in
+          CommentRow(
+            comment: child,
+            toggleLike: { onToggleLike(child) },
+            deleteComment: { onDelete(child) }
+          )
+          .id(child.commentId)
+          .transition(.opacity.combined(with: .scale(scale: 0.95)))
+          .animation(.default, value: child.commentId)
+        }
+      }
+      .padding(.leading, 28)
+      .overlay(alignment: .leading) {
         Capsule()
           .foregroundStyle(.tertiary)
           .frame(width: 6)
-          .frame(maxHeight: .infinity)
           .padding(.vertical, 3)
           .padding(.leading)
-
-        VStack {
-          ForEach(children) { child in
-            CommentRow(
-              comment: child,
-              toggleLike: {
-                onToggleLike(child)
-              },
-              deleteComment: {
-                onDelete(child)
-              }
-            )
-            .id(child.commentId)
-            .transition(.opacity.combined(with: .scale(scale: 0.95)))
-            .animation(.default, value: child.commentId)
-          }
-        }
       }
-      .fixedSize(horizontal: false, vertical: true)
     }
   }
 }
