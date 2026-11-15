@@ -102,8 +102,7 @@ struct CommentsContainerView: View {
     .blur(
       radius: viewModel.respondingToComment != nil ? 6 : 0
     )
-    .frame(height: 300)
-    .frame(maxWidth: .infinity, alignment: .leading)
+    .frame(maxWidth: .infinity, minHeight: 400, alignment: .topLeading)
     .alert(
       "Error submitting comment",
       isPresented: $viewModel.showError,
