@@ -6,7 +6,6 @@ import (
 
 	"connectrpc.com/connect/v2"
 	splajompyv1 "splajompy.com/api/v2/gen/splajompy/v1"
-	"splajompy.com/api/v2/gen/splajompy/v1/splajompyv1connect"
 	"splajompy.com/api/v2/internal/models"
 	"splajompy.com/api/v2/internal/utilities"
 )
@@ -17,10 +16,6 @@ type ConnectHandler struct {
 
 func NewConnectHandler(svc *Service) *ConnectHandler {
 	return &ConnectHandler{svc: svc}
-}
-
-func (h *ConnectHandler) RegisterConnectRoutes(server *connect.Server) {
-	splajompyv1connect.RegisterNotificationServiceHandler(server, h)
 }
 
 func (h *ConnectHandler) GetUnreadNotificationCount(ctx context.Context, _ *splajompyv1.GetUnreadNotificationCountRequest) (*splajompyv1.GetUnreadNotificationCountResponse, error) {

@@ -1,4 +1,4 @@
-package handler_test
+package interceptor_test
 
 import (
 	"context"
@@ -12,32 +12,36 @@ import (
 	"connectrpc.com/connect/v2"
 	"connectrpc.com/connect/v2/connecthttp"
 	"connectrpc.com/connect/v2/connectproto"
+	"connectrpc.com/validate"
 	"github.com/stretchr/testify/require"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/trace"
 	"google.golang.org/genproto/googleapis/rpc/errdetails"
 	splajompyv1 "splajompy.com/api/v2/gen/splajompy/v1"
 	"splajompy.com/api/v2/gen/splajompy/v1/splajompyv1connect"
-	"splajompy.com/api/v2/internal/handler"
+	"splajompy.com/api/v2/internal/db/queries"
+	"splajompy.com/api/v2/internal/interceptor"
 	"splajompy.com/api/v2/internal/middleware"
 	"splajompy.com/api/v2/internal/testutil"
 )
 
-type connectHandler struct{}
+type notificationRPCHandler struct{}
 
-func (h connectHandler) RegisterConnectRoutes(server *connect.Server) {
-	splajompyv1connect.RegisterNotificationServiceHandler(server, h)
+func newTestRPCMux(q *queries.Queries) *http.ServeMux {
+	mux := http.NewServeMux()
+	rpcServer := connect.NewServer(interceptor.AppVersion, interceptor.Auth(q), validate.NewServerInterceptor())
+	splajompyv1connect.RegisterNotificationServiceHandler(rpcServer, notificationRPCHandler{})
+	connecthttp.Mount(mux, rpcServer)
+	return mux
 }
 
-func (connectHandler) GetUnreadNotificationCount(context.Context, *splajompyv1.GetUnreadNotificationCountRequest) (*splajompyv1.GetUnreadNotificationCountResponse, error) {
+func (notificationRPCHandler) GetUnreadNotificationCount(context.Context, *splajompyv1.GetUnreadNotificationCountRequest) (*splajompyv1.GetUnreadNotificationCountResponse, error) {
 	return &splajompyv1.GetUnreadNotificationCountResponse{}, nil
 }
 
 func TestConnectAuthentication(t *testing.T) {
 	const procedure = splajompyv1connect.NotificationServiceGetUnreadNotificationCountProcedure
-	mux := http.NewServeMux()
-	h := handler.NewHandler(nil, []handler.ConnectRegistrar{connectHandler{}})
-	h.RegisterConnectRoutes(mux, nil)
+	mux := newTestRPCMux(nil)
 	canceled, cancel := context.WithCancel(t.Context())
 	cancel()
 	expired, cancel := context.WithDeadline(t.Context(), time.Now().Add(-time.Second))
@@ -78,8 +82,7 @@ func TestConnectAuthentication(t *testing.T) {
 }
 
 func TestConnectUpgradeErrorDetails(t *testing.T) {
-	mux := http.NewServeMux()
-	handler.NewHandler(nil, []handler.ConnectRegistrar{connectHandler{}}).RegisterConnectRoutes(mux, nil)
+	mux := newTestRPCMux(nil)
 	server := httptest.NewServer(mux)
 	t.Cleanup(server.Close)
 	client := splajompyv1connect.NewNotificationServiceClient(connect.NewClient(connecthttp.NewTransport(server.Client(), server.URL)))
@@ -114,8 +117,7 @@ func TestAuthenticatePreservesRequestSpan(t *testing.T) {
 
 func TestConnectSessionErrors(t *testing.T) {
 	db := testutil.StartPostgres(t)
-	mux := http.NewServeMux()
-	handler.NewHandler(nil, []handler.ConnectRegistrar{connectHandler{}}).RegisterConnectRoutes(mux, db.Queries)
+	mux := newTestRPCMux(db.Queries)
 	server := httptest.NewServer(mux)
 	t.Cleanup(server.Close)
 	client := splajompyv1connect.NewNotificationServiceClient(connect.NewClient(connecthttp.NewTransport(server.Client(), server.URL)))
