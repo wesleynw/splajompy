@@ -71,7 +71,7 @@ Install [Buf](https://buf.build/docs/cli/installation/), then run `go generate .
 
 Set `DB_LISTEN_CONNECTION_STRING` to a direct or session-pooled connection to the same database if the query connection uses transaction pooling.
 
-Register all PostgreSQL channels in `pgnotify.NewListener` and pass the same listener to stores that consume changes. Each subscription receives its own Go channel. Several changes can produce one signal, so subscribers must read the current database values.
+Register all PostgreSQL channels in `pgnotify.NewListener` and pass the same listener to stores that consume changes. Each subscription receives its own Go channel. Several changes can produce one signal, so subscribers must read the current database values. Keep all `Send` calls in the stream's handler goroutine.
 
 ## DB Migrations
 Migrations are handled with `golang-migrate`. To make changes to the DB, follow the linked guide below. This usually involves writing up and down migrations, which you can first push to the development DB, and then to production when new API code is merged.

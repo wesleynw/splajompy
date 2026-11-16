@@ -18,6 +18,13 @@ import (
 	"splajompy.com/api/v2/internal/models"
 )
 
+const (
+	unreadCountStreamDuration    = 5 * time.Minute
+	unreadCountHeartbeatInterval = 30 * time.Second
+)
+
+var errUnreadCountUnavailable = errors.New("unread notification count unavailable")
+
 type Service struct {
 	notificationRepository Store
 	postRepository         postReader
@@ -81,6 +88,56 @@ func (s *Service) UserHasUnreadNotifications(ctx context.Context, user models.Pu
 
 func (s *Service) GetUserUnreadNotificationCount(ctx context.Context, user models.PublicUser) (int, error) {
 	return s.notificationRepository.GetUserUnreadNotificationCount(ctx, user.UserID)
+}
+
+// WatchUnreadNotificationCount calls send only from the caller's goroutine.
+func (s *Service) WatchUnreadNotificationCount(ctx context.Context, user models.PublicUser, send func(int) error) (err error) {
+	parent := ctx
+	ctx, cancel := context.WithTimeout(ctx, unreadCountStreamDuration)
+	defer cancel()
+	defer func() {
+		if errors.Is(err, context.DeadlineExceeded) && ctx.Err() == context.DeadlineExceeded && parent.Err() == nil {
+			err = nil
+		}
+	}()
+	updates, unsubscribe, err := s.notificationRepository.SubscribeUnreadCount(ctx, user.UserID)
+	if err != nil {
+		return fmt.Errorf("%w: %w", errUnreadCountUnavailable, err)
+	}
+	defer unsubscribe()
+
+	// Subscribe before reading the snapshot so concurrent writes cannot be missed.
+	count, err := s.GetUserUnreadNotificationCount(ctx, user)
+	if err != nil {
+		return fmt.Errorf("%w: %w", errUnreadCountUnavailable, err)
+	}
+	if err := send(count); err != nil {
+		return err
+	}
+	heartbeat := time.NewTicker(unreadCountHeartbeatInterval)
+	defer heartbeat.Stop()
+	for {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-heartbeat.C:
+		case _, ok := <-updates:
+			if !ok {
+				return errUnreadCountUnavailable
+			}
+			current, err := s.GetUserUnreadNotificationCount(ctx, user)
+			if err != nil {
+				return fmt.Errorf("%w: %w", errUnreadCountUnavailable, err)
+			}
+			if current == count {
+				continue
+			}
+			count = current
+		}
+		if err := send(count); err != nil {
+			return err
+		}
+	}
 }
 
 func (s *Service) GetReadNotificationsByUserIdWithTimeOffset(ctx context.Context, user models.PublicUser, beforeTime time.Time, limit int, notificationType *string) ([]models.DetailedNotification, error) {
