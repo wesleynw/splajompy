@@ -21,7 +21,7 @@ var ErrCommentReplyNotAllowed = errors.New("now allowed to reply to this comment
 type Service struct {
 	commentRepository   *Store
 	postRepository      post.Store
-	notificationService notification.Service
+	notificationService *notification.Service
 	userRepository      user.Store
 	likeRepository      like.Store
 	bucketRepository    bucket.Repository
@@ -30,7 +30,7 @@ type Service struct {
 func NewService(
 	commentRepo *Store,
 	postRepository post.Store,
-	notificationService notification.Service,
+	notificationService *notification.Service,
 	userRepository user.Store,
 	likeRepository like.Store,
 	bucketRepository bucket.Repository,

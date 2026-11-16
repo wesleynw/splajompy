@@ -69,6 +69,8 @@ sqlc generate -f api/internal/db/sqlc.yaml
 
 Install [Buf](https://buf.build/docs/cli/installation/), then run `go generate ./...` from `api/` to generate Go code from `proto/`. Generator versions are managed in `api/go.mod`.
 
+Set `DB_LISTEN_CONNECTION_STRING` to a direct or session-pooled connection to the same database if the query connection uses transaction pooling.
+
 Register all PostgreSQL channels in `pgnotify.NewListener` and pass the same listener to stores that consume changes. Each subscription receives its own Go channel. Several changes can produce one signal, so subscribers must read the current database values.
 
 ## DB Migrations
