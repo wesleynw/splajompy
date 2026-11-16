@@ -19,6 +19,7 @@ import (
 	"splajompy.com/api/v2/internal/db/queries"
 	"splajompy.com/api/v2/internal/like"
 	"splajompy.com/api/v2/internal/notification"
+	"splajompy.com/api/v2/internal/pgnotify"
 	"splajompy.com/api/v2/internal/post"
 	"splajompy.com/api/v2/internal/user"
 )
@@ -89,7 +90,7 @@ func StartPostgres(t *testing.T) *TestDB {
 		PostRepository:    post.NewDBPostRepository(q),
 		CommentRepository: *comment.NewStore(q),
 		LikeRepository:    like.NewStore(q),
-		NotificationStore: notification.NewNotificationStore(q),
+		NotificationStore: notification.NewNotificationStore(q, pgnotify.NewListener(pool.Config().ConnConfig, notification.UnreadCountChangedChannel)),
 		BucketRepository:  &bucket.FakeBucketRepository{},
 	}
 }

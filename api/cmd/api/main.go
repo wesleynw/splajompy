@@ -15,12 +15,14 @@ import (
 	"splajompy.com/api/v2/internal/email"
 	"splajompy.com/api/v2/internal/like"
 	"splajompy.com/api/v2/internal/notification"
+	"splajompy.com/api/v2/internal/pgnotify"
 	"splajompy.com/api/v2/internal/post"
 	"splajompy.com/api/v2/internal/server"
 	"splajompy.com/api/v2/internal/stats"
 	"splajompy.com/api/v2/internal/user"
 	"splajompy.com/api/v2/internal/utilities"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
 )
@@ -64,6 +66,17 @@ func main() {
 
 	q := queries.New(conn)
 
+	listenConfig := cfg.ConnConfig
+	// LISTEN must stay on one PostgreSQL connection. Do not use transaction pooling.
+	if listenURL := os.Getenv("DB_LISTEN_CONNECTION_STRING"); listenURL != "" {
+		listenConfig, err = pgx.ParseConfig(listenURL)
+		if err != nil {
+			log.Fatal("invalid notification database configuration")
+		}
+	}
+
+	dbChanges := pgnotify.NewListener(listenConfig, notification.UnreadCountChangedChannel)
+
 	emailClient := email.NewResendEmailClient()
 
 	s3Client, err := bucket.NewS3Client()
@@ -79,7 +92,7 @@ func main() {
 
 	postRepository := post.NewDBPostRepository(q)
 	userRepository := user.NewUserRepository(q)
-	notificationsRepository := notification.NewNotificationStore(q)
+	notificationsRepository := notification.NewNotificationStore(q, dbChanges)
 	commentRepository := comment.NewStore(q)
 	likeRepository := like.NewStore(q)
 	statsRepository := stats.NewStore(q)
@@ -91,11 +104,11 @@ func main() {
 
 	notificationService := notification.NewService(notificationsRepository, postRepository, commentRepository, userRepository, bucketRepository, *apnClient)
 
-	postService := post.NewService(postRepository, userRepository, likeRepository, *notificationService, bucketRepository, emailClient)
+	postService := post.NewService(postRepository, userRepository, likeRepository, notificationService, bucketRepository, emailClient)
 	postHandler := post.NewHandler(postService)
-	commentService := comment.NewService(commentRepository, postRepository, *notificationService, userRepository, likeRepository, bucketRepository)
+	commentService := comment.NewService(commentRepository, postRepository, notificationService, userRepository, likeRepository, bucketRepository)
 	commentHandler := comment.NewHandler(commentService)
-	userService := user.NewUserService(userRepository, *notificationService, emailClient)
+	userService := user.NewUserService(userRepository, notificationService, emailClient)
 	userHandler := user.NewHandler(userService)
 	notificationHandler := notification.NewHandler(notificationService)
 	notificationConnectHandler := notification.NewConnectHandler(notificationService)

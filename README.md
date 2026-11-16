@@ -37,6 +37,8 @@ Packages that expose REST API endpoints implement `RESTRegistrar`, and packages 
 
 Register all PostgreSQL channels in `pgnotify.NewListener` and pass the same listener to stores that consume changes. Each subscription receives its own Go channel. Several changes can produce one signal, so subscribers must read the current database values.
 
+Set `DB_LISTEN_CONNECTION_STRING` to a direct or session-pooled connection to the same database if the query connection uses transaction pooling.
+
 ## Starting the API
 Install the [Pulumi CLI](https://www.pulumi.com/docs/install/) and run `pulumi login`. Get access to `splajompy-org/splajompy/dev` and add your public IP to the database allowlist.
 

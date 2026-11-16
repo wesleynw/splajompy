@@ -3,6 +3,7 @@ package notification
 import (
 	"context"
 	"errors"
+	"strconv"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -12,8 +13,20 @@ import (
 	"splajompy.com/api/v2/internal/utilities"
 )
 
+// UnreadCountChangedChannel carries a user ID so subscribers can reload that count.
+const UnreadCountChangedChannel = "notification_unread_count_changed"
+
+type changeSubscriber interface {
+	Subscribe(ctx context.Context, channel, payload string) (<-chan struct{}, func(), error)
+}
+
 type Store struct {
 	querier queries.Querier
+	changes changeSubscriber
+}
+
+func (r Store) SubscribeUnreadCount(ctx context.Context, userID int) (<-chan struct{}, func(), error) {
+	return r.changes.Subscribe(ctx, UnreadCountChangedChannel, strconv.Itoa(userID))
 }
 
 // InsertNotification adds a new notification for a user
@@ -234,6 +247,6 @@ func (r Store) RemoveDeviceToken(ctx context.Context, token string) error {
 }
 
 // NewNotificationStore creates a new notification repository
-func NewNotificationStore(querier queries.Querier) Store {
-	return Store{querier: querier}
+func NewNotificationStore(querier queries.Querier, changes changeSubscriber) Store {
+	return Store{querier: querier, changes: changes}
 }
