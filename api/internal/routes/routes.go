@@ -10,6 +10,8 @@ import (
 	"splajompy.com/api/v2/internal/middleware"
 )
 
+const rpcMaxReadBytes = 4 * 1024 * 1024
+
 type RESTRegistrar interface {
 	RegisterRESTRoutes(public, withAuth func(string, func(http.ResponseWriter, *http.Request)))
 }
@@ -39,6 +41,6 @@ func RegisterRPC(mux *http.ServeMux, q *queries.Queries, registrars ...RPCRegist
 		registrar.RegisterRPCRoutes(public, withAuth)
 	}
 
-	connecthttp.Mount(mux, public)
-	connecthttp.Mount(mux, withAuth)
+	connecthttp.Mount(mux, public, connecthttp.WithReadMaxBytes(rpcMaxReadBytes))
+	connecthttp.Mount(mux, withAuth, connecthttp.WithReadMaxBytes(rpcMaxReadBytes))
 }
