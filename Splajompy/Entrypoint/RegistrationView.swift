@@ -13,6 +13,8 @@ struct RegistrationView: View {
             EmailVerifyView(viewModel: $viewModel)
           case .usernameEntry:
             UsernameEntryView(viewModel: $viewModel)
+          case .passwordEntry:
+            PasswordEntryView(viewModel: $viewModel)
           }
         }
     }

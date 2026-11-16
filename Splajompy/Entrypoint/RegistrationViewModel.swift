@@ -10,6 +10,7 @@ enum FieldState: Equatable {
 enum OnboardingStep {
   case emailVerify
   case usernameEntry
+  case passwordEntry
 }
 
 @Observable @MainActor
@@ -33,7 +34,9 @@ class RegistrationViewModel {
 
   private var isEmailVerified: Bool = false
 
-  var password: String? = nil
+  var password: String = ""
+
+  private(set) var passwordValidation: FieldState = .unchanged
 
   func setEmail() async {
     guard email.count > 1 else {
@@ -88,24 +91,9 @@ class RegistrationViewModel {
 
   func setUsername() async {
     guard username.count > 0 else {
-      self.usernameValidation = .invalid("This doesn't look like a username")
+      self.usernameValidation = .unchanged
       return
     }
-
-    let usernameError = authService.validateUsername(username)
-    if let usernameError {
-      self.usernameAvailableCheckTask?.cancel()
-      self.usernameValidation = .invalid(usernameError)
-      return
-    }
-
-    await scheduleUsernameAvailabilityCheck()
-  }
-
-  func scheduleUsernameAvailabilityCheck() async {
-    // validation isn't done via field check, don't show validation errors to user until clicking "continue"
-    guard username.count > 0, authService.validateUsername(self.username) == nil
-    else { return }
 
     usernameAvailableCheckTask?.cancel()
     usernameValidation = .pending
@@ -113,7 +101,13 @@ class RegistrationViewModel {
     let candidate = username
 
     usernameAvailableCheckTask = Task {
-      do { try await Task.sleep(for: .seconds(2)) } catch { return }
+      do { try await Task.sleep(for: .seconds(1)) } catch { return }
+
+      let usernameError = authService.validateUsername(candidate)
+      if let usernameError {
+        self.usernameValidation = .invalid(usernameError)
+        return
+      }
 
       let result = await authService.getIsUsernameAvailable(self.username)
       guard !Task.isCancelled, candidate == self.username else { return }
@@ -124,8 +118,32 @@ class RegistrationViewModel {
       case .failure(let failure):
         self.usernameValidation = .invalid(failure.localizedDescription)
       }
+    }
 
-      usernameAvailableCheckTask = nil
+  }
+
+  func setPassword() async {
+    guard self.password.count > 0 else {
+      return
+    }
+
+    if let passwordError = self.authService.validatePassword(self.password) {
+      self.passwordValidation = .invalid(passwordError)
+      return
+    }
+
+    // actually register
+    let result = await self.authService.register(
+      username: self.username,
+      email: self.email,
+      password: self.password
+    )
+
+    switch result {
+    case .success(_):
+      return
+    case .failure(let error):
+      self.alertText = error.localizedDescription
     }
   }
 }

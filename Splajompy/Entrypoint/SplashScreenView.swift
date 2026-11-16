@@ -81,7 +81,6 @@ struct SplashScreenView: View {
         .postHogScreenView()
       }
       .fullScreenCover(isPresented: $isRegisterViewPresenting) {
-        //        RegisterView()
         RegistrationView()
         .postHogScreenView()
       }
@@ -91,9 +90,7 @@ struct SplashScreenView: View {
         .postHogScreenView()
       }
       .sheet(isPresented: $isRegisterViewPresenting) {
-        //        RegisterView()
         RegistrationView()
-
         .postHogScreenView()
       }
     #endif

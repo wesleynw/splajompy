@@ -6,6 +6,17 @@ struct UsernameEntryView: View {
 
   @FocusState var isFocused
 
+  var errorStyle: any ShapeStyle {
+    switch viewModel.usernameValidation {
+    case .invalid(_):
+      return .red.tertiary
+    case .pending:
+      return .yellow.tertiary
+    default:
+      return .clear
+    }
+  }
+
   var body: some View {
     ScrollView {
       Text("Pick a username")
@@ -29,17 +40,31 @@ struct UsernameEntryView: View {
         .focused($isFocused)
         .onChange(of: viewModel.username) {
           Task {
-            await viewModel.scheduleUsernameAvailabilityCheck()
+            await viewModel.setUsername()
           }
         }
 
-      if case .invalid(let error) = viewModel.usernameValidation {
-        Text(error)
-          .padding()
-          .font(SJFont.body)
-          .foregroundStyle(.red.secondary)
-          .transition(.opacity)
+      HStack {
+        if viewModel.usernameValidation == .pending {
+          ProgressView()
+            .controlSize(.small)
+          Text("Checking if username is available...")
+            .font(SJFont.body)
+        } else if viewModel.usernameValidation == .valid {
+          Image(systemName: "checkmark.circle.fill")
+          Text("This username is available")
+        } else if case .invalid(let error) = viewModel.usernameValidation {
+          Image(systemName: "exclamationmark.triangle")
+          Text(error)
+            .font(SJFont.body)
+        }
       }
+      .padding(10)
+      .frame(maxWidth: .infinity, alignment: .leading)
+      .background(
+        AnyShapeStyle(errorStyle),
+        in: RoundedRectangle(cornerRadius: 35)
+      )
     }
     .animation(.default, value: viewModel.usernameValidation)
     .padding()
@@ -51,8 +76,8 @@ struct UsernameEntryView: View {
         ToolbarItem(placement: .confirmationAction) {
           AsyncActionButton(
             title: "Continue",
-            isLoading: viewModel.usernameAvailableCheckTask != nil,
-            isDisabled: viewModel.username.count == 0
+            isLoading: false,
+            isDisabled: viewModel.usernameValidation != .valid
           ) {
             await viewModel.setUsername()
           }

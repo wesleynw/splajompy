@@ -412,9 +412,9 @@ class AuthManager: Sendable {
     }
   }
 
-  func register(username: String, email: String, password: String) async -> (
-    success: Bool, error: String
-  ) {
+  func register(username: String, email: String, password: String) async
+    -> Result<Void, Error>
+  {
     isLoading = true
     defer { isLoading = false }
 
@@ -423,17 +423,18 @@ class AuthManager: Sendable {
       email: email,
       password: password
     ) {
-      return (false, validationError)
+      return .failure(APIErrorMessage(message: validationError))
     }
 
-    guard
-      let requestBody = try? JSONSerialization.data(withJSONObject: [
+    var requestBody: Data
+    do {
+      requestBody = try JSONSerialization.data(withJSONObject: [
         "username": username,
         "email": email,
         "password": password,
       ])
-    else {
-      return (false, "Failed to serialize JSON")
+    } catch {
+      return .failure(error)
     }
 
     let result: Result<AuthResponse, Error> = await APIService.performRequest(
@@ -446,9 +447,9 @@ class AuthManager: Sendable {
     switch result {
     case .success(let authResponse):
       await completeSignIn(authResponse, event: "user_register")
-      return (true, "")
+      return .success(())
     case .failure(let error):
-      return (false, error.localizedDescription)
+      return .failure(error)
     }
   }
 
