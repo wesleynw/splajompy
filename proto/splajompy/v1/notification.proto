@@ -6,8 +6,8 @@ option go_package = "splajompy.com/api/v2/gen/splajompy/v1;splajompyv1";
 
 service NotificationService {
   rpc GetUnreadNotificationCount(GetUnreadNotificationCountRequest) returns (GetUnreadNotificationCountResponse);
-  // Sends a count snapshot on connection, after changes, and every 30 seconds.
-  // Streams close after five minutes. Reconnect to get a new snapshot.
+  // Sends the current count when the stream opens, after a change, and every 30 seconds.
+  // The server ends the stream after five minutes. Reconnect to get the current count.
   rpc WatchUnreadNotificationCount(WatchUnreadNotificationCountRequest) returns (stream WatchUnreadNotificationCountResponse);
 }
 
