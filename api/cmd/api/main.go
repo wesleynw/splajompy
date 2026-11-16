@@ -36,8 +36,15 @@ import (
 	"github.com/resend/resend-go/v3"
 )
 
-// maxRPCRequestBytes limits each decompressed request message to 4 MiB.
-const maxRPCRequestBytes = 4 * 1024 * 1024
+const (
+	httpAddress       = ":8080"
+	readHeaderTimeout = 5 * time.Second
+	readTimeout       = 30 * time.Second
+	writeTimeout      = 6 * time.Minute
+	idleTimeout       = time.Minute
+	// maxRPCRequestBytes limits each decompressed request message to 4 MiB.
+	maxRPCRequestBytes = 4 * 1024 * 1024
+)
 
 func main() {
 	ctx := context.Background()
@@ -144,19 +151,19 @@ func main() {
 
 	httpHandler := otelhttp.NewHandler(loggingHandler, "/")
 	httpServer := &http.Server{
-		Addr:              ":8080",
+		Addr:              httpAddress,
 		Handler:           httpHandler,
 		Protocols:         new(http.Protocols),
-		ReadHeaderTimeout: 5 * time.Second,
-		ReadTimeout:       30 * time.Second,
+		ReadHeaderTimeout: readHeaderTimeout,
+		ReadTimeout:       readTimeout,
 		// WriteTimeout covers the whole response, including streaming RPCs.
-		WriteTimeout: 6 * time.Minute,
-		IdleTimeout:  time.Minute,
+		WriteTimeout: writeTimeout,
+		IdleTimeout:  idleTimeout,
 	}
 	httpServer.Protocols.SetHTTP1(true)
 	httpServer.Protocols.SetUnencryptedHTTP2(true)
 
-	log.Printf("Server starting on port %d\n", 8080)
+	log.Printf("Server starting on %s\n", httpServer.Addr)
 	if err := httpServer.ListenAndServe(); err != nil {
 		log.Fatalf("server failed to start: %v", err)
 	}
