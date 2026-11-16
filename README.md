@@ -35,7 +35,7 @@ type RESTRegistrar interface {
 }
 ```
 
-The root handler in `internal/handler` registers REST handlers from `handler.go` and Connect handlers from `connect_handler.go`. Connect handlers register services on one server. Authentication applies to every RPC.
+`main.go` registers REST routes through `routes.RegisterREST` and mounts generated Connect services on one server. The RPC auth interceptor requires a session unless a procedure is explicitly public.
 
 `Store`s are currently a thin layer over the database, but exist as a natural place to add caching per domain in the future.
 
