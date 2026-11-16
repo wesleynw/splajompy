@@ -243,14 +243,14 @@ class AuthManager: Sendable {
   }
 
   func requestEmailVerification(for email: String) async -> Result<Void, Error> {
-    struct body: Encodable {
+    struct Body: Encodable {
       let email: String
     }
 
     let jsonData: Data
     do {
       jsonData = try JSONEncoder().encode(
-        body(email: email.lowercased())
+        Body(email: email.lowercased())
       )
     } catch {
       return .failure(error)
@@ -267,7 +267,7 @@ class AuthManager: Sendable {
   func verifyEmail(for email: String, with code: String) async -> Result<
     Void, Error
   > {
-    struct body: Encodable {
+    struct Body: Encodable {
       let email: String
       let code: String
     }
@@ -275,7 +275,7 @@ class AuthManager: Sendable {
     let jsonData: Data
     do {
       jsonData = try JSONEncoder().encode(
-        body(email: email.lowercased(), code: code.lowercased())
+        Body(email: email.lowercased(), code: code.lowercased())
       )
     } catch {
       return .failure(error)
@@ -290,14 +290,14 @@ class AuthManager: Sendable {
   }
 
   func getIsUsernameAvailable(_ username: String) async -> Result<Void, Error> {
-    struct body: Encodable {
+    struct Body: Encodable {
       let username: String
     }
 
     let jsonData: Data
     do {
       jsonData = try JSONEncoder().encode(
-        body(username: username)
+        Body(username: username)
       )
     } catch {
       return .failure(error)
