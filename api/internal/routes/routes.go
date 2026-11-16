@@ -3,12 +3,19 @@ package routes
 import (
 	"net/http"
 
+	"connectrpc.com/connect/v2"
+	"connectrpc.com/connect/v2/connecthttp"
 	"splajompy.com/api/v2/internal/db/queries"
+	"splajompy.com/api/v2/internal/interceptor"
 	"splajompy.com/api/v2/internal/middleware"
 )
 
 type RESTRegistrar interface {
 	RegisterRESTRoutes(public, withAuth func(string, func(http.ResponseWriter, *http.Request)))
+}
+
+type RPCRegistrar interface {
+	RegisterRPCRoutes(public, withAuth *connect.Server)
 }
 
 func RegisterREST(mux *http.ServeMux, q *queries.Queries, registrars ...RESTRegistrar) {
@@ -22,4 +29,16 @@ func RegisterREST(mux *http.ServeMux, q *queries.Queries, registrars ...RESTRegi
 	for _, registrar := range registrars {
 		registrar.RegisterRESTRoutes(public, withAuth)
 	}
+}
+
+func RegisterRPC(mux *http.ServeMux, q *queries.Queries, registrars ...RPCRegistrar) {
+	public := connect.NewServer(interceptor.AppVersion)
+	withAuth := connect.NewServer(interceptor.AppVersion, interceptor.Auth(q))
+
+	for _, registrar := range registrars {
+		registrar.RegisterRPCRoutes(public, withAuth)
+	}
+
+	connecthttp.Mount(mux, public)
+	connecthttp.Mount(mux, withAuth)
 }

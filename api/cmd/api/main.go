@@ -8,20 +8,15 @@ import (
 	"os"
 	"time"
 
-	"connectrpc.com/connect/v2"
-	"connectrpc.com/connect/v2/connecthttp"
-	"connectrpc.com/validate"
 	"github.com/exaring/otelpgx"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	semconv "go.opentelemetry.io/otel/semconv/v1.40.0"
 	"go.opentelemetry.io/otel/trace"
-	"splajompy.com/api/v2/gen/splajompy/v1/splajompyv1connect"
 	"splajompy.com/api/v2/internal/apns"
 	"splajompy.com/api/v2/internal/auth"
 	"splajompy.com/api/v2/internal/bucket"
 	"splajompy.com/api/v2/internal/comment"
 	"splajompy.com/api/v2/internal/db/queries"
-	"splajompy.com/api/v2/internal/interceptor"
 	"splajompy.com/api/v2/internal/like"
 	"splajompy.com/api/v2/internal/middleware"
 	"splajompy.com/api/v2/internal/notification"
@@ -36,14 +31,12 @@ import (
 	"github.com/resend/resend-go/v3"
 )
 
+// defaults from https://blog.cloudflare.com/exposing-go-on-the-internet/#timeouts
 const (
-	httpAddress       = ":8080"
-	readHeaderTimeout = 5 * time.Second
-	readTimeout       = 30 * time.Second
-	writeTimeout      = 6 * time.Minute
-	idleTimeout       = time.Minute
-	// maxRPCRequestBytes limits each decompressed request message to 4 MiB.
-	maxRPCRequestBytes = 4 * 1024 * 1024
+	httpAddress  = ":8080"
+	readTimeout  = 30 * time.Second
+	writeTimeout = time.Minute
+	idleTimeout  = time.Minute * 5
 )
 
 func main() {
@@ -125,13 +118,11 @@ func main() {
 	authHandler := auth.NewHandler(authService)
 	statsService := stats.NewService(statsRepository)
 	statsHandler := stats.NewHandler(statsService)
+	statsConnectHandler := stats.NewConnectHandler(statsService)
 
 	mux := http.NewServeMux()
 	routes.RegisterREST(mux, q, postHandler, commentHandler, userHandler, notificationHandler, authHandler, statsHandler)
-
-	rpcServer := connect.NewServer(interceptor.AppVersion, interceptor.Auth(q), validate.NewServerInterceptor())
-	splajompyv1connect.RegisterNotificationServiceHandler(rpcServer, notificationConnectHandler)
-	connecthttp.Mount(mux, rpcServer, connecthttp.WithReadMaxBytes(maxRPCRequestBytes))
+	routes.RegisterRPC(mux, q, notificationConnectHandler, statsConnectHandler)
 
 	routeTelemetryHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		mux.ServeHTTP(w, r)
@@ -151,12 +142,10 @@ func main() {
 
 	httpHandler := otelhttp.NewHandler(loggingHandler, "/")
 	httpServer := &http.Server{
-		Addr:              httpAddress,
-		Handler:           httpHandler,
-		Protocols:         new(http.Protocols),
-		ReadHeaderTimeout: readHeaderTimeout,
-		ReadTimeout:       readTimeout,
-		// WriteTimeout covers the whole response, including streaming RPCs.
+		Addr:         httpAddress,
+		Handler:      httpHandler,
+		Protocols:    new(http.Protocols),
+		ReadTimeout:  readTimeout,
 		WriteTimeout: writeTimeout,
 		IdleTimeout:  idleTimeout,
 	}
