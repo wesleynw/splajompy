@@ -32,6 +32,8 @@ The API follows a domain-scoped architecture. Each domain (e.g. `post`, `user`, 
 ### Routing
 Packages that expose REST API endpoints implement `RESTRegistrar`, and packages the expose RPC endpoints implement `RPCRegistrar`, both of which expose callbacks to add public and authenticated endpoints. The `server` package registers endpoints to a request multiplexer bound to the global HTTP server.
 
+Keep all `Send` calls in the stream's handler goroutine.
+
 ### Store
 `Store`s are currently a thin layer over the database, but exist as a natural place to add caching per domain in the future.
 
