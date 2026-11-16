@@ -5,6 +5,7 @@ import (
 
 	"connectrpc.com/connect/v2"
 	"connectrpc.com/connect/v2/connecthttp"
+	"connectrpc.com/validate"
 	"splajompy.com/api/v2/internal/db/queries"
 	"splajompy.com/api/v2/internal/interceptor"
 	"splajompy.com/api/v2/internal/middleware"
@@ -34,8 +35,8 @@ func RegisterREST(mux *http.ServeMux, q *queries.Queries, registrars ...RESTRegi
 }
 
 func RegisterRPC(mux *http.ServeMux, q *queries.Queries, registrars ...RPCRegistrar) {
-	public := connect.NewServer(interceptor.AppVersion)
-	withAuth := connect.NewServer(interceptor.AppVersion, interceptor.Auth(q))
+	public := connect.NewServer(interceptor.AppVersion, validate.NewServerInterceptor())
+	withAuth := connect.NewServer(interceptor.AppVersion, interceptor.Auth(q), validate.NewServerInterceptor())
 
 	for _, registrar := range registrars {
 		registrar.RegisterRPCRoutes(public, withAuth)

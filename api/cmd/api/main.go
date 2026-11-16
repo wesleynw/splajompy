@@ -35,7 +35,7 @@ import (
 const (
 	httpAddress  = ":8080"
 	readTimeout  = 30 * time.Second
-	writeTimeout = time.Minute
+	writeTimeout = time.Minute * 6
 	idleTimeout  = time.Minute * 5
 )
 
