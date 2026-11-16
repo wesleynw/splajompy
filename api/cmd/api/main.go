@@ -36,6 +36,9 @@ import (
 	"github.com/resend/resend-go/v3"
 )
 
+// maxRPCRequestBytes limits each decompressed request message to 4 MiB.
+const maxRPCRequestBytes = 4 * 1024 * 1024
+
 func main() {
 	ctx := context.Background()
 
@@ -121,7 +124,7 @@ func main() {
 
 	rpcServer := connect.NewServer(interceptor.AppVersion, interceptor.Auth(q), validate.NewServerInterceptor())
 	splajompyv1connect.RegisterNotificationServiceHandler(rpcServer, notificationConnectHandler)
-	connecthttp.Mount(mux, rpcServer, connecthttp.WithReadMaxBytes(4*1024*1024))
+	connecthttp.Mount(mux, rpcServer, connecthttp.WithReadMaxBytes(maxRPCRequestBytes))
 
 	routeTelemetryHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		mux.ServeHTTP(w, r)
