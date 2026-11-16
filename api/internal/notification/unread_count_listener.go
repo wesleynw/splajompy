@@ -67,11 +67,7 @@ func (l *unreadCountListener) subscribe(ctx context.Context, userID int) (<-chan
 
 func (l *unreadCountListener) listen(ctx context.Context, session *unreadCountSession) {
 	defer func() {
-		closeCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-		defer cancel()
-		_ = session.conn.Close(closeCtx)
 		l.mu.Lock()
-		defer l.mu.Unlock()
 		if l.session == session {
 			l.session = nil
 		}
@@ -81,6 +77,11 @@ func (l *unreadCountListener) listen(ctx context.Context, session *unreadCountSe
 			}
 		}
 		clear(session.subscribers)
+		l.mu.Unlock()
+		session.cancel()
+		closeCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		_ = session.conn.Close(closeCtx)
 	}()
 	for {
 		event, err := session.conn.WaitForNotification(ctx)

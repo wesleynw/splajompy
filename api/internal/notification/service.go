@@ -90,7 +90,7 @@ func (s *Service) WatchUnreadNotificationCount(ctx context.Context, user models.
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Minute)
 	defer cancel()
 	defer func() {
-		if ctx.Err() == context.DeadlineExceeded && parent.Err() == nil {
+		if errors.Is(err, context.DeadlineExceeded) && ctx.Err() == context.DeadlineExceeded && parent.Err() == nil {
 			err = nil
 		}
 	}()
@@ -115,9 +115,6 @@ func (s *Service) WatchUnreadNotificationCount(ctx context.Context, user models.
 		case <-ctx.Done():
 			return ctx.Err()
 		case <-heartbeat.C:
-			if err := send(count); err != nil {
-				return err
-			}
 		case _, ok := <-updates:
 			if !ok {
 				return errUnreadCountUnavailable
@@ -126,12 +123,13 @@ func (s *Service) WatchUnreadNotificationCount(ctx context.Context, user models.
 			if err != nil {
 				return fmt.Errorf("%w: %w", errUnreadCountUnavailable, err)
 			}
-			if current != count {
-				if err := send(current); err != nil {
-					return err
-				}
-				count = current
+			if current == count {
+				continue
 			}
+			count = current
+		}
+		if err := send(count); err != nil {
+			return err
 		}
 	}
 }

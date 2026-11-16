@@ -79,10 +79,10 @@ func main() {
 
 	q := queries.New(conn)
 
-	notificationConfig := cfg.ConnConfig
+	listenConfig := cfg.ConnConfig
 	// LISTEN requires a direct or session-pooled connection.
 	if listenURL := os.Getenv("DB_LISTEN_CONNECTION_STRING"); listenURL != "" {
-		notificationConfig, err = pgx.ParseConfig(listenURL)
+		listenConfig, err = pgx.ParseConfig(listenURL)
 		if err != nil {
 			log.Fatal("invalid notification database configuration")
 		}
@@ -104,7 +104,7 @@ func main() {
 
 	postRepository := post.NewDBPostRepository(q)
 	userRepository := user.NewUserRepository(q)
-	notificationsRepository := notification.NewNotificationStore(q, notificationConfig)
+	notificationsRepository := notification.NewNotificationStore(q, listenConfig)
 	commentRepository := comment.NewStore(q)
 	likeRepository := like.NewStore(q)
 	statsRepository := stats.NewStore(q)
