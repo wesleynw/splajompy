@@ -27,6 +27,9 @@ const (
 	// NotificationServiceGetUnreadNotificationCountProcedure is the procedure name of the
 	// NotificationService's GetUnreadNotificationCount RPC.
 	NotificationServiceGetUnreadNotificationCountProcedure = "/splajompy.v1.NotificationService/GetUnreadNotificationCount"
+	// NotificationServiceWatchUnreadNotificationCountProcedure is the procedure name of the
+	// NotificationService's WatchUnreadNotificationCount RPC.
+	NotificationServiceWatchUnreadNotificationCountProcedure = "/splajompy.v1.NotificationService/WatchUnreadNotificationCount"
 )
 
 var (
@@ -37,11 +40,21 @@ var (
 			Procedure:  NotificationServiceGetUnreadNotificationCountProcedure,
 		}
 	})
+	notificationServiceWatchUnreadNotificationCountSpec = sync.OnceValue(func() connect.Spec {
+		return connect.Spec{
+			StreamType: connect.StreamTypeServer,
+			Schema:     v1.File_splajompy_v1_notification_proto.Services().ByName("NotificationService").Methods().ByName("WatchUnreadNotificationCount"),
+			Procedure:  NotificationServiceWatchUnreadNotificationCountProcedure,
+		}
+	})
 )
 
 // NotificationServiceClient is a client for the splajompy.v1.NotificationService service.
 type NotificationServiceClient interface {
 	GetUnreadNotificationCount(context.Context, *v1.GetUnreadNotificationCountRequest) (*v1.GetUnreadNotificationCountResponse, error)
+	// Sends a count snapshot on connection, after changes, and every 30 seconds.
+	// Streams close after five minutes. Reconnect to get a new snapshot.
+	WatchUnreadNotificationCount(context.Context, *v1.WatchUnreadNotificationCountRequest) (NotificationServiceWatchUnreadNotificationCountClientStream, error)
 }
 
 // NewNotificationServiceClient constructs a client for the splajompy.v1.NotificationService
@@ -50,9 +63,33 @@ func NewNotificationServiceClient(client *connect.Client) NotificationServiceCli
 	return &notificationServiceClient{client: client}
 }
 
+// NotificationServiceWatchUnreadNotificationCountClientStream is the client stream for the
+// NotificationService's WatchUnreadNotificationCount RPC.
+type NotificationServiceWatchUnreadNotificationCountClientStream struct {
+	stream connect.ClientStream
+}
+
+// Receive returns the next response message from the server.
+func (s NotificationServiceWatchUnreadNotificationCountClientStream) Receive() (*v1.WatchUnreadNotificationCountResponse, error) {
+	var res v1.WatchUnreadNotificationCountResponse
+	if err := s.stream.Receive(&res); err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+// Close releases the stream's resources. It is idempotent and is typically deferred to clean up a
+// stream abandoned before io.EOF.
+func (s NotificationServiceWatchUnreadNotificationCountClientStream) Close() error {
+	return s.stream.Close()
+}
+
 // NotificationServiceHandler is an implementation of the splajompy.v1.NotificationService service.
 type NotificationServiceHandler interface {
 	GetUnreadNotificationCount(context.Context, *v1.GetUnreadNotificationCountRequest) (*v1.GetUnreadNotificationCountResponse, error)
+	// Sends a count snapshot on connection, after changes, and every 30 seconds.
+	// Streams close after five minutes. Reconnect to get a new snapshot.
+	WatchUnreadNotificationCount(context.Context, *v1.WatchUnreadNotificationCountRequest, NotificationServiceWatchUnreadNotificationCountServerStream) error
 }
 
 // RegisterNotificationServiceHandler registers svc as the splajompy.v1.NotificationService
@@ -61,7 +98,24 @@ func RegisterNotificationServiceHandler(server *connect.Server, svc Notification
 	adapter := notificationServiceHandler{svc: svc}
 	server.Register(
 		connect.Method{Spec: notificationServiceGetUnreadNotificationCountSpec(), Handler: adapter.getUnreadNotificationCount},
+		connect.Method{Spec: notificationServiceWatchUnreadNotificationCountSpec(), Handler: adapter.watchUnreadNotificationCount},
 	)
+}
+
+// NotificationServiceWatchUnreadNotificationCountServerStream is the server stream for the
+// NotificationService's WatchUnreadNotificationCount RPC.
+type NotificationServiceWatchUnreadNotificationCountServerStream struct {
+	stream connect.ServerStream
+}
+
+// SendHeaders flushes the response headers without a message. The first Send does this implicitly.
+func (s NotificationServiceWatchUnreadNotificationCountServerStream) SendHeaders() error {
+	return s.stream.SendHeaders()
+}
+
+// Send sends a response message to the client.
+func (s NotificationServiceWatchUnreadNotificationCountServerStream) Send(res *v1.WatchUnreadNotificationCountResponse) error {
+	return s.stream.Send(res)
 }
 
 // UnimplementedNotificationServiceHandler returns CodeUnimplemented from all methods.
@@ -69,6 +123,10 @@ type UnimplementedNotificationServiceHandler struct{}
 
 func (UnimplementedNotificationServiceHandler) GetUnreadNotificationCount(context.Context, *v1.GetUnreadNotificationCountRequest) (*v1.GetUnreadNotificationCountResponse, error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, "splajompy.v1.NotificationService.GetUnreadNotificationCount is not implemented")
+}
+
+func (UnimplementedNotificationServiceHandler) WatchUnreadNotificationCount(context.Context, *v1.WatchUnreadNotificationCountRequest, NotificationServiceWatchUnreadNotificationCountServerStream) error {
+	return connect.NewError(connect.CodeUnimplemented, "splajompy.v1.NotificationService.WatchUnreadNotificationCount is not implemented")
 }
 
 type notificationServiceClient struct {
@@ -83,6 +141,14 @@ func (c *notificationServiceClient) GetUnreadNotificationCount(ctx context.Conte
 	return &res, nil
 }
 
+func (c *notificationServiceClient) WatchUnreadNotificationCount(ctx context.Context, req *v1.WatchUnreadNotificationCountRequest) (NotificationServiceWatchUnreadNotificationCountClientStream, error) {
+	stream, err := c.client.CallServerStream(ctx, notificationServiceWatchUnreadNotificationCountSpec(), req)
+	if err != nil {
+		return NotificationServiceWatchUnreadNotificationCountClientStream{}, err
+	}
+	return NotificationServiceWatchUnreadNotificationCountClientStream{stream: stream}, nil
+}
+
 type notificationServiceHandler struct{ svc NotificationServiceHandler }
 
 func (h notificationServiceHandler) getUnreadNotificationCount(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
@@ -95,4 +161,12 @@ func (h notificationServiceHandler) getUnreadNotificationCount(ctx context.Conte
 		return err
 	}
 	return stream.Send(res)
+}
+
+func (h notificationServiceHandler) watchUnreadNotificationCount(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
+	var req v1.WatchUnreadNotificationCountRequest
+	if err := stream.Receive(&req); err != nil {
+		return err
+	}
+	return h.svc.WatchUnreadNotificationCount(ctx, &req, NotificationServiceWatchUnreadNotificationCountServerStream{stream: stream})
 }
