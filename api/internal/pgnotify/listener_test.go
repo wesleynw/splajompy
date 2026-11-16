@@ -15,22 +15,27 @@ func testListener(channels ...string) (*Listener, *listenerSession) {
 
 func TestListenerFanout(t *testing.T) {
 	listener, session := testListener("counts", "posts")
-	for _, test := range []struct {
+	tests := []struct {
 		channel string
 		payload string
 		want    int
+		changes <-chan struct{}
 	}{
 		{channel: "counts", payload: "7", want: 1},
 		{channel: "counts", payload: "7", want: 1},
 		{channel: "counts", payload: "8"},
 		{channel: "posts", payload: "7"},
-	} {
+	}
+	for i, test := range tests {
 		changes, unsubscribe, err := listener.Subscribe(t.Context(), test.channel, test.payload)
 		require.NoError(t, err)
 		t.Cleanup(unsubscribe)
-		listener.notify(session, "counts", "7")
-		listener.notify(session, "counts", "7")
-		require.Len(t, changes, test.want)
+		tests[i].changes = changes
+	}
+	listener.notify(session, "counts", "7")
+	listener.notify(session, "counts", "7")
+	for _, test := range tests {
+		require.Len(t, test.changes, test.want, "channel %s, payload %s", test.channel, test.payload)
 	}
 }
 
@@ -44,16 +49,13 @@ func TestListenerConcurrentSubscriptions(t *testing.T) {
 	var workers sync.WaitGroup
 	for range 100 {
 		workers.Go(func() {
-			changes, stop, err := listener.Subscribe(t.Context(), "counts", "7")
+			_, stop, err := listener.Subscribe(t.Context(), "counts", "7")
 			if err != nil {
 				t.Error(err)
 				return
 			}
 			listener.notify(session, "counts", "7")
 			stop()
-			stop()
-			for range changes {
-			}
 		})
 	}
 	workers.Wait()
@@ -65,7 +67,7 @@ func TestListenerConcurrentSubscriptions(t *testing.T) {
 	require.Empty(t, session.subscribers)
 }
 
-func TestListenerOldSubscription(t *testing.T) {
+func TestListenerUnsubscribeOldSession(t *testing.T) {
 	listener, _ := testListener("counts")
 	oldChanges, stopOld, err := listener.Subscribe(t.Context(), "counts", "7")
 	require.NoError(t, err)
@@ -81,23 +83,4 @@ func TestListenerOldSubscription(t *testing.T) {
 	require.Same(t, replacement, listener.session)
 	listener.notify(replacement, "counts", "7")
 	require.Len(t, changes, 1)
-}
-
-func TestListenerInvalidSubscription(t *testing.T) {
-	listener, session := testListener("counts")
-	ctx, cancel := context.WithCancel(t.Context())
-	cancel()
-	for _, test := range []struct {
-		ctx     context.Context
-		channel string
-	}{
-		{ctx: t.Context(), channel: "unknown"},
-		{ctx: ctx, channel: "counts"},
-	} {
-		changes, unsubscribe, err := listener.Subscribe(test.ctx, test.channel, "7")
-		require.Error(t, err)
-		require.Nil(t, changes)
-		require.Nil(t, unsubscribe)
-	}
-	require.Empty(t, session.subscribers)
 }

@@ -14,12 +14,12 @@ import (
 const (
 	connectTimeout = 5 * time.Second
 	closeTimeout   = 5 * time.Second
-	// Subscribers reload state, so multiple pending changes can share one signal.
+	// Keep one pending signal. Subscribers read the current database values.
 	changeBufferSize = 1
 )
 
-// Listener shares one PostgreSQL connection across state change subscriptions.
-// Signals can coalesce. Consumers must reload state rather than count events.
+// Listener uses one PostgreSQL connection to report changes to subscribers.
+// Each signal means "read the current data". It does not count individual changes.
 type Listener struct {
 	config   *pgx.ConnConfig
 	channels []string
@@ -38,13 +38,14 @@ type listenerSession struct {
 	subscribers map[subscriptionKey]map[chan struct{}]struct{}
 }
 
-// NewListener fixes the channel list before any connection starts receiving.
+// NewListener sets all PostgreSQL channels before the connection starts receiving.
 func NewListener(config *pgx.ConnConfig, channels ...string) *Listener {
 	return &Listener{config: config.Copy(), channels: slices.Clone(channels)}
 }
 
-// Subscribe returns a private signal channel for the given channel and payload.
-// The caller must defer unsubscribe. A closed channel requires a new subscription.
+// Subscribe reports changes for one PostgreSQL channel and payload.
+// Defer the returned cleanup function to remove this subscription.
+// If the returned Go channel closes, subscribe again to receive further changes.
 func (l *Listener) Subscribe(ctx context.Context, channel, payload string) (<-chan struct{}, func(), error) {
 	if !slices.Contains(l.channels, channel) {
 		return nil, nil, fmt.Errorf("unregistered PostgreSQL notification channel %q", channel)
@@ -68,7 +69,7 @@ func (l *Listener) Subscribe(ctx context.Context, channel, payload string) (<-ch
 				return nil, nil, err
 			}
 		}
-		// The shared connection lives until its last subscriber leaves.
+		// One subscriber must not cancel the connection used by the others.
 		listenCtx, stop := context.WithCancel(context.Background())
 		session = &listenerSession{conn: conn, cancel: stop, subscribers: make(map[subscriptionKey]map[chan struct{}]struct{})}
 		l.session = session
@@ -133,7 +134,7 @@ func (l *Listener) listen(ctx context.Context, session *listenerSession) {
 }
 
 func (l *Listener) notify(session *listenerSession, channel, payload string) {
-	// Sending and closing must hold the same lock.
+	// Keep unsubscribe from closing a channel while this loop sends to it.
 	l.mu.Lock()
 	defer l.mu.Unlock()
 	for changes := range session.subscribers[subscriptionKey{channel: channel, payload: payload}] {
