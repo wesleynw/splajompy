@@ -446,6 +446,7 @@ func (q *Queries) InsertEmailVerification(ctx context.Context, email string) err
 const insertEmailVerificationRequest = `-- name: InsertEmailVerificationRequest :exec
 INSERT INTO email_verify_requests (email, code, created_at)
 VALUES ($1, $2, $3)
+ON CONFLICT (email) DO UPDATE SET code = $2, created_at = $3
 `
 
 type InsertEmailVerificationRequestParams struct {

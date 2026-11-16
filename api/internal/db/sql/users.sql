@@ -216,7 +216,8 @@ LIMIT $2;
 
 -- name: InsertEmailVerificationRequest :exec
 INSERT INTO email_verify_requests (email, code, created_at)
-VALUES ($1, $2, $3);
+VALUES ($1, $2, $3)
+ON CONFLICT (email) DO UPDATE SET code = $2, created_at = $3;
 
 -- name: SelectEmailVerificationRequestForEmail :one
 SELECT *

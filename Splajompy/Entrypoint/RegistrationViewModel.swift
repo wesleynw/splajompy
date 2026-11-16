@@ -23,9 +23,11 @@ class RegistrationViewModel {
   var email: String = ""
   var emailVerificationCode: String = ""
   private(set) var emailValidation: FieldState = .unchanged
+  private(set) var emailCodeValidation: FieldState = .unchanged
 
   private(set) var isSendingVerificationEmail: Bool = false
   private(set) var isVerifyingEmailCode: Bool = false
+  private(set) var isRegisteringAccount: Bool = false
 
   var username: String = ""
   private(set) var usernameValidation: FieldState = .unchanged
@@ -66,10 +68,12 @@ class RegistrationViewModel {
     }
   }
 
-  func requestEmailVerification() async {
+  func setEmailVerificationCode() async {
     guard emailValidation == .valid, emailVerificationCode.count > 0 else {
       return
     }
+
+    self.emailCodeValidation = .pending
 
     isVerifyingEmailCode = true
     defer {
@@ -83,8 +87,8 @@ class RegistrationViewModel {
     switch result {
     case .success(_):
       path.append(OnboardingStep.usernameEntry)
-    case .failure(let failure):
-      alertText = failure.localizedDescription
+    case .failure(let error):
+      self.emailCodeValidation = .invalid(error.localizedDescription)
     }
 
   }
@@ -93,6 +97,10 @@ class RegistrationViewModel {
     guard username.count > 0 else {
       self.usernameValidation = .unchanged
       return
+    }
+
+    if usernameValidation == .valid {
+      self.path.append(OnboardingStep.passwordEntry)
     }
 
     usernameAvailableCheckTask?.cancel()
@@ -130,6 +138,11 @@ class RegistrationViewModel {
     if let passwordError = self.authService.validatePassword(self.password) {
       self.passwordValidation = .invalid(passwordError)
       return
+    }
+
+    isRegisteringAccount = true
+    defer {
+      isRegisteringAccount = false
     }
 
     // actually register

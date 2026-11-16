@@ -194,7 +194,7 @@ func (h *Handler) RequestEmailVerification(w http.ResponseWriter, r *http.Reques
 
 	err := h.svc.RequestEmailVerification(r.Context(), body.Email)
 	if errors.Is(err, ErrEmailInUse) {
-		utilities.HandleError(w, http.StatusConflict, err.Error())
+		utilities.HandleError(w, http.StatusConflict, "This email is already in use.")
 		return
 	} else if err != nil {
 		utilities.HandleError(w, http.StatusInternalServerError, err.Error())
@@ -218,7 +218,7 @@ func (h *Handler) VerifyEmail(w http.ResponseWriter, r *http.Request) {
 
 	err := h.svc.VerifyEmail(r.Context(), body.Email, body.Code)
 	if err != nil {
-		utilities.HandleError(w, http.StatusBadRequest, err.Error())
+		utilities.HandleError(w, http.StatusBadRequest, "Unable to verify with this code!")
 		return
 	}
 

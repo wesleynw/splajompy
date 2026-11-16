@@ -28,13 +28,19 @@ struct EmailEntryView: View {
             .textFieldStyle(.plain)
           #endif
           .focused($isFocused)
+          .onAppear {
+            isFocused = true
+          }
 
         if case .invalid(let error) = viewModel.emailValidation {
-          Text(error)
-            .padding()
-            .font(SJFont.body)
-            .foregroundStyle(.red.secondary)
-            .transition(.opacity)
+          HStack {
+            Image(systemName: "exclamationmark.triangle")
+            Text(error)
+              .font(SJFont.body)
+          }
+          .padding()
+          .frame(maxWidth: .infinity, alignment: .leading)
+          .background(.red.tertiary, in: RoundedRectangle(cornerRadius: 35))
         }
       }
       .animation(.default, value: viewModel.emailValidation)
@@ -45,40 +51,31 @@ struct EmailEntryView: View {
     .toolbar {
       #if os(macOS)
         ToolbarItem(placement: .confirmationAction) {
-          AsyncActionButton(
-            title: "Continue",
-            isLoading: viewModel.isSendingVerificationEmail,
-            isDisabled: viewModel.email.count == 0
-          ) {
-            await viewModel.setEmail()
-          }
+          continueButton
         }
       #endif
+
+      ToolbarItem(placement: .cancellationAction) {
+        CloseButton(dismiss: dismiss)
+      }
     }
     .pageTitle("Register")
     #if os(iOS)
       .safeAreaInset(edge: .bottom) {
-        Button {
-          Task {
-            await viewModel.setEmail()
-          }
-        } label: {
-          Text("Continue")
-          .font(SJFont.body)
-          .frame(maxWidth: .infinity)
-        }
-        .disabled(viewModel.email.count == 0)
-        .controlSize(.extraLarge)
-        .modify {
-          if #available(anyAppleOS 26, *) {
-            $0.buttonStyle(.glassProminent)
-          } else {
-            $0.buttonStyle(.borderedProminent)
-          }
-        }
-        .padding()
+        continueButton
       }
     #endif
+  }
+
+  @ContentBuilder
+  private var continueButton: some View {
+    AsyncActionButton(
+      title: "Continue",
+      isLoading: viewModel.isSendingVerificationEmail,
+      isDisabled: viewModel.email.count == 0
+    ) {
+      await viewModel.setEmail()
+    }
   }
 }
 

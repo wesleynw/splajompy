@@ -8,6 +8,8 @@ struct UsernameEntryView: View {
 
   var errorStyle: any ShapeStyle {
     switch viewModel.usernameValidation {
+    case .valid:
+      return .green.tertiary
     case .invalid(_):
       return .red.tertiary
     case .pending:
@@ -38,6 +40,9 @@ struct UsernameEntryView: View {
           .textFieldStyle(.plain)
         #endif
         .focused($isFocused)
+        .onAppear {
+          isFocused = true
+        }
         .onChange(of: viewModel.username) {
           Task {
             await viewModel.setUsername()
@@ -48,64 +53,49 @@ struct UsernameEntryView: View {
         if viewModel.usernameValidation == .pending {
           ProgressView()
             .controlSize(.small)
-          Text("Checking if username is available...")
-            .font(SJFont.body)
+          Text("Checking if username is available")
         } else if viewModel.usernameValidation == .valid {
           Image(systemName: "checkmark.circle.fill")
           Text("This username is available")
         } else if case .invalid(let error) = viewModel.usernameValidation {
           Image(systemName: "exclamationmark.triangle")
           Text(error)
-            .font(SJFont.body)
         }
       }
-      .padding(10)
+      .font(SJFont.body)
+      .padding()
       .frame(maxWidth: .infinity, alignment: .leading)
       .background(
         AnyShapeStyle(errorStyle),
         in: RoundedRectangle(cornerRadius: 35)
       )
     }
+    .pageTitle("Register")
     .animation(.default, value: viewModel.usernameValidation)
     .padding()
-    .onAppear {
-      isFocused = true
-    }
-    #if os(macOS)
-      .toolbar {
+    .toolbar {
+      #if os(macOS)
         ToolbarItem(placement: .confirmationAction) {
-          AsyncActionButton(
-            title: "Continue",
-            isLoading: false,
-            isDisabled: viewModel.usernameValidation != .valid
-          ) {
-            await viewModel.setUsername()
-          }
+          continueButton
         }
-      }
-    #elseif os(iOS)
+      #endif
+    }
+    #if os(iOS)
       .safeAreaInset(edge: .bottom) {
-        Button {
-          Task {
-            await viewModel.setUsername()
-          }
-        } label: {
-          Text("Continue")
-          .font(SJFont.body)
-          .frame(maxWidth: .infinity)
-        }
-        .disabled(viewModel.usernameValidation != .valid)
-        .controlSize(.extraLarge)
-        .modify {
-          if #available(anyAppleOS 26, *) {
-            $0.buttonStyle(.glassProminent)
-          } else {
-            $0.buttonStyle(.borderedProminent)
-          }
-        }
-        .padding()
+        continueButton
       }
     #endif
+  }
+
+  @ContentBuilder
+  private var continueButton: some View {
+    AsyncActionButton(
+      title: "Continue",
+      isLoading: false,
+      isDisabled: viewModel.usernameValidation != .valid
+    ) {
+      await viewModel.setUsername()
+    }
   }
 }
 

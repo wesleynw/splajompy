@@ -28,6 +28,7 @@ struct AsyncActionButton: View {
           }
         }
     }
+    .padding()
     .controlSize(.large)
     .modify {
       if #available(anyAppleOS 26, *) {

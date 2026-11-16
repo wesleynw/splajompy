@@ -12,8 +12,9 @@ struct EmailVerifyView: View {
         Text("Check your email")
           .font(SJFont.title)
 
-        Text("A code has been sent to ")
-          + Text("\(viewModel.email)").fontWeight(.bold)
+        Text("A code has been sent to \(viewModel.email)")
+          .font(SJFont.body)
+          .padding()
       }
       .padding()
 
@@ -33,46 +34,46 @@ struct EmailVerifyView: View {
           .textFieldStyle(.plain)
         #endif
         .focused($isFocused)
-    }
-    .padding()
-    .onAppear {
-      isFocused = true
-    }
-    #if os(macOS)
-      .toolbar {
-        ToolbarItem(placement: .confirmationAction) {
-          AsyncActionButton(
-            title: "Continue",
-            isLoading: viewModel.isVerifyingEmailCode,
-            isDisabled: viewModel.email.count == 0
-          ) {
-            await viewModel.requestEmailVerification()
-          }
+        .onAppear {
+          isFocused = true
         }
-      }
-    #elseif os(iOS)
-      .safeAreaInset(edge: .bottom) {
-        Button {
-          Task {
-            await viewModel.requestEmailVerification()
-          }
-        } label: {
-          Text("Continue")
-          .font(SJFont.body)
-          .frame(maxWidth: .infinity)
-        }
-        .disabled(viewModel.email.count == 0)
-        .controlSize(.extraLarge)
-        .modify {
-          if #available(anyAppleOS 26, *) {
-            $0.buttonStyle(.glassProminent)
-          } else {
-            $0.buttonStyle(.borderedProminent)
-          }
+
+      if case .invalid(let error) = viewModel.emailCodeValidation {
+        HStack {
+          Image(systemName: "exclamationmark.triangle")
+          Text(error)
+            .font(SJFont.body)
         }
         .padding()
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(.red.tertiary, in: RoundedRectangle(cornerRadius: 35))
+      }
+    }
+    .pageTitle("Register")
+    .padding()
+    .toolbar {
+      #if os(macOS)
+        ToolbarItem(placement: .confirmationAction) {
+          continueButton
+        }
+      #endif
+    }
+    #if os(iOS)
+      .safeAreaInset(edge: .bottom) {
+        continueButton
       }
     #endif
+  }
+
+  @ContentBuilder
+  var continueButton: some View {
+    AsyncActionButton(
+      title: "Continue",
+      isLoading: viewModel.isVerifyingEmailCode,
+      isDisabled: viewModel.emailVerificationCode.count == 0
+    ) {
+      await viewModel.setEmailVerificationCode()
+    }
   }
 }
 

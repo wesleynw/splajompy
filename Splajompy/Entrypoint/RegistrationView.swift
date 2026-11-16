@@ -26,23 +26,5 @@ struct RegistrationView: View {
         Text(errorStr)
       }
     )
-    #if os(macOS)
-      .toolbar {
-        ToolbarItem(placement: .cancellationAction) {
-          Button {
-            dismiss()
-          } label: {
-            Text("Close")
-            .font(SJFont.body)
-          }
-          .controlSize(.large)
-          .modify {
-            if #available(anyAppleOS 26, *) {
-              $0.buttonStyle(.glass)
-            }
-          }
-        }
-      }
-    #endif
   }
 }
