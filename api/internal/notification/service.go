@@ -90,12 +90,13 @@ func (s *Service) GetUserUnreadNotificationCount(ctx context.Context, user model
 	return s.notificationRepository.GetUserUnreadNotificationCount(ctx, user.UserID)
 }
 
-// WatchUnreadNotificationCount calls send only from the caller's goroutine.
+// WatchUnreadNotificationCount sends each count from the goroutine that calls it.
 func (s *Service) WatchUnreadNotificationCount(ctx context.Context, user models.PublicUser, send func(int) error) (err error) {
 	parent := ctx
 	ctx, cancel := context.WithTimeout(ctx, unreadCountStreamDuration)
 	defer cancel()
 	defer func() {
+		// End normally at our five minute limit. Keep client deadlines and other errors.
 		if errors.Is(err, context.DeadlineExceeded) && ctx.Err() == context.DeadlineExceeded && parent.Err() == nil {
 			err = nil
 		}
@@ -106,7 +107,7 @@ func (s *Service) WatchUnreadNotificationCount(ctx context.Context, user models.
 	}
 	defer unsubscribe()
 
-	// Subscribe before reading the snapshot so concurrent writes cannot be missed.
+	// Start listening before reading the count so a change during the read is not lost.
 	count, err := s.GetUserUnreadNotificationCount(ctx, user)
 	if err != nil {
 		return fmt.Errorf("%w: %w", errUnreadCountUnavailable, err)
@@ -121,6 +122,7 @@ func (s *Service) WatchUnreadNotificationCount(ctx context.Context, user models.
 		case <-ctx.Done():
 			return ctx.Err()
 		case <-heartbeat.C:
+			// Send the last count again. A heartbeat does not need a database read.
 		case _, ok := <-updates:
 			if !ok {
 				return errUnreadCountUnavailable

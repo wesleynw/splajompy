@@ -52,8 +52,8 @@ var (
 // NotificationServiceClient is a client for the splajompy.v1.NotificationService service.
 type NotificationServiceClient interface {
 	GetUnreadNotificationCount(context.Context, *v1.GetUnreadNotificationCountRequest) (*v1.GetUnreadNotificationCountResponse, error)
-	// Sends a count snapshot on connection, after changes, and every 30 seconds.
-	// Streams close after five minutes. Reconnect to get a new snapshot.
+	// Sends the current count when the stream opens, after a change, and every 30 seconds.
+	// The server ends the stream after five minutes. Reconnect to get the current count.
 	WatchUnreadNotificationCount(context.Context, *v1.WatchUnreadNotificationCountRequest) (NotificationServiceWatchUnreadNotificationCountClientStream, error)
 }
 
@@ -87,8 +87,8 @@ func (s NotificationServiceWatchUnreadNotificationCountClientStream) Close() err
 // NotificationServiceHandler is an implementation of the splajompy.v1.NotificationService service.
 type NotificationServiceHandler interface {
 	GetUnreadNotificationCount(context.Context, *v1.GetUnreadNotificationCountRequest) (*v1.GetUnreadNotificationCountResponse, error)
-	// Sends a count snapshot on connection, after changes, and every 30 seconds.
-	// Streams close after five minutes. Reconnect to get a new snapshot.
+	// Sends the current count when the stream opens, after a change, and every 30 seconds.
+	// The server ends the stream after five minutes. Reconnect to get the current count.
 	WatchUnreadNotificationCount(context.Context, *v1.WatchUnreadNotificationCountRequest, NotificationServiceWatchUnreadNotificationCountServerStream) error
 }
 
