@@ -28,28 +28,28 @@ func (changes countChanges) Subscribe(context.Context, string, string) (<-chan s
 }
 
 func TestUnreadCountStreamDeadline(t *testing.T) {
+	queryFailure := errors.New("query failed")
 	for _, test := range []struct {
-		name    string
-		timeout time.Duration
-		err     error
+		name     string
+		timeout  time.Duration
+		queryErr error
+		wantErr  error
+		elapsed  time.Duration
 	}{
-		{name: "rotation"},
-		{name: "client deadline", timeout: time.Minute},
-		{name: "query failure at rotation", err: errors.New("query failed")},
+		{name: "stream expires", timeout: time.Hour, elapsed: 5 * time.Minute},
+		{name: "client deadline", timeout: time.Minute, wantErr: context.DeadlineExceeded, elapsed: time.Minute},
+		{name: "query failure at expiry", timeout: time.Hour, queryErr: queryFailure, wantErr: queryFailure, elapsed: 5 * time.Minute},
 	} {
 		t.Run(test.name, func(t *testing.T) {
+			// The test clock advances to the deadline without a real wait.
 			synctest.Test(t, func(t *testing.T) {
-				ctx := t.Context()
-				if test.timeout > 0 {
-					var cancel context.CancelFunc
-					ctx, cancel = context.WithTimeout(ctx, test.timeout)
-					defer cancel()
-				}
+				ctx, cancel := context.WithTimeout(t.Context(), test.timeout)
+				defer cancel()
 				svc := &Service{notificationRepository: Store{
 					querier: countQueries{count: func(ctx context.Context) (int64, error) {
 						<-ctx.Done()
-						if test.err != nil {
-							return 0, test.err
+						if test.queryErr != nil {
+							return 0, test.queryErr
 						}
 						return 0, ctx.Err()
 					}},
@@ -60,16 +60,8 @@ func TestUnreadCountStreamDeadline(t *testing.T) {
 					t.Fatal("blocked count query sent a response")
 					return nil
 				})
-				if test.err != nil {
-					require.ErrorIs(t, err, test.err)
-					require.Equal(t, 5*time.Minute, time.Since(start))
-				} else if test.timeout > 0 {
-					require.ErrorIs(t, err, context.DeadlineExceeded)
-					require.Equal(t, test.timeout, time.Since(start))
-				} else {
-					require.NoError(t, err)
-					require.Equal(t, 5*time.Minute, time.Since(start))
-				}
+				require.ErrorIs(t, err, test.wantErr)
+				require.Equal(t, test.elapsed, time.Since(start))
 			})
 		})
 	}
