@@ -121,7 +121,7 @@ func main() {
 
 	rpcServer := connect.NewServer(interceptor.AppVersion, interceptor.Auth(q), validate.NewServerInterceptor())
 	splajompyv1connect.RegisterNotificationServiceHandler(rpcServer, notificationConnectHandler)
-	connecthttp.Mount(mux, rpcServer)
+	connecthttp.Mount(mux, rpcServer, connecthttp.WithReadMaxBytes(4*1024*1024))
 
 	routeTelemetryHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		mux.ServeHTTP(w, r)
