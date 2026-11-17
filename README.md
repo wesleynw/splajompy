@@ -9,7 +9,8 @@
 [![API Build](https://github.com/wesleynw/splajompy/actions/workflows/go.yml/badge.svg)](https://github.com/wesleynw/splajompy/actions/workflows/go.yml)
 
 ## What is Splajompy?
-Splajompy /splʌd͡ʒɑmpi/ is a free, open-source social media application for iOS. 
+Nobody is entirely sure, but if you consult the GitHub README, it will tell you that:
+> Splajompy /splʌd͡ʒɑmpi/ is a free, open-source social media application for iOS. 
 
 Features:
 - Posts, comments, likes, images, polls
@@ -26,12 +27,10 @@ Originally a full-stack Typescript application, Splajompy is now a native SwiftU
 [iOS and macOS app download](https://apps.apple.com/us/app/splajompy/id6744034321)
 
 ## Architecture
-The API follows a domain-scoped architecture. Each domain (e.g. `post`, `user`, `auth`) lives in its own package in `internal/` and implements its own store, service, and handler.
+The API follows a domain-scoped architecture. Each domain (e.g. `post`, `user`, `auth`) is its own package in `internal/` and implements its own store, service, and handler.
 
 ### Routing
-REST handlers implement `RESTRegistrar`. Connect handlers implement `RPCRegistrar`. The `routes` package registers both on the application HTTP mux.
-
-Connect handlers register public or authenticated services. Services set their own work deadlines.
+Packages that expose REST API endpoints implement `RESTRegistrar`, and packages the expose RPC endpoints implement `RPCRegistrar`, both of which expose callbacks to add public and authenticated endpoints. The `server` package registers endpoints to a request multiplexer bound to the global HTTP server.
 
 ### Store
 `Store`s are currently a thin layer over the database, but exist as a natural place to add caching per domain in the future.
@@ -69,11 +68,6 @@ sqlc generate -f api/internal/db/sqlc.yaml
 
 Install [Buf](https://buf.build/docs/cli/installation/), then run `go generate ./...` from `api/` to generate Go code from `proto/`. Generator versions are managed in `api/go.mod`.
 
-## DB Migrations
-Migrations are handled with `golang-migrate`. To make changes to the DB, follow the linked guide below. This usually involves writing up and down migrations, which you can first push to the development DB, and then to production when new API code is merged.
-
-[Database migrations in Go with golang-migrate](https://betterstack.com/community/guides/scaling-go/golang-migrate)
-
 ## Testing
 Run the test suite from the `api` directory:
 ```bash
@@ -84,7 +78,7 @@ Docker must be installed as tests spin up a Postgres container.
 
 ## Linting
 
-### Go Code
+### Go
 Before pushing Go code changes, run golangci-lint to check for issues:
 ```bash
 # install golangci-lint
@@ -95,7 +89,7 @@ cd api
 golangci-lint run
 ```
 
-### Swift Code
+### Swift
 Before pushing Swift code changes, run the following command to format your code:
 ```bash
 xcrun swift-format --in-place --recursive .
