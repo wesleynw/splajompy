@@ -36,8 +36,8 @@ const (
 	httpAddress       = ":8080"
 	readHeaderTimeout = 5 * time.Second
 	readTimeout       = 30 * time.Second
-	writeTimeout      = 6 * time.Minute
-	idleTimeout       = time.Minute
+	writeTimeout      = time.Minute
+	idleTimeout       = 2 * time.Minute
 )
 
 func main() {
