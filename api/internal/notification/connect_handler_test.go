@@ -31,15 +31,15 @@ func setupNotificationHandler(t *testing.T) notificationHandlerTestEnv {
 	t.Helper()
 	db := testutil.StartPostgres(t)
 	svc := notification.NewService(db.NotificationStore, db.PostRepository, &db.CommentRepository, db.UserRepository, db.BucketRepository, apns.Client{})
-	mux := http.NewServeMux()
+	httpServer, mux := server.NewServer()
 	server.RegisterREST(mux, db.Queries, notification.NewHandler(svc))
 	server.RegisterRPC(mux, db.Queries, notification.NewConnectHandler(svc))
-	server := httptest.NewUnstartedServer(mux)
-	server.EnableHTTP2 = true
-	server.Config.WriteTimeout = time.Minute
-	server.StartTLS()
-	t.Cleanup(server.Close)
-	client := splajompyv1connect.NewNotificationServiceClient(connect.NewClient(connecthttp.NewTransport(server.Client(), server.URL)))
+	testServer := httptest.NewUnstartedServer(httpServer.Handler)
+	testServer.EnableHTTP2 = true
+	testServer.Config.WriteTimeout = httpServer.WriteTimeout
+	testServer.StartTLS()
+	t.Cleanup(testServer.Close)
+	client := splajompyv1connect.NewNotificationServiceClient(connect.NewClient(connecthttp.NewTransport(testServer.Client(), testServer.URL)))
 	owner := testutil.CreateTestUser(t, db.UserRepository, "owner")
 	require.NoError(t, db.UserRepository.CreateSession(t.Context(), "owner-token", owner.UserID, time.Now().UTC().Add(time.Hour)))
 	ctx, cancel := context.WithTimeout(t.Context(), 10*time.Second)

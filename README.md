@@ -34,6 +34,8 @@ Packages that expose REST API endpoints implement `RESTRegistrar`, and packages 
 
 Keep all `Send` calls in the stream's handler goroutine.
 
+Set each streaming procedure's write limit in `server.RegisterRPC` with `middleware.StreamWriteTimeout`. The limit applies to each write and flush. Waiting between messages does not count toward it.
+
 ### Store
 `Store`s are currently a thin layer over the database, but exist as a natural place to add caching per domain in the future.
 
