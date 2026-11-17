@@ -25,7 +25,7 @@ func setupTest(t *testing.T) userServiceTestEnv {
 	db := testutil.StartPostgres(t)
 
 	notificationService := notification.NewService(db.NotificationStore, db.PostRepository, &db.CommentRepository, db.UserRepository, db.BucketRepository, apns.Client{})
-	svc := user.NewUserService(db.UserRepository, *notificationService, nil)
+	svc := user.NewUserService(db.UserRepository, notificationService, nil)
 
 	return userServiceTestEnv{
 		svc:               svc,
