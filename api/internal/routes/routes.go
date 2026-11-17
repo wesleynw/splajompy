@@ -2,6 +2,7 @@ package routes
 
 import (
 	"net/http"
+	"time"
 
 	"connectrpc.com/connect/v2"
 	"connectrpc.com/connect/v2/connecthttp"
@@ -11,6 +12,7 @@ import (
 	"splajompy.com/api/v2/internal/middleware"
 )
 
+// rpcMaxReadBytes limits each decompressed request message to 4 MiB.
 const rpcMaxReadBytes = 4 * 1024 * 1024
 
 type RESTRegistrar interface {
@@ -34,7 +36,7 @@ func RegisterREST(mux *http.ServeMux, q *queries.Queries, registrars ...RESTRegi
 	}
 }
 
-func RegisterRPC(mux *http.ServeMux, q *queries.Queries, registrars ...RPCRegistrar) {
+func RegisterRPC(mux *http.ServeMux, q *queries.Queries, writeTimeout time.Duration, registrars ...RPCRegistrar) {
 	public := connect.NewServer(interceptor.AppVersion, validate.NewServerInterceptor())
 	withAuth := connect.NewServer(interceptor.AppVersion, interceptor.Auth(q), validate.NewServerInterceptor())
 
@@ -42,6 +44,28 @@ func RegisterRPC(mux *http.ServeMux, q *queries.Queries, registrars ...RPCRegist
 		registrar.RegisterRPCRoutes(public, withAuth)
 	}
 
-	connecthttp.Mount(mux, public, connecthttp.WithReadMaxBytes(rpcMaxReadBytes))
-	connecthttp.Mount(mux, withAuth, connecthttp.WithReadMaxBytes(rpcMaxReadBytes))
+	for _, server := range []*connect.Server{public, withAuth} {
+		streaming := make(map[string]bool)
+		for spec := range server.Specs() {
+			streaming[spec.Procedure] = spec.StreamType != connect.StreamTypeUnary
+		}
+		connecthttp.Mount(rpcMux{
+			ServeMux:     mux,
+			streaming:    streaming,
+			writeTimeout: writeTimeout,
+		}, server, connecthttp.WithReadMaxBytes(rpcMaxReadBytes))
+	}
+}
+
+type rpcMux struct {
+	*http.ServeMux
+	streaming    map[string]bool
+	writeTimeout time.Duration
+}
+
+func (mux rpcMux) Handle(pattern string, handler http.Handler) {
+	if mux.streaming[pattern] {
+		handler = middleware.StreamWriteTimeout(handler, mux.writeTimeout)
+	}
+	mux.ServeMux.Handle(pattern, handler)
 }

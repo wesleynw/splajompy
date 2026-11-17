@@ -31,13 +31,12 @@ import (
 	"github.com/resend/resend-go/v3"
 )
 
-// defaults from https://blog.cloudflare.com/exposing-go-on-the-internet/#timeouts
 const (
 	httpAddress       = ":8080"
 	readHeaderTimeout = 5 * time.Second
 	readTimeout       = 30 * time.Second
-	writeTimeout      = 6 * time.Minute
-	idleTimeout       = time.Minute
+	writeTimeout      = time.Minute
+	idleTimeout       = 2 * time.Minute
 )
 
 func main() {
@@ -123,7 +122,7 @@ func main() {
 
 	mux := http.NewServeMux()
 	routes.RegisterREST(mux, q, postHandler, commentHandler, userHandler, notificationHandler, authHandler, statsHandler)
-	routes.RegisterRPC(mux, q, notificationConnectHandler, statsConnectHandler)
+	routes.RegisterRPC(mux, q, writeTimeout, notificationConnectHandler, statsConnectHandler)
 
 	routeTelemetryHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		mux.ServeHTTP(w, r)
