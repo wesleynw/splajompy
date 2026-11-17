@@ -35,7 +35,7 @@ func RegisterREST(mux *http.ServeMux, q *queries.Queries, registrars ...RESTRegi
 	}
 }
 
-func NewRPCHandler(q *queries.Queries, registrars ...RPCRegistrar) http.Handler {
+func RegisterRPC(mux *http.ServeMux, q *queries.Queries, registrars ...RPCRegistrar) {
 	public := connect.NewServer(interceptor.AppVersion, validate.NewServerInterceptor())
 	withAuth := connect.NewServer(interceptor.AppVersion, interceptor.Auth(q), validate.NewServerInterceptor())
 
@@ -43,9 +43,7 @@ func NewRPCHandler(q *queries.Queries, registrars ...RPCRegistrar) http.Handler 
 		registrar.RegisterRPCRoutes(public, withAuth)
 	}
 
-	mux := http.NewServeMux()
 	for _, server := range []*connect.Server{public, withAuth} {
 		connecthttp.Mount(mux, server, connecthttp.WithReadMaxBytes(rpcMaxReadBytes))
 	}
-	return mux
 }

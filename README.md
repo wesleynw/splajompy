@@ -29,9 +29,9 @@ Originally a full-stack Typescript application, Splajompy is now a native SwiftU
 The API follows a domain-scoped architecture. Each domain (e.g. `post`, `user`, `auth`) lives in its own package in `internal/` and implements its own store, service, and handler.
 
 ### Routing
-REST handlers implement `RESTRegistrar`. Connect handlers implement `RPCRegistrar`. The `routes` package registers REST routes and builds a Connect HTTP handler with public and authenticated services.
+REST handlers implement `RESTRegistrar`. Connect handlers implement `RPCRegistrar`. The `routes` package registers both on the application HTTP mux.
 
-Mount the Connect handler on the application HTTP mux in `main.go`. Services set their own work deadlines.
+Connect handlers register public or authenticated services. Services set their own work deadlines.
 
 ### Store
 `Store`s are currently a thin layer over the database, but exist as a natural place to add caching per domain in the future.
