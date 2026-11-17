@@ -31,7 +31,7 @@ The API follows a domain-scoped architecture. Each domain (e.g. `post`, `user`, 
 ### Routing
 REST handlers implement `RESTRegistrar`. Connect handlers implement `RPCRegistrar`. The `routes` package registers REST routes and builds a Connect HTTP handler with public and authenticated services.
 
-Mount the Connect handler on the application HTTP mux in `main.go`. Use `middleware.StreamWriteTimeout` for each streaming procedure with its own write limit. Waiting between messages does not use that write allowance. Services set their own work deadlines.
+Mount the Connect handler on the application HTTP mux in `main.go`. Services set their own work deadlines.
 
 ### Store
 `Store`s are currently a thin layer over the database, but exist as a natural place to add caching per domain in the future.
