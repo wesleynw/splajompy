@@ -2,10 +2,12 @@ package routes
 
 import (
 	"net/http"
+	"time"
 
 	"connectrpc.com/connect/v2"
 	"connectrpc.com/connect/v2/connecthttp"
 	"connectrpc.com/validate"
+	"splajompy.com/api/v2/gen/splajompy/v1/splajompyv1connect"
 	"splajompy.com/api/v2/internal/db/queries"
 	"splajompy.com/api/v2/internal/interceptor"
 	"splajompy.com/api/v2/internal/middleware"
@@ -13,6 +15,8 @@ import (
 
 // rpcMaxReadBytes limits each decompressed request message to 4 MiB.
 const rpcMaxReadBytes = 4 * 1024 * 1024
+
+const notificationStreamWriteTimeout = time.Minute
 
 type RESTRegistrar interface {
 	RegisterRESTRoutes(public, withAuth func(string, func(http.ResponseWriter, *http.Request)))
@@ -43,7 +47,11 @@ func RegisterRPC(mux *http.ServeMux, q *queries.Queries, registrars ...RPCRegist
 		registrar.RegisterRPCRoutes(public, withAuth)
 	}
 
+	rpcMux := http.NewServeMux()
 	for _, server := range []*connect.Server{public, withAuth} {
-		connecthttp.Mount(mux, server, connecthttp.WithReadMaxBytes(rpcMaxReadBytes))
+		connecthttp.Mount(rpcMux, server, connecthttp.WithReadMaxBytes(rpcMaxReadBytes))
 	}
+	mux.Handle(splajompyv1connect.NotificationServiceWatchUnreadNotificationCountProcedure,
+		middleware.StreamWriteTimeout(rpcMux, notificationStreamWriteTimeout))
+	mux.Handle("/", rpcMux)
 }
