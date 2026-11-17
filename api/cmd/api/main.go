@@ -33,10 +33,11 @@ import (
 
 // defaults from https://blog.cloudflare.com/exposing-go-on-the-internet/#timeouts
 const (
-	httpAddress  = ":8080"
-	readTimeout  = 30 * time.Second
-	writeTimeout = time.Minute * 6
-	idleTimeout  = time.Minute * 5
+	httpAddress       = ":8080"
+	readHeaderTimeout = 5 * time.Second
+	readTimeout       = 30 * time.Second
+	writeTimeout      = 6 * time.Minute
+	idleTimeout       = time.Minute
 )
 
 func main() {
@@ -142,12 +143,13 @@ func main() {
 
 	httpHandler := otelhttp.NewHandler(loggingHandler, "/")
 	httpServer := &http.Server{
-		Addr:         httpAddress,
-		Handler:      httpHandler,
-		Protocols:    new(http.Protocols),
-		ReadTimeout:  readTimeout,
-		WriteTimeout: writeTimeout,
-		IdleTimeout:  idleTimeout,
+		Addr:              httpAddress,
+		Handler:           httpHandler,
+		Protocols:         new(http.Protocols),
+		ReadHeaderTimeout: readHeaderTimeout,
+		ReadTimeout:       readTimeout,
+		WriteTimeout:      writeTimeout,
+		IdleTimeout:       idleTimeout,
 	}
 	httpServer.Protocols.SetHTTP1(true)
 	httpServer.Protocols.SetUnencryptedHTTP2(true)
