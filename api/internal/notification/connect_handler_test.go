@@ -16,7 +16,7 @@ import (
 	"splajompy.com/api/v2/internal/interceptor"
 	"splajompy.com/api/v2/internal/models"
 	"splajompy.com/api/v2/internal/notification"
-	"splajompy.com/api/v2/internal/routes"
+	"splajompy.com/api/v2/internal/server"
 	"splajompy.com/api/v2/internal/testutil"
 )
 
@@ -24,7 +24,7 @@ func TestGetUnreadNotificationCount(t *testing.T) {
 	db := testutil.StartPostgres(t)
 	svc := notification.NewService(db.NotificationStore, db.PostRepository, &db.CommentRepository, db.UserRepository, db.BucketRepository, apns.Client{})
 	mux := http.NewServeMux()
-	routes.RegisterREST(mux, db.Queries, notification.NewHandler(svc))
+	server.RegisterREST(mux, db.Queries, notification.NewHandler(svc))
 	rpcServer := connect.NewServer(interceptor.AppVersion, interceptor.Auth(db.Queries), validate.NewServerInterceptor())
 	splajompyv1connect.RegisterNotificationServiceHandler(rpcServer, notification.NewConnectHandler(svc))
 	connecthttp.Mount(mux, rpcServer)
