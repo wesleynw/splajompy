@@ -33,7 +33,7 @@ func setupNotificationHandler(t *testing.T) notificationHandlerTestEnv {
 	svc := notification.NewService(db.NotificationStore, db.PostRepository, &db.CommentRepository, db.UserRepository, db.BucketRepository, apns.Client{})
 	mux := http.NewServeMux()
 	routes.RegisterREST(mux, db.Queries, notification.NewHandler(svc))
-	routes.RegisterRPC(mux, db.Queries, time.Minute, notification.NewConnectHandler(svc))
+	routes.RegisterRPC(mux, db.Queries, notification.NewConnectHandler(svc))
 	server := httptest.NewUnstartedServer(mux)
 	server.EnableHTTP2 = true
 	server.Config.WriteTimeout = time.Minute
