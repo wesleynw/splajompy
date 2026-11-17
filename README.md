@@ -33,6 +33,8 @@ REST handlers implement `RESTRegistrar`. Connect handlers implement `RPCRegistra
 
 Connect handlers register public or authenticated services. Services set their own work deadlines.
 
+Set each streaming procedure's write limit in `routes.RegisterRPC` with `middleware.StreamWriteTimeout`. The limit applies to each write and flush. Waiting between messages does not count toward it.
+
 ### Store
 `Store`s are currently a thin layer over the database, but exist as a natural place to add caching per domain in the future.
 
