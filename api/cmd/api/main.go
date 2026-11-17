@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/exaring/otelpgx"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
@@ -17,8 +18,10 @@ import (
 	"splajompy.com/api/v2/internal/comment"
 	"splajompy.com/api/v2/internal/db/queries"
 	"splajompy.com/api/v2/internal/like"
+	"splajompy.com/api/v2/internal/middleware"
 	"splajompy.com/api/v2/internal/notification"
 	"splajompy.com/api/v2/internal/post"
+	"splajompy.com/api/v2/internal/routes"
 	"splajompy.com/api/v2/internal/stats"
 	"splajompy.com/api/v2/internal/user"
 	"splajompy.com/api/v2/internal/utilities"
@@ -26,9 +29,14 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
 	"github.com/resend/resend-go/v3"
+)
 
-	"splajompy.com/api/v2/internal/handler"
-	"splajompy.com/api/v2/internal/middleware"
+const (
+	httpAddress       = ":8080"
+	readHeaderTimeout = 5 * time.Second
+	readTimeout       = 30 * time.Second
+	writeTimeout      = time.Minute
+	idleTimeout       = 2 * time.Minute
 )
 
 func main() {
@@ -110,18 +118,13 @@ func main() {
 	authHandler := auth.NewHandler(authService)
 	statsService := stats.NewService(statsRepository)
 	statsHandler := stats.NewHandler(statsService)
-
-	h := handler.NewHandler(
-		[]handler.RESTRegistrar{postHandler, commentHandler, userHandler, notificationHandler, authHandler, statsHandler},
-		[]handler.ConnectRegistrar{notificationConnectHandler},
-	)
+	statsConnectHandler := stats.NewConnectHandler(statsService)
 
 	mux := http.NewServeMux()
+	routes.RegisterREST(mux, q, postHandler, commentHandler, userHandler, notificationHandler, authHandler, statsHandler)
+	routes.RegisterRPC(mux, q, notificationConnectHandler, statsConnectHandler)
 
-	h.RegisterRESTRoutes(mux, q)
-	h.RegisterConnectRoutes(mux, q)
-
-	routedMux := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	routeTelemetryHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		mux.ServeHTTP(w, r)
 		span := trace.SpanFromContext(r.Context())
 		if r.Pattern != "" {
@@ -135,19 +138,23 @@ func main() {
 		}
 	})
 
-	wrappedHandler := middleware.Logger(routedMux)
+	loggingHandler := middleware.Logger(routeTelemetryHandler)
 
-	httpHandler := otelhttp.NewHandler(wrappedHandler, "/")
-	server := &http.Server{
-		Addr:      ":8080",
-		Handler:   httpHandler,
-		Protocols: new(http.Protocols),
+	httpHandler := otelhttp.NewHandler(loggingHandler, "/")
+	httpServer := &http.Server{
+		Addr:              httpAddress,
+		Handler:           httpHandler,
+		Protocols:         new(http.Protocols),
+		ReadHeaderTimeout: readHeaderTimeout,
+		ReadTimeout:       readTimeout,
+		WriteTimeout:      writeTimeout,
+		IdleTimeout:       idleTimeout,
 	}
-	server.Protocols.SetHTTP1(true)
-	server.Protocols.SetUnencryptedHTTP2(true)
+	httpServer.Protocols.SetHTTP1(true)
+	httpServer.Protocols.SetUnencryptedHTTP2(true)
 
-	log.Printf("Server starting on port %d\n", 8080)
-	if err := server.ListenAndServe(); err != nil {
+	log.Printf("Server starting on %s\n", httpServer.Addr)
+	if err := httpServer.ListenAndServe(); err != nil {
 		log.Fatalf("server failed to start: %v", err)
 	}
 }
