@@ -122,7 +122,8 @@ func main() {
 
 	mux := http.NewServeMux()
 	routes.RegisterREST(mux, q, postHandler, commentHandler, userHandler, notificationHandler, authHandler, statsHandler)
-	routes.RegisterRPC(mux, q, writeTimeout, notificationConnectHandler, statsConnectHandler)
+	rpcHandler := routes.NewRPCHandler(q, notificationConnectHandler, statsConnectHandler)
+	mux.Handle("/", rpcHandler)
 
 	routeTelemetryHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		mux.ServeHTTP(w, r)
