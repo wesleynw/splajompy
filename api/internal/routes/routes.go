@@ -1,0 +1,47 @@
+package routes
+
+import (
+	"net/http"
+
+	"connectrpc.com/connect/v2"
+	"connectrpc.com/connect/v2/connecthttp"
+	"connectrpc.com/validate"
+	"splajompy.com/api/v2/internal/db/queries"
+	"splajompy.com/api/v2/internal/interceptor"
+	"splajompy.com/api/v2/internal/middleware"
+)
+
+const rpcMaxReadBytes = 4 * 1024 * 1024
+
+type RESTRegistrar interface {
+	RegisterRESTRoutes(public, withAuth func(string, func(http.ResponseWriter, *http.Request)))
+}
+
+type RPCRegistrar interface {
+	RegisterRPCRoutes(public, withAuth *connect.Server)
+}
+
+func RegisterREST(mux *http.ServeMux, q *queries.Queries, registrars ...RESTRegistrar) {
+	public := func(pattern string, handler func(http.ResponseWriter, *http.Request)) {
+		mux.Handle(pattern, middleware.AppVersion(http.HandlerFunc(handler)))
+	}
+	auth := middleware.AuthMiddleware(q)
+	withAuth := func(pattern string, handler func(http.ResponseWriter, *http.Request)) {
+		mux.Handle(pattern, middleware.AppVersion(auth(http.HandlerFunc(handler))))
+	}
+	for _, registrar := range registrars {
+		registrar.RegisterRESTRoutes(public, withAuth)
+	}
+}
+
+func RegisterRPC(mux *http.ServeMux, q *queries.Queries, registrars ...RPCRegistrar) {
+	public := connect.NewServer(interceptor.AppVersion, validate.NewServerInterceptor())
+	withAuth := connect.NewServer(interceptor.AppVersion, interceptor.Auth(q), validate.NewServerInterceptor())
+
+	for _, registrar := range registrars {
+		registrar.RegisterRPCRoutes(public, withAuth)
+	}
+
+	connecthttp.Mount(mux, public, connecthttp.WithReadMaxBytes(rpcMaxReadBytes))
+	connecthttp.Mount(mux, withAuth, connecthttp.WithReadMaxBytes(rpcMaxReadBytes))
+}
