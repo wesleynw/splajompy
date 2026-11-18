@@ -77,6 +77,16 @@ func (s *Service) Register(ctx context.Context, email string, username string, p
 		return nil, ErrEmailTaken
 	}
 
+	if utilities.IsAppUpdatedToVersion(ctx, "v1.13.4") {
+		isEmailVerified, err := s.userRepository.GetIsEmailVerified(ctx, email)
+		if err != nil {
+			return nil, err
+		}
+		if !isEmailVerified {
+			return nil, ErrEmailVerificationFailed
+		}
+	}
+
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), 10)
 	if err != nil {
 		return nil, err

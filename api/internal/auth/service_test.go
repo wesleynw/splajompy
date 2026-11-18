@@ -1,6 +1,7 @@
 package auth_test
 
 import (
+	"context"
 	"os"
 	"testing"
 	"testing/synctest"
@@ -12,6 +13,7 @@ import (
 	"splajompy.com/api/v2/internal/email"
 	"splajompy.com/api/v2/internal/testutil"
 	"splajompy.com/api/v2/internal/user"
+	"splajompy.com/api/v2/internal/utilities"
 )
 
 type authServiceTestEnv struct {
@@ -119,4 +121,21 @@ func TestVerifyEmail_Succeeds(t *testing.T) {
 
 	err = env.svc.VerifyEmail(t.Context(), "test0@splajompy.com", code)
 	assert.NoError(t, err)
+}
+
+func TestRegister_SucceedsWithoutEmailVerification_OnOldVersion(t *testing.T) {
+	env := setupAuthServiceTest(t)
+
+	ctx := context.WithValue(t.Context(), utilities.AppVersionKey, "v1.13.0")
+
+	_, err := env.svc.Register(ctx, "user0@splajompy.com", "user0", "password123")
+	assert.NoError(t, err)
+}
+
+func TestRegister_FailsWithoutEmailVerification(t *testing.T) {
+	env := setupAuthServiceTest(t)
+
+	ctx := context.WithValue(t.Context(), utilities.AppVersionKey, "v1.13.4")
+	_, err := env.svc.Register(ctx, "user0@splajompy.com", "user0", "password123")
+	assert.ErrorIs(t, err, auth.ErrEmailVerificationFailed)
 }

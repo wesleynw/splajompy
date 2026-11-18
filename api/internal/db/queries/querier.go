@@ -93,6 +93,7 @@ type Querier interface {
 	InsertPost(ctx context.Context, arg InsertPostParams) (Post, error)
 	InsertPostImage(ctx context.Context, arg InsertPostImageParams) error
 	InsertVote(ctx context.Context, arg InsertVoteParams) error
+	IsEmailVerified(ctx context.Context, email string) (bool, error)
 	ListUserRelationships(ctx context.Context, arg ListUserRelationshipsParams) ([]ListUserRelationshipsRow, error)
 	MarkAllNotificationsAsReadForUser(ctx context.Context, userID int) error
 	MarkNotificationAsReadById(ctx context.Context, notificationID int) error

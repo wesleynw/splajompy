@@ -414,6 +414,10 @@ func (r *Store) AddEmailVerification(ctx context.Context, email string) error {
 	return r.querier.InsertEmailVerification(ctx, email)
 }
 
+func (r *Store) GetIsEmailVerified(ctx context.Context, email string) (bool, error) {
+	return r.querier.IsEmailVerified(ctx, email)
+}
+
 // NewUserRepository creates a new user repository
 func NewUserRepository(querier queries.Querier) Store {
 	return Store{querier: querier}

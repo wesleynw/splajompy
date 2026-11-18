@@ -231,3 +231,10 @@ WHERE email = $1;
 -- name: InsertEmailVerification :exec
 INSERT INTO email_verification (email)
 VALUES ($1);
+
+-- name: IsEmailVerified :one
+SELECT EXISTS (
+    SELECT 1
+    FROM email_verification
+    WHERE email = $1
+);

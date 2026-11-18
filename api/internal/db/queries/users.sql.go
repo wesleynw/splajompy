@@ -460,6 +460,21 @@ func (q *Queries) InsertEmailVerificationRequest(ctx context.Context, arg Insert
 	return err
 }
 
+const isEmailVerified = `-- name: IsEmailVerified :one
+SELECT EXISTS (
+    SELECT 1
+    FROM email_verification
+    WHERE email = $1
+)
+`
+
+func (q *Queries) IsEmailVerified(ctx context.Context, email string) (bool, error) {
+	row := q.db.QueryRow(ctx, isEmailVerified, email)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
+}
+
 const listUserRelationships = `-- name: ListUserRelationships :many
 SELECT users.user_id, users.email, users.password, users.username, users.created_at, users.name, users.pinned_post_id, users.user_display_properties, users.referral_code, user_relationship.created_at AS relationship_created_at
 FROM users
