@@ -17,7 +17,7 @@ import (
 	"splajompy.com/api/v2/internal/user"
 	"splajompy.com/api/v2/internal/utilities"
 
-	"github.com/resend/resend-go/v3"
+	"github.com/resend/resend-go/v4"
 	"golang.org/x/crypto/bcrypt"
 	"splajompy.com/api/v2/internal/models"
 	"splajompy.com/api/v2/internal/templates"

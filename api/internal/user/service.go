@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5"
-	"github.com/resend/resend-go/v3"
+	"github.com/resend/resend-go/v4"
 	"golang.org/x/sync/errgroup"
 	"splajompy.com/api/v2/internal/db"
 	"splajompy.com/api/v2/internal/email"

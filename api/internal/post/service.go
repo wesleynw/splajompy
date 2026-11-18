@@ -8,7 +8,7 @@ import (
 	"sort"
 	"time"
 
-	"github.com/resend/resend-go/v3"
+	"github.com/resend/resend-go/v4"
 	"golang.org/x/sync/errgroup"
 	"splajompy.com/api/v2/internal/bucket"
 	"splajompy.com/api/v2/internal/db"

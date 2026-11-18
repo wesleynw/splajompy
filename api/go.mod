@@ -15,7 +15,7 @@ require (
 	github.com/grafana/pyroscope-go v1.5.0
 	github.com/jackc/pgx/v5 v5.13.0
 	github.com/joho/godotenv v1.5.1
-	github.com/resend/resend-go/v3 v3.17.0
+	github.com/resend/resend-go/v4 v4.12.1
 	github.com/stretchr/testify v1.12.1
 	github.com/testcontainers/testcontainers-go v0.45.0
 	github.com/testcontainers/testcontainers-go/modules/postgres v0.45.0

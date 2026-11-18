@@ -3,7 +3,7 @@ package email
 import (
 	"uuid"
 
-	"github.com/resend/resend-go/v3"
+	"github.com/resend/resend-go/v4"
 )
 
 type MockEmailClient struct {
