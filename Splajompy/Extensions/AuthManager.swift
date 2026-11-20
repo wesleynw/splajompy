@@ -242,6 +242,75 @@ class AuthManager: Sendable {
     PostHogSDK.shared.capture(event)
   }
 
+  func requestEmailVerification(for email: String) async -> Result<Void, Error> {
+    struct Body: Encodable {
+      let email: String
+    }
+
+    let jsonData: Data
+    do {
+      jsonData = try JSONEncoder().encode(
+        Body(email: email.lowercased())
+      )
+    } catch {
+      return .failure(error)
+    }
+
+    return await APIService.performRequest(
+      endpoint: "send-email-verify",
+      method: "POST",
+      body: jsonData,
+      requiresAuth: false
+    )
+  }
+
+  func verifyEmail(for email: String, with code: String) async -> Result<
+    Void, Error
+  > {
+    struct Body: Encodable {
+      let email: String
+      let code: String
+    }
+
+    let jsonData: Data
+    do {
+      jsonData = try JSONEncoder().encode(
+        Body(email: email.lowercased(), code: code.lowercased())
+      )
+    } catch {
+      return .failure(error)
+    }
+
+    return await APIService.performRequest(
+      endpoint: "email-verify",
+      method: "POST",
+      body: jsonData,
+      requiresAuth: false
+    )
+  }
+
+  func getIsUsernameAvailable(_ username: String) async -> Result<Void, Error> {
+    struct Body: Encodable {
+      let username: String
+    }
+
+    let jsonData: Data
+    do {
+      jsonData = try JSONEncoder().encode(
+        Body(username: username)
+      )
+    } catch {
+      return .failure(error)
+    }
+
+    return await APIService.performRequest(
+      endpoint: "username-availability",
+      method: "POST",
+      body: jsonData,
+      requiresAuth: false
+    )
+  }
+
   /// Request a one time code be sent to the email of the user given by the identifier.
   func requestOneTimeCode(for identifier: String) async -> Bool {
     isLoading = true
@@ -343,9 +412,9 @@ class AuthManager: Sendable {
     }
   }
 
-  func register(username: String, email: String, password: String) async -> (
-    success: Bool, error: String
-  ) {
+  func register(username: String, email: String, password: String) async
+    -> Result<Void, Error>
+  {
     isLoading = true
     defer { isLoading = false }
 
@@ -354,17 +423,18 @@ class AuthManager: Sendable {
       email: email,
       password: password
     ) {
-      return (false, validationError)
+      return .failure(APIErrorMessage(message: validationError))
     }
 
-    guard
-      let requestBody = try? JSONSerialization.data(withJSONObject: [
+    var requestBody: Data
+    do {
+      requestBody = try JSONSerialization.data(withJSONObject: [
         "username": username,
         "email": email,
         "password": password,
       ])
-    else {
-      return (false, "Failed to serialize JSON")
+    } catch {
+      return .failure(error)
     }
 
     let result: Result<AuthResponse, Error> = await APIService.performRequest(
@@ -377,9 +447,9 @@ class AuthManager: Sendable {
     switch result {
     case .success(let authResponse):
       await completeSignIn(authResponse, event: "user_register")
-      return (true, "")
+      return .success(())
     case .failure(let error):
-      return (false, error.localizedDescription)
+      return .failure(error)
     }
   }
 
