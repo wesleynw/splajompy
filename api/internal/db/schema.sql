@@ -130,13 +130,13 @@ CREATE TABLE email_verify_requests (
     id SERIAL PRIMARY KEY,
     email TEXT NOT NULL UNIQUE,
     code TEXT NOT NULL,
-    created_at TIMESTAMP WITH TIME ZONE NOT NULL
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
 );
 
 CREATE TABLE email_verification (
     id SERIAL PRIMARY KEY,
     email TEXT NOT NULL UNIQUE,
-    created_at TIMESTAMP WITH TIME ZONE NOT NULL
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
 );
 
 CREATE TABLE IF NOT EXISTS block (

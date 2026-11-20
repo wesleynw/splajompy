@@ -83,6 +83,7 @@ struct UsernameEntryView: View {
     #if os(iOS)
       .safeAreaInset(edge: .bottom) {
         continueButton
+        .padding()
       }
     #endif
   }

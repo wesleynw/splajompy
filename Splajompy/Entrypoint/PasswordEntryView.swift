@@ -67,6 +67,7 @@ struct PasswordEntryView: View {
         ) {
           await viewModel.setPassword()
         }
+        .padding()
       }
     #endif
   }

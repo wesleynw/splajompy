@@ -6,7 +6,7 @@ struct RegistrationView: View {
 
   var body: some View {
     NavigationStack(path: $viewModel.path) {
-      EmailEntryView(viewModel: $viewModel)
+      EmailEntryView(viewModel: $viewModel, dismiss: dismiss)
         .navigationDestination(for: OnboardingStep.self) { route in
           switch route {
           case .emailVerify:

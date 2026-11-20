@@ -63,7 +63,7 @@ func TestVerifyEmail_NoCodeRequested(t *testing.T) {
 func TestVerifyEmail_IncorrectCode(t *testing.T) {
 	env := setupAuthServiceTest(t)
 
-	err := env.svc.RequestEmailVerification(t.Context(), "test@splajompy.com")
+	_, err := env.svc.RequestEmailVerification(t.Context(), "test@splajompy.com")
 	require.NoError(t, err)
 
 	err = env.svc.VerifyEmail(t.Context(), "test@splajompy.com", "0000000") // 7 digit code impossible
@@ -73,11 +73,11 @@ func TestVerifyEmail_IncorrectCode(t *testing.T) {
 func TestVerifyEmail_NoCrossEmailMatch(t *testing.T) {
 	env := setupAuthServiceTest(t)
 
-	err := env.svc.RequestEmailVerification(t.Context(), "test0@splajompy.com")
+	_, err := env.svc.RequestEmailVerification(t.Context(), "test0@splajompy.com")
 	require.NoError(t, err)
 	code := env.mockEmailClient.Requests[0].Subject[0:5]
 
-	err = env.svc.RequestEmailVerification(t.Context(), "test1@splajompy.com")
+	_, err = env.svc.RequestEmailVerification(t.Context(), "test1@splajompy.com")
 	require.NoError(t, err)
 
 	err = env.svc.VerifyEmail(t.Context(), "test1@splajompy.com", code)
@@ -87,7 +87,7 @@ func TestVerifyEmail_NoCrossEmailMatch(t *testing.T) {
 func TestVerifyEmail_NoExpiredCode(t *testing.T) {
 	env := setupAuthServiceTest(t)
 	synctest.Test(t, func(t *testing.T) {
-		err := env.svc.RequestEmailVerification(t.Context(), "test0@splajompy.com")
+		_, err := env.svc.RequestEmailVerification(t.Context(), "test0@splajompy.com")
 		require.NoError(t, err)
 		code := env.mockEmailClient.Requests[0].Subject[0:5]
 
@@ -101,11 +101,11 @@ func TestVerifyEmail_NoExpiredCode(t *testing.T) {
 func TestVerifyEmail_OldCodeFails(t *testing.T) {
 	env := setupAuthServiceTest(t)
 
-	err := env.svc.RequestEmailVerification(t.Context(), "test0@splajompy.com")
+	_, err := env.svc.RequestEmailVerification(t.Context(), "test0@splajompy.com")
 	require.NoError(t, err)
 	code := env.mockEmailClient.Requests[0].Subject[0:6]
 
-	err = env.svc.RequestEmailVerification(t.Context(), "test0@splajompy.com")
+	_, err = env.svc.RequestEmailVerification(t.Context(), "test0@splajompy.com")
 	require.NoError(t, err)
 
 	err = env.svc.VerifyEmail(t.Context(), "test0@splajompy.com", code)
@@ -115,7 +115,7 @@ func TestVerifyEmail_OldCodeFails(t *testing.T) {
 func TestVerifyEmail_Succeeds(t *testing.T) {
 	env := setupAuthServiceTest(t)
 
-	err := env.svc.RequestEmailVerification(t.Context(), "test0@splajompy.com")
+	_, err := env.svc.RequestEmailVerification(t.Context(), "test0@splajompy.com")
 	require.NoError(t, err)
 	code := env.mockEmailClient.Requests[0].Subject[0:6]
 
@@ -138,4 +138,19 @@ func TestRegister_FailsWithoutEmailVerification(t *testing.T) {
 	ctx := context.WithValue(t.Context(), utilities.AppVersionKey, "v1.13.4")
 	_, err := env.svc.Register(ctx, "user0@splajompy.com", "user0", "password123")
 	assert.ErrorIs(t, err, auth.ErrEmailVerificationFailed)
+}
+
+func TestRegister_SucceedsWithVerifiedEmail(t *testing.T) {
+	env := setupAuthServiceTest(t)
+
+	email := "user0@splajompy.com"
+	code, err := env.svc.RequestEmailVerification(t.Context(), email)
+	require.NoError(t, err)
+
+	err = env.svc.VerifyEmail(t.Context(), email, *code)
+	require.NoError(t, err)
+
+	ctx := context.WithValue(t.Context(), utilities.AppVersionKey, "v1.13.4")
+	_, err = env.svc.Register(ctx, "user0@splajompy.com", "user0", "password123")
+	require.NoError(t, err)
 }

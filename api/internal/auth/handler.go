@@ -192,7 +192,7 @@ func (h *Handler) RequestEmailVerification(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	err := h.svc.RequestEmailVerification(r.Context(), body.Email)
+	_, err := h.svc.RequestEmailVerification(r.Context(), body.Email)
 	if errors.Is(err, ErrEmailInUse) {
 		utilities.HandleError(w, http.StatusConflict, "This email is already in use.")
 		return

@@ -363,23 +363,23 @@ func (s *Service) DeleteAccount(ctx context.Context, currentUser models.PublicUs
 	return nil
 }
 
-func (s Service) RequestEmailVerification(ctx context.Context, email string) error {
+func (s Service) RequestEmailVerification(ctx context.Context, email string) (*string, error) {
 	isInUse, err := s.userRepository.GetIsEmailInUse(ctx, email)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if isInUse {
-		return ErrEmailInUse
+		return nil, ErrEmailInUse
 	}
 
 	code, err := s.generateOTCCode()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	html, err := templates.GenerateVerificationEmail(code)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	params := &resend.SendEmailRequest{
@@ -391,16 +391,16 @@ func (s Service) RequestEmailVerification(ctx context.Context, email string) err
 
 	err = s.userRepository.DeleteEmailVerification(ctx, email)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	err = s.userRepository.SetEmailVerificationCode(ctx, email, code)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	_, err = s.emailClient.SendEmail(params)
-	return err
+	return &code, err
 }
 
 var ErrEmailVerificationFailed = errors.New("unable to verify this email")
@@ -413,6 +413,10 @@ func (s Service) VerifyEmail(ctx context.Context, email string, code string) err
 
 	fiveMinutesAgo := time.Now().Add(-5 * time.Minute)
 	if code == *storedCode && createdAt.After(fiveMinutesAgo) {
+		err = s.userRepository.AddEmailVerification(ctx, email)
+		if err != nil {
+			return ErrEmailVerificationFailed
+		}
 		return nil
 	}
 

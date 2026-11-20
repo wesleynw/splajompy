@@ -2,7 +2,8 @@ import SwiftUI
 
 struct EmailEntryView: View {
   @Binding var viewModel: RegistrationViewModel
-  @Environment(\.dismiss) private var dismiss
+
+  var dismiss: DismissAction
 
   @FocusState private var isFocused: Bool
 
@@ -63,6 +64,7 @@ struct EmailEntryView: View {
     #if os(iOS)
       .safeAreaInset(edge: .bottom) {
         continueButton
+        .padding()
       }
     #endif
   }
@@ -81,8 +83,9 @@ struct EmailEntryView: View {
 
 #Preview {
   @Previewable @State var viewModel = RegistrationViewModel()
+  @Previewable @Environment(\.dismiss) var dismiss: DismissAction
 
   NavigationStack {
-    EmailEntryView(viewModel: $viewModel)
+    EmailEntryView(viewModel: $viewModel, dismiss: dismiss)
   }
 }
