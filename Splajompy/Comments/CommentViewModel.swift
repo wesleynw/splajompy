@@ -286,7 +286,18 @@ extension CommentsContainerView {
     }
 
     func stageCommentReply(to comment: DetailedComment) {
-      respondingToComment = comment
+      guard case .loaded(let currentComments) = state else { return }
+
+      if let parentId = comment.parentCommentId,
+        let index = currentComments.firstIndex(where: {
+          $0.commentId == parentId
+        })
+      {
+        self.text = NSAttributedString(string: "@\(comment.user.username) ")
+        self.respondingToComment = currentComments[index]
+      } else {
+        respondingToComment = comment
+      }
     }
 
     func unstageCommentReply() {
