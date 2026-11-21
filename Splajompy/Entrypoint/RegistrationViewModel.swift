@@ -93,14 +93,16 @@ class RegistrationViewModel {
 
   }
 
+  func acceptUsername() {
+    guard self.usernameValidation == .valid else { return }
+
+    self.path.append(OnboardingStep.passwordEntry)
+  }
+
   func setUsername() async {
     guard username.count > 0 else {
       self.usernameValidation = .unchanged
       return
-    }
-
-    if usernameValidation == .valid {
-      self.path.append(OnboardingStep.passwordEntry)
     }
 
     usernameAvailableCheckTask?.cancel()

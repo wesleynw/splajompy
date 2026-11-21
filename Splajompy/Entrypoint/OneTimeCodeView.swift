@@ -52,6 +52,7 @@ struct OneTimeCodeView: View {
           }
         }
       }
+      .padding()
     }
     .pageTitle("Login")
     .alert(isPresented: $showError) {
