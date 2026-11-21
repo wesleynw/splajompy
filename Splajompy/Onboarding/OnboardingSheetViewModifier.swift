@@ -49,7 +49,7 @@ struct OnboardingSheetViewModifier: ViewModifier {
         )
       ) {
         NavigationStack {
-          if imageLayoutPreference == .undecided {
+          if imageLayoutPreference == .undecided || false {  // hardcoding away for now
             ImageLayoutOnboardingView(
               onComplete: {
                 if shouldShowNotificationsOnboarding {

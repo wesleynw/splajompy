@@ -95,7 +95,7 @@ struct UsernameEntryView: View {
       isLoading: false,
       isDisabled: viewModel.usernameValidation != .valid
     ) {
-      await viewModel.setUsername()
+      viewModel.acceptUsername()
     }
   }
 }

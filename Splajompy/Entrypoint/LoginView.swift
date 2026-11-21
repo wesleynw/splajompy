@@ -88,6 +88,7 @@ struct LoginView: View {
             }
           #endif
         }
+        .padding()
       }
       .pageTitle("Sign In")
       .toolbar {
