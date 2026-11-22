@@ -9,7 +9,6 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"splajompy.com/api/v2/internal/db/queries"
-	"splajompy.com/api/v2/internal/models"
 )
 
 type countQueries struct {
@@ -23,7 +22,7 @@ func (q countQueries) GetUserUnreadNotificationCount(ctx context.Context, _ int)
 
 type countChanges chan struct{}
 
-func (changes countChanges) Subscribe(context.Context, string, string) (<-chan struct{}, func(), error) {
+func (changes countChanges) Subscribe(context.Context, int) (<-chan struct{}, func(), error) {
 	return changes, func() {}, nil
 }
 
@@ -45,7 +44,7 @@ func TestUnreadCountStreamDeadline(t *testing.T) {
 			synctest.Test(t, func(t *testing.T) {
 				ctx, cancel := context.WithTimeout(t.Context(), test.timeout)
 				defer cancel()
-				svc := &Service{notificationRepository: Store{
+				watcher := NewUnreadCountWatcher(Store{
 					querier: countQueries{count: func(ctx context.Context) (int64, error) {
 						<-ctx.Done()
 						if test.queryErr != nil {
@@ -53,10 +52,9 @@ func TestUnreadCountStreamDeadline(t *testing.T) {
 						}
 						return 0, ctx.Err()
 					}},
-					changes: make(countChanges),
-				}}
+				}, make(countChanges))
 				start := time.Now()
-				err := svc.WatchUnreadNotificationCount(ctx, models.PublicUser{}, func(int) error {
+				err := watcher.Watch(ctx, 7, func(int) error {
 					t.Fatal("blocked count query sent a response")
 					return nil
 				})
@@ -73,17 +71,16 @@ func TestUnreadCountStreamHeartbeat(t *testing.T) {
 		defer cancel()
 		queryCount := 0
 		changes := make(countChanges, 1)
-		svc := &Service{notificationRepository: Store{
+		watcher := NewUnreadCountWatcher(Store{
 			querier: countQueries{count: func(context.Context) (int64, error) {
 				queryCount++
 				return 1, nil
 			}},
-			changes: changes,
-		}}
+		}, changes)
 		counts := make(chan int, 2)
 		done := make(chan error, 1)
 		go func() {
-			done <- svc.WatchUnreadNotificationCount(ctx, models.PublicUser{}, func(count int) error {
+			done <- watcher.Watch(ctx, 7, func(count int) error {
 				counts <- count
 				return nil
 			})

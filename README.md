@@ -39,7 +39,10 @@ Set each streaming procedure's write limit in `server.RegisterRPC` with `middlew
 ### Store
 `Store`s are currently a thin layer over the database, but exist as a natural place to add caching per domain in the future.
 
+### Database Notifications
 Register PostgreSQL notification handlers in `pgnotify.NewListener`. The listener uses one dedicated connection and passes each notification to the handlers for its channel. Keep those handlers short. Use `signals.Group` when subscribers need a signal to read current state. Each subscriber has one pending signal slot.
+
+Set `DB_LISTEN_CONNECTION_STRING` to a direct or session-pooled connection to the same database if the query connection uses transaction pooling.
 
 ## Starting the API
 Install the [Pulumi CLI](https://www.pulumi.com/docs/install/) and run `pulumi login`. Get access to `splajompy-org/splajompy/dev` and add your public IP to the database allowlist.

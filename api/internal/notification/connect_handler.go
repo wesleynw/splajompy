@@ -13,11 +13,12 @@ import (
 )
 
 type ConnectHandler struct {
-	svc *Service
+	svc                *Service
+	unreadCountWatcher *UnreadCountWatcher
 }
 
-func NewConnectHandler(svc *Service) *ConnectHandler {
-	return &ConnectHandler{svc: svc}
+func NewConnectHandler(svc *Service, unreadCountWatcher *UnreadCountWatcher) *ConnectHandler {
+	return &ConnectHandler{svc: svc, unreadCountWatcher: unreadCountWatcher}
 }
 
 func (h *ConnectHandler) RegisterRPCRoutes(public, withAuth *connect.Server) {
@@ -47,7 +48,7 @@ func (h *ConnectHandler) WatchUnreadNotificationCount(ctx context.Context, _ *sp
 	if !ok {
 		return connect.NewError(connect.CodeUnauthenticated, "Not authenticated")
 	}
-	err := h.svc.WatchUnreadNotificationCount(ctx, user, func(count int) error {
+	err := h.unreadCountWatcher.Watch(ctx, user.UserID, func(count int) error {
 		response := &splajompyv1.WatchUnreadNotificationCountResponse{}
 		response.SetUnreadCount(int64(count))
 		return stream.Send(response)

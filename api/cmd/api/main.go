@@ -26,7 +26,8 @@ import (
 )
 
 func main() {
-	ctx := context.Background()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	err := godotenv.Load()
 	if err != nil {
@@ -63,6 +64,11 @@ func main() {
 	defer conn.Close()
 
 	q := queries.New(conn)
+	unreadCountChanges := new(notification.PostgresUnreadCountChanges)
+	databaseListener, err := newDatabaseListener(cfg.ConnConfig, unreadCountChanges.Handler())
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	emailClient := email.NewResendEmailClient()
 
@@ -98,7 +104,8 @@ func main() {
 	userService := user.NewUserService(userRepository, *notificationService, emailClient)
 	userHandler := user.NewHandler(userService)
 	notificationHandler := notification.NewHandler(notificationService)
-	notificationConnectHandler := notification.NewConnectHandler(notificationService)
+	unreadCountWatcher := notification.NewUnreadCountWatcher(notificationsRepository, unreadCountChanges)
+	notificationConnectHandler := notification.NewConnectHandler(notificationService, unreadCountWatcher)
 	authService := auth.NewService(userRepository, postRepository, bucketRepository, emailClient)
 	authHandler := auth.NewHandler(authService)
 	statsService := stats.NewService(statsRepository)
@@ -109,6 +116,8 @@ func main() {
 
 	server.RegisterREST(mux, q, postHandler, commentHandler, userHandler, notificationHandler, authHandler, statsHandler)
 	server.RegisterRPC(mux, q, notificationConnectHandler, statsConnectHandler)
+
+	go databaseListener.Run(ctx)
 
 	log.Printf("Server starting on %s\n", httpServer.Addr)
 	if err := httpServer.ListenAndServe(); err != nil {
