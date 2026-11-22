@@ -213,3 +213,28 @@ FROM notification_actor
 WHERE notification_id = $1 AND (sqlc.narg('before')::timestamp IS NULL OR created_at < sqlc.narg('before'))
 ORDER BY created_at DESC
 LIMIT $2;
+
+-- name: InsertEmailVerificationRequest :exec
+INSERT INTO email_verify_requests (email, code, created_at)
+VALUES ($1, $2, $3)
+ON CONFLICT (email) DO UPDATE SET code = $2, created_at = $3;
+
+-- name: SelectEmailVerificationRequestForEmail :one
+SELECT *
+FROM email_verify_requests
+WHERE email = $1;
+
+-- name: DeleteEmailVerification :exec
+DELETE FROM email_verification
+WHERE email = $1;
+
+-- name: InsertEmailVerification :exec
+INSERT INTO email_verification (email)
+VALUES ($1);
+
+-- name: IsEmailVerified :one
+SELECT EXISTS (
+    SELECT 1
+    FROM email_verification
+    WHERE email = $1
+);
