@@ -34,6 +34,8 @@ Packages that expose REST API endpoints implement `RESTRegistrar`, and packages 
 
 Keep all `Send` calls in the stream's handler goroutine.
 
+The unread count stream sends the current count when it opens. When a PostgreSQL notification names that user, the watcher reads the count again and sends it if it changed. Each call has its own subscription and releases it when the call ends. Other streams can choose their own source of updates.
+
 Set each streaming procedure's write limit in `server.RegisterRPC` with `middleware.StreamWriteTimeout`. The limit applies to each write and flush. Waiting between messages does not count toward it.
 
 ### Store
