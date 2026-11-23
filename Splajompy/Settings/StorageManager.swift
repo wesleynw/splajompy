@@ -32,7 +32,7 @@ struct StorageManager: View {
   private func updateCacheSize() {
     guard let dataCache = ImagePipeline.shared.configuration.dataCache as? DataCache else { return }
     Task.detached {
-      dataCache.flush()
+      await dataCache.flush()
       let size = dataCache.totalSize
       await MainActor.run {
         self.cacheSize = ByteCountFormatter.string(fromByteCount: Int64(size), countStyle: .file)

@@ -15,7 +15,7 @@
       "kind": "remote",
       "repository": "https://github.com/kean/Nuke",
       "version": {
-        "up-to-next-major-version": "13.0.0",
+        "up-to-next-major-version": "14.0.0",
       },
     }, {
       "kind": "remote",
@@ -33,7 +33,7 @@
       "kind": "remote",
       "repository": "https://github.com/PostHog/posthog-ios.git",
       "version": {
-        "up-to-next-major-version": "3.89.0",
+        "up-to-next-major-version": "4.0.0",
       },
     },
   ],
