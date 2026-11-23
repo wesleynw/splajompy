@@ -47,12 +47,11 @@ struct FeedView: View {
           await viewModel.loadPosts(reset: true)
         }
       }
-      .onReceive(NotificationCenter.default.publisher(for: .userRefreshingFeed))
-    { _ in
-      Task {
-        await viewModel.loadPosts(reset: true)
+      .onReceive(NotificationCenter.default.publisher(for: .userRefreshingFeed)) { _ in
+        Task {
+          await viewModel.loadPosts(reset: true)
+        }
       }
-    }
       #if os(iOS)
         .fullScreenCover(isPresented: $isShowingNewPostView) {
           NewPostView(
