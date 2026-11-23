@@ -8,7 +8,6 @@ func initializePostHog() {
 
   #if os(iOS)
     config.sessionReplay = true
-    config.sessionReplayConfig.screenshotMode = true
     config.sessionReplayConfig.maskAllTextInputs = false
   #endif
 
