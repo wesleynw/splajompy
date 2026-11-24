@@ -167,42 +167,15 @@ struct FeedView: View {
         if case .loaded(let posts) = viewModel.state, !posts.isEmpty {
           postList(posts: posts)
 
-          if viewModel.isShowingCaughtUpFooter
-            && !viewModel.isCaughtUpFooterDismissed
-          {
-            CaughtUpView(onContinue: {
-              Task {
-                await viewModel.setContinuePastCaughtUp()
-              }
-            })
-            .padding(.bottom, 20)
-            .postHogScreenView()
-            .onAppear {
-              viewModel.setHasReachedCaughtUp()
+          FeedFooterView(
+            showCaughtUpBanner: viewModel.isShowingCaughtUpFooter
+              && !viewModel.isCaughtUpFooterDismissed,
+            canLoadMore: viewModel.canLoadMore,
+            setHasReachedCaughtUp: viewModel.setHasReachedCaughtUp,
+            continuePastCaughtUp: {
+              Task { await viewModel.setContinuePastCaughtUp() }
             }
-          } else if viewModel.canLoadMore {
-            ProgressView()
-              .padding(.bottom, 70)
-              #if os(macOS)
-                .controlSize(.small)
-              #endif
-              .frame(maxWidth: .infinity, alignment: .center)
-          } else {
-            Divider()
-            VStack(spacing: 8) {
-              Text("Is that the very first post?")
-              Text("What came before that?")
-              Text("Nothing at all?")
-              HStack(spacing: 4) {
-                Text("It always just")
-                Text("Splajompy")
-                  .fontWeight(.black)
-              }
-            }
-            .font(.title3)
-            .multilineTextAlignment(.center)
-            .padding()
-          }
+          )
         }
       }
     }
