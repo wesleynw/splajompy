@@ -124,7 +124,7 @@ struct NewPostView: View {
                 dismiss()
               } label: {
                 Text("Cancel")
-                  .font(SJFont.body)
+                  .font(SFont.sized(to: .body, weight: .prominent))
               }
               .controlSize(.large)
               .buttonStyle(.glass)
@@ -149,9 +149,10 @@ struct NewPostView: View {
                 ProgressView()
               } else {
                 Label("Post", systemImage: "arrow.up")
-                  .font(SJFont.body)
+                  .font(SFont.sized(to: .body, weight: .prominent))
               }
             }
+            .controlSize(.large)
             .buttonStyle(.glassProminent)
             .disabled(isPostButtonDisabled)
           } else {

@@ -24,7 +24,7 @@ struct SplashScreenView: View {
           isLoginViewPresenting = true
         } label: {
           Text("Log In")
-            .font(SJFont.title3)
+            .font(SFont.sized(to: .title3, weight: .prominent))
             .frame(maxWidth: .infinity)
         }
         .modify {
@@ -42,7 +42,7 @@ struct SplashScreenView: View {
           isRegisterViewPresenting = true
         } label: {
           Text("Sign Up")
-            .font(SJFont.title3)
+            .font(SFont.sized(to: .title3, weight: .prominent))
             .frame(maxWidth: .infinity)
         }
         .modify {

@@ -10,7 +10,7 @@ struct PartyInviteView: View {
         VStack {
           Text("WE CORDIALLY INVITE YOU TO JOIN US AT THE SPLAJOMPARTY")
             .fontWeight(.semibold)
-            .font(SJFont.title)
+            .font(SFont.title)
             .padding(.bottom, 5)
 
           Image("party-invite")

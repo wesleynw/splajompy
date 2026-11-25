@@ -108,6 +108,7 @@ struct UserListView: View {
           if let postId {
             NavigationLink(value: Route.post(id: postId)) {
               Label("Go to post", systemImage: "arrow.up.right.square")
+                .font(SFont.sized(to: .body, weight: .bold))
             }
             .buttonStyle(.glass)
             .padding()
@@ -173,7 +174,7 @@ struct UserListView: View {
         .frame(width: 200, height: 200)
 
       Text("There's nobody here")
-        .font(SJFont.title3)
+        .font(SFont.sized(to: .title3, weight: .body))
     }
   }
 

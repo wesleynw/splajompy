@@ -19,11 +19,10 @@ struct FollowButtonView: View {
           .scaleEffect(0.8)
       } else {
         Text(user.isFollowing ? "Unfollow" : "Follow")
-          .font(.caption)
-          .fontWeight(.medium)
+          .font(SFont.sized(to: .body, weight: .bold))
       }
     }
-    .frame(width: 70, height: 30)
+    .padding(2)
     .background(
       user.isFollowing
         ? Color.gray.opacity(0.2).gradient : Color.accentColor.gradient

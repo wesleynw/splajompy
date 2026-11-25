@@ -16,7 +16,7 @@ struct OneTimeCodeView: View {
     ScrollView {
       VStack(alignment: .leading, spacing: 15) {
         Text("You should receive a verification email momentarily.")
-          .font(SJFont.callout)
+          .font(SFont.sized(to: .callout, weight: .body))
 
         TextField("Code", text: $oneTimeCode)
           .textContentType(.oneTimeCode)

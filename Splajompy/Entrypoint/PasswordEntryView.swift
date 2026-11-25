@@ -9,7 +9,7 @@ struct PasswordEntryView: View {
     ScrollView {
       VStack {
         Text("Set a password")
-          .font(SJFont.heading)
+          .font(SFont.sized(to: .headline, weight: .bold))
           .padding()
 
         SecureField("Password", text: $viewModel.password)
@@ -35,7 +35,7 @@ struct PasswordEntryView: View {
           HStack {
             Image(systemName: "exclamationmark.triangle")
             Text(error)
-              .font(SJFont.body)
+              .font(SFont.sized(to: .body, weight: .body))
           }
           .padding()
           .frame(maxWidth: .infinity, alignment: .leading)

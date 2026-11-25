@@ -13,13 +13,12 @@ struct RelationshipIndicator: View {
 
           VStack(alignment: .leading, spacing: 4) {
             Text(mutualFriendsTitle)
-              .font(.subheadline)
-              .fontWeight(.medium)
+              .font(SFont.sized(to: .body, weight: .bold))
               .foregroundStyle(.primary)
               .lineLimit(2)
 
             Text(formatMutualFriends(user.mutuals))
-              .font(.footnote)
+              .font(SFont.sized(to: .body, weight: .body))
               .foregroundStyle(.secondary)
           }
 

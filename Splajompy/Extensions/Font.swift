@@ -1,6 +1,23 @@
 import SwiftUI
 
-struct SJFont {
+enum SFontWeight: String {
+  case prominent = "Splajompy-Regular"
+  case body = "SplajompyBody-Regular"
+  case bold = "SplajompyBody-Bold"
+}
+
+enum STypography {
+  static let sizeMappings: [Font.TextStyle: CGFloat] = [
+    .title2: 23,
+    .title3: 22,
+    .headline: 21,
+    .body: 20,
+    .callout: 17,
+    .footnote: 10,
+  ]
+}
+
+struct SFont {
   #if os(iOS)
     static let title = Font.custom(
       "Splajompy-Regular",
@@ -14,34 +31,14 @@ struct SJFont {
       relativeTo: .title
     )
   #endif
-  static let title2 = Font.custom(
-    "Splajompy-Regular",
-    size: 23,
-    relativeTo: .title2
-  )
-  static let title3 = Font.custom(
-    "Splajompy-Regular",
-    size: 20,
-    relativeTo: .title3
-  )
-  static let heading = Font.custom(
-    "Splajompy-Regular",
-    size: 18,
-    relativeTo: .headline
-  )
-  static let callout = Font.custom(
-    "Splajompy-Regular",
-    size: 17,
-    relativeTo: .headline
-  )
-  static let body = Font.custom(
-    "Splajompy-Regular",
-    size: 15,
-    relativeTo: .body
-  )
-  static let footnote = Font.custom(
-    "Splajompy-Regular",
-    size: 10,
-    relativeTo: .footnote
-  )
+
+  static func sized(to size: Font.TextStyle, weight: SFontWeight)
+    -> Font
+  {
+    return Font.custom(
+      weight.rawValue,
+      size: STypography.sizeMappings[size] ?? 20.0,
+      relativeTo: size
+    )
+  }
 }

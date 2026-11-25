@@ -14,7 +14,7 @@ struct CloseButton: View {
           dismiss()
         } label: {
           Text("Close")
-            .font(SJFont.body)
+            .font(SFont.sized(to: .body, weight: .bold))
         }
         .controlSize(.large)
         .modify {
@@ -28,7 +28,7 @@ struct CloseButton: View {
         dismiss()
       } label: {
         Text("Close")
-          .font(SJFont.body)
+          .font(SFont.sized(to: .body, weight: .bold))
       }
       .controlSize(.large)
       .modify {

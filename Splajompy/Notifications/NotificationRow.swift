@@ -60,7 +60,7 @@ struct NotificationRow: View {
                   .relative(presentation: .named)
                 )
               )
-              .font(.caption)
+              .font(SFont.sized(to: .body, weight: .bold))
               .foregroundStyle(.secondary)
             }
           }

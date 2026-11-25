@@ -13,9 +13,9 @@ struct AsyncActionButton: View {
         .font(
           {
             #if os(iOS)
-              SJFont.heading
+              SFont.sized(to: .headline, weight: .prominent)
             #else
-              SJFont.body
+              SFont.sized(to: .body, weight: .prominent)
             #endif
           }()
         )

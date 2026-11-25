@@ -75,7 +75,7 @@ struct ProfileView: View {
     .pageTitle(
       "@" + self.username,
       placement: .leading,
-      font: isProfileTab ? SJFont.title : SJFont.heading,
+      font: isProfileTab ? SFont.title : SFont.sized(to: .headline, weight: .prominent),
     )
     .toolbar {
       if !isProfileSelf {
@@ -228,7 +228,7 @@ struct ProfileView: View {
                   .frame(maxWidth: .infinity)
               } else {
                 Text("Unfollow")
-                  .font(SJFont.body)
+                  .font(SFont.sized(to: .body, weight: .bold))
                   .frame(maxWidth: .infinity)
               }
             }
@@ -249,7 +249,7 @@ struct ProfileView: View {
                   .frame(maxWidth: .infinity)
               } else {
                 Text("Follow")
-                  .font(SJFont.body)
+                  .font(SFont.sized(to: .body, weight: .bold))
                   .frame(maxWidth: .infinity)
               }
             }
@@ -267,7 +267,7 @@ struct ProfileView: View {
         } else {
           Button(action: { viewModel.toggleBlocking() }) {
             Text("Unblock")
-              .font(SJFont.body)
+              .font(SFont.sized(to: .body, weight: .bold))
               .frame(maxWidth: .infinity)
               .foregroundStyle(.red.opacity(0.7))
           }
@@ -280,7 +280,7 @@ struct ProfileView: View {
         HStack(spacing: 12) {
           Button(action: { isPresentingProfileEditor = true }) {
             Text("Edit Profile")
-              .font(SJFont.body)
+              .font(SFont.sized(to: .body, weight: .bold))
               .frame(maxWidth: .infinity)
           }
           #if os(macOS)
@@ -296,7 +296,7 @@ struct ProfileView: View {
 
           NavigationLink(value: Route.followingList(userId: userId)) {
             Text("Following")
-              .font(SJFont.body)
+              .font(SFont.sized(to: .body, weight: .bold))
               .frame(maxWidth: .infinity)
           }
           #if os(macOS)
@@ -319,7 +319,7 @@ struct ProfileView: View {
 
   private var emptyMessage: some View {
     Text(isProfileSelf ? "Your posts will show up here." : "No posts here.")
-      .font(SJFont.callout)
+      .font(SFont.sized(to: .title3, weight: .body))
       .frame(maxWidth: .infinity, alignment: .center)
       .padding(.top, 50)
   }

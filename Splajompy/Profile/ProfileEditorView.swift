@@ -116,7 +116,7 @@ struct ProfileEditorView: View {
                 dismiss()
               } label: {
                 Text("Cancel")
-                  .font(SJFont.body)
+                  .font(SFont.sized(to: .body, weight: .bold))
               }
               .controlSize(.large)
               .buttonStyle(.glass)
@@ -143,7 +143,7 @@ struct ProfileEditorView: View {
               dismiss()
             } label: {
               Label("Save", systemImage: "checkmark")
-                .font(SJFont.body)
+                .font(SFont.sized(to: .body, weight: .bold))
                 #if os(iOS)
                   .labelStyle(.iconOnly)
                 #else

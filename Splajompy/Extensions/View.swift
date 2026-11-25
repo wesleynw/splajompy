@@ -15,9 +15,9 @@ extension View {
     placement: PageTitlePlacement = .center,
     font: Font = {
       #if os(iOS)
-        SJFont.heading
+        SFont.sized(to: .headline, weight: .prominent)
       #else
-        SJFont.body
+        SFont.sized(to: .body, weight: .prominent)
       #endif
     }()
   ) -> some View {

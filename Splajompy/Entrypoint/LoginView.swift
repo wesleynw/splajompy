@@ -69,7 +69,7 @@ struct LoginView: View {
             }
           }) {
             Text("Sign in with \(isUsingPassword ? "email code" : "password")")
-              .font(SJFont.body)
+              .font(SFont.sized(to: .title3, weight: .bold))
               .frame(maxWidth: .infinity)
           }
           .controlSize(.large)
@@ -105,7 +105,7 @@ struct LoginView: View {
                 dismiss()
               } label: {
                 Text("Cancel")
-                  .font(SJFont.body)
+                  .font(SFont.sized(to: .body, weight: .prominent))
               }
               .controlSize(.large)
               .buttonStyle(.glass)
