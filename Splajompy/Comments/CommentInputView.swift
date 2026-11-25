@@ -156,9 +156,9 @@ struct CommentInputView: View {
           comment: replyingComment,
           onToggleLike: { comment in },
           onDelete: { commentId in },
-          onCommentReply: {},
+          onCommentReply: { _ in },
           isReadOnly: true,
-          showChildren: false,
+          showChildren: true,
           replyNamespace: replyNamespace,
         )
         .allowsHitTesting(false)

@@ -70,7 +70,7 @@ struct CommentsContainerView: View {
               onDelete: { comment in
                 Task { await viewModel.deleteComment(comment) }
               },
-              onCommentReply: {
+              onCommentReply: { comment in
                 withAnimation {
                   viewModel.stageCommentReply(to: comment)
                 }
