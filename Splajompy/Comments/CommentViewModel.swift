@@ -293,7 +293,6 @@ extension CommentsContainerView {
           $0.commentId == parentId
         })
       {
-        self.text = NSAttributedString(string: "@\(comment.user.username) ")
         self.respondingToComment = currentComments[index]
       } else {
         respondingToComment = comment

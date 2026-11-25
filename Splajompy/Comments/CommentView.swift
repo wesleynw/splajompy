@@ -6,7 +6,7 @@ struct CommentView: View {
 
   let onToggleLike: (DetailedComment) -> Void
   let onDelete: (DetailedComment) -> Void
-  let onCommentReply: () -> Void
+  let onCommentReply: (DetailedComment) -> Void
   var enableReplySwipeGesture: Bool = false
 
   var isReadOnly: Bool = false
@@ -26,7 +26,7 @@ struct CommentView: View {
           onDelete(comment)
         },
         handleCommentReply: {
-          onCommentReply()
+          onCommentReply(comment)
         },
         enableReplySwipeGesure: enableReplySwipeGesture,
         isReadOnly: isReadOnly,
@@ -58,7 +58,7 @@ struct CommentView: View {
             toggleLike: { onToggleLike(child) },
             deleteComment: { onDelete(child) },
             handleCommentReply: {
-              onCommentReply()
+              onCommentReply(child)
             }
           )
           .id(child.commentId)
