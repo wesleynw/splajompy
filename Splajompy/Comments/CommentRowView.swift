@@ -48,7 +48,7 @@ struct CommentRow: View {
             comment.createdAt
               .formatted(.relative(presentation: .named))
           )
-          .font(.caption)
+          .font(SFont.sized(to: .body, weight: .body))
           .foregroundStyle(.gray)
         }
 

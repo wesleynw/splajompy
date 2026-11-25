@@ -13,7 +13,7 @@ struct CaughtUpView: View {
         .frame(width: 50, height: 50)
       Text("You're all caught up\n(from this week)")
         .multilineTextAlignment(.center)
-        .font(SJFont.title3)
+        .font(SFont.sized(to: .title3, weight: .body))
         .padding()
 
       Button {
@@ -21,7 +21,7 @@ struct CaughtUpView: View {
         onContinue()
       } label: {
         Text("See older posts")
-          .font(SJFont.body)
+          .font(SFont.sized(to: .body, weight: .bold))
           .modify {
             if #available(iOS 26, macOS 26, *) {
               $0.buttonStyle(.glass)

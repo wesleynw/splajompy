@@ -11,7 +11,7 @@ struct EmailEntryView: View {
     ScrollView {
       VStack {
         Text("What's your email?")
-          .font(SJFont.title)
+          .font(SFont.title)
           .padding()
 
         TextField("Email", text: $viewModel.email)
@@ -37,7 +37,7 @@ struct EmailEntryView: View {
           HStack {
             Image(systemName: "exclamationmark.triangle")
             Text(error)
-              .font(SJFont.body)
+              .font(SFont.sized(to: .body, weight: .bold))
           }
           .padding()
           .frame(maxWidth: .infinity, alignment: .leading)

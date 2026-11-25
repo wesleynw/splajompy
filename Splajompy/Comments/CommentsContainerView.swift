@@ -43,7 +43,7 @@ struct CommentsContainerView: View {
     VStack {
       Text("Comments")
         .frame(maxWidth: .infinity, alignment: .leading)
-        .font(SJFont.title3)
+        .font(SFont.sized(to: .title3, weight: .prominent))
         .padding()
 
       switch viewModel.state {
@@ -130,7 +130,7 @@ struct CommentsContainerView: View {
         .frame(width: 280, height: 200)
 
       Text("No comments")
-        .font(SJFont.title3)
+        .font(SFont.sized(to: .title3, weight: .bold))
         .foregroundStyle(.secondary)
     }
     .padding(.bottom, 40)

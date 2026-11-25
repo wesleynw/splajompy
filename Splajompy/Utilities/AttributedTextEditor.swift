@@ -45,7 +45,7 @@ struct AttributedTextEditor: UIViewRepresentable {
 
     let label = UILabel()
     label.text = placeholder
-    label.font = UIFont.preferredFont(forTextStyle: .body)
+    label.font = UIFont(name: "SplajompyBody-Regular", size: 26)
     label.textColor = .tertiaryLabel
     label.numberOfLines = 0
     label.isUserInteractionEnabled = false

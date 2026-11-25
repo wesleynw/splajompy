@@ -194,6 +194,7 @@
         "INFOPLIST_KEY_CFBundleDisplayName": "Splajompy",
         "INFOPLIST_KEY_ITSAppUsesNonExemptEncryption": "NO",
         "INFOPLIST_KEY_LSApplicationCategoryType": "public.app-category.social-networking",
+        "INFOPLIST_KEY_NSLocalNetworkUsageDescription": "Connect to an API server on your local network.",
         "INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription": "Save images from posts.",
         "INFOPLIST_KEY_NSPhotoLibraryUsageDescription": "Save images from posts.",
         "INFOPLIST_KEY_UIApplicationSceneManifest_Generation": "YES",

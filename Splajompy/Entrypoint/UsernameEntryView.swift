@@ -22,7 +22,7 @@ struct UsernameEntryView: View {
   var body: some View {
     ScrollView {
       Text("Pick a username")
-        .font(SJFont.title)
+        .font(SFont.title)
         .padding()
 
       TextField("Username", text: $viewModel.username)
@@ -62,7 +62,7 @@ struct UsernameEntryView: View {
           Text(error)
         }
       }
-      .font(SJFont.body)
+      .font(SFont.sized(to: .body, weight: .body))
       .padding()
       .frame(maxWidth: .infinity, alignment: .leading)
       .background(

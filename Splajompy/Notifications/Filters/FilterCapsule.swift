@@ -10,7 +10,7 @@ struct FilterCapsule: View {
       onTap()
     }) {
       Text(title)
-        .fontWeight(.semibold)
+        .font(SFont.sized(to: .body, weight: .bold))
         .foregroundStyle(isActive ? .primary : .secondary)
         .padding(10)
         .background(

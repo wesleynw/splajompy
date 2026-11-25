@@ -83,7 +83,7 @@ struct NotificationsView: View {
         await viewModel.refreshNotifications()
       }
     }
-    .pageTitle("Notifications", placement: .leading, font: SJFont.title)
+    .pageTitle("Notifications", placement: .leading, font: SFont.title)
   }
 
   private var noNotificationsView: some View {

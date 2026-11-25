@@ -143,10 +143,20 @@ struct ProfileDisplayNameView: View {
     if isAligningVertically {
       VStack(alignment: .leading) {
         content
+          .font(
+            isLargeTitle
+              ? SFont.sized(to: .title2, weight: .bold)
+              : SFont.sized(to: .body, weight: .bold)
+          )
       }
     } else {
       HStack(alignment: .firstTextBaseline) {
         content
+          .font(
+            isLargeTitle
+              ? SFont.sized(to: .title2, weight: .bold)
+              : SFont.sized(to: .body, weight: .bold)
+          )
       }
     }
   }
@@ -162,25 +172,22 @@ struct ProfileDisplayNameView: View {
           .lineLimit(1)
       } else {
         Text(name)
-          .font(isLargeTitle ? .title2 : .body)
           .fontWeight(.black)
           .lineLimit(1)
       }
 
       if isShowingUsername {
         Text("@" + user.username)
-          .font(isLargeTitle ? .subheadline : .footnote)
           .foregroundStyle(.secondary)
-          .fontWeight(.black)
           .lineLimit(1)
       }
     } else if isShowingUsername {
       Text("@" + user.username)
-        .font(isLargeTitle ? .title2 : .body)
         .foregroundStyle(.secondary)
         .fontWeight(.black)
         .lineLimit(1)
     }
+
   }
 }
 

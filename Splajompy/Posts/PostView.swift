@@ -171,7 +171,7 @@ struct PostView: View {
           post.post.createdAt
             .formatted(.relative(presentation: .named))
         )
-        .font(.caption)
+        .font(SFont.sized(to: .body, weight: .bold))
         .foregroundStyle(.gray)
       }
 

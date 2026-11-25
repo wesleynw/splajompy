@@ -32,7 +32,7 @@ struct SearchView: View {
         }
       }
     }
-    .pageTitle("Search", placement: .leading, font: SJFont.title)
+    .pageTitle("Search", placement: .leading, font: SFont.title)
     #if os(macOS)
       .frame(maxWidth: 600)
       .frame(maxWidth: .infinity)
@@ -96,7 +96,7 @@ struct SearchView: View {
         .aspectRatio(contentMode: .fit)
         .frame(width: 200, height: 200)
       Text("No one's here")
-        .font(SJFont.title3)
+        .font(SFont.sized(to: .title3, weight: .body))
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity)
     .contentShape(Rectangle())

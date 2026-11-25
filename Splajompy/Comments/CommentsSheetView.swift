@@ -154,6 +154,7 @@ struct CommentsSheetView: View {
     .presentationDragIndicator(.visible)
   }
 
+  // TODO: this is shared with CommentContainerView, extract to own view
   private var noCommentsView: some View {
     VStack {
       Image("snail-sleeping")
@@ -162,7 +163,7 @@ struct CommentsSheetView: View {
         .frame(width: 280, height: 200)
 
       Text("No comments")
-        .font(SJFont.title3)
+        .font(SFont.sized(to: .title3, weight: .bold))
         .foregroundStyle(.secondary)
     }
   }

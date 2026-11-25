@@ -15,7 +15,7 @@ struct ErrorScreen: View {
         .frame(width: 200, height: 200)
 
       Text(errorString)
-        .font(SJFont.title3)
+        .font(SFont.sized(to: .title3, weight: .bold))
         .foregroundStyle(.secondary)
         .multilineTextAlignment(.center)
 
@@ -37,7 +37,7 @@ struct ErrorScreen: View {
             Image(systemName: "arrow.clockwise")
           }
           Text("Retry")
-            .font(SJFont.body)
+            .font(SFont.sized(to: .body, weight: .bold))
         }
       }
       .disabled(isRetrying)

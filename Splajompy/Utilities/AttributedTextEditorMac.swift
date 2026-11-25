@@ -62,7 +62,7 @@ struct AttributedTextEditor: NSViewRepresentable {
     context.coordinator.textView = textView
 
     let label = PassthroughTextField(labelWithString: placeholder)
-    label.font = NSFont.preferredFont(forTextStyle: .body)
+    label.font = NSFont(name: "SplajompyBody-Regular", size: 20)
     label.textColor = .tertiaryLabelColor
     label.translatesAutoresizingMaskIntoConstraints = false
     textView.addSubview(label)

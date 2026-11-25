@@ -4,8 +4,6 @@
 <dict>
 	<key>API_URL</key>
 	<string>$(API_URL)</string>
-	<key>NSLocalNetworkUsageDescription</key>
-	<string>Connect to an API server on your local network.</string>
 	<key>ATSApplicationFontsPath</key>
 	<string>.</string>
 	<key>CFBundleURLTypes</key>
@@ -33,6 +31,8 @@
 		<string>Chewy-Regular.ttf</string>
 		<string>Allura-Regular.ttf</string>
 		<string>Splajompy.ttf</string>
+		<string>SplajompyBody-Regular.ttf</string>
+		<string>SplajompyBody-Bold.ttf</string>
 	</array>
 	<key>UILaunchScreen</key>
 	<dict/>

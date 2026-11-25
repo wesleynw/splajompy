@@ -36,7 +36,7 @@ struct FeedFooterView: View {
         }
         .multilineTextAlignment(.center)
         .padding()
-        .font(SJFont.body)
+        .font(SFont.sized(to: .body, weight: .body))
       }
     }
     .padding()

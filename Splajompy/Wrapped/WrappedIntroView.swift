@@ -44,10 +44,13 @@ struct WrappedIntroView: View {
           VStack {
             Text("Error: \(error)")
               .foregroundStyle(.red)
-            Button("Retry") {
+            Button {
               Task {
                 await viewModel.load()
               }
+            } label: {
+              Text("Retry")
+                .font(SFont.sized(to: .body, weight: .bold))
             }
             .buttonStyle(.bordered)
           }

@@ -10,10 +10,10 @@ struct EmailVerifyView: View {
     ScrollView {
       VStack {
         Text("Check your email")
-          .font(SJFont.title)
+          .font(SFont.title)
 
         Text("A code has been sent to \(viewModel.email)")
-          .font(SJFont.body)
+          .font(SFont.sized(to: .body, weight: .body))
           .padding()
       }
       .padding()
@@ -42,7 +42,7 @@ struct EmailVerifyView: View {
         HStack {
           Image(systemName: "exclamationmark.triangle")
           Text(error)
-            .font(SJFont.body)
+            .font(SFont.sized(to: .body, weight: .body))
         }
         .padding()
         .frame(maxWidth: .infinity, alignment: .leading)

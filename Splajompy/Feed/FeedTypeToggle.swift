@@ -9,21 +9,27 @@ struct FeedTypeToggle: View {
         Button {
         } label: {
           Label("Home", systemImage: "house")
+            .font(SFont.sized(to: .body, weight: .bold))
           Text("Following plus a few others")
+            .font(SFont.sized(to: .body, weight: .body))
         }
         .tag(FeedType.mutual)
 
         Button {
         } label: {
           Label("Following", systemImage: "person.3")
+            .font(SFont.sized(to: .body, weight: .bold))
           Text("People that you follow")
+            .font(SFont.sized(to: .body, weight: .body))
         }
         .tag(FeedType.following)
 
         Button {
         } label: {
           Label("Everyone", systemImage: "globe")
+            .font(SFont.sized(to: .body, weight: .bold))
           Text("Beware")
+            .font(SFont.sized(to: .body, weight: .body))
         }
         .tag(FeedType.all)
 
@@ -38,7 +44,7 @@ struct FeedTypeToggle: View {
             .padding(.trailing, -5)
         #endif
         Text("Splajompy")
-          .font(SJFont.title)
+          .font(SFont.title)
       }
     }
     #if os(macOS)
