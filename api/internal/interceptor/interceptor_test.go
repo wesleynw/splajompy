@@ -25,7 +25,9 @@ import (
 	"splajompy.com/api/v2/internal/testutil"
 )
 
-type notificationRPCHandler struct{}
+type notificationRPCHandler struct {
+	splajompyv1connect.UnimplementedNotificationServiceHandler
+}
 
 func newTestRPCMux(q *queries.Queries) *http.ServeMux {
 	mux := http.NewServeMux()
