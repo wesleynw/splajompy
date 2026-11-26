@@ -94,7 +94,7 @@ struct CommentsSheetView: View {
             ProgressView()
           case .loaded(let comments):
             if comments.isEmpty {
-              noCommentsView
+              NoCommentsView()
             }
           case .failed(let error):
             ErrorScreen(
@@ -152,20 +152,6 @@ struct CommentsSheetView: View {
       dismiss()
     }
     .presentationDragIndicator(.visible)
-  }
-
-  // TODO: this is shared with CommentContainerView, extract to own view
-  private var noCommentsView: some View {
-    VStack {
-      Image("snail-sleeping")
-        .resizable()
-        .aspectRatio(contentMode: .fit)
-        .frame(width: 280, height: 200)
-
-      Text("No comments")
-        .font(SFont.sized(to: .title3, weight: .bold))
-        .foregroundStyle(.secondary)
-    }
   }
 }
 

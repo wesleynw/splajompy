@@ -319,7 +319,7 @@ struct ProfileView: View {
 
   private var emptyMessage: some View {
     Text(isProfileSelf ? "Your posts will show up here." : "No posts here.")
-      .font(SFont.sized(to: .title3, weight: .body))
+      .font(SFont.sized(to: .title2, weight: .bold))
       .frame(maxWidth: .infinity, alignment: .center)
       .padding(.top, 50)
   }

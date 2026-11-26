@@ -43,7 +43,7 @@ struct CommentsContainerView: View {
     VStack {
       Text("Comments")
         .frame(maxWidth: .infinity, alignment: .leading)
-        .font(SFont.sized(to: .title3, weight: .prominent))
+        .font(SFont.sized(to: .headline, weight: .prominent))
         .padding()
 
       switch viewModel.state {
@@ -88,7 +88,7 @@ struct CommentsContainerView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .overlay(alignment: .top) {
           if comments.isEmpty {
-            noCommentView
+            NoCommentsView()
           }
         }
       case .failed(let error):
@@ -120,20 +120,6 @@ struct CommentsContainerView: View {
     .onOpenURL { url in
       return
     }
-  }
-
-  private var noCommentView: some View {
-    VStack {
-      Image("snail-sleeping")
-        .resizable()
-        .aspectRatio(contentMode: .fit)
-        .frame(width: 280, height: 200)
-
-      Text("No comments")
-        .font(SFont.sized(to: .title3, weight: .bold))
-        .foregroundStyle(.secondary)
-    }
-    .padding(.bottom, 40)
   }
 }
 

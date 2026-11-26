@@ -8,7 +8,7 @@ enum SFontWeight: String {
 
 enum STypography {
   static let sizeMappings: [Font.TextStyle: CGFloat] = [
-    .title2: 23,
+    .title2: 24,
     .title3: 22,
     .headline: 21,
     .body: 20,

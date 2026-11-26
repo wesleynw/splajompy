@@ -15,7 +15,7 @@ struct ErrorScreen: View {
         .frame(width: 200, height: 200)
 
       Text(errorString)
-        .font(SFont.sized(to: .title3, weight: .bold))
+        .font(SFont.sized(to: .title2, weight: .bold))
         .foregroundStyle(.secondary)
         .multilineTextAlignment(.center)
 

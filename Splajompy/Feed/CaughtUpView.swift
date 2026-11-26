@@ -13,7 +13,7 @@ struct CaughtUpView: View {
         .frame(width: 50, height: 50)
       Text("You're all caught up\n(from this week)")
         .multilineTextAlignment(.center)
-        .font(SFont.sized(to: .title3, weight: .body))
+        .font(SFont.sized(to: .title2, weight: .bold))
         .padding()
 
       Button {
