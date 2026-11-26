@@ -96,7 +96,7 @@ struct SearchView: View {
         .aspectRatio(contentMode: .fit)
         .frame(width: 200, height: 200)
       Text("No one's here")
-        .font(SFont.sized(to: .title3, weight: .body))
+        .font(SFont.sized(to: .title2, weight: .body))
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity)
     .contentShape(Rectangle())

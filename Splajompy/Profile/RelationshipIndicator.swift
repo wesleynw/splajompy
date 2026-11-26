@@ -48,7 +48,7 @@ struct RelationshipIndicator: View {
     } else if mutuals.count == 3 {
       return "@\(mutuals[0]), @\(mutuals[1]), and @\(mutuals[2])"
     } else {
-      return "@\(mutuals[0]), @\(mutuals[1]) and \(mutuals.count - 2) others"
+      return "@\(mutuals[0]), @\(mutuals[1]), and \(mutuals.count - 2) others"
     }
   }
 }

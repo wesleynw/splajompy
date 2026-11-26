@@ -174,7 +174,7 @@ struct UserListView: View {
         .frame(width: 200, height: 200)
 
       Text("There's nobody here")
-        .font(SFont.sized(to: .title3, weight: .body))
+        .font(SFont.sized(to: .title2, weight: .bold))
     }
   }
 

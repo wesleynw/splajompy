@@ -94,7 +94,7 @@ struct NotificationsView: View {
         .frame(width: 200, height: 200)
 
       Text("No notifications")
-        .font(.title3)
+        .font(SFont.sized(to: .title2, weight: .bold))
         .fontWeight(.semibold)
       Button {
         Task { await viewModel.refreshNotifications() }
