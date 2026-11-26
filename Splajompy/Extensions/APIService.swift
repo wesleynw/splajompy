@@ -1,3 +1,4 @@
+import Connect
 import Foundation
 import OpenTelemetryApi
 import os
@@ -38,6 +39,20 @@ public struct APIService {
 
   static var baseUrl: String {
     UserDefaults.standard.string(forKey: serverURLKey) ?? defaultBaseUrl
+  }
+
+  private static let connectHTTPClient = URLSessionHTTPClient()
+
+  static var connectClient: ProtocolClient {
+    ProtocolClient(
+      httpClient: connectHTTPClient,
+      config: ProtocolClientConfig(
+        host: baseUrl,
+        networkProtocol: .connect,
+        codec: ProtoCodec(),
+        interceptors: [.init { config in ConnectAPIInterceptor(baseUrl: config.host) }]
+      )
+    )
   }
 
   @MainActor
@@ -147,7 +162,11 @@ public struct APIService {
 
       if httpResponse.statusCode == 401 {
         span.status = .error(description: "Unauthorized")
-        await AuthManager.shared.signOut(reason: "401_\(endpoint)")
+        if let authorization = request.value(forHTTPHeaderField: "Authorization") {
+          await AuthManager.shared.signOut(
+            reason: "401_\(endpoint)",
+            ifTokenMatches: String(authorization.dropFirst("Bearer ".count)))
+        }
         return .failure(
           APIErrorMessage(message: "Session expired. Please sign in again.")
         )
@@ -283,6 +302,92 @@ public struct APIService {
       }
     case .failure(let failure):
       return .failure(failure)
+    }
+  }
+}
+
+final class ConnectAPIInterceptor: UnaryInterceptor {
+  private let baseUrl: String
+  @MainActor private var requestToken: String?
+  private let tokenProvider: @Sendable () async -> String?
+  private let appVersion: String?
+  private let onUnauthenticated: @MainActor @Sendable (String) async -> Void
+  private let onUpgradeRequired: @MainActor @Sendable () -> Void
+
+  init(
+    baseUrl: String,
+    tokenProvider: @escaping @Sendable () async -> String? = {
+      await AuthManager.shared.getAuthToken()
+    },
+    appVersion: String? = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String,
+    onUnauthenticated: @escaping @MainActor @Sendable (String) async -> Void = { token in
+      await AuthManager.shared.signOut(reason: "401_rpc", ifTokenMatches: token)
+    },
+    onUpgradeRequired: @escaping @MainActor @Sendable () -> Void = {
+      NotificationCenter.default.post(name: .userNeedsAppUpgrade, object: nil)
+    }
+  ) {
+    self.baseUrl = baseUrl
+    self.tokenProvider = tokenProvider
+    self.appVersion = appVersion
+    self.onUnauthenticated = onUnauthenticated
+    self.onUpgradeRequired = onUpgradeRequired
+  }
+
+  func handleUnaryRequest<Message: ProtobufMessage>(
+    _ request: HTTPRequest<Message>,
+    proceed: @escaping @Sendable (Result<HTTPRequest<Message>, ConnectError>) -> Void
+  ) {
+    Task { @MainActor in
+      let token = await tokenProvider()
+      guard baseUrl == APIService.baseUrl else {
+        proceed(.failure(.canceled()))
+        return
+      }
+      guard let token else {
+        proceed(.failure(ConnectError(code: .unauthenticated, message: "Not authenticated")))
+        return
+      }
+      requestToken = token
+      var headers = request.headers
+      headers["Authorization"] = ["Bearer \(token)"]
+      headers["X-App-Version"] = appVersion.map { [$0] }
+      proceed(
+        .success(
+          HTTPRequest(
+            url: request.url,
+            headers: headers,
+            message: request.message,
+            method: request.method,
+            trailers: request.trailers,
+            idempotencyLevel: request.idempotencyLevel
+          )))
+    }
+  }
+
+  func handleUnaryResponse<Message: ProtobufMessage>(
+    _ response: ResponseMessage<Message>,
+    proceed: @escaping @Sendable (ResponseMessage<Message>) -> Void
+  ) {
+    Task { @MainActor in
+      let token = await tokenProvider()
+      guard baseUrl == APIService.baseUrl, let requestToken, requestToken == token else {
+        proceed(ResponseMessage(code: .canceled, result: .failure(.canceled())))
+        return
+      }
+      let errorDetails: [Google_Rpc_ErrorInfo] = response.error?.unpackedDetails() ?? []
+      switch response.error?.code {
+      case .unauthenticated:
+        await onUnauthenticated(requestToken)
+      case .failedPrecondition
+      where errorDetails.contains(where: {
+        $0.domain == "splajompy.com" && $0.reason == "APP_UPGRADE_REQUIRED"
+      }):
+        onUpgradeRequired()
+      default:
+        break
+      }
+      proceed(response)
     }
   }
 }

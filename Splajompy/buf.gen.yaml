@@ -1,0 +1,14 @@
+version: v2
+plugins:
+  - remote: buf.build/apple/swift:v1.39.0
+    out: Generated
+  - remote: buf.build/connectrpc/swift:v1.2.3
+    out: Generated
+    opt:
+      - GenerateAsyncMethods=true
+      - GenerateCallbackMethods=false
+inputs:
+  - directory: ../proto
+  - module: buf.build/googleapis/googleapis:8ac61b9e502343289c8c42b17aa5b245
+    types:
+      - google.rpc.ErrorInfo

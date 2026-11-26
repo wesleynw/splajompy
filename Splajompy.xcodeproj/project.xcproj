@@ -13,6 +13,18 @@
   "packages": [
     {
       "kind": "remote",
+      "repository": "https://github.com/connectrpc/connect-swift",
+      "version": {
+        "up-to-next-major-version": "1.2.3",
+      },
+    }, {
+      "kind": "remote",
+      "repository": "https://github.com/apple/swift-protobuf.git",
+      "version": {
+        "up-to-next-major-version": "1.39.0",
+      },
+    }, {
+      "kind": "remote",
       "repository": "https://github.com/kean/Nuke",
       "version": {
         "up-to-next-major-version": "14.0.0",
@@ -62,11 +74,13 @@
         {
           "target": "Splajompy",
           "exclusions": [
+            "buf.gen.yaml",
             "Comments/CommentViewModelTests.swift",
             "Configuration/Debug.xcconfig",
             "Configuration/Release.xcconfig",
             "Info.plist",
             "Splajompy.xctestplan",
+            "Tests/ConnectAPIInterceptorTests.swift",
             "Tests/GreatestRemainderQuotaTests.swift",
             "Tests/SessionHistoryServiceTests.swift",
           ],
@@ -92,6 +106,7 @@
           "target": "SplajompyTests",
           "inclusions": [
             "Comments/CommentViewModelTests.swift",
+            "Tests/ConnectAPIInterceptorTests.swift",
             "Tests/GreatestRemainderQuotaTests.swift",
             "Tests/SessionHistoryServiceTests.swift",
           ],
@@ -125,6 +140,14 @@
       ],
       "package-product-members": [
         {
+          "package": "connect-swift",
+          "product-name": "Connect",
+          "build-phase": { "build-phase": "frameworks" },
+        }, {
+          "package": "swift-protobuf",
+          "product-name": "SwiftProtobuf",
+          "build-phase": { "build-phase": "frameworks" },
+        }, {
           "package": "Nuke",
           "product-name": "Nuke",
           "build-phase": { "build-phase": "frameworks" },
