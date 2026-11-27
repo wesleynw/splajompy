@@ -15,7 +15,7 @@ extension View {
     placement: PageTitlePlacement = .center,
     font: Font = {
       #if os(iOS)
-        SFont.sized(to: .body, weight: .prominent)
+        SFont.sized(to: .callout, weight: .prominent)
       #else
         SFont.sized(to: .body, weight: .prominent)
       #endif

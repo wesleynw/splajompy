@@ -10,7 +10,7 @@ struct NoCommentsView: View {
         .frame(width: 280, height: 200)
 
       Text("No comments")
-        .font(SFont.sized(to: .title2, weight: .bold))
+        .font(SFont.sized(to: .title, weight: .bold))
         .foregroundStyle(.secondary)
     }
     .padding(.bottom, 40)

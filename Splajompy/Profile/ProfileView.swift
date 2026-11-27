@@ -280,7 +280,7 @@ struct ProfileView: View {
         HStack(spacing: 12) {
           Button(action: { isPresentingProfileEditor = true }) {
             Text("Edit Profile")
-              .font(SFont.sized(to: .body, weight: .bold))
+              .font(SFont.sized(to: .title3, weight: .bold))
               .frame(maxWidth: .infinity)
           }
           #if os(macOS)
@@ -296,7 +296,7 @@ struct ProfileView: View {
 
           NavigationLink(value: Route.followingList(userId: userId)) {
             Text("Following")
-              .font(SFont.sized(to: .body, weight: .bold))
+              .font(SFont.sized(to: .title3, weight: .bold))
               .frame(maxWidth: .infinity)
           }
           #if os(macOS)
