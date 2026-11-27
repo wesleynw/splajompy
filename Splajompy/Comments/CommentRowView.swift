@@ -48,13 +48,13 @@ struct CommentRow: View {
             comment.createdAt
               .formatted(.relative(presentation: .named))
           )
-          .font(SFont.sized(to: .body, weight: .body))
+          .font(SFont.sized(to: .callout, weight: .body))
           .foregroundStyle(.gray)
         }
 
         Spacer()
 
-        HStack {
+        HStack(spacing: 10) {
           if let currentUser = authManager.currentUser {
             if currentUser.userId == comment.user.userId {
               Menu(

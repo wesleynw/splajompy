@@ -146,7 +146,7 @@ struct ProfileDisplayNameView: View {
           .font(
             isLargeTitle
               ? SFont.sized(to: .title2, weight: .bold)
-              : SFont.sized(to: .body, weight: .bold)
+              : SFont.sized(to: .title3, weight: .bold)
           )
       }
     } else {
@@ -155,7 +155,7 @@ struct ProfileDisplayNameView: View {
           .font(
             isLargeTitle
               ? SFont.sized(to: .title2, weight: .bold)
-              : SFont.sized(to: .body, weight: .bold)
+              : SFont.sized(to: .title3, weight: .bold)
           )
       }
     }
