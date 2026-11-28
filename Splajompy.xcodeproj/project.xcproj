@@ -19,15 +19,9 @@
       },
     }, {
       "kind": "remote",
-      "repository": "https://github.com/open-telemetry/opentelemetry-swift-core.git",
-      "version": {
-        "up-to-next-major-version": "2.5.0",
-      },
-    }, {
-      "kind": "remote",
       "repository": "https://github.com/open-telemetry/opentelemetry-swift",
       "version": {
-        "up-to-next-major-version": "2.3.0",
+        "up-to-next-major-version": "3.0.0",
       },
     }, {
       "kind": "remote",
@@ -151,14 +145,6 @@
         }, {
           "package": "opentelemetry-swift",
           "product-name": "URLSessionInstrumentation",
-          "build-phase": { "build-phase": "frameworks" },
-        }, {
-          "package": "opentelemetry-swift-core",
-          "product-name": "OpenTelemetryApi",
-          "build-phase": { "build-phase": "frameworks" },
-        }, {
-          "package": "opentelemetry-swift-core",
-          "product-name": "OpenTelemetrySdk",
           "build-phase": { "build-phase": "frameworks" },
         }, {
           "package": "posthog-ios",
