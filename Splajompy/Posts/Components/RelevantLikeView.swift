@@ -17,7 +17,7 @@ struct RelevantLikeView: View {
   private var minimalLikesContainer: some View {
     HStack(spacing: 4) {
       Text("Liked by")
-        .font(SFont.sized(to: .body, weight: .body))
+        .font(SFont.sized(to: .callout, weight: .body))
         .foregroundStyle(.secondary)
 
       ForEach(Array(relevantLikes.prefix(2).enumerated()), id: \.element.userId) {
@@ -31,7 +31,7 @@ struct RelevantLikeView: View {
             )
           ) {
             Text("@\(like.username)")
-              .font(SFont.sized(to: .body, weight: .bold))
+              .font(SFont.sized(to: .callout, weight: .bold))
               .foregroundStyle(.tint)
               .lineLimit(1)
           }
@@ -47,7 +47,7 @@ struct RelevantLikeView: View {
 
       if hasOtherLikes {
         Text("and others")
-          .font(SFont.sized(to: .body, weight: .body))
+          .font(SFont.sized(to: .callout, weight: .body))
           .foregroundStyle(.secondary)
       }
     }
